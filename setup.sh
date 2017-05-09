@@ -16,8 +16,17 @@ check-and-clone\
     "coq-serapi" "https://github.com/ejgallego/coq-serapi.git"\
     "352c255a6e7a66268197cd7c04b6dc47b3bb7536"
 
-(cd coq; make -j `nproc`)
+if [ -f /etc/NIXOS ]; then
+  echo "Just run nix-shell"
+else
+  opam switch 4.04.0
+  # For Coq:
+  opam install menhir
+  # For SerAPI:
+  opam install ocamlfind ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
+  eval `opam config env`
+fi
 
-opam install ocamlfind ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
+(cd coq; make -j `nproc`)
 
 SERAPI_COQ_HOME="$PWD/coq/" cd coq-serapi; make
