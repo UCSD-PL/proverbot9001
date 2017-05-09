@@ -2,8 +2,8 @@
 set -euv
 
 function check-and-clone {
-    if [ ! -d $1/.git ]; then
-        git clone $2.git
+    if [ ! -d $1 ]; then
+        git clone $2
     fi
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
