@@ -29,4 +29,4 @@ fi
 
 (cd coq; make -j `nproc`)
 
-SERAPI_COQ_HOME="$PWD/coq/" cd coq-serapi; make
+(cd coq-serapi; SERAPI_COQ_HOME="$PWD/../coq/" make)
