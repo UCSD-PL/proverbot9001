@@ -20,6 +20,8 @@ Definition expand {A} (s : stream A) := (Build_stream s.(hd) s.(tl)).
 Theorem test : [1; 2] = {1; 2}.
 Proof using.
   {-+ pose proof ( 1 + ( - 2 ) )%Z.
-         * reflexivity...
+      simpl in * .
+      simpl in *...
+               * reflexivity...
   }
 Qed.
