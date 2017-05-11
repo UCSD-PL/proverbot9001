@@ -2,6 +2,7 @@
 nixpkgs.stdenv.mkDerivation {
   name = "proverbot9001";
   buildInputs = (with nixpkgs; [
+    python3
   ] ++ (with ocamlPackages_4_02; [
       # Coq:
       camlp5_6_strict
@@ -17,6 +18,9 @@ nixpkgs.stdenv.mkDerivation {
       ppx_import
       ppx_sexp_conv
       sexplib
+    ])
+    ++ (with pythonPackages; [
+      sexpdata
     ])
   );
   nativeBuildInputs = (with nixpkgs; [
