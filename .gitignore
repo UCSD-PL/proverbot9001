@@ -1,3 +1,6 @@
 __pycache__/
 coq/
 coq-serapi/
+*.aux
+*.glob
+*.vo
