@@ -332,15 +332,11 @@ class Worker(threading.Thread):
                     except Exception as e:
                         print("In file {}:".format(job))
                         raise e
-                    self.coq.kill()
+                    if (self.coq != None):
+                        self.coq.kill()
+                        self.coq = None
         except queue.Empty:
             pass
-        except Exception as e:
-            for worker in workers:
-                if worker == self:
-                    continue
-                worker.kill()
-            raise e
 
 def kill_comments(string):
     result = ""
@@ -427,16 +423,6 @@ def preprocess_command(cmd):
             else:
                 return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
     return [cmd]
-
-def process_file(fin, fout, coqargs, includes):
-    coq = SerapiInstance(coqargs, includes)
-    contents = fin.read()
-    contents = kill_comments(contents)
-    commands = split_commands(contents)
-    commands = [newcmd for cmd in commands for newcmd in preprocess_command(cmd)]
-    for command in commands:
-        coq.run_stmt(command)
-    coq.kill()
 
 parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
