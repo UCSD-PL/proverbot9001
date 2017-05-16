@@ -1,9 +1,12 @@
 { nixpkgs ? import <nixpkgs> {} }:
 nixpkgs.stdenv.mkDerivation {
   name = "proverbot9001";
-  buildInputs = (with nixpkgs; [
-    python3
-  ] ++ (with ocamlPackages_4_02; [
+  buildInputs =
+    (with nixpkgs; [
+      opam
+      python3
+    ]) ++
+    (with nixpkgs.ocamlPackages_4_03; [
       # Coq:
       camlp5_6_strict
       findlib
@@ -14,15 +17,18 @@ nixpkgs.stdenv.mkDerivation {
       camlp4
       cmdliner
       ocamlbuild
-      opam
+      ppx_deriving
       ppx_import
+      #sexplib
+    ]) ++
+    (with nixpkgs.ocamlPackages_4_03.janeStreet; [
       ppx_sexp_conv
       sexplib
-    ])
-    ++ (with pythonPackages; [
+    ]) ++
+    (with nixpkgs.pythonPackages; [
       sexpdata
     ])
-  );
+  ;
   nativeBuildInputs = (with nixpkgs; [
   ]);
   shellHook = ''
