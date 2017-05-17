@@ -326,11 +326,14 @@ workers = []
 output_lock = threading.Lock()
 
 class Worker(threading.Thread):
-    def __init__(self, output, prelude="."):
+    def __init__(self, output, workerid, prelude="."):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = [os.path.dirname(os.path.abspath(__file__)) + "/coq-serapi/sertop.native",
                    "--prelude={}/coq".format(os.path.dirname(os.path.abspath(__file__)))]
         includes=subprocess.Popen(['make', '-C', prelude, 'print-includes'], stdout=subprocess.PIPE).communicate()[0]
+        self.tmpfile_name = "/tmp/proverbot_worker{}".format(workerid)
+        with open(self.tmpfile_name, 'w') as tmp_file:
+            tmp_file.write('')
         self.outbuf = ""
         self.includes=includes.strip().decode('utf-8')
         if output == None:
@@ -368,6 +371,7 @@ class Worker(threading.Thread):
                 self.coq.kill()
 
     def process_statement(self, command):
+        self.outbuf = ""
         if self.coq.proof_context:
             prev_tactics = self.coq.prev_tactics
             prev_hyps = self.coq.get_hypothesis()
@@ -384,6 +388,8 @@ class Worker(threading.Thread):
             post_goal = self.coq.get_goals()
             self.outbuf += "-----\n"
             self.outbuf += post_goal + "\n"
+        with open(self.tmpfile_name, 'a') as tmp_file:
+            tmp_file.write(self.outbuf)
 
     def process_file(self, filename):
         self.linearize(filename)
@@ -398,6 +404,7 @@ class Worker(threading.Thread):
             self.coq = SerapiInstance(self.coqargs, self.includes)
             for command in commands:
                 self.process_statement(command)
+            self.coq.kill()
         except Exception as e:
             print("In file {}:".format(filename))
             if (self.coq != None):
@@ -406,9 +413,12 @@ class Worker(threading.Thread):
             raise e
 
         output_lock.acquire()
-        self.fout.write(self.outbuf)
+        with open(self.tmpfile_name, 'r') as tmp_file:
+            for line in tmp_file:
+                self.fout.write(line)
+        with open(self.tmpfile_name, 'w') as tmp_file:
+            tmp_file.write('')
         output_lock.release()
-        self.outbuf = ""
 
     def run(self):
         try:
@@ -528,13 +538,13 @@ def lift_inner_lemmas(commands, args, includes):
             else:
                 new_contents.append(command)
                 coq.run_stmt(command)
-                if ending_proof(command):
-                    # print("Ending proof with \"{}\"".format(command))
-                    lemma_contents = lemma_stack.pop()
+            if ending_proof(command):
+                # print("Ending proof with \"{}\"".format(command))
+                lemma_contents = lemma_stack.pop()
 
-                    new_contents.extend(lemma_contents)
-                    for command in lemma_contents:
-                        coq.run_stmt(command)
+                new_contents.extend(lemma_contents)
+                for command in lemma_contents:
+                    coq.run_stmt(command)
         assert (len(lemma_stack) == 0)
         coq.kill()
     except Exception as e:
@@ -589,7 +599,7 @@ for infname in args.inputs:
     jobs.put(infname)
 
 for idx in range(args.threads):
-    worker = Worker(args.output, args.prelude)
+    worker = Worker(args.output, idx, args.prelude)
     worker.start()
     workers.append(worker)
 
