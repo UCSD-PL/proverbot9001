@@ -1,6 +1,7 @@
-__pycache__/
-coq/
-coq-serapi/
+/__pycache__/
+/CompCert/
+/coq/
+/coq-serapi/
 *.aux
 *.glob
 *.vo
