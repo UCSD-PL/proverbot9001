@@ -180,8 +180,6 @@ class SerapiInstance(threading.Thread):
             self._fin.flush()
             feedbacks = self.get_feedbacks()
 
-            self._fin.write("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state).encode('utf-8'))
-            self._fin.flush()
             self.get_proof_context()
 
             if self.proof_context:
@@ -290,6 +288,8 @@ class SerapiInstance(threading.Thread):
         return re.split("\n======+\n", self.proof_context)[0]
 
     def get_proof_context(self):
+        self._fin.write("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state).encode('utf-8'))
+        self._fin.flush()
         self.get_ack()
 
         proof_context_message = self.messages.get()
