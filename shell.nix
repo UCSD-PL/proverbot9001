@@ -19,7 +19,8 @@ nixpkgs.stdenv.mkDerivation {
       ocamlbuild
       ppx_deriving
       ppx_import
-      #sexplib
+      # CompCert
+      menhir
     ]) ++
     (with nixpkgs.ocamlPackages_4_03.janeStreet; [
       ppx_sexp_conv
