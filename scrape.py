@@ -284,8 +284,7 @@ class Worker(threading.Thread):
 
     def linearize(self, job):
         with open(job, 'r') as fin:
-            job_filename, job_extension = os.path.splitext(job)
-            with open(job_filename + ".linear.v", 'w') as fout:
+            with open(job + "-linear", 'w') as fout:
                 contents = kill_comments(fin.read())
                 self.coq = SerapiInstance(self.coqargs, self.includes)
                 commands = [newcmd for cmd in split_commands(contents)
