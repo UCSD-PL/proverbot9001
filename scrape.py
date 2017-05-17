@@ -70,6 +70,8 @@ def count_open_proofs(coq):
     return len(coq.query_goals()[2][1])
 
 def count_fg_goals(coq):
+    if count_open_proofs(coq) == 0:
+        return 0
     return len(coq.query_goals()[2][1][0][1][0][1])
 
 # semiands   : [[String]]
@@ -98,8 +100,14 @@ def linearize(coq, fout, semiands, ksemiands, periodands, done):
             return linearize(coq, fout, split_semis_brackets(nextTactic), ksemiands, periodands, done)
         else:
             if len(periodands) != 0:
-                #print("POPPING NEXT PERIODAND")
                 nextTactic = periodands.pop(0)
+                while nextTactic in ['+', '-', '*', '{', '}']:
+                    if len(periodands) == 0:
+                        print("ERROR: ran out of tactics w/o finishing the proof")
+                    else:
+                        #print("Skipping bullet: " + nextTactic)
+                        nextTactic = periodands.pop(0)
+                #print("POPPING NEXT PERIODAND: " + nextTactic)
                 return linearize(coq, fout, split_semis_brackets(nextTactic), [], periodands, done)
             else:
                 print("ERROR: ran out of tactic w/o finishing the proof")
@@ -309,10 +317,10 @@ class Worker(threading.Thread):
         try:
             while(True):
                 job = jobs.get_nowait()
-                self.linearize(job)
                 print("Processing file {} ({} of {})".format(job,
                                                              num_jobs - jobs.qsize(),
                                                              num_jobs))
+                self.linearize(job)
                 with open(job, 'r') as fin:
                     contents = kill_comments(fin.read())
                     self.coq = SerapiInstance(self.coqargs, self.includes)
