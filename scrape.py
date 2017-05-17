@@ -5,10 +5,12 @@ import threading
 import re
 import queue
 import os
+import os.path
 import argparse
 import sys
 # This dependency is in pip, the python package manager
 from sexpdata import *
+from traceback import *
 
 class AckError(Exception):
     def __init__(self, msg):
@@ -162,6 +164,9 @@ class SerapiInstance(threading.Thread):
         self.start()
         self.discard_initial_feedback()
         self.exec_includes(includes)
+        self.proof_context = None
+        self.cur_state = 0
+        self.prev_tactics = []
 
     def run_stmt(self, stmt):
         stmt = stmt.replace("\\", "\\\\")
@@ -169,17 +174,35 @@ class SerapiInstance(threading.Thread):
         try:
             self._fin.write("(Control (StmAdd () \"{}\"))\n".format(stmt).encode('utf-8'))
             self._fin.flush()
-            next_state = self.get_next_state()
-            self._fin.write("(Control (StmObserve {}))\n".format(next_state).encode('utf-8'))
+            self.cur_state = self.get_next_state()
+
+            self._fin.write("(Control (StmObserve {}))\n".format(self.cur_state).encode('utf-8'))
             self._fin.flush()
             feedbacks = self.get_feedbacks()
+
+            self._fin.write("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state).encode('utf-8'))
+            self._fin.flush()
+            self.get_proof_context()
+
+            if self.proof_context:
+                self.prev_tactics.append(stmt)
+            else:
+                self.prev_tactics = []
+
         except Exception as e:
             print("Problem running statement: {}".format(stmt))
             raise e
 
+    def cancel_last(self):
+        self._fin.write("(Control (StmCancel ({})))".format(self.cur_state).encode('utf-8'))
+        self._fin.flush()
+        self.get_cancelled()
+        self.cur_state = self.cur_state - 1
+
     def get_ack(self):
         ack = self.messages.get()
-        if (ack[0] != Symbol("Answer") or
+        if (not isinstance(ack, list) or
+            ack[0] != Symbol("Answer") or
             ack[2] != Symbol("Ack")):
             raise AckError(ack)
 
@@ -250,6 +273,36 @@ class SerapiInstance(threading.Thread):
         self.get_ack()
         answer = self.messages.get()
         return answer
+    def get_cancelled(self):
+        self.get_ack()
+        feedback = self.messages.get()
+        cancelled = self.messages.get()
+        self.get_completed()
+
+    def extract_proof_context(self, raw_proof_context):
+        return raw_proof_context[0][1]
+
+    def get_goals(self):
+        split = re.split("\n======+\n", self.proof_context)
+        return split[1]
+
+    def get_hypothesis(self):
+        return re.split("\n======+\n", self.proof_context)[0]
+
+    def get_proof_context(self):
+        self.get_ack()
+
+        proof_context_message = self.messages.get()
+        if proof_context_message[0] != Symbol("Answer"):
+            raise BadResponse(proof_context_message)
+        else:
+            ol_msg = proof_context_message[2]
+            if (ol_msg[0] != Symbol("ObjList")):
+                raise BadResponse(proof_context_message)
+            if len(ol_msg[1]) != 0:
+                self.proof_context = self.extract_proof_context(ol_msg[1])
+            else:
+                self.proof_context = None
 
     def run(self):
         while(True):
@@ -270,13 +323,15 @@ class SerapiInstance(threading.Thread):
 num_jobs = 0
 jobs = queue.Queue()
 workers = []
+output_lock = threading.Lock()
 
 class Worker(threading.Thread):
-    def __init__(self, output):
-        threading.Thread.__init__(self)
+    def __init__(self, output, prelude="."):
+        threading.Thread.__init__(self, daemon=True)
         self.coqargs = [os.path.dirname(os.path.abspath(__file__)) + "/coq-serapi/sertop.native",
                    "--prelude={}/coq".format(os.path.dirname(os.path.abspath(__file__)))]
-        includes=subprocess.Popen(['make', 'print-includes'], stdout=subprocess.PIPE).communicate()[0]
+        includes=subprocess.Popen(['make', '-C', prelude, 'print-includes'], stdout=subprocess.PIPE).communicate()[0]
+        self.outbuf = ""
         self.includes=includes.strip().decode('utf-8')
         if output == None:
             self.fout = sys.stdout
@@ -312,6 +367,48 @@ class Worker(threading.Thread):
 
                 self.coq.kill()
 
+    def process_statement(self, command):
+        if self.coq.proof_context:
+            prev_tactics = self.coq.prev_tactics
+            prev_hyps = self.coq.get_hypothesis()
+            prev_goal = self.coq.get_goals()
+            self.outbuf += "*****\n"
+            self.outbuf += prev_goal + "\n"
+            self.outbuf += "+++++\n"
+            self.outbuf += command + "\n"
+        self.coq.run_stmt(command)
+
+
+        if self.coq.proof_context:
+            post_hyps = self.coq.get_hypothesis()
+            post_goal = self.coq.get_goals()
+            self.outbuf += "-----\n"
+            self.outbuf += post_goal + "\n"
+
+    def process_file(self, filename):
+        self.linearize(filename)
+        with open(filename, 'r') as fin:
+            contents = kill_comments(fin.read())
+        try:
+            commands = lift_inner_lemmas([newcmd for cmd
+                                          in split_commands(contents)
+                                          for newcmd
+                                          in preprocess_command(cmd)],
+                                         self.coqargs, self.includes)
+            self.coq = SerapiInstance(self.coqargs, self.includes)
+            for command in commands:
+                self.process_statement(command)
+        except Exception as e:
+            print("In file {}:".format(filename))
+            if (self.coq != None):
+                self.coq.kill()
+                self.coq = None
+            raise e
+
+        output_lock.acquire()
+        self.fout.write(self.outbuf)
+        output_lock.release()
+        self.outbuf = ""
 
     def run(self):
         try:
@@ -320,24 +417,7 @@ class Worker(threading.Thread):
                 print("Processing file {} ({} of {})".format(job,
                                                              num_jobs - jobs.qsize(),
                                                              num_jobs))
-                self.linearize(job)
-                with open(job, 'r') as fin:
-                    contents = kill_comments(fin.read())
-                    try:
-                        commands = lift_inner_lemmas([newcmd for cmd
-                                                      in split_commands(contents)
-                                                      for newcmd
-                                                      in preprocess_command(cmd)],
-                                                     self.coqargs, self.includes)
-                        self.coq = SerapiInstance(self.coqargs, self.includes)
-                        for command in commands:
-                            self.coq.run_stmt(command)
-                    except Exception as e:
-                        print("In file {}:".format(job))
-                        raise e
-                    if (self.coq != None):
-                        self.coq.kill()
-                        self.coq = None
+                self.process_file(job)
         except queue.Empty:
             pass
 
@@ -408,20 +488,22 @@ def has_toplevel_colonequals(command):
             return True
     return False
 
-def starting_proof(command):
-    return (((re.match("Lemma\s", command) or
-              re.match("Theorem\s", command) or
-              re.match("Remark\s", command) or
-              re.match("Proposition\s", command) or
-              re.match("Definition\s", command) or
-              re.match("Example\s", command) or
-              re.match("Fixpoint\s", command) or
-              re.match("Corollary\s", command) or
-              ("Instance" in command and
-               "Declare" not in command)) and
-             not has_toplevel_colonequals(command)) or
+def possibly_starting_proof(command):
+    return (re.match("Lemma\s", command) or
+            re.match("Theorem\s", command) or
+            re.match("Remark\s", command) or
+            re.match("Proposition\s", command) or
+            re.match("Definition\s", command) or
+            re.match("Example\s", command) or
+            re.match("Fixpoint\s", command) or
+            re.match("Corollary\s", command) or
+            re.match("Let\s", command) or
+            ("Instance" in command and
+             "Declare" not in command) or
             re.match("Function\s", command) or
-            re.match("Program\s", command))
+            re.match("Next Obligation", command) or
+            re.match("Property\s", command) or
+            re.match("Add Morphism\s", command))
 
 def ending_proof(command):
     return ("Qed" in command or
@@ -433,24 +515,31 @@ def lift_inner_lemmas(commands, args, includes):
     coq = SerapiInstance(args, includes)
     new_contents = []
     lemma_stack = []
-    for command in commands:
-        if possibly_starting_proof(command):
-            coq.run_stmt(command)
-            print("Starting proof with \"{}\"".format(command))
-            lemma_stack.append([])
-        if len(lemma_stack) > 0:
-            lemma_stack[-1].append(command)
-        else:
-            new_contents.append(command)
-            coq.run_stmt(command)
-        if ending_proof(command):
-            print("Ending proof with \"{}\"".format(command))
-            lemma_contents = lemma_stack.pop()
-
-            new_contents.extend(lemma_contents)
-            for command in lemma_contents:
+    try:
+        for command in commands:
+            if possibly_starting_proof(command):
                 coq.run_stmt(command)
-    assert (len(lemma_stack) == 0)
+                if coq.proof_context != None:
+                    # print("Starting proof with \"{}\"".format(command))
+                    lemma_stack.append([])
+                coq.cancel_last()
+            if len(lemma_stack) > 0:
+                lemma_stack[-1].append(command)
+            else:
+                new_contents.append(command)
+                coq.run_stmt(command)
+                if ending_proof(command):
+                    # print("Ending proof with \"{}\"".format(command))
+                    lemma_contents = lemma_stack.pop()
+
+                    new_contents.extend(lemma_contents)
+                    for command in lemma_contents:
+                        coq.run_stmt(command)
+        assert (len(lemma_stack) == 0)
+        coq.kill()
+    except Exception as e:
+        coq.kill()
+        raise e
     return new_contents
 
 def preprocess_command(cmd):
@@ -490,6 +579,7 @@ def preprocess_command(cmd):
 parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
 parser.add_argument('-j', '--threads', default=1, type=int)
+parser.add_argument('--prelude', default=".")
 parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
 args = parser.parse_args()
 
@@ -499,7 +589,7 @@ for infname in args.inputs:
     jobs.put(infname)
 
 for idx in range(args.threads):
-    worker = Worker(args.output)
+    worker = Worker(args.output, args.prelude)
     worker.start()
     workers.append(worker)
 
