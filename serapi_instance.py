@@ -69,7 +69,10 @@ class SerapiInstance(threading.Thread):
             raise e
 
     def cancel_last(self):
-        self._fin.write("(Control (StmCancel ({})))".format(self.cur_state).encode('utf-8'))
+        while not self.messages.empty():
+            self.messages.get()
+        cancel = "(Control (StmCancel ({})))".format(self.cur_state)
+        self._fin.write(cancel.encode('utf-8'))
         self._fin.flush()
         self.get_cancelled()
         self.cur_state = self.cur_state - 1
