@@ -65,9 +65,10 @@ class Worker(threading.Thread):
             tmp_file.write(self.outbuf)
 
     def process_file(self, filename):
-        with open(filename, 'r') as fin:
-            contents = kill_comments(fin.read())
         try:
+            self.linearize(filename)
+            with open(filename + "-linear", 'r') as fin:
+                contents = kill_comments(fin.read())
             commands = lift_inner_lemmas([newcmd for cmd
                                           in split_commands(contents)
                                           for newcmd
