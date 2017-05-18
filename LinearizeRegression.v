@@ -1,4 +1,4 @@
-From Coq Require Import Bool.
+Require Import Bool.
 
 Theorem linerarizeMeEasy : forall a b, a = b \/ a && b = false.
 Proof.
