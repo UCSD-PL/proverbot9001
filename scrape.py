@@ -66,10 +66,9 @@ class Worker(threading.Thread):
 
     def process_file(self, filename):
         try:
-            self.linearize(filename)
-            with open(filename + "-linear", 'r') as fin:
+            with open(filename, 'r') as fin:
                 contents = kill_comments(fin.read())
-            commands = lift_inner_lemmas([newcmd for cmd
+            commands = lift_inner_vernac([newcmd for cmd
                                           in split_commands(contents)
                                           for newcmd
                                           in preprocess_command(cmd)],
@@ -191,13 +190,16 @@ def possibly_starting_proof(command):
             re.match("Property\s", command) or
             re.match("Add Morphism\s", command))
 
+def lifted_vernac(command):
+    return re.match("Ltac\s", command)
+
 def ending_proof(command):
     return ("Qed" in command or
             "Defined" in command or
             (re.match("Proof\s+\S+\s*", command) and
              not re.match("Proof with", command)))
 
-def lift_inner_lemmas(commands, args, includes):
+def lift_inner_vernac(commands, args, includes):
     coq = serapi_instance.SerapiInstance(args, includes)
     new_contents = []
     lemma_stack = []
@@ -209,7 +211,7 @@ def lift_inner_lemmas(commands, args, includes):
                     # print("Starting proof with \"{}\"".format(command))
                     lemma_stack.append([])
                 coq.cancel_last()
-            if len(lemma_stack) > 0:
+            if len(lemma_stack) > 0 and not lifted_vernac(command):
                 lemma_stack[-1].append(command)
             else:
                 new_contents.append(command)
