@@ -69,19 +69,51 @@ def linearize_commands(commands_original, coqargs, includes, filename):
     commands = commands_original[:] # going to mutate it
     # linearize_commands needs its own Coq instance
     coq = serapi_instance.SerapiInstance(coqargs, includes)
+    fallback = False
+    last_theorem_statement = ""
+    num_theorems_started = 0
     while commands:
         command = commands.pop(0)
         #print("POPPED: " + command)
 
-        # Note: shortcircuiting `or` matters here
-        if count_open_proofs(coq) == 0 or count_fg_goals(coq) == 0:
+        if count_open_proofs(coq) == 0:
             coq.run_stmt(command)
             #print('>>> ' + command)
+            yield(command)
+            fallback = False
+            if count_open_proofs(coq) != 0:
+                last_theorem_statement = command
+                num_theorems_started += 1
+            continue
+        if fallback:
+            coq.run_stmt(command)
             yield(command)
             continue
 
         #print("TIME TO LINEARIZE: " + command)
-        yield from linearize_proof(coq, split_semis_brackets(command), [], commands, 0)
+        orig = [command] + commands[:]
+        try:
+            linearized_commands = list(linearize_proof(coq, split_semis_brackets(command),
+                                                       [], commands, 0))
+            if (count_open_proofs(coq) != 0):
+                qed = commands.pop(0)
+                assert(qed == "Qed." or qed == "Defined.")
+                coq.run_stmt(qed)
+                postfix = [qed]
+            else:
+                postfix = []
+            yield from linearized_commands
+            yield from postfix
+        except Exception as e:
+            print("Aborting current proof linearization!")
+            print("Proof {}, in file {}"
+                  .format(num_theorems_started, filename))
+            print()
+            coq.cancel_last()
+            coq.run_stmt("Abort.")
+            coq.run_stmt(last_theorem_statement)
+            commands = orig
+            fallback = True
 
     coq.kill()
 
