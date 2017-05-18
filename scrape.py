@@ -73,7 +73,7 @@ class Worker(threading.Thread):
                                           for newcmd
                                           in preprocess_command(cmd)],
                                          self.coqargs, self.includes)
-            commands = list(linearize_semicolons.linearize_commands(commands, self.coqargs, self.includes))
+            commands = list(linearize_semicolons.linearize_commands(commands, self.coqargs, self.includes, filename))
             #print("Done linearizing")
             #print(str(commands))
             self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)

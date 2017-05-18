@@ -64,7 +64,7 @@ jobs = queue.Queue()
 workers = []
 output_lock = threading.Lock()
 
-def linearize_commands(commands_original, coqargs, includes):
+def linearize_commands(commands_original, coqargs, includes, filename):
     #print("Starting a linearize_commands with: " + str(coqargs))
     commands = commands_original[:] # going to mutate it
     # linearize_commands needs its own Coq instance
