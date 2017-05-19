@@ -149,7 +149,7 @@ def split_commands(string):
                 result.append(next_command.strip())
                 next_command = ""
                 continue
-            if (re.match("\.\s", string[i:i+2]) and
+            if (re.match("\.($|\s)", string[i:i+2]) and
                 (not string[i-1] == "." or string[i-2] == ".")):
                 result.append(next_command.strip() + ".")
                 next_command = ""
