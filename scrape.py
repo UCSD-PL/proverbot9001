@@ -68,10 +68,9 @@ class Worker(threading.Thread):
         try:
             with open(filename, 'r') as fin:
                 contents = kill_comments(fin.read())
-            commands = lift_inner_vernac([newcmd for cmd
-                                          in split_commands(contents)
-                                          for newcmd
-                                          in preprocess_command(cmd)],
+            commands_orig = split_commands(contents)
+            commands_preprocessed = [newcmd for cmd in commands_orig for newcmd in preprocess_command(cmd)]
+            commands = lift_inner_vernac(commands_preprocessed,
                                          self.coqargs, self.includes)
             commands = list(linearize_semicolons.linearize_commands(commands, self.coqargs, self.includes, filename))
             #print("Done linearizing")
@@ -157,21 +156,6 @@ def split_commands(string):
                 continue
         next_command += string[i]
     return result
-
-def has_toplevel_colonequals(command):
-    depth = 0
-    for i in range(len(command)):
-        if re.match("\s\{\|\s", command[i:i+4]):
-            depth += 1
-        if re.match("\s\|\}\s", command[i:i+4]):
-            depth -= 1
-        if re.match("\slet\s", command[i:i+5]):
-            depth += 1
-        if re.match("\sin\s", command[i:i+4]):
-            depth -= 1
-        if re.match(":=\s", command[i:i+4]) and depth == 0:
-            return True
-    return False
 
 def possibly_starting_proof(command):
     return (re.match("Lemma\s", command) or
