@@ -14,6 +14,7 @@ from traceback import *
 
 import serapi_instance
 
+debug = False
 show_debug = False
 show_trace = False
 
@@ -167,7 +168,8 @@ def linearize_commands(commands_original, coqargs, includes, filename):
             yield from linearized_commands
             yield from postfix
         except Exception as e:
-            raise e # for debugging purposes
+            if debug:
+                raise e # for debugging purposes
             print("Aborting current proof linearization!")
             print("Proof {}, in file {}".format(num_theorems_started, filename))
             print()
