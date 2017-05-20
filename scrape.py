@@ -73,8 +73,8 @@ class Worker(threading.Thread):
             commands = lift_inner_vernac(commands_preprocessed,
                                          self.coqargs, self.includes)
             commands = list(linearize_semicolons.linearize_commands(commands, self.coqargs, self.includes, filename))
-            #print("Done linearizing")
-            #print(str(commands))
+            print("\n\n\nDone linearizing\n\n\n")
+            for cmd in commands: print(cmd)
             self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)
             for command in commands:
                 self.process_statement(command)
