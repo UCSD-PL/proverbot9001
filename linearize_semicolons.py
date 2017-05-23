@@ -109,77 +109,67 @@ def show_semiand(pipeands):
 def show_semiands(semiands):
     return ' ; '.join(map(show_semiand, semiands))
 
-def linearize_commands(commands_original, coqargs, includes, filename):
-    #print("Starting a linearize_commands with: " + str(coqargs))
-    commands = commands_original[:] # going to mutate it
-    # linearize_commands needs its own Coq instance
-    coq = serapi_instance.SerapiInstance(coqargs, includes)
-    fallback = False
-    last_theorem_statement = ""
+def linearize_commands(commands_sequence, coq, filename):
     num_theorems_started = 0
-    with_tactic = ""
-    while commands:
-        command = commands.pop(0)
-        #print("Popped command: {}".format(command))
+    command = next(commands_sequence, None)
+    while command:
+        # Run up to the next proof
+        while count_open_proofs(coq) == 0:
+            coq.run_stmt(command)
+            if count_open_proofs(coq) == 0:
+                yield command
+                command = next(commands_sequence, None)
+                if not command:
+                    return
+        # Cancel the proof starting command so that we're right before the proof
+        coq.cancel_last()
+        # Pull the entire proof from the lifter into command_batch
+        command_batch = []
+        while command and not serapi_instance.ending_proof(command):
+            command_batch.append(command)
+            command = next(commands_sequence, None)
+        # Get the QED on there too.
+        command_batch.append(command)
 
-        # Capture the tactic in `Proof with (...).`
-        match = re.fullmatch("Proof with (.*)\.", command)
+        # Now command_batch contains everything through the next
+        # Qed/Defined.
+        theorem_statement = command_batch.pop(0)
+        coq.run_stmt(theorem_statement)
+        fallback = False
+        num_theorems_started += 1
+        yield theorem_statement
+
+        # This might not be super robust?
+        match = re.fullmatch("Proof with (.*)\.", command_batch[0])
         if match and match.group(1):
             with_tactic = match.group(1).lstrip('(').rstrip(')')
-        if re.fullmatch("Qed.", command):
+        else:
             with_tactic = ""
 
-        if count_open_proofs(coq) == 0:
-            coq.run_stmt(command)
-            if show_trace:
-                print('    ' + command)
-            yield command
-            fallback = False
-            if count_open_proofs(coq) != 0:
-                last_theorem_statement = command
-                num_theorems_started += 1
-            continue
-        if fallback:
-            coq.run_stmt(command)
-            if show_trace:
-                print('    ' + command)
-            yield command
-            continue
-
-        #print("Entered a proof, time to linearize")
-        # We reappend command so that we can save commands
-        # in case linearization fails
-        commands.insert(0, command)
-        orig = commands[:]
+        orig = command_batch[:]
         try:
-            linearized_commands = list(
-                linearize_proof(coq, with_tactic, commands)
-            )
-            if count_open_proofs(coq) != 0:
-                qed = commands.pop(0)
-                #print("qed: {}".format(qed))
-                assert(qed == "Qed." or qed == "Defined.")
-                coq.run_stmt(qed)
-                if show_trace:
-                    print('    ' + qed)
-                postfix = [qed]
-            else:
-                postfix = []
-            yield from linearized_commands
-            yield from postfix
+            yield from list(linearize_proof(coq, with_tactic, command_batch))
+
+            # If there are unconsumed items in the batch, they must
+            # just be a single ending statement, so run them and yield
+            # them.
+            for command in command_batch:
+                coq.run_stmt(command)
+                yield command
         except Exception as e:
             if debug:
-                raise e # for debugging purposes
+                raise e
             print("Aborting current proof linearization!")
             print("Proof {}, in file {}".format(num_theorems_started, filename))
             print()
             coq.cancel_last()
             coq.run_stmt("Abort.")
-            coq.run_stmt(last_theorem_statement)
-            commands = orig
-            fallback = True
+            coq.run_stmt(theorem_statement)
+            for command in orig:
+                coq.run_stmt(command)
+                yield command
 
-    coq.kill()
+        command = next(commands_sequence, None)
 
 # semiands   : [[String]]
 # ksemiands  : [[[String]]]

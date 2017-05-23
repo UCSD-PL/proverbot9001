@@ -70,11 +70,9 @@ class Worker(threading.Thread):
                 contents = kill_comments(fin.read())
             commands_orig = split_commands(contents)
             commands_preprocessed = [newcmd for cmd in commands_orig for newcmd in preprocess_command(cmd)]
-            commands = lift_inner_vernac(commands_preprocessed,
-                                         self.coqargs, self.includes)
-            commands = list(linearize_semicolons.linearize_commands(commands, self.coqargs, self.includes, filename))
-            #print("\n\n\nDone linearizing\n\n\n")
-            #for cmd in commands: print(cmd)
+            commands = lift_and_linearize(commands_preprocessed,
+                                          self.coqargs, self.includes,
+                                          filename)
             self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)
             for command in commands:
                 self.process_statement(command)
@@ -157,62 +155,38 @@ def split_commands(string):
         next_command += string[i]
     return result
 
-def possibly_starting_proof(command):
-    return (re.match("Lemma\s", command) or
-            re.match("Theorem\s", command) or
-            re.match("Remark\s", command) or
-            re.match("Proposition\s", command) or
-            re.match("Definition\s", command) or
-            re.match("Example\s", command) or
-            re.match("Fixpoint\s", command) or
-            re.match("Corollary\s", command) or
-            re.match("Let\s", command) or
-            ("Instance" in command and
-             "Declare" not in command) or
-            re.match("Function\s", command) or
-            re.match("Next Obligation", command) or
-            re.match("Property\s", command) or
-            re.match("Add Morphism\s", command))
-
 def lifted_vernac(command):
     return re.match("Ltac\s", command)
 
-def ending_proof(command):
-    return ("Qed" in command or
-            "Defined" in command or
-            (re.match("Proof\s+\S+\s*", command) and
-             not re.match("Proof with", command)))
+def lift_and_linearize(commands, coqargs, includes, filename):
+    coq = serapi_instance.SerapiInstance(coqargs, includes)
+    try:
+        return linearize_semicolons.linearize_commands(generate_lifted(commands, coq),
+                                                       coq, filename)
+    except Exception as e:
+        coq.kill()
+        raise e
+    coq.kill()
 
-def lift_inner_vernac(commands, args, includes):
-    coq = serapi_instance.SerapiInstance(args, includes)
-    new_contents = []
+def generate_lifted(commands, coq):
     lemma_stack = []
     try:
         for command in commands:
-            if possibly_starting_proof(command):
+            if serapi_instance.possibly_starting_proof(command):
                 coq.run_stmt(command)
                 if coq.proof_context != None:
-                    # print("Starting proof with \"{}\"".format(command))
                     lemma_stack.append([])
                 coq.cancel_last()
             if len(lemma_stack) > 0 and not lifted_vernac(command):
                 lemma_stack[-1].append(command)
             else:
-                new_contents.append(command)
-                coq.run_stmt(command)
-            if ending_proof(command):
-                # print("Ending proof with \"{}\"".format(command))
-                lemma_contents = lemma_stack.pop()
-
-                new_contents.extend(lemma_contents)
-                for command in lemma_contents:
-                    coq.run_stmt(command)
-        assert (len(lemma_stack) == 0)
-        coq.kill()
+                yield command
+            if serapi_instance.ending_proof(command):
+                yield from lemma_stack.pop()
+        assert(len(lemma_stack) == 0)
     except Exception as e:
         coq.kill()
         raise e
-    return new_contents
 
 def preprocess_command(cmd):
     needPrefix = ["String", "Classical", "ClassicalFacts",

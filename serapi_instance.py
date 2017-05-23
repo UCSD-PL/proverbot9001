@@ -45,7 +45,7 @@ class SerapiInstance(threading.Thread):
         self.prev_tactics = []
 
     def run_stmt(self, stmt):
-        #print("Running statement: " + stmt)
+        # print("Running statement: " + stmt)
         stmt = stmt.replace("\\", "\\\\")
         stmt = stmt.replace("\"", "\\\"")
         try:
@@ -199,3 +199,26 @@ class SerapiInstance(threading.Thread):
         threading.Thread.join(self)
 
     pass
+
+def possibly_starting_proof(command):
+    return (re.match("Lemma\s", command) or
+            re.match("Theorem\s", command) or
+            re.match("Remark\s", command) or
+            re.match("Proposition\s", command) or
+            re.match("Definition\s", command) or
+            re.match("Example\s", command) or
+            re.match("Fixpoint\s", command) or
+            re.match("Corollary\s", command) or
+            re.match("Let\s", command) or
+            ("Instance" in command and
+             "Declare" not in command) or
+            re.match("Function\s", command) or
+            re.match("Next Obligation", command) or
+            re.match("Property\s", command) or
+            re.match("Add Morphism\s", command))
+
+def ending_proof(command):
+    return ("Qed" in command or
+            "Defined" in command or
+            (re.match("Proof\s+\S+\s*", command) and
+             not re.match("Proof with", command)))
