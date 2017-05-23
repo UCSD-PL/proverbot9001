@@ -110,7 +110,6 @@ def show_semiands(semiands):
     return ' ; '.join(map(show_semiand, semiands))
 
 def linearize_commands(commands_sequence, coq, filename):
-    num_theorems_started = 0
     command = next(commands_sequence, None)
     while command:
         # Run up to the next proof
@@ -136,7 +135,6 @@ def linearize_commands(commands_sequence, coq, filename):
         theorem_statement = command_batch.pop(0)
         coq.run_stmt(theorem_statement)
         fallback = False
-        num_theorems_started += 1
         yield theorem_statement
 
         # This might not be super robust?
@@ -157,11 +155,11 @@ def linearize_commands(commands_sequence, coq, filename):
                 coq.run_stmt(command)
                 yield command
         except Exception as e:
+            print("Aborting current proof linearization!")
+            print("Proof of {}, in file {}".format(theorem_statement, filename))
+            print()
             if debug:
                 raise e
-            print("Aborting current proof linearization!")
-            print("Proof {}, in file {}".format(num_theorems_started, filename))
-            print()
             coq.cancel_last()
             coq.run_stmt("Abort.")
             coq.run_stmt(theorem_statement)
