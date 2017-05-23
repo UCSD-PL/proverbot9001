@@ -156,7 +156,7 @@ def linearize_commands(commands_sequence, coq, filename):
                 yield command
         except Exception as e:
             print("Aborting current proof linearization!")
-            print("Proof of {}, in file {}".format(theorem_statement, filename))
+            print("Proof of:\n{}\nin file {}".format(theorem_statement, filename))
             print()
             if debug:
                 raise e
@@ -189,7 +189,7 @@ def linearize_proof(coq, with_tactic, commands):
         if len(periodands) == 0:
             raise "Error: ran out of tactic w/o finishing the proof"
         next_tactic = periodands.pop(0)
-        while next_tactic in ['+', '-', '*', '{', '}']:
+        while re.match("[+\-*]+|{|}", next_tactic):
             if len(periodands) == 0:
                 raise "Error: ran out of tactics w/o finishing the proof"
             else:
