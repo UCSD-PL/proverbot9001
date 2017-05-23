@@ -140,7 +140,7 @@ def linearize_commands(commands_sequence, coq, filename):
         # This might not be super robust?
         match = re.fullmatch("Proof with (.*)\.", command_batch[0])
         if match and match.group(1):
-            with_tactic = match.group(1).lstrip('(').rstrip(')')
+            with_tactic = match.group(1)
         else:
             with_tactic = ""
 
