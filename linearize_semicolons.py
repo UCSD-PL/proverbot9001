@@ -18,6 +18,8 @@ debug = False
 show_debug = False
 show_trace = False
 
+linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"]]
+
 def scope_aware_split(string, separator, opens, closes):
     stack = 0
     item = []
@@ -136,6 +138,13 @@ def linearize_commands(commands_sequence, coq, filename):
         theorem_name = theorem_statement.split(":")[0]
         coq.run_stmt(theorem_statement)
         yield theorem_statement
+        if [filename, theorem_name] in linearize_skip:
+            print("Skipping {}".format(theorem_name))
+            for command in command_batch:
+                coq.run_stmt(command)
+                yield command
+            command = next(commands_sequence, None)
+            continue
 
         # This might not be super robust?
         match = re.fullmatch("Proof with (.*)\.", command_batch[0])
