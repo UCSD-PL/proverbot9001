@@ -133,8 +133,8 @@ def linearize_commands(commands_sequence, coq, filename):
         # Now command_batch contains everything through the next
         # Qed/Defined.
         theorem_statement = command_batch.pop(0)
+        theorem_name = theorem_statement.split(":")[0]
         coq.run_stmt(theorem_statement)
-        fallback = False
         yield theorem_statement
 
         # This might not be super robust?
@@ -156,7 +156,7 @@ def linearize_commands(commands_sequence, coq, filename):
                 yield command
         except Exception as e:
             print("Aborting current proof linearization!")
-            print("Proof of:\n{}\nin file {}".format(theorem_statement, filename))
+            print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
             if debug:
                 raise e
