@@ -152,8 +152,9 @@ def linearize_commands(commands_sequence, coq, filename):
             # just be a single ending statement, so run them and yield
             # them.
             for command in command_batch:
-                coq.run_stmt(command)
-                yield command
+                if count_fg_goals(coq) != 0 or serapi_instance.ending_proof(command):
+                    coq.run_stmt(command)
+                    yield command
         except Exception as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
