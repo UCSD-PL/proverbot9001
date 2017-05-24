@@ -76,9 +76,9 @@ class Worker(threading.Thread):
                 contents = kill_comments(fin.read())
             commands_orig = split_commands(contents)
             commands_preprocessed = [newcmd for cmd in commands_orig for newcmd in preprocess_command(cmd)]
-            commands = lift_and_linearize(commands_preprocessed,
-                                          self.coqargs, self.includes,
-                                          filename)
+            commands = list(lift_and_linearize(commands_preprocessed,
+                                               self.coqargs, self.includes,
+                                               filename))
             self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)
             for command in commands:
                 self.process_statement(command)
