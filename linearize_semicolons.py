@@ -18,7 +18,8 @@ debug = False
 show_debug = False
 show_trace = False
 
-linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"]]
+linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
+                  ["./cfrontend/Cminorgenproof.v", "Lemma match_callstack_alloc_right"]]
 
 def scope_aware_split(string, separator, opens, closes):
     stack = 0
