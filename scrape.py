@@ -57,10 +57,12 @@ class Worker(threading.Thread):
             self.outbuf += prev_goal + "\n"
             self.outbuf += "+++++\n"
             self.outbuf += command + "\n"
+        else:
+            prev_goal = None
         self.coq.run_stmt(command)
 
 
-        if self.coq.proof_context:
+        if self.coq.proof_context and prev_goal:
             post_hyps = self.coq.get_hypothesis()
             post_goal = self.coq.get_goals()
             self.outbuf += "-----\n"
