@@ -237,10 +237,13 @@ def linearize_proof(coq, with_tactic, commands):
         if len(semiand) != 1:
             raise "Error: popped a semiand that was not preprocessed"
         tactic = semiand[0] + '.'
+        context_before = coq.proof_context
         coq.run_stmt(tactic)
+        context_after = coq.proof_context
         if show_trace:
             print('    ' + tactic)
-        yield tactic
+        if context_before != context_after:
+            yield tactic
 
         nb_goals_after = count_fg_goals(coq)
         if show_debug:
