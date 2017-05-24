@@ -20,6 +20,8 @@ jobs = queue.Queue()
 workers = []
 output_lock = threading.Lock()
 
+options = {}
+
 class Worker(threading.Thread):
     def __init__(self, output, workerid, prelude="."):
         threading.Thread.__init__(self, daemon=True)
@@ -44,6 +46,8 @@ class Worker(threading.Thread):
         threading.Thread.join(self)
 
     def process_statement(self, command):
+        if re.match(";", command) and options["no-semis"]:
+            return
         self.outbuf = ""
         if self.coq.proof_context:
             prev_tactics = self.coq.prev_tactics
@@ -226,8 +230,11 @@ parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
 parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
+parser.add_argument('--no-semis', default=False, const=True, action='store_const',
+                    dest='no_semis')
 parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
 args = parser.parse_args()
+options["no-semis"] = args.no_semis
 
 num_jobs = len(args.inputs)
 
