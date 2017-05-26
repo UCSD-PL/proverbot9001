@@ -76,9 +76,9 @@ class Worker(threading.Thread):
                 contents = kill_comments(fin.read())
             commands_orig = split_commands(contents)
             commands_preprocessed = [newcmd for cmd in commands_orig for newcmd in preprocess_command(cmd)]
-            commands = list(lift_and_linearize(commands_preprocessed,
-                                               self.coqargs, self.includes,
-                                               filename))
+            commands = lift_and_linearize(commands_preprocessed,
+                                          self.coqargs, self.includes,
+                                          filename)
             self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)
             for command in commands:
                 self.process_statement(command)
@@ -167,12 +167,13 @@ def lifted_vernac(command):
 def lift_and_linearize(commands, coqargs, includes, filename):
     coq = serapi_instance.SerapiInstance(coqargs, includes)
     try:
-        return linearize_semicolons.linearize_commands(generate_lifted(commands, coq),
-                                                       coq, filename)
+        result = list(linearize_semicolons.linearize_commands(generate_lifted(commands, coq),
+                                                              coq, filename))
+        coq.kill()
+        return result
     except Exception as e:
         coq.kill()
         raise e
-    coq.kill()
 
 def generate_lifted(commands, coq):
     lemma_stack = []
