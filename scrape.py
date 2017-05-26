@@ -73,9 +73,10 @@ class Worker(threading.Thread):
     def process_file(self, filename):
         try:
             with open(filename, 'r') as fin:
-                contents = kill_comments(fin.read())
-            commands_orig = split_commands(contents)
-            commands_preprocessed = [newcmd for cmd in commands_orig for newcmd in preprocess_command(cmd)]
+                contents = serapi_instance.kill_comments(fin.read())
+            commands_orig = serapi_instance.split_commands(contents)
+            commands_preprocessed = [newcmd for cmd in commands_orig
+                                     for newcmd in serapi_instance.preprocess_command(cmd)]
             commands = lift_and_linearize(commands_preprocessed,
                                           self.coqargs, self.includes,
                                           filename)
@@ -108,58 +109,6 @@ class Worker(threading.Thread):
                 self.process_file(job)
         except queue.Empty:
             pass
-
-def kill_comments(string):
-    result = ""
-    depth = 0
-    in_quote = False
-    for i in range(len(string)):
-        if in_quote:
-            if depth == 0:
-                result += string[i]
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = False
-        else:
-            if string[i:i+2] == '(*':
-                depth += 1
-            if depth == 0:
-                result += string[i]
-            if string[i-1:i+1] == '*)':
-                depth -= 1
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = True
-    return result
-
-def split_commands(string):
-    result = []
-    next_command = ""
-    in_quote = False
-    for i in range(len(string)):
-        if in_quote:
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = False
-        else:
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = True
-            if (re.match("[\{\}]", string[i]) and
-                re.fullmatch("\s*", next_command)):
-                result.append(string[i])
-                next_command = ""
-                continue
-            if (re.match("[\+\-\*]", string[i]) and
-                string[i] != string[i+1] and
-                re.fullmatch("\s*[\+\-\*]*", next_command)):
-                next_command += string[i]
-                result.append(next_command.strip())
-                next_command = ""
-                continue
-            if (re.match("\.($|\s)", string[i:i+2]) and
-                (not string[i-1] == "." or string[i-2] == ".")):
-                result.append(next_command.strip() + ".")
-                next_command = ""
-                continue
-        next_command += string[i]
-    return result
 
 def lifted_vernac(command):
     return re.match("Ltac\s", command)
@@ -194,40 +143,6 @@ def generate_lifted(commands, coq):
     except Exception as e:
         coq.kill()
         raise e
-
-def preprocess_command(cmd):
-    needPrefix = ["String", "Classical", "ClassicalFacts",
-                  "ClassicalDescription", "ClassicalEpsilon",
-                  "Equivalence", "Init.Wf", "Program.Basics",
-                  "Max", "Wf_nat", "EquivDec", "Znumtheory",
-                  "Bool", "Zquot", "FSets", "FSetAVL",
-                  "Wellfounded", "FSetInterface",
-                  "OrderedType", "Program", "Recdef", "Eqdep_dec",
-                  "FunctionalExtensionality", "Zwf", "Permutation",
-                  "Orders", "Mergesort", "List", "ZArith", "Int31",
-                  "Syntax", "Streams", "Equality",
-                  "ProofIrrelevance", "Setoid", "EqNat",
-                  "Arith", "Cyclic31", "Omega", "Relations",
-                  "RelationClasses", "OrderedTypeAlt", "FMapAVL",
-                  "BinPos", "BinNat", "DecidableClass", "Reals",
-                  "Psatz", "ExtrOcamlBasic", "ExtrOcamlString",
-                  "Ascii"]
-    for lib in needPrefix:
-        match = re.fullmatch("\s*Require(\s+(?:(?:Import)|(?:Export)))?((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.".format(lib), cmd)
-        if match:
-            if match.group(1):
-                impG= match.group(1)
-            else:
-                impG=""
-            if match.group(4):
-                after = match.group(4)
-            else:
-                after=""
-            if (re.fullmatch("\s*", match.group(2)) and re.fullmatch("\s*", after)):
-                return ["From Coq Require" + impG + " " + match.group(3) + "."]
-            else:
-                return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
-    return [cmd]
 
 parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
