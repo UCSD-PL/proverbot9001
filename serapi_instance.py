@@ -318,3 +318,11 @@ def preprocess_command(cmd):
             else:
                 return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
     return [cmd]
+
+def count_open_proofs(coq):
+    return len(coq.query_goals()[2][1])
+
+def count_fg_goals(coq):
+    if count_open_proofs(coq) == 0:
+        return 0
+    return len(coq.query_goals()[2][1][0][1][0][1])

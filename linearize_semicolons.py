@@ -11,6 +11,8 @@ import sys
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
+from serapi_instance import count_fg_goals
+from serapi_instance import count_open_proofs
 
 import serapi_instance
 
@@ -92,14 +94,6 @@ for (e, o) in split_tests:
         print("Expected: {}".format(str(e)))
         print("Obtained: {}".format(str(o)))
         raise "FIXME"
-
-def count_open_proofs(coq):
-    return len(coq.query_goals()[2][1])
-
-def count_fg_goals(coq):
-    if count_open_proofs(coq) == 0:
-        return 0
-    return len(coq.query_goals()[2][1][0][1][0][1])
 
 # a semiand is just some pipeands
 def show_semiand(pipeands):
