@@ -11,6 +11,7 @@ import sys
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
+from format import format_command_record
 
 import linearize_semicolons
 import serapi_instance
