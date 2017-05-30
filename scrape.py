@@ -43,27 +43,19 @@ class Worker(threading.Thread):
     def process_statement(self, coq, command):
         if re.match(";", command) and options["no-semis"]:
             return
-        self.outbuf = ""
-        if coq.proof_context:
+        in_proof = coq.proof_context
+        if in_proof:
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.get_hypothesis()
             prev_goal = coq.get_goals()
-            self.outbuf += "*****\n"
-            self.outbuf += prev_goal + "\n"
-            self.outbuf += "+++++\n"
-            self.outbuf += command + "\n"
-        else:
-            prev_goal = None
-        coq.run_stmt(command)
-
-
-        if coq.proof_context and prev_goal:
+            coq.run_stmt(command)
             post_hyps = coq.get_hypothesis()
             post_goal = coq.get_goals()
-            self.outbuf += "-----\n"
-            self.outbuf += post_goal + "\n"
-        with open(self.tmpfile_name, 'a') as tmp_file:
-            tmp_file.write(self.outbuf)
+            with open(self.tmpfile_name, 'a') as tmp_file:
+                tmp_file.write(format_command_record(prev_tactics, prev_hyps, prev_goal,
+                                                     command, post_hyps, post_goal))
+        else:
+            coq.run_stmt(command)
 
     def process_file(self, filename):
         try:
