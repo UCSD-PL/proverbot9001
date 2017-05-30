@@ -37,34 +37,28 @@ class Worker(threading.Thread):
             self.fout = sys.stdout
         else:
             self.fout = open(args.output, 'w')
-        self.coq= None
         pass
 
-    def kill(self):
-        if (self.coq != None):
-            self.coq.kill()
-        threading.Thread.join(self)
-
-    def process_statement(self, command):
+    def process_statement(self, coq, command):
         if re.match(";", command) and options["no-semis"]:
             return
         self.outbuf = ""
-        if self.coq.proof_context:
-            prev_tactics = self.coq.prev_tactics
-            prev_hyps = self.coq.get_hypothesis()
-            prev_goal = self.coq.get_goals()
+        if coq.proof_context:
+            prev_tactics = coq.prev_tactics
+            prev_hyps = coq.get_hypothesis()
+            prev_goal = coq.get_goals()
             self.outbuf += "*****\n"
             self.outbuf += prev_goal + "\n"
             self.outbuf += "+++++\n"
             self.outbuf += command + "\n"
         else:
             prev_goal = None
-        self.coq.run_stmt(command)
+        coq.run_stmt(command)
 
 
-        if self.coq.proof_context and prev_goal:
-            post_hyps = self.coq.get_hypothesis()
-            post_goal = self.coq.get_goals()
+        if coq.proof_context and prev_goal:
+            post_hyps = coq.get_hypothesis()
+            post_goal = coq.get_goals()
             self.outbuf += "-----\n"
             self.outbuf += post_goal + "\n"
         with open(self.tmpfile_name, 'a') as tmp_file:
@@ -80,15 +74,11 @@ class Worker(threading.Thread):
             commands = lift_and_linearize(commands_preprocessed,
                                           self.coqargs, self.includes,
                                           filename)
-            self.coq = serapi_instance.SerapiInstance(self.coqargs, self.includes)
-            for command in commands:
-                self.process_statement(command)
-            self.coq.kill()
+            with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
+                for command in commands:
+                    self.process_statement(coq, command)
         except Exception as e:
             print("In file {}:".format(filename))
-            if (self.coq != None):
-                self.coq.kill()
-                self.coq = None
             raise e
 
         output_lock.acquire()
@@ -114,15 +104,10 @@ def lifted_vernac(command):
     return re.match("Ltac\s", command)
 
 def lift_and_linearize(commands, coqargs, includes, filename):
-    coq = serapi_instance.SerapiInstance(coqargs, includes)
-    try:
+    with serapi_instance.SerapiContext(coqargs, includes) as coq:
         result = list(linearize_semicolons.linearize_commands(generate_lifted(commands, coq),
                                                               coq, filename))
-        coq.kill()
         return result
-    except Exception as e:
-        coq.kill()
-        raise e
 
 def generate_lifted(commands, coq):
     lemma_stack = []

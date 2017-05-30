@@ -200,6 +200,16 @@ class SerapiInstance(threading.Thread):
 
     pass
 
+class SerapiContext:
+    def __init__(self, coq_commands, includes):
+        self.coq_commands = coq_commands
+        self.includes = includes
+    def __enter__(self):
+        self.coq = SerapiInstance(self.coq_commands, self.includes)
+        return self.coq
+    def __exit__(self, type, value, traceback):
+        self.coq.kill()
+
 def possibly_starting_proof(command):
     return (re.match("Lemma\s", command) or
             re.match("Theorem\s", command) or
