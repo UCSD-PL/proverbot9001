@@ -84,6 +84,6 @@ with serapi_instance.SerapiContext(coqargs, includes) as coq:
     if args.output == None:
         args.output = args.filename[0] + ".pb"
     copy(args.filename[0], args.output)
-    with open("args.output", "a")as fout:
+    with open(args.output, "a")as fout:
         print("Response is: {}".format(result))
         fout.write(result)
