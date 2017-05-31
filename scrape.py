@@ -32,6 +32,7 @@ class Worker(threading.Thread):
                    "--prelude={}/coq".format(os.path.dirname(os.path.abspath(__file__)))]
         includes=subprocess.Popen(['make', '-C', prelude, 'print-includes'], stdout=subprocess.PIPE).communicate()[0]
         self.tmpfile_name = "/tmp/proverbot_worker{}".format(workerid)
+        self.workerid = workerid
         with open(self.tmpfile_name, 'w') as tmp_file:
             tmp_file.write('')
         self.outbuf = ""
@@ -51,11 +52,18 @@ class Worker(threading.Thread):
             prev_hyps = coq.get_hypothesis()
             prev_goal = coq.get_goals()
             coq.run_stmt(command)
-            post_hyps = coq.get_hypothesis()
-            post_goal = coq.get_goals()
-            with open(self.tmpfile_name, 'a') as tmp_file:
-                tmp_file.write(format_command_record(prev_tactics, prev_hyps, prev_goal,
-                                                     command, post_hyps, post_goal))
+            if coq.proof_context:
+                post_hyps = coq.get_hypothesis()
+                post_goal = coq.get_goals()
+                with open(self.tmpfile_name, 'a') as tmp_file:
+                    tmp_file.write(format_command_record(prev_tactics, prev_hyps,
+                                                         prev_goal, command, post_hyps,
+                                                         post_goal))
+            else:
+                with open(self.tmpfile_name, 'a') as tmp_file:
+                    tmp_file.write(format_command_record(prev_tactics, prev_hyps,
+                                                         prev_goal, command, "",
+                                                         ""))
         else:
             coq.run_stmt(command)
 
