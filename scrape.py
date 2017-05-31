@@ -21,6 +21,7 @@ num_jobs = 0
 jobs = queue.Queue()
 workers = []
 output_lock = threading.Lock()
+finished_queue = queue.Queue()
 
 options = {}
 
@@ -93,6 +94,7 @@ class Worker(threading.Thread):
                 self.process_file(job)
         except queue.Empty:
             pass
+        finished_queue.put(self.workerid)
 
 parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
@@ -114,9 +116,6 @@ for idx in range(args.threads):
     worker.start()
     workers.append(worker)
 
-try:
-    for worker in workers:
-        worker.join()
-except:
-    for worker in workers:
-        worker.kill()
+for idx in range(args.threads):
+    finished_id = finished_queue.get()
+    workers[finished_id].join()
