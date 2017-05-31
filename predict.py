@@ -30,6 +30,10 @@ def generate_lifted_nofail(commands, coq):
                 yield command
             if serapi_instance.ending_proof(command):
                 yield from lemma_stack.pop()
+        if len(lemma_stack) > 0:
+            rest = lemma_stack.pop()
+            print(rest)
+            yield from rest
     except Exception as e:
         coq.kill()
         raise e
@@ -60,18 +64,20 @@ with serapi_instance.SerapiContext(coqargs, includes) as coq:
                         generate_lifted_nofail(commands_preprocessed, coq),
                         coq, args.filename))
 with serapi_instance.SerapiContext(coqargs, includes) as coq:
-    query = ""
     for command in commands:
-        in_proof = count_fg_goals(coq) != 0
+        print("command: {}".format(command))
         coq.run_stmt(command)
 
-    query += format_context(coq.prev_tactics, coq.get_hypothesis(), coq.get_goals())
+    if count_fg_goals(coq) != 0:
+        query = format_context(coq.prev_tactics, coq.get_hypothesis(), coq.get_goals())
 
-    response, errors = subprocess.Popen(darknet_command, stdin=subprocess.PIPE,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                                        ).communicate(input=query.encode('utf-8'))
+        response, errors = subprocess.Popen(darknet_command, stdin=subprocess.PIPE,
+                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        ).communicate(input=query.encode('utf-8'))
 
-    result = response.decode('utf-8').strip() + "\n"
+        result = response.decode('utf-8').strip() + "\n"
+    else:
+        print("Not in proof!\n")
 
     if args.inplace:
         args.output = args.filename[0]
