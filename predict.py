@@ -6,7 +6,7 @@ import os
 import re
 
 from shutil import *
-from format import format_command_record
+from format import format_context
 
 import serapi_instance
 from serapi_instance import count_fg_goals
@@ -63,20 +63,10 @@ with serapi_instance.SerapiContext(coqargs, includes) as coq:
     query = ""
     for command in commands:
         in_proof = count_fg_goals(coq) != 0
-        if in_proof:
-            prev_goal = coq.get_goals()
-            prev_hyps = coq.get_hypothesis()
-            prev_tactics = coq.prev_tactics
-            coq.run_stmt(command)
+        coq.run_stmt(command)
 
-            still_in_proof = count_fg_goals(coq) != 0
-            if still_in_proof:
-                post_goal = coq.get_goals()
-                post_hyps = coq.get_hypothesis()
-            query += format_command_record(prev_tactics, prev_hyps, prev_goal,
-                                           command, post_hyps, post_goal)
-        else:
-            coq.run_stmt(command)
+    query += format_context(coq.prev_tactics, coq.get_hypothesis(), coq.get_goals())
+
     response, errors = subprocess.Popen(darknet_command, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE
                                         ).communicate(input=query.encode('utf-8'))

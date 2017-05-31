@@ -9,7 +9,7 @@ import threading
 import queue
 import re
 
-from format import format_command_record
+from format import format_context
 
 import serapi_instance
 import linearize_semicolons
@@ -42,7 +42,6 @@ class Worker(threading.Thread):
         commands = lift_and_linearize(load_commands(filename),
                                       coqargs, includes, filename)
         with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
-            query = ""
             for command in commands:
                 if re.match(";", command) and options["no-semis"]:
                     return
@@ -52,6 +51,7 @@ class Worker(threading.Thread):
                     prev_hyps = coq.get_hypothesis()
                     prev_tactics = coq.prev_tactics
                     num_tactics_in_file += 1
+                    query = format_context(prev_tactics, prev_hyps, prev_goal)
                     response, errors = subprocess.Popen(darknet_command,
                                                         stdin=subprocess.PIPE,
                                                         stdout=subprocess.PIPE,
@@ -62,17 +62,6 @@ class Worker(threading.Thread):
                         num_correct_in_file += 1
 
                     coq.run_stmt(command)
-                    still_in_proof = count_fg_goals(coq) != 0
-                    if still_in_proof:
-                        post_goal = coq.get_goals()
-                        post_hyps = coq.get_hypothesis()
-                        query += format_command_record(prev_tactics, prev_hyps,
-                                                       prev_goal, command, post_hyps,
-                                                       post_goal)
-                    else:
-                        query += format_command_record(prev_tactics, prev_hyps,
-                                                       prev_goal, command, "",
-                                                       "")
                 else:
                     coq.run_stmt(command)
         output_lock.acquire()
@@ -89,7 +78,8 @@ class Worker(threading.Thread):
                 self.process_file(job)
         except queue.Empty:
             pass
-        finished_queue.put(self.workerid)
+        finally:
+            finished_queue.put(self.workerid)
 
 
 parser = argparse.ArgumentParser(description=

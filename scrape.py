@@ -11,7 +11,7 @@ import sys
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
-from format import format_command_record
+from format import format_context, format_tactic
 from helper import *
 
 import linearize_semicolons
@@ -51,19 +51,12 @@ class Worker(threading.Thread):
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.get_hypothesis()
             prev_goal = coq.get_goals()
+            with open(self.tmpfile_name, 'a') as tmp_file:
+                tmp_file.write(format_context(coq.prev_tactics, coq.get_hypothesis(),
+                                              coq.get_goals()))
             coq.run_stmt(command)
-            if coq.proof_context:
-                post_hyps = coq.get_hypothesis()
-                post_goal = coq.get_goals()
-                with open(self.tmpfile_name, 'a') as tmp_file:
-                    tmp_file.write(format_command_record(prev_tactics, prev_hyps,
-                                                         prev_goal, command, post_hyps,
-                                                         post_goal))
-            else:
-                with open(self.tmpfile_name, 'a') as tmp_file:
-                    tmp_file.write(format_command_record(prev_tactics, prev_hyps,
-                                                         prev_goal, command, "",
-                                                         ""))
+            with open(self.tmpfile_name, 'a') as tmp_file:
+                tmp_file.write(format_tactic(command))
         else:
             coq.run_stmt(command)
 
@@ -97,7 +90,8 @@ class Worker(threading.Thread):
                 self.process_file(job)
         except queue.Empty:
             pass
-        finished_queue.put(self.workerid)
+        finally:
+            finished_queue.put(self.workerid)
 
 parser = argparse.ArgumentParser(description="scrape a proof")
 parser.add_argument('-o', '--output', help="output data file name", default=None)
