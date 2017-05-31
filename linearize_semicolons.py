@@ -313,6 +313,8 @@ def linearize_proof(coq, with_tactic, commands):
                     print('Replaced with: {}'.format(show_semiand(next_semiand)))
             # Haven't taken care of 3. yet
             for i in range(len(next_semiand)):
+                if (next_semiand[i] == ''):
+                    continue
                 # note that next_semiand may itself be `a ; [b | c] ; d`
                 new_semiands = list(split_semis_brackets(next_semiand[i], with_tactic))
                 if show_debug:
