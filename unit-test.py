@@ -61,9 +61,7 @@ class Worker(threading.Thread):
                     if command == result:
                         num_correct_in_file += 1
 
-                    coq.run_stmt(command)
-                else:
-                    coq.run_stmt(command)
+                coq.run_stmt(command)
         output_lock.acquire()
         num_tactics += num_tactics_in_file
         num_correct += num_correct_in_file
