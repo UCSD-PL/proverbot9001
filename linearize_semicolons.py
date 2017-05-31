@@ -156,10 +156,12 @@ def linearize_commands(commands_sequence, coq, filename):
             # just be a single ending statement, so run them and yield
             # them.
             for command in command_batch:
-                if count_fg_goals(coq) != 0 or serapi_instance.ending_proof(command):
+                if command and (count_fg_goals(coq) != 0 or serapi_instance.ending_proof(command)):
+                    print("command is {}".format(command))
                     coq.run_stmt(command)
                     yield command
         except Exception as e:
+            raise e
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
@@ -170,7 +172,8 @@ def linearize_commands(commands_sequence, coq, filename):
             coq.run_stmt(theorem_statement)
             for command in orig:
                 coq.run_stmt(command)
-                yield command
+                if command:
+                    yield command
 
         command = next(commands_sequence, None)
 
@@ -194,13 +197,19 @@ def linearize_proof(coq, with_tactic, commands):
         if len(periodands) == 0:
             raise "Error: ran out of tactic w/o finishing the proof"
         next_tactic = periodands.pop(0)
-        while re.match("[+\-*]+|{|}", next_tactic):
+        if next_tactic == None:
+            return
+        while next_tactic and re.match("[+\-*]+|{|}", next_tactic):
             if len(periodands) == 0:
                 raise "Error: ran out of tactics w/o finishing the proof"
             else:
                 if show_debug:
                     print("Skipping bullet: {}".format(next_tactic))
-                next_tactic = periodands.pop(0)
+                maybe_next_tactic = periodands.pop(0)
+                if maybe_next_tactic:
+                    next_tactic = maybe_next_tactic
+                else:
+                    break
         if show_debug:
             print("Popping periodand: {}".format(next_tactic))
         next_semiands = list(split_semis_brackets(next_tactic, with_tactic))
