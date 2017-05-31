@@ -24,15 +24,19 @@ workers = []
 num_tactics = 0
 num_correct = 0
 output_lock = threading.Lock()
+finished_queue = queue.Queue()
 
 class Worker(threading.Thread):
     def __init__(self, workerid, coqargs, includes):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
+        self.workerid = workerid
         pass
 
     def process_file(self, filename):
+        global num_tactics
+        global num_correct
         num_tactics_in_file = 0
         num_correct_in_file = 0
         with open(filename, 'r') as fin:
@@ -43,12 +47,13 @@ class Worker(threading.Thread):
         commands = lift_and_linearize(commands_preprocessed,
                                       coqargs, includes, filename)
         with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
+            query = ""
             for command in commands:
                 if re.match(";", command) and options["no-semis"]:
                     return
                 in_proof = coq.proof_context
                 if in_proof:
-                    prev_goals = coq.get_goals()
+                    prev_goal = coq.get_goals()
                     prev_hyps = coq.get_hypothesis()
                     prev_tactics = coq.prev_tactics
                     num_tactics_in_file += 1
@@ -73,6 +78,7 @@ class Worker(threading.Thread):
         output_lock.acquire()
         num_tactics += num_tactics_in_file
         num_correct += num_correct_in_file
+        output_lock.release()
     def run(self):
         try:
             while(True):
@@ -83,6 +89,7 @@ class Worker(threading.Thread):
                 self.process_file(job)
         except queue.Empty:
             pass
+        finished_queue.put(self.workerid)
 
 
 parser = argparse.ArgumentParser(description=
@@ -109,8 +116,9 @@ for idx in range(args.threads):
     worker.start()
     workers.append(worker)
 
-for worker in workers:
-    worker.join()
+for idx in range(args.threads):
+    finished_id = finished_queue.get()
+    workers[finished_id].join()
 
 print("Accuracy: %{} ({}/{})".format(math.floor(num_correct / num_tactics * 100),
                                      num_correct, num_tactics))
