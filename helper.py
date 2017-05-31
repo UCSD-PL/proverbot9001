@@ -4,6 +4,13 @@ import serapi_instance
 import linearize_semicolons
 import re
 
+def load_commands(filename):
+    with open(filename, 'r') as fin:
+        contents = serapi_instance.kill_comments(fin.read())
+        commands_orig = serapi_instance.split_commands(contents)
+        commands_preprocessed = [newcmd for cmd in commands_orig
+                                 for newcmd in serapi_instance.preprocess_command(cmd)]
+        return commands_preprocessed
 
 def lifted_vernac(command):
     return re.match("Ltac\s", command)

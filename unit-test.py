@@ -9,14 +9,13 @@ import threading
 import queue
 import re
 
-from shutil import *
 from format import format_command_record
 
 import serapi_instance
 import linearize_semicolons
 
 from serapi_instance import count_fg_goals
-from helper import lift_and_linearize
+from helper import *
 
 num_jobs = 0
 jobs = queue.Queue()
@@ -39,12 +38,8 @@ class Worker(threading.Thread):
         global num_correct
         num_tactics_in_file = 0
         num_correct_in_file = 0
-        with open(filename, 'r') as fin:
-            contents = serapi_instance.kill_comments(fin.read())
-        commands_orig = serapi_instance.split_commands(contents)
-        commands_preprocessed = [newcmd for cmd in commands_orig
-                                 for newcmd in serapi_instance.preprocess_command(cmd)]
-        commands = lift_and_linearize(commands_preprocessed,
+
+        commands = lift_and_linearize(load_commands(filename),
                                       coqargs, includes, filename)
         with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
             query = ""
