@@ -71,8 +71,13 @@ class Worker(threading.Thread):
                     if still_in_proof:
                         post_goal = coq.get_goals()
                         post_hyps = coq.get_hypothesis()
-                        query += format_command_record(prev_tactics, prev_hyps, prev_goal,
-                                                       command, post_hyps, post_goal)
+                        query += format_command_record(prev_tactics, prev_hyps,
+                                                       prev_goal, command, post_hyps,
+                                                       post_goal)
+                    else:
+                        query += format_command_record(prev_tactics, prev_hyps,
+                                                       prev_goal, command, "",
+                                                       "")
                 else:
                     coq.run_stmt(command)
         output_lock.acquire()
