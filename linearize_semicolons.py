@@ -161,7 +161,6 @@ def linearize_commands(commands_sequence, coq, filename):
                     coq.run_stmt(command)
                     yield command
         except Exception as e:
-            raise e
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
