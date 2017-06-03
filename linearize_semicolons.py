@@ -150,15 +150,18 @@ def linearize_commands(commands_sequence, coq, filename):
 
         orig = command_batch[:]
         try:
-            yield from list(linearize_proof(coq, with_tactic, command_batch))
+            linearized_commands = list(linearize_proof(coq, with_tactic, command_batch))
 
-            # If there are unconsumed items in the batch, they must
-            # just be a single ending statement, so run them and yield
-            # them.
             for command in command_batch:
-                if command and (count_fg_goals(coq) != 0 or serapi_instance.ending_proof(command)):
+                if command and (count_fg_goals(coq) != 0 or
+                                serapi_instance.ending_proof(command)):
                     print("command is {}".format(command))
                     coq.run_stmt(command)
+
+            yield from linearized_commands
+            for command in command_batch:
+                if command and (count_fg_goals(coq) != 0 or
+                                serapi_instance.ending_proof(command)):
                     yield command
         except Exception as e:
             print("Aborting current proof linearization!")
