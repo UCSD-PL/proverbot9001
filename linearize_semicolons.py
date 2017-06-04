@@ -155,7 +155,6 @@ def linearize_commands(commands_sequence, coq, filename):
             for command in command_batch:
                 if command and (count_fg_goals(coq) != 0 or
                                 serapi_instance.ending_proof(command)):
-                    print("command is {}".format(command))
                     coq.run_stmt(command)
 
             yield from linearized_commands
