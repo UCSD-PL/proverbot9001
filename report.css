@@ -1,0 +1,23 @@
+
+body {
+    padding: 40px 30px;
+    width: auto;
+    max-width: 700px;
+    margin: 3em auto;
+    position: relative;
+    text-rendering: optimizeLegibility;
+}
+
+tr {
+    border: 2em solid #CCC;
+}
+th {
+    font-weight: bold;
+}
+td {
+    text-align: center;
+    min-width: 10em;
+    height: 30px;
+    background: #FAFBFA;
+    padding: 1em;
+}
