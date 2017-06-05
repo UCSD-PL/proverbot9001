@@ -151,17 +151,17 @@ def linearize_commands(commands_sequence, coq, filename):
         orig = command_batch[:]
         try:
             linearized_commands = list(linearize_proof(coq, with_tactic, command_batch))
+            leftover_commands = []
 
             for command in command_batch:
                 if command and (count_fg_goals(coq) != 0 or
                                 serapi_instance.ending_proof(command)):
                     coq.run_stmt(command)
+                    leftover_commands.append(command)
 
             yield from linearized_commands
-            for command in command_batch:
-                if command and (count_fg_goals(coq) != 0 or
-                                serapi_instance.ending_proof(command)):
-                    yield command
+            for command in leftover_commands:
+                yield command
         except Exception as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
@@ -172,8 +172,8 @@ def linearize_commands(commands_sequence, coq, filename):
             coq.run_stmt("Abort.")
             coq.run_stmt(theorem_statement)
             for command in orig:
-                coq.run_stmt(command)
                 if command:
+                    coq.run_stmt(command)
                     yield command
 
         command = next(commands_sequence, None)
@@ -315,8 +315,6 @@ def linearize_proof(coq, with_tactic, commands):
                     print('Replaced with: {}'.format(show_semiand(next_semiand)))
             # Haven't taken care of 3. yet
             for i in range(len(next_semiand)):
-                if (next_semiand[i] == ''):
-                    continue
                 # note that next_semiand may itself be `a ; [b | c] ; d`
                 new_semiands = list(split_semis_brackets(next_semiand[i], with_tactic))
                 if show_debug:
