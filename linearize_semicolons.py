@@ -246,7 +246,7 @@ def linearize_proof(coq, with_tactic, commands):
         context_after = coq.proof_context
         if show_trace:
             print('    ' + tactic)
-        if context_before != context_after:
+        if context_before != context_after or re.match("Transparent", tactic):
             yield tactic
 
         nb_goals_after = count_fg_goals(coq)
