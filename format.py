@@ -9,4 +9,4 @@ def format_context(prev_tactics, prev_hyps, prev_goal):
     return minimize_whitespace(prev_goal) + "\n+++++\n"
 
 def format_tactic(tactic):
-    return minimize_whitespace(tactic) + "\n-----n"
+    return minimize_whitespace(tactic) + "\n-----\n"
