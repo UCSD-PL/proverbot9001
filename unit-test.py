@@ -108,5 +108,8 @@ for idx in range(args.threads):
     finished_id = finished_queue.get()
     workers[finished_id].join()
 
-print("Accuracy: %{} ({}/{})".format(math.floor(num_correct / num_tactics * 100),
-                                     num_correct, num_tactics))
+if num_tactics == 0:
+    print("No tactics found.")
+else:
+    print("Accuracy: %{} ({}/{})".format(math.floor(num_correct / num_tactics * 100),
+                                         num_correct, num_tactics))
