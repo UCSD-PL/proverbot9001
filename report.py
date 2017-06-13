@@ -28,6 +28,43 @@ output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
 
+def is_comment(command):
+    return re.fullmatch("\(\*.*\*\)", command)
+
+def load_commands_preserve(filename):
+    with open(filename, 'r') as fin:
+        contents = fin.read()
+    result = []
+    cur_command = ""
+    comment_depth = 0
+    in_quote = False
+    for i in range(len(contents)):
+        cur_command += contents[i]
+        if in_quote:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = False
+        else:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = True
+            elif comment_depth == 0:
+                if (re.match("[\{\}]", contents[i]) and
+                      re.fullmatch("\s*", cur_command[:-1])):
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.fullmatch("\s*[\+\-\*]+", cur_command) and
+                      (len(contents)==i+1 or contents[i] != contents[i+1])):
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.match("\.($|\s)", contents[i:i+2]) and
+                      (not contents[i-1] == "." or contents[i-2] == ".")):
+                    result.append(cur_command)
+                    cur_command = ""
+            if contents[i:i+2] == '(*':
+                comment_depth += 1
+            elif contents[i-1:i+1] == '*)':
+                comment_depth -= 1
+    return result
+
 class Worker(threading.Thread):
     def __init__(self, workerid, coqargs, includes, output_dir):
         threading.Thread.__init__(self, daemon=True)
@@ -43,10 +80,7 @@ class Worker(threading.Thread):
         num_tactics_in_file = 0
         num_correct_in_file = 0
 
-        with open(filename, 'r') as fin:
-            contents = serapi_instance.kill_comments(fin.read())
-
-        commands = lift_and_linearize(load_commands(filename),
+        commands = lift_and_linearize(load_commands_preserve(filename),
                                       coqargs, includes, filename)
 
         doc, tag, text, line = Doc().ttl()
@@ -58,33 +92,38 @@ class Worker(threading.Thread):
                     text("Proverbot Detailed Report for {}".format(filename))
             with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
                 with tag('body'):
-                    for command in commands:
-                        if re.match(";", command) and options["no-semis"]:
-                            coq.run_stmt(command)
-                            return
-                        in_proof = coq.proof_context
-                        if in_proof:
-                            num_tactics_in_file += 1
-                            query = format_context(coq.prev_tactics, coq.get_goals(),
-                                                   coq.get_hypothesis())
-                            response, errors = subprocess.Popen(darknet_command,
-                                                                stdin=subprocess.PIPE,
-                                                                stdout=subprocess.PIPE,
-                                                                stderr=subprocess.PIPE
-                            ).communicate(input=query.encode('utf-8'))
-                            result = response.decode('utf-8').strip()
-                            if command == result:
-                                num_correct_in_file += 1
-                                with tag('p', klass="goodcommand"):
-                                    text(command)
+                    with tag('pre'):
+                        for command in commands:
+                            if re.match(";", command) and options["no-semis"]:
+                                coq.run_stmt(command)
+                                return
+                            in_proof = coq.proof_context
+                            if in_proof:
+                                num_tactics_in_file += 1
+                                query = format_context(coq.prev_tactics, coq.get_goals(),
+                                                       coq.get_hypothesis())
+                                response, errors = subprocess.Popen(darknet_command,
+                                                                    stdin=
+                                                                    subprocess.PIPE,
+                                                                    stdout=
+                                                                    subprocess.PIPE,
+                                                                    stderr=
+                                                                    subprocess.PIPE
+                                ).communicate(input=query.encode('utf-8'))
+                                result = response.decode('utf-8').strip()
+                                if command.strip() == result:
+                                    num_correct_in_file += 1
+                                    with tag('code', klass="goodcommand"):
+                                        text(command)
+                                else:
+                                    with tag('code', klass="badcommand"):
+                                        text(command)
                             else:
-                                with tag('p', klass="badcommand"):
+                                with tag('code', klass="plaincommand"):
                                     text(command)
-                        else:
-                            with tag('p', klass="plaincommand"):
-                                text(command)
 
-                        coq.run_stmt(command)
+                            if not is_comment(command):
+                                coq.run_stmt(command)
 
         details_filename = "{}.html".format(escape_filename(filename))
         with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:

@@ -1,14 +1,17 @@
 body {
     padding: 40px 30px;
     width: auto;
-    max-width: 700px;
+    max-width: 1000px;
     margin: 3em auto;
     position: relative;
     text-rendering: optimizeLegibility;
 }
-p.badcommand {
+code {
+    font-size: 1.5em
+}
+code.badcommand {
     color: red
 }
-p.goodcommand {
+code.goodcommand {
     color: green
 }
