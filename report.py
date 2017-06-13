@@ -27,9 +27,73 @@ num_correct = 0
 output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
+vernacular_binder = [
+    "Definition",
+    "Inductive",
+    "Fixpoint",
+    "Theorem",
+    "Lemma",
+    "Example",
+    "Ltac",
+    "Record",
+    "Variable",
+    "Section",
+    "End",
+    "Instance",
+    "Module",
+    "Context"
+]
+vernacular_words = vernacular_binder + [
+    # "Proof",
+    "Qed",
+    "Defined",
+    "Require",
+    "Import",
+    "Print",
+    "Assumptions",
 
-def is_comment(command):
-    return re.fullmatch("\(\*.*\*\)", command)
+]
+
+local_binder = [
+    "forall",
+    "fun"
+]
+
+syntax_words = local_binder + [
+    "Type",
+    "Set",
+    "Prop",
+    "if",
+    "then",
+    "else",
+    "match",
+    "with",
+    "end",
+    "as",
+    "in",
+    "return",
+    "using",
+    "let"
+]
+
+vernacular_color = "a020f0"
+syntax_color = "228b22"
+global_bound_color = "3b10ff"
+local_bound_color = "a0522d"
+
+def color_word(color, word):
+    return "<span style=\"color:{}\">{}</span>".format(color, word)
+
+def syntax_highlight(page):
+    for vernac in vernacular_words:
+        page = re.sub(vernac,
+                      color_word(vernacular_color, vernac),
+                      page)
+    # for stx in syntax_words:
+    #     page = re.sub("(^|\s|\(){}($|\s)".format(stx),
+    #                   color_word(syntax_color, stx),
+    #                   page)
+    return page
 
 def load_commands_preserve(filename):
     with open(filename, 'r') as fin:
@@ -79,6 +143,8 @@ class Worker(threading.Thread):
         global num_correct
         num_tactics_in_file = 0
         num_correct_in_file = 0
+        current_context = 0
+        scripts = ""
 
         commands = lift_and_linearize(load_commands_preserve(filename),
                                       coqargs, includes, filename)
@@ -88,6 +154,13 @@ class Worker(threading.Thread):
         with tag('html'):
             with tag('head'):
                 doc.stag('link', href='details.css', rel='stylesheet')
+                doc.stag('link', href='jquery-ui.css', rel='stylesheet')
+                with tag('script', type='text/javascript',
+                         src="http://code.jquery.com/jquery-latest.min.js"):
+                    pass
+                with tag('script', type='text/javascript',
+                         src="jquery-ui.js"):
+                    pass
                 with tag('title'):
                     text("Proverbot Detailed Report for {}".format(filename))
             with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
@@ -111,23 +184,42 @@ class Worker(threading.Thread):
                                                                     subprocess.PIPE
                                 ).communicate(input=query.encode('utf-8'))
                                 result = response.decode('utf-8').strip()
-                                if command.strip() == result:
-                                    num_correct_in_file += 1
-                                    with tag('code', klass="goodcommand"):
-                                        text(command)
-                                else:
-                                    with tag('code', klass="badcommand"):
-                                        text(command)
+
+                                num_correct_in_file += 1
+                                scripts += ("<script type='text/javascript'>\n"
+                                            "$(function () {\n"
+                                            "    $(\"#context-"
+                                            + str(current_context)
+                                            + "\").tooltip({\n"
+                                            "        content: \"<pre><code>")
+                                scripts += (coq.proof_context.replace("\n", "\\n")
+                                            + "arglebarg")
+                                scripts += ("</code></pre>\",\n"
+                                            "        open: function (event, ui) {\n"
+                                            "            ui.tooltip.css('max-width', 'none');\n"
+                                            "            ui.tooltip.css('min-width', '800px');\n"
+                                            "        }\n"
+                                            "    });\n"
+                                            "});\n"
+                                            "</script>")
+                                with tag('span', title='tooltip',
+                                         id='context-' + str(current_context)):
+                                    if command.strip() == result:
+                                        with tag('code', klass="goodcommand"):
+                                                text(command)
+                                    else:
+                                        with tag('code', klass="badcommand"):
+                                            text(command)
+                                    current_context += 1
                             else:
                                 with tag('code', klass="plaincommand"):
                                     text(command)
 
-                            if not is_comment(command):
-                                coq.run_stmt(command)
+                            coq.run_stmt(command)
 
         details_filename = "{}.html".format(escape_filename(filename))
         with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:
-            fout.write(doc.getvalue())
+            fout.write(syntax_highlight(doc.getvalue()) + scripts)
 
         output_lock.acquire()
         num_tactics += num_tactics_in_file
@@ -225,6 +317,8 @@ with tag('html'):
 
 copy("{}/report.css".format(base), "{}/report.css".format(args.output))
 copy("{}/details.css".format(base), "{}/details.css".format(args.output))
+copy("{}/jquery-ui.css".format(base), "{}/jquery-ui.css".format(args.output))
+copy("{}/jquery-ui.js".format(base), "{}/jquery-ui.js".format(args.output))
 
 with open("{}/report.html".format(args.output), "w") as fout:
     fout.write(doc.getvalue())

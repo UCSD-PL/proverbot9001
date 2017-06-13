@@ -129,8 +129,8 @@ def linearize_commands(commands_sequence, coq, filename):
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
-        theorem_statement = serapi_instance.kill_comments(command_batch.pop(0)).strip()
-        theorem_name = theorem_statement.split(":")[0]
+        theorem_statement = serapi_instance.kill_comments(command_batch.pop(0))
+        theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
         if [filename, theorem_name] in linearize_skip:
