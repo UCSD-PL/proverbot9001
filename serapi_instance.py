@@ -181,7 +181,8 @@ class SerapiInstance(threading.Thread):
             if (ol_msg[0] != Symbol("ObjList")):
                 raise BadResponse(proof_context_message)
             if len(ol_msg[1]) != 0:
-                self.proof_context = self.extract_proof_context(ol_msg[1])
+                newcontext = self.extract_proof_context(ol_msg[1])
+                self.proof_context = newcontext.split("\n\n")[0]
             else:
                 self.proof_context = None
 
