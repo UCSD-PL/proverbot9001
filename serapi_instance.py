@@ -49,20 +49,21 @@ class SerapiInstance(threading.Thread):
         stmt = stmt.replace("\\", "\\\\")
         stmt = stmt.replace("\"", "\\\"")
         try:
-            self._fin.write("(Control (StmAdd () \"{}\"))\n".format(stmt).encode('utf-8'))
-            self._fin.flush()
-            self.cur_state = self.get_next_state()
+            for stm in preprocess_command(kill_comments(stmt)):
+                self._fin.write("(Control (StmAdd () \"{}\"))\n".format(stm).encode('utf-8'))
+                self._fin.flush()
+                self.cur_state = self.get_next_state()
 
-            self._fin.write("(Control (StmObserve {}))\n".format(self.cur_state).encode('utf-8'))
-            self._fin.flush()
-            feedbacks = self.get_feedbacks()
+                self._fin.write("(Control (StmObserve {}))\n".format(self.cur_state).encode('utf-8'))
+                self._fin.flush()
+                feedbacks = self.get_feedbacks()
 
-            self.get_proof_context()
+                self.get_proof_context()
 
-            if self.proof_context:
-                self.prev_tactics.append(stmt)
-            else:
-                self.prev_tactics = []
+                if self.proof_context:
+                    self.prev_tactics.append(stm)
+                else:
+                    self.prev_tactics = []
 
         except Exception as e:
             print("Problem running statement: {}".format(stmt))
@@ -211,21 +212,22 @@ class SerapiContext:
         self.coq.kill()
 
 def possibly_starting_proof(command):
-    return (re.match("Lemma\s", command) or
-            re.match("Theorem\s", command) or
-            re.match("Remark\s", command) or
-            re.match("Proposition\s", command) or
-            re.match("Definition\s", command) or
-            re.match("Example\s", command) or
-            re.match("Fixpoint\s", command) or
-            re.match("Corollary\s", command) or
-            re.match("Let\s", command) or
-            ("Instance" in command and
-             "Declare" not in command) or
-            re.match("Function\s", command) or
-            re.match("Next Obligation", command) or
-            re.match("Property\s", command) or
-            re.match("Add Morphism\s", command))
+    stripped_command = kill_comments(command).strip()
+    return (re.match("Lemma\s", stripped_command) or
+            re.match("Theorem\s", stripped_command) or
+            re.match("Remark\s", stripped_command) or
+            re.match("Proposition\s", stripped_command) or
+            re.match("Definition\s", stripped_command) or
+            re.match("Example\s", stripped_command) or
+            re.match("Fixpoint\s", stripped_command) or
+            re.match("Corollary\s", stripped_command) or
+            re.match("Let\s", stripped_command) or
+            ("Instance" in stripped_command and
+             "Declare" not in stripped_command) or
+            re.match("Function\s", stripped_command) or
+            re.match("Next Obligation", stripped_command) or
+            re.match("Property\s", stripped_command) or
+            re.match("Add Morphism\s", stripped_command))
 
 def ending_proof(command):
     return ("Qed" in command or

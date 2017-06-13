@@ -13,7 +13,7 @@ def load_commands(filename):
         return commands_preprocessed
 
 def lifted_vernac(command):
-    return re.match("Ltac\s", command)
+    return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
 def lift_and_linearize(commands, coqargs, includes, filename):
     with serapi_instance.SerapiContext(coqargs, includes) as coq:

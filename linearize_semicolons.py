@@ -129,7 +129,7 @@ def linearize_commands(commands_sequence, coq, filename):
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
-        theorem_statement = command_batch.pop(0)
+        theorem_statement = serapi_instance.kill_comments(command_batch.pop(0)).strip()
         theorem_name = theorem_statement.split(":")[0]
         coq.run_stmt(theorem_statement)
         yield theorem_statement
@@ -142,7 +142,7 @@ def linearize_commands(commands_sequence, coq, filename):
             continue
 
         # This might not be super robust?
-        match = re.fullmatch("Proof with (.*)\.", command_batch[0])
+        match = re.fullmatch("\s*Proof with (.*)\.", command_batch[0])
         if match and match.group(1):
             with_tactic = match.group(1)
         else:
@@ -200,7 +200,7 @@ def linearize_proof(coq, with_tactic, commands):
         next_tactic = periodands.pop(0)
         if next_tactic == None:
             return
-        while next_tactic and re.match("[+\-*]+|{|}", next_tactic):
+        while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}", next_tactic):
             if len(periodands) == 0:
                 raise "Error: ran out of tactics w/o finishing the proof"
             else:
@@ -240,7 +240,7 @@ def linearize_proof(coq, with_tactic, commands):
         # available, so popped semiands ought to be just one command
         if len(semiand) != 1:
             raise "Error: popped a semiand that was not preprocessed"
-        tactic = semiand[0] + '.'
+        tactic = '\n' + semiand[0].strip() + '.'
         context_before = coq.proof_context
         coq.run_stmt(tactic)
         context_after = coq.proof_context
