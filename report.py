@@ -29,50 +29,79 @@ finished_queue = queue.Queue()
 rows = queue.Queue()
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes):
+    def __init__(self, workerid, coqargs, includes, output_dir):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
         self.workerid = workerid
+        self.output_dir = output_dir
         pass
 
     def process_file(self, filename):
         global num_tactics
         global num_correct
-        details_filename = escape_filename(filename)
         num_tactics_in_file = 0
         num_correct_in_file = 0
 
+        with open(filename, 'r') as fin:
+            contents = serapi_instance.kill_comments(fin.read())
+
         commands = lift_and_linearize(load_commands(filename),
                                       coqargs, includes, filename)
-        with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
-            for command in commands:
-                if re.match(";", command) and options["no-semis"]:
-                    return
-                in_proof = coq.proof_context
-                if in_proof:
-                    num_tactics_in_file += 1
-                    query = format_context(coq.prev_tactics, coq.get_goals(),
-                                           coq.get_hypothesis())
-                    response, errors = subprocess.Popen(darknet_command,
-                                                        stdin=subprocess.PIPE,
-                                                        stdout=subprocess.PIPE,
-                                                        stderr=subprocess.PIPE
-                    ).communicate(input=query.encode('utf-8'))
-                    result = response.decode('utf-8').strip()
-                    if command == result:
-                        num_correct_in_file += 1
 
-                coq.run_stmt(command)
+        doc, tag, text, line = Doc().ttl()
+
+        with tag('html'):
+            with tag('head'):
+                doc.stag('link', href='details.css', rel='stylesheet')
+                with tag('title'):
+                    text("Proverbot Detailed Report for {}".format(filename))
+            with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
+                with tag('body'):
+                    for command in commands:
+                        if re.match(";", command) and options["no-semis"]:
+                            coq.run_stmt(command)
+                            return
+                        in_proof = coq.proof_context
+                        if in_proof:
+                            num_tactics_in_file += 1
+                            query = format_context(coq.prev_tactics, coq.get_goals(),
+                                                   coq.get_hypothesis())
+                            response, errors = subprocess.Popen(darknet_command,
+                                                                stdin=subprocess.PIPE,
+                                                                stdout=subprocess.PIPE,
+                                                                stderr=subprocess.PIPE
+                            ).communicate(input=query.encode('utf-8'))
+                            result = response.decode('utf-8').strip()
+                            if command == result:
+                                num_correct_in_file += 1
+                                with tag('p', klass="goodcommand"):
+                                    text(command)
+                            else:
+                                with tag('p', klass="badcommand"):
+                                    text(command)
+                        else:
+                            with tag('p', klass="plaincommand"):
+                                text(command)
+
+                        coq.run_stmt(command)
+
+        details_filename = "{}.html".format(escape_filename(filename))
+        with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:
+            fout.write(doc.getvalue())
 
         output_lock.acquire()
         num_tactics += num_tactics_in_file
         num_correct += num_correct_in_file
         output_lock.release()
+        if num_tactics_in_file > 0:
+            percent_correct = (num_correct_in_file / num_tactics_in_file) * 100
+        else:
+            percent_correct = 0
         rows.put({'filename': filename, 'num_tactics': num_tactics_in_file,
                   'num_correct': num_correct_in_file,
-                  '% correct': num_correct_in_file / num_tactics_in_file * 100,
-                  'details-filename': details_filename})
+                  '% correct': percent_correct,
+                  'details_filename': details_filename})
     def run(self):
         try:
             while(True):
@@ -87,7 +116,7 @@ class Worker(threading.Thread):
             finished_queue.put(self.workerid)
 
 def escape_filename(filename):
-    re.sub("/", "%s", re.sub("\.", "%d", filename))
+    return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
 parser = argparse.ArgumentParser(description=
                                  "try to match the file by predicting a tacti")
@@ -105,12 +134,15 @@ coqargs = ["{}/coq-serapi/sertop.native".format(base),
 includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                             stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
+if not os.path.exists(args.output):
+    os.makedirs(args.output)
+
 num_jobs = len(args.filenames)
 for infname in args.filenames:
     jobs.put(infname)
 
 for idx in range(args.threads):
-    worker = Worker(idx, coqargs, includes)
+    worker = Worker(idx, coqargs, includes, args.output)
     worker.start()
     workers.append(worker)
 
@@ -140,6 +172,7 @@ with tag('html'):
                 line('th', 'Number of Tactics in File')
                 line('th', 'Number of Tactics Correctly Predicted')
                 line('th', '% Correct')
+                line('th', 'Details')
             while not rows.empty():
                 row = rows.get()
                 with tag('tr'):
@@ -147,11 +180,12 @@ with tag('html'):
                     line('td', row['num_tactics'])
                     line('td', row['num_correct'])
                     line('td', "{:10.2f}%".format(row['% correct']))
-
-if not os.path.exists(args.output):
-    os.makedirs(args.output)
+                    with tag('td'):
+                        with tag('a', href=row['details_filename']):
+                            text("Details")
 
 copy("{}/report.css".format(base), "{}/report.css".format(args.output))
+copy("{}/details.css".format(base), "{}/details.css".format(args.output))
 
 with open("{}/report.html".format(args.output), "w") as fout:
     fout.write(doc.getvalue())
