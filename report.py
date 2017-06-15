@@ -191,7 +191,6 @@ class Worker(threading.Thread):
                                 ).communicate(input=query.encode('utf-8'))
                                 result = response.decode('utf-8').strip()
 
-                                num_correct_in_file += 1
                                 scripts += ("<script type='text/javascript'>\n"
                                             "$(function () {\n"
                                             "    $(\"#context-"
@@ -213,6 +212,7 @@ class Worker(threading.Thread):
                                 with tag('span', title='tooltip',
                                          id='context-' + str(current_context)):
                                     if command.strip() == result:
+                                        num_correct_in_file += 1
                                         with tag('code', klass="goodcommand"):
                                                 text(command)
                                     else:
