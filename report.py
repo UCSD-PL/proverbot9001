@@ -27,6 +27,8 @@ num_correct = 0
 output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
+base = os.path.dirname(os.path.abspath(__file__))
+darknet_command = ["{}/torch-rnn-predictor.sh".format(base)]
 vernacular_binder = [
     "Definition",
     "Inductive",
@@ -270,8 +272,6 @@ parser.add_argument('-o', '--output', help="output data folder name",
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 
-base = os.path.dirname(os.path.abspath(__file__))
-darknet_command = ["{}/try-auto.py".format(base)]
 coqargs = ["{}/coq-serapi/sertop.native".format(base),
            "--prelude={}/coq".format(base)]
 includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
