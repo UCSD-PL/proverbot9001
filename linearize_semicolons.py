@@ -200,7 +200,8 @@ def linearize_proof(coq, with_tactic, commands):
         next_tactic = periodands.pop(0)
         if next_tactic == None:
             return
-        while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}", next_tactic):
+        while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}",
+                                       serapi_instance.kill_comments(next_tactic)):
             if len(periodands) == 0:
                 raise "Error: ran out of tactics w/o finishing the proof"
             else:
@@ -246,8 +247,12 @@ def linearize_proof(coq, with_tactic, commands):
         context_after = coq.proof_context
         if show_trace:
             print('    ' + tactic)
-        if context_before != context_after or re.match(".*Transparent", tactic):
+        if (context_before != context_after or
+            not re.match(".*auto", tactic)):
             yield tactic
+        else:
+            # print("Skipping {} because it didn't change the context.".format(tactic))
+            pass
 
         nb_goals_after = count_fg_goals(coq)
         if show_debug:

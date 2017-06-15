@@ -84,6 +84,11 @@ local_bound_color = "a0522d"
 def color_word(color, word):
     return "<span style=\"color:{}\">{}</span>".format(color, word)
 
+# def highlight_comments(page):
+#     comment_depth = 0
+#     for c in page:
+
+
 def syntax_highlight(page):
     for vernac in vernacular_words:
         page = re.sub(vernac,
@@ -115,7 +120,8 @@ def load_commands_preserve(filename):
                       re.fullmatch("\s*", cur_command[:-1])):
                     result.append(cur_command)
                     cur_command = ""
-                elif (re.fullmatch("\s*[\+\-\*]+", cur_command) and
+                elif (re.fullmatch("\s*[\+\-\*]+",
+                                   serapi_instance.kill_comments(cur_command)) and
                       (len(contents)==i+1 or contents[i] != contents[i+1])):
                     result.append(cur_command)
                     cur_command = ""
@@ -217,7 +223,11 @@ class Worker(threading.Thread):
                                 with tag('code', klass="plaincommand"):
                                     text(command)
 
-                            coq.run_stmt(command)
+                            try:
+                                coq.run_stmt(command)
+                            except:
+                                print("In file {}:".format(filename))
+                                raise
 
         details_filename = "{}.html".format(escape_filename(filename))
         with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:

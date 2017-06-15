@@ -233,8 +233,8 @@ def possibly_starting_proof(command):
 def ending_proof(command):
     return ("Qed" in command or
             "Defined" in command or
-            (re.match("Proof\s+\S+\s*", command) and
-             not re.match("Proof with", command)))
+            (re.match("\s*Proof\s+\S+\s*", command) and
+             not re.match("\s*Proof\s+with", command)))
 
 def split_commands(string):
     result = []
