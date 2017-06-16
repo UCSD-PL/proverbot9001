@@ -203,7 +203,7 @@ class Worker(threading.Thread):
                                             .replace("\\", "\\\\")
                                             .replace("\n", "\\n")
                                             .replace("    ", "  "))
-                                scripts += "\n Predicted: {}\n".format(result)
+                                scripts += "\\n Predicted: {}\\n".format(result)
                                 scripts += ("</code></pre>\",\n"
                                             "        open: function (event, ui) {\n"
                                             "            ui.tooltip.css('max-width', 'none');\n"
