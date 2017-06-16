@@ -231,10 +231,11 @@ def possibly_starting_proof(command):
             re.match("Add Morphism\s", stripped_command))
 
 def ending_proof(command):
-    return ("Qed" in command or
-            "Defined" in command or
-            (re.match("\s*Proof\s+\S+\s*", command) and
-             not re.match("\s*Proof\s+with", command)))
+    stripped_command = kill_comments(command).strip()
+    return ("Qed" in stripped_command or
+            "Defined" in stripped_command or
+            (re.match("\s*Proof\s+\S+\s*", stripped_command) and
+             not re.match("\s*Proof\s+with", stripped_command)))
 
 def split_commands(string):
     result = []
