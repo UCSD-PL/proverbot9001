@@ -43,9 +43,11 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None
         self.cur_state = 0
         self.prev_tactics = []
+        self.debug = False
 
     def run_stmt(self, stmt):
-        # print("Running statement: " + stmt)
+        if self.debug:
+            print("Running statement: " + stmt)
         stmt = stmt.replace("\\", "\\\\")
         stmt = stmt.replace("\"", "\\\"")
         try:

@@ -65,10 +65,12 @@ class Worker(threading.Thread):
         try:
             commands = lift_and_linearize(load_commands(filename),
                                           self.coqargs, self.includes, self.prelude,
-                                          filename)
+                                          filename,
+                                          debug=options["debug"])
             with serapi_instance.SerapiContext(self.coqargs,
                                                self.includes,
                                                self.prelude) as coq:
+                coq.debug = options["debug"]
                 for command in commands:
                     self.process_statement(coq, command)
         except Exception as e:
@@ -102,9 +104,11 @@ parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
 parser.add_argument('--no-semis', default=False, const=True, action='store_const',
                     dest='no_semis')
+parser.add_argument('--debug', default=False, const=True, action='store_const')
 parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
 args = parser.parse_args()
 options["no-semis"] = args.no_semis
+options["debug"] = args.debug
 
 num_jobs = len(args.inputs)
 
