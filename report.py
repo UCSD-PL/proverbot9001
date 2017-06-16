@@ -28,7 +28,7 @@ output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
-darknet_command = ["{}/torch-rnn-predictor.sh".format(base)]
+darknet_command = ["{}/try-auto.py".format(base)]
 vernacular_binder = [
     "Definition",
     "Inductive",
