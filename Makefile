@@ -1,9 +1,12 @@
 
 NTHREADS=4
 
-.PHONY: scrape report
+.PHONY: scrape report setup
 
 all: scrape report
+
+setup:
+	./setup.sh
 
 scrape:
 	cat compcert-scrapable-files.txt | \
