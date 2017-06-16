@@ -200,7 +200,7 @@ class Worker(threading.Thread):
                                             + "\").tooltip({\n"
                                             "        content: \"<pre><code>")
                                 scripts += ((coq.proof_context +
-                                             "\n\nPredicted: {}\n".format(result))
+                                             "\n\n<b>Predicted</b>: {}\n".format(result))
                                             .replace("\\", "\\\\")
                                             .replace("\n", "\\n")
                                             .replace("    ", "  "))
