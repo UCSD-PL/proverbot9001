@@ -16,10 +16,15 @@ def lifted_vernac(command):
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
 def lift_and_linearize(commands, coqargs, includes, filename):
-    with serapi_instance.SerapiContext(coqargs, includes) as coq:
-        result = list(linearize_semicolons.linearize_commands(generate_lifted(commands, coq),
-                                                              coq, filename))
+    try:
+        with serapi_instance.SerapiContext(coqargs, includes) as coq:
+            result = list(linearize_semicolons.linearize_commands(generate_lifted(commands,
+                                                                                  coq),
+                                                                  coq, filename))
         return result
+    except:
+        print("In file {}".format(filename))
+        raise
 
 def generate_lifted(commands, coq):
     lemma_stack = []
