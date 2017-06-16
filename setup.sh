@@ -52,5 +52,18 @@ function setup-coq-serapi {
   ) || exit 1
 }
 
+function setup-compcert {
+    check-and-clone\
+      "compcert" "git@github.com:AbsInt/CompCert.git"\
+      "47f63df0a43209570de224f28cf53da6a758df16"
+    {
+        set -euv
+        cd compcert
+        ./configure x86_64-linux
+        make -j `nproc`
+    }
+}
+
 setup-coq
 setup-coq-serapi
+setup-compcert
