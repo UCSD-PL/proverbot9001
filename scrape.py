@@ -31,6 +31,7 @@ class Worker(threading.Thread):
         self.coqargs = [os.path.dirname(os.path.abspath(__file__)) + "/coq-serapi/sertop.native",
                    "--prelude={}/coq".format(os.path.dirname(os.path.abspath(__file__)))]
         includes=subprocess.Popen(['make', '-C', prelude, 'print-includes'], stdout=subprocess.PIPE).communicate()[0]
+        self.prelude = prelude
         self.tmpfile_name = "/tmp/proverbot_worker{}".format(workerid)
         self.workerid = workerid
         with open(self.tmpfile_name, 'w') as tmp_file:
@@ -63,9 +64,11 @@ class Worker(threading.Thread):
     def process_file(self, filename):
         try:
             commands = lift_and_linearize(load_commands(filename),
-                                          self.coqargs, self.includes,
+                                          self.coqargs, self.includes, self.prelude,
                                           filename)
-            with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
+            with serapi_instance.SerapiContext(self.coqargs,
+                                               self.includes,
+                                               self.prelude) as coq:
                 for command in commands:
                     self.process_statement(coq, command)
         except Exception as e:
@@ -106,7 +109,7 @@ options["no-semis"] = args.no_semis
 num_jobs = len(args.inputs)
 
 for infname in args.inputs:
-    jobs.put(infname)
+    jobs.put(args.prelude + "/" + infname)
 
 for idx in range(args.threads):
     worker = Worker(args.output, idx, args.prelude)

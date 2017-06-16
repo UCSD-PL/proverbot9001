@@ -31,7 +31,7 @@ class BadResponse(Exception):
     pass
 
 class SerapiInstance(threading.Thread):
-    def __init__(self, coq_command, includes):
+    def __init__(self, coq_command, includes, prelude):
         threading.Thread.__init__(self, daemon=True)
         self._proc = subprocess.Popen(coq_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._fout = self._proc.stdout
@@ -39,7 +39,7 @@ class SerapiInstance(threading.Thread):
         self.messages = queue.Queue()
         self.start()
         self.discard_initial_feedback()
-        self.exec_includes(includes)
+        self.exec_includes(includes, prelude)
         self.proof_context = None
         self.cur_state = 0
         self.prev_tactics = []
@@ -98,9 +98,9 @@ class SerapiInstance(threading.Thread):
         self._fin.flush()
         self.get_next_state()
 
-    def exec_includes(self, includes_string):
+    def exec_includes(self, includes_string, prelude):
         for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
-            self.add_lib(match.group(1), match.group(2))
+            self.add_lib(prelude + "/" + match.group(1), match.group(2))
 
     def get_next_state(self):
         self.get_ack()
@@ -203,11 +203,12 @@ class SerapiInstance(threading.Thread):
     pass
 
 class SerapiContext:
-    def __init__(self, coq_commands, includes):
+    def __init__(self, coq_commands, includes, prelude):
         self.coq_commands = coq_commands
         self.includes = includes
+        self.prelude = prelude
     def __enter__(self):
-        self.coq = SerapiInstance(self.coq_commands, self.includes)
+        self.coq = SerapiInstance(self.coq_commands, self.includes, self.prelude)
         return self.coq
     def __exit__(self, type, value, traceback):
         self.coq.kill()

@@ -15,9 +15,9 @@ def load_commands(filename):
 def lifted_vernac(command):
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
-def lift_and_linearize(commands, coqargs, includes, filename):
+def lift_and_linearize(commands, coqargs, includes, prelude, filename):
     try:
-        with serapi_instance.SerapiContext(coqargs, includes) as coq:
+        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             result = list(linearize_semicolons.linearize_commands(generate_lifted(commands,
                                                                                   coq),
                                                                   coq, filename))
