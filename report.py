@@ -199,11 +199,11 @@ class Worker(threading.Thread):
                                             + str(current_context)
                                             + "\").tooltip({\n"
                                             "        content: \"<pre><code>")
-                                scripts += (coq.proof_context
+                                scripts += ((coq.proof_context +
+                                             "\n\nPredicted: {}\n".format(result))
                                             .replace("\\", "\\\\")
                                             .replace("\n", "\\n")
                                             .replace("    ", "  "))
-                                scripts += "\\n Predicted: {}\\n".format(result)
                                 scripts += ("</code></pre>\",\n"
                                             "        open: function (event, ui) {\n"
                                             "            ui.tooltip.css('max-width', 'none');\n"
