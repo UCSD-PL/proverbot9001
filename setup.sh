@@ -59,8 +59,8 @@ function setup-compcert {
     {
         set -euv
         cd CompCert
-        ./configure x86_64-linux
-        make -j `nproc`
+        PATH="$PWD/../coq/bin:$PATH" ./configure x86_64-linux
+        PATH="$PWD/../coq/bin:$PATH" make -j `nproc`
     }
 }
 
