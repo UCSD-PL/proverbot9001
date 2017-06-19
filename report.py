@@ -138,12 +138,13 @@ def load_commands_preserve(filename):
     return result
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes, output_dir):
+    def __init__(self, workerid, coqargs, includes, output_dir, prelude="."):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
         self.workerid = workerid
         self.output_dir = output_dir
+        self.prelude = prelude
         pass
 
     def process_file(self, filename):
@@ -155,7 +156,7 @@ class Worker(threading.Thread):
         scripts = ""
 
         commands = lift_and_linearize(load_commands_preserve(filename),
-                                      coqargs, includes, filename)
+                                      self.coqargs, self.includes, self.prelude, filename)
 
         doc, tag, text, line = Doc().ttl()
 
@@ -171,7 +172,9 @@ class Worker(threading.Thread):
                     pass
                 with tag('title'):
                     text("Proverbot Detailed Report for {}".format(filename))
-            with serapi_instance.SerapiContext(self.coqargs, self.includes) as coq:
+            with serapi_instance.SerapiContext(self.coqargs,
+                                               self.includes,
+                                               self.prelude) as coq:
                 with tag('body'):
                     with tag('pre'):
                         for command in commands:
@@ -283,10 +286,10 @@ if not os.path.exists(args.output):
 
 num_jobs = len(args.filenames)
 for infname in args.filenames:
-    jobs.put(infname)
+    jobs.put(args.prelude + "/" + infname)
 
 for idx in range(args.threads):
-    worker = Worker(idx, coqargs, includes, args.output)
+    worker = Worker(idx, coqargs, includes, args.output, args.prelude)
     worker.start()
     workers.append(worker)
 
