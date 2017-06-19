@@ -273,8 +273,15 @@ parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
 parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
+parser.add_argument('-p', '--predictor',
+                    help="The command to use to predict tactics. This command must "
+                    "accept input on standard in in the format specified in format.py, "
+                    "and produce a tactic on standard out. The first \"{}\" in the "
+                    "command will be replaced with the base directory.",
+                    default="{}/try-auto.py")
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
+darknet_command = [args.predictor.format(base)]
 
 coqargs = ["{}/coq-serapi/sertop.native".format(base),
            "--prelude={}/coq".format(base)]
