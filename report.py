@@ -8,6 +8,7 @@ import math
 import threading
 import queue
 import re
+import datetime
 
 from shutil import *
 from format import format_context
@@ -155,7 +156,8 @@ class Worker(threading.Thread):
         current_context = 0
         scripts = ""
 
-        commands = lift_and_linearize(load_commands_preserve(filename),
+        commands = lift_and_linearize(load_commands_preserve(self.prelude + "/" +
+                                                             filename),
                                       self.coqargs, self.includes, self.prelude, filename)
 
         doc, tag, text, line = Doc().ttl()
@@ -288,12 +290,16 @@ coqargs = ["{}/coq-serapi/sertop.native".format(base),
 includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                             stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
+cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
+                                     shell=True).decode('utf-8')
+cur_date = datetime.datetime.now()
+
 if not os.path.exists(args.output):
     os.makedirs(args.output)
 
 num_jobs = len(args.filenames)
 for infname in args.filenames:
-    jobs.put(args.prelude + "/" + infname)
+    jobs.put(infname)
 
 for idx in range(args.threads):
     worker = Worker(idx, coqargs, includes, args.output, args.prelude)
@@ -320,12 +326,14 @@ with tag('html'):
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent,
                          num_correct, num_tactics))
-        with tag('span'):
-            with tag('h4'):
-                text("Using predictor: {}".format(darknet_command))
-        with tag('span'):
-            with tag('h4'):
-                text("{} files processed".format(num_jobs))
+        with tag('h4'):
+            text("Using predictor: {}".format(darknet_command[0]))
+        with tag('h4'):
+            text("{} files processed".format(num_jobs))
+        with tag('h5'):
+            text("Commit: {}".format(cur_commit))
+        with tag('h5'):
+            text("Run on {}".format(cur_date))
         with tag('table'):
             with tag('tr'):
                 line('th', 'Filename')
