@@ -320,6 +320,12 @@ with tag('html'):
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent,
                          num_correct, num_tactics))
+        with tag('span'):
+            with tag('h4'):
+                text("Using predictor: {}".format(darknet_command))
+        with tag('span'):
+            with tag('h4'):
+                text("{} files processed".format(num_jobs))
         with tag('table'):
             with tag('tr'):
                 line('th', 'Filename')
