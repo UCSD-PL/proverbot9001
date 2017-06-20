@@ -2,7 +2,7 @@
 SHELL=/bin/bash
 
 NTHREADS=4
-REPORT_SIZE=`wc -l < compcert-scrapable-files.txt`
+NUM_FILES=`wc -l < compcert-scrapable-files.txt`
 REPORT_NAME=$(shell cat <(date -Iseconds) <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 
 .PHONY: scrape report setup
@@ -13,11 +13,11 @@ setup:
 	./setup.sh
 
 scrape:
-	cat compcert-scrapable-files.txt | \
+	cat compcert-scrapable-files.txt | head -n $(NUM_FILES) | \
 	xargs python3 scrape.py -j $(NTHREADS) --output scrape.txt \
 					       --prelude ./CompCert
 report:
-	cat compcert-scrapable-files.txt | head -n $(REPORT_SIZE) | \
+	cat compcert-scrapable-files.txt | head -n $(NUM_FILES) | \
 	xargs python3 report.py -j $(NTHREADS) --prelude ./CompCert
 
 publish:
