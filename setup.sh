@@ -64,6 +64,18 @@ function setup-compcert {
     }
 }
 
+function setup-darknet {
+    check-and-clone\
+      "darknet" "https://github.com/pjreddie/darknet.git"\
+      "HEAD"
+    {
+        set -euv
+        cd darknet
+        make -j `nproc`
+    }
+}
+
 setup-coq
 setup-coq-serapi
 setup-compcert
+setup-darknet
