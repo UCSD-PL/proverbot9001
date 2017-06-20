@@ -54,7 +54,7 @@ function setup-coq-serapi {
 
 function setup-compcert {
     check-and-clone\
-      "CompCert" "git@github.com:AbsInt/CompCert.git"\
+      "CompCert" "https://github.com/AbsInt/CompCert.git"\
       "47f63df0a43209570de224f28cf53da6a758df16"
     {
         set -euv
