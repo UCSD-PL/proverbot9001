@@ -196,7 +196,7 @@ class Worker(threading.Thread):
                                                                     stderr=
                                                                     subprocess.PIPE
                                 ).communicate(input=query.encode('utf-8'))
-                                result = response.decode('utf-8').strip()
+                                result = response.decode('utf-8', 'ignore').strip()
 
                                 scripts += ("<script type='text/javascript'>\n"
                                             "$(function () {\n"
