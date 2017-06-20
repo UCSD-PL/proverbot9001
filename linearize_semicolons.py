@@ -248,7 +248,8 @@ def linearize_proof(coq, with_tactic, commands):
         if show_trace:
             print('    ' + tactic)
         if (context_before != context_after or
-            not re.match(".*auto", tactic)):
+            not (re.match(".*auto", tactic) or
+                 re.match(".*Proof"))):
             yield tactic
         else:
             # print("Skipping {} because it didn't change the context.".format(tactic))
