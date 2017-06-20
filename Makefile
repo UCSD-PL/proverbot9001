@@ -1,6 +1,9 @@
 
+SHELL=/bin/bash
+
 NTHREADS=4
 REPORT_SIZE=`wc -l < compcert-scrapable-files.txt`
+REPORT_NAME=$(shell cat <(date -Iseconds) <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 
 .PHONY: scrape report setup
 
@@ -16,3 +19,12 @@ scrape:
 report:
 	cat compcert-scrapable-files.txt | head -n $(REPORT_SIZE) | \
 	xargs python3 report.py -j $(NTHREADS) --prelude ./CompCert
+
+publish:
+	mv report $(REPORT_NAME)
+	tar czf report.tar.gz $(REPORT_NAME)
+	rsync -avz report.tar.gz goto:~/proverbot9001-site/reports/
+	ssh goto 'cd proverbot9001-site/reports && \
+                  tar xzf report.tar.gz && \
+                  rm report.tar.gz && \
+                  ./build-index.sh'
