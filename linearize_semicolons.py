@@ -16,9 +16,12 @@ from serapi_instance import count_open_proofs
 
 import serapi_instance
 
+# whether the program will stop when a linearization fails
 debug = False
-show_debug = False
+# whether the program will show all the Coq commands it outputs
 show_trace = False
+# whether the program will explain everything it's doing
+show_debug = False
 
 linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
                   ["./cfrontend/Cminorgenproof.v", "Lemma match_callstack_alloc_right"]]
