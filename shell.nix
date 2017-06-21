@@ -19,13 +19,15 @@ nixpkgs.stdenv.mkDerivation {
       ocamlbuild
       ppx_deriving
       ppx_import
+      ppx_sexp_conv
+      sexplib
       # CompCert
       menhir
     ]) ++
-    (with nixpkgs.ocamlPackages_4_03.janeStreet; [
-      ppx_sexp_conv
-      sexplib
-    ]) ++
+#     (with nixpkgs.ocamlPackages_4_03.janeStreet; [
+#       ppx_sexp_conv
+#       sexplib
+#     ]) ++
     (with nixpkgs.pythonPackages; [
       sexpdata
     ])
