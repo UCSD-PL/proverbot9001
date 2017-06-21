@@ -109,13 +109,17 @@ def show_semiand(pipeands):
 def show_semiands(semiands):
     return ' ; '.join(map(show_semiand, semiands))
 
+def recount_open_proofs(coq):
+    goals = coq.query_goals()
+    return count_open_proofs(goals)
+
 def linearize_commands(commands_sequence, coq, filename):
     command = next(commands_sequence, None)
     while command:
         # Run up to the next proof
-        while count_open_proofs(coq) == 0:
+        while recount_open_proofs(coq) == 0:
             coq.run_stmt(command)
-            if count_open_proofs(coq) == 0:
+            if recount_open_proofs(coq) == 0:
                 yield command
                 command = next(commands_sequence, None)
                 if not command:
@@ -157,7 +161,8 @@ def linearize_commands(commands_sequence, coq, filename):
             leftover_commands = []
 
             for command in command_batch:
-                if command and (count_fg_goals(coq) != 0 or
+                goals = coq.query_goals()
+                if command and (count_fg_goals(goals) != 0 or
                                 serapi_instance.ending_proof(command)):
                     coq.run_stmt(command)
                     leftover_commands.append(command)
@@ -233,7 +238,8 @@ def linearize_proof(coq, with_tactic, commands):
             print("Linearizing {}".format(show_semiands(semiands)))
             print("Done when {} subgoals left".format(str(done)))
 
-        nb_goals_before = count_fg_goals(coq)
+        goals = coq.query_goals()
+        nb_goals_before = count_fg_goals(goals)
         if show_debug:
             print("Goals before: {}".format(str(nb_goals_before)))
 
@@ -258,7 +264,8 @@ def linearize_proof(coq, with_tactic, commands):
             # print("Skipping {} because it didn't change the context.".format(tactic))
             pass
 
-        nb_goals_after = count_fg_goals(coq)
+        goals = coq.query_goals()
+        nb_goals_after = count_fg_goals(goals)
         if show_debug:
             print("Goals after: {}".format(str(nb_goals_after)))
 

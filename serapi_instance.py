@@ -329,8 +329,7 @@ def preprocess_command(cmd):
 def count_open_proofs(goals):
     return len(goals[2][1])
 
-def count_fg_goals(coq):
-    goals = coq.query_goals()
-    if count_open_proofs(coq) == 0:
+def count_fg_goals(goals):
+    if count_open_proofs(goals) == 0:
         return 0
     return len(goals[2][1][0][1][0][1])
