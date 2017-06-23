@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 
-import subprocess
-import threading
-import re
-import queue
+import argparse
+import datetime
 import os
 import os.path
-import argparse
+import queue
+import re
+import subprocess
 import sys
+import threading
+
 # This dependency is in pip, the python package manager
-from sexpdata import *
-from traceback import *
 from serapi_instance import count_fg_goals
 from serapi_instance import count_open_proofs
+from sexpdata import *
+from timer import TimerBucket
+from traceback import *
 
 import serapi_instance
 
+measure_time = False
 # whether the program will stop when a linearization fails
 debug = False
 # whether the program will show all the Coq commands it outputs
@@ -157,7 +161,7 @@ def linearize_commands(commands_sequence, coq, filename):
 
         orig = command_batch[:]
         try:
-            linearized_commands = list(linearize_proof(coq, with_tactic, command_batch))
+            linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch))
             leftover_commands = []
 
             for command in command_batch:
@@ -171,6 +175,7 @@ def linearize_commands(commands_sequence, coq, filename):
             for command in leftover_commands:
                 yield command
         except Exception as e:
+            raise e
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
@@ -194,7 +199,16 @@ def linearize_commands(commands_sequence, coq, filename):
 def branch_done(done, nb_subgoals, branch_index):
     return done + nb_subgoals - 1 - branch_index
 
-def linearize_proof(coq, with_tactic, commands):
+if measure_time:
+    linearizing_timer_bucket = TimerBucket("linearizing", True)
+
+def linearize_proof(coq, theorem_name, with_tactic, commands):
+
+    theorem_name = theorem_name.split(" ")[1]
+    if measure_time:
+        count_goals_before_timer_bucket = TimerBucket("{} / counting goals before".format(theorem_name), False)
+        run_statement_timer_bucket = TimerBucket("{} / running statement".format(theorem_name), False)
+        count_goals_after_timer_bucket = TimerBucket("{} / counting goals after".format(theorem_name), False)
 
     #print("linearize_proof(coq, '{}', {})".format(
     #    with_tactic, str(commands)
@@ -238,11 +252,14 @@ def linearize_proof(coq, with_tactic, commands):
             print("Linearizing {}".format(show_semiands(semiands)))
             print("Done when {} subgoals left".format(str(done)))
 
+        if measure_time: stop_timer = count_goals_before_timer_bucket.start_timer("")
         goals = coq.query_goals()
         nb_goals_before = count_fg_goals(goals)
+        if measure_time: stop_timer()
         if show_debug:
             print("Goals before: {}".format(str(nb_goals_before)))
 
+        if measure_time: stop_timer = run_statement_timer_bucket.start_timer("")
         if len(semiands) == 0:
             raise "Error: Called lin with empty semiands"
         semiand = semiands.pop(0)
@@ -263,9 +280,12 @@ def linearize_proof(coq, with_tactic, commands):
         else:
             # print("Skipping {} because it didn't change the context.".format(tactic))
             pass
+        if measure_time: stop_timer()
 
+        if measure_time: stop_timer = count_goals_after_timer_bucket.start_timer("")
         goals = coq.query_goals()
         nb_goals_after = count_fg_goals(goals)
+        if measure_time: stop_timer()
         if show_debug:
             print("Goals after: {}".format(str(nb_goals_after)))
 
@@ -340,11 +360,17 @@ def linearize_proof(coq, with_tactic, commands):
                 print("Done dispatching {} tactics".format(str(len(next_semiand))))
             return
 
-
         return
 
+    if measure_time: stop_timer = linearizing_timer_bucket.start_timer(theorem_name)
     if len(commands) == 0:
         raise "Error: called linearize_proof with empty commands"
     first_tactic = commands.pop(0)
     semiands = list(split_semis_brackets(first_tactic, with_tactic))
     yield from lin(semiands, commands, 0)
+    if measure_time: stop_timer()
+
+    if measure_time:
+        count_goals_before_timer_bucket.print_statistics()
+        run_statement_timer_bucket.print_statistics()
+        count_goals_after_timer_bucket.print_statistics()

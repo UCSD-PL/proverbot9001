@@ -8,8 +8,10 @@ import os
 import os.path
 import argparse
 import sys
+
 # This dependency is in pip, the python package manager
 from sexpdata import *
+from timer import TimerBucket
 from traceback import *
 
 class AckError(Exception):
@@ -36,6 +38,8 @@ class SerapiInstance(threading.Thread):
         self._proc = subprocess.Popen(coq_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._fout = self._proc.stdout
         self._fin = self._proc.stdin
+        self._current_goal = None
+
         self.messages = queue.Queue()
         self.start()
         self.discard_initial_feedback()
@@ -45,6 +49,11 @@ class SerapiInstance(threading.Thread):
         self.prev_tactics = []
         self.debug = False
 
+    def send_flush(self, cmd):
+        self._fin.write(cmd.encode('utf-8'))
+        self._fin.flush()
+        self._current_goal = None
+
     def run_stmt(self, stmt):
         if self.debug:
             print("Running statement: " + stmt)
@@ -52,12 +61,10 @@ class SerapiInstance(threading.Thread):
         stmt = stmt.replace("\"", "\\\"")
         try:
             for stm in preprocess_command(kill_comments(stmt)):
-                self._fin.write("(Control (StmAdd () \"{}\"))\n".format(stm).encode('utf-8'))
-                self._fin.flush()
+                self.send_flush("(Control (StmAdd () \"{}\"))\n".format(stm))
                 self.cur_state = self.get_next_state()
 
-                self._fin.write("(Control (StmObserve {}))\n".format(self.cur_state).encode('utf-8'))
-                self._fin.flush()
+                self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
                 feedbacks = self.get_feedbacks()
 
                 self.get_proof_context()
@@ -74,9 +81,7 @@ class SerapiInstance(threading.Thread):
     def cancel_last(self):
         while not self.messages.empty():
             self.messages.get()
-        cancel = "(Control (StmCancel ({})))".format(self.cur_state)
-        self._fin.write(cancel.encode('utf-8'))
-        self._fin.flush()
+        self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
         self.get_cancelled()
         self.cur_state = self.cur_state - 1
 
@@ -96,8 +101,7 @@ class SerapiInstance(threading.Thread):
     def add_lib(self, origpath, logicalpath):
         addStm = ("(Control (StmAdd () \"Add Rec LoadPath \\\"{}\\\" as {}.\"))\n"
                   .format(origpath, logicalpath))
-        self._fin.write(addStm.format(origpath, logicalpath).encode('utf-8'))
-        self._fin.flush()
+        self.send_flush(addStm.format(origpath, logicalpath))
         self.get_next_state()
 
     def exec_includes(self, includes_string, prelude):
@@ -148,12 +152,12 @@ class SerapiInstance(threading.Thread):
         return feedbacks
 
     def query_goals(self):
-        query = "(Query () Goals)\n"
-        self._fin.write(query.encode('utf-8'))
-        self._fin.flush()
-        self.get_ack()
-        answer = self.messages.get()
-        return answer
+        if self._current_goal == None:
+            self.send_flush("(Query () Goals)\n")
+            self.get_ack()
+            self._current_goal = self.messages.get()
+        return self._current_goal
+
     def get_cancelled(self):
         self.get_ack()
         feedback = self.messages.get()
@@ -171,8 +175,7 @@ class SerapiInstance(threading.Thread):
         return re.split("\n======+\n", self.proof_context)[0]
 
     def get_proof_context(self):
-        self._fin.write("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state).encode('utf-8'))
-        self._fin.flush()
+        self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
         self.get_ack()
 
         proof_context_message = self.messages.get()
