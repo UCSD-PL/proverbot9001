@@ -153,7 +153,7 @@ class SerapiInstance(threading.Thread):
 
     def query_goals(self):
         if self._current_goal == None:
-            self.send_flush("(Query () Goals)\n")
+            self.send_flush("(Query ((pp ( (pp_format PpSer) (pp_depth 1) ))) Goals)\n")
             self.get_ack()
             self._current_goal = self.messages.get()
         return self._current_goal
