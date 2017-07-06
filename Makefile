@@ -3,7 +3,7 @@ SHELL=/bin/bash
 
 NTHREADS=4
 NUM_FILES=`wc -l < compcert-scrapable-files.txt`
-REPORT_NAME=$(shell cat <(date -Iseconds) <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
+REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
 
 .PHONY: scrape report setup
@@ -29,3 +29,4 @@ publish:
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
                   ./build-index.sh'
+	mv $(REPORT_NAME) report
