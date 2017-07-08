@@ -2,7 +2,6 @@
 SHELL=/bin/bash
 
 NTHREADS=4
-NUM_FILES=`wc -l < compcert-scrapable-files.txt`
 REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
 
@@ -14,12 +13,23 @@ setup:
 	./setup.sh
 
 scrape:
-	cat compcert-scrapable-files.txt | head -n $(NUM_FILES) | \
+ifeq ($(NUM_FILES),)
+	cat compcert-train-files.txt | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output scrape.txt \
 					       --prelude ./CompCert
+else
+	cat compcert-train-files.txt | head -n $(NUM_FILES) | \
+	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output scrape.txt \
+					       --prelude ./CompCert
+endif
 report:
-	cat compcert-scrapable-files.txt | head -n $(NUM_FILES) | \
+ifeq($(NUM_FILES),)
+	cat compcert-test-files.txt | \
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
+else
+	cat compcert-test-files.txt | head -n $(NUM_FILES) | \
+	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
+endif
 
 publish:
 	mv report $(REPORT_NAME)
