@@ -15,3 +15,7 @@ code.badcommand {
 code.goodcommand {
     color: green
 }
+
+code.okaycommand {
+    color: orange
+}

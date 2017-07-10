@@ -2,10 +2,11 @@
 body {
     padding: 40px 30px;
     width: auto;
-    max-width: 700px;
+    max-width: 1200px;
     margin: 3em auto;
     position: relative;
     text-rendering: optimizeLegibility;
+    text-align: center;
 }
 
 tr {

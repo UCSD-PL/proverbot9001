@@ -25,6 +25,7 @@ jobs = queue.Queue()
 workers = []
 num_tactics = 0
 num_correct = 0
+num_partial = 0
 output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
@@ -159,8 +160,10 @@ class Worker(threading.Thread):
     def process_file(self, filename):
         global num_tactics
         global num_correct
+        global num_partial
         num_tactics_in_file = 0
         num_correct_in_file = 0
+        num_partial_in_file = 0
         current_context = 0
         scripts = ""
 
@@ -230,8 +233,14 @@ class Worker(threading.Thread):
                                          id='context-' + str(current_context)):
                                     if command.strip() == result:
                                         num_correct_in_file += 1
+                                        num_partial_in_file += 1
                                         with tag('code', klass="goodcommand"):
                                                 text(command)
+                                    elif (command.strip().split(" ")[0].strip(".") ==
+                                          result.strip().split(" ")[0].strip(".")):
+                                        num_partial_in_file += 1
+                                        with tag('code', klass="okaycommand"):
+                                            text(command)
                                     else:
                                         with tag('code', klass="badcommand"):
                                             text(command)
@@ -253,14 +262,18 @@ class Worker(threading.Thread):
         output_lock.acquire()
         num_tactics += num_tactics_in_file
         num_correct += num_correct_in_file
+        num_partial += num_partial_in_file
         output_lock.release()
         if num_tactics_in_file > 0:
             percent_correct = (num_correct_in_file / num_tactics_in_file) * 100
+            percent_partial = (num_partial_in_file / num_tactics_in_file) * 100
         else:
             percent_correct = 0
+            percent_partial = 0
         rows.put({'filename': filename, 'num_tactics': num_tactics_in_file,
-                  'num_correct': num_correct_in_file,
+                  'num_correct': num_correct_in_file, 'num_partial': num_partial_in_file,
                   '% correct': percent_correct,
+                  '% partial': percent_partial,
                   'details_filename': details_filename})
     def run(self):
         try:
@@ -348,7 +361,9 @@ with tag('html'):
                 line('th', 'Filename')
                 line('th', 'Number of Tactics in File')
                 line('th', 'Number of Tactics Correctly Predicted')
+                line('th', 'Number of Tactics Predicted Partially Correct')
                 line('th', '% Correct')
+                line('th', '% Partial')
                 line('th', 'Details')
             while not rows.empty():
                 row = rows.get()
@@ -356,7 +371,9 @@ with tag('html'):
                     line('td', row['filename'])
                     line('td', row['num_tactics'])
                     line('td', row['num_correct'])
+                    line('td', row['num_partial'])
                     line('td', "{:10.2f}%".format(row['% correct']))
+                    line('td', "{:10.2f}%".format(row['% partial']))
                     with tag('td'):
                         with tag('a', href=row['details_filename']):
                             text("Details")
