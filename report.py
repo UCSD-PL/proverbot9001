@@ -23,9 +23,6 @@ from helper import *
 num_jobs = 0
 jobs = queue.Queue()
 workers = []
-num_tactics = 0
-num_correct = 0
-num_partial = 0
 output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
@@ -147,6 +144,49 @@ def load_commands_preserve(filename):
                 comment_depth -= 1
     return result
 
+css = ["details.css", "jquery-ui.css"]
+javascript = ["http://code.jquery.com/jquery-latest.min.js", "jquery-ui.js"]
+
+def details_header(tag, doc, text):
+    with tag('head'):
+        for filename in css:
+            doc.stag('link', href=filename, rel='stylesheet')
+        for filename in javascript:
+            with tag('script', type='text/javascript',
+                     src=filename):
+                pass
+        with tag('title'):
+            text("Proverbot Detailed Report for {}".format(filename))
+
+def jsan(string):
+    return (string
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n"))
+
+def shorten_whitespace(string):
+    return string.replace("    ", "  ")
+
+def hover_script(context_idx, proof_context, predicted_tactic):
+    return ("<script type='text/javascript'>\n"
+            "$(function () {{\n"
+            "  $(\"#context-{}\").tooltip({{\n"
+            "    content: \"<pre><code>{}\\n\\n"
+            "               <b>Predicted</b>: {}\\n"
+            "               </code></pre>\",\n"
+            "    open: function (event, ui) {{\n"
+            "      ui.tooltip.css('max-width', 'none');\n"
+            "      ui.tooltip.css('min-width', '800px');\n"
+            "    }}\n"
+            "  }});\n"
+            "}});\n"
+            "</script>".format(str(context_idx),
+                               shorten_whitespace(jsan(proof_context)),
+                               shorten_whitespace(jsan(predicted_tactic))))
+
+num_tactics = 0
+num_correct = 0
+num_partial = 0
+
 class Worker(threading.Thread):
     def __init__(self, workerid, coqargs, includes, output_dir, prelude="."):
         threading.Thread.__init__(self, daemon=True)
@@ -174,86 +214,63 @@ class Worker(threading.Thread):
         doc, tag, text, line = Doc().ttl()
 
         with tag('html'):
-            with tag('head'):
-                doc.stag('link', href='details.css', rel='stylesheet')
-                doc.stag('link', href='jquery-ui.css', rel='stylesheet')
-                with tag('script', type='text/javascript',
-                         src="http://code.jquery.com/jquery-latest.min.js"):
-                    pass
-                with tag('script', type='text/javascript',
-                         src="jquery-ui.js"):
-                    pass
-                with tag('title'):
-                    text("Proverbot Detailed Report for {}".format(filename))
+            details_header(tag, doc, text)
             with serapi_instance.SerapiContext(self.coqargs,
                                                self.includes,
                                                self.prelude) as coq:
-                with tag('body'):
-                    with tag('pre'):
-                        for command in commands:
-                            if re.match(";", command) and options["no-semis"]:
-                                coq.run_stmt(command)
-                                return
-                            in_proof = (coq.proof_context and
-                                        not re.match(".*Proof.*", command.strip()))
-                            if in_proof:
-                                num_tactics_in_file += 1
-                                query = format_context(coq.prev_tactics, coq.get_goals(),
-                                                       coq.get_hypothesis())
-                                response, errors = subprocess.Popen(darknet_command,
-                                                                    stdin=
-                                                                    subprocess.PIPE,
-                                                                    stdout=
-                                                                    subprocess.PIPE,
-                                                                    stderr=
-                                                                    subprocess.PIPE
-                                ).communicate(input=query.encode('utf-8'))
-                                result = response.decode('utf-8', 'ignore').strip()
+                with tag('body'), tag('pre'):
+                    for command in commands:
+                        if re.match(";", command) and options["no-semis"]:
+                            coq.run_stmt(command)
+                            return
+                        in_proof = (coq.proof_context and
+                                    not re.match(".*Proof.*", command.strip()))
+                        if in_proof:
+                            num_tactics_in_file += 1
+                            query = format_context(coq.prev_tactics, coq.get_goals(),
+                                                   coq.get_hypothesis())
+                            response, errors = subprocess.Popen(darknet_command,
+                                                                stdin=
+                                                                subprocess.PIPE,
+                                                                stdout=
+                                                                subprocess.PIPE,
+                                                                stderr=
+                                                                subprocess.PIPE
+                            ).communicate(input=query.encode('utf-8'))
+                            result = response.decode('utf-8', 'ignore').strip()
 
-                                scripts += ("<script type='text/javascript'>\n"
-                                            "$(function () {\n"
-                                            "    $(\"#context-"
-                                            + str(current_context)
-                                            + "\").tooltip({\n"
-                                            "        content: \"<pre><code>")
-                                scripts += ((coq.proof_context +
-                                             "\n\n<b>Predicted</b>: {}\n".format(result))
-                                            .replace("\\", "\\\\")
-                                            .replace("\n", "\\n")
-                                            .replace("    ", "  "))
-                                scripts += ("</code></pre>\",\n"
-                                            "        open: function (event, ui) {\n"
-                                            "            ui.tooltip.css('max-width', 'none');\n"
-                                            "            ui.tooltip.css('min-width', '800px');\n"
-                                            "        }\n"
-                                            "    });\n"
-                                            "});\n"
-                                            "</script>")
-                                with tag('span', title='tooltip',
-                                         id='context-' + str(current_context)):
-                                    if command.strip() == result:
-                                        num_correct_in_file += 1
-                                        num_partial_in_file += 1
-                                        with tag('code', klass="goodcommand"):
-                                                text(command)
-                                    elif (command.strip().split(" ")[0].strip(".") ==
-                                          result.strip().split(" ")[0].strip(".")):
-                                        num_partial_in_file += 1
-                                        with tag('code', klass="okaycommand"):
-                                            text(command)
-                                    else:
-                                        with tag('code', klass="badcommand"):
-                                            text(command)
-                                    current_context += 1
-                            else:
-                                with tag('code', klass="plaincommand"):
-                                    text(command)
-
+                            scripts += hover_script(current_context,
+                                                    coq.proof_context,
+                                                    result)
                             try:
                                 coq.run_stmt(command)
                             except:
                                 print("In file {}:".format(filename))
                                 raise
+
+                            with tag('span', title='tooltip',
+                                     id='context-' + str(current_context)):
+                                if command.strip() == result:
+                                    num_correct_in_file += 1
+                                    num_partial_in_file += 1
+                                    with tag('code', klass="goodcommand"):
+                                        text(command)
+                                elif (command.strip().split(" ")[0].strip(".") ==
+                                      result.strip().split(" ")[0].strip(".")):
+                                    num_partial_in_file += 1
+                                    with tag('code', klass="okaycommand"):
+                                        text(command)
+                                else:
+                                    with tag('code', klass="badcommand"):
+                                        text(command)
+                                current_context += 1
+                        else:
+                            with tag('code', klass="plaincommand"):
+                                text(command)
+
+                        try:
+                            coq.run_stmt(command)
+                        except:
 
         details_filename = "{}.html".format(escape_filename(filename))
         with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:
