@@ -15,7 +15,10 @@ code.badcommand {
 code.goodcommand {
     color: green
 }
-
 code.okaycommand {
     color: orange
+}
+code.failedcommand {
+    color: red;
+    font-weight: bold;
 }

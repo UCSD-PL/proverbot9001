@@ -186,6 +186,7 @@ def hover_script(context_idx, proof_context, predicted_tactic):
 num_tactics = 0
 num_correct = 0
 num_partial = 0
+num_failed = 0
 
 class Worker(threading.Thread):
     def __init__(self, workerid, coqargs, includes, output_dir, prelude="."):
@@ -201,9 +202,11 @@ class Worker(threading.Thread):
         global num_tactics
         global num_correct
         global num_partial
+        global num_failed
         num_tactics_in_file = 0
         num_correct_in_file = 0
         num_partial_in_file = 0
+        num_failed_in_file = 0
         current_context = 0
         scripts = ""
 
@@ -243,10 +246,12 @@ class Worker(threading.Thread):
                                                     coq.proof_context,
                                                     result)
                             try:
-                                coq.run_stmt(command)
+                                coq.run_stmt(result)
+                                failed = False
                             except:
-                                print("In file {}:".format(filename))
-                                raise
+                                failed = True
+                                num_failed_in_file += 1
+                            coq.cancel_last()
 
                             with tag('span', title='tooltip',
                                      id='context-' + str(current_context)):
@@ -260,6 +265,9 @@ class Worker(threading.Thread):
                                     num_partial_in_file += 1
                                     with tag('code', klass="okaycommand"):
                                         text(command)
+                                elif failed:
+                                    with tag('code', klass="failedcommand"):
+                                        text(command)
                                 else:
                                     with tag('code', klass="badcommand"):
                                         text(command)
@@ -271,6 +279,8 @@ class Worker(threading.Thread):
                         try:
                             coq.run_stmt(command)
                         except:
+                            print("In file {}:".format(filename))
+                            raise
 
         details_filename = "{}.html".format(escape_filename(filename))
         with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:
@@ -280,6 +290,7 @@ class Worker(threading.Thread):
         num_tactics += num_tactics_in_file
         num_correct += num_correct_in_file
         num_partial += num_partial_in_file
+        num_failed += num_failed_in_file
         output_lock.release()
         if num_tactics_in_file > 0:
             percent_correct = (num_correct_in_file / num_tactics_in_file) * 100
@@ -289,6 +300,7 @@ class Worker(threading.Thread):
             percent_partial = 0
         rows.put({'filename': filename, 'num_tactics': num_tactics_in_file,
                   'num_correct': num_correct_in_file, 'num_partial': num_partial_in_file,
+                  'num_failed': num_failed,
                   '% correct': percent_correct,
                   '% partial': percent_partial,
                   'details_filename': details_filename})
