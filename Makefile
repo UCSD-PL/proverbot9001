@@ -23,7 +23,7 @@ else
 					       --prelude ./CompCert
 endif
 report:
-ifeq($(NUM_FILES),)
+ifeq ($(NUM_FILES),)
 	cat compcert-test-files.txt | \
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
 else
