@@ -47,7 +47,7 @@ vernacular_binder = [
     "Context"
 ]
 vernacular_words = vernacular_binder + [
-    # "Proof",
+    "Proof",
     "Qed",
     "Defined",
     "Require",
@@ -191,7 +191,8 @@ class Worker(threading.Thread):
                             if re.match(";", command) and options["no-semis"]:
                                 coq.run_stmt(command)
                                 return
-                            in_proof = coq.proof_context
+                            in_proof = (coq.proof_context and
+                                        not re.match(".*Proof.*", command.strip()))
                             if in_proof:
                                 num_tactics_in_file += 1
                                 query = format_context(coq.prev_tactics, coq.get_goals(),
