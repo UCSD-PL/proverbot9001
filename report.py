@@ -52,6 +52,7 @@ vernacular_words = vernacular_binder + [
     "Defined",
     "Require",
     "Import",
+    "Export",
     "Print",
     "Assumptions",
 
@@ -79,29 +80,36 @@ syntax_words = local_binder + [
     "let"
 ]
 
-vernacular_color = "a020f0"
-syntax_color = "228b22"
-global_bound_color = "3b10ff"
-local_bound_color = "a0522d"
+vernacular_color = "#a020f0"
+syntax_color = "#228b22"
+global_bound_color = "#3b10ff"
+local_bound_color = "#a0522d"
+comment_color = "#004800"
 
 def color_word(color, word):
     return "<span style=\"color:{}\">{}</span>".format(color, word)
 
-# def highlight_comments(page):
-#     comment_depth = 0
-#     for c in page:
-
+def highlight_comments(page):
+    result = ""
+    comment_depth = 0
+    for i in range(len(page)):
+        if(page[i:i+2] == "(*"):
+            comment_depth += 1
+            if comment_depth == 1:
+                result += "<span style=\"color:{}\">".format(comment_color)
+        result += page[i]
+        if(page[i-1:i+1] == "*)"):
+            comment_depth -= 1
+            if comment_depth == 0:
+                result += "</span>"
+    return result;
 
 def syntax_highlight(page):
     for vernac in vernacular_words:
         page = re.sub(vernac,
                       color_word(vernacular_color, vernac),
                       page)
-    # for stx in syntax_words:
-    #     page = re.sub("(^|\s|\(){}($|\s)".format(stx),
-    #                   color_word(syntax_color, stx),
-    #                   page)
-    return page
+    return highlight_comments(page);
 
 def load_commands_preserve(filename):
     with open(filename, 'r') as fin:
