@@ -30,7 +30,7 @@ output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
-darknet_command = ["{}/try-auto.py".format(base)]
+darknet_command = ""
 vernacular_binder = [
     "Definition",
     "Inductive",
