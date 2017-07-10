@@ -31,6 +31,9 @@ else
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
 endif
 
+train:
+	./darknet/darknet rnn train darknet/cfg/coq.cfg darknet/enc.backup -file ./scrape.txt -clear
+
 publish:
 	mv report $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
