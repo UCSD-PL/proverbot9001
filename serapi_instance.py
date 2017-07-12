@@ -38,7 +38,10 @@ class SerapiInstance(threading.Thread):
         self._proc = subprocess.Popen(coq_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._fout = self._proc.stdout
         self._fin = self._proc.stdin
-        self._current_goal = None
+        # self._current_goal = None
+        self._current_fg_goal_count = None
+
+        self.debug = False
 
         self.messages = queue.Queue()
         self.start()
@@ -47,12 +50,14 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None
         self.cur_state = 0
         self.prev_tactics = []
-        self.debug = False
 
     def send_flush(self, cmd):
+        # if self.debug:
+        #     print("SEND: " + cmd)
         self._fin.write(cmd.encode('utf-8'))
         self._fin.flush()
-        self._current_goal = None
+        # self._current_goal = None
+        self._current_fg_goal_count = None
 
     def run_stmt(self, stmt):
         if self.debug:
@@ -79,6 +84,8 @@ class SerapiInstance(threading.Thread):
             raise e
 
     def cancel_last(self):
+        if self.debug:
+            print("Cancelling last statement")
         while not self.messages.empty():
             self.messages.get()
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
@@ -151,12 +158,20 @@ class SerapiInstance(threading.Thread):
 
         return feedbacks
 
-    def query_goals(self):
-        if self._current_goal == None:
-            self.send_flush("(Query ((pp ( (pp_format PpSer) (pp_depth 1) ))) Goals)\n")
-            self.get_ack()
-            self._current_goal = self.messages.get()
-        return self._current_goal
+    def count_fg_goals(self):
+        if self._current_fg_goal_count == None:
+            # was:
+            # self.send_flush("(Query ((pp ( (pp_format PpSer) (pp_depth 1) ))) Goals)\n")
+            self.send_flush("(Control (StmQuery () \"all: let n := numgoals in idtac n.\"))")
+            try:
+                fb = self.get_feedbacks()
+                # OMG this is horrible
+                self._current_fg_goal_count = int(fb[-1][-1][-2][1][3][1][2][0][1])
+            except Exception as e:
+                # print("count failure")
+                self._current_fg_goal_count = 0
+        # print("COUNT: {}".format(str(self._current_fg_goal_count)))
+        return self._current_fg_goal_count
 
     def get_cancelled(self):
         self.get_ack()
@@ -329,10 +344,10 @@ def preprocess_command(cmd):
                 return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
     return [cmd]
 
-def count_open_proofs(goals):
-    return len(goals[2][1])
-
-def count_fg_goals(goals):
-    if count_open_proofs(goals) == 0:
-        return 0
-    return len(goals[2][1][0][1][0][1])
+# def count_open_proofs(goals):
+#     return len(goals[2][1])
+#
+# def count_fg_goals(goals):
+#     if count_open_proofs(goals) == 0:
+#         return 0
+#     return len(goals[2][1][0][1][0][1])

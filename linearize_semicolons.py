@@ -11,8 +11,6 @@ import sys
 import threading
 
 # This dependency is in pip, the python package manager
-from serapi_instance import count_fg_goals
-from serapi_instance import count_open_proofs
 from sexpdata import *
 from timer import TimerBucket
 from traceback import *
@@ -20,11 +18,12 @@ from traceback import *
 import serapi_instance
 
 measure_time = False
-# whether the program will stop when a linearization fails
-debug = False
-# whether the program will show all the Coq commands it outputs
+
+# debug:      whether the program will stop when a linearization fails
+# show_trace: whether the program will show all the Coq commands it outputs
+# show_debug: whether the program will explain everything it's doing
+debug      = False
 show_trace = False
-# whether the program will explain everything it's doing
 show_debug = False
 
 linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
@@ -113,23 +112,27 @@ def show_semiand(pipeands):
 def show_semiands(semiands):
     return ' ; '.join(map(show_semiand, semiands))
 
-def recount_open_proofs(coq):
-    goals = coq.query_goals()
-    return count_open_proofs(goals)
+# def recount_open_proofs(coq):
+#     goals = coq.query_goals()
+#     return count_open_proofs(goals)
 
 def linearize_commands(commands_sequence, coq, filename):
+    if show_debug:
+        print("Linearizing commands")
     command = next(commands_sequence, None)
     while command:
         # Run up to the next proof
-        while recount_open_proofs(coq) == 0:
+        while coq.count_fg_goals() == 0:
             coq.run_stmt(command)
-            if recount_open_proofs(coq) == 0:
+            if coq.count_fg_goals() == 0:
                 yield command
                 command = next(commands_sequence, None)
                 if not command:
                     return
+
         # Cancel the proof starting command so that we're right before the proof
         coq.cancel_last()
+
         # Pull the entire proof from the lifter into command_batch
         command_batch = []
         while command and not serapi_instance.ending_proof(command):
@@ -165,8 +168,8 @@ def linearize_commands(commands_sequence, coq, filename):
             leftover_commands = []
 
             for command in command_batch:
-                goals = coq.query_goals()
-                if command and (count_fg_goals(goals) != 0 or
+                # goals = coq.query_goals()
+                if command and (coq.count_fg_goals() != 0 or
                                 serapi_instance.ending_proof(command)):
                     coq.run_stmt(command)
                     leftover_commands.append(command)
@@ -252,8 +255,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
             print("Done when {} subgoals left".format(str(done)))
 
         if measure_time: stop_timer = count_goals_before_timer_bucket.start_timer("")
-        goals = coq.query_goals()
-        nb_goals_before = count_fg_goals(goals)
+        nb_goals_before = coq.count_fg_goals()
         if measure_time: stop_timer()
         if show_debug:
             print("Goals before: {}".format(str(nb_goals_before)))
@@ -282,8 +284,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         if measure_time: stop_timer()
 
         if measure_time: stop_timer = count_goals_after_timer_bucket.start_timer("")
-        goals = coq.query_goals()
-        nb_goals_after = count_fg_goals(goals)
+        nb_goals_after = coq.count_fg_goals()
         if measure_time: stop_timer()
         if show_debug:
             print("Goals after: {}".format(str(nb_goals_after)))
