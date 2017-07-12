@@ -230,8 +230,8 @@ class Worker(threading.Thread):
                                     not re.match(".*Proof.*", command.strip()))
                         if in_proof:
                             num_tactics_in_file += 1
-                            query = format_context(coq.prev_tactics, coq.get_goals(),
-                                                   coq.get_hypothesis())
+                            query = format_context(coq.prev_tactics, coq.get_hypothesis(),
+                                                   coq.get_goals())
                             response, errors = subprocess.Popen(darknet_command,
                                                                 stdin=
                                                                 subprocess.PIPE,
