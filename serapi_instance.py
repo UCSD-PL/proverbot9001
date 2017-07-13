@@ -11,9 +11,11 @@ import sys
 
 # This dependency is in pip, the python package manager
 from sexpdata import *
+
 from timer import TimerBucket
 from traceback import *
 
+# Some Exceptions to throw when various responses come back from coq
 class AckError(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -32,66 +34,134 @@ class BadResponse(Exception):
         self.msg = msg
     pass
 
+class NotInProof(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    pass
+# This is the class which represents a running Coq process with Serapi
+# frontend. It runs its own thread to do the actual passing of
+# characters back and forth from the process, so all communication is
+# asynchronous unless otherwise noted.
 class SerapiInstance(threading.Thread):
+    # This takes three parameters: a string to use to run serapi, a
+    # list of coq includes which the files we're running on will
+    # expect, and a base directory You can also set the coq objects
+    # ".debug" field after you've created it to get more verbose
+    # logging.
     def __init__(self, coq_command, includes, prelude):
+        # Set up some threading stuff. I'm not totally sure what
+        # daemon=True does, but I think I wanted it at one time or
+        # other.
         threading.Thread.__init__(self, daemon=True)
-        self._proc = subprocess.Popen(coq_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Open a process to coq, with streams for communicating with
+        # it.
+        self._proc = subprocess.Popen(coq_command,
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE)
         self._fout = self._proc.stdout
         self._fin = self._proc.stdin
-        # self._current_goal = None
+
+        # Initialize some state that we'll use to keep track of the
+        # coq state. This way we don't have to do expensive queries to
+        # the other process for to answer simple questions.
         self._current_fg_goal_count = None
-
-        self.debug = False
-
-        self.messages = queue.Queue()
-        self.start()
-        self.discard_initial_feedback()
-        self.exec_includes(includes, prelude)
         self.proof_context = None
         self.cur_state = 0
         self.prev_tactics = []
 
+
+        # Set up the message queue, which we'll populate with the
+        # messages from serapi.
+        self.messages = queue.Queue()
+        # Set the debug flag to default to false.
+        self.debug = False
+        # Start the message queue thread
+        self.start()
+        # Go through the messages and throw away the initial feedback.
+        self.discard_initial_feedback()
+        # Execute the commands corresponding to include flags we were
+        # passed
+        self.exec_includes(includes, prelude)
+
+    # Send some text to serapi, and flush the stream to make sure they
+    # get it. NOT FOR EXTERNAL USE
     def send_flush(self, cmd):
         # if self.debug:
         #     print("SEND: " + cmd)
         self._fin.write(cmd.encode('utf-8'))
         self._fin.flush()
-        # self._current_goal = None
         self._current_fg_goal_count = None
 
+    # Run a command. This is the main api function for this
+    # class. Sends a single command to the running serapi
+    # instance. Returns nothing: if you want a response, call one of
+    # the other methods to get it.
     def run_stmt(self, stmt):
         if self.debug:
             print("Running statement: " + stmt)
+        # We need to escape some stuff so that it doesn't get stripped
+        # too early.
         stmt = stmt.replace("\\", "\\\\")
         stmt = stmt.replace("\"", "\\\"")
+        # We'll wrap the actual running in a try block so that we can
+        # report which command the error came from at this
+        # level. Other higher level code might re-catch it.
         try:
+            # Preprocess_command sometimes turns one command into two,
+            # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
+                # Send the command
                 self.send_flush("(Control (StmAdd () \"{}\"))\n".format(stm))
+                # Get the response, which indicates what state we put
+                # serapi in.
                 self.cur_state = self.get_next_state()
 
+                # Observe that state.
                 self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+                # Finally, get the result of the command
                 feedbacks = self.get_feedbacks()
 
+                # Get a new proof context, if it exists
                 self.get_proof_context()
 
+                # If we saw a new proof context, we're still in a
+                # proof so append the command to our prev_tactics
+                # list.
                 if self.proof_context:
                     self.prev_tactics.append(stm)
                 else:
+                    # If we didn't see a new context, we're not in a
+                    # proof anymore, so clear the prev_tactics state.
                     self.prev_tactics = []
 
+        # If we hit a problem let the user know what file it was in,
+        # and then throw it again for other handlers. NOTE: We may
+        # want to make this printing togglable (at this level), since
+        # sometimes errors are expected.
         except Exception as e:
             print("Problem running statement: {}".format(stmt))
             raise e
 
+    # Cancel the last command which was sucessfully parsed by
+    # serapi. Even if the command failed after parsing, this will
+    # still cancel it. You need to call this after a command that
+    # fails after parsing, but not if it fails before.
     def cancel_last(self):
         if self.debug:
             print("Cancelling last statement")
+        # Flush any leftover messages in the queue
         while not self.messages.empty():
             self.messages.get()
+        # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
+        # Get the response from cancelling
         self.get_cancelled()
+        # Go back to the previous state.
         self.cur_state = self.cur_state - 1
 
+    # Get the next message from the message queue, and make sure it's
+    # an Ack
     def get_ack(self):
         ack = self.messages.get()
         if (not isinstance(ack, list) or
@@ -99,6 +169,8 @@ class SerapiInstance(threading.Thread):
             ack[2] != Symbol("Ack")):
             raise AckError(ack)
 
+    # Get the next message from the message queue, and make sure it's
+    # a Completed.
     def get_completed(self):
         completed = self.messages.get()
         if (completed[0] != Symbol("Answer") or
