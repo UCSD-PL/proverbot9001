@@ -17,26 +17,22 @@ def lifted_vernac(command):
 
 def generate_lifted_nofail(commands, coq):
     lemma_stack = []
-    try:
-        for command in commands:
-            if serapi_instance.possibly_starting_proof(command):
-                coq.run_stmt(command)
-                if coq.proof_context != None:
-                    lemma_stack.append([])
-                coq.cancel_last()
-            if len(lemma_stack) > 0 and not lifted_vernac(command):
-                lemma_stack[-1].append(command)
-            else:
-                yield command
-            if serapi_instance.ending_proof(command):
-                yield from lemma_stack.pop()
-        if len(lemma_stack) > 0:
-            rest = lemma_stack.pop()
-            print(rest)
-            yield from rest
-    except Exception as e:
-        coq.kill()
-        raise e
+    for command in commands:
+        if serapi_instance.possibly_starting_proof(command):
+            coq.run_stmt(command)
+            if coq.proof_context != None:
+                lemma_stack.append([])
+            coq.cancel_last()
+        if len(lemma_stack) > 0 and not lifted_vernac(command):
+            lemma_stack[-1].append(command)
+        else:
+            yield command
+        if serapi_instance.ending_proof(command):
+            yield from lemma_stack.pop()
+    if len(lemma_stack) > 0:
+        rest = lemma_stack.pop()
+        print(rest)
+        yield from rest
 
 darknet_command = ['./try-auto.py']
 

@@ -33,6 +33,10 @@ class BadResponse(Exception):
     def __init__(self, msg):
         self.msg = msg
     pass
+class LinearizeException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    pass
 
 class NotInProof(Exception):
     def __init__(self, msg):
@@ -139,7 +143,7 @@ class SerapiInstance(threading.Thread):
         # and then throw it again for other handlers. NOTE: We may
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
-        except Exception as e:
+        except (CoqExn, BadResponse, AckError, CompletedError) as e:
             print("Problem running statement: {}".format(stmt))
             raise e
 
@@ -239,7 +243,7 @@ class SerapiInstance(threading.Thread):
                 fb = self.get_feedbacks()
                 # OMG this is horrible
                 self._current_fg_goal_count = int(fb[-1][-1][-2][1][3][1][2][0][1])
-            except Exception as e:
+            except (CoqExn, BadResponse) as e:
                 # print("count failure")
                 self._current_fg_goal_count = 0
         # print("COUNT: {}".format(str(self._current_fg_goal_count)))

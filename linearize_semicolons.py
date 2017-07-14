@@ -16,6 +16,8 @@ from timer import TimerBucket
 from traceback import *
 
 import serapi_instance
+from serapi_instance import (AckError, CompletedError, CoqExn,
+                             BadResponse, LinearizeException)
 
 measure_time = False
 
@@ -178,7 +180,7 @@ def linearize_commands(commands_sequence, coq, filename):
             yield from linearized_commands
             for command in leftover_commands:
                 yield command
-        except Exception as e:
+        except (BadResponse, CoqExn) as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
@@ -263,12 +265,12 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
 
         if measure_time: stop_timer = run_statement_timer_bucket.start_timer("")
         if len(semiands) == 0:
-            raise "Error: Called lin with empty semiands"
+            raise LinearizeException("Error: Called lin with empty semiands")
         semiand = semiands.pop(0)
         # dispatch is now preprocessed when we have the information on subgoals
         # available, so popped semiands ought to be just one command
         if len(semiand) != 1:
-            raise "Error: popped a semiand that was not preprocessed"
+            raise LinearizeException("Error: popped a semiand that was not preprocessed")
         tactic = '\n' + semiand[0].strip() + '.'
         context_before = coq.proof_context
         coq.run_stmt(tactic)

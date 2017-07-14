@@ -248,7 +248,7 @@ class Worker(threading.Thread):
                             try:
                                 coq.run_stmt(result)
                                 failed = False
-                            except:
+                            except (CoqExn, BadResponse):
                                 failed = True
                                 num_failed_in_file += 1
                             coq.cancel_last()
@@ -278,7 +278,7 @@ class Worker(threading.Thread):
 
                         try:
                             coq.run_stmt(command)
-                        except:
+                        except (AckError, CompletedError, CoqExn, BadResponse):
                             print("In file {}:".format(filename))
                             raise
 
