@@ -19,12 +19,12 @@ import serapi_instance
 
 measure_time = False
 
-# debug:      whether the program will stop when a linearization fails
-# show_trace: whether the program will show all the Coq commands it outputs
-# show_debug: whether the program will explain everything it's doing
-debug      = False
-show_trace = False
-show_debug = False
+# stop_on_error: whether the program will stop when a linearization fails
+# show_trace:    whether the program will show all the Coq commands it outputs
+# show_debug:    whether the program will explain everything it's doing
+stop_on_error = True
+show_trace    = True
+show_debug    = True
 
 linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
                   ["./cfrontend/Cminorgenproof.v", "Lemma match_callstack_alloc_right"]]
@@ -63,9 +63,10 @@ def rreplace(s, old, new, occurrence):
 def split_semis_brackets(s, with_tactic):
     if s.endswith('...'):
         if with_tactic == '':
-            raise "with_tactic was empty when replacing `...`"
-        #print("Replacing ... with '; {}'".format(with_tactic))
-        s = s.replace('...', "; {}".format(with_tactic))
+            s = s.replace('...', ".")
+        else:
+            #print("Replacing ... with '; {}'".format(with_tactic))
+            s = s.replace('...', "; {}".format(with_tactic))
     s = s.rstrip(' .')
     #print('SPLITTING: ' + str(s))
     semiUnits = list(scope_aware_split(s, ';', '{[(', '}])'))
@@ -181,7 +182,7 @@ def linearize_commands(commands_sequence, coq, filename):
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
-            if debug:
+            if stop_on_error:
                 raise e
             coq.cancel_last()
             coq.run_stmt("Abort.")
