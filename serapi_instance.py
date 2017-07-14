@@ -99,7 +99,7 @@ class SerapiInstance(threading.Thread):
     # the other methods to get it.
     def run_stmt(self, stmt):
         if self.debug:
-            print("Running statement: " + stmt)
+            print("Running statement: " + stmt.lstrip('\n')) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
         # too early.
         stmt = stmt.replace("\\", "\\\\")
