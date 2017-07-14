@@ -22,9 +22,9 @@ measure_time = False
 # stop_on_error: whether the program will stop when a linearization fails
 # show_trace:    whether the program will show all the Coq commands it outputs
 # show_debug:    whether the program will explain everything it's doing
-stop_on_error = True
-show_trace    = True
-show_debug    = True
+stop_on_error = False
+show_trace    = False
+show_debug    = False
 
 linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
                   ["./cfrontend/Cminorgenproof.v", "Lemma match_callstack_alloc_right"]]
