@@ -42,8 +42,8 @@ function setup-coq {
 
 function setup-coq-serapi {
   check-and-clone\
-    "coq-serapi" "https://github.com/ejgallego/coq-serapi.git"\
-    "3f4df09666d8f2cbd598f36872dbd0478efaf778"
+    "coq-serapi" "https://github.com/Ptival/coq-serapi.git"\
+    "601ad4f8baee98d025b8157c344d6b6155280930"
   (
     set -euv
     cd coq-serapi
