@@ -79,3 +79,5 @@ setup-coq
 setup-coq-serapi
 setup-compcert
 setup-darknet
+
+sudo pip3 install sexpdata
