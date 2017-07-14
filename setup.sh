@@ -17,6 +17,7 @@ else
   # For SerAPI:
   opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
   eval `opam config env`
+  sudo pip3 install sexpdata
 fi
 
 function check-and-clone {
@@ -82,4 +83,3 @@ setup-coq-serapi
 setup-compcert
 setup-darknet
 
-sudo pip3 install sexpdata
