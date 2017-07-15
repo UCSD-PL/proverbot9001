@@ -183,7 +183,10 @@ def linearize_commands(commands_sequence, coq, filename):
             yield from linearized_commands
             for command in leftover_commands:
                 yield command
-        except (BadResponse, CoqExn) as e:
+        except (BadResponse, CoqExn, LinearizeException) as e:
+            if (type(e) == LinearizeException and
+                e.msg != "Error: Called lin with empty semiands"):
+                raise e
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
