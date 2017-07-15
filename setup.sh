@@ -78,7 +78,13 @@ function setup-darknet {
     }
 }
 
+function download-weights {
+  echo "Downloading the proverbot9001 base text weights..."
+  curl proverbot9001.ucsd.edu/downloads/enc-1.0.weights > enc.weights
+}
+
 setup-coq
 setup-coq-serapi
 setup-compcert
 setup-darknet
+download-weights

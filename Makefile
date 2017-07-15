@@ -32,7 +32,7 @@ else
 endif
 
 train:
-	./darknet/darknet rnn train darknet/cfg/coq.cfg darknet/enc.backup -file ./scrape.txt -clear
+	./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear
 
 publish:
 	mv report $(REPORT_NAME)
