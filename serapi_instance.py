@@ -284,13 +284,12 @@ class SerapiInstance(threading.Thread):
 
     def run(self):
         while(True):
-            try:
-                line = self._fout.readline()
-                response = loads(line.decode('utf-8'))
+            line = self._fout.readline().decode('utf-8')
+            if line != '': # idk why but sometimes it's empty?
+                response = loads(line)
                 # print("Got message {}".format(response))
                 self.messages.put(response)
-            except:
-                break
+
     def kill(self):
         self._proc.terminate()
         self._proc.stdout.close()
