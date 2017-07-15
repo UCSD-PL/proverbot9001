@@ -19,6 +19,9 @@ import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
                              BadResponse, LinearizeException)
 
+class LinerarizerException(Exception):
+    pass
+
 measure_time = False
 
 # stop_on_error: whether the program will stop when a linearization fails
@@ -102,7 +105,7 @@ for (e, o) in split_tests:
         print("Error in split_semi_brackets")
         print("Expected: {}".format(str(e)))
         print("Obtained: {}".format(str(o)))
-        raise "FIXME"
+        raise LinearizerException("FIXME")
 
 # a semiand is just some pipeands
 def show_semiand(pipeands):
@@ -223,14 +226,14 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         if show_debug:
             print("Linearizing next periodands, done when: {}".format(str(done)))
         if len(periodands) == 0:
-            raise "Error: ran out of tactic w/o finishing the proof"
+            raise LinearizerException("Error: ran out of tactic w/o finishing the proof")
         next_tactic = periodands.pop(0)
         if next_tactic == None:
             return
         while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}",
                                        serapi_instance.kill_comments(next_tactic)):
             if len(periodands) == 0:
-                raise "Error: ran out of tactics w/o finishing the proof"
+                raise LinearizerException("Error: ran out of tactics w/o finishing the proof")
             else:
                 if show_debug:
                     print("Skipping bullet: {}".format(next_tactic))
@@ -318,7 +321,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         peek_semiand = semiands[0]
 
         if len(peek_semiand) == 0:
-            raise "Peeked an empty semiand, this should not happen"
+            raise LinearizerException("Peeked an empty semiand, this should not happen")
         if len(peek_semiand) == 1: # 2.
             # each subgoal must have its own copy of semiands
             for i in range(nb_subgoals):
@@ -342,7 +345,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
             # 2. [ a | b | .. ] ; ...
             # 3. [ a | .. b .. | c ] ; ...
             if len(next_semiand) == 0:
-                raise "Error: empty next semiand"
+                raise LinearizerException("Error: empty next semiand")
             if next_semiand[-1] == '..': # 2.
                 if show_debug:
                     print('Found .. in: {}'.format(show_semiand(next_semiand)))
@@ -367,7 +370,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
 
     if measure_time: stop_timer = linearizing_timer_bucket.start_timer(theorem_name)
     if len(commands) == 0:
-        raise "Error: called linearize_proof with empty commands"
+        raise LinearizerException("Error: called linearize_proof with empty commands")
     first_tactic = commands.pop(0)
     semiands = list(split_semis_brackets(first_tactic, with_tactic))
     yield from lin(semiands, commands, 0)
