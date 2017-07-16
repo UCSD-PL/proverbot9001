@@ -246,6 +246,14 @@ class SerapiInstance(threading.Thread):
         return self._current_fg_goal_count
 
     def get_cancelled(self):
+        finished = False
+        while not finished:
+            supposed_ack = self.messages.get()
+            if (not isinstance(supposed_ack, list) or
+                ack[0] != Symbol("Answer")):
+                raise AckError
+            if ack[2] == Symbol("Ack"):
+                finished = True
         self.get_ack()
         feedback = self.messages.get()
         cancelled = self.messages.get()
