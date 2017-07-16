@@ -20,7 +20,7 @@ from serapi_instance import (AckError, CompletedError, CoqExn,
                              BadResponse)
 
 # exception for when things go bad, but not necessarily because of the linearizer
-class LinerarizerCouldNotLinearize(Exception):
+class LinearizerCouldNotLinearize(Exception):
     pass
 
 # exception for when the linearizer trips onto itself
