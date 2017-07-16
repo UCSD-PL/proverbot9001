@@ -267,8 +267,9 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
             print("Goals before: {}".format(str(nb_goals_before)))
 
         if measure_time: stop_timer = run_statement_timer_bucket.start_timer("")
+        # This can happen when a semiand was empty for instance, pop a periodand instead
         if len(semiands) == 0:
-            raise LinearizeException("Error: Called lin with empty semiands")
+            yield from linearize_periodands(periodands, done)
         semiand = semiands.pop(0)
         # dispatch is now preprocessed when we have the information on subgoals
         # available, so popped semiands ought to be just one command
