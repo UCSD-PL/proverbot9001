@@ -188,13 +188,14 @@ num_partial = 0
 num_failed = 0
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes, output_dir, prelude="."):
+    def __init__(self, workerid, coqargs, includes, output_dir, prelude, debug):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
         self.workerid = workerid
         self.output_dir = output_dir
         self.prelude = prelude
+        self.debug = debug
         pass
 
     def process_file(self, filename):
@@ -209,6 +210,8 @@ class Worker(threading.Thread):
         current_context = 0
         scripts = ""
 
+        if self.debug:
+            print("Preprocessing...")
         commands = lift_and_linearize(load_commands_preserve(self.prelude + "/" +
                                                              filename),
                                       self.coqargs, self.includes, self.prelude, filename)
@@ -220,6 +223,7 @@ class Worker(threading.Thread):
             with serapi_instance.SerapiContext(self.coqargs,
                                                self.includes,
                                                self.prelude) as coq:
+                coq.debug = self.debug
                 with tag('body'), tag('pre'):
                     for command in commands:
                         if re.match(";", command) and options["no-semis"]:
@@ -324,6 +328,7 @@ parser = argparse.ArgumentParser(description=
                                  "try to match the file by predicting a tacti")
 parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
+parser.add_argument('--debug', default=False, const=True, action='store_const')
 parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
 parser.add_argument('-p', '--predictor',
@@ -353,7 +358,7 @@ for infname in args.filenames:
     jobs.put(infname)
 
 for idx in range(args.threads):
-    worker = Worker(idx, coqargs, includes, args.output, args.prelude)
+    worker = Worker(idx, coqargs, includes, args.output, args.prelude, args.debug)
     worker.start()
     workers.append(worker)
 
