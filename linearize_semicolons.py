@@ -352,7 +352,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
             # 2. [ a | b | .. ] ; ...
             # 3. [ a | .. b .. | c ] ; ...
             if len(next_semiand) == 0:
-                raise LinearizerException("Error: empty next semiand")
+                raise LinearizerThisShouldNotHappen("Error: empty next semiand")
             if next_semiand[-1] == '..': # 2.
                 if show_debug:
                     print('Found .. in: {}'.format(show_semiand(next_semiand)))
@@ -377,7 +377,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
 
     if measure_time: stop_timer = linearizing_timer_bucket.start_timer(theorem_name)
     if len(commands) == 0:
-        raise LinearizerException("Error: called linearize_proof with empty commands")
+        raise LinearizerThisShouldNotHappen("Error: called linearize_proof with empty commands")
     first_tactic = commands.pop(0)
     semiands = list(split_semis_brackets(first_tactic, with_tactic))
     yield from lin(semiands, commands, 0)
