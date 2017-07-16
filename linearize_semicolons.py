@@ -17,9 +17,14 @@ from traceback import *
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, LinearizeException)
+                             BadResponse)
 
-class LinerarizerException(Exception):
+# exception for when things go bad, but not necessarily because of the linearizer
+class LinerarizerCouldNotLinearize(Exception):
+    pass
+
+# exception for when the linearizer trips onto itself
+class LinearizerThisShouldNotHappen(Exception):
     pass
 
 measure_time = False
@@ -105,7 +110,7 @@ for (e, o) in split_tests:
         print("Error in split_semi_brackets")
         print("Expected: {}".format(str(e)))
         print("Obtained: {}".format(str(o)))
-        raise LinearizerException("FIXME")
+        raise LinearizerThisShouldNotHappen("FIXME")
 
 # a semiand is just some pipeands
 def show_semiand(pipeands):
@@ -183,7 +188,7 @@ def linearize_commands(commands_sequence, coq, filename):
             yield from linearized_commands
             for command in leftover_commands:
                 yield command
-        except (BadResponse, CoqExn) as e:
+        except (BadResponse, CoqExn, LinearizerCouldNotLinearize) as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
@@ -226,14 +231,14 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         if show_debug:
             print("Linearizing next periodands, done when: {}".format(str(done)))
         if len(periodands) == 0:
-            raise LinearizerException("Error: ran out of tactic w/o finishing the proof")
+            raise LinearizerCouldNotLinearize("Error: ran out of tactic w/o finishing the proof")
         next_tactic = periodands.pop(0)
         if next_tactic == None:
             return
         while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}",
                                        serapi_instance.kill_comments(next_tactic)):
             if len(periodands) == 0:
-                raise LinearizerException("Error: ran out of tactics w/o finishing the proof")
+                raise LinearizerCouldNotLinearize("Error: ran out of tactics w/o finishing the proof")
             else:
                 if show_debug:
                     print("Skipping bullet: {}".format(next_tactic))
@@ -270,11 +275,12 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         # This can happen when a semiand was empty for instance, pop a periodand instead
         if len(semiands) == 0:
             yield from linearize_periodands(periodands, done)
+            return
         semiand = semiands.pop(0)
         # dispatch is now preprocessed when we have the information on subgoals
         # available, so popped semiands ought to be just one command
         if len(semiand) != 1:
-            raise LinearizeException("Error: popped a semiand that was not preprocessed")
+            raise LinearizeThisShouldNotHappen("Error: popped a semiand that was not preprocessed")
         tactic = '\n' + semiand[0].strip() + '.'
         context_before = coq.proof_context
         coq.run_stmt(tactic)
@@ -322,7 +328,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         peek_semiand = semiands[0]
 
         if len(peek_semiand) == 0:
-            raise LinearizerException("Peeked an empty semiand, this should not happen")
+            raise LinearizerThisShouldNotHappen("Peeked an empty semiand, this should not happen")
         if len(peek_semiand) == 1: # 2.
             # each subgoal must have its own copy of semiands
             for i in range(nb_subgoals):

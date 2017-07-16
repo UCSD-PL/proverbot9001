@@ -33,10 +33,6 @@ class BadResponse(Exception):
     def __init__(self, msg):
         self.msg = msg
     pass
-class LinearizeException(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-    pass
 
 class NotInProof(Exception):
     def __init__(self, msg):
