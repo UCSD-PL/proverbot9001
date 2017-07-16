@@ -14,6 +14,7 @@ import threading
 from sexpdata import *
 from timer import TimerBucket
 from traceback import *
+from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
@@ -158,7 +159,7 @@ def linearize_commands(commands_sequence, coq, filename):
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
-        if [filename, theorem_name] in linearize_skip:
+        if [filename, theorem_name] in (linearize_skip + compcert_failures):
             print("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
