@@ -17,7 +17,6 @@ from yattag import Doc
 import serapi_instance
 import linearize_semicolons
 
-from serapi_instance import count_fg_goals
 from helper import *
 
 num_jobs = 0

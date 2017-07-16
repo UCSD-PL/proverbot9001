@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-cd darknet && ./darknet rnn generatetactic cfg/coq1.cfg ~/backup/coq.backup -temp .4
+cd darknet && ./darknet rnn generatetactic coq.cfg darknet/backup/coq.backup -temp .4
