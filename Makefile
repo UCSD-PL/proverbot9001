@@ -13,6 +13,7 @@ setup:
 	./setup.sh
 
 scrape:
+	mv scrape.txt scrape.bkp 2>/dev/null || true
 ifeq ($(NUM_FILES),)
 	cat compcert-train-files.txt | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output scrape.txt \
