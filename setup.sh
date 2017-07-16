@@ -18,6 +18,7 @@ else
   opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
   eval `opam config env`
   pip3 install --user sexpdata
+  pip3 install --user yattag
 fi
 
 function check-and-clone {
