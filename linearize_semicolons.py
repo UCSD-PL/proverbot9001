@@ -37,9 +37,6 @@ stop_on_error = False
 show_trace    = False
 show_debug    = False
 
-linearize_skip = [["./cfrontend/Cminorgenproof.v", "Lemma padding_freeable_invariant"],
-                  ["./cfrontend/Cminorgenproof.v", "Lemma match_callstack_alloc_right"]]
-
 def scope_aware_split(string, separator, opens, closes):
     stack = 0
     item = []
@@ -159,7 +156,7 @@ def linearize_commands(commands_sequence, coq, filename):
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
-        if [filename, theorem_name] in (linearize_skip + compcert_failures):
+        if [filename, theorem_name] in compcert_failures:
             print("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
