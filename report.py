@@ -241,6 +241,7 @@ class Worker(threading.Thread):
                                                                 subprocess.PIPE
                             ).communicate(input=query.encode('utf-8'))
                             result = response.decode('utf-8', 'ignore').strip()
+                            assert("." in result)
 
                             scripts += hover_script(current_context,
                                                     coq.proof_context,
