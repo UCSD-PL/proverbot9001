@@ -251,12 +251,15 @@ class Worker(threading.Thread):
                                                     coq.proof_context,
                                                     result)
                             try:
+                                coq.quiet = True
                                 coq.run_stmt(result)
+                                coq.quiet = False
                                 failed = False
                                 coq.cancel_last()
-                            except ParseError:
+                            except (ParseError, LexError):
                                 failed = True
                                 num_failed_in_file += 1
+                                coq.get_completed()
                             except (CoqExn, BadResponse, TypeError) as e:
                                 failed = True
                                 num_failed_in_file += 1
