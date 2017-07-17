@@ -38,6 +38,10 @@ class NotInProof(Exception):
     def __init__(self, msg):
         self.msg = msg
     pass
+class ParseError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    pass
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -141,6 +145,13 @@ class SerapiInstance(threading.Thread):
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError) as e:
             print("Problem running statement: {}".format(stmt))
+            if (type(e) == CoqExn and
+                type(e.msg) == list and
+                e.msg[0] == Symbol('CoqExn') and
+                len(e.msg) == 4 and
+                type(e.msg[3]) == list and
+                e.msg[3][0] == Symbol('Stream.Error')):
+                raise ParseError("Could't parse command {}".format(e))
             raise e
 
     # Cancel the last command which was sucessfully parsed by

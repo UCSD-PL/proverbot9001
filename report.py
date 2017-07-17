@@ -16,6 +16,7 @@ from yattag import Doc
 
 import serapi_instance
 import linearize_semicolons
+from serapi_instance import ParseError
 
 from helper import *
 
@@ -252,10 +253,14 @@ class Worker(threading.Thread):
                             try:
                                 coq.run_stmt(result)
                                 failed = False
-                            except (CoqExn, BadResponse):
+                                coq.cancel_last()
+                            except ParseError:
                                 failed = True
                                 num_failed_in_file += 1
-                            coq.cancel_last()
+                            except (CoqExn, BadResponse, TypeError) as e:
+                                failed = True
+                                num_failed_in_file += 1
+                                coq.cancel_last()
 
                             with tag('span', title='tooltip',
                                      id='context-' + str(current_context)):
