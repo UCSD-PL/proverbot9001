@@ -214,7 +214,7 @@ class Worker(threading.Thread):
             print("Preprocessing...")
         commands = lift_and_linearize(load_commands_preserve(self.prelude + "/" +
                                                              filename),
-                                      self.coqargs, self.includes, self.prelude, filename)
+                                      self.coqargs, self.includes, self.prelude, filename, debug=self.debug)
 
         doc, tag, text, line = Doc().ttl()
 
