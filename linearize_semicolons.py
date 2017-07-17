@@ -179,7 +179,8 @@ def linearize_commands(commands_sequence, coq, filename):
             for command in command_batch:
                 # goals = coq.query_goals()
                 if command and (coq.count_fg_goals() != 0 or
-                                serapi_instance.ending_proof(command)):
+                                serapi_instance.ending_proof(command) or
+                                "Transparent" in command):
                     coq.run_stmt(command)
                     leftover_commands.append(command)
 
