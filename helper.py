@@ -13,6 +13,41 @@ def load_commands(filename):
                                  for newcmd in serapi_instance.preprocess_command(cmd)]
         return commands_preprocessed
 
+def load_commands_preserve(filename):
+    with open(filename, 'r') as fin:
+        contents = fin.read()
+    result = []
+    cur_command = ""
+    comment_depth = 0
+    in_quote = False
+    for i in range(len(contents)):
+        cur_command += contents[i]
+        if in_quote:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = False
+        else:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = True
+            elif comment_depth == 0:
+                if (re.match("[\{\}]", contents[i]) and
+                      re.fullmatch("\s*", cur_command[:-1])):
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.fullmatch("\s*[\+\-\*]+",
+                                   serapi_instance.kill_comments(cur_command)) and
+                      (len(contents)==i+1 or contents[i] != contents[i+1])):
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.match("\.($|\s)", contents[i:i+2]) and
+                      (not contents[i-1] == "." or contents[i-2] == ".")):
+                    result.append(cur_command)
+                    cur_command = ""
+            if contents[i:i+2] == '(*':
+                comment_depth += 1
+            elif contents[i-1:i+1] == '*)':
+                comment_depth -= 1
+    return result
+
 def lifted_vernac(command):
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 

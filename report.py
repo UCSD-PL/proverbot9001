@@ -4,7 +4,6 @@ import argparse
 import subprocess
 import os
 import sys
-import math
 import threading
 import queue
 import re
@@ -19,135 +18,18 @@ import linearize_semicolons
 from serapi_instance import ParseError, LexError
 
 from helper import *
+from syntax import syntax_highlight
+from helper import load_commands_preserve
 
-num_jobs = 0
-jobs = queue.Queue()
-workers = []
-output_lock = threading.Lock()
 finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
 darknet_command = ""
-vernacular_binder = [
-    "Definition",
-    "Inductive",
-    "Fixpoint",
-    "Theorem",
-    "Lemma",
-    "Example",
-    "Ltac",
-    "Record",
-    "Variable",
-    "Section",
-    "End",
-    "Instance",
-    "Module",
-    "Context"
-]
-vernacular_words = vernacular_binder + [
-    "Proof",
-    "Qed",
-    "Defined",
-    "Require",
-    "Import",
-    "Export",
-    "Print",
-    "Assumptions",
 
-]
+details_css = ["details.css", "jquery-ui.css"]
+details_javascript = ["http://code.jquery.com/jquery-latest.min.js", "jquery-ui.js"]
 
-local_binder = [
-    "forall",
-    "fun"
-]
-
-syntax_words = local_binder + [
-    "Type",
-    "Set",
-    "Prop",
-    "if",
-    "then",
-    "else",
-    "match",
-    "with",
-    "end",
-    "as",
-    "in",
-    "return",
-    "using",
-    "let"
-]
-
-vernacular_color = "#a020f0"
-syntax_color = "#228b22"
-global_bound_color = "#3b10ff"
-local_bound_color = "#a0522d"
-comment_color = "#004800"
-
-def color_word(color, word):
-    return "<span style=\"color:{}\">{}</span>".format(color, word)
-
-def highlight_comments(page):
-    result = ""
-    comment_depth = 0
-    for i in range(len(page)):
-        if(page[i:i+2] == "(*"):
-            comment_depth += 1
-            if comment_depth == 1:
-                result += "<span style=\"color:{}\">".format(comment_color)
-        result += page[i]
-        if(page[i-1:i+1] == "*)"):
-            comment_depth -= 1
-            if comment_depth == 0:
-                result += "</span>"
-    return result;
-
-def syntax_highlight(page):
-    for vernac in vernacular_words:
-        page = re.sub(vernac,
-                      color_word(vernacular_color, vernac),
-                      page)
-    return highlight_comments(page);
-
-def load_commands_preserve(filename):
-    with open(filename, 'r') as fin:
-        contents = fin.read()
-    result = []
-    cur_command = ""
-    comment_depth = 0
-    in_quote = False
-    for i in range(len(contents)):
-        cur_command += contents[i]
-        if in_quote:
-            if contents[i] == '"' and contents[i-1] != '\\':
-                in_quote = False
-        else:
-            if contents[i] == '"' and contents[i-1] != '\\':
-                in_quote = True
-            elif comment_depth == 0:
-                if (re.match("[\{\}]", contents[i]) and
-                      re.fullmatch("\s*", cur_command[:-1])):
-                    result.append(cur_command)
-                    cur_command = ""
-                elif (re.fullmatch("\s*[\+\-\*]+",
-                                   serapi_instance.kill_comments(cur_command)) and
-                      (len(contents)==i+1 or contents[i] != contents[i+1])):
-                    result.append(cur_command)
-                    cur_command = ""
-                elif (re.match("\.($|\s)", contents[i:i+2]) and
-                      (not contents[i-1] == "." or contents[i-2] == ".")):
-                    result.append(cur_command)
-                    cur_command = ""
-            if contents[i:i+2] == '(*':
-                comment_depth += 1
-            elif contents[i-1:i+1] == '*)':
-                comment_depth -= 1
-    return result
-
-css = ["details.css", "jquery-ui.css"]
-javascript = ["http://code.jquery.com/jquery-latest.min.js", "jquery-ui.js"]
-
-def details_header(tag, doc, text):
+def header(tag, doc, text, css, javascript, title):
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -156,7 +38,21 @@ def details_header(tag, doc, text):
                      src=filename):
                 pass
         with tag('title'):
-            text("Proverbot Detailed Report for {}".format(filename))
+            text(title)
+
+def details_header(tag, doc, text, filename):
+    header(tag, doc, text, details_css, details_javascript,
+           "Proverbot Detailed Report for {}".format(filename))
+
+def report_header(tag, doc, text):
+    header(tag, doc, text, ["report.css"], [],
+           "Proverbot Report")
+
+def stringified_percent(total, outof):
+    if outof == 0:
+        return "NaN"
+    else:
+        return "{:10.2f}".format(total * 100 / outof)
 
 def jsan(string):
     return (string
@@ -183,13 +79,85 @@ def hover_script(context_idx, proof_context, predicted_tactic):
                                shorten_whitespace(jsan(proof_context)),
                                shorten_whitespace(jsan(predicted_tactic))))
 
-num_tactics = 0
-num_correct = 0
-num_partial = 0
-num_failed = 0
+class GlobalResult:
+    def __init__(self):
+        self.num_tactics = 0
+        self.num_correct = 0
+        self.num_partial = 0
+        self.num_failed = 0
+        self.lock = threading.Lock()
+        pass
+    def add_file_result(self, result):
+        self.lock.acquire()
+        self.num_tactics += result.num_tactics
+        self.num_correct += result.num_correct
+        self.num_partial += result.num_partial
+        self.num_failed += result.num_failed
+        self.lock.release()
+        pass
+    def report_results(self, doc, text, tag, line):
+        with tag('h2'):
+            text("Overall Accuracy: {}% ({}/{})"
+                 .format(stringified_percent(self.num_correct, self.num_tactics),
+                         self.num_correct, self.num_tactics))
+        with tag('table'):
+            with tag('tr'):
+                line('th', 'Filename')
+                line('th', 'Number of Tactics in File')
+                line('th', 'Number of Tactics Correctly Predicted')
+                line('th', 'Number of Tactics Predicted Partially Correct')
+                line('th', '% Correct')
+                line('th', '% Partial')
+                line('th', 'Details')
+            while not rows.empty():
+                fresult = rows.get()
+                with tag('tr'):
+                    line('td', fresult.filename)
+                    line('td', fresult.num_tactics)
+                    line('td', fresult.num_correct)
+                    line('td', fresult.num_partial)
+                    line('td', stringified_percent(fresult.num_correct,
+                                                 fresult.num_tactics))
+                    line('td', stringified_percent(fresult.num_partial,
+                                                 fresult.num_tactics))
+                    with tag('td'):
+                        with tag('a', href=fresult.details_filename()):
+                            text("Details")
+    pass
+
+class FileResult:
+    def __init__(self, filename):
+        self.num_tactics = 0
+        self.num_correct = 0
+        self.num_partial = 0
+        self.num_failed = 0
+        self.filename = filename
+        pass
+    def add_command_result(self, predicted, actual, exception):
+        self.num_tactics += 1
+        if actual.strip() == predicted.strip():
+            self.num_correct += 1
+            self.num_partial += 1
+            return "goodcommand"
+        elif (actual.strip().split(" ")[0].strip(".") ==
+              predicted.strip().split(" ")[0].strip(".")):
+            self.num_partial += 1
+            return "okaycommand"
+        elif exception == None:
+            return "badcommand"
+        else:
+            self.num_failed += 1
+            return "failedcommand"
+        pass
+    def details_filename(self):
+        return "{}.html".format(escape_filename(self.filename))
+    pass
+
+gresult = GlobalResult()
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes, output_dir, prelude, debug):
+    def __init__(self, workerid, coqargs, includes,
+                 output_dir, prelude, debug, num_jobs):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -197,34 +165,31 @@ class Worker(threading.Thread):
         self.output_dir = output_dir
         self.prelude = prelude
         self.debug = debug
+        self.num_jobs = num_jobs
         pass
 
+    def get_commands(self, filename):
+        return lift_and_linearize(load_commands_preserve(self.prelude + "/" + filename),
+                                  self.coqargs, self.includes, self.prelude,
+                                  filename, debug=self.debug)
+
     def process_file(self, filename):
-        global num_tactics
-        global num_correct
-        global num_partial
-        global num_failed
-        num_tactics_in_file = 0
-        num_correct_in_file = 0
-        num_partial_in_file = 0
-        num_failed_in_file = 0
+        global gresult
+        fresult = FileResult(filename)
         current_context = 0
         scripts = ""
 
         if self.debug:
             print("Preprocessing...")
-        commands = lift_and_linearize(load_commands_preserve(self.prelude + "/" +
-                                                             filename),
-                                      self.coqargs, self.includes, self.prelude, filename, debug=self.debug)
+        commands = self.get_commands(filename)
 
         doc, tag, text, line = Doc().ttl()
 
         with tag('html'):
-            details_header(tag, doc, text)
+            details_header(tag, doc, text, filename)
             with serapi_instance.SerapiContext(self.coqargs,
                                                self.includes,
                                                self.prelude) as coq:
-                coq.debug = self.debug
                 with tag('body'), tag('pre'):
                     for command in commands:
                         if re.match(";", command) and options["no-semis"]:
@@ -233,7 +198,6 @@ class Worker(threading.Thread):
                         in_proof = (coq.proof_context and
                                     not re.match(".*Proof.*", command.strip()))
                         if in_proof:
-                            num_tactics_in_file += 1
                             query = format_context(coq.prev_tactics, coq.get_hypothesis(),
                                                    coq.get_goals())
                             response, errors = subprocess.Popen(darknet_command,
@@ -250,39 +214,25 @@ class Worker(threading.Thread):
                             scripts += hover_script(current_context,
                                                     coq.proof_context,
                                                     result)
+                            exception = None
                             try:
                                 coq.quiet = True
                                 coq.run_stmt(result)
                                 coq.quiet = False
-                                failed = False
                                 coq.cancel_last()
-                            except (ParseError, LexError):
-                                failed = True
-                                num_failed_in_file += 1
+                            except (ParseError, LexError) as e:
+                                exception = e
                                 coq.get_completed()
-                            except (CoqExn, BadResponse, TypeError) as e:
-                                failed = True
-                                num_failed_in_file += 1
+                            except (CoqExn, BadResponse) as e:
+                                exception = e
                                 coq.cancel_last()
 
                             with tag('span', title='tooltip',
                                      id='context-' + str(current_context)):
-                                if command.strip() == result:
-                                    num_correct_in_file += 1
-                                    num_partial_in_file += 1
-                                    with tag('code', klass="goodcommand"):
-                                        text(command)
-                                elif (command.strip().split(" ")[0].strip(".") ==
-                                      result.strip().split(" ")[0].strip(".")):
-                                    num_partial_in_file += 1
-                                    with tag('code', klass="okaycommand"):
-                                        text(command)
-                                elif failed:
-                                    with tag('code', klass="failedcommand"):
-                                        text(command)
-                                else:
-                                    with tag('code', klass="badcommand"):
-                                        text(command)
+                                grade = fresult.add_command_result(result, command,
+                                                                   exception)
+                                with tag('code', klass=grade):
+                                    text(command)
                                 current_context += 1
                         else:
                             with tag('code', klass="plaincommand"):
@@ -290,40 +240,28 @@ class Worker(threading.Thread):
 
                         try:
                             coq.run_stmt(command)
-                        except (AckError, CompletedError, CoqExn, BadResponse):
+                        except (AckError, CompletedError, CoqExn,
+                                BadResponse, ParseError, LexError):
                             print("In file {}:".format(filename))
                             raise
 
-        details_filename = "{}.html".format(escape_filename(filename))
-        with open("{}/{}".format(self.output_dir, details_filename), "w") as fout:
+        with open("{}/{}".format(self.output_dir, fresult.details_filename), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()) + scripts)
 
-        output_lock.acquire()
-        num_tactics += num_tactics_in_file
-        num_correct += num_correct_in_file
-        num_partial += num_partial_in_file
-        num_failed += num_failed_in_file
-        output_lock.release()
-        if num_tactics_in_file > 0:
-            percent_correct = (num_correct_in_file / num_tactics_in_file) * 100
-            percent_partial = (num_partial_in_file / num_tactics_in_file) * 100
-        else:
-            percent_correct = 0
-            percent_partial = 0
-        rows.put({'filename': filename, 'num_tactics': num_tactics_in_file,
-                  'num_correct': num_correct_in_file, 'num_partial': num_partial_in_file,
-                  'num_failed': num_failed,
-                  '% correct': percent_correct,
-                  '% partial': percent_partial,
-                  'details_filename': details_filename})
+        gresult.add_file_result(fresult)
+        rows.put(fresult)
     def run(self):
         try:
             while(True):
                 job = jobs.get_nowait()
+                jobnum = num_jobs - jobs.qsize()
                 print("Processing file {} ({} of {})".format(job,
-                                                             num_jobs - jobs.qsize(),
+                                                             jobnum,
                                                              num_jobs))
                 self.process_file(job)
+                print("Finished file {} ({} of {})".format(job,
+                                                           jobnum,
+                                                           num_jobs))
         except queue.Empty:
             pass
         finally:
@@ -354,6 +292,7 @@ coqargs = ["{}/coq-serapi/sertop.native".format(base),
 includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                             stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
+# Get some metadata
 cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                      shell=True).decode('utf-8')
 cur_date = datetime.datetime.now()
@@ -361,35 +300,32 @@ cur_date = datetime.datetime.now()
 if not os.path.exists(args.output):
     os.makedirs(args.output)
 
+jobs = queue.Queue()
+workers = []
 num_jobs = len(args.filenames)
 for infname in args.filenames:
     jobs.put(infname)
 
 for idx in range(args.threads):
-    worker = Worker(idx, coqargs, includes, args.output, args.prelude, args.debug)
+    worker = Worker(idx, coqargs, includes, args.output,
+                    args.prelude, args.debug, num_jobs)
     worker.start()
     workers.append(worker)
 
 for idx in range(args.threads):
     finished_id = finished_queue.get()
     workers[finished_id].join()
+    print("Thread {} finished ({} of {}).".format(finished_id, idx + 1, args.threads))
+
+###
+### Write the report page out
+###
 
 doc, tag, text, line = Doc().ttl()
 
 with tag('html'):
-    with tag('head'):
-        doc.stag('link', href='report.css', rel='stylesheet')
-        with tag('title'):
-            text("Proverbot Report")
+    report_header(tag, doc, text)
     with tag('body'):
-        with tag('h2'):
-            if (num_tactics == 0):
-                stringified_percent = "NaN"
-            else:
-                stringified_percent = "{:10.2f}".format((num_correct / num_tactics) * 100)
-            text("Overall Accuracy: {}% ({}/{})"
-                 .format(stringified_percent,
-                         num_correct, num_tactics))
         with tag('h4'):
             text("Using predictor: {}".format(darknet_command[0]))
         with tag('h4'):
@@ -398,32 +334,12 @@ with tag('html'):
             text("Commit: {}".format(cur_commit))
         with tag('h5'):
             text("Run on {}".format(cur_date))
-        with tag('table'):
-            with tag('tr'):
-                line('th', 'Filename')
-                line('th', 'Number of Tactics in File')
-                line('th', 'Number of Tactics Correctly Predicted')
-                line('th', 'Number of Tactics Predicted Partially Correct')
-                line('th', '% Correct')
-                line('th', '% Partial')
-                line('th', 'Details')
-            while not rows.empty():
-                row = rows.get()
-                with tag('tr'):
-                    line('td', row['filename'])
-                    line('td', row['num_tactics'])
-                    line('td', row['num_correct'])
-                    line('td', row['num_partial'])
-                    line('td', "{:10.2f}%".format(row['% correct']))
-                    line('td', "{:10.2f}%".format(row['% partial']))
-                    with tag('td'):
-                        with tag('a', href=row['details_filename']):
-                            text("Details")
+        gresult.report_results(doc, text, tag, line)
 
-copy("{}/report.css".format(base), "{}/report.css".format(args.output))
-copy("{}/details.css".format(base), "{}/details.css".format(args.output))
-copy("{}/jquery-ui.css".format(base), "{}/jquery-ui.css".format(args.output))
-copy("{}/jquery-ui.js".format(base), "{}/jquery-ui.js".format(args.output))
+extra_files = ["report.css", "details.css", "jquery-ui.css", "jquery-ui.js"]
+
+for filename in extra_files:
+    copy(base + "/" + filename, args.output + "/" + filename)
 
 with open("{}/report.html".format(args.output), "w") as fout:
     fout.write(doc.getvalue())
