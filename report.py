@@ -16,7 +16,7 @@ from yattag import Doc
 
 import serapi_instance
 import linearize_semicolons
-from serapi_instance import ParseError
+from serapi_instance import ParseError, LexError
 
 from helper import *
 
