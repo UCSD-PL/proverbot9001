@@ -153,7 +153,6 @@ class SerapiInstance(threading.Thread):
         except (CoqExn, BadResponse, AckError, CompletedError) as e:
             if not self.quiet or self.debug:
                 print("Problem running statement: {}".format(stmt))
-                print(e)
             if (type(e) == CoqExn and
                 type(e.msg) == list and
                 e.msg[0] == Symbol('CoqExn') and
@@ -166,8 +165,7 @@ class SerapiInstance(threading.Thread):
                 e.msg[0] == Symbol('CoqExn') and
                 len(e.msg) == 4 and
                 type(e.msg[3]) == list and
-                type(e.msg[3][0]) == Symbol and
-                "CLexer.Error" in e.msg[3][0].value()):
+                e.msg[3][0] == 'CLexer.Error.E(3)'):
                 raise LexError("Couldn't lex command {}".format(stmt))
             raise e
 
