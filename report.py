@@ -145,6 +145,9 @@ class FileResult:
             return "okaycommand"
         elif exception == None:
             return "badcommand"
+        elif type(exception) == ParseError or type(exception) == LexError:
+            self.num_failed += 1
+            return "superfailedcommand"
         else:
             self.num_failed += 1
             return "failedcommand"

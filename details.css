@@ -22,3 +22,7 @@ code.failedcommand {
     color: red;
     font-weight: bold;
 }
+code.superfailedcommand {
+    color: black;
+    font-weight: bold;
+}
