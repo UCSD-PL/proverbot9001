@@ -80,7 +80,7 @@ class Worker(threading.Thread):
             return
         # If the context isn't None, then we are in a proof.
         in_proof = coq.proof_context
-        if in_proof:
+        if in_proof and not "Proof" in command:
             # Pull all the information we could possibly want to have
             # in our scrape.
             prev_tactics = coq.prev_tactics
