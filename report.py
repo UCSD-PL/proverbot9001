@@ -188,67 +188,70 @@ class Worker(threading.Thread):
 
         doc, tag, text, line = Doc().ttl()
 
+        command_results = []
+
+        with serapi_instance.SerapiContext(self.coqargs,
+                                           self.includes,
+                                           self.prelude) as coq:
+            for command in commands:
+                in_proof = (coq.proof_context and
+                            not re.match(".*Proof.*", command.strip()))
+                if in_proof:
+                    query = format_context(coq.prev_tactics, coq.get_hypothesis(),
+                                           coq.get_goals())
+                    response, errors = subprocess.Popen(darknet_command,
+                                                        stdin=
+                                                        subprocess.PIPE,
+                                                        stdout=
+                                                        subprocess.PIPE,
+                                                        stderr=
+                                                        subprocess.PIPE
+                    ).communicate(input=query.encode('utf-8'))
+                    predicted = response.decode('utf-8', 'ignore').strip()
+
+                    exception = None
+                    try:
+                        if not "." in predicted:
+                            exception = ParseError("No period")
+                        else:
+                            coq.quiet = True
+                            coq.run_stmt(predicted)
+                            coq.quiet = False
+                            coq.cancel_last()
+                    except (ParseError, LexError) as e:
+                        exception = e
+                        coq.get_completed()
+                    except (CoqExn, BadResponse) as e:
+                        exception = e
+                        coq.cancel_last()
+
+                    command_results.append((command, predicted,
+                                            coq.proof_context,
+                                            fresult.add_command_result(predicted, command,
+                                                                       exception)))
+                else:
+                    command_results.append((command,))
+                try:
+                    coq.run_stmt(command)
+                except (AckError, CompletedError, CoqExn,
+                        BadResponse, ParseError, LexError):
+                    print("In file {}:".format(filename))
+                    raise
+
         with tag('html'):
             details_header(tag, doc, text, filename)
-            with serapi_instance.SerapiContext(self.coqargs,
-                                               self.includes,
-                                               self.prelude) as coq:
-                with tag('body'), tag('pre'):
-                    for command in commands:
-                        if re.match(";", command) and options["no-semis"]:
-                            coq.run_stmt(command)
-                            return
-                        in_proof = (coq.proof_context and
-                                    not re.match(".*Proof.*", command.strip()))
-                        if in_proof:
-                            query = format_context(coq.prev_tactics, coq.get_hypothesis(),
-                                                   coq.get_goals())
-                            response, errors = subprocess.Popen(darknet_command,
-                                                                stdin=
-                                                                subprocess.PIPE,
-                                                                stdout=
-                                                                subprocess.PIPE,
-                                                                stderr=
-                                                                subprocess.PIPE
-                            ).communicate(input=query.encode('utf-8'))
-                            result = response.decode('utf-8', 'ignore').strip()
-
-                            scripts += hover_script(current_context,
-                                                    coq.proof_context,
-                                                    result)
-                            exception = None
-                            try:
-                                if not "." in result:
-                                    exception = ParseError("No period")
-                                else:
-                                    coq.quiet = True
-                                    coq.run_stmt(result)
-                                    coq.quiet = False
-                                    coq.cancel_last()
-                            except (ParseError, LexError) as e:
-                                exception = e
-                                coq.get_completed()
-                            except (CoqExn, BadResponse) as e:
-                                exception = e
-                                coq.cancel_last()
-
-                            with tag('span', title='tooltip',
-                                     id='context-' + str(current_context)):
-                                grade = fresult.add_command_result(result, command,
-                                                                   exception)
-                                with tag('code', klass=grade):
-                                    text(command)
-                                current_context += 1
-                        else:
-                            with tag('code', klass="plaincommand"):
+            with tag('body'), tag('pre'):
+                for idx, command_result in enumerate(command_results):
+                    if len(command_result) == 1:
+                        with tag('code', klass='plaincommand'):
+                            text(command_result[0])
+                    else:
+                        command, predicted, context, grade = command_result
+                        scripts += hover_script(idx, context, predicted)
+                        with tag('span', title='tooltip',
+                                 id='context-' + str(idx)):
+                            with tag('code', klass=grade):
                                 text(command)
-
-                        try:
-                            coq.run_stmt(command)
-                        except (AckError, CompletedError, CoqExn,
-                                BadResponse, ParseError, LexError):
-                            print("In file {}:".format(filename))
-                            raise
 
         with open("{}/{}".format(self.output_dir, fresult.details_filename), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()) + scripts)
