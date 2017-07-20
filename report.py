@@ -253,7 +253,7 @@ class Worker(threading.Thread):
                             with tag('code', klass=grade):
                                 text(command)
 
-        with open("{}/{}".format(self.output_dir, fresult.details_filename), "w") as fout:
+        with open("{}/{}".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()) + scripts)
 
         gresult.add_file_result(fresult)
