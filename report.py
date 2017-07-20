@@ -26,8 +26,8 @@ rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
 darknet_command = ""
 
-details_css = ["details.css", "jquery-ui.css"]
-details_javascript = ["http://code.jquery.com/jquery-latest.min.js", "jquery-ui.js"]
+details_css = ["details.css"]
+details_javascript = ["http://code.jquery.com/jquery-latest.min.js", "details.js"]
 
 def header(tag, doc, text, css, javascript, title):
     with tag('head'):
@@ -55,29 +55,14 @@ def stringified_percent(total, outof):
         return "{:10.2f}".format(total * 100 / outof)
 
 def jsan(string):
+    if (string == None):
+        return ""
     return (string
             .replace("\\", "\\\\")
             .replace("\n", "\\n"))
 
 def shorten_whitespace(string):
     return string.replace("    ", "  ")
-
-def hover_script(context_idx, proof_context, predicted_tactic):
-    return ("<script type='text/javascript'>\n"
-            "$(function () {{\n"
-            "  $(\"#context-{}\").tooltip({{\n"
-            "    content: \"<pre><code>{}\\n\\n"
-            "               <b>Predicted</b>: {}\\n"
-            "               </code></pre>\",\n"
-            "    open: function (event, ui) {{\n"
-            "      ui.tooltip.css('max-width', 'none');\n"
-            "      ui.tooltip.css('min-width', '800px');\n"
-            "    }}\n"
-            "  }});\n"
-            "}});\n"
-            "</script>".format(str(context_idx),
-                               shorten_whitespace(jsan(proof_context)),
-                               shorten_whitespace(jsan(predicted_tactic))))
 
 class GlobalResult:
     def __init__(self):
@@ -226,7 +211,8 @@ class Worker(threading.Thread):
                         coq.cancel_last()
 
                     command_results.append((command, predicted,
-                                            coq.proof_context,
+                                            coq.get_proof_context(),
+                                            coq.get_goals(),
                                             fresult.add_command_result(predicted, command,
                                                                        exception)))
                 else:
@@ -240,16 +226,24 @@ class Worker(threading.Thread):
 
         with tag('html'):
             details_header(tag, doc, text, filename)
+            with tag('div', id='overlay'):
+                with tag('div', id='predicted'):
+                    pass
+                with tag('div', id='context'):
+                    pass
+                pass
             with tag('body'), tag('pre'):
                 for idx, command_result in enumerate(command_results):
                     if len(command_result) == 1:
                         with tag('code', klass='plaincommand'):
                             text(command_result[0])
                     else:
-                        command, predicted, context, grade = command_result
-                        scripts += hover_script(idx, context, predicted)
-                        with tag('span', title='tooltip',
-                                 id='context-' + str(idx)):
+                        command, predicted, context, goal, grade = command_result
+                        with tag('span',
+                                 id='context-' + str(idx),
+                                 onmouseover='displayTacticInfo("{}", "{}", "{}")'
+                                 .format(jsan(context), jsan(goal), jsan(predicted)),
+                                 onmouseout='hideTacticInfo()'):
                             with tag('code', klass=grade):
                                 text(command)
 
@@ -344,7 +338,7 @@ with tag('html'):
             text("Run on {}".format(cur_date))
         gresult.report_results(doc, text, tag, line)
 
-extra_files = ["report.css", "details.css", "jquery-ui.css", "jquery-ui.js"]
+extra_files = ["report.css", "details.css", "details.js"]
 
 for filename in extra_files:
     copy(base + "/" + filename, args.output + "/" + filename)

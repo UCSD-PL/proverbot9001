@@ -26,3 +26,28 @@ code.superfailedcommand {
     color: black;
     font-weight: bold;
 }
+
+#overlay {
+    position: absolute;
+    display: none;
+    width: 50%;
+    left: auto;
+    right: 0;
+    border-style: outset;
+    border-width: 4px;
+    background-color: LightCyan;
+}
+#context {
+    margin: 1.5em;
+}
+#predicted {
+    margin: 2em;
+    text-align: center;
+}
+#predicted #tactic {
+    font-size: 20pt;
+}
+
+#context pre {
+    font-size: 14pt;
+}
