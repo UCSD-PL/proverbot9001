@@ -28,7 +28,7 @@ code.superfailedcommand {
 }
 
 #overlay {
-    position: absolute;
+    position: fixed;
     display: none;
     width: 50%;
     left: auto;

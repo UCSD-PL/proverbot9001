@@ -9,7 +9,7 @@ function hoverTactic(hyps, goal, predicted){
 function displayTacticInfo (hyps, goal, predicted) {
     overlay = document.getElementById("overlay")
     overlay.style.display = "block";
-    overlay.style.top = window.pageYOffset;
+    overlay.style.top = "2em";
     overlay.style.height = window.innerHeight * 0.9
     predictedDiv = document.getElementById("predicted")
     predictedDiv.innerHTML = "<h3>Predicted</h3> <pre id='tactic'>" + predicted + "</pre>"
@@ -39,7 +39,9 @@ function selectTactic(idx, hyps, goal, predicted) {
 }
 function deselectTactic() {
     tacSpan = document.getElementById("context-" + selectedIdx)
-    tacSpan.style.backgroundColor = ""
+    if (tacSpan != null){
+        tacSpan.style.backgroundColor = ""
+        hideTacticInfo()
+    }
     selectedIdx = -1;
-    hideTacticInfo()
 }
