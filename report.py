@@ -232,7 +232,7 @@ class Worker(threading.Thread):
                 with tag('div', id='context'):
                     pass
                 pass
-            with tag('body'), tag('pre'):
+            with tag('body', onclick='deselectTactic()'), tag('pre'):
                 for idx, command_result in enumerate(command_results):
                     if len(command_result) == 1:
                         with tag('code', klass='plaincommand'):
@@ -241,9 +241,14 @@ class Worker(threading.Thread):
                         command, predicted, context, goal, grade = command_result
                         with tag('span',
                                  id='context-' + str(idx),
-                                 onmouseover='displayTacticInfo("{}", "{}", "{}")'
+                                 onmouseover='hoverTactic("{}", "{}", "{}")'
                                  .format(jsan(context), jsan(goal), jsan(predicted)),
-                                 onmouseout='hideTacticInfo()'):
+                                 onmouseout='unhoverTactic()',
+                                 onclick=
+                                 'selectTactic({}, "{}", "{}", "{}"); '
+                                 'event.stopPropagation();'
+                                 .format(str(idx), jsan(context),
+                                         jsan(goal), jsan(predicted))):
                             with tag('code', klass=grade):
                                 text(command)
 
