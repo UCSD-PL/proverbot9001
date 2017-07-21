@@ -62,7 +62,7 @@ def jsan(string):
             .replace("\n", "\\n"))
 
 def shorten_whitespace(string):
-    return string.replace("    ", "  ")
+    return re.sub("    +", "  ", string)
 
 class GlobalResult:
     def __init__(self):
@@ -244,13 +244,14 @@ class Worker(threading.Thread):
                         with tag('span',
                                  id='context-' + str(idx),
                                  onmouseover='hoverTactic("{}", "{}", "{}")'
-                                 .format(jsan(context), jsan(goal), jsan(predicted)),
+                                 .format(jsan(context), jsan(shorten_whitespace(goal)),
+                                         jsan(predicted)),
                                  onmouseout='unhoverTactic()',
                                  onclick=
                                  'selectTactic({}, "{}", "{}", "{}"); '
                                  'event.stopPropagation();'
                                  .format(str(idx), jsan(context),
-                                         jsan(goal), jsan(predicted))):
+                                         jsan(shorten_whitespace(goal)), jsan(predicted))):
                             with tag('code', klass=grade):
                                 text(command)
 
