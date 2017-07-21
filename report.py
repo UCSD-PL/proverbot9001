@@ -194,6 +194,9 @@ class Worker(threading.Thread):
                     ).communicate(input=query.encode('utf-8'))
                     predicted = response.decode('utf-8', 'ignore').strip()
 
+                    hyps = coq.get_hypothesis()
+                    goals = coq.get_goals()
+
                     exception = None
                     try:
                         if not "." in predicted:
@@ -211,8 +214,7 @@ class Worker(threading.Thread):
                         coq.cancel_last()
 
                     command_results.append((command, predicted,
-                                            coq.get_proof_context(),
-                                            coq.get_goals(),
+                                            hyps, goals,
                                             fresult.add_command_result(predicted, command,
                                                                        exception)))
                 else:
