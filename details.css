@@ -9,11 +9,14 @@ body {
 code {
     font-size: 1.5em
 }
-code.badcommand {
-    color: red
-}
 code.goodcommand {
     color: green
+}
+code.mostlygoodcommand {
+    color: turquoise
+}
+code.badcommand {
+    color: red
 }
 code.okaycommand {
     color: orange

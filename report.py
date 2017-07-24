@@ -133,7 +133,8 @@ class FileResult:
         self.predicted_tactic_frequency = {}
         self.correctly_predicted_frequency = {}
         pass
-    def add_command_result(self, predicted, actual, exception):
+    def add_command_result(self, predicted, predicted_context,
+                           actual, actual_context, exception):
         add_to_freq_table(self.actual_tactic_frequency, actual)
         add_to_freq_table(self.predicted_tactic_frequency, predicted)
 
@@ -143,6 +144,11 @@ class FileResult:
             self.num_correct += 1
             self.num_partial += 1
             return "goodcommand"
+        elif predicted_context == actual_context:
+            add_to_freq_table(self.correctly_predicted_frequency, predicted.strip())
+            self.num_correct += 1
+            self.num_partial += 1
+            return "mostlygoodcommand"
         elif (actual.strip().split(" ")[0].strip(".") ==
               predicted.strip().split(" ")[0].strip(".")):
             self.num_partial += 1
@@ -217,12 +223,14 @@ class Worker(threading.Thread):
                     goals = coq.get_goals()
 
                     exception = None
+                    predicted_result_context = ""
                     try:
                         if not "." in predicted:
                             exception = ParseError("No period")
                         else:
                             coq.quiet = True
                             coq.run_stmt(predicted)
+                            predicted_result_context = coq.proof_context
                             coq.cancel_last()
                     except (ParseError, LexError) as e:
                         exception = e
@@ -233,18 +241,31 @@ class Worker(threading.Thread):
                     finally:
                         coq.quiet = False
 
+                    actual_result_context = ""
+                    try:
+                        coq.run_stmt(command)
+                        actual_result_context = coq.proof_context
+                    except (AckError, CompletedError, CoqExn,
+                            BadResponse, ParseError, LexError):
+                        print("In file {}:".format(filename))
+                        raise
+
+                    grade = fresult.add_command_result(predicted,
+                                                       predicted_result_context,
+                                                       command,
+                                                       actual_result_context,
+                                                       exception)
+
                     command_results.append((command, predicted,
-                                            hyps, goals,
-                                            fresult.add_command_result(predicted, command,
-                                                                       exception)))
+                                            hyps, goals, grade))
                 else:
+                    try:
+                        coq.run_stmt(command)
+                    except (AckError, CompletedError, CoqExn,
+                            BadResponse, ParseError, LexError):
+                        print("In file {}:".format(filename))
+                        raise
                     command_results.append((command,))
-                try:
-                    coq.run_stmt(command)
-                except (AckError, CompletedError, CoqExn,
-                        BadResponse, ParseError, LexError):
-                    print("In file {}:".format(filename))
-                    raise
 
         with tag('html'):
             details_header(tag, doc, text, filename)
