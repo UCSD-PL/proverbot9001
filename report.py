@@ -223,7 +223,6 @@ class Worker(threading.Thread):
                         else:
                             coq.quiet = True
                             coq.run_stmt(predicted)
-                            coq.quiet = False
                             coq.cancel_last()
                     except (ParseError, LexError) as e:
                         exception = e
@@ -231,6 +230,8 @@ class Worker(threading.Thread):
                     except (CoqExn, BadResponse) as e:
                         exception = e
                         coq.cancel_last()
+                    finally:
+                        coq.quiet = False
 
                     command_results.append((command, predicted,
                                             hyps, goals,
