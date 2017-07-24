@@ -110,6 +110,18 @@ class GlobalResult:
                             text("Details")
     pass
 
+def add_to_freq_table(table, entry):
+    if entry not in table:
+        table[entry] = 1
+    else:
+        table[entry] += 1
+
+def lookup_freq_table(table, entry):
+    if entry not in table:
+        return 0
+    else:
+        return table[entry]
+
 class FileResult:
     def __init__(self, filename):
         self.num_tactics = 0
@@ -117,10 +129,17 @@ class FileResult:
         self.num_partial = 0
         self.num_failed = 0
         self.filename = filename
+        self.actual_tactic_frequency = {}
+        self.predicted_tactic_frequency = {}
+        self.correctly_predicted_frequency = {}
         pass
     def add_command_result(self, predicted, actual, exception):
+        add_to_freq_table(self.actual_tactic_frequency, actual)
+        add_to_freq_table(self.predicted_tactic_frequency, predicted)
+
         self.num_tactics += 1
         if actual.strip() == predicted.strip():
+            add_to_freq_table(self.correctly_predicted_frequency, predicted.strip())
             self.num_correct += 1
             self.num_partial += 1
             return "goodcommand"
@@ -233,6 +252,8 @@ class Worker(threading.Thread):
                     pass
                 with tag('div', id='context'):
                     pass
+                with tag('div', id='stats'):
+                    pass
                 pass
             with tag('body', onclick='deselectTactic()'), tag('pre'):
                 for idx, command_result in enumerate(command_results):
@@ -243,15 +264,30 @@ class Worker(threading.Thread):
                         command, predicted, context, goal, grade = command_result
                         with tag('span',
                                  id='context-' + str(idx),
-                                 onmouseover='hoverTactic("{}", "{}", "{}")'
+                                 onmouseover='hoverTactic("{}", "{}", "{}", {}, {}, {})'
                                  .format(jsan(context), jsan(shorten_whitespace(goal)),
-                                         jsan(predicted)),
+                                         jsan(predicted),
+                                         str(lookup_freq_table(
+                                             fresult.predicted_tactic_frequency,
+                                             predicted)),
+                                         str(lookup_freq_table(
+                                             fresult.correctly_predicted_frequency,
+                                             predicted)),
+                                         str(fresult.num_tactics)),
                                  onmouseout='unhoverTactic()',
                                  onclick=
-                                 'selectTactic({}, "{}", "{}", "{}"); '
+                                 'selectTactic({}, "{}", "{}", "{}", {}, {}, {}); '
                                  'event.stopPropagation();'
                                  .format(str(idx), jsan(context),
-                                         jsan(shorten_whitespace(goal)), jsan(predicted))):
+                                         jsan(shorten_whitespace(goal)),
+                                         jsan(predicted),
+                                         str(lookup_freq_table(
+                                             fresult.predicted_tactic_frequency,
+                                             predicted)),
+                                         str(lookup_freq_table(
+                                             fresult.correctly_predicted_frequency,
+                                             predicted)),
+                                         str(fresult.num_tactics))):
                             with tag('code', klass=grade):
                                 text(command)
 

@@ -31,6 +31,8 @@ code.superfailedcommand {
     position: fixed;
     display: none;
     width: 50%;
+    min-height: 90%;
+    top: 2em;
     left: auto;
     right: 0;
     border-style: outset;
@@ -44,8 +46,16 @@ code.superfailedcommand {
     margin: 2em;
     text-align: center;
 }
+#stats {
+    margin: 2.5em;
+    text-align: center;
+}
 #predicted #tactic {
     font-size: 20pt;
+}
+
+#stats tt {
+    font-size: 14pt;
 }
 
 #context pre {

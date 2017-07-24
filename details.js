@@ -1,16 +1,14 @@
 selectedIdx = -1
-function hoverTactic(hyps, goal, predicted){
+function hoverTactic(hyps, goal, predicted, num_predicted, num_correct, num_total){
     if (selectedIdx != -1){
         return;
     } else {
-        displayTacticInfo(hyps, goal, predicted)
+        displayTacticInfo(hyps, goal, predicted, num_predicted, num_correct, num_total)
     }
 }
-function displayTacticInfo (hyps, goal, predicted) {
+function displayTacticInfo (hyps, goal, predicted, num_predicted, num_correct, num_total) {
     overlay = document.getElementById("overlay")
     overlay.style.display = "block";
-    overlay.style.top = "2em";
-    overlay.style.height = window.innerHeight * 0.9
     predictedDiv = document.getElementById("predicted")
     predictedDiv.innerHTML = "<h3>Predicted</h3> <pre id='tactic'>" + predicted + "</pre>"
     contextDiv = document.getElementById("context")
@@ -18,6 +16,10 @@ function displayTacticInfo (hyps, goal, predicted) {
         "<pre id='hyps'>" + hyps + "</pre>" +
         "<hr>" +
         "<pre id='goal'>" + goal + "</pre>";
+    statsDiv = document.getElementById("stats")
+    statsDiv.innerHTML = "Predicted \"<tt>" + predicted + "</tt>\" " + Math.floor((num_total / num_predicted) * 100) +
+        "% of the time (" + num_predicted + "/" + num_total + ")<br>\n" +
+        "Correct " + Math.floor((num_correct / num_predicted) * 100) + "% of the time";
 }
 function unhoverTactic() {
     if (selectedIdx != -1){
@@ -28,12 +30,12 @@ function unhoverTactic() {
 function hideTacticInfo () {
     document.getElementById("overlay").style.display = "none";
 }
-function selectTactic(idx, hyps, goal, predicted) {
+function selectTactic(idx, hyps, goal, predicted, num_predicted, num_correct, num_total) {
     if (selectedIdx != 1){
         deselectTactic()
     }
     selectedIdx = idx
-    displayTacticInfo(hyps, goal, predicted)
+    displayTacticInfo(hyps, goal, predicted, num_predicted, num_correct, num_total)
     tacSpan = document.getElementById("context-" + idx)
     tacSpan.style.backgroundColor = "LightCyan"
 }
