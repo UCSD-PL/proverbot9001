@@ -277,41 +277,30 @@ class Worker(threading.Thread):
                 with tag('div', id='stats'):
                     pass
                 pass
-            with tag('body', onclick='deselectTactic()'), tag('pre'):
+            with tag('body', onclick='deselectTactic()',
+                     onload='setSelectedIdx()'), tag('pre'):
                 for idx, command_result in enumerate(command_results):
                     if len(command_result) == 1:
                         with tag('code', klass='plaincommand'):
                             text(command_result[0])
                     else:
-                        command, predicted, context, goal, grade = command_result
+                        command, predicted, hyps, goal, grade = command_result
                         with tag('span',
+                                 ('data-hyps',hyps),
+                                 ('data-goal',shorten_whitespace(goal)),
+                                 ('data-predicted',predicted),
+                                 ('data-num-predicted',str(lookup_freq_table(
+                                     fresult.predicted_tactic_frequency,
+                                     predicted))),
+                                 ('data-num-correct',str(lookup_freq_table(
+                                     fresult.correctly_predicted_frequency,
+                                     predicted))),
+                                 ('data-num-total', str(fresult.num_tactics)),
                                  id='command-' + str(idx),
-                                 onmouseover='hoverTactic({}, "{}", "{}", "{}", '
-                                                         '{}, {}, {})'
-                                 .format(str(idx),
-                                         jsan(context), jsan(shorten_whitespace(goal)),
-                                         jsan(predicted),
-                                         str(lookup_freq_table(
-                                             fresult.predicted_tactic_frequency,
-                                             predicted)),
-                                         str(lookup_freq_table(
-                                             fresult.correctly_predicted_frequency,
-                                             predicted)),
-                                         str(fresult.num_tactics)),
+                                 onmouseover='hoverTactic({})'.format(idx),
                                  onmouseout='unhoverTactic()',
-                                 onclick=
-                                 'selectTactic({}, "{}", "{}", "{}", {}, {}, {}); '
-                                 'event.stopPropagation();'
-                                 .format(str(idx), jsan(context),
-                                         jsan(shorten_whitespace(goal)),
-                                         jsan(predicted),
-                                         str(lookup_freq_table(
-                                             fresult.predicted_tactic_frequency,
-                                             predicted)),
-                                         str(lookup_freq_table(
-                                             fresult.correctly_predicted_frequency,
-                                             predicted)),
-                                         str(fresult.num_tactics))):
+                                 onclick='selectTactic({}); event.stopPropagation();'
+                                 .format(idx)):
                             with tag('code', klass=grade):
                                 text(command)
 
