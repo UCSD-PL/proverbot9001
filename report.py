@@ -285,9 +285,11 @@ class Worker(threading.Thread):
                     else:
                         command, predicted, context, goal, grade = command_result
                         with tag('span',
-                                 id='context-' + str(idx),
-                                 onmouseover='hoverTactic("{}", "{}", "{}", {}, {}, {})'
-                                 .format(jsan(context), jsan(shorten_whitespace(goal)),
+                                 id='command-' + str(idx),
+                                 onmouseover='hoverTactic({}, "{}", "{}", "{}", '
+                                                         '{}, {}, {})'
+                                 .format(str(idx),
+                                         jsan(context), jsan(shorten_whitespace(goal)),
                                          jsan(predicted),
                                          str(lookup_freq_table(
                                              fresult.predicted_tactic_frequency,

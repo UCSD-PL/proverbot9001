@@ -1,16 +1,19 @@
 selectedIdx = -1
-function hoverTactic(hyps, goal, predicted, num_predicted, num_correct, num_total){
+function hoverTactic(idx, hyps, goal, predicted, num_predicted, num_correct, num_total){
     if (selectedIdx != -1){
         return;
     } else {
-        displayTacticInfo(hyps, goal, predicted, num_predicted, num_correct, num_total)
+        displayTacticInfo(idx, hyps, goal, predicted,
+                          num_predicted, num_correct, num_total)
     }
 }
-function displayTacticInfo (hyps, goal, predicted, num_predicted, num_correct, num_total) {
+function displayTacticInfo (idx, hyps, goal, predicted, num_predicted, num_correct, num_total) {
     overlay = document.getElementById("overlay")
     overlay.style.display = "block";
     predictedDiv = document.getElementById("predicted")
-    predictedDiv.innerHTML = "<h3>Predicted</h3> <pre id='tactic'>" + predicted + "</pre>"
+    linkLoc = window.location.protocol + "//" + window.location.hostname
+        + window.location.pathname + "#command-" + idx
+    predictedDiv.innerHTML = "<h3>Predicted <a href="+ linkLoc + ">[link]</a></h3> <pre id='tactic'>" + predicted + "</pre>"
     contextDiv = document.getElementById("context")
     contextDiv.innerHTML = "<h3>Context:</h3>" +
         "<pre id='hyps'>" + hyps + "</pre>" +
@@ -35,12 +38,12 @@ function selectTactic(idx, hyps, goal, predicted, num_predicted, num_correct, nu
         deselectTactic()
     }
     selectedIdx = idx
-    displayTacticInfo(hyps, goal, predicted, num_predicted, num_correct, num_total)
-    tacSpan = document.getElementById("context-" + idx)
+    displayTacticInfo(idx, hyps, goal, predicted, num_predicted, num_correct, num_total)
+    tacSpan = document.getElementById("command-" + idx)
     tacSpan.style.backgroundColor = "LightCyan"
 }
 function deselectTactic() {
-    tacSpan = document.getElementById("context-" + selectedIdx)
+    tacSpan = document.getElementById("command-" + selectedIdx)
     if (tacSpan != null){
         tacSpan.style.backgroundColor = ""
         hideTacticInfo()
