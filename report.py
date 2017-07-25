@@ -122,6 +122,9 @@ def lookup_freq_table(table, entry):
     else:
         return table[entry]
 
+def get_stem(command):
+    return command.strip().split(" ")[0].strip(".")
+
 class FileResult:
     def __init__(self, filename):
         self.num_tactics = 0
@@ -135,22 +138,25 @@ class FileResult:
         pass
     def add_command_result(self, predicted, predicted_context,
                            actual, actual_context, exception):
-        add_to_freq_table(self.actual_tactic_frequency, actual)
-        add_to_freq_table(self.predicted_tactic_frequency, predicted)
+        add_to_freq_table(self.actual_tactic_frequency,
+                          get_stem(actual))
+        add_to_freq_table(self.predicted_tactic_frequency,
+                          get_stem(predicted))
 
         self.num_tactics += 1
         if actual.strip() == predicted.strip():
-            add_to_freq_table(self.correctly_predicted_frequency, predicted.strip())
+            add_to_freq_table(self.correctly_predicted_frequency,
+                              get_stem(predicted))
             self.num_correct += 1
             self.num_partial += 1
             return "goodcommand"
         elif predicted_context == actual_context:
-            add_to_freq_table(self.correctly_predicted_frequency, predicted.strip())
+            add_to_freq_table(self.correctly_predicted_frequency,
+                              get_stem(predicted))
             self.num_correct += 1
             self.num_partial += 1
             return "mostlygoodcommand"
-        elif (actual.strip().split(" ")[0].strip(".") ==
-              predicted.strip().split(" ")[0].strip(".")):
+        elif (get_stem(actual) == get_stem(predicted)):
             self.num_partial += 1
             return "okaycommand"
         elif exception == None:
@@ -291,10 +297,10 @@ class Worker(threading.Thread):
                                  ('data-predicted',predicted),
                                  ('data-num-predicted',str(lookup_freq_table(
                                      fresult.predicted_tactic_frequency,
-                                     predicted))),
+                                     get_stem(predicted)))),
                                  ('data-num-correct',str(lookup_freq_table(
                                      fresult.correctly_predicted_frequency,
-                                     predicted))),
+                                     get_stem(predicted)))),
                                  ('data-num-total', str(fresult.num_tactics)),
                                  id='command-' + str(idx),
                                  onmouseover='hoverTactic({})'.format(idx),
