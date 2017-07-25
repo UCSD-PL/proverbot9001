@@ -14,7 +14,7 @@ function hoverTactic(idx){
     }
 }
 function getStem(command) {
-    return command.trip().split(" ")[0].replace(/\.$/, "")
+    return command.trim().split(" ")[0].replace(/\.$/, "")
 }
 function displayTacticInfo (idx) {
     overlay = document.getElementById("overlay")
@@ -40,7 +40,7 @@ function displayTacticInfo (idx) {
     num_predicted = tacSpan.dataset.numPredicted
     num_correct = tacSpan.dataset.numCorrect
     statsDiv = document.getElementById("stats")
-    statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predicted) + "</tt>\" " + Math.floor((num_predicted / num_total) * 100) +
+    statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predicted) + " *</tt>\" " + Math.floor((num_predicted / num_total) * 100) +
         "% of the time (" + num_predicted + "/" + num_total + ")<br>\n" +
         "Correct " + Math.floor((num_correct / num_predicted) * 100) + "% of the time";
 }

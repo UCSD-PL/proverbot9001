@@ -275,7 +275,7 @@ class Worker(threading.Thread):
 
         with tag('html'):
             details_header(tag, doc, text, filename)
-            with tag('div', id='overlay'):
+            with tag('div', id='overlay', onclick='event.stopPropagation();'):
                 with tag('div', id='predicted'):
                     pass
                 with tag('div', id='context'):
