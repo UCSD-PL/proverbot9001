@@ -4,22 +4,22 @@ set -euv
 echo "Making sure your environment is correctly setup"
 
 if [[ -f /etc/NIXOS ]]; then
-  if [[ -z ${NIXSHELL:=} ]]; then
-    echo "Please run nix-shell to ensure your setup is correct"
-    exit 1
-  else
-    continue
-  fi
+    if [[ -z ${NIXSHELL:=} ]]; then
+        echo "Please run nix-shell to ensure your setup is correct"
+        exit 1
+    else
+        continue
+    fi
 else
-  opam switch 4.04.0
-  # For Coq:
-  opam install menhir
-  # For SerAPI:
-  opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
-  eval `opam config env`
-  pip3 install --user sexpdata
-  pip3 install --user yattag
-  pip install --user future
+    opam switch 4.04.0
+    # For Coq:
+    opam install menhir
+    # For SerAPI:
+    opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
+    eval `opam config env`
+    pip3 install --user sexpdata
+    pip3 install --user yattag
+    pip install --user future
 fi
 
 function check-and-clone {
@@ -30,60 +30,60 @@ function check-and-clone {
 }
 
 function setup-coq {
-  check-and-clone\
-    "coq" "https://github.com/coq/coq.git"\
-    "9d423562a5f83563198f3141500af4c97103c2bf"
-  (
-    set -euv
-    cd coq
-    if [ ! -f config/coq_config.ml ]; then
-      ./configure -local
-    fi
-    make -j `nproc`
-  ) || exit 1
+    check-and-clone\
+        "coq" "https://github.com/coq/coq.git"\
+        "9d423562a5f83563198f3141500af4c97103c2bf"
+    (
+        set -euv
+        cd coq
+        if [ ! -f config/coq_config.ml ]; then
+            ./configure -local
+        fi
+        make -j `nproc`
+    ) || exit 1
 }
 
 function setup-coq-serapi {
-  check-and-clone\
-    "coq-serapi" "https://github.com/Ptival/coq-serapi.git"\
-    "601ad4f8baee98d025b8157c344d6b6155280930"
-  (
-    set -euv
-    cd coq-serapi
-    echo "$PWD/../coq"
-    SERAPI_COQ_HOME="$PWD/../coq/" make
-  ) || exit 1
+    check-and-clone\
+        "coq-serapi" "https://github.com/Ptival/coq-serapi.git"\
+        "601ad4f8baee98d025b8157c344d6b6155280930"
+    (
+        set -euv
+        cd coq-serapi
+        echo "$PWD/../coq"
+        SERAPI_COQ_HOME="$PWD/../coq/" make
+    ) || exit 1
 }
 
 function setup-compcert {
     check-and-clone\
-      "CompCert" "https://github.com/AbsInt/CompCert.git"\
-      "47f63df0a43209570de224f28cf53da6a758df16"
-    {
+        "CompCert" "https://github.com/AbsInt/CompCert.git"\
+        "47f63df0a43209570de224f28cf53da6a758df16"
+    (
         set -euv
         cd CompCert
         if [[ ! -f "Makefile.config" ]]; then
             PATH="$PWD/../coq/bin:$PATH" ./configure x86_64-linux
         fi
         PATH="$PWD/../coq/bin:$PATH" make -j `nproc`
-    }
+    ) || exit 1
 }
 
 function setup-darknet {
     check-and-clone\
-      "darknet" "https://github.com/pjreddie/darknet.git"\
-      "HEAD"
-    {
+        "darknet" "https://github.com/pjreddie/darknet.git"\
+        "HEAD"
+    (
         set -euv
         cd darknet
         git apply ../darknet-changes.patch
         make -j `nproc`
-    }
+    ) || exit 1
 }
 
 function download-weights {
-  echo "Downloading the proverbot9001 base text weights..."
-  curl proverbot9001.ucsd.edu/downloads/enc-1.0.weights > enc.weights
+    echo "Downloading the proverbot9001 base text weights..."
+    curl proverbot9001.ucsd.edu/downloads/enc-1.0.weights > enc.weights
 }
 
 setup-coq
