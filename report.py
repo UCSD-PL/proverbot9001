@@ -21,6 +21,11 @@ from helper import *
 from syntax import syntax_highlight
 from helper import load_commands_preserve
 
+from past import autotranslate
+autotranslate(['darknet', 'proverbot'])
+from darknet.python.darknet import load_net
+from darknet.python.proverbot import *
+
 finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
@@ -185,6 +190,7 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.debug = debug
         self.num_jobs = num_jobs
+        self.net = load_net("coq.test.cfg".encode('utf-8'), "darknet/backup/coq.backup".encode('utf-8'), 0)
         pass
 
     def get_commands(self, filename):
@@ -215,15 +221,16 @@ class Worker(threading.Thread):
                 if in_proof:
                     query = format_context(coq.prev_tactics, coq.get_hypothesis(),
                                            coq.get_goals())
-                    response, errors = subprocess.Popen(darknet_command,
-                                                        stdin=
-                                                        subprocess.PIPE,
-                                                        stdout=
-                                                        subprocess.PIPE,
-                                                        stderr=
-                                                        subprocess.PIPE
-                    ).communicate(input=query.encode('utf-8'))
-                    predicted = response.decode('utf-8', 'ignore').strip()
+                    predicted = predict_tactic(self.net, query).strip()
+#                   response, errors = subprocess.Popen(darknet_command,
+#                                                       stdin=
+#                                                       subprocess.PIPE,
+#                                                       stdout=
+#                                                       subprocess.PIPE,
+#                                                       stderr=
+#                                                       subprocess.PIPE
+#                   ).communicate(input=query.encode('utf-8'))
+#                   predicted = response.decode('utf-8', 'ignore').strip()
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()

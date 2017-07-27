@@ -1,6 +1,8 @@
 
 SHELL=/bin/bash
 
+ENV_PREFIX=LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$$PWD/darknet/
+
 NTHREADS=4
 REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
@@ -25,10 +27,10 @@ else
 endif
 report:
 ifeq ($(NUM_FILES),)
-	cat compcert-test-files.txt | \
+	$(ENV_PREFIX) cat compcert-test-files.txt | \
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
 else
-	cat compcert-test-files.txt | head -n $(NUM_FILES) | \
+	$(ENV_PREFIX) cat compcert-test-files.txt | head -n $(NUM_FILES) | \
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
 endif
 

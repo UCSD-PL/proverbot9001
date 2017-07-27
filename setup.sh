@@ -19,6 +19,7 @@ else
   eval `opam config env`
   pip3 install --user sexpdata
   pip3 install --user yattag
+  pip install --user future
 fi
 
 function check-and-clone {
@@ -75,6 +76,7 @@ function setup-darknet {
     {
         set -euv
         cd darknet
+        git apply ../darknet-changes.patch
         make -j `nproc`
     }
 }
