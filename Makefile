@@ -1,9 +1,9 @@
 
 SHELL=/bin/bash
 
-ENV_PREFIX=LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$$PWD/darknet/
+ENV_PREFIX=LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$$PWD/darknet/:/usr/local/cuda/lib64/
 
-NTHREADS=4
+NTHREADS=16
 REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
 
@@ -35,7 +35,7 @@ else
 endif
 
 train:
-	./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear
+	$(ENV_PREFIX) ./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear
 
 publish:
 	mv report $(REPORT_NAME)

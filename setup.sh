@@ -77,7 +77,7 @@ function setup-darknet {
         set -euv
         cd darknet
         git apply ../darknet-changes.patch
-        make -j `nproc`
+        PATH=$PATH:/usr/local/cuda/bin make -j `nproc`
     ) || exit 1
 }
 
