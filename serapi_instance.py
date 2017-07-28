@@ -159,6 +159,7 @@ class SerapiInstance(threading.Thread):
                 len(e.msg) == 4 and
                 type(e.msg[3]) == list and
                 e.msg[3][0] == Symbol('Stream.Error')):
+                self.get_completed()
                 raise ParseError("Could't parse command {}".format(stmt))
             if (type(e) == CompletedError and
                 type(e.msg) == list and
@@ -176,7 +177,10 @@ class SerapiInstance(threading.Thread):
                 len(e.msg) == 4 and
                 type(e.msg[3]) == list and
                 e.msg[3][0] == 'CLexer.Error.E(3)'):
+                self.get_completed()
                 raise LexError("Couldn't lex command {}".format(stmt))
+
+            self.cancel_last()
             raise e
 
     # Cancel the last command which was sucessfully parsed by

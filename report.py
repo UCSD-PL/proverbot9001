@@ -235,12 +235,8 @@ class Worker(threading.Thread):
                             coq.run_stmt(predicted)
                             predicted_result_context = coq.proof_context
                             coq.cancel_last()
-                    except (ParseError, LexError) as e:
+                    except (ParseError, LexError, CoqExn, BadResponse) as e:
                         exception = e
-                        coq.get_completed()
-                    except (CoqExn, BadResponse) as e:
-                        exception = e
-                        coq.cancel_last()
                     finally:
                         coq.quiet = False
 
