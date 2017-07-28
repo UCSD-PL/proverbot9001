@@ -1,7 +1,7 @@
 
 SHELL=/bin/bash
 
-ENV_PREFIX=LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$$PWD/darknet/:/usr/local/cuda/lib64/
+ENV_PREFIX=LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
 NTHREADS=16
 REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
