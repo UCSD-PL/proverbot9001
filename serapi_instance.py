@@ -160,6 +160,16 @@ class SerapiInstance(threading.Thread):
                 type(e.msg[3]) == list and
                 e.msg[3][0] == Symbol('Stream.Error')):
                 raise ParseError("Could't parse command {}".format(stmt))
+            if (type(e) == CompletedError and
+                type(e.msg) == list and
+                e.msg[0] == Symbol('Answer') and
+                len(e.msg) == 3 and
+                type(e.msg[2]) == list and
+                e.msg[2][0] == Symbol('CoqExn') and
+                len(e.msg[2]) == 4 and
+                type(e.msg[2][3]) == list and
+                e.msg[2][3][0] == Symbol('Stream.Error')):
+                raise ParseError("Couldn't parse command {}".format(stmt))
             if (type(e) == CoqExn and
                 type(e.msg) == list and
                 e.msg[0] == Symbol('CoqExn') and
