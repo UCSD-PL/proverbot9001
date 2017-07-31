@@ -1,7 +1,7 @@
 
 SHELL=/bin/bash
 
-ENV_PREFIX=LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
+ENV_PREFIX=export LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
 NTHREADS=16
 REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
@@ -27,15 +27,15 @@ else
 endif
 report:
 ifeq ($(NUM_FILES),)
-	$(ENV_PREFIX) cat compcert-test-files.txt | \
-	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
+	($(ENV_PREFIX) ; cat compcert-test-files.txt | \
+	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 else
-	$(ENV_PREFIX) cat compcert-test-files.txt | head -n $(NUM_FILES) | \
-	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert
+	($(ENV_PREFIX) ; cat compcert-test-files.txt | head -n $(NUM_FILES) | \
+	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 endif
 
 train:
-	$(ENV_PREFIX) ./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear
+	($(ENV_PREFIX) ; ./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear)
 
 publish:
 	mv report $(REPORT_NAME)
