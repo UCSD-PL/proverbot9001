@@ -364,6 +364,8 @@ num_jobs = len(args.filenames)
 for infname in args.filenames:
     jobs.put(infname)
 
+args.threads = min(args.threads, len(args.filenames))
+
 for idx in range(args.threads):
     worker = Worker(idx, coqargs, includes, args.output,
                     args.prelude, args.debug, num_jobs)
