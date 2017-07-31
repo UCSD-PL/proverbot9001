@@ -193,10 +193,6 @@ def linearize_commands(commands_sequence, coq, filename):
             print()
             if stop_on_error:
                 raise e
-            if type(e) == ParseError:
-                coq.get_completed()
-            else:
-                coq.cancel_last()
             coq.run_stmt("Abort.")
             coq.run_stmt(theorem_statement)
             for command in orig:
