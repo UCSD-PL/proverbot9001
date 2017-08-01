@@ -95,6 +95,8 @@ class SerapiInstance(threading.Thread):
         # Execute the commands corresponding to include flags we were
         # passed
         self.exec_includes(includes, prelude)
+        # Unset Printing Notations (to get more learnable goals?)
+        self.unset_printing_notations()
 
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
@@ -233,6 +235,10 @@ class SerapiInstance(threading.Thread):
     def update_state(self):
         self.prev_state = self.cur_state
         self.cur_state = self.get_next_state()
+
+    def unset_printing_notations(self):
+        self.send_flush("(Control (StmAdd () \"Unset Printing Notations.\"))\n")
+        self.get_next_state()
 
     def get_next_state(self):
         self.get_ack()
