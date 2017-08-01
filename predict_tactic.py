@@ -25,9 +25,13 @@ def predict_tactic(net, s):
     return (tac, prob)
 
 def predict_tactics(net, s, n):
-    tacs = []
-    for i in range(n):
+    tacs = set()
+    num_attempts = 0
+    while len(tacs) < n:
         reset_rnn(net)
-        tacs.append(predict_tactic(net, s))
-    tacs = sorted(tacs, key=lambda x: -x[1])
+        tacs.add(predict_tactic(net, s))
+        num_attempts += 1
+        if num_attempts > 10 * n:
+            break
+    tacs = sorted(list(tacs), key=lambda x: -x[1])
     return tacs
