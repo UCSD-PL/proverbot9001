@@ -76,6 +76,7 @@ class SerapiInstance(threading.Thread):
         # the other process for to answer simple questions.
         self._current_fg_goal_count = None
         self.proof_context = None
+        self.prev_state = -1
         self.cur_state = 0
         self.prev_tactics = []
 
@@ -126,7 +127,7 @@ class SerapiInstance(threading.Thread):
                 self.send_flush("(Control (StmAdd () \"{}\"))\n".format(stm))
                 # Get the response, which indicates what state we put
                 # serapi in.
-                self.cur_state = self.get_next_state()
+                self.update_state()
 
                 # Observe that state.
                 self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
@@ -196,9 +197,11 @@ class SerapiInstance(threading.Thread):
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
-        self.get_cancelled()
+        self.cur_state = self.get_cancelled()
+        assert self.cur_state == self.prev_state
         # Go back to the previous state.
-        self.cur_state = self.cur_state - 1
+        assert self.prev_state != -1, "Can't cancel twice in a row!"
+        self.prev_state = -1
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -221,11 +224,15 @@ class SerapiInstance(threading.Thread):
         addStm = ("(Control (StmAdd () \"Add Rec LoadPath \\\"{}\\\" as {}.\"))\n"
                   .format(origpath, logicalpath))
         self.send_flush(addStm.format(origpath, logicalpath))
-        self.get_next_state()
+        self.update_state()
 
     def exec_includes(self, includes_string, prelude):
         for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
             self.add_lib(prelude + "/" + match.group(1), match.group(2))
+
+    def update_state(self):
+        self.prev_state = self.cur_state
+        self.cur_state = self.get_next_state()
 
     def get_next_state(self):
         self.get_ack()
@@ -295,8 +302,17 @@ class SerapiInstance(threading.Thread):
             if supposed_ack[2] == Symbol("Ack"):
                 finished = True
         feedback = self.messages.get()
+        if (feedback[0] != Symbol("Feedback")):
+            raise BadResponse(feedback)
+        subfeed = feedback[1]
+        if (not isinstance(subfeed[0] , list)):
+            raise BadResponse(subfeed)
+        subsubfeed = subfeed[0][1]
+        if (subsubfeed[0] != Symbol("State")):
+            raise BadResponse(subsubfeed)
         cancelled = self.messages.get()
         self.get_completed()
+        return subsubfeed[1]
 
     def extract_proof_context(self, raw_proof_context):
         return raw_proof_context[0][1]
