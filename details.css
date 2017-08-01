@@ -9,23 +9,23 @@ body {
 code {
     font-size: 1.5em
 }
-code.goodcommand {
+.goodcommand {
     color: green
 }
-code.mostlygoodcommand {
+.mostlygoodcommand {
     color: darkturquoise
 }
-code.badcommand {
+.badcommand {
     color: red
 }
-code.okaycommand {
+.okaycommand {
     color: orange
 }
-code.failedcommand {
+.failedcommand {
     color: red;
     font-weight: bold;
 }
-code.superfailedcommand {
+.superfailedcommand {
     color: black;
     font-weight: bold;
 }
@@ -55,7 +55,7 @@ code.superfailedcommand {
     margin: 2.5em;
     text-align: center;
 }
-#predicted #tactic {
+#predicted .tactic {
     font-size: 20pt;
 }
 

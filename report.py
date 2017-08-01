@@ -32,6 +32,8 @@ darknet_command = ""
 details_css = ["details.css"]
 details_javascript = ["http://code.jquery.com/jquery-latest.min.js", "details.js"]
 
+num_predictions = 3
+
 def header(tag, doc, text, css, javascript, title):
     with tag('head'):
         for filename in css:
@@ -57,15 +59,36 @@ def stringified_percent(total, outof):
     else:
         return "{:10.2f}".format(total * 100 / outof)
 
-def jsan(string):
-    if (string == None):
-        return ""
-    return (string
-            .replace("\\", "\\\\")
-            .replace("\n", "\\n"))
+def to_list_string(l):
+    return "% ".join([str(item) for item in l])
 
 def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
+
+def run_prediction(coq, prediction_tuple):
+    prediction, probability = prediction_tuple
+    prediction = prediction.lstrip("-+*")
+    if not "." in prediction:
+        return (prediction, "", ParseError("No period"))
+    else:
+        coq.quiet = True
+        try:
+            coq.run_stmt(prediction)
+            context = coq.proof_context
+            coq.cancel_last()
+            return (prediction, probability, context, None)
+        except (ParseError, LexError, CoqExn, BadResponse) as e:
+            return (prediction, probability, "", e)
+        finally:
+            coq.quiet = False
+
+# Warning: Mutates fresult
+def evaluate_prediction(fresult, correct_command,
+                        correct_result_context, prediction_run):
+    prediction, probability, context, exception = prediction_run
+    grade = fresult.add_command_result(prediction, context, correct_command,
+                                       correct_result_context, exception)
+    return (prediction, probability, grade)
 
 class GlobalResult:
     def __init__(self):
@@ -118,12 +141,6 @@ def add_to_freq_table(table, entry):
         table[entry] = 1
     else:
         table[entry] += 1
-
-def lookup_freq_table(table, entry):
-    if entry not in table:
-        return 0
-    else:
-        return table[entry]
 
 def get_stem(command):
     return command.strip().split(" ")[0].strip(".")
@@ -188,7 +205,8 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.debug = debug
         self.num_jobs = num_jobs
-        self.net = load_net("coq.test.cfg".encode('utf-8'), "darknet/backup/coq.backup".encode('utf-8'), 0)
+        self.net = load_net("coq.test.cfg".encode('utf-8'),
+                            "darknet/backup/coq.backup".encode('utf-8'), 0)
         pass
 
     def get_commands(self, filename):
@@ -213,34 +231,21 @@ class Worker(threading.Thread):
         with serapi_instance.SerapiContext(self.coqargs,
                                            self.includes,
                                            self.prelude) as coq:
+            coq.debug = self.debug
             for command in commands:
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
                     query = format_context(coq.prev_tactics, coq.get_hypothesis(),
                                            coq.get_goals())
-                    (predicted, probability) = predict_tactic(self.net, query)
-                    predicted = predicted.strip()
+                    predictions = predict_tactics(self.net, query, 3)
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
 
-                    exception = None
-                    predicted_result_context = ""
-                    try:
-                        if not "." in predicted:
-                            exception = ParseError("No period")
-                        else:
-                            coq.quiet = True
-                            coq.run_stmt(predicted)
-                            predicted_result_context = coq.proof_context
-                            coq.cancel_last()
-                    except (ParseError, LexError, CoqExn, BadResponse) as e:
-                        exception = e
-                    finally:
-                        coq.quiet = False
+                    prediction_runs = [run_prediction(coq, prediction) for
+                                       prediction in predictions]
 
-                    actual_result_context = ""
                     try:
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
@@ -249,14 +254,13 @@ class Worker(threading.Thread):
                         print("In file {}:".format(filename))
                         raise
 
-                    grade = fresult.add_command_result(predicted,
-                                                       predicted_result_context,
-                                                       command,
-                                                       actual_result_context,
-                                                       exception)
+                    prediction_results = [evaluate_prediction(fresult, command,
+                                                              actual_result_context,
+                                                              prediction_run)
+                                          for prediction_run in prediction_runs]
 
-                    command_results.append((command, predicted,
-                                            hyps, goals, grade))
+                    command_results.append((command, hyps, goals,
+                                            prediction_results))
                 else:
                     try:
                         coq.run_stmt(command)
@@ -283,24 +287,37 @@ class Worker(threading.Thread):
                         with tag('code', klass='plaincommand'):
                             text(command_result[0])
                     else:
-                        command, predicted, hyps, goal, grade = command_result
+                        command, hyps, goal, prediction_results = command_result
+                        predictions = [prediction for prediction, probability, grade in
+                                       prediction_results]
+                        probabilities = [probability for prediction, probability, grade in
+                                         prediction_results]
+                        grades = [grade for prediction, probability, grade in
+                                  prediction_results]
                         with tag('span',
                                  ('data-hyps',hyps),
                                  ('data-goal',shorten_whitespace(goal)),
-                                 ('data-predicted',predicted),
-                                 ('data-num-predicted',str(lookup_freq_table(
-                                     fresult.predicted_tactic_frequency,
-                                     get_stem(predicted)))),
-                                 ('data-num-correct',str(lookup_freq_table(
-                                     fresult.correctly_predicted_frequency,
-                                     get_stem(predicted)))),
                                  ('data-num-total', str(fresult.num_tactics)),
+                                 ('data-predictions',
+                                  to_list_string(predictions)),
+                                 ('data-num-predicteds',
+                                  to_list_string([fresult.predicted_tactic_frequency
+                                                  .get(get_stem(prediction), 0)
+                                                  for prediction in predictions])),
+                                 ('data-num-corrects',
+                                  to_list_string([fresult.correctly_predicted_frequency
+                                                  .get(get_stem(prediction), 0)
+                                                  for prediction in predictions])),
+                                 ('data-probabilities',
+                                  to_list_string(probabilities)),
+                                 ('data-grades',
+                                  to_list_string(grades)),
                                  id='command-' + str(idx),
                                  onmouseover='hoverTactic({})'.format(idx),
                                  onmouseout='unhoverTactic()',
                                  onclick='selectTactic({}); event.stopPropagation();'
                                  .format(idx)):
-                            with tag('code', klass=grade):
+                            with tag('code', klass=grades[0]):
                                 text(command)
 
         with open("{}/{}".format(self.output_dir, fresult.details_filename()), "w") as fout:
