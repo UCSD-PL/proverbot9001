@@ -4,7 +4,7 @@ SHELL=/bin/bash
 ENV_PREFIX=export LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
 NTHREADS=16
-REPORT_NAME=$(shell cat <(date -Iseconds) <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
+REPORT_NAME=$(shell cat <(date +"%Y-%m-%dT%Hd%Md%S") <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
 
 .PHONY: scrape report setup
@@ -44,5 +44,5 @@ publish:
 	ssh goto 'cd proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
-                  ./build-index.sh'
+                  ./build-index.py'
 	mv $(REPORT_NAME) report
