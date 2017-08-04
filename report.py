@@ -29,8 +29,8 @@ rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
 darknet_command = ""
 
-details_css = ["details.css"]
-details_javascript = ["http://code.jquery.com/jquery-latest.min.js", "details.js"]
+details_css = ["reports/details.css"]
+details_javascript = ["reports/details.js"]
 
 num_predictions = 3
 
@@ -413,7 +413,7 @@ with tag('html'):
             text("Run on {}".format(cur_date))
         gresult.report_results(doc, text, tag, line)
 
-extra_files = ["report.css", "details.css", "details.js"]
+extra_files = ["reports/report.css", "reports/details.css", "reports/details.js"]
 
 for filename in extra_files:
     copy(base + "/" + filename, args.output + "/" + filename)

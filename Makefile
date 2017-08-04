@@ -41,6 +41,7 @@ publish:
 	mv report $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
 	rsync -avz report.tar.gz goto:~/proverbot9001-site/reports/
+	rsync -avz reports/index.js reports/index.css reports/build-index.py goto:~/proverbot9001-site/reports/
 	ssh goto 'cd proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
