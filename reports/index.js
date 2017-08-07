@@ -42,20 +42,23 @@ function render_graph() {
         d.percent_correct = +(/(\d+\.\d+)%/.exec(rows[i].children[1].innerText)[1]);
         var datetext = rows[i].children[0].innerText;
         d.date = parseTime(datetext);
+        d.index = i;
         data.push(d);
     }
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { console.log(d.percent_correct); return d.percent_correct; }));
+    y.domain(d3.extent(data, function(d) { return d.percent_correct; }));
 
     g.append("g")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x))
+        .attr("font-size", 16)
         .select(".domain")
         .remove();
 
     g.append("g")
         .call(d3.axisLeft(y))
+        .attr("font-size", 16)
         .append("text")
         .attr("fill", "#000")
         .attr("transform", "rotate(-90)")
@@ -71,6 +74,34 @@ function render_graph() {
         .attr("stroke", "steelblue")
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
+        .attr("stroke-width", 4)
+        .attr("d", line)
+        .on("click", function(d, i) {
+            console.log("data is " + d.index + "; i: " + i);
+        });
+
+    g.selectAll(".dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class", "dot")
+        .attr("r", 8)
+        .attr("cx", function(d){
+            return x(d.date);
+        })
+        .attr("cy", function(d){
+            return y(d.percent_correct);
+        })
+        .on("mouseover", function(d) {
+            var row = document.getElementsByTagName("tr")[d.index];
+            row.classList.add("highlighted");
+        })
+        .on("mouseout", function(d) {
+            var row = document.getElementsByTagName("tr")[d.index];
+            row.classList.remove("highlighted");
+        })
+        .on("click", function(d) {
+            var row = document.getElementsByTagName("tr")[d.index];
+            window.location = row.children[2].children[0].href;
+        });
 }

@@ -25,10 +25,10 @@ td {
     padding: 1em;
 }
 
-tr:hover:not(.header){
+tr:hover:not(.header), tr.highlighted{
     background: #00ffff55;
 }
-tr:hover td {
+tr:hover td, tr.highlighted td {
     background: transparent;
 }
 
@@ -36,4 +36,10 @@ svg {
     border-style:outset;
     border-color:#00ffff;
     margin: 3em auto;
+}
+
+.dot {
+    color: steelblue;
+    fill: steelblue;
+    stroke: steelblue;
 }
