@@ -13,6 +13,22 @@ function make_rows_clickable() {
                 window.location = row.children[2].children[0].href
             }
         })(rows[i])
+        rows[i].onmouseover = (function (row, idx) {
+            return function () {
+                var elementId = "dot" + idx;
+                console.log("Looking for " + elementId);
+                var dot = document.getElementById(elementId);
+                dot.setAttribute("r", 12);
+            }
+        })(rows[i], i)
+        rows[i].onmouseout = (function (row, idx) {
+            return function () {
+                var elementId = "dot" + idx;
+                console.log("Looking for " + elementId);
+                var dot = document.getElementById(elementId);
+                dot.setAttribute("r", 8);
+            }
+        })(rows[i], i)
     }
 }
 
@@ -91,6 +107,9 @@ function render_graph() {
         })
         .attr("cy", function(d){
             return y(d.percent_correct);
+        })
+        .attr("id", function(d){
+            return "dot" + d.index;
         })
         .on("mouseover", function(d) {
             var row = document.getElementsByTagName("tr")[d.index];
