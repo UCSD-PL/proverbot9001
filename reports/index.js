@@ -24,7 +24,7 @@ function render_graph() {
         g = svg.append("g").attr("transform",
                                  "translate(" + margin.left + "," + margin.top + ")");
 
-    var parseTime = d3.timeParse("%a %b %e %X %Y");
+    var parseTime = d3.timeParse("%a %b %d %H:%M:%S %Y");
     var x = d3.scaleTime()
         .rangeRound([0, width]);
     var y = d3.scaleLinear()
@@ -39,13 +39,14 @@ function render_graph() {
     for (var i = 0; i < rows.length; i++){
         if (rows[i].className == "header") continue
         var d = {};
-        d.percent_correct = /(\d+\.\d+)%/.exec(rows[i].children[1].innerText)[1]
-        d.date = parseTime(rows[i].children[0].innerText)
-        data.push(d)
+        d.percent_correct = +(/(\d+\.\d+)%/.exec(rows[i].children[1].innerText)[1]);
+        var datetext = rows[i].children[0].innerText;
+        d.date = parseTime(datetext);
+        data.push(d);
     }
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extend(data, function(d) { return d.close; }));
+    y.domain(d3.extent(data, function(d) { console.log(d.percent_correct); return d.percent_correct; }));
 
     g.append("g")
         .attr("transform", "translate(0," + height + ")")
@@ -61,6 +62,7 @@ function render_graph() {
         .attr("y", 6)
         .attr("dy", "0.71em")
         .attr("text-anchor", "end")
+        .attr("font-size", 20)
         .text("Percentage Correct");
 
     g.append("path")

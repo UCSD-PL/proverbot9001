@@ -27,11 +27,10 @@ with open('index.md', 'w') as index:
                 "header-includes: <script src='index.js'></script>"
                                  "<script src='https://d3js.org/d3.v4.min.js'></script>\n"
                 "---\n")
+    index.write("<svg width='700' height='400' style='border-style:outset; border-color:#00ffff'></svg>\n\n")
     index.write("|Date|Overall Accuracy||\n"
                 "|----|----|----|\n")
     for f in files:
         index.write("| {} |{}%|[Link]({}/report.html)|\n".format(get_file_date(f).ctime(), get_file_percent(f), f))
-
-    index.write("<svg width='960' height='500'></svg>")
 
 assert(run(["pandoc index.md -s --css index.css > index.html"], shell=True))

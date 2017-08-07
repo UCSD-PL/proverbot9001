@@ -8,6 +8,10 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+table {
+    width: 100%;
+}
+
 tr {
     border: 2em solid #CCC;
 }
@@ -26,4 +30,10 @@ tr:hover:not(.header){
 }
 tr:hover td {
     background: transparent;
+}
+
+svg {
+    border-style:outset;
+    border-color:#00ffff;
+    margin: 3em auto;
 }
