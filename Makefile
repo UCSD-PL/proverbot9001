@@ -4,7 +4,7 @@ SHELL=/bin/bash
 ENV_PREFIX=export LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
 NTHREADS=16
-REPORT_NAME=$(shell cat <(date +"%Y-%m-%dT%Hd%Md%S") <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
+REPORT_NAME=$(shell cat <(date +"%Y-%m-%dT%Hd%Md%S%z") <(echo "+") <(git rev-parse HEAD) | tr -d '\n' | tr ':' 'd')
 FLAGS=
 
 .PHONY: scrape report setup
