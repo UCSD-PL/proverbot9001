@@ -16,7 +16,6 @@ function make_rows_clickable() {
         rows[i].onmouseover = (function (row, idx) {
             return function () {
                 var elementId = "dot" + idx;
-                console.log("Looking for " + elementId);
                 var dot = document.getElementById(elementId);
                 dot.setAttribute("r", 12);
             }
@@ -24,7 +23,6 @@ function make_rows_clickable() {
         rows[i].onmouseout = (function (row, idx) {
             return function () {
                 var elementId = "dot" + idx;
-                console.log("Looking for " + elementId);
                 var dot = document.getElementById(elementId);
                 dot.setAttribute("r", 8);
             }
