@@ -89,10 +89,7 @@ function render_graph() {
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
         .attr("stroke-width", 4)
-        .attr("d", line)
-        .on("click", function(d, i) {
-            console.log("data is " + d.index + "; i: " + i);
-        });
+        .attr("d", line);
 
     g.selectAll(".dot")
         .data(data)
