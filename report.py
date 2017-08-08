@@ -27,7 +27,6 @@ from predict_tactic import *
 finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
-darknet_command = ""
 
 details_css = ["reports/details.css"]
 details_javascript = ["reports/details.js"]
@@ -352,15 +351,8 @@ parser.add_argument('--prelude', default=".")
 parser.add_argument('--debug', default=False, const=True, action='store_const')
 parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
-parser.add_argument('-p', '--predictor',
-                    help="The command to use to predict tactics. This command must "
-                    "accept input on standard in in the format specified in format.py, "
-                    "and produce a tactic on standard out. The first \"{}\" in the "
-                    "command will be replaced with the base directory.",
-                    default="{}/try-auto.py")
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
-darknet_command = [args.predictor.format(base)]
 
 coqargs = ["{}/coq-serapi/sertop.native".format(base),
            "--prelude={}/coq".format(base)]
@@ -403,8 +395,6 @@ doc, tag, text, line = Doc().ttl()
 with tag('html'):
     report_header(tag, doc, text)
     with tag('body'):
-        with tag('h4'):
-            text("Using predictor: {}".format(darknet_command[0]))
         with tag('h4'):
             text("{} files processed".format(num_jobs))
         with tag('h5'):
