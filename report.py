@@ -85,8 +85,8 @@ def run_prediction(coq, prediction_tuple):
 def evaluate_prediction(fresult, correct_command,
                         correct_result_context, prediction_run):
     prediction, probability, context, exception = prediction_run
-    grade = fresult.add_command_result(prediction, context, correct_command,
-                                       correct_result_context, exception)
+    grade = fresult.grade_command_result(prediction, context, correct_command,
+                                         correct_result_context, exception)
     return (prediction, probability, grade)
 
 class GlobalResult:
@@ -95,6 +95,7 @@ class GlobalResult:
         self.num_correct = 0
         self.num_partial = 0
         self.num_failed = 0
+        self.num_topN = 0
         self.lock = threading.Lock()
         pass
     def add_file_result(self, result):
@@ -103,6 +104,7 @@ class GlobalResult:
         self.num_correct += result.num_correct
         self.num_partial += result.num_partial
         self.num_failed += result.num_failed
+        self.num_topN += result.num_topN
         self.lock.release()
         pass
     def report_results(self, doc, text, tag, line):
@@ -110,6 +112,11 @@ class GlobalResult:
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_correct, self.num_tactics),
                          self.num_correct, self.num_tactics))
+        with tag('h3'):
+            text("Top {} Accuracy: {}% ({}/{})"
+                 .format(num_predictions,
+                         stringified_percent(self.num_topN, self.num_tactics),
+                         self.num_topN, self.num_tactics))
         with tag('table'):
             with tag('tr'):
                 line('th', 'Filename')
@@ -117,6 +124,7 @@ class GlobalResult:
                 line('th', 'Number of Tactics Correctly Predicted')
                 line('th', 'Number of Tactics Predicted Partially Correct')
                 line('th', '% Correct')
+                line('th', '% Top {}'.format(num_predictions))
                 line('th', '% Partial')
                 line('th', 'Details')
             while not rows.empty():
@@ -127,9 +135,11 @@ class GlobalResult:
                     line('td', fresult.num_correct)
                     line('td', fresult.num_partial)
                     line('td', stringified_percent(fresult.num_correct,
-                                                 fresult.num_tactics))
+                                                   fresult.num_tactics))
+                    line('td', stringified_percent(fresult.num_topN,
+                                                   fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_partial,
-                                                 fresult.num_tactics))
+                                                   fresult.num_tactics))
                     with tag('td'):
                         with tag('a', href=fresult.details_filename()):
                             text("Details")
@@ -149,43 +159,54 @@ class FileResult:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
+        self.num_topN = 0
         self.num_failed = 0
         self.filename = filename
         self.actual_tactic_frequency = {}
         self.predicted_tactic_frequency = {}
         self.correctly_predicted_frequency = {}
         pass
-    def add_command_result(self, predicted, predicted_context,
-                           actual, actual_context, exception):
-        add_to_freq_table(self.actual_tactic_frequency,
-                          get_stem(actual))
-        add_to_freq_table(self.predicted_tactic_frequency,
-                          get_stem(predicted))
-
-        self.num_tactics += 1
+    def grade_command_result(self, predicted, predicted_context,
+                             actual, actual_context, exceptions):
         if actual.strip() == predicted.strip():
             add_to_freq_table(self.correctly_predicted_frequency,
                               get_stem(predicted))
-            self.num_correct += 1
-            self.num_partial += 1
             return "goodcommand"
         elif predicted_context == actual_context:
             add_to_freq_table(self.correctly_predicted_frequency,
                               get_stem(predicted))
-            self.num_correct += 1
-            self.num_partial += 1
             return "mostlygoodcommand"
         elif (get_stem(actual) == get_stem(predicted)):
-            self.num_partial += 1
             return "okaycommand"
-        elif exception == None:
+        elif exceptions[0] == None:
             return "badcommand"
-        elif type(exception) == ParseError or type(exception) == LexError:
-            self.num_failed += 1
+        elif type(exceptions[0]) == ParseError or type(exceptions[0]) == LexError:
             return "superfailedcommand"
         else:
-            self.num_failed += 1
             return "failedcommand"
+    def add_command_result(self, predictions, prediction_contexts,
+                           actual, actual_context, exception):
+        add_to_freq_table(self.actual_tactic_frequency,
+                          get_stem(actual))
+        add_to_freq_table(self.predicted_tactic_frequency,
+                          get_stem(predictions[0]))
+
+        self.num_tactics += 1
+        if (actual.strip() == predictions[0].strip() or
+            actual_context == prediction_context[0]):
+            add_to_freq_table(self.correctly_predicted_frequency,
+                              get_stem(predictions[0]))
+            self.num_correct += 1
+            self.num_partial += 1
+        elif (get_stem(actual) == get_stem(predictions[0])):
+            self.num_partial += 1
+        elif exception != None:
+            self.num_failed += 1
+
+        for prediction, prediction_context in zip(predictions, prediction_contexts):
+            if (actual.strip() == prediction.strip() or
+                actual_context == prediction_context):
+                self.num_topN += 1
         pass
     def details_filename(self):
         return "{}.html".format(escape_filename(self.filename))
@@ -257,6 +278,11 @@ class Worker(threading.Thread):
                                                               actual_result_context,
                                                               prediction_run)
                                           for prediction_run in prediction_runs]
+                    fresult.add_command_result(
+                        [pred for pred, prob, ctxt, ex in prediction_runs],
+                        [ctxt for pred, prob, ctxt, ex in prediction_runs],
+                        command, actual_result_context,
+                        [ex for pred, prob, ctxt, ex in prediction_runs])
 
                     command_results.append((command, hyps, goals,
                                             prediction_results))
