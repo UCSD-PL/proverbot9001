@@ -1,9 +1,8 @@
 
 body {
-    padding: 40px 30px;
     width: auto;
     max-width: 700px;
-    margin: 3em auto;
+    margin: 1em auto;
     position: relative;
     text-rendering: optimizeLegibility;
 }
@@ -22,7 +21,7 @@ td {
     text-align: center;
     min-width: 10em;
     min-height: 30px;
-    padding: 1em;
+    padding: .6em;
 }
 
 tr:hover:not(.header), tr.highlighted{
@@ -35,11 +34,16 @@ tr:hover td, tr.highlighted td {
 svg {
     border-style:outset;
     border-color:#00ffff;
-    margin: 3em auto;
+    margin: .5em;
 }
 
 .dot {
     color: steelblue;
     fill: steelblue;
     stroke: steelblue;
+}
+
+#header {
+    margin-left: -4em;
+    font-family: monospace;
 }
