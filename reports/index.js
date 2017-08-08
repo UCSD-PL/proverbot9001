@@ -108,10 +108,12 @@ function render_graph() {
         })
         .on("mouseover", function(d) {
             var row = document.getElementsByTagName("tr")[d.index];
+            d3.select(this).attr("r", 12);
             row.classList.add("highlighted");
         })
         .on("mouseout", function(d) {
             var row = document.getElementsByTagName("tr")[d.index];
+            d3.select(this).attr("r", 8);
             row.classList.remove("highlighted");
         })
         .on("click", function(d) {
