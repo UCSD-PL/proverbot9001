@@ -429,10 +429,10 @@ with tag('html'):
             text("Run on {}".format(cur_date))
         gresult.report_results(doc, text, tag, line)
 
-extra_files = ["reports/report.css", "reports/details.css", "reports/details.js"]
+extra_files = ["report.css", "details.css", "details.js"]
 
 for filename in extra_files:
-    copy(base + "/" + filename, args.output + "/" + filename)
+    copy(base + "/reports/" + filename, args.output + "/" + filename)
 
 with open("{}/report.html".format(args.output), "w") as fout:
     fout.write(doc.getvalue())
