@@ -28,8 +28,8 @@ finished_queue = queue.Queue()
 rows = queue.Queue()
 base = os.path.dirname(os.path.abspath(__file__))
 
-details_css = ["reports/details.css"]
-details_javascript = ["reports/details.js"]
+details_css = ["details.css"]
+details_javascript = ["details.js"]
 
 num_predictions = 3
 
