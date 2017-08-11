@@ -167,7 +167,7 @@ class FileResult:
         self.correctly_predicted_frequency = {}
         pass
     def grade_command_result(self, predicted, predicted_context,
-                             actual, actual_context, exceptions):
+                             actual, actual_context, exception):
         if actual.strip() == predicted.strip():
             add_to_freq_table(self.correctly_predicted_frequency,
                               get_stem(predicted))
@@ -178,9 +178,9 @@ class FileResult:
             return "mostlygoodcommand"
         elif (get_stem(actual) == get_stem(predicted)):
             return "okaycommand"
-        elif exceptions[0] == None:
+        elif exception == None:
             return "badcommand"
-        elif type(exceptions[0]) == ParseError or type(exceptions[0]) == LexError:
+        elif type(exception) == ParseError or type(exception) == LexError:
             return "superfailedcommand"
         else:
             return "failedcommand"
@@ -193,7 +193,7 @@ class FileResult:
 
         self.num_tactics += 1
         if (actual.strip() == predictions[0].strip() or
-            actual_context == prediction_context[0]):
+            actual_context == prediction_contexts[0]):
             add_to_freq_table(self.correctly_predicted_frequency,
                               get_stem(predictions[0]))
             self.num_correct += 1
@@ -207,6 +207,7 @@ class FileResult:
             if (actual.strip() == prediction.strip() or
                 actual_context == prediction_context):
                 self.num_topN += 1
+                break;
         pass
     def details_filename(self):
         return "{}.html".format(escape_filename(self.filename))
