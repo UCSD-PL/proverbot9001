@@ -387,7 +387,7 @@ includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
 
 # Get some metadata
 cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
-                                     shell=True).decode('utf-8')
+                                     shell=True).decode('utf-8').strip()
 cur_date = datetime.datetime.now()
 
 if not os.path.exists(args.output):
