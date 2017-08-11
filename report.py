@@ -186,7 +186,7 @@ class FileResult:
         else:
             return "failedcommand"
     def add_command_result(self, predictions, prediction_contexts,
-                           actual, actual_context, exception):
+                           actual, actual_context, exceptions):
         add_to_freq_table(self.actual_tactic_frequency,
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
@@ -201,7 +201,7 @@ class FileResult:
             self.num_partial += 1
         elif (get_stem(actual) == get_stem(predictions[0])):
             self.num_partial += 1
-        elif exception != None:
+        elif exceptions[0] != None:
             self.num_failed += 1
 
         for prediction, prediction_context in zip(predictions, prediction_contexts):
