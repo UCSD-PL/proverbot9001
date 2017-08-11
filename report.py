@@ -146,7 +146,7 @@ class GlobalResult:
                     line('td', stringified_percent(fresult.num_partial,
                                                    fresult.num_tactics))
                     with tag('td'):
-                        with tag('a', href=fresult.details_filename()):
+                        with tag('a', href=fresult.details_filename() + ".html"):
                             text("Details")
     pass
 
@@ -211,7 +211,7 @@ class FileResult:
                 break;
         pass
     def details_filename(self):
-        return "{}.html".format(escape_filename(self.filename))
+        return "{}".format(escape_filename(self.filename))
     pass
 
 gresult = GlobalResult()
@@ -293,6 +293,22 @@ class Worker(threading.Thread):
                         raise
                     command_results.append((command,))
 
+        with open("{}/{}.csv", self.output_dir, fresult.details_filename(),
+                  'w', newline='') as csvfile:
+            rowwriter = csv.writer(csvfile)
+            for row in command_results:
+                command, hyps, goal, prediction_results = command_result
+                first_pred, first_prob, first_grade = prediction_results[0]
+                if len(prediction_results) >= 2:
+                    second_pred, second_prob, second_grade = prediction_results[1]
+                else:
+                    second_pred, second_prob, second_grade = "", "", ""
+                if len(prediction_results) >= 3:
+                    third_pred, third_prob, third_grade = prediction_results[2]
+                else:
+                    third_pred, third_prob, third_grade = "", "", ""
+                rowwriter.writerow([command, hyps, goal, first_pred, first_prob, first_grade, second_pred, second_prob, second_grade, third_pred, third_prob, third_grade])
+
         doc, tag, text, line = Doc().ttl()
 
         with tag('html'):
@@ -351,7 +367,7 @@ class Worker(threading.Thread):
                             with tag('code', klass=grades[0]):
                                 text(command)
 
-        with open("{}/{}".format(self.output_dir, fresult.details_filename()), "w") as fout:
+        with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
 
         gresult.add_file_result(fresult)
