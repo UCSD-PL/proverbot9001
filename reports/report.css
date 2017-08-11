@@ -37,3 +37,8 @@ h3 {
     margin-top: .5em;
     margin-bottom: 1em;
 }
+
+#logo {
+    float: right;
+    width: 10%;
+}

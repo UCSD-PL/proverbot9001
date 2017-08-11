@@ -427,9 +427,13 @@ with tag('html'):
             text("Commit: {}".format(cur_commit))
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
+        with tag('img',
+                 ('src', 'logo.png')
+                 ('id', 'logo')):
+            pass
         gresult.report_results(doc, text, tag, line)
 
-extra_files = ["report.css", "details.css", "details.js"]
+extra_files = ["report.css", "details.css", "details.js", "logo.png"]
 
 for filename in extra_files:
     copy(base + "/reports/" + filename, args.output + "/" + filename)
