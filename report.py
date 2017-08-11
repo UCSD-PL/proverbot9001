@@ -239,7 +239,6 @@ class Worker(threading.Thread):
         global gresult
         fresult = FileResult(filename)
         current_context = 0
-        scripts = ""
 
         if self.debug:
             print("Preprocessing...")
@@ -347,7 +346,7 @@ class Worker(threading.Thread):
                                 text(command)
 
         with open("{}/{}".format(self.output_dir, fresult.details_filename()), "w") as fout:
-            fout.write(syntax_highlight(doc.getvalue()) + scripts)
+            fout.write(syntax_highlight(doc.getvalue()))
 
         gresult.add_file_result(fresult)
         rows.put(fresult)
