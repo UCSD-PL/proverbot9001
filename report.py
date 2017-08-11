@@ -129,8 +129,8 @@ class GlobalResult:
                 line('th', '% Top {}'.format(num_predictions))
                 line('th', '% Partial')
                 line('th', 'Details')
-            while not rows.empty():
-                fresult = rows.get()
+            for fresult in sorted(list(rows), key=lambda x: fresult.num_tactics,
+                                  reverse=True):
                 with tag('tr'):
                     line('td', fresult.filename)
                     line('td', fresult.num_tactics)
