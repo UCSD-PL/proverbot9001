@@ -335,6 +335,12 @@ class Worker(threading.Thread):
                                   to_list_string([fresult.correctly_predicted_frequency
                                                   .get(get_stem(prediction), 0)
                                                   for prediction in predictions])),
+                                 ('data-num-actual-corrects',
+                                  fresult.correctly_predicted_frequency
+                                  .get(get_stem(command), 0)),
+                                 ('data-num-actual-in-file',
+                                  fresult.actual_tactic_frequency
+                                  .get(get_stem(command)))
                                  ('data-probabilities',
                                   to_list_string(probabilities)),
                                  ('data-grades',
