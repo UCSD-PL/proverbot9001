@@ -366,6 +366,9 @@ class Worker(threading.Thread):
                                  .format(idx)):
                             with tag('code', klass=grades[0]):
                                 text(command)
+                            for prediction, probability, grade in prediction_results[1:]:
+                                with tag('span', klass=grade):
+                                    text(" \u2580")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
