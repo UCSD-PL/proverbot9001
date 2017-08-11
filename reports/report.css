@@ -17,7 +17,23 @@ td {
     text-align: center;
     min-width: 5em;
     max-width: 10em;
-    height: 30px;
+    min-height: 1em;
     background: #FAFBFA;
-    padding: 1em;
+    padding: .5em;
+}
+
+li {
+    display: inline-block;
+    margin-left: 1em;
+    margin-right: 1em;
+    border-style: dashed;
+    border-width: .1em;
+}
+
+h2 {
+    margin: .1em;
+}
+h3 {
+    margin-top: .5em;
+    margin-bottom: 1em;
 }
