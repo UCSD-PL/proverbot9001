@@ -8,6 +8,7 @@ import threading
 import queue
 import re
 import datetime
+import csv
 
 from shutil import *
 from format import format_context
@@ -238,13 +239,10 @@ class Worker(threading.Thread):
     def process_file(self, filename):
         global gresult
         fresult = FileResult(filename)
-        current_context = 0
 
         if self.debug:
             print("Preprocessing...")
         commands = self.get_commands(filename)
-
-        doc, tag, text, line = Doc().ttl()
 
         command_results = []
 
@@ -294,6 +292,8 @@ class Worker(threading.Thread):
                         print("In file {}:".format(filename))
                         raise
                     command_results.append((command,))
+
+        doc, tag, text, line = Doc().ttl()
 
         with tag('html'):
             details_header(tag, doc, text, filename)
