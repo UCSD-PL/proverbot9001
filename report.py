@@ -171,12 +171,8 @@ class FileResult:
     def grade_command_result(self, predicted, predicted_context,
                              actual, actual_context, exception):
         if actual.strip() == predicted.strip():
-            add_to_freq_table(self.correctly_predicted_frequency,
-                              get_stem(predicted))
             return "goodcommand"
         elif predicted_context == actual_context:
-            add_to_freq_table(self.correctly_predicted_frequency,
-                              get_stem(predicted))
             return "mostlygoodcommand"
         elif (get_stem(actual) == get_stem(predicted)):
             return "okaycommand"
