@@ -31,7 +31,7 @@ def predict_tactics(net, s, n):
         reset_rnn(net)
         tacs.add(predict_tactic(net, s))
         num_attempts += 1
-        if num_attempts > 10 * n:
+        if num_attempts > 3 * n:
             break
     tacs = sorted(list(tacs), key=lambda x: -x[1])
     return tacs
