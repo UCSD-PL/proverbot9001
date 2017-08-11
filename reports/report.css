@@ -10,6 +10,9 @@ body {
 tr {
     border: 2em solid #CCC;
 }
+tr:hover:not(.header){
+    background: #00ffff55;
+}
 th {
     font-weight: bold;
 }
@@ -20,6 +23,9 @@ td {
     min-height: 1em;
     background: #FAFBFA;
     padding: .5em;
+}
+tr:hover td {
+    background: transparent;
 }
 
 li {

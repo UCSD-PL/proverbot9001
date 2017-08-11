@@ -30,6 +30,8 @@ base = os.path.dirname(os.path.abspath(__file__))
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
+report_css = ["report.css"]
+report_js = ["report.js"]
 
 num_predictions = 3
 
@@ -49,7 +51,7 @@ def details_header(tag, doc, text, filename):
            "Proverbot Detailed Report for {}".format(filename))
 
 def report_header(tag, doc, text):
-    header(tag, doc, text, ["report.css"], [],
+    header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
 def stringified_percent(total, outof):
@@ -118,7 +120,7 @@ class GlobalResult:
                          stringified_percent(self.num_topN, self.num_tactics),
                          self.num_topN, self.num_tactics))
         with tag('table'):
-            with tag('tr'):
+            with tag('tr', klass="header"):
                 line('th', 'Filename')
                 line('th', 'Number of Tactics in File')
                 line('th', 'Number of Tactics Correctly Predicted')
@@ -433,7 +435,7 @@ with tag('html'):
             pass
         gresult.report_results(doc, text, tag, line)
 
-extra_files = ["report.css", "details.css", "details.js", "logo.png"]
+extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
 for filename in extra_files:
     copy(base + "/reports/" + filename, args.output + "/" + filename)
