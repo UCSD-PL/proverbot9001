@@ -427,7 +427,7 @@ with tag('html'):
         with tag('h5'):
             text("Commit: {}".format(cur_commit))
         with tag('h5'):
-            text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S %Z")))
+            text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         gresult.report_results(doc, text, tag, line)
 
 extra_files = ["report.css", "details.css", "details.js"]
