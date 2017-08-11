@@ -131,6 +131,8 @@ class GlobalResult:
                 line('th', 'Details')
             for fresult in sorted(list(rows), key=lambda x: fresult.num_tactics,
                                   reverse=True):
+                if fresult.num_tactics == 0:
+                    continue
                 with tag('tr'):
                     line('td', fresult.filename)
                     line('td', fresult.num_tactics)
