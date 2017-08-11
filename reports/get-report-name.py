@@ -12,10 +12,8 @@ def get_line(command):
 def get_report_name(report_dir):
     with open(report_dir + "/report.html") as f:
         contents = f.read()
-        datestring = re.search(r"Run on (\d+-\d+-\d+ \d+:\d+:\d+.\d+ \w+)", contents).group(1)
-        zonestring = re.search(r"Run on \d+-\d+-\d+ \d+:\d+:\d+.\d+ (\w+)", contents).group(1)
-        date = datetime.strptime(datestring, "%Y-%m-%d %H:%M:%S.%f %Z")
-        assert(zonestring == "PST")
+        datestring = re.search(r"Run on (\d+-\d+-\d+ \d+:\d+:\d+.\d+)", contents).group(1)
+        date = datetime.strptime(datestring, "%Y-%m-%d %H:%M:%S.%f")
         assert(date != "")
         short_commit = re.search(r"Commit: ([0-9a-f]+)", contents).group(1)
         assert(short_commit != "")
