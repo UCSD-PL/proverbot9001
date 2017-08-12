@@ -380,9 +380,22 @@ class Worker(threading.Thread):
                                  onmouseout='unhoverTactic()',
                                  onclick='selectTactic({}); event.stopPropagation();'
                                  .format(idx)):
-                            with tag('code', klass=grades[0]):
-                                text(command)
-                            for prediction, probability, grade in prediction_results[1:]:
+                            search_index = 0
+                            for idx, prediction_result in enumerate(prediction_results):
+                                prediction, probability, grade = prediction_result
+                                if (grade != "failedcommand" and
+                                    grade != "superfailedcommand"):
+                                    search_index = idx
+                                    with tag('code', klass=grades[0]):
+                                        text(command)
+                                    break
+                                else
+                                    for (prediction, probability,
+                                         grade) in prediction_results[1:]:
+                                        with tag('span', klass=grade):
+                                            text(" \u2580")
+                            for (prediction, probability,
+                                 grade) in prediction_results[search_index + 1:]:
                                 with tag('span', klass=grade):
                                     text(" \u2580")
 
