@@ -99,6 +99,7 @@ class GlobalResult:
         self.num_partial = 0
         self.num_failed = 0
         self.num_topN = 0
+        self.num_searched = 0
         self.lock = threading.Lock()
         pass
     def add_file_result(self, result):
@@ -108,6 +109,7 @@ class GlobalResult:
         self.num_partial += result.num_partial
         self.num_failed += result.num_failed
         self.num_topN += result.num_topN
+        self.num_searched += result.num_searched
         self.lock.release()
         pass
     def report_results(self, doc, text, tag, line):
@@ -116,10 +118,10 @@ class GlobalResult:
                  .format(stringified_percent(self.num_correct, self.num_tactics),
                          self.num_correct, self.num_tactics))
         with tag('h3'):
-            text("Top {} Accuracy: {}% ({}/{})"
+            text("Searched: {}% ({}/{})"
                  .format(num_predictions,
-                         stringified_percent(self.num_topN, self.num_tactics),
-                         self.num_topN, self.num_tactics))
+                         stringified_percent(self.num_searched, self.num_tactics),
+                         self.num_searched, self.num_tactics))
         with tag('table'):
             with tag('tr', klass="header"):
                 line('th', 'Filename')
@@ -128,6 +130,7 @@ class GlobalResult:
                 line('th', 'Number of Tactics Predicted Partially Correct')
                 line('th', '% Correct')
                 line('th', '% Top {}'.format(num_predictions))
+                line('th', '% Correctly Searched')
                 line('th', '% Partial')
                 line('th', 'Details')
             for fresult in sorted(list(rows), key=lambda x: fresult.num_tactics,
@@ -142,6 +145,8 @@ class GlobalResult:
                     line('td', stringified_percent(fresult.num_correct,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_topN,
+                                                   fresult.num_tactics))
+                    line('td', stringified_percent(fresult.num_searched,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_partial,
                                                    fresult.num_tactics))
@@ -165,6 +170,7 @@ class FileResult:
         self.num_correct = 0
         self.num_partial = 0
         self.num_topN = 0
+        self.num_searched = 0
         self.num_failed = 0
         self.filename = filename
         self.actual_tactic_frequency = {}
@@ -208,6 +214,16 @@ class FileResult:
             if (actual.strip() == prediction.strip() or
                 actual_context == prediction_context):
                 self.num_topN += 1
+                break;
+
+        for prediction, prediction_context, exception in zip(predictions,
+                                                             prediction_contexts,
+                                                             exceptions):
+            if (actual.strip() == prediction.strip() or
+                actual_context == prediction_context):
+                self.num_searched += 1
+                break;
+            if exception == None:
                 break;
         pass
     def details_filename(self):
