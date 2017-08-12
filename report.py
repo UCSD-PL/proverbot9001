@@ -386,18 +386,14 @@ class Worker(threading.Thread):
                                 if (grade != "failedcommand" and
                                     grade != "superfailedcommand"):
                                     search_index = idx
+                            for idx, prediction_result in enumerate(prediction_results):
+                                prediction, probability, grade = prediction_result
+                                if search_index == idx:
                                     with tag('code', klass=grades[0]):
                                         text(command)
-                                    break
-                                else
-                                    for (prediction, probability,
-                                         grade) in prediction_results[1:]:
-                                        with tag('span', klass=grade):
-                                            text(" \u2580")
-                            for (prediction, probability,
-                                 grade) in prediction_results[search_index + 1:]:
-                                with tag('span', klass=grade):
-                                    text(" \u2580")
+                                else:
+                                    with tag('span', klass=grade):
+                                        text(" \u2580")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
