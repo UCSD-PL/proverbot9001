@@ -40,8 +40,8 @@ publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))
 	mv report $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
-	rsync -avz report.tar.gz goto:~/proverbot9001-site/reports/
-	rsync -avz reports/index.js reports/index.css reports/build-index.py goto:~/proverbot9001-site/reports/
+	rsync -avz report.tar.gz goto:/home/alex/proverbot9001-site/reports/
+	rsync -avz reports/index.js reports/index.css reports/build-index.py goto:/home/alex/proverbot9001-site/reports/
 	ssh goto 'cd proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
