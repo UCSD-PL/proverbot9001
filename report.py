@@ -309,11 +309,13 @@ class Worker(threading.Thread):
                         raise
                     command_results.append((command,))
 
-        with open("{}/{}.csv", self.output_dir, fresult.details_filename(),
+        with open("{}/{}.csv".format(self.output_dir, fresult.details_filename()),
                   'w', newline='') as csvfile:
             rowwriter = csv.writer(csvfile)
             for row in command_results:
-                command, hyps, goal, prediction_results = command_result
+                if len(row) == 1:
+                    break
+                command, hyps, goal, prediction_results = row
                 first_pred, first_prob, first_grade = prediction_results[0]
                 if len(prediction_results) >= 2:
                     second_pred, second_prob, second_grade = prediction_results[1]
@@ -370,7 +372,7 @@ class Worker(threading.Thread):
                                   .get(get_stem(command), 0)),
                                  ('data-num-actual-in-file',
                                   fresult.actual_tactic_frequency
-                                  .get(get_stem(command)))
+                                  .get(get_stem(command))),
                                  ('data-probabilities',
                                   to_list_string(probabilities)),
                                  ('data-grades',
