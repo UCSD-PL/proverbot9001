@@ -84,7 +84,7 @@ function setup-tensorflow {
         cd tensorflow
     ) || exit 1
 }
-# setup-coq
-# setup-coq-serapi
-# setup-compcert
+setup-coq
+setup-coq-serapi
+setup-compcert
 setup-tensorflow
