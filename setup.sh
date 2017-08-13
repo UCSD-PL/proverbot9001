@@ -68,25 +68,23 @@ function setup-compcert {
     ) || exit 1
 }
 
-function setup-darknet {
+function setup-tensorflow {
     check-and-clone\
-        "darknet" "https://github.com/pjreddie/darknet.git"\
-        "HEAD"
+        "tensorflow" "https://github.com/tensorflow/tensorflow"\
+        "b93fd37e143bcdd6339f8e6081c948384a262e0b"
     (
         set -euv
-        cd darknet
-        git apply ../darknet-changes.patch
-        PATH=$PATH:/usr/local/cuda/bin make -j `nproc`
+        cd tensorflow
+    ) || exit 1
+    check-and-clone\
+        "models" "https://github.com/tensorflow/models"\
+        "1eced7074daf8429d030f7e3e3b651d92daec946"
+    (
+        set -euv
+        cd tensorflow
     ) || exit 1
 }
-
-function download-weights {
-    echo "Downloading the proverbot9001 base text weights..."
-    curl proverbot9001.ucsd.edu/downloads/enc-1.0.weights > enc.weights
-}
-
-setup-coq
-setup-coq-serapi
-setup-compcert
-setup-darknet
-download-weights
+# setup-coq
+# setup-coq-serapi
+# setup-compcert
+setup-tensorflow
