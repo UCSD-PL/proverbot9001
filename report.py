@@ -426,7 +426,7 @@ def escape_filename(filename):
     return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
 parser = argparse.ArgumentParser(description=
-                                 "try to match the file by predicting a tacti")
+                                 "try to match the file by predicting a tactic")
 parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
 parser.add_argument('--debug', default=False, const=True, action='store_const')
@@ -483,7 +483,7 @@ with tag('html'):
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         with tag('img',
-                 ('src', 'logo.png')
+                 ('src', 'logo.png'),
                  ('id', 'logo')):
             pass
         gresult.report_results(doc, text, tag, line)
