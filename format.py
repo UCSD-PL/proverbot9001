@@ -13,12 +13,16 @@ def format_tactic(tactic):
 
 def read_pair(f_handle):
     context = f_handle.readline()
-    if context == None:
+    if context == "":
         return None
     plusses = f_handle.readline()
-    assert(plusses == "+++++\n")
+    if plusses == "":
+        return None
+    assert plusses == "+++++\n", "Plusses line is: {}, context is {}".format(
+        plusses, context)
     tactic = f_handle.readline()
     assert(tactic != "")
     minuses = f_handle.readline()
-    assert(minuses == "-----\n")
-    return (context.strip(), tacitc.strip())
+    assert minuses == "-----\n", "Minuses line is: {}, context is: {}".format(
+        minuses, context)
+    return (context.strip(), tactic.strip())
