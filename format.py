@@ -6,7 +6,10 @@ def minimize_whitespace(data):
     return re.sub("\s+", " ", data).strip()
 
 def format_context(prev_tactics, prev_hyps, prev_goal):
-    return minimize_whitespace(prev_goal) + "\n+++++\n"
+    return format_context_nodec(prev_tactics, prev_hypes, prev_goals) + "+++++\n"
+
+def format_context_nodec(prev_tactics, prev_hyps, prev_goal):
+    return minimize_whitespace(prev_goal) + "\n"
 
 def format_tactic(tactic):
     return minimize_whitespace(tactic) + "\n-----\n"
