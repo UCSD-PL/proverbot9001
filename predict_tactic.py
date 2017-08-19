@@ -1,120 +1,322 @@
 #!/usr/bin/env python3
 
+import re
+import random
+import string
+import sys
+
 import time
-import numpy as np
-import tensorflow as tf
-import seq2seq_model
+import math
+import argparse
+
 from format import read_pair
 
-tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
-tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
-                          "Learning rate decays by this much.")
-tf.app.flags.DEFINE_float("max_gradient_norm", 5.0,
-                          "Clip gradients to this norm.")
-tf.app.flags.DEFINE_integer("batch_size", 64,
-                            "Batch size to use during training.")
-tf.app.flags.DEFINE_integer("size", 1024, "Size of each model layer.")
-tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("from_vocab_size", 40000, "Context vocabulary size")
-tf.app.flags.DEFINE_integer("to_vocab_size", 40000, "tactic vocabulary size.")
-tf.app.flags.DEFINE_string("train_data", None, "Training data.")
-tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
-                            "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_boolean("predict", False,
-                            "Set to True for predictions.")
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+from torch import optim
+import torch.nn.functional as F
 
-FLAGS = tf.app.flags.FLAGS
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import numpy as np
 
-_buckets = [(5, 10), (10, 15), (20, 25), (40, 50)]
+use_cuda = torch.cuda.is_available()
+
+SOS_token = 0
+EOS_token = 1
+
+teacher_forcing_ratio = 0.5
+
+MAX_LENGTH=20000
+
+class TacticPredictor:
+    def __init__(self):
+        hidden_size = 256
+        output_size = 256
+        self.encoder=EncoderRNN(output_size, hidden_size)
+        self.decoder=DecoderRNN(hidden_size, output_size)
+
+class EncoderRNN(nn.Module):
+    def __init__(self, input_size, hidden_size, n_layers=1):
+        super(EncoderRNN, self).__init__()
+        self.n_layers = n_layers
+        self.hidden_size = hidden_size
+        self.embedding = nn.Embedding(input_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+        if use_cuda:
+            self.embedding = self.embedding.cuda()
+            self.gru = self.gru.cuda()
+
+    def forward(self, input, hidden):
+        embedded = self.embedding(input).view(1, 1, -1)
+        output = embedded
+        for i in range(self.n_layers):
+            output, hidden = self.gru(output, hidden)
+        return output, hidden
+
+    def initHidden(self):
+        result = Variable(torch.zeros(1, 1, self.hidden_size))
+        if use_cuda:
+            return result.cuda()
+        else:
+            return result
+
+class DecoderRNN(nn.Module):
+    def __init__(self, hidden_size, output_size, n_layers=1):
+        super(DecoderRNN, self).__init__()
+        self.n_layers = n_layers
+        self.hidden_size = hidden_size
+
+        self.embedding = nn.Embedding(output_size, hidden_size)
+        self.gru = nn.GRU(hidden_size, hidden_size)
+        self.out = nn.Linear(hidden_size, output_size)
+        self.softmax = nn.LogSoftmax()
+
+        if use_cuda:
+            self.out = self.out.cuda()
+            self.embedding = self.embedding.cuda()
+            self.gru = self.gru.cuda()
+            self.softmax = self.softmax.cuda()
+
+    def forward(self, input, hidden):
+        output = self.embedding(input).view(1, 1, -1)
+        if use_cuda:
+            output = output.cuda()
+        for i in range(self.n_layers):
+            output = F.relu(output)
+            output, hidden = self.gru(output, hidden)
+        output = self.softmax(self.out(output[0]))
+        return output, hidden
+
+    def initHidden(self):
+        result = Variable(torch.zeros(1, 1, self.hidden_size))
+        if use_cuda:
+            return result.cuda()
+        else:
+            return result
+
+def train(input_variable, target_variable,
+          encoder, decoder,
+          encoder_optimizer, decoder_optimizer,
+          criterion, max_length=MAX_LENGTH):
+    encoder_hidden = encoder.initHidden()
+    encoder_optimizer.zero_grad()
+    decoder_optimizer.zero_grad()
+
+    input_length = input_variable.size()[0]
+    target_length = target_variable.size()[0]
+
+    encoder_outputs = Variable(torch.zeros(max_length, encoder.hidden_size))
+    encoder_outputs = encoder_outputs.cuda() if use_cuda else encoder_outputs
+
+    loss = 0
+
+    for ei in range(input_length):
+        encoder_output, encoder_hidden = encoder(
+            input_variable[ei], encoder_hidden)
+        encoder_outputs[ei] = encoder_output[0][0]
+
+    decoder_input = Variable(torch.LongTensor([[SOS_token]]))
+    decoder_input = decoder_input.cuda() if use_cuda else decoder_input
+
+    decoder_hidden = encoder_hidden
+    use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+
+    if use_teacher_forcing:
+        for di in range(target_length):
+            decoder_output, decoder_hidden = decoder(
+                decoder_input, decoder_hidden)
+            loss += criterion(decoder_output, target_variable[di])
+            decoder_input = target_variable[di]
+    else:
+        for di in range(target_length):
+            decoder_output, decoder_hidden = decoder(
+                decoder_input, decoder_hidden)
+            topv, topi = decoder_output.data.topk(1)
+            ni = topi[0][0]
+
+            decoder_input = Variable(torch.LongTensor([[ni]]))
+            decoder_input = decoder_input.cuda() if use_cuda else decoder_input
+
+            loss += criterion(decoder_output, target_variable[di])
+            if ni == EOS_token:
+                break;
+
+    loss.backward()
+
+    encoder_optimizer.step()
+    decoder_optimizer.step()
+
+    return loss.data[0] / target_length
+
+def asMinutes(s):
+    m = math.floor(s / 60)
+    s -= m * 60
+    return "{}m {}s".format(m, s)
+
+def timeSince(since, percent):
+    now = time.time()
+    s = now - since
+    es = s / percent
+    rs = es - s
+    return "{} (- {})".format(asMinutes(s), asMinutes(rs))
 
 def read_data(data_path, max_size=None):
-    data_set = [[] for _ in _bucketes]
-    with tf.gfile.GFile(source_path, mode="r") as data_file:
+    data_set = []
+    with open(data_path, mode="r") as data_file:
         pair = read_pair(data_file)
         counter = 0
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            source_ids = [ord(x) for x in source]
-            target_ids = [ord(x) for x in target]
-            target_ids.append(seq2seq_model.EOS_ID)
+            context_ids = [ord(x) for x in context]
+            tactic_ids = [ord(x) for x in tactic]
 
-            for bucket_id, (source_size, target_size) in enumerate(_buckets):
-                if len(source_ids) < source_size and len(target_ids) < target_Size:
-                    data_set[bucket_id].append([source_ids, target_ids])
-                    break
+            data_set.append([context_ids, tactic_ids])
+
             pair = read_pair(data_file)
     return data_set
-def create_model(session, forward_only):
-    model = seq2seq_model.Seq2SeqModel(
-        FLAGS.from_vocab_size,
-        FLAGS.to_vocab_size,
-        _buckets,
-        FLAGS.size,
-        FLAGS.num_layers,
-        FLAGS.max_gradient_norm,
-        FLAGS.batch_size,
-        FLAGS.learning_rate,
-        FLAGS.learning_rate_decay_factor,
-        forward_only=forward_only)
-    ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir)
-    if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-        print("Reading model parameters from {}".format(ckpt.model.checkpoint_path))
-        model.saver.restore(session, ckpt.model_checkpoint_path)
+
+def variableFromSentence(sentence):
+    sentence = Variable(torch.LongTensor(sentence).view(-1, 1))
+    if len(sentence) > MAX_LENGTH:
+        sentence = sentence[:MAX_LENGTH]
+    if use_cuda:
+        return sentence.cuda()
     else:
-        print("Created model with fresh parameters.")
-        session.run(tf.global_variables.initializer())
-    return model
-def train():
-    with tf.Session() as sess:
-        model = create_model(sess, False)
-        train_set = read_data(FLAGS.train_data)
-        train_bucket_sizes = [len(train_set[b]) for b in xrange(len(_buckets))]
-        train_total_size = float(sum(train_bucket_sizes))
+        return sentence
 
-        train_buckets_scale = [sum(train_bucket_sizes[:i+1]) / train_total_size
-                               for i in xrange(len(train_bucket_sizes))]
+def variablesFromPair(pair):
+    return variableFromSentence(pair[0]), variableFromSentence(pair[1])
 
-        step_time, loss = 0.0, 0.0
-        current_step = 0
-        previous_losses = []
-        while True:
-            random_number_01 = np.random.random_sample()
-            bucket_id = min([i for i in xrange(len(train_buckets_scale))
-                             if train_buckets_scale[i] > random_number_01])
+def commandLinePredict(encoder, decoder, max_length=MAX_LENGTH):
+    sentence = ""
+    next_line = sys.stdin.readline()
+    while next_line != "+++++\n":
+        sentence += next_line
+        next_line = sys.stdin.readline()
+    print (predictTactic_inner(encoder, decoder, sentence))
 
-            start_time = time.time()
-            encoder_inputs, decoder_inputs, target_weights = model.get_batch(
-                train_set, bucket_id)
+def predictTactic(predictor, sentence):
+    return predictTactic_inner(predictor.encoder, predictor.decoder, sentence)
 
-            _, step_loss, _ = model.step(sess, encoder_inputs, decoder_inputs,
-                                         target_weights, bucket_id, False)
+def predictTactic_inner(encoder, decoder, sentence, max_length=MAX_LENGTH):
 
-            step_time += (time.time() - start_time) / FLAGS.steps_per_checkpoint
-            loss += step_loss / FLAGS.steps_per_checkpoint
-            current_step += 1
+    input_variable = variableFromSentence([ord(x) for x in sentence])
+    input_length = input_variable.size()[0]
+    encoder_hidden = encoder.initHidden()
 
-            if current_step % FLAGS.steps_per_checkpoint == 0:
-                perplexity = math.exp(float(loss)) if loss < 300 else float("inf")
-                print("global step {} learning rate {:.4f} step-time {:.2f} perplexity "
-                      "{:.2f}".format(model.global_step.eval(),
-                                      model.learning_rate.eval(),
-                                      step_time, perplexity))
-                if len(previous_losses) > 2 and loss > max(previous_losses[-3:]):
-                    sess.run(model.learning_rate_decay_op)
-                previous_losses.append(loss)
-                checkpoint_path = os.path.join(os.path.dirname(FLAGS.from_train_data,
-                                                               "tactic.ckpt"))
+    encoder_outputs = Variable(torch.zeros(max_length, encoder.hidden_size))
+    if use_cuda:
+        encoder_outputs = encoder_outputs.cuda()
 
-                model.saver.save(sess, checkpoint_path, global_step=model.global_step)
-                sys.stdout.flush()
-        print("Done!")
-    pass
-def predict():
-    pass
+    for ei in range(input_length):
+        encoder_output, encoder_hidden = encoder(input_variable[ei],
+                                                 encoder_hidden)
+        encoder_outputs[ei] = encoder_outputs[ei] + encoder_output[0][0]
 
-def main(_):
-    train()
+    decoder_input = Variable(torch.LongTensor([[SOS_token]]))
+    if use_cuda:
+        decoder_input = decoder_input.cuda()
+
+    decoder_hidden = encoder_hidden
+
+    decoded_words = []
+    # decoder_attentions = torch.zeros(max_length, max_length)
+
+    for di in range(max_length):
+        decoder_output, decoder_hidden = decoder(
+            decoder_input, decoder_hidden)
+        topv, topi = decoder_output.data.topk(1)
+        ni = topi[0][0]
+        if ni == EOS_token or ni == ord('.'):
+            decoded_words.append('.')
+            break
+        else:
+            decoded_words.append(chr(ni))
+
+        decoder_input = Variable(torch.LongTensor([[ni]]))
+        if use_cuda:
+            decoder_input = decoder_input.cuda()
+
+    return ''.join(decoded_words)
+
+def trainIters(encoder, decoder, n_iters,
+               print_every=1000, plot_every=100, learning_rate=0.01):
+    start = time.time()
+    plot_losses = []
+    print_loss_total = 0
+    plot_loss_total = 0
+
+    encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
+    decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
+
+    pairs = read_data("scrape.txt")
+    training_pairs = [variablesFromPair(random.choice(pairs))
+                      for i in range(n_iters)]
+
+    criterion = nn.NLLLoss()
+
+    for idx in range(1, n_iters + 1):
+        training_pair = training_pairs[idx - 1]
+        context_variable, tactic_variable = training_pair
+
+        loss = train(context_variable, tactic_variable, encoder, decoder,
+                     encoder_optimizer, decoder_optimizer, criterion)
+
+        print_loss_total += loss
+        plot_loss_total += loss
+
+        if idx % print_every == 0:
+            print_loss_avg = print_loss_total / print_every
+            print_loss_total = 0
+            print("{} ({} {}%) {:.4f}".format(timeSince(start, idx / n_iters),
+                                              idx, idx / n_iters * 100,
+                                              print_loss_avg))
+
+        if idx % plot_every == 0:
+            plot_loss_avg = plot_loss_total / plot_every
+            plot_losses.append(plot_loss_avg)
+            plot_loss_total = 0
+
+def showPlot(points):
+    plt.figure()
+    fig.ax = plt.subplots()
+    loc = ticker.MultipleLocator(base = 0.2)
+    ax.yaxis.set_major_locator(loc)
+    plt.plot(points)
+
+def main():
+    parser = argparse.ArgumentParser(description=
+                                     "pytorch model for proverbot")
+    parser.add_argument("--niters", default=75000, type=int)
+    parser.add_argument("--save", default=None, required=True)
+    parser.add_argument("--train", default=False, const=True, action='store_const')
+    args = parser.parse_args()
+    hidden_size = 256
+    output_size = 256
+    encoder1 = EncoderRNN(output_size, hidden_size)
+    decoder1 = DecoderRNN(hidden_size, output_size, 1)
+    if use_cuda:
+        encoder1 = encoder1.cuda()
+        decoder1 = decoder1.cuda()
+    if args.train:
+        trainIters(encoder1, decoder1, args.niters,  print_every=100)
+        with open(args.save + ".enc", "wb") as f:
+            torch.save(encoder1.state_dict(), f)
+        with open(args.save + ".dec", "wb") as f:
+            torch.save(decoder1.state_dict(), f)
+    else:
+        encoder1.load_state_dict(torch.load(args.save + ".enc"))
+        decoder1.load_state_dict(torch.load(args.save + ".dec"))
+        commandLinePredict(encoder1, decoder1)
+
+def loadPredictor(path_stem):
+    predictor = TacticPredictor()
+    predictor.encoder.load_state_dict(torch.load(path_stem + ".enc"))
+    predictor.decoder.load_state_dict(torch.load(path_stem + ".dec"))
+    return predictor
 
 if __name__ == "__main__":
-    tf.app.run()
+    main()

@@ -11,7 +11,7 @@ import datetime
 import csv
 
 from shutil import *
-from format import format_context
+from format import format_context_nodec
 from yattag import Doc
 
 import serapi_instance
@@ -22,8 +22,8 @@ from helper import *
 from syntax import syntax_highlight
 from helper import load_commands_preserve
 
-from darknet.python.darknet import load_net
 from predict_tactic import *
+from pytorch_predictor import predictTactic, loadPredictor
 
 finished_queue = queue.Queue()
 rows = queue.Queue()
@@ -35,6 +35,9 @@ report_css = ["report.css"]
 report_js = ["report.js"]
 
 num_predictions = 3
+
+net = loadPredictor("pytorch-weights")
+netLock = threading.Lock()
 
 def header(tag, doc, text, css, javascript, title):
     with tag('head'):
@@ -243,8 +246,6 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.debug = debug
         self.num_jobs = num_jobs
-        self.net = load_net("coq.test.cfg".encode('utf-8'),
-                            "darknet/backup/coq.backup".encode('utf-8'), 0)
         pass
 
     def get_commands(self, filename):
@@ -270,9 +271,11 @@ class Worker(threading.Thread):
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
-                    query = format_context(coq.prev_tactics, coq.get_hypothesis(),
-                                           coq.get_goals())
-                    predictions = predict_tactics(self.net, query, 3)
+                    query = format_context_nodec(coq.prev_tactics, coq.get_hypothesis(),
+                                                 coq.get_goals())
+                    netLock.lock()
+                    predictions = [(predictTactic(net, query), 1)]
+                    netLock.unlock()
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
