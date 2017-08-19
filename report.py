@@ -136,8 +136,12 @@ class GlobalResult:
                 line('th', '% Correctly Searched')
                 line('th', '% Partial')
                 line('th', 'Details')
-            for fresult in sorted(list(rows), key=lambda x: fresult.num_tactics,
-                                  reverse=True):
+            sorted_rows = []
+            while rows.qsize() > 0:
+                sorted_rows.append(rows.get())
+            sorted_rows = sorted(sorted_rows, key=lambda fresult: fresult.num_tactics,
+                                 reverse=True)
+            for fresult in sorted_rows:
                 if fresult.num_tactics == 0:
                     continue
                 with tag('tr'):
@@ -273,9 +277,9 @@ class Worker(threading.Thread):
                 if in_proof:
                     query = format_context_nodec(coq.prev_tactics, coq.get_hypothesis(),
                                                  coq.get_goals())
-                    netLock.lock()
+                    netLock.acquire()
                     predictions = [(predictTactic(net, query), 1)]
-                    netLock.unlock()
+                    netLock.release()
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()

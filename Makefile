@@ -34,7 +34,7 @@ else
 endif
 
 train:
-	($(ENV_PREFIX) ; ./darknet/darknet rnn train coq.cfg enc.weights -file ./scrape.txt -clear)
+	./predict_tactic.py --train --save=pytorch-weights
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))

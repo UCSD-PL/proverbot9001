@@ -242,7 +242,7 @@ def predictTactic_inner(encoder, decoder, sentence, max_length=MAX_LENGTH):
 
     return ''.join(decoded_words)
 
-def trainIters(encoder, decoder, n_iters,
+def trainIters(encoder, decoder, n_iters, scrapefile,
                print_every=1000, plot_every=100, learning_rate=0.01):
     start = time.time()
     plot_losses = []
@@ -252,7 +252,7 @@ def trainIters(encoder, decoder, n_iters,
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
-    pairs = read_data("scrape.txt")
+    pairs = read_data(scrapefile)
     training_pairs = [variablesFromPair(random.choice(pairs))
                       for i in range(n_iters)]
 
@@ -266,7 +266,6 @@ def trainIters(encoder, decoder, n_iters,
                      encoder_optimizer, decoder_optimizer, criterion)
 
         print_loss_total += loss
-        plot_loss_total += loss
 
         if idx % print_every == 0:
             print_loss_avg = print_loss_total / print_every
@@ -275,17 +274,6 @@ def trainIters(encoder, decoder, n_iters,
                                               idx, idx / n_iters * 100,
                                               print_loss_avg))
 
-        if idx % plot_every == 0:
-            plot_loss_avg = plot_loss_total / plot_every
-            plot_losses.append(plot_loss_avg)
-            plot_loss_total = 0
-
-def showPlot(points):
-    plt.figure()
-    fig.ax = plt.subplots()
-    loc = ticker.MultipleLocator(base = 0.2)
-    ax.yaxis.set_major_locator(loc)
-    plt.plot(points)
 
 def main():
     parser = argparse.ArgumentParser(description=
@@ -293,6 +281,7 @@ def main():
     parser.add_argument("--niters", default=75000, type=int)
     parser.add_argument("--save", default=None, required=True)
     parser.add_argument("--train", default=False, const=True, action='store_const')
+    parser.add_argument("--scrapefile", default="scrape.txt")
     args = parser.parse_args()
     hidden_size = 256
     output_size = 256
@@ -302,7 +291,7 @@ def main():
         encoder1 = encoder1.cuda()
         decoder1 = decoder1.cuda()
     if args.train:
-        trainIters(encoder1, decoder1, args.niters,  print_every=100)
+        trainIters(encoder1, decoder1, args.niters, args.scrapefile, print_every=100)
         with open(args.save + ".enc", "wb") as f:
             torch.save(encoder1.state_dict(), f)
         with open(args.save + ".dec", "wb") as f:
