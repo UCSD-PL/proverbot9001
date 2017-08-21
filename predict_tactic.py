@@ -153,7 +153,7 @@ def train(input_variable, target_variable,
 def asMinutes(s):
     m = math.floor(s / 60)
     s -= m * 60
-    return "{}m {}s".format(m, s)
+    return "{}m {:.2f}s".format(m, s)
 
 def timeSince(since, percent):
     now = time.time()
@@ -243,43 +243,44 @@ def decodeTactic(decoder, encoder_hidden):
 
     return ''.join(decoded_tokens)
 
-def trainIters(encoder, decoder, n_iters, scrapefile,
-               print_every=1000, plot_every=100, learning_rate=0.01):
+def trainIters(encoder, decoder, n_epochs, scrapefile,
+               print_every=1000, learning_rate=0.01):
     start = time.time()
-    plot_losses = []
     print_loss_total = 0
-    plot_loss_total = 0
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
     pairs = read_data(scrapefile)
-    training_pairs = [variablesFromPair(random.choice(pairs))
-                      for i in range(n_iters)]
+    variables = [variablesFromPair(pair) for pair in pairs]
 
     criterion = nn.NLLLoss()
 
-    for idx in range(1, n_iters + 1):
-        training_pair = training_pairs[idx - 1]
-        context_variable, tactic_variable = training_pair
+    idx = 0
+    n_iters = len(variables) * n_epochs
 
-        loss = train(context_variable, tactic_variable, encoder, decoder,
-                     encoder_optimizer, decoder_optimizer, criterion)
+    for epoch in range(n_epochs):
+        training_pairs = list(variables)
+        random.shuffle(training_pairs)
+        for context_variable, tactic_variable in training_pairs:
+            loss = train(context_variable, tactic_variable, encoder, decoder,
+                         encoder_optimizer, decoder_optimizer, criterion)
 
-        print_loss_total += loss
+            print_loss_total += loss
 
-        if idx % print_every == 0:
-            print_loss_avg = print_loss_total / print_every
-            print_loss_total = 0
-            print("{} ({} {}%) {:.4f}".format(timeSince(start, idx / n_iters),
-                                              idx, idx / n_iters * 100,
-                                              print_loss_avg))
+            idx += 1
+            if idx % print_every == 0:
+                print_loss_avg = print_loss_total / print_every
+                print_loss_total = 0
+                print("{} ({} {:.2f}%) {:.4f}".format(timeSince(start, idx / n_iters),
+                                                  idx, idx / n_iters * 100,
+                                                  print_loss_avg))
 
 
 def main():
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("--niters", default=75000, type=int)
+    parser.add_argument("--nepochs", default=50, type=int)
     parser.add_argument("--save", default=None, required=True)
     parser.add_argument("--train", default=False, const=True, action='store_const')
     parser.add_argument("--scrapefile", default="scrape.txt")
@@ -292,7 +293,7 @@ def main():
         encoder1 = encoder1.cuda()
         decoder1 = decoder1.cuda()
     if args.train:
-        trainIters(encoder1, decoder1, args.niters, args.scrapefile, print_every=100)
+        trainIters(encoder1, decoder1, args.nepochs, args.scrapefile, print_every=100)
         with open(args.save + ".enc", "wb") as f:
             torch.save(encoder1.state_dict(), f)
         with open(args.save + ".dec", "wb") as f:
