@@ -190,19 +190,19 @@ def variableFromSentence(sentence):
 def variablesFromPair(pair):
     return variableFromSentence(pair[0]), variableFromSentence(pair[1])
 
-def commandLinePredict(encoder, decoder, max_length=MAX_LENGTH):
+def commandLinePredict(predictor, max_length=MAX_LENGTH):
     sentence = ""
     next_line = sys.stdin.readline()
     while next_line != "+++++\n":
         sentence += next_line
         next_line = sys.stdin.readline()
-    print (predictTactic_inner(encoder, decoder, sentence))
+    print(predictTactic(predictor, sentence))
 
 def predictTactic(predictor, sentence):
-    return predictTactic_inner(predictor.encoder, predictor.decoder, sentence)
+    encoder_hidden = encodeContext(predictor.encoder, sentence)
+    return decodeTactic(predictor.decoder, encoder_hidden)
 
-def predictTactic_inner(encoder, decoder, sentence, max_length=MAX_LENGTH):
-
+def encodeContext(encoder, sentence):
     input_variable = variableFromSentence([ord(x) for x in sentence])
     input_length = input_variable.size()[0]
     encoder_hidden = encoder.initHidden()
@@ -212,18 +212,19 @@ def predictTactic_inner(encoder, decoder, sentence, max_length=MAX_LENGTH):
         encoder_outputs = encoder_outputs.cuda()
 
     for ei in range(input_length):
-        encoder_output, encoder_hidden = encoder(input_variable[ei],
-                                                 encoder_hidden)
+        encoder_output, encoder_hidden = predictor.encoder(input_variables[ei],
+                                                           encoder_hidden)
         encoder_outputs[ei] = encoder_outputs[ei] + encoder_output[0][0]
+
+    return encoder_hidden
+
+def decodeTactic(decoder, encoder_hidden):
+    decoder_hidden = encoder_hidden
+    decoded_tokens = []
 
     decoder_input = Variable(torch.LongTensor([[SOS_token]]))
     if use_cuda:
         decoder_input = decoder_input.cuda()
-
-    decoder_hidden = encoder_hidden
-
-    decoded_words = []
-    # decoder_attentions = torch.zeros(max_length, max_length)
 
     for di in range(max_length):
         decoder_output, decoder_hidden = decoder(
@@ -234,13 +235,13 @@ def predictTactic_inner(encoder, decoder, sentence, max_length=MAX_LENGTH):
             decoded_words.append('.')
             break
         else:
-            decoded_words.append(chr(ni))
+            decoded_tokens.append(chr(ni))
 
         decoder_input = Variable(torch.LongTensor([[ni]]))
         if use_cuda:
             decoder_input = decoder_input.cuda()
 
-    return ''.join(decoded_words)
+    return ''.join(decoded_tokens)
 
 def trainIters(encoder, decoder, n_iters, scrapefile,
                print_every=1000, plot_every=100, learning_rate=0.01):
@@ -297,8 +298,7 @@ def main():
         with open(args.save + ".dec", "wb") as f:
             torch.save(decoder1.state_dict(), f)
     else:
-        encoder1.load_state_dict(torch.load(args.save + ".enc"))
-        decoder1.load_state_dict(torch.load(args.save + ".dec"))
+        predictor = loadPredictor(args.save)
         commandLinePredict(encoder1, decoder1)
 
 def loadPredictor(path_stem):
