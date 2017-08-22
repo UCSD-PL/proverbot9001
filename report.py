@@ -480,7 +480,7 @@ with tag('html'):
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         with tag('img',
-                 ('src', 'logo.png')
+                 ('src', 'logo.png'),
                  ('id', 'logo')):
             pass
         gresult.report_results(doc, text, tag, line)
