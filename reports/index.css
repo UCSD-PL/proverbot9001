@@ -26,7 +26,7 @@ td {
 
 tr:hover:not(.header), tr.highlighted{
     background: #00ffff55;
-    cursur: pointer;
+    cursor: pointer;
 }
 tr:hover td, tr.highlighted td {
     background: transparent;
