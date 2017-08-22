@@ -266,7 +266,10 @@ class Worker(threading.Thread):
                                            self.includes,
                                            self.prelude) as coq:
             coq.debug = self.debug
-            for command in commands:
+            nb_commands = len(commands)
+            for i in range(nb_commands):
+                command = commands[i]
+                print("Processing command {}/{}".format(str(i+1), str(nb_commands)))
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
