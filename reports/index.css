@@ -42,6 +42,7 @@ svg {
     color: steelblue;
     fill: steelblue;
     stroke: steelblue;
+    cursor: pointer;
 }
 
 #header {
