@@ -21,21 +21,22 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
+from itertools import takewhile
+
 use_cuda = torch.cuda.is_available()
 
 SOS_token = 0
-EOS_token = 1
+EOS_token = ord('.')
 
 teacher_forcing_ratio = 0.5
 
-MAX_LENGTH=20000
+MAX_LENGTH=200
 
 class TacticPredictor:
-    def __init__(self):
-        hidden_size = 256
-        output_size = 256
+    def __init__(self, output_size, hidden_size):
         self.encoder=EncoderRNN(output_size, hidden_size)
         self.decoder=DecoderRNN(hidden_size, output_size)
+        self.vocab_size = output_size
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, n_layers=1):
@@ -63,7 +64,7 @@ class EncoderRNN(nn.Module):
             return result
 
 class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, n_layers=1):
+    def __init__(self, hidden_size, output_size, width=1, n_layers=1):
         super(DecoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
@@ -72,6 +73,7 @@ class DecoderRNN(nn.Module):
         self.gru = nn.GRU(hidden_size, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
         self.softmax = nn.LogSoftmax()
+        self.k = width
 
         if use_cuda:
             self.out = self.out.cuda()
@@ -80,7 +82,7 @@ class DecoderRNN(nn.Module):
             self.softmax = self.softmax.cuda()
 
     def forward(self, input, hidden):
-        output = self.embedding(input).view(1, 1, -1)
+        output = self.embedding(input).view(1, self.k, -1)
         if use_cuda:
             output = output.cuda()
         for i in range(self.n_layers):
@@ -162,7 +164,7 @@ def timeSince(since, percent):
     rs = es - s
     return "{} (- {})".format(asMinutes(s), asMinutes(rs))
 
-def read_data(data_path, max_size=None):
+def read_text_data(data_path, max_size=None):
     data_set = []
     with open(data_path, mode="r") as data_file:
         pair = read_pair(data_file)
@@ -178,6 +180,22 @@ def read_data(data_path, max_size=None):
             pair = read_pair(data_file)
     return data_set
 
+def read_num_data(data_path, max_size=None):
+    data_set = []
+    with open(data_path, mode="r") as data_file:
+        context = data_file.readline()
+        counter = 0
+        while(context != "" and (not max_size or counter < max_size)):
+            tactic = data_file.readline()
+            blank_line = data_file.readline()
+            assert tactic != "" and (blank_line == "\n" or blank_line == ""), "tactic line: {}\nblank line: {}".format(tactic, blank_line)
+            context_ids = [int(num) for num in context.split(" ")]
+            tactic_ids = [int(num) for num in tactic.split(" ")]
+
+            data_set.append([context_ids, tactic_ids])
+            context = data_file.readline()
+    return data_set
+
 def variableFromSentence(sentence):
     sentence = Variable(torch.LongTensor(sentence).view(-1, 1))
     if len(sentence) > MAX_LENGTH:
@@ -190,35 +208,56 @@ def variableFromSentence(sentence):
 def variablesFromPair(pair):
     return variableFromSentence(pair[0]), variableFromSentence(pair[1])
 
-def commandLinePredict(predictor, max_length=MAX_LENGTH):
-    sentence = ""
-    next_line = sys.stdin.readline()
-    while next_line != "+++++\n":
-        sentence += next_line
+def commandLinePredict(predictor, numfile, k):
+    predictor.decoder.k = k
+    if numfile:
+        sentence = sys.stdin.readline()
+        tokenlist = [int(w) for w in sentence.split()]
+    else:
+        sentence = ""
         next_line = sys.stdin.readline()
-    print(predictTactic(predictor, sentence))
+        while next_line != "+++++\n":
+            sentence += next_line
+            next_line = sys.stdin.readline()
+        tokenlist = [ord(x) for x in sentence]
 
-def predictTactic(predictor, sentence):
-    encoder_hidden = encodeContext(predictor.encoder, sentence)
-    return decodeTactic(predictor.decoder, encoder_hidden)
+    if k == 1:
+        tokensresults = [predictTactic(predictor, tokenlist)]
+    else:
+        tokensresults = predictKTactics(predictor, tokenlist, k)
 
-def encodeContext(encoder, sentence):
-    input_variable = variableFromSentence([ord(x) for x in sentence])
+    if numfile:
+        for result in tokensresults:
+            print(list(result))
+    else:
+        for result in tokenresults:
+            print [''.join(chr(x) for x in result)]
+
+def predictTactic(predictor, tokenlist):
+    encoder_hidden = encodeContext(predictor.encoder, tokenlist)
+    return decodeTactic(predictor.decoder, encoder_hidden, predictor.vocab_size)
+
+def predictKTactics(predictor, tokenlist, k):
+    encoder_hidden = encodeContext(predictor.encoder, tokenlist)
+    return decodeKTactics(predictor.decoder, encoder_hidden, k, predictor.vocab_size)
+
+def encodeContext(encoder, tokenlist):
+    input_variable = variableFromSentence(tokenlist)
     input_length = input_variable.size()[0]
     encoder_hidden = encoder.initHidden()
 
-    encoder_outputs = Variable(torch.zeros(max_length, encoder.hidden_size))
+    encoder_outputs = Variable(torch.zeros(MAX_LENGTH, encoder.hidden_size))
     if use_cuda:
         encoder_outputs = encoder_outputs.cuda()
 
     for ei in range(input_length):
-        encoder_output, encoder_hidden = predictor.encoder(input_variables[ei],
-                                                           encoder_hidden)
+        encoder_output, encoder_hidden = encoder(input_variable[ei],
+                                                 encoder_hidden)
         encoder_outputs[ei] = encoder_outputs[ei] + encoder_output[0][0]
 
     return encoder_hidden
 
-def decodeTactic(decoder, encoder_hidden):
+def decodeTactic(decoder, encoder_hidden, vocab_size):
     decoder_hidden = encoder_hidden
     decoded_tokens = []
 
@@ -226,24 +265,20 @@ def decodeTactic(decoder, encoder_hidden):
     if use_cuda:
         decoder_input = decoder_input.cuda()
 
-    for di in range(max_length):
+    for _ in range(MAX_LENGTH):
         decoder_output, decoder_hidden = decoder(
             decoder_input, decoder_hidden)
         topv, topi = decoder_output.data.topk(1)
         ni = topi[0][0]
-        if ni == EOS_token or ni == ord('.'):
-            decoded_words.append('.')
-            break
-        else:
-            decoded_tokens.append(chr(ni))
+        decoded_tokens.append(ni)
 
         decoder_input = Variable(torch.LongTensor([[ni]]))
         if use_cuda:
             decoder_input = decoder_input.cuda()
 
-    return ''.join(decoded_tokens)
+    return decoded_tokens
 
-def trainIters(encoder, decoder, n_epochs, scrapefile,
+def trainIters(encoder, decoder, n_epochs, data_pairs,
                print_every=1000, learning_rate=0.01):
     start = time.time()
     print_loss_total = 0
@@ -251,8 +286,7 @@ def trainIters(encoder, decoder, n_epochs, scrapefile,
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
-    pairs = read_data(scrapefile)
-    variables = [variablesFromPair(pair) for pair in pairs]
+    variables = [variablesFromPair(pair) for pair in data_pairs]
 
     criterion = nn.NLLLoss()
 
@@ -262,7 +296,8 @@ def trainIters(encoder, decoder, n_epochs, scrapefile,
     for epoch in range(n_epochs):
         training_pairs = list(variables)
         random.shuffle(training_pairs)
-        for context_variable, tactic_variable in training_pairs:
+        while len(training_pairs) > 0:
+            context_variable, tactic_variable = training_pairs.pop()
             loss = train(context_variable, tactic_variable, encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
 
@@ -278,35 +313,185 @@ def trainIters(encoder, decoder, n_epochs, scrapefile,
 
 
 def main():
+    global MAX_LENGTH
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("--nepochs", default=50, type=int)
+    parser.add_argument("--nepochs", default=15, type=int)
     parser.add_argument("--save", default=None, required=True)
-    parser.add_argument("--train", default=False, const=True, action='store_const')
+    parser.add_argument("--train", default=False, const=True,
+                        action='store_const')
     parser.add_argument("--scrapefile", default="scrape.txt")
+    parser.add_argument("--numfile", default=False, const=True,
+                        action='store_const')
+    parser.add_argument("--vocabsize", default=128, type=int)
+    parser.add_argument("--maxlength", default=200, type=int)
+    parser.add_argument("--numpredictions", default=3, type=int)
     args = parser.parse_args()
-    hidden_size = 256
-    output_size = 256
-    encoder1 = EncoderRNN(output_size, hidden_size)
-    decoder1 = DecoderRNN(hidden_size, output_size, 1)
-    if use_cuda:
-        encoder1 = encoder1.cuda()
-        decoder1 = decoder1.cuda()
+    hidden_size = args.vocabsize * 2
+    output_size = args.vocabsize
+    MAX_LENGTH = args.maxlength
     if args.train:
-        trainIters(encoder1, decoder1, args.nepochs, args.scrapefile, print_every=100)
+        if args.numfile:
+            data_set = read_num_data(args.scrapefile)
+        else:
+            data_set = read_text_data(args.scrapefile)
+        decoder = DecoderRNN(hidden_size, output_size, 1)
+        encoder = EncoderRNN(output_size, hidden_size)
+        if use_cuda:
+            encoder = encoder.cuda()
+            decoder = decoder.cuda()
+        trainIters(encoder, decoder, args.nepochs,
+                   data_set, print_every=100)
         with open(args.save + ".enc", "wb") as f:
-            torch.save(encoder1.state_dict(), f)
+            torch.save(encoder.state_dict(), f)
         with open(args.save + ".dec", "wb") as f:
-            torch.save(decoder1.state_dict(), f)
+            torch.save(decoder.state_dict(), f)
     else:
-        predictor = loadPredictor(args.save)
-        commandLinePredict(encoder1, decoder1)
+        predictor = loadPredictor(args.save, output_size, hidden_size)
+        commandLinePredict(predictor, args.numfile, args.numpredictions)
 
-def loadPredictor(path_stem):
-    predictor = TacticPredictor()
+def loadPredictor(path_stem, output_size, hidden_size):
+    predictor = TacticPredictor(output_size, hidden_size)
     predictor.encoder.load_state_dict(torch.load(path_stem + ".enc"))
     predictor.decoder.load_state_dict(torch.load(path_stem + ".dec"))
     return predictor
+
+# The code below here was copied from
+# https://ibm.github.io/pytorch-seq2seq/public/_modules/seq2seq/models/TopKDecoder.html
+# and modified. This code is available under the apache license.
+def decodeKTactics(decoder, encoder_hidden, k, v):
+    b = encoder_hidden.size(1)
+    h = encoder_hidden.size(2)
+
+    pos_index = Variable(torch.LongTensor(range(b)) * k).view(-1, 1)
+
+    hidden = _inflate(encoder_hidden, k)
+
+    sequence_scores = torch.Tensor(b*k, 1)
+    sequence_scores.fill_(-float('Inf'))
+    sequence_scores.index_fill_(0,
+                                torch.LongTensor([i*k for i in range(b)]),
+                                0.0)
+    sequence_scores = Variable(sequence_scores)
+
+    input_var = Variable(torch.LongTensor([[SOS_token]*b*k]))
+
+    if use_cuda:
+        pos_index = pos_index.cuda()
+        sequence_scores = sequence_scores.cuda()
+        input_var = input_var.cuda()
+
+    stored_scores = list()
+    stored_predecessors = list()
+    stored_emitted_symbols = list()
+
+    for j in range(MAX_LENGTH):
+        decoder_output, hidden = decoder(input_var, hidden)
+
+        sequence_scores = _inflate(sequence_scores, v)
+        sequence_scores += decoder_output
+
+        scores, candidates = sequence_scores.view(b, -1).topk(k, dim=1)
+
+        input_var = (candidates % v).view(1, b * k)
+        sequence_scores = scores.view(b * k, 1)
+
+        predecessors = (candidates / v +
+                        pos_index.expand_as(candidates)).view(b*k, 1)
+        hidden = hidden.index_select(1, predecessors.squeeze())
+
+        stored_scores.append(sequence_scores.clone())
+        eos_indices = input_var.data.eq(EOS_token)
+        if eos_indices.nonzero().dim() > 0:
+            sequence_scores.data.masked_fill_(torch.transpose(eos_indices, 0, 1),
+                                              -float('inf'))
+
+        stored_predecessors.append(predecessors)
+        stored_emitted_symbols.append(torch.transpose(input_var, 0, 1))
+
+    p = _backtrack(stored_predecessors,
+                   stored_emitted_symbols,
+                   stored_scores,
+                   k, pos_index)
+
+
+    ## TEST CODE
+    _, next_idxs = stored_scores[-1].view(k).sort(descending=True)
+    seqs2 = []
+    for i in range(MAX_LENGTH - 1, -1, -1):
+        next_symbols = stored_emitted_symbols[i].view(k).index_select(0, next_idxs)
+        seqs2.insert(0, next_symbols.data)
+        next_idxs = stored_predecessors[i].view(k).index_select(0, next_idxs)
+
+    for i in range(k):
+        print("Derived sequence: {}".format([data[i] for data in seqs2]))
+
+    return [takewhile(lambda c: c != EOS_token,
+                      (token.data[0][i][0] for token in p))
+            for i in range(k)]
+
+def _backtrack(predecessors, symbols, scores,
+               k, pos_index):
+    p = list()
+    sorted_score, sorted_idx = scores[-1].view(1, k).topk(k)
+    s = sorted_score.clone()
+
+    batch_eos_found = [0]
+
+    t_predecessors = (sorted_idx + pos_index.expand_as(sorted_idx)).view(k)
+
+    for t in range(MAX_LENGTH - 1, -1, -1):
+        current_symbol = symbols[t].index_select(0, t_predecessors)
+
+        t_predecessors = predecessors[t].index_select(0, t_predecessors).squeeze()
+
+        eos_indices = symbols[t].data.squeeze(1).eq(EOS_token).nonzero()
+        if eos_indices.dim() > 0:
+            for i in range(eos_indices.size(0)-1, -1, -1):
+                idx = eos_indices[i]
+                b_idx = int(idx[0] / k)
+
+                res_k_idx = k - (batch_eos_found[b_idx] % k) - 1
+                batch_eos_found[b_idx] += 1
+                res_idx = b_idx * k * res_k_idx
+
+                t_predecessors[res_idx] = predecessors[t][idx[0]]
+                current_symbol[res_idx, :] = symbols[t][idx[0]]
+                s[b_idx, res_k_idx] = scores[t][idx[0]].data[0]
+
+        p.append(current_symbol)
+
+    _, re_sorted_idx = s.topk(k)
+
+    re_sorted_idx = (re_sorted_idx + pos_index.expand_as(re_sorted_idx)).view(k)
+
+    p = [step.index_select(0, re_sorted_idx).view(1, k, -1) for step in reversed(p)]
+
+    return p
+
+def _inflate(tensor, times):
+    tensor_dim = len(tensor.size())
+    if tensor_dim == 3:
+        b = tensor.size(1)
+        return tensor.repeat(1, 1, times).view(tensor.size(0), b * times, -1)
+    elif tensor_dim == 2:
+        return tensor.repeat(1, times)
+    elif tensor_dim == 1:
+        b = tensor.size(0)
+        return tensor.repeat(times).view(b, -1)
+    else:
+        raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
+                         "This one is {}D.".format(tensor_dim))
+
+def _mask_symbol_scores(self, score, idx, masking_score=-float('inf')):
+    score[idx] = masking_score
+
+def _mask(tensor, idx, dim=0, masking_score=-float('inf')):
+    if len(idx.size()) > 0:
+        indices = idx[:,0]
+        tensor.index_fill_(dim, indices, masking_score)
+
+## ENDING HERE
 
 if __name__ == "__main__":
     main()
