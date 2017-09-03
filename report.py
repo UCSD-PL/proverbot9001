@@ -74,7 +74,7 @@ def run_prediction(coq, prediction_tuple):
     prediction, probability = prediction_tuple
     prediction = prediction.lstrip("-+*")
     if not "." in prediction:
-        return (prediction, "", ParseError("No period"))
+        return (prediction, -1, "", ParseError("No period"))
     else:
         coq.quiet = True
         try:
