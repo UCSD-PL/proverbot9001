@@ -25,7 +25,7 @@ from itertools import takewhile
 
 use_cuda = torch.cuda.is_available()
 
-SOS_token = 0
+SOS_token = 1
 EOS_token = ord('.')
 
 teacher_forcing_ratio = 0.5
@@ -208,11 +208,13 @@ def variableFromSentence(sentence):
 def variablesFromPair(pair):
     return variableFromSentence(pair[0]), variableFromSentence(pair[1])
 
-def commandLinePredict(predictor, numfile, k):
+def commandLinePredict(predictor, numfile, k, max_length):
+    global EOS_token
     predictor.decoder.k = k
     if numfile:
         sentence = sys.stdin.readline()
         tokenlist = [int(w) for w in sentence.split()]
+        EOS_token = 0
     else:
         sentence = ""
         next_line = sys.stdin.readline()
@@ -221,23 +223,18 @@ def commandLinePredict(predictor, numfile, k):
             next_line = sys.stdin.readline()
         tokenlist = [ord(x) for x in sentence]
 
-    if k == 1:
-        tokensresults = [predictTactic(predictor, tokenlist)]
-    else:
-        tokensresults = predictKTactics(predictor, tokenlist, k)
+    tokensresults = predictKTactics(predictor, tokenlist, k, max_length)
 
     if numfile:
         for result in tokensresults:
             print(list(result))
     else:
-        for result in tokenresults:
-            print [''.join(chr(x) for x in result)]
+        for result in tokensresults:
+            print(''.join([chr(x) for x in result]))
 
-def predictTactic(predictor, tokenlist):
-    encoder_hidden = encodeContext(predictor.encoder, tokenlist)
-    return decodeTactic(predictor.decoder, encoder_hidden, predictor.vocab_size)
-
-def predictKTactics(predictor, tokenlist, k):
+def predictKTactics(predictor, tokenlist, k, max_length):
+    if len(tokenlist) < max_length:
+        tokenlist.extend([EOS_token] * (max_length - len(tokenlist)))
     encoder_hidden = encodeContext(predictor.encoder, tokenlist)
     return decodeKTactics(predictor.decoder, encoder_hidden, k, predictor.vocab_size)
 
@@ -293,10 +290,10 @@ def trainIters(encoder, decoder, n_epochs, data_pairs,
     idx = 0
     n_iters = len(variables) * n_epochs
 
-    for epoch in range(n_epochs):
+    for epoch in range(math.ceil(n_epochs)):
         training_pairs = list(variables)
         random.shuffle(training_pairs)
-        while len(training_pairs) > 0:
+        while len(training_pairs) > 0 and idx < n_iters:
             context_variable, tactic_variable = training_pairs.pop()
             loss = train(context_variable, tactic_variable, encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
@@ -308,15 +305,14 @@ def trainIters(encoder, decoder, n_epochs, data_pairs,
                 print_loss_avg = print_loss_total / print_every
                 print_loss_total = 0
                 print("{} ({} {:.2f}%) {:.4f}".format(timeSince(start, idx / n_iters),
-                                                  idx, idx / n_iters * 100,
-                                                  print_loss_avg))
-
+                                                      idx, idx / n_iters * 100,
+                                                      print_loss_avg))
 
 def main():
     global MAX_LENGTH
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("--nepochs", default=15, type=int)
+    parser.add_argument("--nepochs", default=15, type=float)
     parser.add_argument("--save", default=None, required=True)
     parser.add_argument("--train", default=False, const=True,
                         action='store_const')
@@ -348,7 +344,7 @@ def main():
             torch.save(decoder.state_dict(), f)
     else:
         predictor = loadPredictor(args.save, output_size, hidden_size)
-        commandLinePredict(predictor, args.numfile, args.numpredictions)
+        commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
 
 def loadPredictor(path_stem, output_size, hidden_size):
     predictor = TacticPredictor(output_size, hidden_size)
@@ -391,7 +387,7 @@ def decodeKTactics(decoder, encoder_hidden, k, v):
         sequence_scores = _inflate(sequence_scores, v)
         sequence_scores += decoder_output
 
-        scores, candidates = sequence_scores.view(b, -1).topk(k, dim=1)
+        scores, candidates = sequence_scores.view(b, -1).topk(k)
 
         input_var = (candidates % v).view(1, b * k)
         sequence_scores = scores.view(b * k, 1)
@@ -409,65 +405,37 @@ def decodeKTactics(decoder, encoder_hidden, k, v):
         stored_predecessors.append(predecessors)
         stored_emitted_symbols.append(torch.transpose(input_var, 0, 1))
 
-    p = _backtrack(stored_predecessors,
-                   stored_emitted_symbols,
-                   stored_scores,
-                   k, pos_index)
 
-
-    ## TEST CODE
-    _, next_idxs = stored_scores[-1].view(k).sort(descending=True)
-    seqs2 = []
+    ## Trace back from the final three highest scores
+    _, next_idxs = sequence_scores.view(k).sort(descending=True)
+    seqs = []
+    eos_found = 0
     for i in range(MAX_LENGTH - 1, -1, -1):
-        next_symbols = stored_emitted_symbols[i].view(k).index_select(0, next_idxs)
-        seqs2.insert(0, next_symbols.data)
+        next_symbols = stored_emitted_symbols[i].view(k).index_select(0, next_idxs).data
         next_idxs = stored_predecessors[i].view(k).index_select(0, next_idxs)
 
-    for i in range(k):
-        print("Derived sequence: {}".format([data[i] for data in seqs2]))
-
-    return [takewhile(lambda c: c != EOS_token,
-                      (token.data[0][i][0] for token in p))
-            for i in range(k)]
-
-def _backtrack(predecessors, symbols, scores,
-               k, pos_index):
-    p = list()
-    sorted_score, sorted_idx = scores[-1].view(1, k).topk(k)
-    s = sorted_score.clone()
-
-    batch_eos_found = [0]
-
-    t_predecessors = (sorted_idx + pos_index.expand_as(sorted_idx)).view(k)
-
-    for t in range(MAX_LENGTH - 1, -1, -1):
-        current_symbol = symbols[t].index_select(0, t_predecessors)
-
-        t_predecessors = predecessors[t].index_select(0, t_predecessors).squeeze()
-
-        eos_indices = symbols[t].data.squeeze(1).eq(EOS_token).nonzero()
+        # Handle sequences that ended early
+        eos_indices = stored_emitted_symbols[i].data.squeeze(1).eq(EOS_token).nonzero()
         if eos_indices.dim() > 0:
-            for i in range(eos_indices.size(0)-1, -1, -1):
-                idx = eos_indices[i]
-                b_idx = int(idx[0] / k)
+            for j in range(eos_indices.size(0)-1, -1, -1):
+                idx = eos_indices[j]
 
-                res_k_idx = k - (batch_eos_found[b_idx] % k) - 1
-                batch_eos_found[b_idx] += 1
-                res_idx = b_idx * k * res_k_idx
+                res_k_idx = k - (eos_found % k) - 1
+                eos_found += 1
+                res_idx = res_k_idx
 
-                t_predecessors[res_idx] = predecessors[t][idx[0]]
-                current_symbol[res_idx, :] = symbols[t][idx[0]]
-                s[b_idx, res_k_idx] = scores[t][idx[0]].data[0]
+                next_idxs[res_idx] = stored_predecessors[i][idx[0]]
+                next_symbols[res_idx] = stored_emitted_symbols[i][idx[0]].data[0]
 
-        p.append(current_symbol)
+        # Commit the result
+        seqs.insert(0, next_symbols)
 
-    _, re_sorted_idx = s.topk(k)
+    # Transposee
+    seqs = [[data[i] for data in seqs] for i in range(k)]
+    # Cut off EOS tokens
+    seqs = [list(takewhile(lambda x: x != EOS_token, seq)) for seq in seqs]
 
-    re_sorted_idx = (re_sorted_idx + pos_index.expand_as(re_sorted_idx)).view(k)
-
-    p = [step.index_select(0, re_sorted_idx).view(1, k, -1) for step in reversed(p)]
-
-    return p
+    return seqs
 
 def _inflate(tensor, times):
     tensor_dim = len(tensor.size())
