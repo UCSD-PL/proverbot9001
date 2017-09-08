@@ -173,6 +173,13 @@ def read_num_data(data_path, max_size=None):
             context = data_file.readline()
     return data_set
 
+def inputFromSentence(sentence):
+    if len(sentence) > MAX_LENGTH:
+        sentence = sentence[:MAX_LENGTH]
+    if len(sentence) < MAX_LENGTH:
+        sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
+    return sentence
+
 def variableFromSentence(sentence):
     if len(sentence) > MAX_LENGTH:
         sentence = sentence[:MAX_LENGTH]
@@ -183,6 +190,10 @@ def variableFromSentence(sentence):
 
 def variablesFromPair(pair):
     return variableFromSentence(pair[0]), variableFromSentence(pair[1])
+
+def variablesFromBatch(batch):
+    return (Variable(torch.cuda.LongTensor([context for context, tactic in batch])),
+            Variable(torch.cuda.LongTensor([tactic for contex, tactic in batch])))
 
 def commandLinePredict(predictor, numfile, k, max_length):
     predictor.decoder.k = k
@@ -247,7 +258,7 @@ def decodeTactic(decoder, encoder_hidden, vocab_size):
 
     return decoded_tokens
 
-def trainIters(encoder, decoder, n_epochs, data_pairs,
+def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size=32,
                print_every=100, learning_rate=0.01):
     start = time.time()
     print_loss_total = 0
@@ -255,18 +266,27 @@ def trainIters(encoder, decoder, n_epochs, data_pairs,
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
-    variables = [variablesFromPair(pair) for pair in data_pairs]
+    input_pairs = [(inputFromSentence(pair[0]), inputFromSentence(pair[1]))
+                   for pair in data_pairs]
+
+    # variables = [variablesFromPair(pair) for pair in data_pairs]
 
     criterion = nn.NLLLoss().cuda()
 
     idx = 0
-    n_iters = len(variables) * n_epochs
+    n_iters = len(input_pairs) * n_epochs
 
     for epoch in range(math.ceil(n_epochs)):
-        training_pairs = list(variables)
+        training_pairs = list(input_pairs)
         random.shuffle(training_pairs)
+        num_batches = len(input_pairs) // batch_size
+        training_pairs = training_pairs[:num_batches * batch_size]
         while len(training_pairs) > 0 and idx < n_iters:
-            context_variable, tactic_variable = training_pairs.pop()
+            batch_pairs = training_pairs[data_idx:batch_size]
+            data_idx += batch_size
+
+            context_variable, tactic_variable = variablesFromBatch(batch_pairs)
+
             loss = train(context_variable, tactic_variable, encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
 
