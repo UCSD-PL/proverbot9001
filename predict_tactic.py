@@ -39,7 +39,7 @@ class TacticPredictor:
         self.vocab_size = output_size
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, n_layers=1):
+    def __init__(self, input_size, hidden_size, n_layers=3):
         super(EncoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
@@ -56,7 +56,7 @@ class EncoderRNN(nn.Module):
         return Variable(torch.zeros(1, 1, self.hidden_size).cuda())
 
 class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, width=1, n_layers=1):
+    def __init__(self, hidden_size, output_size, width=1, n_layers=3):
         super(DecoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
