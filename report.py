@@ -23,7 +23,6 @@ from syntax import syntax_highlight
 from helper import load_commands_preserve
 
 from predict_tactic import *
-from pytorch_predictor import predictTactic, loadPredictor
 
 finished_queue = queue.Queue()
 rows = queue.Queue()
@@ -35,6 +34,7 @@ report_css = ["report.css"]
 report_js = ["report.js"]
 
 num_predictions = 3
+max_tactic_length = 100
 
 net = loadPredictor("pytorch-weights")
 netLock = threading.Lock()
@@ -70,8 +70,7 @@ def to_list_string(l):
 def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
-def run_prediction(coq, prediction_tuple):
-    prediction, probability = prediction_tuple
+def run_prediction(coq, prediction):
     prediction = prediction.lstrip("-+*")
     if not "." in prediction:
         return (prediction, -1, "", ParseError("No period"))
@@ -81,19 +80,19 @@ def run_prediction(coq, prediction_tuple):
             coq.run_stmt(prediction)
             context = coq.proof_context
             coq.cancel_last()
-            return (prediction, probability, context, None)
+            return (prediction, context, None)
         except (ParseError, LexError, CoqExn, BadResponse) as e:
-            return (prediction, probability, "", e)
+            return (prediction, "", e)
         finally:
             coq.quiet = False
 
 # Warning: Mutates fresult
 def evaluate_prediction(fresult, correct_command,
                         correct_result_context, prediction_run):
-    prediction, probability, context, exception = prediction_run
+    prediction, context, exception = prediction_run
     grade = fresult.grade_command_result(prediction, context, correct_command,
                                          correct_result_context, exception)
-    return (prediction, probability, grade)
+    return (prediction, grade)
 
 class GlobalResult:
     def __init__(self):
@@ -278,7 +277,8 @@ class Worker(threading.Thread):
                     query = format_context_nodec(coq.prev_tactics, coq.get_hypothesis(),
                                                  coq.get_goals())
                     netLock.acquire()
-                    predictions = [(predictTactic(net, query), 1)]
+                    predictions = predictKTactics(net, query, k * k, k,
+                                                  max_tactic_length)
                     netLock.release()
 
                     hyps = coq.get_hypothesis()
@@ -354,11 +354,9 @@ class Worker(threading.Thread):
                             text(command_result[0])
                     else:
                         command, hyps, goal, prediction_results = command_result
-                        predictions = [prediction for prediction, probability, grade in
+                        predictions = [prediction for prediction, grade in
                                        prediction_results]
-                        probabilities = [probability for prediction, probability, grade in
-                                         prediction_results]
-                        grades = [grade for prediction, probability, grade in
+                        grades = [grade for prediction, grade in
                                   prediction_results]
                         with tag('span',
                                  ('data-hyps',hyps),
@@ -380,8 +378,6 @@ class Worker(threading.Thread):
                                  ('data-num-actual-in-file',
                                   fresult.actual_tactic_frequency
                                   .get(get_stem(command))),
-                                 ('data-probabilities',
-                                  to_list_string(probabilities)),
                                  ('data-grades',
                                   to_list_string(grades)),
                                  id='command-' + str(idx),
@@ -391,12 +387,12 @@ class Worker(threading.Thread):
                                  .format(idx)):
                             search_index = 0
                             for idx, prediction_result in enumerate(prediction_results):
-                                prediction, probability, grade = prediction_result
+                                prediction, grade = prediction_result
                                 if (grade != "failedcommand" and
                                     grade != "superfailedcommand"):
                                     search_index = idx
                             for idx, prediction_result in enumerate(prediction_results):
-                                prediction, probability, grade = prediction_result
+                                prediction, grade = prediction_result
                                 if search_index == idx:
                                     with tag('code', klass=grades[0]):
                                         text(command)
