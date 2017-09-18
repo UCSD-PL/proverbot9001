@@ -16,6 +16,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
+import torch.utils.data
 
 from itertools import takewhile
 
@@ -39,15 +40,17 @@ class TacticPredictor:
         self.vocab_size = output_size
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, n_layers=3):
+    def __init__(self, input_size, hidden_size, batch_size, n_layers=3):
         super(EncoderRNN, self).__init__()
+        self.cuda()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
+        self.batch_size = batch_size
         self.embedding = nn.Embedding(input_size, hidden_size).cuda()
         self.gru = nn.GRU(hidden_size, hidden_size).cuda()
 
     def forward(self, input, hidden):
-        output = self.embedding(input).view(1, 1, -1)
+        output = self.embedding(input).view(self.batch_size, 1, -1)
         for i in range(self.n_layers):
             output, hidden = self.gru(output, hidden)
         return output, hidden
@@ -61,6 +64,8 @@ class DecoderRNN(nn.Module):
         self.n_layers = n_layers
         self.hidden_size = hidden_size
 
+        self.cuda()
+
         self.embedding = nn.Embedding(output_size, hidden_size).cuda()
         self.gru = nn.GRU(hidden_size, hidden_size).cuda()
         self.out = nn.Linear(hidden_size, output_size).cuda()
@@ -68,11 +73,11 @@ class DecoderRNN(nn.Module):
         self.k = width
 
     def forward(self, input, hidden):
-        output = self.embedding(input).view(1, self.k, -1)
+        output = self.embedding(input).view(self.k, 1, -1)
         for i in range(self.n_layers):
             output = F.relu(output)
             output, hidden = self.gru(output, hidden)
-        output = self.softmax(self.out(output[0]))
+        output = self.softmax(self.out(output[:,0]))
         return output, hidden
 
     def initHidden(self):
@@ -86,19 +91,20 @@ def train(input_variable, target_variable,
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
 
-    input_length = input_variable.size()[0]
+    batch_size = input_variable.size()[0]
+    input_length = input_variable.size()[1]
     target_length = target_variable.size()[0]
 
-    encoder_outputs = Variable(torch.zeros(max_length, encoder.hidden_size).cuda())
+    encoder_outputs = Variable(torch.zeros(batch_size, max_length, encoder.hidden_size).cuda())
 
     loss = 0
 
     for ei in range(input_length):
         encoder_output, encoder_hidden = encoder(
-            input_variable[ei], encoder_hidden)
-        encoder_outputs[ei] = encoder_output[0][0]
+            input_variable[:,ei], encoder_hidden)
+        encoder_outputs[:,ei] = encoder_output[:,0,:]
 
-    decoder_input = Variable(torch.cuda.LongTensor([[SOS_token]]))
+    decoder_input = Variable(torch.cuda.LongTensor([[SOS_token]] * batch_size))
 
     decoder_hidden = encoder_hidden
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -107,19 +113,19 @@ def train(input_variable, target_variable,
         for di in range(target_length):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden)
-            loss += criterion(decoder_output, target_variable[di])
-            decoder_input = target_variable[di]
+            loss += criterion(decoder_output, target_variable[:,di])
+            decoder_input = target_variable[:,di]
     else:
         for di in range(target_length):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden)
             topv, topi = decoder_output.data.topk(1)
-            ni = topi[0][0]
+            ni = topi[:,0]
 
-            decoder_input = Variable(torch.cuda.LongTensor([[ni]]))
+            decoder_input = Variable(torch.cuda.LongTensor([[c] for c in ni]))
 
-            loss += criterion(decoder_output, target_variable[di])
-            if ni == EOS_token:
+            loss += criterion(decoder_output, target_variable[:,di])
+            if all(c == EOS_token for c in ni):
                 break;
 
     loss.backward()
@@ -269,25 +275,24 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size=32,
     input_pairs = [(inputFromSentence(pair[0]), inputFromSentence(pair[1]))
                    for pair in data_pairs]
 
-    # variables = [variablesFromPair(pair) for pair in data_pairs]
+    dataset = torch.utils.data.TensorDataset(
+        torch.LongTensor([inputFromSentence(context)
+                               for context, tactic in data_pairs]),
+        torch.LongTensor([inputFromSentence(tactic)
+                               for context, tactic in data_pairs]))
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
+                                         pin_memory=True, num_workers=0)
 
     criterion = nn.NLLLoss().cuda()
 
     idx = 0
     n_iters = len(input_pairs) * n_epochs
 
+    print("Starting training.")
     for epoch in range(math.ceil(n_epochs)):
-        training_pairs = list(input_pairs)
-        random.shuffle(training_pairs)
-        num_batches = len(input_pairs) // batch_size
-        training_pairs = training_pairs[:num_batches * batch_size]
-        while len(training_pairs) > 0 and idx < n_iters:
-            batch_pairs = training_pairs[data_idx:batch_size]
-            data_idx += batch_size
-
-            context_variable, tactic_variable = variablesFromBatch(batch_pairs)
-
-            loss = train(context_variable, tactic_variable, encoder, decoder,
+        for context_batch, tactic_batch in loader:
+            loss = train(Variable(context_batch).cuda(), Variable(tactic_batch).cuda(),
+                         encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
 
             print_loss_total += loss
@@ -312,6 +317,7 @@ def main():
     parser.add_argument("--numfile", default=False, const=True,
                         action='store_const')
     parser.add_argument("--vocabsize", default=128, type=int)
+    parser.add_argument("--batchsize", default=32, type=int)
     parser.add_argument("--maxlength", default=200, type=int)
     parser.add_argument("--numpredictions", default=3, type=int)
     args = parser.parse_args()
@@ -323,13 +329,11 @@ def main():
             data_set = read_num_data(args.scrapefile)
         else:
             data_set = read_text_data(args.scrapefile)
-        decoder = DecoderRNN(hidden_size, output_size, 1)
-        encoder = EncoderRNN(output_size, hidden_size)
-        if use_cuda:
-            encoder = encoder.cuda()
-            decoder = decoder.cuda()
+        print("Initializing CUDA...")
+        decoder = DecoderRNN(hidden_size, output_size, args.batchsize).cuda()
+        encoder = EncoderRNN(output_size, hidden_size, args.batchsize).cuda()
         trainIters(encoder, decoder, args.nepochs,
-                   data_set, print_every=100)
+                   data_set, print_every=10)
         with open(args.save + ".enc", "wb") as f:
             torch.save(encoder.state_dict(), f)
         with open(args.save + ".dec", "wb") as f:
