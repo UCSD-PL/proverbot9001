@@ -93,7 +93,7 @@ def train(input_variable, target_variable,
 
     batch_size = input_variable.size()[0]
     input_length = input_variable.size()[1]
-    target_length = target_variable.size()[0]
+    target_length = target_variable.size()[1]
 
     encoder_outputs = Variable(torch.zeros(batch_size, max_length, encoder.hidden_size).cuda())
 
