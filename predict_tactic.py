@@ -297,7 +297,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size=32,
 
             print_loss_total += loss
 
-            idx += 1
+            idx += batch_size
             if idx % print_every == 0:
                 print_loss_avg = print_loss_total / print_every
                 print_loss_total = 0
