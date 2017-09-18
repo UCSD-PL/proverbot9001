@@ -264,7 +264,7 @@ def decodeTactic(decoder, encoder_hidden, vocab_size):
 
     return decoded_tokens
 
-def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size=32,
+def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
                print_every=100, learning_rate=0.01):
     start = time.time()
     print_loss_total = 0
@@ -333,7 +333,7 @@ def main():
         decoder = DecoderRNN(hidden_size, output_size, args.batchsize).cuda()
         encoder = EncoderRNN(output_size, hidden_size, args.batchsize).cuda()
         trainIters(encoder, decoder, args.nepochs,
-                   data_set, print_every=10)
+                   data_set, args.batchsize, print_every=args.printevery)
         with open(args.save + ".enc", "wb") as f:
             torch.save(encoder.state_dict(), f)
         with open(args.save + ".dec", "wb") as f:
