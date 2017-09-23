@@ -105,7 +105,7 @@ def train(input_variable, target_variable,
     decoder_input = Variable(torch.cuda.LongTensor([[SOS_token] * batch_size]))
 
     decoder_hidden = encoder_hidden
-    use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
+    use_teacher_forcing = True # if random.random() < teacher_forcing_ratio else False
 
     if use_teacher_forcing:
         for di in range(target_length):
