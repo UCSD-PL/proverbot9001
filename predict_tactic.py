@@ -32,8 +32,8 @@ MAX_LENGTH=200
 
 class TacticPredictor:
     def __init__(self, output_size, hidden_size):
-        self.encoder=EncoderRNN(output_size, hidden_size)
-        self.decoder=DecoderRNN(hidden_size, output_size)
+        self.encoder=EncoderRNN(output_size, hidden_size, 1)
+        self.decoder=DecoderRNN(hidden_size, output_size, 1)
         if use_cuda:
             self.encoder = self.encoder.cuda()
             self.decoder = self.decoder.cuda()
@@ -50,16 +50,16 @@ class EncoderRNN(nn.Module):
         self.gru = nn.GRU(hidden_size, hidden_size).cuda()
 
     def forward(self, input, hidden):
-        output = self.embedding(input).view(self.batch_size, 1, -1)
+        output = self.embedding(input).view(1, self.batch_size, -1)
         for i in range(self.n_layers):
             output, hidden = self.gru(output, hidden)
         return output, hidden
 
     def initHidden(self):
-        return Variable(torch.zeros(1, 1, self.hidden_size).cuda())
+        return Variable(torch.zeros(1, self.batch_size, self.hidden_size).cuda())
 
 class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, width=1, n_layers=3):
+    def __init__(self, hidden_size, output_size, batch_size, width=1, n_layers=3):
         super(DecoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
@@ -71,13 +71,14 @@ class DecoderRNN(nn.Module):
         self.out = nn.Linear(hidden_size, output_size).cuda()
         self.softmax = nn.LogSoftmax().cuda()
         self.k = width
+        self.batch_size = batch_size
 
     def forward(self, input, hidden):
-        output = self.embedding(input).view(self.k, 1, -1)
+        output = self.embedding(input).view(1, self.batch_size * self.k, -1)
         for i in range(self.n_layers):
             output = F.relu(output)
             output, hidden = self.gru(output, hidden)
-        output = self.softmax(self.out(output[:,0]))
+        output = self.softmax(self.out(output[0]))
         return output, hidden
 
     def initHidden(self):
@@ -95,16 +96,13 @@ def train(input_variable, target_variable,
     input_length = input_variable.size()[1]
     target_length = target_variable.size()[1]
 
-    encoder_outputs = Variable(torch.zeros(batch_size, max_length, encoder.hidden_size).cuda())
-
     loss = 0
 
     for ei in range(input_length):
         encoder_output, encoder_hidden = encoder(
             input_variable[:,ei], encoder_hidden)
-        encoder_outputs[:,ei] = encoder_output[:,0,:]
 
-    decoder_input = Variable(torch.cuda.LongTensor([[SOS_token]] * batch_size))
+    decoder_input = Variable(torch.cuda.LongTensor([[SOS_token] * batch_size]))
 
     decoder_hidden = encoder_hidden
     use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -119,13 +117,17 @@ def train(input_variable, target_variable,
         for di in range(target_length):
             decoder_output, decoder_hidden = decoder(
                 decoder_input, decoder_hidden)
-            topv, topi = decoder_output.data.topk(1)
-            ni = topi[:,0]
 
-            decoder_input = Variable(torch.cuda.LongTensor([[c] for c in ni]))
+            nis = []
+            for bi in range(batch_size):
+                topv, topi = decoder_output.data[bi].topk(1)
+                ni = topi[0]
+                nis.append(ni)
+
+            decoder_input = Variable(torch.cuda.LongTensor(nis))
 
             loss += criterion(decoder_output, target_variable[:,di])
-            if all(c == EOS_token for c in ni):
+            if all(c == EOS_token for c in nis):
                 break;
 
     loss.backward()
@@ -191,7 +193,7 @@ def variableFromSentence(sentence):
         sentence = sentence[:MAX_LENGTH]
     if len(sentence) < MAX_LENGTH:
         sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
-    sentence = Variable(torch.cuda.LongTensor(sentence).view(-1, 1))
+    sentence = Variable(torch.cuda.LongTensor(sentence).view(1, -1))
     return sentence
 
 def variablesFromPair(pair):
@@ -224,8 +226,9 @@ def commandLinePredict(predictor, numfile, k, max_length):
             print(''.join([chr(x) for x in result]))
 
 def predictKTactics(predictor, sentence, beam_width, k, max_length):
-    return predictKTokenlist(predictor, [ord(x) for x in sentence],
-                             beam_width, max_length)[:k]
+    predictionTokenLists = predictKTokenlist(predictor, [ord(c) for c in sentence],
+                                            beam_width, max_length)[:k]
+    return ["".join(chr(x) for x in tokenlist) for tokenlist in predictionTokenLists]
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
     if len(tokenlist) < max_length:
@@ -235,15 +238,12 @@ def predictKTokenlist(predictor, tokenlist, k, max_length):
 
 def encodeContext(encoder, tokenlist):
     input_variable = variableFromSentence(tokenlist)
-    input_length = input_variable.size()[0]
+    input_length = input_variable.size()[1]
     encoder_hidden = encoder.initHidden()
 
-    encoder_outputs = Variable(torch.zeros(MAX_LENGTH, encoder.hidden_size).cuda())
-
     for ei in range(input_length):
-        encoder_output, encoder_hidden = encoder(input_variable[ei],
-                                                 encoder_hidden)
-        encoder_outputs[ei] = encoder_outputs[ei] + encoder_output[0][0]
+        encoder_output, encoder_hidden = encoder(
+            input_variable[:, ei], encoder_hidden)
 
     return encoder_hidden
 
@@ -291,6 +291,9 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
     print("Starting training.")
     for epoch in range(math.ceil(n_epochs)):
         for context_batch, tactic_batch in loader:
+            if context_batch.size()[0] != batch_size:
+                encoder.batch_size = context_batch.size()[0]
+                decoder.batch_size = context_batch.size()[0]
             loss = train(Variable(context_batch).cuda(), Variable(tactic_batch).cuda(),
                          encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
@@ -304,6 +307,8 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
                 print("{} ({} {:.2f}%) {:.4f}".format(timeSince(start, idx / n_iters),
                                                       idx, idx / n_iters * 100,
                                                       print_loss_avg))
+        encoder.batch_size = batch_size
+        decoder.batch_size = batch_size
 
 def main():
     global MAX_LENGTH
@@ -357,15 +362,17 @@ def decodeKTactics(decoder, encoder_hidden, k, v):
 
     hidden = _inflate(encoder_hidden, k)
 
-    sequence_scores = torch.cuda.Tensor(k, 1)
+    sequence_scores = torch.cuda.FloatTensor(k, 1)
     sequence_scores.fill_(-float('Inf'))
     sequence_scores.index_fill_(0, torch.cuda.LongTensor([0]), 0.0)
     sequence_scores = Variable(sequence_scores)
 
-    input_var = Variable(torch.cuda.LongTensor([[SOS_token]*k]))
+    input_var = Variable(torch.cuda.LongTensor([[SOS_token] * k]))
 
     stored_predecessors = list()
     stored_emitted_symbols = list()
+
+    decoder.k = k
 
     for j in range(MAX_LENGTH):
         decoder_output, hidden = decoder(input_var, hidden)
