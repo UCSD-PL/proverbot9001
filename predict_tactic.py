@@ -40,7 +40,7 @@ class TacticPredictor:
         self.vocab_size = output_size
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, batch_size, n_layers=1):
+    def __init__(self, input_size, hidden_size, batch_size, n_layers=3):
         super(EncoderRNN, self).__init__()
         self.cuda()
         self.n_layers = n_layers
