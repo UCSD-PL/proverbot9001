@@ -36,7 +36,10 @@ report_js = ["report.js"]
 num_predictions = 3
 max_tactic_length = 100
 
-net = loadPredictor("pytorch-weights")
+output_size = 128
+hidden_size = 256
+
+net = loadPredictor("pytorch-weights", output_size, hidden_size)
 netLock = threading.Lock()
 
 def header(tag, doc, text, css, javascript, title):
@@ -277,7 +280,9 @@ class Worker(threading.Thread):
                     query = format_context_nodec(coq.prev_tactics, coq.get_hypothesis(),
                                                  coq.get_goals())
                     netLock.acquire()
-                    predictions = predictKTactics(net, query, k * k, k,
+                    predictions = predictKTactics(net, query,
+                                                  num_predictions * num_predictions,
+                                                  num_predictions,
                                                   max_tactic_length)
                     netLock.release()
 
@@ -300,10 +305,10 @@ class Worker(threading.Thread):
                                                               prediction_run)
                                           for prediction_run in prediction_runs]
                     fresult.add_command_result(
-                        [pred for pred, prob, ctxt, ex in prediction_runs],
-                        [ctxt for pred, prob, ctxt, ex in prediction_runs],
+                        [pred for pred, ctxt, ex in prediction_runs],
+                        [ctxt for pred, ctxt, ex in prediction_runs],
                         command, actual_result_context,
-                        [ex for pred, prob, ctxt, ex in prediction_runs])
+                        [ex for pred, ctxt, ex in prediction_runs])
 
                     command_results.append((command, hyps, goals,
                                             prediction_results))
