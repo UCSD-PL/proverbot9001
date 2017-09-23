@@ -34,7 +34,7 @@ else
 endif
 
 train:
-	./predict_tactic.py --train --save=pytorch-weights
+	./predict_tactic.py --train --save pytorch-weights
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))
