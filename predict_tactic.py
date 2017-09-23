@@ -322,8 +322,8 @@ def main():
     parser.add_argument("--numfile", default=False, const=True,
                         action='store_const')
     parser.add_argument("--vocabsize", default=128, type=int)
-    parser.add_argument("--batchsize", default=32, type=int)
-    parser.add_argument("--maxlength", default=200, type=int)
+    parser.add_argument("--batchsize", default=256, type=int)
+    parser.add_argument("--maxlength", default=100, type=int)
     parser.add_argument("--printevery", default=10, type=int)
     parser.add_argument("--numpredictions", default=3, type=int)
     args = parser.parse_args()
