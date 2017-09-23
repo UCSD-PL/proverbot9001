@@ -286,10 +286,15 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
     criterion = nn.NLLLoss().cuda()
 
     idx = 0
+    batch_idx = 0
     n_iters = len(input_pairs) * n_epochs
+    print_loss = 0
 
     print("Starting training.")
     for epoch in range(math.ceil(n_epochs)):
+        print("Epoch {}".format(epoch))
+        epoch_loss = 0
+        epoch_batch_idx = 0
         for context_batch, tactic_batch in loader:
             if context_batch.size()[0] != batch_size:
                 encoder.batch_size = context_batch.size()[0]
@@ -297,16 +302,19 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
             loss = train(Variable(context_batch).cuda(), Variable(tactic_batch).cuda(),
                          encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
+            print_loss += loss
+            epoch_loss += loss
 
-            print_loss_total += loss
+            idx += context_batch.size()[0]
+            batch_idx += 1
+            epoch_batch_idx += 1
 
-            idx += batch_size
-            if idx % print_every == 0:
-                print_loss_avg = print_loss_total / print_every
-                print_loss_total = 0
+            if batch_idx % print_every == 0:
                 print("{} ({} {:.2f}%) {:.4f}".format(timeSince(start, idx / n_iters),
                                                       idx, idx / n_iters * 100,
-                                                      print_loss_avg))
+                                                      print_loss / print_every))
+                print_loss = 0
+        print("Epoch loss: {:.4f}".format(epoch_loss / epoch_batch_idx))
         encoder.batch_size = batch_size
         decoder.batch_size = batch_size
 
