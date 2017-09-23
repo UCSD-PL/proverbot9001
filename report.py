@@ -74,20 +74,17 @@ def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
 def run_prediction(coq, prediction):
-    prediction = prediction.lstrip("-+*")
-    if not "." in prediction:
-        return (prediction, -1, "", ParseError("No period"))
-    else:
-        coq.quiet = True
-        try:
-            coq.run_stmt(prediction)
-            context = coq.proof_context
-            coq.cancel_last()
-            return (prediction, context, None)
-        except (ParseError, LexError, CoqExn, BadResponse) as e:
-            return (prediction, "", e)
-        finally:
-            coq.quiet = False
+    prediction = prediction.lstrip("-+*") + "."
+    coq.quiet = True
+    try:
+        coq.run_stmt(prediction)
+        context = coq.proof_context
+        coq.cancel_last()
+        return (prediction, context, None)
+    except (ParseError, LexError, CoqExn, BadResponse) as e:
+        return (prediction, "", e)
+    finally:
+        coq.quiet = False
 
 # Warning: Mutates fresult
 def evaluate_prediction(fresult, correct_command,
