@@ -14,7 +14,7 @@ def get_file_date(filename):
 
 def get_file_percent(filename):
     with open(filename+"/report.html") as f:
-        return float(re.search(r"Overall Accuracy:\s+(\d+\.\d+)%", f.read()).group(1))
+        return float(re.search(r"Searched :\s+(\d+\.\d+)%", f.read()).group(1))
 
 
 files = sorted(get_lines("find -type d -not -name '.*'"), key=lambda f: get_file_date(f), reverse=True)
