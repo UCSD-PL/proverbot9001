@@ -270,7 +270,7 @@ def adjustLearningRate(initial, optimizer, epoch):
         param_group['lr'] = lr
 
 def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
-               print_every=100, learning_rate=0.01):
+               print_every=100, learning_rate=0.003):
     start = time.time()
     print_loss_total = 0
 
