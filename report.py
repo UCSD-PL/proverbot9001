@@ -120,13 +120,12 @@ class GlobalResult:
         pass
     def report_results(self, doc, text, tag, line):
         with tag('h2'):
-            text("Overall Accuracy: {}% ({}/{})"
+            text("Initial Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_correct, self.num_tactics),
                          self.num_correct, self.num_tactics))
         with tag('h3'):
             text("Searched: {}% ({}/{})"
-                 .format(num_predictions,
-                         stringified_percent(self.num_searched, self.num_tactics),
+                 .format(stringified_percent(self.num_searched, self.num_tactics),
                          self.num_searched, self.num_tactics))
         with tag('table'):
             with tag('tr', klass="header"):
