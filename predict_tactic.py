@@ -356,7 +356,8 @@ def main():
         predictor = loadPredictor(args.save, output_size, hidden_size)
         commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
 
-def loadPredictor(path_stem, output_size, hidden_size):
+def loadPredictor(path_stem, output_size, hidden_size,
+                  encoder_hidden_layers=3, decoder_hidden_layers=3):
     predictor = TacticPredictor(output_size, hidden_size)
     predictor.encoder.load_state_dict(torch.load(path_stem + ".enc"))
     predictor.decoder.load_state_dict(torch.load(path_stem + ".dec"))

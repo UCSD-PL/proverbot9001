@@ -38,8 +38,12 @@ max_tactic_length = 100
 
 output_size = 128
 hidden_size = 256
+encoder_hidden_layers = 3
+decoder_hidden_layers = 3
 
-net = loadPredictor("pytorch-weights", output_size, hidden_size)
+net = loadPredictor("pytorch-weights",
+                    output_size, hidden_size,
+                    encoder_hidden_layers, decoder_hidden_layers)
 netLock = threading.Lock()
 
 def header(tag, doc, text, css, javascript, title):
