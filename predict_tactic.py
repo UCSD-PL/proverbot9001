@@ -337,9 +337,13 @@ def main():
     parser.add_argument("--batchsize", default=256, type=int)
     parser.add_argument("--maxlength", default=100, type=int)
     parser.add_argument("--printevery", default=10, type=int)
+    parser.add_argument("--hiddensize", default=None, type=int)
     parser.add_argument("--numpredictions", default=3, type=int)
     args = parser.parse_args()
-    hidden_size = args.vocabsize * 2
+    if args.hiddensize:
+        hidden_size = args.hiddensize
+    else:
+        hidden_size = args.vocabsize * 2
     output_size = args.vocabsize
     MAX_LENGTH = args.maxlength
     if args.train:
