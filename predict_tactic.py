@@ -264,6 +264,11 @@ def decodeTactic(decoder, encoder_hidden, vocab_size):
 
     return decoded_tokens
 
+def adjustLearningRate(initial, optimizer, epoch):
+    lr = initial * (0.5 ** (epoch // 20))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
 def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
                print_every=100, learning_rate=0.01):
     start = time.time()
@@ -292,6 +297,8 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
 
     print("Starting training.")
     for epoch in range(math.ceil(n_epochs)):
+        adjustLearningRate(learning_rate, encoder_optimizer, epoch)
+        adjustLearningRate(learning_rate, decoder_optimizer, epoch)
         print("Epoch {}".format(epoch))
         epoch_loss = 0
         epoch_batch_idx = 0
