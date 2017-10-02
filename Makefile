@@ -5,6 +5,8 @@ ENV_PREFIX=export LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIB
 
 NTHREADS=16
 FLAGS=
+HIDDEN_SIZE=512
+
 
 .PHONY: scrape report setup
 
@@ -34,7 +36,7 @@ else
 endif
 
 train:
-	./predict_tactic.py --train --save pytorch-weights
+	./predict_tactic.py --train --save pytorch-weights --hiddensize $(HIDDEN_SIZE)
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))

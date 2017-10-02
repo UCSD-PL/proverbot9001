@@ -37,7 +37,7 @@ num_predictions = 3
 max_tactic_length = 100
 
 output_size = 128
-hidden_size = 256
+hidden_size = 512
 encoder_hidden_layers = 3
 decoder_hidden_layers = 3
 
