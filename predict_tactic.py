@@ -277,9 +277,6 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
 
-    input_pairs = [(inputFromSentence(pair[0]), inputFromSentence(pair[1]))
-                   for pair in data_pairs]
-
     dataset = torch.utils.data.TensorDataset(
         torch.LongTensor([inputFromSentence(context)
                                for context, tactic in data_pairs]),
@@ -292,7 +289,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
 
     idx = 0
     batch_idx = 0
-    n_iters = len(input_pairs) * n_epochs
+    n_iters = len(data_pairs) * n_epochs
     print_loss = 0
 
     print("Starting training.")
