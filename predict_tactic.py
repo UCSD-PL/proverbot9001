@@ -326,7 +326,7 @@ def main():
     global MAX_LENGTH
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("--nepochs", default=15, type=float)
+    parser.add_argument("--nepochs", default=50, type=float)
     parser.add_argument("--save", default=None, required=True)
     parser.add_argument("--train", default=False, const=True,
                         action='store_const')
