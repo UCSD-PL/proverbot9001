@@ -434,6 +434,7 @@ parser.add_argument('--prelude', default=".")
 parser.add_argument('--debug', default=False, const=True, action='store_const')
 parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
+parser.add_argument('-m', '--message', default=None)
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 
@@ -482,6 +483,9 @@ with tag('html'):
             text("{} files processed".format(num_jobs))
         with tag('h5'):
             text("Commit: {}".format(cur_commit))
+        if args.message:
+            with tag('h5'):
+                text("Message: {}".format(args.message))
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         with tag('img',
