@@ -7,6 +7,15 @@ NTHREADS=16
 FLAGS=
 HIDDEN_SIZE=512
 
+ifeq ($(NUM_FILES),)
+HEAD_CMD=cat
+else
+HEAD_CMD=head -n $(NUM_FILES)
+endif
+
+ifneq ($(MESSAGE),)
+FLAGS+=-m "$(MESSAGE)"
+endif
 
 .PHONY: scrape report setup
 
@@ -17,23 +26,12 @@ setup:
 
 scrape:
 	mv scrape.txt scrape.bkp 2>/dev/null || true
-ifeq ($(NUM_FILES),)
-	cat compcert-train-files.txt | \
+	cat compcert-train-files.txt | $(HEAD_CMD) | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output scrape.txt \
 					       --prelude ./CompCert
-else
-	cat compcert-train-files.txt | head -n $(NUM_FILES) | \
-	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output scrape.txt \
-					       --prelude ./CompCert
-endif
 report:
-ifeq ($(NUM_FILES),)
-	($(ENV_PREFIX) ; cat compcert-test-files.txt | \
+	($(ENV_PREFIX) ; cat compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
-else
-	($(ENV_PREFIX) ; cat compcert-test-files.txt | head -n $(NUM_FILES) | \
-	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
-endif
 
 train:
 	./predict_tactic.py --train --save pytorch-weights --hiddensize $(HIDDEN_SIZE)
