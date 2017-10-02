@@ -393,14 +393,16 @@ class Worker(threading.Thread):
                                 if (grade != "failedcommand" and
                                     grade != "superfailedcommand"):
                                     search_index = idx
+                                    break
+                            doc.stag("br")
                             for idx, prediction_result in enumerate(prediction_results):
                                 prediction, grade = prediction_result
                                 if search_index == idx:
-                                    with tag('code', klass=grades[0]):
-                                        text(command)
+                                    with tag('code', klass=grade):
+                                        text(" " + command.strip())
                                 else:
                                     with tag('span', klass=grade):
-                                        text(" \u2580")
+                                        text(" &#9899;")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
