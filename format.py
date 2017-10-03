@@ -3,7 +3,7 @@
 import re
 
 def minimize_whitespace(data):
-    return re.sub("\s+", " ", data).strip()
+    return re.sub("[ \t]+", " ", data).strip()
 
 def format_context(prev_tactics, prev_hyps, prev_goal):
     return (format_tactics(prev_tactics) + "*****\n" +
@@ -11,7 +11,7 @@ def format_context(prev_tactics, prev_hyps, prev_goal):
             format_goal(prev_goal) + "+++++\n")
 
 def format_tactics(tactics):
-    return "\n".join([minimize_whitespace(tactic) for tactic in tactics])
+    return "\n".join([minimize_whitespace(tactic) for tactic in tactics]) + "\n"
 
 def format_hypothesis(prev_hyps):
     return minimize_whitespace(prev_hyps) + "\n"
