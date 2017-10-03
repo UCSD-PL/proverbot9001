@@ -277,10 +277,9 @@ class Worker(threading.Thread):
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
-                    query = format_context_nodec(coq.prev_tactics, coq.get_hypothesis(),
-                                                 coq.get_goals())
+                    goal = format_goal(coq.get_goals())
                     netLock.acquire()
-                    predictions = predictKTactics(net, query,
+                    predictions = predictKTactics(net, goal,
                                                   num_predictions * num_predictions,
                                                   num_predictions,
                                                   max_tactic_length)
