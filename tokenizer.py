@@ -56,5 +56,5 @@ def pattern_to_token(s):
 
 def token_to_pattern(s):
     for k in dict_token_to_pattern:
-        s = s.replace(k + " ", dict_token_to_pattern[k] + " ")
+        s = re.sub(fr"(^|(?<=[ ])){k}(?=[ ]|;|.)", dict_token_to_pattern[k], s)
     return s
