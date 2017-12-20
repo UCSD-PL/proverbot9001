@@ -65,6 +65,7 @@ class SerapiInstance(threading.Thread):
         # Open a process to coq, with streams for communicating with
         # it.
         self._proc = subprocess.Popen(coq_command,
+                                      cwd=prelude
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
