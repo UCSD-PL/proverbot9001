@@ -86,12 +86,13 @@ class Worker(threading.Thread):
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.get_hypothesis()
             prev_goal = coq.get_goals()
+            # rel_lemmas = coq.get_lemmas_about_head()
             # Write out all the information about the current context,
             # and the tactic that is in the file and should be run
             # next.
             with open(self.tmpfile_name, 'a') as tmp_file:
                 tmp_file.write(format_context(prev_tactics, prev_hyps,
-                                              prev_goal))
+                                              prev_goal, ""))
                 tmp_file.write(format_tactic(command))
         # Run the actual command, advancing the coq state.
         coq.run_stmt(command)

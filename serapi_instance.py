@@ -65,7 +65,7 @@ class SerapiInstance(threading.Thread):
         # Open a process to coq, with streams for communicating with
         # it.
         self._proc = subprocess.Popen(coq_command,
-                                      cwd=prelude
+                                      cwd=prelude,
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
@@ -155,37 +155,40 @@ class SerapiInstance(threading.Thread):
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError) as e:
-            if not self.quiet or self.debug:
-                print("Problem running statement: {}".format(stmt))
-            if (type(e) == CoqExn and
-                type(e.msg) == list and
-                e.msg[0] == Symbol('CoqExn') and
-                len(e.msg) == 4 and
-                type(e.msg[3]) == list and
-                e.msg[3][0] == Symbol('Stream.Error')):
-                self.get_completed()
-                raise ParseError("Could't parse command {}".format(stmt))
-            if (type(e) == CompletedError and
-                type(e.msg) == list and
-                e.msg[0] == Symbol('Answer') and
-                len(e.msg) == 3 and
-                type(e.msg[2]) == list and
-                e.msg[2][0] == Symbol('CoqExn') and
-                len(e.msg[2]) == 4 and
-                type(e.msg[2][3]) == list and
-                e.msg[2][3][0] == Symbol('Stream.Error')):
-                raise ParseError("Couldn't parse command {}".format(stmt))
-            if (type(e) == CoqExn and
-                type(e.msg) == list and
-                e.msg[0] == Symbol('CoqExn') and
-                len(e.msg) == 4 and
-                type(e.msg[3]) == list and
-                e.msg[3][0] == 'CLexer.Error.E(3)'):
-                self.get_completed()
-                raise LexError("Couldn't lex command {}".format(stmt))
+            self.handle_exception(e, stmt)
 
-            self.cancel_last()
-            raise e
+    def handle_exception(self, e, stmt):
+        if not self.quiet or self.debug:
+            print("Problem running statement: {}".format(stmt))
+        if (type(e) == CoqExn and
+            type(e.msg) == list and
+            e.msg[0] == Symbol('CoqExn') and
+            len(e.msg) == 4 and
+            type(e.msg[3]) == list and
+            e.msg[3][0] == Symbol('Stream.Error')):
+            self.get_completed()
+            raise ParseError("Could't parse command {}".format(stmt))
+        if (type(e) == CompletedError and
+            type(e.msg) == list and
+            e.msg[0] == Symbol('Answer') and
+            len(e.msg) == 3 and
+            type(e.msg[2]) == list and
+            e.msg[2][0] == Symbol('CoqExn') and
+            len(e.msg[2]) == 4 and
+            type(e.msg[2][3]) == list and
+            e.msg[2][3][0] == Symbol('Stream.Error')):
+            raise ParseError("Couldn't parse command {}".format(stmt))
+        if (type(e) == CoqExn and
+            type(e.msg) == list and
+            e.msg[0] == Symbol('CoqExn') and
+            len(e.msg) == 4 and
+            type(e.msg[3]) == list and
+            e.msg[3][0] == 'CLexer.Error.E(3)'):
+            self.get_completed()
+            raise LexError("Couldn't lex command {}".format(stmt))
+
+        self.cancel_last()
+        raise e
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
@@ -228,6 +231,38 @@ class SerapiInstance(threading.Thread):
                   .format(origpath, logicalpath))
         self.send_flush(addStm.format(origpath, logicalpath))
         self.update_state()
+
+    def search_about(self, symbol):
+        try:
+            self.send_flush("(Control (StmAdd () \"SearchAbout {}.\"))\n".format(symbol))
+            self.update_state()
+            self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+            feedbacks = self.get_feedbacks()
+            return [self.ppSexpContent(lemma) for lemma in feedbacks[4:-1]]
+        except (CoqExn, BadResponse, AckError, CompletedError) as e:
+            self.handle_exception(e, "SearchAbout {}.".format(symbol))
+
+    def ppSexpContent(self, content):
+        if content[0] == Symbol("Feedback"):
+            return self.ppSexpContent(content[1][1][1][3][1][2])
+        elif (content[0] == Symbol("PCData") and len(content) == 2
+              and isinstance(content[1], str)):
+            return content[1]
+        elif (content[0] == Symbol("PCData") and len(content) == 2
+              and content[1] == Symbol(".")):
+            return "."
+        elif (content[0] == Symbol("Element") and len(content) == 2
+              and isinstance(content[1], list) and
+              (content[1][0] == Symbol("constr.keyword") or
+               content[1][0] == Symbol("constr.type") or
+               content[1][0] == Symbol("constr.variable") or
+               content[1][0] == Symbol("constr.reference") or
+               content[1][0] == Symbol("constr.path"))):
+            return dumps(content[1][2][0][1])
+        elif isinstance(content[0], list):
+            return "".join([self.ppSexpContent(item) for item in content])
+        else:
+            return dumps(content)
 
     def exec_includes(self, includes_string, prelude):
         for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
@@ -347,6 +382,15 @@ class SerapiInstance(threading.Thread):
                 self.proof_context = newcontext.split("\n\n")[0]
             else:
                 self.proof_context = None
+
+    def get_lemmas_about_head(self):
+        goal_head = self.get_goals().split()[0]
+        if (goal_head == "forall"):
+            return ""
+        try:
+            return "\n".join(self.search_about(goal_head))
+        except:
+            return ""
 
     def run(self):
         while(True):
