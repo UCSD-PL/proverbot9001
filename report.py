@@ -11,7 +11,7 @@ import datetime
 import csv
 
 from shutil import *
-from format import format_context_nodec
+from format import format_goal
 from yattag import Doc
 
 import serapi_instance

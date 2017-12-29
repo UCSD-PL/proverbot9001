@@ -36,11 +36,10 @@ options = {}
 class Worker(threading.Thread):
     def __init__(self, output, workerid, prelude="."):
         threading.Thread.__init__(self, daemon=True)
+        thispath = os.path.dirname(os.path.abspath(__file__))
         # Set up the command which runs sertop.
-        self.coqargs = [os.path.dirname(os.path.abspath(__file__)) +
-                        "/coq-serapi/sertop.native",
-                        "--prelude={}/coq".format(os.path.dirname(os.path
-                                                                  .abspath(__file__)))]
+        self.coqargs = ["{}/coq-serapi/sertop.native".format(thispath),
+                        "--prelude={}/coq".format(thispath)]
         # Run 'print-includes' in the prelude directory to try to get
         # any includes passed on the ocmmand line. On failure, just
         # assumes there are no includes.

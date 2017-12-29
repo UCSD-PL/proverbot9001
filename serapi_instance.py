@@ -266,7 +266,7 @@ class SerapiInstance(threading.Thread):
 
     def exec_includes(self, includes_string, prelude):
         for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
-            self.add_lib(prelude + "/" + match.group(1), match.group(2))
+            self.add_lib("./" + match.group(1), match.group(2))
 
     def update_state(self):
         self.prev_state = self.cur_state
