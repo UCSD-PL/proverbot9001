@@ -10,6 +10,7 @@ import math
 import argparse
 
 from format import read_pair
+from tokenizer import pattern_to_token, token_to_pattern
 
 import torch
 import torch.nn as nn
@@ -186,13 +187,10 @@ def inputFromSentence(sentence):
         sentence = sentence[:MAX_LENGTH]
     if len(sentence) < MAX_LENGTH:
         sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
-    return sentence
+    return pattern_to_token(sentence)
 
 def variableFromSentence(sentence):
-    if len(sentence) > MAX_LENGTH:
-        sentence = sentence[:MAX_LENGTH]
-    if len(sentence) < MAX_LENGTH:
-        sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
+    sentence = inputFromSetence(sentence)
     sentence = Variable(torch.cuda.LongTensor(sentence).view(1, -1))
     return sentence
 
@@ -228,7 +226,8 @@ def commandLinePredict(predictor, numfile, k, max_length):
 def predictKTactics(predictor, sentence, beam_width, k, max_length):
     predictionTokenLists = predictKTokenlist(predictor, [ord(c) for c in sentence],
                                             beam_width, max_length)[:k]
-    return ["".join(chr(x) for x in tokenlist) for tokenlist in predictionTokenLists]
+    return token_to_pattern(
+        ["".join(chr(x) for x in tokenlist) for tokenlist in predictionTokenLists])
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
     if len(tokenlist) < max_length:
