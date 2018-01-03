@@ -170,7 +170,6 @@
 ./common/Globalenvs.v
 ./common/Determinism.v
 ./common/AST.v
-./common/Subtyping.v
 ./common/Errors.v
 ./common/Memtype.v
 ./common/Events.v
