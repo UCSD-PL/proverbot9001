@@ -36,20 +36,26 @@ def read_pair(f_handle):
         prev_tactics.append(next_prev_tactic)
         next_prev_tactic = f_handle.readline()
     stars = next_prev_tactic
+    assert stars == "*****\n"
 
-    hypotheses = f_handle.readline()
-    assert hypotheses != ""
-    stars2 = f_handle.readline()
-    assert stars2 == "*****\n", "Stars2 line is: {}".format(stars2)
+    hypotheses = []
+    next_hypothesis = f_handle.readline()
+    while next_hypothesis != "*****\n":
+        assert hypotheses != ""
+        hypotheses.append(next_hypothesis)
+        next_hypothesis = f_handle.readline()
 
-    context = f_handle.readline()
-    assert context != ""
+    stars2 = next_hypothesis
+    assert stars2 == "*****\n"
+
+    goal = f_handle.readline()
+    assert goal != ""
     plusses = f_handle.readline()
-    assert plusses == "+++++\n", "Plusses line is: {}, context is {}".format(
-        plusses, context)
+    assert plusses == "+++++\n", "Plusses line is: {}, goal is {}".format(
+        plusses, goal)
     tactic = f_handle.readline()
     assert tactic != ""
     minuses = f_handle.readline()
-    assert minuses == "-----\n", "Minuses line is: {}, context is: {}".format(
-        minuses, context)
-    return (context.strip(), tactic.strip())
+    assert minuses == "-----\n", "Minuses line is: {}, goal is: {}".format(
+        minuses, goal)
+    return (goal.strip(), tactic.strip())
