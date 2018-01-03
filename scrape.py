@@ -135,6 +135,7 @@ class Worker(threading.Thread):
         with open(self.tmpfile_name, 'r') as tmp_file:
             for line in tmp_file:
                 self.fout.write(line)
+            self.fout.flush()
         output_lock.release()
 
     def run(self):
