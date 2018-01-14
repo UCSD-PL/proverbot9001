@@ -405,7 +405,7 @@ class Worker(threading.Thread):
                                         text(" " + command.strip())
                                 else:
                                     with tag('span', klass=grade):
-                                        text(" &#9899;")
+                                        doc.asis(" &#9899;")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
