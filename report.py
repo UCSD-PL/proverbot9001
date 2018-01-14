@@ -326,18 +326,19 @@ class Worker(threading.Thread):
             rowwriter = csv.writer(csvfile)
             for row in command_results:
                 if len(row) == 1:
-                    break
-                command, hyps, goal, prediction_results = row
-                first_pred, first_prob, first_grade = prediction_results[0]
-                if len(prediction_results) >= 2:
-                    second_pred, second_prob, second_grade = prediction_results[1]
+                    rowwriter.writerow([command])
                 else:
-                    second_pred, second_prob, second_grade = "", "", ""
-                if len(prediction_results) >= 3:
-                    third_pred, third_prob, third_grade = prediction_results[2]
-                else:
-                    third_pred, third_prob, third_grade = "", "", ""
-                rowwriter.writerow([command, hyps, goal, first_pred, first_prob, first_grade, second_pred, second_prob, second_grade, third_pred, third_prob, third_grade])
+                    command, hyps, goal, prediction_results = row
+                    first_pred, first_prob, first_grade = prediction_results[0]
+                    if len(prediction_results) >= 2:
+                        second_pred, second_prob, second_grade = prediction_results[1]
+                    else:
+                        second_pred, second_prob, second_grade = "", "", ""
+                    if len(prediction_results) >= 3:
+                        third_pred, third_prob, third_grade = prediction_results[2]
+                    else:
+                        third_pred, third_prob, third_grade = "", "", ""
+                    rowwriter.writerow([command, hyps, goal, first_pred, first_prob, first_grade, second_pred, second_prob, second_grade, third_pred, third_prob, third_grade])
 
         doc, tag, text, line = Doc().ttl()
 
