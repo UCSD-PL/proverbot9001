@@ -6,7 +6,7 @@ def next_char(c):
     return chr(ord(c) + 1)
 
 def make_fresh():
-    next = "\uAC00" # Hangul syllables (~11k symbols)
+    next = chr(128)#"\uAC00" # Hangul syllables (~11k symbols)
     def fresh():
         nonlocal next
         curr = next
@@ -38,6 +38,8 @@ patterns = [
     "transitivity",
     "unfold",
 ]
+
+num_tokenizer_patterns = len(patterns)
 
 tokens = map(lambda p: (p, fresh()), patterns)
 

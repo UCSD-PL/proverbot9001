@@ -10,7 +10,7 @@ import math
 import argparse
 
 from format import read_pair
-from tokenizer import pattern_to_token, token_to_pattern
+from tokenizer import pattern_to_token, token_to_pattern, num_tokenizer_patterns
 
 import torch
 import torch.nn as nn
@@ -158,8 +158,8 @@ def read_text_data(data_path, max_size=None):
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            context_ids = [ord(x) for x in context]
-            tactic_ids = [ord(x) for x in tactic]
+            context_ids = [ord(x) for x in pattern_to_token(context)]
+            tactic_ids = [ord(x) for x in pattern_to_token(tactic)]
 
             data_set.append([context_ids, tactic_ids])
 
@@ -187,10 +187,10 @@ def inputFromSentence(sentence):
         sentence = sentence[:MAX_LENGTH]
     if len(sentence) < MAX_LENGTH:
         sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
-    return pattern_to_token(sentence)
+    return sentence
 
 def variableFromSentence(sentence):
-    sentence = inputFromSetence(sentence)
+    sentence = inputFromSentence(sentence)
     sentence = Variable(torch.cuda.LongTensor(sentence).view(1, -1))
     return sentence
 
@@ -226,8 +226,8 @@ def commandLinePredict(predictor, numfile, k, max_length):
 def predictKTactics(predictor, sentence, beam_width, k, max_length):
     predictionTokenLists = predictKTokenlist(predictor, [ord(c) for c in sentence],
                                             beam_width, max_length)[:k]
-    return token_to_pattern(
-        ["".join(chr(x) for x in tokenlist) for tokenlist in predictionTokenLists])
+    return [token_to_pattern("".join([chr(x) for x in tokenlist]) + ".")
+            for tokenlist in predictionTokenLists]
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
     if len(tokenlist) < max_length:
@@ -343,7 +343,7 @@ def main():
         hidden_size = args.hiddensize
     else:
         hidden_size = args.vocabsize * 2
-    output_size = args.vocabsize
+    output_size = args.vocabsize + num_tokenizer_patterns
     MAX_LENGTH = args.maxlength
     if args.train:
         if args.numfile:

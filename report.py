@@ -17,6 +17,7 @@ from yattag import Doc
 import serapi_instance
 import linearize_semicolons
 from serapi_instance import ParseError, LexError
+from tokenizer import num_tokenizer_patterns
 
 from helper import *
 from syntax import syntax_highlight
@@ -36,7 +37,7 @@ report_js = ["report.js"]
 num_predictions = 3
 max_tactic_length = 100
 
-output_size = 128
+output_size = 128 + num_tokenizer_patterns
 hidden_size = 512
 encoder_hidden_layers = 3
 decoder_hidden_layers = 3
@@ -78,7 +79,7 @@ def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
 def run_prediction(coq, prediction):
-    prediction = prediction.lstrip("-+*") + "."
+    prediction = prediction.lstrip("-+*")
     coq.quiet = True
     try:
         coq.run_stmt(prediction)
