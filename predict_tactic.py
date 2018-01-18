@@ -10,7 +10,8 @@ import math
 import argparse
 
 from format import read_pair
-from tokenizer import pattern_to_token, token_to_pattern, num_tokenizer_patterns
+from tokenizer import pattern_to_token, token_to_pattern, \
+    num_tokenizer_patterns, debug_tokenizer
 
 import torch
 import torch.nn as nn
@@ -338,7 +339,10 @@ def main():
     parser.add_argument("--printevery", default=10, type=int)
     parser.add_argument("--hiddensize", default=None, type=int)
     parser.add_argument("--numpredictions", default=3, type=int)
+    parser.add_argument("--debugtokenizer", default=False, const=True,
+                        action='store_const')
     args = parser.parse_args()
+    debug_tokenizer = args.debugtokenizer
     if args.hiddensize:
         hidden_size = args.hiddensize
     else:
