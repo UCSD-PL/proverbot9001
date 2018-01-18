@@ -326,7 +326,7 @@ class Worker(threading.Thread):
 
         with open("{}/{}.csv".format(self.output_dir, fresult.details_filename()),
                   'w', newline='') as csvfile:
-            rowwriter = csv.writer(csvfile)
+            rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
             for row in command_results:
                 if len(row) == 1:
                     rowwriter.writerow([command])
