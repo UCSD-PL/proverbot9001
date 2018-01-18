@@ -19,6 +19,8 @@ else
     eval `opam config env`
     pip3 install --user sexpdata
     pip3 install --user yattag
+    pip3 install --user http://download.pytorch.org/whl/cu80/torch-0.3.0.post4-cp36-cp36m-linux_x86_64.whl
+    pip3 install --user torchvision
 fi
 
 function check-and-clone {
@@ -68,23 +70,6 @@ function setup-compcert {
     ) || exit 1
 }
 
-function setup-tensorflow {
-    check-and-clone\
-        "tensorflow" "https://github.com/tensorflow/tensorflow"\
-        "b93fd37e143bcdd6339f8e6081c948384a262e0b"
-    (
-        set -euv
-        cd tensorflow
-    ) || exit 1
-    check-and-clone\
-        "models" "https://github.com/tensorflow/models"\
-        "1eced7074daf8429d030f7e3e3b651d92daec946"
-    (
-        set -euv
-        cd tensorflow
-    ) || exit 1
-}
 setup-coq
 setup-coq-serapi
 setup-compcert
-setup-tensorflow
