@@ -55,13 +55,15 @@ function displayTacticInfo (idx) {
     num_actual_corrects = tacSpan.dataset.numActualCorrects
     num_actual_in_file = tacSpan.dataset.numActualInFile
     actual_tactic = tacSpan.dataset.actualTactic
+    search_index = tacSpan.dataset.searchIdx
     statsDiv = document.getElementById("stats")
-    statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predictions[0]) +
-        " *</tt>\" " + Math.floor((num_predicteds[0] / num_total) * 100) +
-        "% of the time (" + num_predicteds[0] + "/" + num_total + ")<br>\n" +
-        Math.floor((num_corrects[0] / num_predicteds[0]) * 100) +
-        "% of \"<tt>" + getStem(predictions[0]) + " *</tt>\" predictions are correct (" +
-        num_corrects[0] + "/" + num_predicteds[0] + ")." +
+    statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predictions[search_index]) +
+        " *</tt>\" " + Math.floor((num_predicteds[search_index] / num_total) * 100) +
+        "% of the time (" + num_predicteds[search_index] + "/" + num_total + ")<br>\n" +
+        Math.floor((num_corrects[search_index] / num_predicteds[search_index]) * 100) +
+        "% of \"<tt>" + getStem(predictions[search_index]) +
+        " *</tt>\" predictions are correct (" +
+        num_corrects[search_index] + "/" + num_predicteds[search_index] + ")." +
         Math.floor((num_actual_corrects / num_actual_in_file) * 100) +
         "% of \"<tt>" + getStem(actual_tactic) +
         " *</tt>\"'s in file correctly predicted (" +

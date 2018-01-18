@@ -367,6 +367,13 @@ class Worker(threading.Thread):
                                        prediction_results]
                         grades = [grade for prediction, grade in
                                   prediction_results]
+                        search_index = 0
+                        for idx, prediction_result in enumerate(prediction_results):
+                            prediction, grade = prediction_result
+                            if (grade != "failedcommand" and
+                                grade != "superfailedcommand"):
+                                search_index = idx
+                                break
                         with tag('span',
                                  ('data-hyps',hyps),
                                  ('data-goal',shorten_whitespace(goal)),
@@ -391,18 +398,13 @@ class Worker(threading.Thread):
                                   command),
                                  ('data-grades',
                                   to_list_string(grades)),
+                                 ('data-search-idx',
+                                  search_index),
                                  id='command-' + str(idx),
                                  onmouseover='hoverTactic({})'.format(idx),
                                  onmouseout='unhoverTactic()',
                                  onclick='selectTactic({}); event.stopPropagation();'
                                  .format(idx)):
-                            search_index = 0
-                            for idx, prediction_result in enumerate(prediction_results):
-                                prediction, grade = prediction_result
-                                if (grade != "failedcommand" and
-                                    grade != "superfailedcommand"):
-                                    search_index = idx
-                                    break
                             doc.stag("br")
                             for idx, prediction_result in enumerate(prediction_results):
                                 prediction, grade = prediction_result
