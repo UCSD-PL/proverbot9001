@@ -11,7 +11,7 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
-    opam switch 4.04.0
+    opam switch 4.03.0
     # For Coq:
     opam install menhir
     # For SerAPI:
