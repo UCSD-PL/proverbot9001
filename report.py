@@ -384,6 +384,8 @@ class Worker(threading.Thread):
                                  ('data-num-actual-in-file',
                                   fresult.actual_tactic_frequency
                                   .get(get_stem(command))),
+                                 ('data-actual-tactic',
+                                  command),
                                  ('data-grades',
                                   to_list_string(grades)),
                                  id='command-' + str(idx),
