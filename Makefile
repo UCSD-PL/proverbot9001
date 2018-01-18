@@ -34,7 +34,7 @@ report:
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 
 train:
-	./predict_tactic.py --train --save pytorch-weights --hiddensize $(HIDDEN_SIZE)
+	./predict_tactic.py --train --save pytorch-weights $(FLAGS) --hiddensize $(HIDDEN_SIZE)
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))
