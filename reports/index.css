@@ -26,6 +26,7 @@ td {
 
 tr:hover:not(.header), tr.highlighted{
     background: #00ffff55;
+    cursor: pointer;
 }
 tr:hover td, tr.highlighted td {
     background: transparent;
@@ -41,6 +42,7 @@ svg {
     color: steelblue;
     fill: steelblue;
     stroke: steelblue;
+    cursor: pointer;
 }
 
 #header {

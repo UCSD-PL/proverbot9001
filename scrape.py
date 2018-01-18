@@ -36,11 +36,10 @@ options = {}
 class Worker(threading.Thread):
     def __init__(self, output, workerid, prelude="."):
         threading.Thread.__init__(self, daemon=True)
+        thispath = os.path.dirname(os.path.abspath(__file__))
         # Set up the command which runs sertop.
-        self.coqargs = [os.path.dirname(os.path.abspath(__file__)) +
-                        "/coq-serapi/sertop.native",
-                        "--prelude={}/coq".format(os.path.dirname(os.path
-                                                                  .abspath(__file__)))]
+        self.coqargs = ["{}/coq-serapi/sertop.native".format(thispath),
+                        "--prelude={}/coq".format(thispath)]
         # Run 'print-includes' in the prelude directory to try to get
         # any includes passed on the ocmmand line. On failure, just
         # assumes there are no includes.
@@ -86,12 +85,13 @@ class Worker(threading.Thread):
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.get_hypothesis()
             prev_goal = coq.get_goals()
+            # rel_lemmas = coq.get_lemmas_about_head()
             # Write out all the information about the current context,
             # and the tactic that is in the file and should be run
             # next.
             with open(self.tmpfile_name, 'a') as tmp_file:
                 tmp_file.write(format_context(prev_tactics, prev_hyps,
-                                              prev_goal))
+                                              prev_goal, ""))
                 tmp_file.write(format_tactic(command))
         # Run the actual command, advancing the coq state.
         coq.run_stmt(command)
@@ -135,6 +135,7 @@ class Worker(threading.Thread):
         with open(self.tmpfile_name, 'r') as tmp_file:
             for line in tmp_file:
                 self.fout.write(line)
+            self.fout.flush()
         output_lock.release()
 
     def run(self):

@@ -11,18 +11,18 @@ import datetime
 import csv
 
 from shutil import *
-from format import format_context
+from format import format_goal
 from yattag import Doc
 
 import serapi_instance
 import linearize_semicolons
 from serapi_instance import ParseError, LexError
+from tokenizer import num_tokenizer_patterns
 
 from helper import *
 from syntax import syntax_highlight
 from helper import load_commands_preserve
 
-from darknet.python.darknet import load_net
 from predict_tactic import *
 
 finished_queue = queue.Queue()
@@ -35,6 +35,17 @@ report_css = ["report.css"]
 report_js = ["report.js"]
 
 num_predictions = 3
+max_tactic_length = 100
+
+output_size = 128 + num_tokenizer_patterns
+hidden_size = 512
+encoder_hidden_layers = 3
+decoder_hidden_layers = 3
+
+net = loadPredictor("pytorch-weights",
+                    output_size, hidden_size,
+                    encoder_hidden_layers, decoder_hidden_layers)
+netLock = threading.Lock()
 
 def header(tag, doc, text, css, javascript, title):
     with tag('head'):
@@ -67,30 +78,26 @@ def to_list_string(l):
 def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
-def run_prediction(coq, prediction_tuple):
-    prediction, probability = prediction_tuple
+def run_prediction(coq, prediction):
     prediction = prediction.lstrip("-+*")
-    if not "." in prediction:
-        return (prediction, "", ParseError("No period"))
-    else:
-        coq.quiet = True
-        try:
-            coq.run_stmt(prediction)
-            context = coq.proof_context
-            coq.cancel_last()
-            return (prediction, probability, context, None)
-        except (ParseError, LexError, CoqExn, BadResponse) as e:
-            return (prediction, probability, "", e)
-        finally:
-            coq.quiet = False
+    coq.quiet = True
+    try:
+        coq.run_stmt(prediction)
+        context = coq.proof_context
+        coq.cancel_last()
+        return (prediction, context, None)
+    except (ParseError, LexError, CoqExn, BadResponse) as e:
+        return (prediction, "", e)
+    finally:
+        coq.quiet = False
 
 # Warning: Mutates fresult
 def evaluate_prediction(fresult, correct_command,
                         correct_result_context, prediction_run):
-    prediction, probability, context, exception = prediction_run
+    prediction, context, exception = prediction_run
     grade = fresult.grade_command_result(prediction, context, correct_command,
                                          correct_result_context, exception)
-    return (prediction, probability, grade)
+    return (prediction, grade)
 
 class GlobalResult:
     def __init__(self):
@@ -114,13 +121,12 @@ class GlobalResult:
         pass
     def report_results(self, doc, text, tag, line):
         with tag('h2'):
-            text("Overall Accuracy: {}% ({}/{})"
+            text("Initial Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_correct, self.num_tactics),
                          self.num_correct, self.num_tactics))
         with tag('h3'):
             text("Searched: {}% ({}/{})"
-                 .format(num_predictions,
-                         stringified_percent(self.num_searched, self.num_tactics),
+                 .format(stringified_percent(self.num_searched, self.num_tactics),
                          self.num_searched, self.num_tactics))
         with tag('table'):
             with tag('tr', klass="header"):
@@ -133,8 +139,12 @@ class GlobalResult:
                 line('th', '% Correctly Searched')
                 line('th', '% Partial')
                 line('th', 'Details')
-            for fresult in sorted(list(rows), key=lambda x: fresult.num_tactics,
-                                  reverse=True):
+            sorted_rows = []
+            while rows.qsize() > 0:
+                sorted_rows.append(rows.get())
+            sorted_rows = sorted(sorted_rows, key=lambda fresult: fresult.num_tactics,
+                                 reverse=True)
+            for fresult in sorted_rows:
                 if fresult.num_tactics == 0:
                     continue
                 with tag('tr'):
@@ -243,8 +253,6 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.debug = debug
         self.num_jobs = num_jobs
-        self.net = load_net("coq.test.cfg".encode('utf-8'),
-                            "darknet/backup/coq.backup".encode('utf-8'), 0)
         pass
 
     def get_commands(self, filename):
@@ -273,9 +281,13 @@ class Worker(threading.Thread):
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
-                    query = format_context(coq.prev_tactics, coq.get_hypothesis(),
-                                           coq.get_goals())
-                    predictions = predict_tactics(self.net, query, 3)
+                    goal = format_goal(coq.get_goals())
+                    netLock.acquire()
+                    predictions = predictKTactics(net, goal,
+                                                  num_predictions * num_predictions,
+                                                  num_predictions,
+                                                  max_tactic_length)
+                    netLock.release()
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
@@ -296,10 +308,10 @@ class Worker(threading.Thread):
                                                               prediction_run)
                                           for prediction_run in prediction_runs]
                     fresult.add_command_result(
-                        [pred for pred, prob, ctxt, ex in prediction_runs],
-                        [ctxt for pred, prob, ctxt, ex in prediction_runs],
+                        [pred for pred, ctxt, ex in prediction_runs],
+                        [ctxt for pred, ctxt, ex in prediction_runs],
                         command, actual_result_context,
-                        [ex for pred, prob, ctxt, ex in prediction_runs])
+                        [ex for pred, ctxt, ex in prediction_runs])
 
                     command_results.append((command, hyps, goals,
                                             prediction_results))
@@ -317,18 +329,19 @@ class Worker(threading.Thread):
             rowwriter = csv.writer(csvfile)
             for row in command_results:
                 if len(row) == 1:
-                    break
-                command, hyps, goal, prediction_results = row
-                first_pred, first_prob, first_grade = prediction_results[0]
-                if len(prediction_results) >= 2:
-                    second_pred, second_prob, second_grade = prediction_results[1]
+                    rowwriter.writerow([command])
                 else:
-                    second_pred, second_prob, second_grade = "", "", ""
-                if len(prediction_results) >= 3:
-                    third_pred, third_prob, third_grade = prediction_results[2]
-                else:
-                    third_pred, third_prob, third_grade = "", "", ""
-                rowwriter.writerow([command, hyps, goal, first_pred, first_prob, first_grade, second_pred, second_prob, second_grade, third_pred, third_prob, third_grade])
+                    command, hyps, goal, prediction_results = row
+                    first_pred, first_grade = prediction_results[0]
+                    if len(prediction_results) >= 2:
+                        second_pred, second_grade = prediction_results[1]
+                    else:
+                        second_pred, second_grade = "", ""
+                    if len(prediction_results) >= 3:
+                        third_pred, third_grade = prediction_results[2]
+                    else:
+                        third_pred, third_grade = "", ""
+                    rowwriter.writerow([command, hyps, goal, first_pred, first_grade, second_pred, second_grade, third_pred, third_grade])
 
         doc, tag, text, line = Doc().ttl()
 
@@ -350,11 +363,9 @@ class Worker(threading.Thread):
                             text(command_result[0])
                     else:
                         command, hyps, goal, prediction_results = command_result
-                        predictions = [prediction for prediction, probability, grade in
+                        predictions = [prediction for prediction, grade in
                                        prediction_results]
-                        probabilities = [probability for prediction, probability, grade in
-                                         prediction_results]
-                        grades = [grade for prediction, probability, grade in
+                        grades = [grade for prediction, grade in
                                   prediction_results]
                         with tag('span',
                                  ('data-hyps',hyps),
@@ -376,8 +387,8 @@ class Worker(threading.Thread):
                                  ('data-num-actual-in-file',
                                   fresult.actual_tactic_frequency
                                   .get(get_stem(command))),
-                                 ('data-probabilities',
-                                  to_list_string(probabilities)),
+                                 ('data-actual-tactic',
+                                  command),
                                  ('data-grades',
                                   to_list_string(grades)),
                                  id='command-' + str(idx),
@@ -387,18 +398,20 @@ class Worker(threading.Thread):
                                  .format(idx)):
                             search_index = 0
                             for idx, prediction_result in enumerate(prediction_results):
-                                prediction, probability, grade = prediction_result
+                                prediction, grade = prediction_result
                                 if (grade != "failedcommand" and
                                     grade != "superfailedcommand"):
                                     search_index = idx
+                                    break
+                            doc.stag("br")
                             for idx, prediction_result in enumerate(prediction_results):
-                                prediction, probability, grade = prediction_result
+                                prediction, grade = prediction_result
                                 if search_index == idx:
-                                    with tag('code', klass=grades[0]):
-                                        text(command)
+                                    with tag('code', klass=grade):
+                                        text(" " + command.strip())
                                 else:
                                     with tag('span', klass=grade):
-                                        text(" \u2580")
+                                        doc.asis(" &#9899;")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
             fout.write(syntax_highlight(doc.getvalue()))
@@ -426,12 +439,13 @@ def escape_filename(filename):
     return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
 parser = argparse.ArgumentParser(description=
-                                 "try to match the file by predicting a tacti")
+                                 "try to match the file by predicting a tactic")
 parser.add_argument('-j', '--threads', default=1, type=int)
 parser.add_argument('--prelude', default=".")
 parser.add_argument('--debug', default=False, const=True, action='store_const')
 parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
+parser.add_argument('-m', '--message', default=None)
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 
@@ -480,6 +494,9 @@ with tag('html'):
             text("{} files processed".format(num_jobs))
         with tag('h5'):
             text("Commit: {}".format(cur_commit))
+        if args.message:
+            with tag('h5'):
+                text("Message: {}".format(args.message))
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         with tag('img',

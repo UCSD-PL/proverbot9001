@@ -1,4 +1,3 @@
-./backend/Stacking.v
 ./backend/Locations.v
 ./backend/RTL.v
 ./backend/Unusedglob.v
@@ -7,7 +6,6 @@
 ./cfrontend/Cop.v
 ./exportclight/Clightdefs.v
 ./cparser/validator/Validator_complete.v
-./x86/ConstpropOpproof.v
 ./x86/SelectOpproof.v
 ./flocq/Calc/Fcalc_round.v
 ./flocq/Prop/Fprop_mult_error.v
