@@ -329,16 +329,16 @@ class Worker(threading.Thread):
                     rowwriter.writerow([command])
                 else:
                     command, hyps, goal, prediction_results = row
-                    first_pred, first_prob, first_grade = prediction_results[0]
+                    first_pred, first_grade = prediction_results[0]
                     if len(prediction_results) >= 2:
-                        second_pred, second_prob, second_grade = prediction_results[1]
+                        second_pred, second_grade = prediction_results[1]
                     else:
-                        second_pred, second_prob, second_grade = "", "", ""
+                        second_pred, second_grade = "", ""
                     if len(prediction_results) >= 3:
-                        third_pred, third_prob, third_grade = prediction_results[2]
+                        third_pred, third_grade = prediction_results[2]
                     else:
-                        third_pred, third_prob, third_grade = "", "", ""
-                    rowwriter.writerow([command, hyps, goal, first_pred, first_prob, first_grade, second_pred, second_prob, second_grade, third_pred, third_prob, third_grade])
+                        third_pred, third_grade = "", ""
+                    rowwriter.writerow([command, hyps, goal, first_pred, first_grade, second_pred, second_grade, third_pred, third_grade])
 
         doc, tag, text, line = Doc().ttl()
 
