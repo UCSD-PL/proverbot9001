@@ -53,10 +53,10 @@ for (p, t) in tokens:
 
 def pattern_to_token(s):
     for k in dict_pattern_to_token:
-        s = re.sub(fr"(^|(?<=[ ])){k}(?=[ ]|;|.)", dict_pattern_to_token[k], s)
+        s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_pattern_to_token[k], s)
     return s
 
 def token_to_pattern(s):
     for k in dict_token_to_pattern:
-        s = re.sub(fr"(^|(?<=[ ])){k}(?=[ ]|;|.)", dict_token_to_pattern[k], s)
+        s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_token_to_pattern[k], s)
     return s
