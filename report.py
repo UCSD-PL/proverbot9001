@@ -17,7 +17,8 @@ from yattag import Doc
 import serapi_instance
 import linearize_semicolons
 from serapi_instance import ParseError, LexError
-from tokenizer import num_tokenizer_patterns, debug_tokenizer
+from tokenizer import num_tokenizer_patterns
+import tokenizer
 
 from helper import *
 from syntax import syntax_highlight
@@ -451,7 +452,7 @@ parser.add_argument('--debugtokenizer', default=False, const=True, action='store
 parser.add_argument('-m', '--message', default=None)
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
-debug_tokenizer = args.debugtokenizer
+tokenizer.debug_tokenizer = args.debugtokenizer
 
 coqargs = ["{}/coq-serapi/sertop.native".format(base),
            "--prelude={}/coq".format(base)]

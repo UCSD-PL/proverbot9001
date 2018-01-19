@@ -2,6 +2,8 @@
 
 import re
 
+debug_tokenizer = False
+
 def next_char(c):
     return chr(ord(c) + 1)
 
@@ -52,11 +54,17 @@ for (p, t) in tokens:
     dict_token_to_pattern[t] = p
 
 def pattern_to_token(s):
+    s_in = s
     for k in dict_pattern_to_token:
         s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_pattern_to_token[k], s)
+    if debug_tokenizer:
+        print("{} -> {}".format(s_in, [ord(c) for c in s]))
     return s
 
 def token_to_pattern(s):
+    s_in = s
     for k in dict_token_to_pattern:
         s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_token_to_pattern[k], s)
+    if debug_tokenizer:
+        print("{} -> {}".format([ord(c) for c in s_in], s))
     return s
