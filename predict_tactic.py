@@ -269,6 +269,17 @@ def adjustLearningRate(initial, optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+def save_checkpoint(state, is_best, filepath='./'):
+    '''
+    Save checkpoint if a new best is achieved
+    '''
+    if is_best:
+        print ("=> Saving a new best checkpoint, epoch {}".format(state['epoch']))
+        with open(filepath + 'checkpoint.tar', 'wb') as f:
+            torch.save(state, f)
+    else:
+        print ("=> Epoch {}, loss did not reduce".format(state['epoch']))
+
 def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
                print_every=100, learning_rate=0.003):
     start = time.time()
@@ -291,6 +302,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
     batch_idx = 0
     n_iters = len(data_pairs) * n_epochs
     print_loss = 0
+    best_loss = None
 
     print("Starting training.")
     for epoch in range(math.ceil(n_epochs)):
@@ -299,6 +311,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
         print("Epoch {}".format(epoch))
         epoch_loss = 0
         epoch_batch_idx = 0
+        is_best = False
         for context_batch, tactic_batch in loader:
             if context_batch.size()[0] != batch_size:
                 encoder.batch_size = context_batch.size()[0]
@@ -321,6 +334,10 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
         print("Epoch loss: {:.4f}".format(epoch_loss / epoch_batch_idx))
         encoder.batch_size = batch_size
         decoder.batch_size = batch_size
+        if best_loss is None or best_loss > (epoch_loss / epoch_batch_idx):
+                best_loss = epoch_loss / epoch_batch_idx
+                is_best = True
+        save_checkpoint({'epoch':epoch, 'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(), 'best_loss':best_loss}, is_best)
 
 def main():
     global MAX_LENGTH
