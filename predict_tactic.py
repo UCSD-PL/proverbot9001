@@ -187,7 +187,7 @@ def inputFromSentence(sentence):
     if len(sentence) > MAX_LENGTH:
         sentence = sentence[:MAX_LENGTH]
     if len(sentence) < MAX_LENGTH:
-        sentence.extend([EOS_token] * (MAX_LENGTH - len(sentence)))
+        sentence.extend([0] * (MAX_LENGTH - len(sentence)))
     return sentence
 
 def variableFromSentence(sentence):
@@ -232,7 +232,7 @@ def predictKTactics(predictor, sentence, beam_width, k, max_length):
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
     if len(tokenlist) < max_length:
-        tokenlist.extend([EOS_token] * (max_length - len(tokenlist)))
+        tokenlist.extend([0] * (max_length - len(tokenlist)))
     encoder_hidden = encodeContext(predictor.encoder, tokenlist)
     return decodeKTactics(predictor.decoder, encoder_hidden, k, predictor.vocab_size)
 
