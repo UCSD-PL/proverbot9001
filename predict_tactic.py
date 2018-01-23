@@ -159,7 +159,7 @@ def read_text_data(data_path, max_size=None):
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            context_ids = [ord(x) for x in pattern_to_token(context)]
+            context_ids = [ord(x) for x in context]
             tactic_ids = [ord(x) for x in pattern_to_token(tactic)]
 
             data_set.append([context_ids, tactic_ids])
