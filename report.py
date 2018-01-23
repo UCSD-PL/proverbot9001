@@ -369,11 +369,11 @@ class Worker(threading.Thread):
                         grades = [grade for prediction, grade in
                                   prediction_results]
                         search_index = 0
-                        for idx, prediction_result in enumerate(prediction_results):
+                        for pidx, prediction_result in enumerate(prediction_results):
                             prediction, grade = prediction_result
                             if (grade != "failedcommand" and
                                 grade != "superfailedcommand"):
-                                search_index = idx
+                                search_index = pidx
                                 break
                         with tag('span',
                                  ('data-hyps',hyps),
