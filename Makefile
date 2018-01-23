@@ -1,7 +1,7 @@
 
 SHELL=/usr/bin/env bash
 
-ENV_PREFIX=export LD_LIBRARY_PATH=$$PWD/darknet/:/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
+ENV_PREFIX=export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
 NTHREADS=16
 FLAGS=
