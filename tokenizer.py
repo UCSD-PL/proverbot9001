@@ -21,6 +21,7 @@ fresh = make_fresh()
 patterns = [
     "apply",
     "assert",
+    "eauto",
     "auto",
     "case",
     "clear",
@@ -30,15 +31,26 @@ patterns = [
     "first",
     "generalize",
     "induction",
-    "intro",
     "intros",
+    "intro",
     "intuition",
     "inversion",
+    "inv",
     "reflexivity",
     "revert",
     "rewrite",
     "transitivity",
     "unfold",
+    "with",
+    "set",
+    "simpl",
+    "try",
+    "congruence",
+    "omega",
+    "repeat"
+    "as",
+    "using",
+    "exact",
 ]
 
 num_tokenizer_patterns = len(patterns)
