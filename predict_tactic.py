@@ -269,19 +269,19 @@ def adjustLearningRate(initial, optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-def save_checkpoint(state, is_best, filepath='./'):
+def save_checkpoint(state, is_best, filename):
     '''
     Save checkpoint if a new best is achieved
     '''
     if is_best:
         print ("=> Saving a new best checkpoint, epoch {}".format(state['epoch']))
-        with open(filepath + 'checkpoint.tar', 'wb') as f:
+        with open(filename + '.tar', 'wb') as f:
             torch.save(state, f)
     else:
         print ("=> Epoch {}, loss did not reduce".format(state['epoch']))
 
 def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
-               print_every=100, learning_rate=0.003):
+               print_every=100, learning_rate=0.003, filename='checkpoint'):
     start = time.time()
     print_loss_total = 0
 
@@ -337,7 +337,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
         if best_loss is None or best_loss > (epoch_loss / epoch_batch_idx):
                 best_loss = epoch_loss / epoch_batch_idx
                 is_best = True
-        save_checkpoint({'epoch':epoch, 'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(), 'best_loss':best_loss}, is_best)
+        save_checkpoint({'epoch':epoch, 'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(), 'best_loss':best_loss}, is_best, filename)
 
 def main():
     global MAX_LENGTH
@@ -375,11 +375,7 @@ def main():
         decoder = DecoderRNN(hidden_size, output_size, args.batchsize).cuda()
         encoder = EncoderRNN(output_size, hidden_size, args.batchsize).cuda()
         trainIters(encoder, decoder, args.nepochs,
-                   data_set, args.batchsize, print_every=args.printevery)
-        with open(args.save + ".enc", "wb") as f:
-            torch.save(encoder.state_dict(), f)
-        with open(args.save + ".dec", "wb") as f:
-            torch.save(decoder.state_dict(), f)
+                   data_set, args.batchsize, print_every=args.printevery, filename=args.save)
     else:
         predictor = loadPredictor(args.save, output_size, hidden_size)
         commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
@@ -387,8 +383,9 @@ def main():
 def loadPredictor(path_stem, output_size, hidden_size,
                   encoder_hidden_layers=3, decoder_hidden_layers=3):
     predictor = TacticPredictor(output_size, hidden_size)
-    predictor.encoder.load_state_dict(torch.load(path_stem + ".enc"))
-    predictor.decoder.load_state_dict(torch.load(path_stem + ".dec"))
+    checkpoint = torch.load(path_stem + '.tar')
+    predictor.encoder.load_state_dict(checkpoint['encoder'])
+    predictor.decoder.load_state_dict(checkpoint['decoder'])
     return predictor
 
 # The code below here was copied from
