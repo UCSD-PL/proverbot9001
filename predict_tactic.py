@@ -4,6 +4,7 @@ import re
 import random
 import string
 import sys
+import signal
 
 import time
 import math
@@ -339,6 +340,9 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
                 is_best = True
         save_checkpoint({'epoch':epoch, 'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(), 'best_loss':best_loss}, is_best, filename)
 
+def exit_early(signal, frame):
+    sys.exit(0)
+
 def main():
     global MAX_LENGTH
     parser = argparse.ArgumentParser(description=
@@ -366,6 +370,7 @@ def main():
         hidden_size = args.vocabsize * 2
     output_size = args.vocabsize + num_tokenizer_patterns
     MAX_LENGTH = args.maxlength
+    signal.signal(signal.SIGINT, exit_early)
     if args.train:
         if args.numfile:
             data_set = read_num_data(args.scrapefile)
