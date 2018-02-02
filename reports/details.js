@@ -63,7 +63,7 @@ function displayTacticInfo (idx) {
         Math.floor((num_corrects[search_index] / num_predicteds[search_index]) * 100) +
         "% of \"<tt>" + getStem(predictions[search_index]) +
         " *</tt>\" predictions are correct (" +
-        num_corrects[search_index] + "/" + num_predicteds[search_index] + ")." +
+        num_corrects[search_index] + "/" + num_predicteds[search_index] + "). " +
         Math.floor((num_actual_corrects / num_actual_in_file) * 100) +
         "% of \"<tt>" + getStem(actual_tactic) +
         " *</tt>\"'s in file correctly predicted (" +
