@@ -4,12 +4,13 @@ window.onload = function () {
 }
 function make_rows_clickable() {
     var rows = document.getElementsByTagName("tr")
-    for (var i = 0; i < rows.length; i++){
+    for (var i = 1; i < rows.length; i++){
         if (rows[i].className == "header") continue
         rows[i].onclick = (function (row) {
             return function () {
-                window.location = row.children[7].children[0].href
+                window.location = row.children[8].children[0].href
             }
         })(rows[i])
+        rows[i].style.cursor = "pointer"
     }
 }
