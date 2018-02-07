@@ -52,17 +52,7 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.workerid = workerid
         self.tmpfile_name = "/tmp/proverbot_worker{}".format(workerid)
-        # Finally, if there is no output file, use stdout. If not,
-        # open the file now to get a consistent interface. This isn't
-        # the best approach because it means we never close the output
-        # file, but it's probably okay because we'll be using it until
-        # the whole script is done, and then the os will close it for
-        # us. Also, it would take a bunch of boilerplate to do this
-        # better, so meh.
-        if output == None:
-            self.fout = sys.stdout
-        else:
-            self.fout = open(args.output, 'w')
+        self.outfile_name = output
         pass
 
     def process_statement(self, coq, command):
@@ -133,9 +123,14 @@ class Worker(threading.Thread):
         # file and write the contents of our temp file to it.
         output_lock.acquire()
         with open(self.tmpfile_name, 'r') as tmp_file:
-            for line in tmp_file:
-                self.fout.write(line)
-            self.fout.flush()
+            if self.outfile_name:
+                with open(self.outfile_name, 'a') as out_file:
+                    for line in tmp_file:
+                        out_file.write(line)
+                    out_file.flush()
+            else:
+                for line in tmp_file:
+                    print(line)
         output_lock.release()
 
     def run(self):
