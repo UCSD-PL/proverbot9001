@@ -292,9 +292,9 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
 
     dataset = torch.utils.data.TensorDataset(
         torch.LongTensor([inputFromSentence(context)
-                               for context, tactic in data_pairs]),
+                          for context, tactic in data_pairs]),
         torch.LongTensor([inputFromSentence(tactic)
-                               for context, tactic in data_pairs]))
+                          for context, tactic in data_pairs]))
     loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
                                          pin_memory=True, num_workers=0)
 
