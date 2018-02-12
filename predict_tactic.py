@@ -72,7 +72,7 @@ class DecoderRNN(nn.Module):
         self.embedding = nn.Embedding(output_size, hidden_size).cuda()
         self.gru = nn.GRU(hidden_size, hidden_size).cuda()
         self.out = nn.Linear(hidden_size, output_size).cuda()
-        self.softmax = nn.LogSoftmax().cuda()
+        self.softmax = nn.LogSoftmax(1).cuda()
         self.k = width
         self.batch_size = batch_size
 
