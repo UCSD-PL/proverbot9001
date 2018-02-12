@@ -17,8 +17,7 @@ from yattag import Doc
 import serapi_instance
 import linearize_semicolons
 from serapi_instance import ParseError, LexError
-from tokenizer import num_tokenizer_patterns
-import tokenizer
+import text_encoder
 
 from helper import *
 from syntax import syntax_highlight
@@ -38,15 +37,8 @@ report_js = ["report.js"]
 num_predictions = 3
 max_tactic_length = 100
 
-output_size = 128 + num_tokenizer_patterns
-hidden_size = 512
-encoder_hidden_layers = 3
-decoder_hidden_layers = 3
-
-net = loadPredictor("pytorch-weights",
-                    output_size, hidden_size,
-                    encoder_hidden_layers, decoder_hidden_layers)
-netLock = threading.Lock()
+net = None
+netLock = None
 
 def header(tag, doc, text, css, javascript, title):
     with tag('head'):
@@ -452,7 +444,7 @@ parser.add_argument('--debugtokenizer', default=False, const=True, action='store
 parser.add_argument('-m', '--message', default=None)
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
-tokenizer.debug_tokenizer = args.debugtokenizer
+text_encoder.debug_tokenizer = args.debugtokenizer
 
 coqargs = ["{}/coq-serapi/sertop.native".format(base),
            "--prelude={}/coq".format(base)]
@@ -474,6 +466,9 @@ for infname in args.filenames:
     jobs.put(infname)
 
 args.threads = min(args.threads, len(args.filenames))
+
+net = loadPredictor("pytorch-weights")
+netLock = threading.Lock()
 
 for idx in range(args.threads):
     worker = Worker(idx, coqargs, includes, args.output,

@@ -53,8 +53,6 @@ patterns = [
     "exact",
 ]
 
-num_tokenizer_patterns = len(patterns)
-
 tokens = map(lambda p: (p, fresh()), patterns)
 
 # Two dictionaries for fast lookup both ways:
@@ -80,3 +78,54 @@ def token_to_pattern(s):
     if debug_tokenizer:
         print("{} -> {}".format([ord(c) for c in s_in], s))
     return s
+
+def encode_tactic(tactic):
+    # tactic = pattern_to_token(tactic)
+    tokenlist = translate(tactic)
+    return tokenlist
+def encode_context(context):
+    return translate(context)
+
+def decode_tactic(tokenlist):
+    tactic = untranslate(tokenlist)
+    # tactic = token_to_pattern(tactic)
+    return tactic
+def decode_context(context):
+    return untranslate(context)
+
+num_reserved_tokens = 2 # We want '0' to be reserved for "end of stream" and '1' to be reserved for "start of stream"
+
+char_to_num = {}
+num_to_char = {}
+
+def get_encoder_state():
+    return list(char_to_num.items())
+
+def set_encoder_state(keypairs):
+    global char_to_num
+    global num_to_char
+    char_to_num = {}
+    num_to_char = {}
+    for k, v in keypairs:
+        assert isinstance(k, str)
+        assert isinstance(v, int)
+        char_to_num[k] = v
+        num_to_char[v] = k
+
+def text_vocab_size():
+    return num_reserved_tokens + len(char_to_num)# + len(patterns)
+
+def translate(string):
+    result = []
+    for c in string:
+        if c in char_to_num:
+            result += [char_to_num[c]]
+        else:
+            new_id = len(char_to_num) + num_reserved_tokens
+            char_to_num[c] = new_id
+            num_to_char[new_id] = c
+            result += [new_id]
+    return result
+
+def untranslate(tokenlist):
+    return "".join([num_to_char[t] for t in tokenlist])

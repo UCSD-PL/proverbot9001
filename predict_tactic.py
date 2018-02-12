@@ -11,8 +11,11 @@ import math
 import argparse
 
 from format import read_pair
-from tokenizer import pattern_to_token, token_to_pattern, num_tokenizer_patterns
-import tokenizer
+from text_encoder import encode_tactic, encode_context, \
+    decode_tactic, decode_context, \
+    text_vocab_size, \
+    get_encoder_state, set_encoder_state
+import text_encoder
 
 import torch
 import torch.nn as nn
@@ -160,10 +163,8 @@ def read_text_data(data_path, max_size=None):
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            context_ids = [ord(x) for x in context]
-            tactic_ids = [ord(x) for x in pattern_to_token(tactic)]
-
-            data_set.append([context_ids, tactic_ids])
+            data_set.append([encode_context(context),
+                             encode_tactic(tactic)])
 
             pair = read_pair(data_file)
     assert(len(data_set) > 0)
@@ -227,9 +228,9 @@ def commandLinePredict(predictor, numfile, k, max_length):
             print(''.join([chr(x) for x in result]))
 
 def predictKTactics(predictor, sentence, beam_width, k, max_length):
-    predictionTokenLists = predictKTokenlist(predictor, [ord(c) for c in sentence],
-                                            beam_width, max_length)[:k]
-    return [token_to_pattern("".join([chr(x) for x in tokenlist]) + ".")
+    predictionTokenLists = predictKTokenlist(predictor, encode_context(sentence),
+                                             beam_width, max_length)[:k]
+    return [decode_tactic(tokenlist) + "."
             for tokenlist in predictionTokenLists]
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
@@ -339,7 +340,11 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
         if best_loss is None or best_loss > (epoch_loss / epoch_batch_idx):
                 best_loss = epoch_loss / epoch_batch_idx
                 is_best = True
-        save_checkpoint({'epoch':epoch, 'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(), 'best_loss':best_loss}, is_best, filename)
+        save_checkpoint({'epoch':epoch,
+                         'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(),
+                         'best_loss':best_loss,
+                         'text_encoder_dict':get_encoder_state(),
+                         'hidden_size':encoder.hidden_size}, is_best, filename)
 
 def exit_early(signal, frame):
     sys.exit(0)
@@ -364,19 +369,20 @@ def main():
     parser.add_argument("--debugtokenizer", default=False, const=True,
                         action='store_const')
     args = parser.parse_args()
-    tokenizer.debug_tokenizer = args.debugtokenizer
-    if args.hiddensize:
-        hidden_size = args.hiddensize
-    else:
-        hidden_size = args.vocabsize * 2
-    output_size = args.vocabsize + num_tokenizer_patterns
+    text_encoder.debug_tokenizer = args.debugtokenizer
     MAX_LENGTH = args.maxlength
     signal.signal(signal.SIGINT, exit_early)
     if args.train:
         if args.numfile:
             data_set = read_num_data(args.scrapefile)
+            output_size = args.numeric_vocabsize
         else:
             data_set = read_text_data(args.scrapefile)
+            output_size = text_vocab_size()
+        if args.hiddensize:
+            hidden_size = args.hiddensize
+        else:
+            hidden_size = output_size * 2
         print("Initializing CUDA...")
         decoder = DecoderRNN(hidden_size, output_size, args.batchsize).cuda()
         encoder = EncoderRNN(output_size, hidden_size, args.batchsize).cuda()
@@ -386,10 +392,10 @@ def main():
         predictor = loadPredictor(args.save, output_size, hidden_size)
         commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
 
-def loadPredictor(path_stem, output_size, hidden_size,
-                  encoder_hidden_layers=3, decoder_hidden_layers=3):
-    predictor = TacticPredictor(output_size, hidden_size)
+def loadPredictor(path_stem):
     checkpoint = torch.load(path_stem + '.tar')
+    set_encoder_state(checkpoint['text_encoder_dict'])
+    predictor = TacticPredictor(text_vocab_size(), checkpoint['hidden_size'])
     predictor.encoder.load_state_dict(checkpoint['encoder'])
     predictor.decoder.load_state_dict(checkpoint['decoder'])
     return predictor
