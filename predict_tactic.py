@@ -78,7 +78,7 @@ class DecoderRNN(nn.Module):
         self.hidden_size = hidden_size
 
         self.embedding = nn.Embedding(output_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size)j
+        self.gru = nn.GRU(hidden_size, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
         self.softmax = nn.LogSoftmax(1)
         self.k = width
@@ -111,11 +111,11 @@ def LongTensor(arr):
     else:
         return torch.LongTensor(arr)
 
-def FloatTensor(arr):
+def FloatTensor(k, val):
     if use_cuda:
-        return torch.cuda.FloatTensor(arr)
+        return torch.cuda.FloatTensor(k, val)
     else:
-        return torch.FloatTensor(arr)
+        return torch.FloatTensor(k, val)
 
 def train(input_variable, target_variable,
           encoder, decoder,
@@ -257,7 +257,7 @@ def commandLinePredict(predictor, numfile, k, max_length):
 def predictKTactics(predictor, sentence, beam_width, k, max_length):
     predictionTokenLists = predictKTokenlist(predictor, encode_context(sentence),
                                              beam_width, max_length)[:k]
-    return [decode_tactic(tokenlist) + "."
+    return [decode_tactic(tokenlist)
             for tokenlist in predictionTokenLists]
 
 def predictKTokenlist(predictor, tokenlist, k, max_length):
