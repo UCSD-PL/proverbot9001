@@ -166,6 +166,7 @@ def read_text_data(data_path, max_size=None):
             data_set.append([context_ids, tactic_ids])
 
             pair = read_pair(data_file)
+    assert(len(data_set) > 0)
     return data_set
 
 def read_num_data(data_path, max_size=None):
