@@ -30,7 +30,7 @@ use_cuda = torch.cuda.is_available()
 assert use_cuda
 
 SOS_token = 1
-EOS_token = ord('.')
+EOS_token = 0
 
 teacher_forcing_ratio = 0.5
 
