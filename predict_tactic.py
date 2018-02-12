@@ -360,7 +360,7 @@ def main():
     parser.add_argument("--scrapefile", default="scrape.txt")
     parser.add_argument("--numfile", default=False, const=True,
                         action='store_const')
-    parser.add_argument("--vocabsize", default=128, type=int)
+    parser.add_argument("--numeric_vocabsize", default=128, type=int)
     parser.add_argument("--batchsize", default=256, type=int)
     parser.add_argument("--maxlength", default=100, type=int)
     parser.add_argument("--printevery", default=10, type=int)
