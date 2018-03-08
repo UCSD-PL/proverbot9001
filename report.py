@@ -20,7 +20,7 @@ from serapi_instance import ParseError, LexError
 import text_encoder
 
 from helper import *
-from syntax import syntax_highlight
+from syntax import syntax_highlight, strip_comments
 from helper import load_commands_preserve
 
 from predict_tactic import *
@@ -184,14 +184,14 @@ class FileResult:
                              actual, actual_context, exception):
         if actual.strip() == predicted.strip():
             return "goodcommand"
+        elif type(exception) == ParseError or type(exception) == LexError:
+            return "superfailedcommand"
         elif predicted_context == actual_context:
             return "mostlygoodcommand"
         elif (get_stem(actual) == get_stem(predicted)):
             return "okaycommand"
         elif exception == None:
             return "badcommand"
-        elif type(exception) == ParseError or type(exception) == LexError:
-            return "superfailedcommand"
         else:
             return "failedcommand"
     def add_command_result(self, predictions, prediction_contexts,
@@ -388,7 +388,7 @@ class Worker(threading.Thread):
                                   fresult.actual_tactic_frequency
                                   .get(get_stem(command))),
                                  ('data-actual-tactic',
-                                  command),
+                                  strip_comments(command)),
                                  ('data-grades',
                                   to_list_string(grades)),
                                  ('data-search-idx',
