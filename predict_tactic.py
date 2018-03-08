@@ -353,7 +353,7 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
             if use_cuda:
                 context_var = context_var.cuda()
                 tactic_var = tactic_var.cuda()
-            loss = train(context_var, tactiC_var,
+            loss = train(context_var, tactic_var,
                          encoder, decoder,
                          encoder_optimizer, decoder_optimizer, criterion)
             print_loss += loss
