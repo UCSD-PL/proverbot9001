@@ -87,10 +87,10 @@ def strip_comments(command):
     result = ""
     comment_depth = 0
     for i in range(len(command)):
-        if page[i:i+2] == "(*":
+        if command[i:i+2] == "(*":
             comment_depth += 1
         if comment_depth < 1:
-            result += page[i]
-        if page[i-1:i+1] == "*)":
+            result += command[i]
+        if command[i-1:i+1] == "*)":
             comment_depth -= 1
     return result
