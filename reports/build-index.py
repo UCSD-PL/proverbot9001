@@ -15,9 +15,9 @@ def get_file_date(filename):
 def get_file_percent(filename):
     with open(filename+"/report.html") as f:
         contents = f.read()
-        oldPercentString = re.search(r"Overall Accuracy:\s+(\d+\.\d+)%", contents)
-        if oldPercentString:
-            return float(oldPercentString.group(1))
+        overallPercentStringv1 = re.search(r"Overall Accuracy:\s+(\d+\.\d+)%", contents)
+        if overallPercentString:
+            return float(overallPercentString.group(1))
         else:
             return float(re.search(r"Searched:\s+(\d+\.\d+)%", contents).group(1))
 

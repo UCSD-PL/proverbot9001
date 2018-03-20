@@ -114,11 +114,7 @@ class GlobalResult:
         pass
     def report_results(self, doc, text, tag, line):
         with tag('h2'):
-            text("Initial Accuracy: {}% ({}/{})"
-                 .format(stringified_percent(self.num_correct, self.num_tactics),
-                         self.num_correct, self.num_tactics))
-        with tag('h3'):
-            text("Searched: {}% ({}/{})"
+            text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_searched, self.num_tactics),
                          self.num_searched, self.num_tactics))
         with tag('table'):
