@@ -121,11 +121,10 @@ class GlobalResult:
             with tag('tr', klass="header"):
                 line('th', 'Filename')
                 line('th', 'Number of Tactics in File')
-                line('th', 'Number of Tactics Correctly Predicted')
-                line('th', 'Number of Tactics Predicted Partially Correct')
-                line('th', '% Correct')
+                line('th', 'Number of Tactics Correctly Found')
+                line('th', '% Correctly Found')
+                line('th', '% Initially Correct')
                 line('th', '% Top {}'.format(num_predictions))
-                line('th', '% Correctly Searched')
                 line('th', '% Partial')
                 line('th', 'Details')
             sorted_rows = []
@@ -139,13 +138,12 @@ class GlobalResult:
                 with tag('tr'):
                     line('td', fresult.filename)
                     line('td', fresult.num_tactics)
-                    line('td', fresult.num_correct)
-                    line('td', fresult.num_partial)
+                    line('td', fresult.num_searched)
+                    line('td', stringified_percent(fresult.num_searched,
+                                                   fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_correct,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_topN,
-                                                   fresult.num_tactics))
-                    line('td', stringified_percent(fresult.num_searched,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_partial,
                                                    fresult.num_tactics))
