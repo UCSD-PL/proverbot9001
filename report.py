@@ -132,7 +132,18 @@ class GlobalResult:
                 sorted_rows.append(rows.get())
             sorted_rows = sorted(sorted_rows, key=lambda fresult: fresult.num_tactics,
                                  reverse=True)
+            total_num_tactics = 0
+            total_num_searched = 0
+            total_num_correct = 0
+            total_num_partial = 0
+            total_num_topN = 0
+
             for fresult in sorted_rows:
+                total_num_tactics += fresult.num_tactics
+                total_num_searched += fresult.num_searched
+                total_num_correct += fresult.num_correct
+                total_num_partial += fresult.num_partial
+                total_num_topN += fresult.num_topN
                 if fresult.num_tactics == 0:
                     continue
                 with tag('tr'):
@@ -150,6 +161,19 @@ class GlobalResult:
                     with tag('td'):
                         with tag('a', href=fresult.details_filename() + ".html"):
                             text("Details")
+            with tag('tr'):
+                line('td', "Total");
+                line('td', total_num_tactics)
+                line('td', total_num_searched)
+                line('td', stringified_percent(total_num_searched,
+                                               total_num_tactics))
+                line('td', stringified_percent(total_num_correct,
+                                               total_num_tactics))
+                line('td', stringified_percent(total_num_topN,
+                                               total_num_tactics))
+                line('td', stringified_percent(total_num_partial,
+                                               total_num_tactics))
+
     pass
 
 def add_to_freq_table(table, entry):
