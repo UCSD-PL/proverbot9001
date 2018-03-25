@@ -426,7 +426,7 @@ def main():
         trainIters(encoder, decoder, args.nepochs,
                    data_set, args.batchsize, print_every=args.printevery, filename=args.save)
     else:
-        predictor = loadPredictor(args.save, output_size, hidden_size)
+        predictor = loadPredictor(args.save)
         commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
 
 def loadPredictor(path_stem):
