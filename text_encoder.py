@@ -80,7 +80,7 @@ def token_to_pattern(s):
     return s
 
 def encode_tactic(tactic):
-    # tactic = pattern_to_token(tactic)
+    tactic = pattern_to_token(tactic)
     tokenlist = translate(tactic)
     return tokenlist
 def encode_context(context):
@@ -88,7 +88,7 @@ def encode_context(context):
 
 def decode_tactic(tokenlist):
     tactic = untranslate(tokenlist)
-    # tactic = token_to_pattern(tactic)
+    tactic = token_to_pattern(tactic)
     return tactic
 def decode_context(context):
     return untranslate(context)
