@@ -204,14 +204,14 @@ class FileResult:
             return "goodcommand"
         elif type(exception) == ParseError or type(exception) == LexError:
             return "superfailedcommand"
+        elif exception != None:
+            return "failedcommand"
         elif predicted_context == actual_context:
             return "mostlygoodcommand"
         elif (get_stem(actual) == get_stem(predicted)):
             return "okaycommand"
-        elif exception == None:
-            return "badcommand"
         else:
-            return "failedcommand"
+            return "badcommand"
     def add_command_result(self, predictions, prediction_contexts,
                            actual, actual_context, exceptions):
         add_to_freq_table(self.actual_tactic_frequency,
