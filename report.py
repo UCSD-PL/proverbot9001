@@ -37,6 +37,8 @@ report_js = ["report.js"]
 num_predictions = 3
 max_tactic_length = 100
 
+baseline_tactic = "eauto"
+
 net = None
 netLock = None
 
@@ -255,7 +257,8 @@ gresult = GlobalResult()
 
 class Worker(threading.Thread):
     def __init__(self, workerid, coqargs, includes,
-                 output_dir, prelude, debug, num_jobs):
+                 output_dir, prelude, debug, num_jobs,
+                 baseline=False):
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -264,6 +267,7 @@ class Worker(threading.Thread):
         self.prelude = prelude
         self.debug = debug
         self.num_jobs = num_jobs
+        self.baseline = baseline
         pass
 
     def get_commands(self, filename):
@@ -293,12 +297,15 @@ class Worker(threading.Thread):
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
                     goal = format_goal(coq.get_goals())
-                    netLock.acquire()
-                    predictions = predictKTactics(net, goal,
-                                                  num_predictions * num_predictions,
-                                                  num_predictions,
-                                                  max_tactic_length)
-                    netLock.release()
+                    if self.baseline:
+                        predictions = [baseline_tactic] * num_predictions
+                    else:
+                        netLock.acquire()
+                        predictions = predictKTactics(net, goal,
+                                                      num_predictions * num_predictions,
+                                                      num_predictions,
+                                                      max_tactic_length)
+                        netLock.release()
 
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
@@ -464,6 +471,10 @@ parser.add_argument('-o', '--output', help="output data folder name",
                     default="report")
 parser.add_argument('--debugtokenizer', default=False, const=True, action='store_const')
 parser.add_argument('-m', '--message', default=None)
+parser.add_argument('--baseline',
+                    help="run in baseline mode, predicting {} every time"
+                    .format(baseline_tactic),
+                    default=False, const=True, action='store_const')
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 text_encoder.debug_tokenizer = args.debugtokenizer
@@ -519,6 +530,9 @@ with tag('html'):
         if args.message:
             with tag('h5'):
                 text("Message: {}".format(args.message))
+        if args.baseline:
+            with tag('h5'):
+                text("Baseline build!! Always predicting {}".format(baseline_tactic))
         with tag('h5'):
             text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
         with tag('img',
