@@ -340,7 +340,7 @@ class Worker(threading.Thread):
             rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
             for row in command_results:
                 if len(row) == 1:
-                    rowwriter.writerow([command])
+                    rowwriter.writerow([re.sub("\n", "\\n", row[0])])
                 else:
                     command, hyps, goal, prediction_results = row
                     first_pred, first_grade = prediction_results[0]
@@ -352,7 +352,11 @@ class Worker(threading.Thread):
                         third_pred, third_grade = prediction_results[2]
                     else:
                         third_pred, third_grade = "", ""
-                    rowwriter.writerow([command, hyps, goal, first_pred, first_grade, second_pred, second_grade, third_pred, third_grade])
+                    rowwriter.writerow([re.sub("\n", "\\n", item) for item in
+                                        [command, hyps, goal,
+                                         first_pred, first_grade,
+                                         second_pred, second_grade,
+                                         third_pred, third_grade]])
 
         doc, tag, text, line = Doc().ttl()
 
