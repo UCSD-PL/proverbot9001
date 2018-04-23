@@ -204,39 +204,32 @@ class FileResult:
             return "okaycommand"
         else:
             return "badcommand"
-    def add_command_result(self, predictions, prediction_contexts,
-                           actual, actual_context, exceptions):
+    def add_command_result(self, predictions, grades, actual):
         add_to_freq_table(self.actual_tactic_frequency,
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
                           get_stem(predictions[0]))
 
         self.num_tactics += 1
-        if (actual.strip() == predictions[0].strip() or
-            actual_context == prediction_contexts[0]):
+        if (grades[0] == "goodcommand" or grades[0] == "mostlygoodcommand"):
             add_to_freq_table(self.correctly_predicted_frequency,
                               get_stem(predictions[0]))
             self.num_correct += 1
             self.num_partial += 1
-        elif (get_stem(actual) == get_stem(predictions[0])):
+        elif (grades[0] == "okaycommand"):
             self.num_partial += 1
-        elif exceptions[0] != None:
+        elif (grades[0] == "failedcommand"):
             self.num_failed += 1
 
-        for prediction, prediction_context in zip(predictions, prediction_contexts):
-            if (actual.strip() == prediction.strip() or
-                actual_context == prediction_context):
+        for grade in grades:
+            if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_topN += 1
-                break;
-
-        for prediction, prediction_context, exception in zip(predictions,
-                                                             prediction_contexts,
-                                                             exceptions):
-            if (actual.strip() == prediction.strip() or
-                actual_context == prediction_context):
+                break
+        for grade in grades:
+            if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_searched += 1
-                break;
-            if exception == None:
+                break
+            if grade != "failedcommand":
                 break;
         pass
     def details_filename(self):
@@ -317,9 +310,8 @@ class Worker(threading.Thread):
                                           for prediction_run in prediction_runs]
                     fresult.add_command_result(
                         [pred for pred, ctxt, ex in prediction_runs],
-                        [ctxt for pred, ctxt, ex in prediction_runs],
-                        command, actual_result_context,
-                        [ex for pred, ctxt, ex in prediction_runs])
+                        [grade for pred, grade in prediction_results],
+                        command)
 
                     command_results.append((command, hyps, goals,
                                             prediction_results))
