@@ -1,0 +1,6 @@
+from typing import Tuple, Any
+
+class DocObject:
+    def stag(self, tag : str): ...
+class Doc:
+    def ttl(self) -> Tuple[Any, Any, Any, Any]: ...
