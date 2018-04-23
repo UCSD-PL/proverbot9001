@@ -495,7 +495,8 @@ netLock = threading.Lock()
 
 for idx in range(args.threads):
     worker = Worker(idx, coqargs, includes, args.output,
-                    args.prelude, args.debug, num_jobs)
+                    args.prelude, args.debug, num_jobs,
+                    args.baseline)
     worker.start()
     workers.append(worker)
 
