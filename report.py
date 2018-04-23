@@ -281,7 +281,7 @@ class Worker(threading.Thread):
                 if in_proof:
                     goal = format_goal(coq.get_goals())
                     if self.baseline:
-                        predictions = [baseline_tactic] * num_predictions
+                        predictions = [baseline_tactic + "."] * num_predictions
                     else:
                         netLock.acquire()
                         predictions = predictKTactics(net, goal,
