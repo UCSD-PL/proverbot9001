@@ -10,9 +10,15 @@ import re
 import datetime
 import csv
 
+from typing import List, Any, Tuple, Dict, Union, cast, NewType, Callable
+
 from shutil import *
 from format import format_goal, format_hypothesis
-from yattag import Doc, DocObject, Text, Line
+from yattag import Doc
+
+Tag = Callable[..., Doc.Tag]
+Text = Callable[..., None]
+Line = Callable[..., None]
 
 import serapi_instance
 import linearize_semicolons
@@ -25,8 +31,8 @@ from helper import load_commands_preserve
 
 from predict_tactic import *
 
-finished_queue = queue.Queue()
-rows = queue.Queue()
+finished_queue = queue.Queue() # type: queue.Queue[int]
+rows = queue.Queue() # type: queue.Queue[FileResult]
 base = os.path.dirname(os.path.abspath(__file__))
 
 details_css = ["details.css"]
@@ -39,7 +45,7 @@ max_tactic_length = 100
 
 baseline_tactic = "eauto"
 
-def header(tag : Any, doc : DocObject, text : Text, css : List[str],
+def header(tag : Tag, doc : Doc, text : Text, css : List[str],
            javascript : List[str], title : str):
     with tag('head'):
         for filename in css:
@@ -51,11 +57,11 @@ def header(tag : Any, doc : DocObject, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def details_header(tag : Any, doc : DocObject, text : Text, filename : str):
+def details_header(tag : Any, doc : Doc, text : Text, filename : str):
     header(tag, doc, text, details_css, details_javascript,
            "Proverbot Detailed Report for {}".format(filename))
 
-def report_header(tag : Any, doc : DocObject, text : Text):
+def report_header(tag : Any, doc : Doc, text : Text):
     header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
@@ -86,7 +92,7 @@ def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tu
         coq.quiet = False
 
 # Warning: Mutates fresult
-def evaluate_prediction(fresult : FileResult,
+def evaluate_prediction(fresult : 'FileResult',
                         correct_command : str,
                         correct_result_context : str,
                         prediction_run : Tuple[str, str, Optional[Exception]]) -> Tuple[str, str]:
@@ -105,7 +111,7 @@ class GlobalResult:
         self.num_searched = 0
         self.lock = threading.Lock()
         pass
-    def add_file_result(self, result):
+    def add_file_result(self, result : 'FileResult'):
         self.lock.acquire()
         self.num_tactics += result.num_tactics
         self.num_correct += result.num_correct
@@ -115,7 +121,7 @@ class GlobalResult:
         self.num_searched += result.num_searched
         self.lock.release()
         pass
-    def report_results(self, doc : DocObject, text : Text, tag : Any, line : Line):
+    def report_results(self, doc : Doc, text : Text, tag : Any, line : Line):
         with tag('h2'):
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_searched, self.num_tactics),
