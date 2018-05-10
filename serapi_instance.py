@@ -303,7 +303,7 @@ class SerapiInstance(threading.Thread):
             feedback2[0] != Symbol("Feedback")):
             raise BadResponse("Not feedback")
 
-    def get_feedbacks(self) -> List[Sexp]:
+    def get_feedbacks(self) -> List['Sexp']:
         self.get_ack()
 
         feedbacks = []
@@ -358,7 +358,7 @@ class SerapiInstance(threading.Thread):
         self.get_completed()
         return subsubfeed[1]
 
-    def extract_proof_context(self, raw_proof_context : Sexp) -> str:
+    def extract_proof_context(self, raw_proof_context : 'Sexp') -> str:
         return cast(List[List[str]], raw_proof_context)[0][1]
 
     def get_goals(self) -> str:
