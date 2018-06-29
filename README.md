@@ -33,9 +33,13 @@ If you're on a Windows machine,
 follow
 [these](https://www.cs.umd.edu/class/spring2018/cmsc330/ocamlInstallationGuide.pdf) instructions.
 
-### Python 3.6
-You'll also need Python 3.6 (well, an earlier version is possible to
-use, but requires hacking the makefile a bit).
+### Python
+You'll also need Python 3.5 or 3.6. This is probably already installed
+on your machine, you can test by running
+
+```
+python3 --version
+```
 
 ## Getting Started
 
