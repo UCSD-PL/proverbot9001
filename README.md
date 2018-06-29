@@ -68,3 +68,25 @@ make setup
 
 this step will take a while, and might involve having to type `y` a
 few times.
+
+Once that's finished, you're ready to start running the tool!
+
+Running Proverbot9001 requires training on existing proof
+files. Training takes a while, and usually you need some pretty
+advanced hardware. So to quickly get started, we'll download
+pre-trained weights instead:
+
+```
+make download-weights
+```
+
+Now you can run Proverbot9001:
+
+```
+make report
+```
+
+Which will generate some html in the `reports` directory.
+
+You should be able to check out the results by opening a web browser
+and navigating to the `reports` directory in the project.
