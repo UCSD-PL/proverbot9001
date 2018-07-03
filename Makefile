@@ -51,10 +51,10 @@ publish:
 	mv $(REPORT_NAME) report
 
 publish-weights:
-	tar -czf weights.tar.gz pytorch-weights.enc pytorch-weights.dec
+	gzip -k pytorch-weights.tar
 	rsync -avzP weights.tar.gz goto:proverbot9001-site/downloads/weights-`date -I`.tar.gz
 	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.tar.gz proverbot9001-site/downloads/weights-latest.tar.gz
 
 download-weights:
-	curl -O proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
-	tar xf weights-latest.tar.gz
+	curl -o pytorch-weights.tar.gz proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
+	gzip -d weights-latest.tar.gz
