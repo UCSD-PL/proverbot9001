@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import re
+from typing import Dict, List, Tuple, Callable
 
 debug_tokenizer = False
 
-def next_char(c):
+def next_char(c : str) -> str:
     return chr(ord(c) + 1)
 
-def make_fresh():
+def make_fresh() -> Callable[[], str]:
     next = "\uAC00" # Hangul syllables (~11k symbols)
     def fresh():
         nonlocal next
@@ -63,7 +64,7 @@ for (p, t) in tokens:
     dict_pattern_to_token[p] = t
     dict_token_to_pattern[t] = p
 
-def pattern_to_token(s):
+def pattern_to_token(s : str) -> str:
     s_in = s
     for k in dict_pattern_to_token:
         s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_pattern_to_token[k], s)
@@ -71,7 +72,7 @@ def pattern_to_token(s):
         print("{} -> {}".format(s_in, [ord(c) for c in s]))
     return s
 
-def token_to_pattern(s):
+def token_to_pattern(s : str) -> str:
     s_in = s
     for k in dict_token_to_pattern:
         s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_token_to_pattern[k], s)
@@ -79,29 +80,29 @@ def token_to_pattern(s):
         print("{} -> {}".format([ord(c) for c in s_in], s))
     return s
 
-def encode_tactic(tactic):
+def encode_tactic(tactic : str) -> List[int]:
     tactic = pattern_to_token(tactic)
     tokenlist = translate(tactic)
     return tokenlist
-def encode_context(context):
+def encode_context(context : str) -> List[int]:
     return translate(context)
 
-def decode_tactic(tokenlist):
+def decode_tactic(tokenlist : List[int]) -> str:
     tactic = untranslate(tokenlist)
     tactic = token_to_pattern(tactic)
     return tactic
-def decode_context(context):
+def decode_context(context : List[int]) -> str:
     return untranslate(context)
 
 num_reserved_tokens = 2 # We want '0' to be reserved for "end of stream" and '1' to be reserved for "start of stream"
 
-char_to_num = {}
-num_to_char = {}
+char_to_num = {} # type: Dict[str, int]
+num_to_char = {} # type: Dict[int,str]
 
-def get_encoder_state():
+def get_encoder_state() -> List[Tuple[str, int]]:
     return list(char_to_num.items())
 
-def set_encoder_state(keypairs):
+def set_encoder_state(keypairs : List[Tuple[str, int]]) -> None:
     global char_to_num
     global num_to_char
     char_to_num = {}
@@ -112,11 +113,11 @@ def set_encoder_state(keypairs):
         char_to_num[k] = v
         num_to_char[v] = k
 
-def text_vocab_size():
+def text_vocab_size() -> int:
     return num_reserved_tokens + len(char_to_num)# + len(patterns)
 
-def translate(string):
-    result = []
+def translate(string : str) -> List[int]:
+    result = [] # type: List[int]
     for c in string:
         if c in char_to_num:
             result += [char_to_num[c]]
@@ -127,5 +128,5 @@ def translate(string):
             result += [new_id]
     return result
 
-def untranslate(tokenlist):
+def untranslate(tokenlist : List[int]) -> str:
     return "".join([num_to_char[t] for t in tokenlist])

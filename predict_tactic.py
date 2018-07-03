@@ -2,6 +2,7 @@
 
 from typing import Dict, List
 import encdecrnn_predictor
+from tactic_predictor import TacticPredictor
 
 predictors = {
     'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor
