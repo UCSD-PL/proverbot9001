@@ -279,19 +279,17 @@ class Worker(threading.Thread):
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
-                    goal = format_goal(coq.get_goals())
+                    hyps = coq.get_hypothesis()
+                    goals = coq.get_goals()
                     if self.baseline:
                         predictions = [baseline_tactic + "."] * num_predictions
                     else:
                         netLock.acquire()
-                        predictions = predictKTactics(net, goal,
-                                                      num_predictions * num_predictions,
-                                                      num_predictions,
-                                                      max_tactic_length)
+                        predictions = net.predictKTactics(
+                            {"goal" : format_goal(goals),
+                             "hyps" : format_hypothesis(hyps)},
+                            num_predictions);
                         netLock.release()
-
-                    hyps = coq.get_hypothesis()
-                    goals = coq.get_goals()
 
                     prediction_runs = [run_prediction(coq, prediction) for
                                        prediction in predictions]

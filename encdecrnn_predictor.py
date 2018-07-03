@@ -62,6 +62,10 @@ class EncDecRNNPredictor(TacticPredictor):
             self.encoder = self.encoder.cuda()
             self.decoder = self.decoder.cuda()
         self.vocab_size = output_size
+    def predictKTactics(self, in_data, k):
+        return [decode_tactic(tokenlist) for tokenlist in
+                predictKTokenlist(self, encode_context(in_data["goal"]),
+                                  self.beam_width, self.max_length)[:k]]
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, batch_size, n_layers=3):
@@ -272,12 +276,6 @@ def commandLinePredict(predictor, numfile, k, max_length):
         for result in tokensresults:
             print(''.join([chr(x) for x in result]))
 
-def predictKTactics(predictor, sentence, k):
-    predictionTokenLists = predictKTokenlist(predictor, encode_context(sentence),
-                                             predictor.beam_width, predictor.max_length)[:k]
-    return [decode_tactic(tokenlist)
-            for tokenlist in predictionTokenLists]
-
 def predictKTokenlist(predictor, tokenlist, k, max_length):
     if len(tokenlist) < max_length:
         tokenlist.extend([0] * (max_length - len(tokenlist)))
@@ -392,11 +390,11 @@ def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
         if best_loss is None or best_loss > (epoch_loss / epoch_batch_idx):
                 best_loss = epoch_loss / epoch_batch_idx
                 is_best = True
-        save_checkpoint({'epoch':epoch,
+        save_checkpoint({'epoch':epoch, 'best_loss':best_loss,
                          'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(),
-                         'best_loss':best_loss,
                          'text_encoder_dict':get_encoder_state(),
-                         'hidden_size':encoder.hidden_size}, is_best, filename)
+                         'hidden_size':encoder.hidden_size,
+                         'max_length': MAX_LENGTH}, is_best, filename)
 
 def exit_early(signal, frame):
     sys.exit(0)
