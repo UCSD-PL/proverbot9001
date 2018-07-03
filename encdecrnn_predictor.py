@@ -190,7 +190,7 @@ def train(input_variable, target_variable,
     encoder_optimizer.step()
     decoder_optimizer.step()
 
-    return loss.data[0] / target_length
+    return loss.data.item() / target_length
 
 def asMinutes(s):
     m = math.floor(s / 60)
