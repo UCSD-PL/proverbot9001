@@ -524,7 +524,7 @@ def decodeKTactics(decoder, encoder_hidden, k, v):
         seqs.insert(0, next_symbols)
 
     # Transpose
-    seqs = [[data[i] for data in seqs] for i in range(k)]
+    seqs = [[data[i].item() for data in seqs] for i in range(k)]
     # Cut off EOS tokens
     seqs = [list(takewhile(lambda x: x != EOS_token, seq)) for seq in seqs]
 
