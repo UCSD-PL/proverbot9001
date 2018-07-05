@@ -50,8 +50,8 @@ class EncDecRNNPredictor(TacticPredictor):
         assert checkpoint['max_length']
 
         hidden_size = checkpoint['hidden_size']
-        output_size = text_vocab_size()
         set_encoder_state(checkpoint['text_encoder_dict'])
+        output_size = text_vocab_size()
         self.encoder = EncoderRNN(output_size, hidden_size, 1)
         self.decoder = DecoderRNN(hidden_size, output_size, 1)
         self.encoder.load_state_dict(checkpoint['encoder'])
