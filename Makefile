@@ -36,7 +36,7 @@ report:
 	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 
 train:
-	./encdecrnn_predictor.py --train --save pytorch-weights $(FLAGS) --hiddensize $(HIDDEN_SIZE)
+	./encdecrnn_predictor.py train scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))

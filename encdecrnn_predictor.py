@@ -22,7 +22,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
-import torch.utils.data
+import torch.utils.data as data
 
 from itertools import takewhile
 from tactic_predictor import TacticPredictor
@@ -38,10 +38,7 @@ teacher_forcing_ratio = 0.5
 MAX_LENGTH=200
 
 class EncDecRNNPredictor(TacticPredictor):
-    def __init__(self, options):
-        assert options["filename"]
-        assert options["beam_width"]
-
+    def load_saved_state(filename):
         checkpoint = torch.load(options["filename"] + ".tar")
         assert checkpoint['hidden_size']
         assert checkpoint['text_encoder_dict']
@@ -58,10 +55,19 @@ class EncDecRNNPredictor(TacticPredictor):
         self.decoder.load_state_dict(checkpoint['decoder'])
         self.max_length = checkpoint["max_length"]
         self.beam_width = options["beam_width"]
+        pass
+
+    def __init__(self, options):
+        assert options["filename"]
+        assert options["beam_width"]
+        load_saved_state(options["filename"])
+
         if use_cuda:
             self.encoder = self.encoder.cuda()
             self.decoder = self.decoder.cuda()
         self.vocab_size = output_size
+        pass
+
     def predictKTactics(self, in_data, k):
         return [decode_tactic(tokenlist) for tokenlist in
                 predictKTokenlist(self, encode_context(in_data["goal"]),
@@ -94,7 +100,7 @@ class EncoderRNN(nn.Module):
         return Variable(zeroes)
 
 class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, batch_size, width=1, n_layers=3):
+    def __init__(self, hidden_size, output_size, batch_size, n_layers, width=1):
         super(DecoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
@@ -139,58 +145,23 @@ def FloatTensor(k, val):
     else:
         return torch.FloatTensor(k, val)
 
-def train(input_variable, target_variable,
-          encoder, decoder,
-          encoder_optimizer, decoder_optimizer,
-          criterion, max_length=MAX_LENGTH):
-    encoder_hidden = encoder.initHidden()
-    encoder_optimizer.zero_grad()
-    decoder_optimizer.zero_grad()
-
+def run_predictor_teach(input_variable, output_variable, encoder, decoder):
     batch_size = input_variable.size()[0]
     input_length = input_variable.size()[1]
-    target_length = target_variable.size()[1]
-
-    loss = 0
+    output_length = output_variable.size()[1]
+    decoder_input = Variable(LongTensor([[SOS_token] * batch_size]))
+    encoder_hidden = encoder.initHidden()
+    decoder_hidden = encoder_hidden
+    prediction = []
 
     for ei in range(input_length):
-        encoder_output, encoder_hidden = encoder(
-            input_variable[:,ei], encoder_hidden)
+        encoder_output, encoder_hidden = encoder(input_variable[:,ei], encoder_hidden)
 
-    decoder_input = Variable(LongTensor([[SOS_token] * batch_size]))
-
-    decoder_hidden = encoder_hidden
-    use_teacher_forcing = True # if random.random() < teacher_forcing_ratio else False
-
-    if use_teacher_forcing:
-        for di in range(target_length):
-            decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden)
-            loss += criterion(decoder_output, target_variable[:,di])
-            decoder_input = target_variable[:,di]
-    else:
-        for di in range(target_length):
-            decoder_output, decoder_hidden = decoder(
-                decoder_input, decoder_hidden)
-
-            nis = []
-            for bi in range(batch_size):
-                topv, topi = decoder_output.data[bi].topk(1)
-                ni = topi[0]
-                nis.append(ni)
-
-            decoder_input = Variable(LongTensor(nis))
-
-            loss += criterion(decoder_output, target_variable[:,di])
-            if all(c == EOS_token for c in nis):
-                break;
-
-    loss.backward()
-
-    encoder_optimizer.step()
-    decoder_optimizer.step()
-
-    return loss.data.item() / target_length
+    for di in range(output_length):
+        decoder_output, decoder_hidden = decoder(output_variable[:,di-1],
+                                                 decoder_hidden)
+        prediction.append(decoder_output)
+    return prediction
 
 def asMinutes(s):
     m = math.floor(s / 60)
@@ -310,10 +281,11 @@ def decodeTactic(decoder, encoder_hidden, vocab_size):
 
     return decoded_tokens
 
-def adjustLearningRate(initial, optimizer, epoch):
-    lr = initial * (0.5 ** (epoch // 20))
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+def adjustLearningRates(initial, optimizers, epoch):
+    for optimizer in optimizers:
+        lr = initial * (0.5 ** (epoch // 20))
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
 
 def save_checkpoint(state, is_best, filename):
     '''
@@ -326,124 +298,129 @@ def save_checkpoint(state, is_best, filename):
     else:
         print ("=> Epoch {}, loss did not reduce".format(state['epoch']))
 
-def trainIters(encoder, decoder, n_epochs, data_pairs, batch_size,
-               print_every=100, learning_rate=0.003, filename='checkpoint'):
-    start = time.time()
-    print_loss_total = 0
+def maybe_cuda(component):
+    if use_cuda:
+        return component.cuda()
+    else:
+        return component
 
+def train(dataset,
+          hidden_size, output_size,
+          learning_rate, num_layers, max_length,
+          num_epochs, batch_size, print_every):
+    print("Initializing PyTorch...")
+    in_stream = [inputFromSentence(datum[0]) for datum in dataset]
+    out_stream = [inputFromSentence(datum[1]) for datum in dataset]
+    data_loader = data.DataLoader(data.TensorDataset(torch.LongTensor(out_stream),
+                                                     torch.LongTensor(in_stream)),
+                                  batch_size=batch_size, num_workers=0,
+                                  shuffle=True, pin_memory=True,
+                                  drop_last=True)
+
+    encoder = EncoderRNN(output_size, hidden_size, batch_size, num_layers)
+    decoder = DecoderRNN(hidden_size, output_size, batch_size, num_layers)
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
+    optimizers = [encoder_optimizer, decoder_optimizer]
+    criterion = maybe_cuda(nn.NLLLoss())
 
-    dataset = torch.utils.data.TensorDataset(
-        torch.LongTensor([inputFromSentence(context)
-                          for context, tactic in data_pairs]),
-        torch.LongTensor([inputFromSentence(tactic)
-                          for context, tactic in data_pairs]))
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                                         pin_memory=True, num_workers=0)
+    start = time.time()
+    num_items = len(dataset) * num_epochs
+    total_loss = 0
 
-    criterion = nn.NLLLoss()
-    if use_cuda:
-        criterion = criterion.cuda()
-
-    idx = 0
-    batch_idx = 0
-    n_iters = len(data_pairs) * n_epochs
-    print_loss = 0
-    best_loss = None
-
-    print("Starting training.")
-    for epoch in range(math.ceil(n_epochs)):
-        adjustLearningRate(learning_rate, encoder_optimizer, epoch)
-        adjustLearningRate(learning_rate, decoder_optimizer, epoch)
+    print("Training...")
+    for epoch in range(num_epochs):
         print("Epoch {}".format(epoch))
-        epoch_loss = 0
-        epoch_batch_idx = 0
-        is_best = False
-        for context_batch, tactic_batch in loader:
-            if context_batch.size()[0] != batch_size:
-                encoder.batch_size = context_batch.size()[0]
-                decoder.batch_size = context_batch.size()[0]
-            context_var = Variable(context_batch)
-            tactic_var = Variable(tactic_batch)
-            if use_cuda:
-                context_var = context_var.cuda()
-                tactic_var = tactic_var.cuda()
-            loss = train(context_var, tactic_var,
-                         encoder, decoder,
-                         encoder_optimizer, decoder_optimizer, criterion)
-            print_loss += loss
-            epoch_loss += loss
+        adjustLearningRates(learning_rate, optimizers, epoch)
+        for batch_num, (out_batch, in_batch) in enumerate(data_loader):
+            target_length = out_batch.size()[1]
 
-            idx += context_batch.size()[0]
-            batch_idx += 1
-            epoch_batch_idx += 1
+            encoder_optimizer.zero_grad()
+            decoder_optimizer.zero_grad()
+            prediction = run_predictor_teach(maybe_cuda(Variable(in_batch)),
+                                             maybe_cuda(Variable(out_batch)),
+                                             encoder, decoder)
+            loss = 0
+            for i in range(target_length):
+                loss += criterion(predictor_output[i], target_output[:i])
+            loss.backward()
+            encoder_optimizer.step()
+            decoder_optimizer.step()
 
-            if batch_idx % print_every == 0:
-                print("{} ({} {:.2f}%) {:.4f}".format(timeSince(start, idx / n_iters),
-                                                      idx, idx / n_iters * 100,
-                                                      print_loss / print_every))
-                print_loss = 0
-        print("Epoch loss: {:.4f}".format(epoch_loss / epoch_batch_idx))
-        encoder.batch_size = batch_size
-        decoder.batch_size = batch_size
-        if best_loss is None or best_loss > (epoch_loss / epoch_batch_idx):
-                best_loss = epoch_loss / epoch_batch_idx
-                is_best = True
-        save_checkpoint({'epoch':epoch, 'best_loss':best_loss,
-                         'encoder':encoder.state_dict(), 'decoder':decoder.state_dict(),
-                         'text_encoder_dict':get_encoder_state(),
-                         'hidden_size':encoder.hidden_size,
-                         'max_length': MAX_LENGTH}, is_best, filename)
+            total_loss += (loss.data.item() / target_length) * batch_size
+
+            if batch_num % print_every == 0:
+                items_processed = batch_num * batch_size + epoch * len(dataset)
+                progress = items_processed / num_items
+                print("{} ({} {:.2f}%) {:.4f}".
+                      format(timeSince(start, progress),
+                             items_processed, progress * 100,
+                             total_loss / items_processed))
+
+        yield encoder.state_dict(), decoder.state_dict()
 
 def exit_early(signal, frame):
     sys.exit(0)
 
-def main():
-    global MAX_LENGTH
+def take_args():
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("--nepochs", default=50, type=float)
-    parser.add_argument("--save", default=None, required=True)
-    parser.add_argument("--train", default=False, const=True,
-                        action='store_const')
-    parser.add_argument("--scrapefile", default="scrape.txt")
-    parser.add_argument("--numfile", default=False, const=True,
-                        action='store_const')
-    parser.add_argument("--numeric_vocabsize", default=128, type=int)
-    parser.add_argument("--batchsize", default=256, type=int)
-    parser.add_argument("--maxlength", default=100, type=int)
-    parser.add_argument("--printevery", default=10, type=int)
-    parser.add_argument("--hiddensize", default=None, type=int)
-    parser.add_argument("--numpredictions", default=3, type=int)
-    parser.add_argument("--debugtokenizer", default=False, const=True,
-                        action='store_const')
-    args = parser.parse_args()
-    text_encoder.debug_tokenizer = args.debugtokenizer
-    MAX_LENGTH = args.maxlength
+    parser.add_argument("command")
+    args = parser.parse_args(sys.argv[1:2])
+    if args.command == "train":
+        parser = argparse.ArgumentParser(description=
+                                         "pytorch model for proverbot")
+        parser.add_argument("scrape_file")
+        parser.add_argument("save_file")
+        parser.add_argument("--num-epochs", dest="num_epochs", default=50, type=int)
+        parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
+        parser.add_argument("--max-length", dest="max_length", default=100, type=int)
+        parser.add_argument("--print-every", dest="print_every", default=10, type=int)
+        parser.add_argument("--hidden-size", dest="hidden_size", default=None, type=int)
+        parser.add_argument("--learning-rate", dest="learning_rate",
+                            default=0.003, type=float)
+        parser.add_argument("--num-layers", dest="num_layers", default=3, type=int)
+        return args.command, parser.parse_args(sys.argv[2:])
+    elif args.command == "predict":
+        parser.add_argument("save-file", dest="save_file", required=True)
+        parser.add_argument("--num-predictions", default=3, type=int)
+        return args.command, parser.parse_args(sys.argv[2:])
+    else:
+        print("Unrecognized subcommand!")
+        parser.print_help()
+        sys.exit(1)
+
+def main():
+    # Set up cleanup handler for Ctrl-C
     signal.signal(signal.SIGINT, exit_early)
-    if args.train:
-        if args.numfile:
-            data_set = read_num_data(args.scrapefile)
-            output_size = args.numeric_vocabsize
-        else:
-            data_set = read_text_data(args.scrapefile)
-            output_size = text_vocab_size()
-        if args.hiddensize:
-            hidden_size = args.hiddensize
+    subcommand, args = take_args()
+    if subcommand == "train":
+        print("Reading dataset...")
+        dataset = read_text_data(args.scrape_file)
+        output_size = text_vocab_size()
+        if args.hidden_size:
+            hidden_size = args.hidden_size
         else:
             hidden_size = output_size * 2
-        print("Initializing CUDA...")
-        decoder = DecoderRNN(hidden_size, output_size, args.batchsize)
-        encoder = EncoderRNN(output_size, hidden_size, args.batchsize)
-        if use_cuda:
-            decoder = decoder.cuda()
-            encoder = encoder.cuda()
-        trainIters(encoder, decoder, args.nepochs,
-                   data_set, args.batchsize, print_every=args.printevery, filename=args.save)
+
+        checkpoints = train(dataset, hidden_size, output_size,
+                            args.learning_rate, args.num_layers, args.max_length,
+                            args.num_epochs, args.batch_size, args.print_every)
+
+        for epoch, checkpoint in enumerate(checkpoints):
+            state = {'epoch':epoch,
+                     'text-encoder':get_encoder_state(),
+                     'neural-encoder':checkpoint.encoder,
+                     'neural-decoder':checkpoint.decoder,
+                     'hidden-size':hidden_size,
+                     'max-length': args.max_length}
+            with open(args.save_file, 'wb') as f:
+                print("=> Saving checkpoint at epoch {} (loss {})".
+                      format(epoch, loss))
+                torch.save(state, f)
     else:
-        predictor = loadPredictor(args.save)
-        commandLinePredict(predictor, args.numfile, args.numpredictions, args.maxlength)
+        predictor = loadPredictor(args.save_file)
+        commandLinePredict(predictor, args.num_predictions)
 
 def loadPredictor(path_stem):
     checkpoint = torch.load(path_stem + '.tar')
