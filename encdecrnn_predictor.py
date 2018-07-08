@@ -334,15 +334,16 @@ def train(dataset,
         adjustLearningRates(learning_rate, optimizers, epoch)
         for batch_num, (out_batch, in_batch) in enumerate(data_loader):
             target_length = out_batch.size()[1]
+            in_var = maybe_cuda(Variable(in_batch))
+            out_var = maybe_cuda(Variable(out_batch))
 
             encoder_optimizer.zero_grad()
             decoder_optimizer.zero_grad()
-            prediction = run_predictor_teach(maybe_cuda(Variable(in_batch)),
-                                             maybe_cuda(Variable(out_batch)),
-                                             encoder, decoder)
+            predictor_output = run_predictor_teach(in_var, out_var,
+                                                   encoder, decoder)
             loss = 0
             for i in range(target_length):
-                loss += criterion(predictor_output[i], target_output[:i])
+                loss += criterion(predictor_output[i], out_var[:,i])
             loss.backward()
             encoder_optimizer.step()
             decoder_optimizer.step()
@@ -350,7 +351,7 @@ def train(dataset,
             total_loss += (loss.data.item() / target_length) * batch_size
 
             if batch_num % print_every == 0:
-                items_processed = batch_num * batch_size + epoch * len(dataset)
+                items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
                 progress = items_processed / num_items
                 print("{} ({} {:.2f}%) {:.4f}".
                       format(timeSince(start, progress),
