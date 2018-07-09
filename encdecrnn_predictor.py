@@ -365,8 +365,9 @@ def take_args():
         parser.add_argument("--num-layers", dest="num_layers", default=3, type=int)
         return args.command, parser.parse_args(sys.argv[2:])
     elif args.command == "predict":
-        parser.add_argument("save-file", dest="save_file", required=True)
+        parser.add_argument("save_file")
         parser.add_argument("--num-predictions", default=3, type=int)
+        parser.add_argument("--beam-width", dest="beam_width", default=None, type=int)
         return args.command, parser.parse_args(sys.argv[2:])
     else:
         print("Unrecognized subcommand!")
@@ -390,19 +391,24 @@ def main():
                             args.learning_rate, args.num_layers, args.max_length,
                             args.num_epochs, args.batch_size, args.print_every)
 
-        for epoch, checkpoint in enumerate(checkpoints):
+        for epoch, (encoder_state, decoder_state) in enumerate(checkpoints):
             state = {'epoch':epoch,
                      'text-encoder':get_encoder_state(),
-                     'neural-encoder':checkpoint.encoder,
-                     'neural-decoder':checkpoint.decoder,
+                     'neural-encoder':encoder_state,
+                     'neural-decoder':decoder_state,
                      'hidden-size':hidden_size,
                      'max-length': args.max_length}
             with open(args.save_file, 'wb') as f:
-                print("=> Saving checkpoint at epoch {} (loss {})".
-                      format(epoch, loss))
+                print("=> Saving checkpoint at epoch {}".
+                      format(epoch))
                 torch.save(state, f)
     else:
-        predictor = loadPredictor(args.save_file)
+        if args.beam_width:
+            beam_width = args.beam_width
+        else:
+            beam_width = args.num_predictions * args.num_predictions
+        predictor = EncDecRNNPredictor({'filename': args.save_file,
+                                        'beam_width': beam_width})
         commandLinePredict(predictor, args.num_predictions)
 
 # The code below here was copied from
