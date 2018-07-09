@@ -34,11 +34,20 @@ follow
 [these](https://www.cs.umd.edu/class/spring2018/cmsc330/ocamlInstallationGuide.pdf) instructions.
 
 ### Python
-You'll also need Python 3.5 or 3.6. This is probably already installed
+You'll also need Python 3.5 or 3.6, and Pip 3. This is probably already installed
 on your machine, you can test by running
 
 ```
 python3 --version
+pip3 --version
+```
+
+If either of those commands show a python version lower than 3.5, or
+they report "command not found", you'll need to install them. You can
+do this much like installing OPAM, through your local package manager. On Ubuntu:
+
+```
+sudo apt-get install python3 python3-pip
 ```
 
 ## Getting Started
