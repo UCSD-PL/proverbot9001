@@ -218,13 +218,6 @@ def variableFromSentence(sentence):
     sentence = Variable(LongTensor(sentence).view(1, -1))
     return sentence
 
-def variablesFromPair(pair):
-    return variableFromSentence(pair[0]), variableFromSentence(pair[1])
-
-def variablesFromBatch(batch):
-    return (Variable(LongTensor([context for context, tactic in batch])),
-            Variable(LongTensor([tactic for contex, tactic in batch])))
-
 def commandLinePredict(predictor, numfile, k, max_length):
     predictor.decoder.k = k
     if numfile:
@@ -286,17 +279,6 @@ def adjustLearningRates(initial, optimizers, epoch):
         lr = initial * (0.5 ** (epoch // 20))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-
-def save_checkpoint(state, is_best, filename):
-    '''
-    Save checkpoint if a new best is achieved
-    '''
-    if is_best:
-        print ("=> Saving a new best checkpoint, epoch {}".format(state['epoch']))
-        with open(filename + '.tar', 'wb') as f:
-            torch.save(state, f)
-    else:
-        print ("=> Epoch {}, loss did not reduce".format(state['epoch']))
 
 def maybe_cuda(component):
     if use_cuda:
@@ -422,14 +404,6 @@ def main():
     else:
         predictor = loadPredictor(args.save_file)
         commandLinePredict(predictor, args.num_predictions)
-
-def loadPredictor(path_stem):
-    checkpoint = torch.load(path_stem + '.tar')
-    set_encoder_state(checkpoint['text_encoder_dict'])
-    predictor = EncDecRNNPredictor(text_vocab_size(), checkpoint['hidden_size'])
-    predictor.encoder.load_state_dict(checkpoint['encoder'])
-    predictor.decoder.load_state_dict(checkpoint['decoder'])
-    return predictor
 
 # The code below here was copied from
 # https://ibm.github.io/pytorch-seq2seq/public/_modules/seq2seq/models/TopKDecoder.html
