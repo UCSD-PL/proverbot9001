@@ -19,15 +19,7 @@ else
     eval `opam config env`
     pip3 install --user sexpdata
     pip3 install --user yattag
-    if python3 --version | grep 3.6; then
-        pip3 install --user http://download.pytorch.org/whl/cu80/torch-0.4.0.post4-cp36-cp36m-linux_x86_64.whl
-    elif python3 --version | grep 3.5; then
-        pip3 install --user http://download.pytorch.org/whl/cu80/torch-0.4.0.post4-cp35-cp35m-linux_x86_64.whl
-    else
-        echo "Unrecognized python3 version!"
-        exit 1
-    fi
-    pip3 install --user torchvision
+    pip3 install --user torch torchvision
 fi
 
 function check-and-clone {
