@@ -163,7 +163,7 @@ class SerapiInstance(threading.Thread):
             print("Problem running statement: {}".format(stmt))
         if (type(e) == CoqExn):
             ce = cast(CoqExn, e)
-            if   (ce.msg == list and
+            if   (type(ce.msg) == list and
                   ce.msg[0] == Symbol('CoqExn') and
                   len(ce.msg) == 4 and
                   type(ce.msg[3]) == list):
@@ -194,7 +194,7 @@ class SerapiInstance(threading.Thread):
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> None:
         if self.debug:
-            print("Cancelling last statement")
+            print("Cancelling last statement from state {}".format(self.cur_state))
         # Flush any leftover messages in the queue
         while not self.messages.empty():
             self.messages.get()
@@ -202,7 +202,9 @@ class SerapiInstance(threading.Thread):
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
-        assert self.cur_state == self.prev_state
+        assert self.cur_state == self.prev_state, \
+            "cur_state is {}, but prev_state was {}" \
+            .format(self.cur_state, self.prev_state)
         # Go back to the previous state.
         assert self.prev_state != -1, "Can't cancel twice in a row!"
         self.prev_state = -1
