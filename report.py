@@ -492,7 +492,8 @@ for infname in args.filenames:
 
 args.threads = min(args.threads, len(args.filenames))
 
-net = loadPredictor({"filename": "pytorch-weights.tar", "beam-width": num_predictions ** 2})
+net = loadPredictor({"filename": "pytorch-weights.tar",
+                     "beam-width": num_predictions ** 2})
 netLock = threading.Lock()
 
 for idx in range(args.threads):

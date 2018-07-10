@@ -28,7 +28,7 @@ import torch.cuda
 from itertools import takewhile
 from tactic_predictor import TacticPredictor
 
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any, Tuple, cast
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -39,7 +39,7 @@ EOS_token = 0
 SomeLongTensor = Union[torch.cuda.LongTensor, torch.LongTensor]
 
 class EncDecRNNPredictor(TacticPredictor):
-    def load_saved_state(self, filename, beam_width):
+    def load_saved_state(self, filename : str, beam_width : int) -> None:
         checkpoint = torch.load(filename)
         assert checkpoint['hidden-size']
         assert checkpoint['text-encoder']
@@ -66,7 +66,7 @@ class EncDecRNNPredictor(TacticPredictor):
         self.beam_width = beam_width
         pass
 
-    def __init__(self, options):
+    def __init__(self, options : Dict["str", Any]) -> None:
         assert options["filename"]
         assert options["beam-width"]
         self.load_saved_state(options["filename"], options["beam-width"])
@@ -84,7 +84,8 @@ class EncDecRNNPredictor(TacticPredictor):
         return [decode_tactic(sentence) for sentence in prediction_sentences]
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, batch_size=1):
+    def __init__(self, input_size : int, hidden_size : int,
+                 num_layers : int, batch_size : int=1) -> None:
         super(EncoderRNN, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
@@ -96,14 +97,15 @@ class EncoderRNN(nn.Module):
             self.cuda()
         pass
 
-    def forward(self, input, hidden):
+    def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
+        -> Tuple[SomeLongTensor, SomeLongTensor] :
         output = self.embedding(input).view(1, self.batch_size, -1)
         for i in range(self.num_layers):
             output, hidden = self.gru(output, hidden)
         return output, hidden
 
-    def initHidden(self):
-        zeroes = torch.zeros(1, self.batch_size, self.hidden_size)
+    def initHidden(self) -> SomeLongTensor:
+        zeroes = cast(torch.LongTensor, torch.zeros(1, self.batch_size, self.hidden_size))
         if use_cuda:
             zeroes = zeroes.cuda()
         return Variable(zeroes)
@@ -122,7 +124,8 @@ class EncoderRNN(nn.Module):
         return encoder_hidden
 
 class DecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, num_layers, batch_size=1, beam_width=1):
+    def __init__(self, hidden_size : int, output_size : int, num_layers : int,
+                 batch_size : int =1, beam_width : int =1) -> None:
         super(DecoderRNN, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
