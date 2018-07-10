@@ -58,10 +58,10 @@ global_bound_color = "#3b10ff"
 local_bound_color = "#a0522d"
 comment_color = "#004800"
 
-def color_word(color, word):
+def color_word(color : str, word : str) -> str:
     return "<span style=\"color:{}\">{}</span>".format(color, word)
 
-def highlight_comments(page):
+def highlight_comments(page : str) -> str:
     result = ""
     comment_depth = 0
     for i in range(len(page)):
@@ -76,14 +76,14 @@ def highlight_comments(page):
                 result += "</span>"
     return result;
 
-def syntax_highlight(page):
+def syntax_highlight(page : str) -> str:
     for vernac in vernacular_words:
         page = re.sub(vernac,
                       color_word(vernacular_color, vernac),
                       page)
     return highlight_comments(page);
 
-def strip_comments(command):
+def strip_comments(command : str) -> str:
     result = ""
     comment_depth = 0
     for i in range(len(command)):

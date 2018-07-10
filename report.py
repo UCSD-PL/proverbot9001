@@ -484,7 +484,7 @@ cur_date = datetime.datetime.now()
 if not os.path.exists(args.output):
     os.makedirs(args.output)
 
-jobs = queue.Queue()
+jobs = queue.Queue() #type: queue.Queue[str]
 workers = []
 num_jobs = len(args.filenames)
 for infname in args.filenames:

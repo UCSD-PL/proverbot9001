@@ -80,12 +80,12 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None # type: Optional[str]
         self.prev_state = -1
         self.cur_state = 0
-        self.prev_tactics = []
+        self.prev_tactics = [] # type: List[str]
 
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
-        self.messages = queue.Queue()
+        self.messages = queue.Queue() # type: queue.Queue[Sexp]
         # Set the debug flag to default to false.
         self.debug = False
         # Set the "extra quiet" flag (don't print on failures) to false
@@ -220,7 +220,8 @@ class SerapiInstance(threading.Thread):
     # a Completed.
     def get_completed(self) -> None:
         completed = self.messages.get()
-        if (completed[0] != Symbol("Answer") or
+        if (not isinstance(completed, list) or
+            completed[0] != Symbol("Answer") or
             completed[2] != Symbol("Completed")):
             raise CompletedError(completed)
 
@@ -282,9 +283,10 @@ class SerapiInstance(threading.Thread):
         self.get_ack()
 
         msg = self.messages.get()
-        while msg[0] == Symbol("Feedback"):
+        while isinstance(msg, list) and msg[0] == Symbol("Feedback"):
             msg = self.messages.get()
-        if (msg[0] != Symbol("Answer")):
+        if (not isinstance(msg, list) or
+            msg[0] != Symbol("Answer")):
             raise BadResponse(msg)
         submsg = msg[2]
         if (submsg[0] == Symbol("CoqExn")):
@@ -299,24 +301,27 @@ class SerapiInstance(threading.Thread):
     def discard_initial_feedback(self) -> None:
         feedback1 = self.messages.get()
         feedback2 = self.messages.get()
-        if (feedback1[0] != Symbol("Feedback") or
+        if (not isinstance(feedback1, list) or
+            feedback1[0] != Symbol("Feedback") or
+            not isinstance(feedback2, list) or
             feedback2[0] != Symbol("Feedback")):
             raise BadResponse("Not feedback")
 
     def get_feedbacks(self) -> List['Sexp']:
         self.get_ack()
 
-        feedbacks = []
+        feedbacks = [] #type: List[Sexp]
         next_message = self.messages.get()
-        while(next_message[0] == Symbol("Feedback")):
+        while(isinstance(next_message, list) and
+              next_message[0] == Symbol("Feedback")):
             feedbacks.append(next_message)
             next_message = self.messages.get()
         fin = next_message
-        if (fin[0] != Symbol("Answer")):
+        if (not isinstance(fin, list) or
+            fin[0] != Symbol("Answer")):
             raise BadResponse(fin)
-        if (isinstance(fin[2], list)):
-            raise BadResponse(fin)
-        elif(fin[2] != Symbol("Completed")):
+        if (isinstance(fin[2], list) or
+            fin[2] != Symbol("Completed")):
             raise BadResponse(fin)
 
         return feedbacks
@@ -346,7 +351,8 @@ class SerapiInstance(threading.Thread):
             if supposed_ack[2] == Symbol("Ack"):
                 finished = True
         feedback = self.messages.get()
-        if (feedback[0] != Symbol("Feedback")):
+        if (not isinstance(feedback, list) or
+            feedback[0] != Symbol("Feedback")):
             raise BadResponse(feedback)
         subfeed = feedback[1]
         if (not isinstance(subfeed[0] , list)):
@@ -375,7 +381,8 @@ class SerapiInstance(threading.Thread):
         self.get_ack()
 
         proof_context_message = self.messages.get()
-        if proof_context_message[0] != Symbol("Answer"):
+        if (not isinstance(proof_context_message, list) or
+            proof_context_message[0] != Symbol("Answer")):
             raise BadResponse(proof_context_message)
         else:
             ol_msg = proof_context_message[2]
