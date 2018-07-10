@@ -12,7 +12,7 @@ import csv
 
 from shutil import *
 from format import format_goal, format_hypothesis
-from yattag import Doc
+from yattag import Doc, DocObject, Text, Line
 
 import serapi_instance
 import linearize_semicolons
@@ -42,7 +42,8 @@ baseline_tactic = "eauto"
 net = None
 netLock = None
 
-def header(tag, doc, text, css, javascript, title):
+def header(tag : Any, doc : DocObject, text : Text, css : List[str],
+           javascript : List[str], title : str):
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -53,11 +54,11 @@ def header(tag, doc, text, css, javascript, title):
         with tag('title'):
             text(title)
 
-def details_header(tag, doc, text, filename):
+def details_header(tag : Any, doc : DocObject, text : Text, filename : str):
     header(tag, doc, text, details_css, details_javascript,
            "Proverbot Detailed Report for {}".format(filename))
 
-def report_header(tag, doc, text):
+def report_header(tag : Any, doc : DocObject, text : Text):
     header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
@@ -95,7 +96,7 @@ def evaluate_prediction(fresult, correct_command,
     return (prediction, grade)
 
 class GlobalResult:
-    def __init__(self):
+    def __init__(self) -> None:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
@@ -114,7 +115,7 @@ class GlobalResult:
         self.num_searched += result.num_searched
         self.lock.release()
         pass
-    def report_results(self, doc, text, tag, line):
+    def report_results(self, doc : DocObject, text : Text, tag : Any, line : Line):
         with tag('h2'):
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_searched, self.num_tactics),
@@ -140,8 +141,8 @@ class GlobalResult:
                     continue
                 with tag('tr'):
                     line('td', fresult.filename)
-                    line('td', fresult.num_tactics)
-                    line('td', fresult.num_searched)
+                    line('td', str(fresult.num_tactics))
+                    line('td', str(fresult.num_searched))
                     line('td', stringified_percent(fresult.num_searched,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_correct,
@@ -155,8 +156,8 @@ class GlobalResult:
                             text("Details")
             with tag('tr'):
                 line('td', "Total");
-                line('td', self.num_tactics)
-                line('td', self.num_searched)
+                line('td', str(self.num_tactics))
+                line('td', str(self.num_searched))
                 line('td', stringified_percent(self.num_searched,
                                                self.num_tactics))
                 line('td', stringified_percent(self.num_correct,
@@ -190,8 +191,9 @@ class FileResult:
         self.predicted_tactic_frequency = {}
         self.correctly_predicted_frequency = {}
         pass
-    def grade_command_result(self, predicted, predicted_context,
-                             actual, actual_context, exception):
+    def grade_command_result(self, predicted : str, predicted_context : str,
+                             actual : str, actual_context : str,
+                             exception : Exception) -> str:
         if actual.strip() == predicted.strip():
             return "goodcommand"
         elif type(exception) == ParseError or type(exception) == LexError:
@@ -204,7 +206,9 @@ class FileResult:
             return "okaycommand"
         else:
             return "badcommand"
-    def add_command_result(self, predictions, grades, actual):
+    def add_command_result(self,
+                           predictions : List[str], grades : List[str],
+                           actual : str):
         add_to_freq_table(self.actual_tactic_frequency,
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
@@ -232,16 +236,17 @@ class FileResult:
             if grade != "failedcommand":
                 break;
         pass
-    def details_filename(self):
+
+    def details_filename(self) -> str:
         return "{}".format(escape_filename(self.filename))
     pass
 
 gresult = GlobalResult()
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes,
-                 output_dir, prelude, debug, num_jobs,
-                 baseline=False):
+    def __init__(self, workerid : int, coqargs : List[str], includes : str,
+                 output_dir : str, prelude : str, debug : bool, num_jobs : int,
+                 baseline=False) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
