@@ -1,0 +1,3 @@
+[submodule "pytorch-types"]
+	path = pytorch-types
+	url = git@github.com:HazardousPeach/pytorch-types.git
