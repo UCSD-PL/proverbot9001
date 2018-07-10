@@ -218,23 +218,6 @@ def commandLinePredict(predictor, k):
     for result in predictor.predictKTactics({"goal": sentence}, k):
         print(result)
 
-def decodeTactic(decoder, encoder_hidden, vocab_size):
-    decoder_hidden = encoder_hidden
-    decoded_tokens = []
-
-    decoder_input = Variable(LongTensor([[SOS_token]]))
-
-    for _ in range(MAX_LENGTH):
-        decoder_output, decoder_hidden = decoder(
-            decoder_input, decoder_hidden)
-        topv, topi = decoder_output.data.topk(1)
-        ni = topi[0][0]
-        decoded_tokens.append(ni)
-
-        decoder_input = Variable(LongTensor([[ni]]))
-
-    return decoded_tokens
-
 def adjustLearningRates(initial, optimizers, epoch):
     for optimizer in optimizers:
         lr = initial * (0.5 ** (epoch // 20))
