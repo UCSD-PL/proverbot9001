@@ -282,7 +282,7 @@ def train(dataset, hidden_size, output_size, learning_rate,
 
             total_loss += (loss.data.item() / target_length) * batch_size
 
-            if batch_num % print_every == 0:
+            if (batch_num + 1) % print_every == 0:
                 items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
                 progress = items_processed / num_items
                 print("{} ({} {:.2f}%) {:.4f}".
