@@ -39,7 +39,6 @@ MAX_LENGTH=200
 
 class EncDecRNNPredictor(TacticPredictor):
     def load_saved_state(filename):
-        checkpoint = torch.load(options["filename"] + ".tar")
         assert checkpoint['hidden_size']
         assert checkpoint['text_encoder_dict']
         assert checkpoint['encoder']
@@ -55,6 +54,7 @@ class EncDecRNNPredictor(TacticPredictor):
         self.decoder.load_state_dict(checkpoint['decoder'])
         self.max_length = checkpoint["max_length"]
         self.beam_width = options["beam_width"]
+        checkpoint = torch.load(filename)
         pass
 
     def __init__(self, options):
