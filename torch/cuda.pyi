@@ -1,10 +1,10 @@
-from torch import Tensor
+import torch
 
 def is_available() -> bool : ...
 
-class LongTensor(Tensor):
+class LongTensor(torch.LongTensor):
     ...
 
-class FloatTensor(Tensor):
+class FloatTensor(torch.FloatTensor):
     def __init__(self, k : int, val : float) -> None : ...
     ...
