@@ -23,6 +23,7 @@ from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
 import torch.utils.data as data
+import torch.cuda
 
 from itertools import takewhile
 from tactic_predictor import TacticPredictor
