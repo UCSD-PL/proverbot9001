@@ -39,9 +39,6 @@ max_tactic_length = 100
 
 baseline_tactic = "eauto"
 
-net = None
-netLock = None
-
 def header(tag : Any, doc : DocObject, text : Text, css : List[str],
            javascript : List[str], title : str):
     with tag('head'):
@@ -74,13 +71,14 @@ def to_list_string(l):
 def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
-def run_prediction(coq, prediction):
+def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tuple[str,str,Optional[Exception]]:
     prediction = prediction.lstrip("-+*")
     coq.quiet = True
     try:
         coq.run_stmt(prediction)
         context = coq.proof_context
         coq.cancel_last()
+        assert isinstance(context, str)
         return (prediction, context, None)
     except (ParseError, LexError, CoqExn, BadResponse) as e:
         return (prediction, "", e)
@@ -88,8 +86,10 @@ def run_prediction(coq, prediction):
         coq.quiet = False
 
 # Warning: Mutates fresult
-def evaluate_prediction(fresult, correct_command,
-                        correct_result_context, prediction_run):
+def evaluate_prediction(fresult : FileResult,
+                        correct_command : str,
+                        correct_result_context : str,
+                        prediction_run : Tuple[str, str, Optional[Exception]]) -> Tuple[str, str]:
     prediction, context, exception = prediction_run
     grade = fresult.grade_command_result(prediction, context, correct_command,
                                          correct_result_context, exception)
@@ -193,7 +193,7 @@ class FileResult:
         pass
     def grade_command_result(self, predicted : str, predicted_context : str,
                              actual : str, actual_context : str,
-                             exception : Exception) -> str:
+                             exception : Optional[Exception]) -> str:
         if actual.strip() == predicted.strip():
             return "goodcommand"
         elif type(exception) == ParseError or type(exception) == LexError:
@@ -302,6 +302,7 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
+                        assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError):
                         print("In file {}:".format(filename))

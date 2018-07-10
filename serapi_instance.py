@@ -58,7 +58,7 @@ class SerapiInstance(threading.Thread):
     # expect, and a base directory You can also set the coq objects
     # ".debug" field after you've created it to get more verbose
     # logging.
-    def __init__(self, coq_command, includes, prelude):
+    def __init__(self, coq_command : List[str], includes : str, prelude : str) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
@@ -412,7 +412,7 @@ class SerapiInstance(threading.Thread):
     pass
 
 class SerapiContext:
-    def __init__(self, coq_commands : str, includes : str, prelude : str) -> None:
+    def __init__(self, coq_commands : List[str], includes : str, prelude : str) -> None:
         self.coq_commands = coq_commands
         self.includes = includes
         self.prelude = prelude

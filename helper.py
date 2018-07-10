@@ -5,7 +5,7 @@ from serapi_instance import AckError, CompletedError, CoqExn, BadResponse
 import linearize_semicolons
 import re
 
-from typing import List, Match, Any
+from typing import List, Match, Any, Optional
 
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
@@ -50,7 +50,7 @@ def load_commands_preserve(filename : str) -> List[str]:
                 comment_depth -= 1
     return result
 
-def lifted_vernac(command : str) -> Match[Any]:
+def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
 def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str,

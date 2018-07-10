@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from typing import List, Tuple, TextIO
+from typing import List, Tuple, TextIO, Optional
 
 def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
@@ -28,7 +28,7 @@ def format_lemmas(rel_lemmas : str) -> str:
 def format_tactic(tactic : str):
     return minimize_whitespace(tactic) + "\n-----\n"
 
-def read_pair(f_handle : TextIO) -> Tuple[str, str]:
+def read_pair(f_handle : TextIO) -> Optional[Tuple[str, str]]:
     prev_tactics = []
     next_prev_tactic = f_handle.readline()
     if next_prev_tactic == "":
