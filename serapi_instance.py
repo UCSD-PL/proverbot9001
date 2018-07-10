@@ -434,7 +434,7 @@ def possibly_starting_proof(command : str) -> bool:
             re.match("Corollary\s", stripped_command) != None or
             re.match("Let\s", stripped_command) != None or
             ("Instance" in stripped_command and
-             "Declare" not in stripped_command) != None or
+             "Declare" not in stripped_command) or
             re.match("Function\s", stripped_command) != None or
             re.match("Next Obligation", stripped_command) != None or
             re.match("Property\s", stripped_command) != None or
