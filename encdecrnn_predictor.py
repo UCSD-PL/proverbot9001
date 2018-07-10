@@ -75,10 +75,12 @@ class EncDecRNNPredictor(TacticPredictor):
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
         in_sentence = LongTensor(inputFromSentence(encode_context(in_data["goal"]),
-                                                   self.max_length))
+                                                   self.max_length)).view(1, -1)
         feature_vector = self.encoder.run(in_sentence)
         prediction_sentences = decodeKTactics(self.decoder,
-                                              feature_vector, self.beam_width)[:k]
+                                              feature_vector,
+                                              self.beam_width,
+                                              self.max_length)[:k]
         return [decode_tactic(sentence) for sentence in prediction_sentences]
 
 class EncoderRNN(nn.Module):
@@ -108,7 +110,9 @@ class EncoderRNN(nn.Module):
 
     def run(self, sentence : SomeLongTensor) -> SomeLongTensor:
         input_variable = maybe_cuda(Variable(sentence))
-        assert input_variable.size()[0] == self.batch_size
+        assert input_variable.size()[0] == self.batch_size, \
+            "input var has size {}, batch_size is {}".format(input_variable.size()[0],
+                                                             self.batch_size)
         input_length = input_variable.size()[1]
         encoder_hidden = self.initHidden()
 
@@ -365,37 +369,35 @@ def main():
 # The code below here was copied from
 # https://ibm.github.io/pytorch-seq2seq/public/_modules/seq2seq/models/TopKDecoder.html
 # and modified. This code is available under the apache license.
-def decodeKTactics(decoder, encoder_hidden, k):
+def decodeKTactics(decoder, encoder_hidden, beam_width, max_length):
     v = decoder.output_size
-    pos_index = Variable(LongTensor([0]) * k).view(-1, 1)
+    pos_index = Variable(LongTensor([0]) * beam_width).view(-1, 1)
 
-    hidden = _inflate(encoder_hidden, k)
+    hidden = _inflate(encoder_hidden, beam_width)
 
-    sequence_scores = FloatTensor(k, 1)
+    sequence_scores = FloatTensor(beam_width, 1)
     sequence_scores.fill_(-float('Inf'))
     sequence_scores.index_fill_(0, LongTensor([0]), 0.0)
     sequence_scores = Variable(sequence_scores)
 
-    input_var = Variable(LongTensor([[SOS_token] * k]))
+    input_var = Variable(LongTensor([[SOS_token] * beam_width]))
 
     stored_predecessors = list()
     stored_emitted_symbols = list()
 
-    decoder.k = k
-
-    for j in range(MAX_LENGTH):
+    for j in range(max_length):
         decoder_output, hidden = decoder(input_var, hidden)
 
         sequence_scores = _inflate(sequence_scores, v)
         sequence_scores += decoder_output
 
-        scores, candidates = sequence_scores.view(1, -1).topk(k)
+        scores, candidates = sequence_scores.view(1, -1).topk(beam_width)
 
-        input_var = (candidates % v).view(1, k)
-        sequence_scores = scores.view(k, 1)
+        input_var = (candidates % v).view(1, beam_width)
+        sequence_scores = scores.view(beam_width, 1)
 
         predecessors = (candidates / v +
-                        pos_index.expand_as(candidates)).view(k, 1)
+                        pos_index.expand_as(candidates)).view(beam_width, 1)
         hidden = hidden.index_select(1, predecessors.squeeze())
 
         eos_indices = input_var.data.eq(EOS_token)
@@ -408,14 +410,15 @@ def decodeKTactics(decoder, encoder_hidden, k):
 
 
     # Trace back from the final three highest scores
-    _, next_idxs = sequence_scores.view(k).sort(descending=True)
+    _, next_idxs = sequence_scores.view(beam_width).sort(descending=True)
     seqs = []
     eos_found = 0
-    for i in range(MAX_LENGTH - 1, -1, -1):
+    for i in range(max_length - 1, -1, -1):
         # The next column of symbols from the end
-        next_symbols = stored_emitted_symbols[i].view(k).index_select(0, next_idxs).data
+        next_symbols = stored_emitted_symbols[i].view(beam_width) \
+                                                .index_select(0, next_idxs).data
         # The predecessors of that column
-        next_idxs = stored_predecessors[i].view(k).index_select(0, next_idxs)
+        next_idxs = stored_predecessors[i].view(beam_width).index_select(0, next_idxs)
 
         # Handle sequences that ended early
         eos_indices = stored_emitted_symbols[i].data.squeeze(1).eq(EOS_token).nonzero()
@@ -423,7 +426,7 @@ def decodeKTactics(decoder, encoder_hidden, k):
             for j in range(eos_indices.size(0)-1, -1, -1):
                 idx = eos_indices[j]
 
-                res_k_idx = k - (eos_found % k) - 1
+                res_k_idx = beam_width - (eos_found % beam_width) - 1
                 eos_found += 1
                 res_idx = res_k_idx
 
@@ -434,7 +437,7 @@ def decodeKTactics(decoder, encoder_hidden, k):
         seqs.insert(0, next_symbols)
 
     # Transpose
-    seqs = [[data[i].item() for data in seqs] for i in range(k)]
+    seqs = [[data[i].item() for data in seqs] for i in range(beam_width)]
     # Cut off EOS tokens
     seqs = [list(takewhile(lambda x: x != EOS_token, seq)) for seq in seqs]
 
