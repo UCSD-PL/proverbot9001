@@ -138,7 +138,8 @@ class DecoderRNN(nn.Module):
         if use_cuda:
             self.cuda()
 
-    def forward(self, input, hidden):
+    def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
+        -> Tuple[SomeLongTensor, SomeLongTensor]:
         output = self.embedding(input).view(1, self.batch_size * self.beam_width, -1)
         for i in range(self.num_layers):
             output = F.relu(output)
@@ -146,10 +147,10 @@ class DecoderRNN(nn.Module):
         output = self.softmax(self.out(output[0]))
         return output, hidden
 
-    def initInput(self):
+    def initInput(self) -> SomeLongTensor:
         return Variable(LongTensor([[SOS_token] * self.batch_size]))
 
-    def initHidden(self):
+    def initHidden(self) -> SomeLongTensor:
         zeroes = torch.zeros(1, 1, self.hidden_size)
         if use_cuda:
             zeroes = zeroes.cuda()
