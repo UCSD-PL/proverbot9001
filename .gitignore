@@ -8,3 +8,5 @@
 *.glob
 *.swp
 *.vo
+/coq-menhirlib/
+scrape.txt
