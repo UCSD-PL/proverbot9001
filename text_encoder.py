@@ -129,4 +129,4 @@ def translate(string : str) -> List[int]:
     return result
 
 def untranslate(tokenlist : List[int]) -> str:
-    return "".join([num_to_char[t] for t in tokenlist])
+    return "".join([num_to_char[t] for t in tokenlist if t != 0])

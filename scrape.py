@@ -18,23 +18,25 @@ from helper import *
 import linearize_semicolons
 import serapi_instance
 
+from typing import Dict, Any
+
 # This stuff synchronizes between the different threads
 num_jobs = 0
-jobs = queue.Queue()
+jobs = queue.Queue() # type: queue.Queue[str]
 workers = []
 output_lock = threading.Lock()
-finished_queue = queue.Queue()
+finished_queue = queue.Queue() # type: queue.Queue[int]
 
 # A structure for holding global options that we don't want to muddy
 # up the code by passing everywhere.
-options = {}
+options = {} # type: Dict[str, Any]
 
 # This is a worker thread. All the actual scraping is done by one of
 # these. They basically just pull jobs from the queue and scrape
 # them. They synchronize only when writing the output at the very end,
 # they buffer everything until they are finished.
 class Worker(threading.Thread):
-    def __init__(self, output, workerid, prelude="."):
+    def __init__(self, output : str, workerid : int, prelude=".") -> None:
         threading.Thread.__init__(self, daemon=True)
         thispath = os.path.dirname(os.path.abspath(__file__))
         # Set up the command which runs sertop.
@@ -55,7 +57,7 @@ class Worker(threading.Thread):
         self.outfile_name = output
         pass
 
-    def process_statement(self, coq, command):
+    def process_statement(self, coq : serapi_instance.SerapiInstance, command : str) -> None:
         # When the no-semis option is enabled, skip the scraping of
         # commands with semicolons in them. We have a pass that's
         # supposed to remove these no matter what, but in some proofs
@@ -87,7 +89,7 @@ class Worker(threading.Thread):
         coq.run_stmt(command)
         pass
 
-    def process_file(self, filename):
+    def process_file(self, filename : str) -> None:
         # First, clear the temp file, since it might have old data in
         # it.
         with open(self.tmpfile_name, 'w') as tmp_file:
@@ -133,7 +135,7 @@ class Worker(threading.Thread):
                     print(line)
         output_lock.release()
 
-    def run(self):
+    def run(self) -> None:
         # Until there are no more jobs left in the queue, pull a job,
         # let the user know you're processing it, and then process
         # that file.

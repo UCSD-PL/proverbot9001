@@ -5,7 +5,9 @@ from serapi_instance import AckError, CompletedError, CoqExn, BadResponse
 import linearize_semicolons
 import re
 
-def load_commands(filename):
+from typing import List, Match, Any, Optional
+
+def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = serapi_instance.kill_comments(fin.read())
         commands_orig = serapi_instance.split_commands(contents)
@@ -13,7 +15,7 @@ def load_commands(filename):
                                  for newcmd in serapi_instance.preprocess_command(cmd)]
         return commands_preprocessed
 
-def load_commands_preserve(filename):
+def load_commands_preserve(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = fin.read()
     result = []
@@ -48,10 +50,11 @@ def load_commands_preserve(filename):
                 comment_depth -= 1
     return result
 
-def lifted_vernac(command):
+def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
-def lift_and_linearize(commands, coqargs, includes, prelude, filename, debug=False):
+def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str,
+                       prelude : str, filename : str, debug=False) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             coq.debug = debug
@@ -63,8 +66,8 @@ def lift_and_linearize(commands, coqargs, includes, prelude, filename, debug=Fal
         print("In file {}".format(filename))
         raise
 
-def generate_lifted(commands, coq):
-    lemma_stack = []
+def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance):
+    lemma_stack = [] # type: List[List[str]]
     for command in commands:
         if serapi_instance.possibly_starting_proof(command):
             coq.run_stmt(command)

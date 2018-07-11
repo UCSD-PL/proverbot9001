@@ -10,9 +10,15 @@ import re
 import datetime
 import csv
 
+from typing import List, Any, Tuple, Dict, Union, cast, NewType, Callable
+
 from shutil import *
 from format import format_goal, format_hypothesis
 from yattag import Doc
+
+Tag = Callable[..., Doc.Tag]
+Text = Callable[..., None]
+Line = Callable[..., None]
 
 import serapi_instance
 import linearize_semicolons
@@ -25,8 +31,8 @@ from helper import load_commands_preserve
 
 from predict_tactic import *
 
-finished_queue = queue.Queue()
-rows = queue.Queue()
+finished_queue = queue.Queue() # type: queue.Queue[int]
+rows = queue.Queue() # type: queue.Queue[FileResult]
 base = os.path.dirname(os.path.abspath(__file__))
 
 details_css = ["details.css"]
@@ -39,10 +45,8 @@ max_tactic_length = 100
 
 baseline_tactic = "eauto"
 
-net = None
-netLock = None
-
-def header(tag, doc, text, css, javascript, title):
+def header(tag : Tag, doc : Doc, text : Text, css : List[str],
+           javascript : List[str], title : str):
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -53,11 +57,11 @@ def header(tag, doc, text, css, javascript, title):
         with tag('title'):
             text(title)
 
-def details_header(tag, doc, text, filename):
+def details_header(tag : Any, doc : Doc, text : Text, filename : str):
     header(tag, doc, text, details_css, details_javascript,
            "Proverbot Detailed Report for {}".format(filename))
 
-def report_header(tag, doc, text):
+def report_header(tag : Any, doc : Doc, text : Text):
     header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
@@ -73,13 +77,14 @@ def to_list_string(l):
 def shorten_whitespace(string):
     return re.sub("    +", "  ", string)
 
-def run_prediction(coq, prediction):
+def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tuple[str,str,Optional[Exception]]:
     prediction = prediction.lstrip("-+*")
     coq.quiet = True
     try:
         coq.run_stmt(prediction)
         context = coq.proof_context
         coq.cancel_last()
+        assert isinstance(context, str)
         return (prediction, context, None)
     except (ParseError, LexError, CoqExn, BadResponse) as e:
         return (prediction, "", e)
@@ -87,15 +92,17 @@ def run_prediction(coq, prediction):
         coq.quiet = False
 
 # Warning: Mutates fresult
-def evaluate_prediction(fresult, correct_command,
-                        correct_result_context, prediction_run):
+def evaluate_prediction(fresult : 'FileResult',
+                        correct_command : str,
+                        correct_result_context : str,
+                        prediction_run : Tuple[str, str, Optional[Exception]]) -> Tuple[str, str]:
     prediction, context, exception = prediction_run
     grade = fresult.grade_command_result(prediction, context, correct_command,
                                          correct_result_context, exception)
     return (prediction, grade)
 
 class GlobalResult:
-    def __init__(self):
+    def __init__(self) -> None:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
@@ -104,7 +111,7 @@ class GlobalResult:
         self.num_searched = 0
         self.lock = threading.Lock()
         pass
-    def add_file_result(self, result):
+    def add_file_result(self, result : 'FileResult'):
         self.lock.acquire()
         self.num_tactics += result.num_tactics
         self.num_correct += result.num_correct
@@ -114,7 +121,7 @@ class GlobalResult:
         self.num_searched += result.num_searched
         self.lock.release()
         pass
-    def report_results(self, doc, text, tag, line):
+    def report_results(self, doc : Doc, text : Text, tag : Any, line : Line):
         with tag('h2'):
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_searched, self.num_tactics),
@@ -140,8 +147,8 @@ class GlobalResult:
                     continue
                 with tag('tr'):
                     line('td', fresult.filename)
-                    line('td', fresult.num_tactics)
-                    line('td', fresult.num_searched)
+                    line('td', str(fresult.num_tactics))
+                    line('td', str(fresult.num_searched))
                     line('td', stringified_percent(fresult.num_searched,
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_correct,
@@ -155,8 +162,8 @@ class GlobalResult:
                             text("Details")
             with tag('tr'):
                 line('td', "Total");
-                line('td', self.num_tactics)
-                line('td', self.num_searched)
+                line('td', str(self.num_tactics))
+                line('td', str(self.num_searched))
                 line('td', stringified_percent(self.num_searched,
                                                self.num_tactics))
                 line('td', stringified_percent(self.num_correct,
@@ -190,8 +197,9 @@ class FileResult:
         self.predicted_tactic_frequency = {}
         self.correctly_predicted_frequency = {}
         pass
-    def grade_command_result(self, predicted, predicted_context,
-                             actual, actual_context, exception):
+    def grade_command_result(self, predicted : str, predicted_context : str,
+                             actual : str, actual_context : str,
+                             exception : Optional[Exception]) -> str:
         if actual.strip() == predicted.strip():
             return "goodcommand"
         elif type(exception) == ParseError or type(exception) == LexError:
@@ -204,7 +212,9 @@ class FileResult:
             return "okaycommand"
         else:
             return "badcommand"
-    def add_command_result(self, predictions, grades, actual):
+    def add_command_result(self,
+                           predictions : List[str], grades : List[str],
+                           actual : str):
         add_to_freq_table(self.actual_tactic_frequency,
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
@@ -232,16 +242,17 @@ class FileResult:
             if grade != "failedcommand":
                 break;
         pass
-    def details_filename(self):
+
+    def details_filename(self) -> str:
         return "{}".format(escape_filename(self.filename))
     pass
 
 gresult = GlobalResult()
 
 class Worker(threading.Thread):
-    def __init__(self, workerid, coqargs, includes,
-                 output_dir, prelude, debug, num_jobs,
-                 baseline=False):
+    def __init__(self, workerid : int, coqargs : List[str], includes : str,
+                 output_dir : str, prelude : str, debug : bool, num_jobs : int,
+                 baseline=False) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -297,6 +308,7 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
+                        assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError):
                         print("In file {}:".format(filename))
@@ -325,7 +337,7 @@ class Worker(threading.Thread):
         with open("{}/{}.csv".format(self.output_dir, fresult.details_filename()),
                   'w', newline='') as csvfile:
             rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
-            for row in command_results:
+            for row in command_results: # type: Union[Tuple[str], Tuple[str, str, str, List[PredictionResult]]]
                 if len(row) == 1:
                     rowwriter.writerow([re.sub("\n", "\\n", row[0])])
                 else:
@@ -472,7 +484,7 @@ cur_date = datetime.datetime.now()
 if not os.path.exists(args.output):
     os.makedirs(args.output)
 
-jobs = queue.Queue()
+jobs = queue.Queue() #type: queue.Queue[str]
 workers = []
 num_jobs = len(args.filenames)
 for infname in args.filenames:
@@ -480,7 +492,8 @@ for infname in args.filenames:
 
 args.threads = min(args.threads, len(args.filenames))
 
-net = loadPredictor({"filename": "pytorch-weights", "beam_width": num_predictions ** 2})
+net = loadPredictor({"filename": "pytorch-weights.tar",
+                     "beam-width": num_predictions ** 2})
 netLock = threading.Lock()
 
 for idx in range(args.threads):
