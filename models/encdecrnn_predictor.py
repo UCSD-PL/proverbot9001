@@ -304,7 +304,7 @@ def train(dataset : DataSet, hidden_size : int, output_size : int,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args(args):
+def take_args(args : List[str]) -> Any:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
@@ -322,7 +322,7 @@ def take_args(args):
                         default=3, type=int)
     return parser.parse_args(args)
 
-def main(args):
+def main(args : List[str]) -> None:
     # Set up cleanup handler for Ctrl-C
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(args)
