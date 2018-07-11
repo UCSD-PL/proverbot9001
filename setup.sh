@@ -50,9 +50,20 @@ function setup-coq-serapi {
     (
         set -euv
         cd coq-serapi
-        echo "$PWD/../coq"
         SERAPI_COQ_HOME="$PWD/../coq/" make
     ) || exit 1
+}
+
+function setup-coq-menhir {
+    check-and-clone\
+        "coq-menhirlib" "https://gitlab.inria.fr/fpottier/coq-menhirlib.git"\
+        "b3a8229fa967a0185560f4741110f71f3b414de7"
+    (
+        set -euv
+        cd coq-menhirlib
+        export PATH="$PWD/../coq/bin:$PATH"
+        make && make install
+    )
 }
 
 function setup-compcert {
@@ -71,4 +82,5 @@ function setup-compcert {
 
 setup-coq
 setup-coq-serapi
+setup-coq-menhir
 setup-compcert
