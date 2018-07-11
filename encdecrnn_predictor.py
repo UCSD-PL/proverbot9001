@@ -45,9 +45,6 @@ class EncDecRNNPredictor(TacticPredictor):
         assert checkpoint['text-encoder']
         assert checkpoint['neural-encoder']
         assert checkpoint['neural-decoder']
-        # For testing only!
-        checkpoint['num-encoder-layers'] = 3
-        checkpoint['num-decoder-layers'] = 3
         assert checkpoint['num-encoder-layers']
         assert checkpoint['num-decoder-layers']
         assert checkpoint['max-length']
@@ -165,8 +162,8 @@ class DecoderRNN(nn.Module):
         prediction = []
 
         for di in range(output_variable.size()[1]):
-            decoder_output, decoder_hidden = self(output_variable[:,di-1],
-                                                  decoder_hidden)
+            decoder_output, decoder_hidden = self(decoder_input, decoder_hidden)
+            decoder_input = output_variable[:,di]
             prediction.append(decoder_output)
         return prediction
 
