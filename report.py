@@ -29,7 +29,7 @@ from helper import *
 from syntax import syntax_highlight, strip_comments
 from helper import load_commands_preserve
 
-from predict_tactic import *
+from predict_tactic import predictors, loadPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
@@ -467,6 +467,7 @@ parser.add_argument('--baseline',
                     help="run in baseline mode, predicting {} every time"
                     .format(baseline_tactic),
                     default=False, const=True, action='store_const')
+parser.add_argument('--predictor', choices=list(predictors.keys()))
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 text_encoder.debug_tokenizer = args.debugtokenizer
@@ -493,7 +494,8 @@ for infname in args.filenames:
 args.threads = min(args.threads, len(args.filenames))
 
 net = loadPredictor({"filename": "pytorch-weights.tar",
-                     "beam-width": num_predictions ** 2})
+                     "beam-width": num_predictions ** 2},
+                    args.predictor)
 netLock = threading.Lock()
 
 for idx in range(args.threads):
