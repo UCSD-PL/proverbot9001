@@ -180,7 +180,7 @@ def take_args() -> Tuple[str, Any]:
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
     parser.add_argument("--hidden-size", dest="hidden_size", default=128, type=int)
     parser.add_argument("--learning-rate", dest="learning_rate",
-                        default=.03, type=float)
+                        default=.6, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
                         default=3, type=int)
     return parser.parse_args()
