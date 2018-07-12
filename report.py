@@ -467,7 +467,7 @@ parser.add_argument('--baseline',
                     help="run in baseline mode, predicting {} every time"
                     .format(baseline_tactic),
                     default=False, const=True, action='store_const')
-parser.add_argument('--predictor', choices=list(predictors.keys()))
+parser.add_argument('--predictor', choices=list(predictors.keys()), default=predictors.keys()[0])
 parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
 args = parser.parse_args()
 text_encoder.debug_tokenizer = args.debugtokenizer
