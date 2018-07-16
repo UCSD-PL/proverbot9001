@@ -20,6 +20,9 @@ import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
                              BadResponse, ParseError)
 
+from typing import Optional, List
+from helper import read_commands_preserve
+
 # exception for when things go bad, but not necessarily because of the linearizer
 class LinearizerCouldNotLinearize(Exception):
     pass
@@ -385,3 +388,34 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         count_goals_before_timer_bucket.print_statistics()
         run_statement_timer_bucket.print_statistics()
         count_goals_after_timer_bucket.print_statistics()
+
+import hashlib
+BLOCKSIZE = 65536
+
+def hash_file(filename : str) -> str:
+    hasher = hashlib.md5()
+    with open(filename, 'rb') as f:
+        buf = f.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+def try_load_lin(filename : str) -> Optional[List[str]]:
+    print("Attempting to load cached linearized version from {}"
+          .format(filename + '.lin'))
+    if not os.path.exists(filename + '.lin'):
+        return None
+    file_hash = hash_file(filename)
+    with open(filename + '.lin', 'r') as f:
+        if file_hash == f.readline().strip():
+            return read_commands_preserve(f.read())
+        else:
+            return None
+
+def save_lin(commands : List[str], filename : str) -> None:
+    output_file = filename + '.lin'
+    with open(output_file, 'w') as f:
+        print(hash_file(filename), file=f)
+        for command in commands:
+            print(command.strip(), file=f)

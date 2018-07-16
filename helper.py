@@ -18,6 +18,9 @@ def load_commands(filename : str) -> List[str]:
 def load_commands_preserve(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = fin.read()
+    return read_commands_preserve(contents)
+
+def read_commands_preserve(contents : str) -> List[str]:
     result = []
     cur_command = ""
     comment_depth = 0

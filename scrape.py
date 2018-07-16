@@ -103,10 +103,14 @@ class Worker(threading.Thread):
             # have the proof we'll actually operate on. This file
             # should be semantically the same as the input file, just
             # easier to work with, so it's the right thing to learn.
-            commands = lift_and_linearize(load_commands(filename),
-                                          self.coqargs, self.includes, self.prelude,
-                                          filename,
-                                          debug=options["debug"])
+            commands = try_load_lin(filename)
+            if not commands:
+                commands = lift_and_linearize(load_commands(filename),
+                                              self.coqargs, self.includes, self.prelude,
+                                              filename,
+                                              debug=options["debug"])
+                save_lin(commands, filename)
+
             # Get a coq instance
             with serapi_instance.SerapiContext(self.coqargs,
                                                self.includes,

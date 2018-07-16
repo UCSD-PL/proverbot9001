@@ -265,9 +265,15 @@ class Worker(threading.Thread):
         pass
 
     def get_commands(self, filename):
-        return lift_and_linearize(load_commands_preserve(self.prelude + "/" + filename),
-                                  self.coqargs, self.includes, self.prelude,
-                                  filename, debug=self.debug)
+        local_filename = self.prelude + "/" + filename
+        commands = linearize_semicolons.try_load_lin(local_filename)
+        if commands == None:
+            commands = lift_and_linearize(
+                load_commands_preserve(self.prelude + "/" + filename),
+                self.coqargs, self.includes, self.prelude,
+                filename, debug=self.debug)
+            linearize_semicolons.save_lin(commands, local_filename)
+        return commands
 
     def process_file(self, filename):
         global gresult
