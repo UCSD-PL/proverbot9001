@@ -27,6 +27,7 @@ import torch.cuda
 
 from itertools import takewhile
 from models.tactic_predictor import TacticPredictor
+from util import *
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 
@@ -165,9 +166,6 @@ class DecoderRNN(nn.Module):
             decoder_input = output_variable[:,di]
             prediction.append(decoder_output)
         return prediction
-
-Sentence = List[int]
-DataSet = List[List[Sentence]]
 
 def read_text_data(data_path : str, max_size:int=None) -> DataSet:
     data_set = []
