@@ -33,10 +33,10 @@ scrape:
 					       --prelude ./CompCert
 report:
 	($(ENV_PREFIX) ; cat compcert-test-files.txt | $(HEAD_CMD) | \
-	xargs python3 report.py $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
+	xargs ./proverbot9001.py report $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 
 train:
-	./encdecrnn_predictor.py train scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
+	./proverbot9001.py train-encdec scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))
