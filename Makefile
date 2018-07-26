@@ -36,7 +36,7 @@ report:
 	xargs ./proverbot9001.py report $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
 
 train:
-	./proverbot9001.py train-encdec scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
+	./proverbot9001.py train encdec scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))

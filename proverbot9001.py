@@ -8,9 +8,13 @@ import report
 import argparse
 
 modules = {
-    "train-encdec" : encdec.main,
-    "train-trycommon" : trycommon.train,
+    "train" : train
     "report":  report.main,
+}
+
+models = {
+    "encdec" : encdec.main
+    "trycommon" : trycommon.train
 }
 
 def exit_early(signal, frame):
@@ -24,6 +28,13 @@ def main():
     parser.add_argument("command", choices=list(modules.keys()))
     args = parser.parse_args(sys.argv[1:2])
     modules[args.command](sys.argv[2:])
+
+def train(args):
+    parser = argparse.ArgumentParser(description=
+                                     "Proverbot9001 training module")
+    parser.add_argument("model", choices=list(models.keys()))
+    args = parser.parse_args(args[:1])
+    models[args.model](args[1:])
 
 if __name__ == "__main__":
     main()
