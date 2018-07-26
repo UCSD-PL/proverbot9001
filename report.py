@@ -454,93 +454,98 @@ class Worker(threading.Thread):
 def escape_filename(filename):
     return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
-parser = argparse.ArgumentParser(description=
-                                 "try to match the file by predicting a tactic")
-parser.add_argument('-j', '--threads', default=1, type=int)
-parser.add_argument('--prelude', default=".")
-parser.add_argument('--debug', default=False, const=True, action='store_const')
-parser.add_argument('-o', '--output', help="output data folder name",
-                    default="report")
-parser.add_argument('--debugtokenizer', default=False, const=True, action='store_const')
-parser.add_argument('-m', '--message', default=None)
-parser.add_argument('--baseline',
-                    help="run in baseline mode, predicting {} every time"
-                    .format(baseline_tactic),
-                    default=False, const=True, action='store_const')
-parser.add_argument('--predictor', choices=list(predictors.keys()), default=predictors.keys()[0])
-parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
-args = parser.parse_args()
-text_encoder.debug_tokenizer = args.debugtokenizer
+def main(args):
+    global jobs
+    global num_jobs
+    global netLock
+    global net
+    parser = argparse.ArgumentParser(description=
+                                     "try to match the file by predicting a tactic")
+    parser.add_argument('-j', '--threads', default=1, type=int)
+    parser.add_argument('--prelude', default=".")
+    parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument('-o', '--output', help="output data folder name",
+                        default="report")
+    parser.add_argument('--debugtokenizer', default=False, const=True, action='store_const')
+    parser.add_argument('-m', '--message', default=None)
+    parser.add_argument('--baseline',
+                        help="run in baseline mode, predicting {} every time"
+                        .format(baseline_tactic),
+                        default=False, const=True, action='store_const')
+    parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    args = parser.parse_args(args)
+    text_encoder.debug_tokenizer = args.debugtokenizer
 
-coqargs = ["{}/coq-serapi/sertop.native".format(base),
-           "--prelude={}/coq".format(base)]
-includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
-                            stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+    coqargs = ["{}/coq-serapi/sertop.native".format(base),
+               "--prelude={}/coq".format(base)]
+    includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
+                                stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
-# Get some metadata
-cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
-                                     shell=True).decode('utf-8').strip()
-cur_date = datetime.datetime.now()
+    # Get some metadata
+    cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
+                                         shell=True).decode('utf-8').strip()
+    cur_date = datetime.datetime.now()
 
-if not os.path.exists(args.output):
-    os.makedirs(args.output)
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
 
-jobs = queue.Queue() #type: queue.Queue[str]
-workers = []
-num_jobs = len(args.filenames)
-for infname in args.filenames:
-    jobs.put(infname)
+    jobs = queue.Queue() #type: queue.Queue[str]
+    workers = []
+    num_jobs = len(args.filenames)
+    for infname in args.filenames:
+        jobs.put(infname)
 
-args.threads = min(args.threads, len(args.filenames))
+    args.threads = min(args.threads, len(args.filenames))
 
-net = loadPredictor({"filename": "pytorch-weights.tar",
-                     "beam-width": num_predictions ** 2},
-                    args.predictor)
-netLock = threading.Lock()
+    net = loadPredictor({"filename": "pytorch-weights.tar",
+                         "beam-width": num_predictions ** 2},
+                        args.predictor)
+    netLock = threading.Lock()
 
-for idx in range(args.threads):
-    worker = Worker(idx, coqargs, includes, args.output,
-                    args.prelude, args.debug, num_jobs,
-                    args.baseline)
-    worker.start()
-    workers.append(worker)
+    for idx in range(args.threads):
+        worker = Worker(idx, coqargs, includes, args.output,
+                        args.prelude, args.debug, num_jobs,
+                        args.baseline)
+        worker.start()
+        workers.append(worker)
 
-for idx in range(args.threads):
-    finished_id = finished_queue.get()
-    workers[finished_id].join()
-    print("Thread {} finished ({} of {}).".format(finished_id, idx + 1, args.threads))
+    for idx in range(args.threads):
+        finished_id = finished_queue.get()
+        workers[finished_id].join()
+        print("Thread {} finished ({} of {}).".format(finished_id, idx + 1, args.threads))
 
-###
-### Write the report page out
-###
+    ###
+    ### Write the report page out
+    ###
 
-doc, tag, text, line = Doc().ttl()
+    doc, tag, text, line = Doc().ttl()
 
-with tag('html'):
-    report_header(tag, doc, text)
-    with tag('body'):
-        with tag('h4'):
-            text("{} files processed".format(num_jobs))
-        with tag('h5'):
-            text("Commit: {}".format(cur_commit))
-        if args.message:
+    with tag('html'):
+        report_header(tag, doc, text)
+        with tag('body'):
+            with tag('h4'):
+                text("{} files processed".format(num_jobs))
             with tag('h5'):
-                text("Message: {}".format(args.message))
-        if args.baseline:
+                text("Commit: {}".format(cur_commit))
+            if args.message:
+                with tag('h5'):
+                    text("Message: {}".format(args.message))
+            if args.baseline:
+                with tag('h5'):
+                    text("Baseline build!! Always predicting {}".format(baseline_tactic))
             with tag('h5'):
-                text("Baseline build!! Always predicting {}".format(baseline_tactic))
-        with tag('h5'):
-            text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
-        with tag('img',
-                 ('src', 'logo.png'),
-                 ('id', 'logo')):
-            pass
-        gresult.report_results(doc, text, tag, line)
+                text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
+            with tag('img',
+                     ('src', 'logo.png'),
+                     ('id', 'logo')):
+                pass
+            gresult.report_results(doc, text, tag, line)
 
-extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
+    extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
-for filename in extra_files:
-    copy(base + "/reports/" + filename, args.output + "/" + filename)
+    for filename in extra_files:
+        copy(base + "/reports/" + filename, args.output + "/" + filename)
 
-with open("{}/report.html".format(args.output), "w") as fout:
-    fout.write(doc.getvalue())
+    with open("{}/report.html".format(args.output), "w") as fout:
+        fout.write(doc.getvalue())

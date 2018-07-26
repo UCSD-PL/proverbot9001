@@ -1,5 +1,5 @@
 /.gcroots/
-/__pycache__/
+*__pycache__/
 /CompCert/
 /coq/
 /coq-serapi/

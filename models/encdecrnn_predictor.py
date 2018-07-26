@@ -26,9 +26,9 @@ import torch.utils.data as data
 import torch.cuda
 
 from itertools import takewhile
-from tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor
 
-from typing import Dict, List, Union, Any, Tuple, cast
+from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -37,6 +37,7 @@ SOS_token = 1
 EOS_token = 0
 
 SomeLongTensor = Union[torch.cuda.LongTensor, torch.LongTensor]
+SomeFloatTensor = Union[torch.cuda.FloatTensor, torch.FloatTensor]
 
 class EncDecRNNPredictor(TacticPredictor):
     def load_saved_state(self, filename : str, beam_width : int) -> None:
@@ -151,7 +152,7 @@ class DecoderRNN(nn.Module):
         return Variable(LongTensor([[SOS_token] * self.batch_size]))
 
     def initHidden(self) -> SomeLongTensor:
-        zeroes = torch.zeros(1, 1, self.hidden_size)
+        zeroes = cast(torch.LongTensor, torch.zeros(1, 1, self.hidden_size))
         if use_cuda:
             zeroes = zeroes.cuda()
         return Variable(zeroes)
@@ -168,31 +169,34 @@ class DecoderRNN(nn.Module):
             prediction.append(decoder_output)
         return prediction
 
-def LongTensor(arr):
+def LongTensor(arr : Any) -> SomeLongTensor:
     if use_cuda:
         return torch.cuda.LongTensor(arr)
     else:
         return torch.LongTensor(arr)
 
-def FloatTensor(k, val):
+def FloatTensor(k : int, val : float) -> SomeFloatTensor:
     if use_cuda:
         return torch.cuda.FloatTensor(k, val)
     else:
         return torch.FloatTensor(k, val)
 
-def asMinutes(s):
+def asMinutes(s : float) -> str:
     m = math.floor(s / 60)
     s -= m * 60
     return "{}m {:.2f}s".format(m, s)
 
-def timeSince(since, percent):
+def timeSince(since : float, percent : float) -> str:
     now = time.time()
     s = now - since
     es = s / percent
     rs = es - s
     return "{} (- {})".format(asMinutes(s), asMinutes(rs))
 
-def read_text_data(data_path, max_size=None):
+Sentence = List[int]
+DataSet = List[List[Sentence]]
+
+def read_text_data(data_path : str, max_size:int=None) -> DataSet:
     data_set = []
     with open(data_path, mode="r") as data_file:
         pair = read_pair(data_file)
@@ -207,14 +211,14 @@ def read_text_data(data_path, max_size=None):
     assert(len(data_set) > 0)
     return data_set
 
-def inputFromSentence(sentence, max_length):
+def inputFromSentence(sentence : Sentence, max_length : int) -> Sentence:
     if len(sentence) > max_length:
         sentence = sentence[:max_length]
     if len(sentence) < max_length:
         sentence.extend([0] * (max_length - len(sentence)))
     return sentence
 
-def commandLinePredict(predictor, k):
+def commandLinePredict(predictor : EncDecRNNPredictor, k : int) -> None:
     sentence = ""
     next_line = sys.stdin.readline()
     while next_line != "+++++\n":
@@ -223,7 +227,9 @@ def commandLinePredict(predictor, k):
     for result in predictor.predictKTactics({"goal": sentence}, k):
         print(result)
 
-def adjustLearningRates(initial, optimizers, epoch):
+def adjustLearningRates(initial : float,
+                        optimizers : List[torch.optim.SGD],
+                        epoch : int):
     for optimizer in optimizers:
         lr = initial * (0.5 ** (epoch // 20))
         for param_group in optimizer.param_groups:
@@ -235,9 +241,12 @@ def maybe_cuda(component):
     else:
         return component
 
-def train(dataset, hidden_size, output_size, learning_rate,
-          num_encoder_layers, num_decoder_layers, max_length,
-          num_epochs, batch_size, print_every):
+Checkpoint = Tuple[Dict[Any, Any], Dict[Any, Any]]
+
+def train(dataset : DataSet, hidden_size : int, output_size : int,
+          learning_rate : float, num_encoder_layers : int,
+          num_decoder_layers : int, max_length : int, num_epochs : int, batch_size : int,
+          print_every : int) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
     in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
     out_stream = [inputFromSentence(datum[1], max_length) for datum in dataset]
@@ -269,8 +278,10 @@ def train(dataset, hidden_size, output_size, learning_rate,
 
             encoder_optimizer.zero_grad()
             decoder_optimizer.zero_grad()
-            predictor_output = decoder.run_teach(encoder.run(input_batch), output_batch)
-            loss = 0
+            predictor_output = decoder.run_teach(encoder
+                                                 .run(cast(SomeLongTensor, input_batch)),
+                                                 cast(SomeLongTensor, output_batch))
+            loss = maybe_cuda(Variable(LongTensor(0)))
             output_var = maybe_cuda(Variable(output_batch))
             for i in range(target_length):
                 loss += criterion(predictor_output[i], output_var[:,i])
@@ -278,7 +289,7 @@ def train(dataset, hidden_size, output_size, learning_rate,
             encoder_optimizer.step()
             decoder_optimizer.step()
 
-            total_loss += (loss.data.item() / target_length) * batch_size
+            total_loss += (loss.data[0] / target_length) * batch_size
 
             if (batch_num + 1) % print_every == 0:
                 items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
@@ -293,84 +304,62 @@ def train(dataset, hidden_size, output_size, learning_rate,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args():
+def take_args(args):
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
-    parser.add_argument("command")
-    args = parser.parse_args(sys.argv[1:2])
-    if args.command == "train":
-        parser = argparse.ArgumentParser(description=
-                                         "pytorch model for proverbot")
-        parser.add_argument("scrape_file")
-        parser.add_argument("save_file")
-        parser.add_argument("--num-epochs", dest="num_epochs", default=50, type=int)
-        parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-        parser.add_argument("--max-length", dest="max_length", default=100, type=int)
-        parser.add_argument("--print-every", dest="print_every", default=10, type=int)
-        parser.add_argument("--hidden-size", dest="hidden_size", default=None, type=int)
-        parser.add_argument("--learning-rate", dest="learning_rate",
-                            default=0.003, type=float)
-        parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
-                            default=3, type=int)
-        parser.add_argument("--num-decoder-layers", dest="num_decoder_layers",
-                            default=3, type=int)
-        return args.command, parser.parse_args(sys.argv[2:])
-    elif args.command == "predict":
-        parser.add_argument("save_file")
-        parser.add_argument("--num-predictions", default=3, type=int)
-        parser.add_argument("--beam-width", dest="beam_width", default=None, type=int)
-        return args.command, parser.parse_args(sys.argv[2:])
-    else:
-        print("Unrecognized subcommand!")
-        parser.print_help()
-        sys.exit(1)
+    parser.add_argument("scrape_file")
+    parser.add_argument("save_file")
+    parser.add_argument("--num-epochs", dest="num_epochs", default=50, type=int)
+    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
+    parser.add_argument("--max-length", dest="max_length", default=100, type=int)
+    parser.add_argument("--print-every", dest="print_every", default=10, type=int)
+    parser.add_argument("--hidden-size", dest="hidden_size", default=None, type=int)
+    parser.add_argument("--learning-rate", dest="learning_rate",
+                        default=0.003, type=float)
+    parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
+                        default=3, type=int)
+    parser.add_argument("--num-decoder-layers", dest="num_decoder_layers",
+                        default=3, type=int)
+    return parser.parse_args(args)
 
-def main():
+def main(args):
     # Set up cleanup handler for Ctrl-C
     signal.signal(signal.SIGINT, exit_early)
-    subcommand, args = take_args()
-    if subcommand == "train":
-        print("Reading dataset...")
-        dataset = read_text_data(args.scrape_file)
-        output_size = text_vocab_size()
-        if args.hidden_size:
-            hidden_size = args.hidden_size
-        else:
-            hidden_size = output_size * 2
-
-        checkpoints = train(dataset, hidden_size, output_size,
-                            args.learning_rate,
-                            args.num_encoder_layers,
-                            args.num_decoder_layers, args.max_length,
-                            args.num_epochs, args.batch_size,
-                            args.print_every)
-
-        for epoch, (encoder_state, decoder_state) in enumerate(checkpoints):
-            state = {'epoch':epoch,
-                     'text-encoder':get_encoder_state(),
-                     'neural-encoder':encoder_state,
-                     'neural-decoder':decoder_state,
-                     'num-encoder-layers':args.num_encoder_layers,
-                     'num-decoder-layers':args.num_decoder_layers,
-                     'hidden-size':hidden_size,
-                     'max-length': args.max_length}
-            with open(args.save_file, 'wb') as f:
-                print("=> Saving checkpoint at epoch {}".
-                      format(epoch))
-                torch.save(state, f)
+    args = take_args(args)
+    print("Reading dataset...")
+    dataset = read_text_data(args.scrape_file)
+    output_size = text_vocab_size()
+    if args.hidden_size:
+        hidden_size = args.hidden_size
     else:
-        if args.beam_width:
-            beam_width = args.beam_width
-        else:
-            beam_width = args.num_predictions * args.num_predictions
-        predictor = EncDecRNNPredictor({'filename': args.save_file,
-                                        'beam_width': beam_width})
-        commandLinePredict(predictor, args.num_predictions)
+        hidden_size = output_size * 2
+
+    checkpoints = train(dataset, hidden_size, output_size,
+                        args.learning_rate,
+                        args.num_encoder_layers,
+                        args.num_decoder_layers, args.max_length,
+                        args.num_epochs, args.batch_size,
+                        args.print_every)
+
+    for epoch, (encoder_state, decoder_state) in enumerate(checkpoints):
+        state = {'epoch':epoch,
+                 'text-encoder':get_encoder_state(),
+                 'neural-encoder':encoder_state,
+                 'neural-decoder':decoder_state,
+                 'num-encoder-layers':args.num_encoder_layers,
+                 'num-decoder-layers':args.num_decoder_layers,
+                 'hidden-size':hidden_size,
+                 'max-length': args.max_length}
+        with open(args.save_file, 'wb') as f:
+            print("=> Saving checkpoint at epoch {}".
+                  format(epoch))
+            torch.save(state, f)
 
 # The code below here was copied from
 # https://ibm.github.io/pytorch-seq2seq/public/_modules/seq2seq/models/TopKDecoder.html
 # and modified. This code is available under the apache license.
-def decodeKTactics(decoder, encoder_hidden, beam_width, max_length):
+def decodeKTactics(decoder : DecoderRNN, encoder_hidden : SomeLongTensor,
+                   beam_width : int, max_length : int):
     v = decoder.output_size
     pos_index = Variable(LongTensor([0]) * beam_width).view(-1, 1)
 
@@ -399,7 +388,7 @@ def decodeKTactics(decoder, encoder_hidden, beam_width, max_length):
 
         predecessors = (candidates / v +
                         pos_index.expand_as(candidates)).view(beam_width, 1)
-        hidden = hidden.index_select(1, predecessors.squeeze())
+        hidden = hidden.index_select(1, cast(SomeLongTensor, predecessors.squeeze()))
 
         eos_indices = input_var.data.eq(EOS_token)
         if eos_indices.nonzero().dim() > 0:
@@ -412,7 +401,7 @@ def decodeKTactics(decoder, encoder_hidden, beam_width, max_length):
 
     # Trace back from the final three highest scores
     _, next_idxs = sequence_scores.view(beam_width).sort(descending=True)
-    seqs = []
+    seqs = [] # type: List[List[SomeLongTensor]]
     eos_found = 0
     for i in range(max_length - 1, -1, -1):
         # The next column of symbols from the end
@@ -438,13 +427,18 @@ def decodeKTactics(decoder, encoder_hidden, beam_width, max_length):
         seqs.insert(0, next_symbols)
 
     # Transpose
-    seqs = [[data[i].item() for data in seqs] for i in range(beam_width)]
+    int_seqs = [[data[i][0] for data in seqs] for i in range(beam_width)]
     # Cut off EOS tokens
-    seqs = [list(takewhile(lambda x: x != EOS_token, seq)) for seq in seqs]
+    int_seqs = [list(takewhile(lambda x: x != EOS_token, seq)) for seq in int_seqs]
 
-    return seqs
+    return int_seqs
 
-def _inflate(tensor, times):
+@overload
+def _inflate(tensor : SomeLongTensor, times : int) -> SomeLongTensor: ...
+@overload
+def _inflate(tensor : SomeFloatTensor, times : int) -> SomeFloatTensor: ...
+
+def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
     tensor_dim = len(tensor.size())
     if tensor_dim == 3:
         b = tensor.size(1)
@@ -458,10 +452,12 @@ def _inflate(tensor, times):
         raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
                          "This one is {}D.".format(tensor_dim))
 
-def _mask_symbol_scores(self, score, idx, masking_score=-float('inf')):
+def _mask_symbol_scores(self, score : List[float], idx : int,
+                        masking_score : float=-float('inf')) -> None:
     score[idx] = masking_score
 
-def _mask(tensor, idx, dim=0, masking_score=-float('inf')):
+def _mask(tensor : torch.Tensor, idx : SomeLongTensor,
+          dim : int=0, masking_score : float=-float('inf')):
     if len(idx.size()) > 0:
         indices = idx[:,0]
         tensor.index_fill_(dim, indices, masking_score)
