@@ -190,7 +190,6 @@ def main() -> None:
     args = take_args()
     print("Reading dataset...")
     dataset = read_text_data(args.scrape_file)
-    assert num_stems() <= stem_cap
 
     checkpoints = train(dataset,
                         text_vocab_size(), num_stems(), args.hidden_size,
@@ -211,7 +210,6 @@ def main() -> None:
                   format(epoch))
             torch.save(state, f)
 
-stem_cap = 5
 stem_to_idx = {}
 idx_to_stem = {}
 def encode_stem(tactic):
@@ -219,7 +217,7 @@ def encode_stem(tactic):
     if stem in stem_to_idx:
         return stem_to_idx[stem]
     else:
-        new_idx = num_stems() % stem_cap
+        new_idx = num_stems()
         stem_to_idx[stem] = new_idx
         idx_to_stem[new_idx] = stem
         return new_idx
