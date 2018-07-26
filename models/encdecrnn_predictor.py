@@ -89,8 +89,6 @@ class EncoderRNN(nn.Module):
         self.embedding = maybe_cuda(nn.Embedding(input_size, hidden_size))
         self.gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
 
-        if use_cuda:
-            self.cuda()
         pass
 
     def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
@@ -101,9 +99,8 @@ class EncoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self) -> SomeLongTensor:
-        zeroes = cast(torch.LongTensor, torch.zeros(1, self.batch_size, self.hidden_size))
-        if use_cuda:
-            zeroes = zeroes.cuda()
+        zeroes = cast(torch.LongTensor, maybe_cuda(
+            torch.zeros(1, self.batch_size, self.hidden_size)))
         return Variable(zeroes)
 
     def run(self, sentence : SomeLongTensor) -> SomeLongTensor:
@@ -134,8 +131,6 @@ class DecoderRNN(nn.Module):
         self.beam_width = beam_width
         self.batch_size = batch_size
 
-        if use_cuda:
-            self.cuda()
 
     def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
         -> Tuple[SomeLongTensor, SomeLongTensor]:
@@ -150,9 +145,7 @@ class DecoderRNN(nn.Module):
         return Variable(LongTensor([[SOS_token] * self.batch_size]))
 
     def initHidden(self) -> SomeLongTensor:
-        zeroes = cast(torch.LongTensor, torch.zeros(1, 1, self.hidden_size))
-        if use_cuda:
-            zeroes = zeroes.cuda()
+        zeroes = cast(torch.LongTensor, maybe_cuda(torch.zeros(1, 1, self.hidden_size)))
         return Variable(zeroes)
     def run_teach(self, hidden : SomeLongTensor,
                   output_batch : SomeLongTensor) -> List[SomeLongTensor]:

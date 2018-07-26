@@ -2,6 +2,7 @@
 
 import time
 import io
+import math
 
 import torch
 import torch.cuda
@@ -11,6 +12,15 @@ from typing import List, Any
 
 Sentence = List[int]
 DataSet = List[List[Sentence]]
+
+use_cuda = torch.cuda.is_available()
+assert use_cuda
+
+def maybe_cuda(component):
+    if use_cuda:
+        return component.cuda()
+    else:
+        return component
 
 def LongTensor(arr : Any) -> torch.LongTensor:
     if use_cuda:
