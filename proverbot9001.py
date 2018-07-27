@@ -7,16 +7,6 @@ import models.try_common_predictor as trycommon
 import report
 import argparse
 
-modules = {
-    "train" : train
-    "report":  report.main,
-}
-
-models = {
-    "encdec" : encdec.main
-    "trycommon" : trycommon.train
-}
-
 def exit_early(signal, frame):
     sys.exit(0)
 
@@ -32,9 +22,20 @@ def main():
 def train(args):
     parser = argparse.ArgumentParser(description=
                                      "Proverbot9001 training module")
-    parser.add_argument("model", choices=list(models.keys()))
-    args = parser.parse_args(args[:1])
-    models[args.model](args[1:])
+    parser.add_argument("model", choices=list(trainable_models.keys()))
+    args_values = parser.parse_args(args[:1])
+    trainable_models[args_values.model](args[1:])
+
+modules = {
+    "train" : train,
+    "report":  report.main,
+}
+
+trainable_models = {
+    "encdec" : encdec.main,
+    "trycommon" : trycommon.train,
+}
+
 
 if __name__ == "__main__":
     main()
