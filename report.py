@@ -202,14 +202,14 @@ class FileResult:
                              exception : Optional[Exception]) -> str:
         if actual.strip() == predicted.strip():
             return "goodcommand"
+        elif (get_stem(actual) == get_stem(predicted)):
+            return "okaycommand"
         elif type(exception) == ParseError or type(exception) == LexError:
             return "superfailedcommand"
         elif exception != None:
             return "failedcommand"
         elif predicted_context == actual_context:
             return "mostlygoodcommand"
-        elif (get_stem(actual) == get_stem(predicted)):
-            return "okaycommand"
         else:
             return "badcommand"
     def add_command_result(self,
