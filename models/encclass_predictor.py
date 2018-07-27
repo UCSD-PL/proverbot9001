@@ -10,7 +10,7 @@ from format import read_pair
 from text_encoder import encode_context, decode_context, text_vocab_size, \
     get_encoder_state, set_encoder_state
 
-from encdecrnn_predictor import inputFromSentence
+from models.encdecrnn_predictor import inputFromSentence
 
 import torch
 import torch.nn as nn
@@ -21,7 +21,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast
 
 from util import *
@@ -175,7 +175,7 @@ def train(dataset : DataSet,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args() -> Tuple[str, Any]:
+def take_args(args) -> Tuple[str, Any]:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
@@ -189,11 +189,11 @@ def take_args() -> Tuple[str, Any]:
                         default=.6, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
                         default=3, type=int)
-    return parser.parse_args()
+    return parser.parse_args(args)
 
-def main() -> None:
+def main(args) -> None:
     signal.signal(signal.SIGINT, exit_early)
-    args = take_args()
+    args = take_args(args)
     print("Reading dataset...")
     dataset = read_text_data(args.scrape_file)
 
@@ -235,6 +235,3 @@ def decode_stem(idx):
 
 def num_stems():
     return len(idx_to_stem)
-
-if __name__ == "__main__":
-    main()
