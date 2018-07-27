@@ -11,7 +11,7 @@ from models import encclass_predictor
 
 predictors = {
     'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor,
-    'encclass' : encclass_predictor.EncClassPredictor
+    'encclass' : encclass_predictor.EncClassPredictor,
     'trycommon' : try_common_predictor.TryCommonPredictor,
     'wordbagclass' : wordbagclass_predictor.WordBagClassifyPredictor,
 }
