@@ -31,6 +31,8 @@ SomeFloatTensor = Union[torch.cuda.FloatTensor, torch.FloatTensor]
 
 class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
+        global idx_to_stem
+        global stem_to_idx
         checkpoint = torch.load(filename)
         assert checkpoint['text-encoder']
         assert checkpoint['neural-encoder']
@@ -38,6 +40,10 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['max-length']
         assert checkpoint['num-tactic-stems']
         assert checkpoint['hidden-size']
+        assert checkpoint['stem-to-idx']
+        assert checkpoint['idx-to-stem']
+        idx_to_stem = checkpoint['idx-to-stem']
+        stem_to_idx = checkpoint['stem-to-idx']
 
         set_encoder_state(checkpoint['text-encoder'])
         self.vocab_size = text_vocab_size()
@@ -53,11 +59,11 @@ class EncClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        in_sentence = LongTensor(inputFromSentence(encode_context(in_data["goal"])))\
+        in_sentence = LongTensor(inputFromSentence(encode_context(in_data["goal"]), self.max_length))\
                       .view(1, -1)
         prediction_distribution = self.encoder.run(in_sentence)
-        _, stem_idxs = prediction_distribution.topk(k)
-        return [decode_stem(stem_idx) for stem_idx in stem_idxs]
+        _, stem_idxs = prediction_distribution.view(-1).topk(k)
+        return [decode_stem(stem_idx.data[0]) for stem_idx in stem_idxs]
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
@@ -164,7 +170,7 @@ def train(dataset : DataSet,
                              items_processed, progress * 100,
                              total_loss / items_processed))
 
-    yield encoder.state_dict()
+        yield encoder.state_dict()
 
 def exit_early(signal, frame):
     sys.exit(0)
@@ -202,9 +208,11 @@ def main() -> None:
                  'text-encoder':get_encoder_state(),
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
-                 'num_tactic_stems':num_stems(),
+                 'num-tactic-stems':num_stems(),
                  'max-length': args.max_length,
-                 'hidden-size' : args.hidden_size}
+                 'hidden-size' : args.hidden_size,
+                 'stem-to-idx' : stem_to_idx,
+                 'idx-to-stem' : idx_to_stem}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
                   format(epoch))
@@ -213,7 +221,7 @@ def main() -> None:
 stem_to_idx = {}
 idx_to_stem = {}
 def encode_stem(tactic):
-    stem = tactic.split(" ")[0]
+    stem = get_stem(tactic)
     if stem in stem_to_idx:
         return stem_to_idx[stem]
     else:
@@ -223,7 +231,7 @@ def encode_stem(tactic):
         return new_idx
 
 def decode_stem(idx):
-    return idx_to_stem[new_idx] + "."
+    return idx_to_stem[idx] + "."
 
 def num_stems():
     return len(idx_to_stem)

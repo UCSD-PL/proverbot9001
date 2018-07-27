@@ -3,6 +3,7 @@
 import time
 import io
 import math
+import re
 
 import torch
 import torch.cuda
@@ -66,3 +67,12 @@ def str_1d_float_tensor(tensor : torch.FloatTensor):
     result = output.getvalue()
     output.close()
     return result
+
+def get_stem(tactic):
+    if re.match("[-+*\{\}]", tactic):
+        return tactic
+    if re.match(".*;.*", tactic):
+        return tactic
+    match = re.match("^\(?(\w+).*", tactic)
+    assert match, "tactic \"{}\" doesn't match!".format(tactic)
+    return match.group(1)
