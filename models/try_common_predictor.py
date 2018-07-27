@@ -10,6 +10,7 @@ from typing import Dict, Any, List
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_pair
+from utils import *
 
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
@@ -63,12 +64,3 @@ def list_topk(lst, k):
     l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
     lk = l[:k]
     return reversed(list(zip(*lk)))
-
-def get_stem(tactic):
-    if re.match("[-+*\{\}]", tactic):
-        return tactic
-    if re.match(".*;.*", tactic):
-        return tactic
-    match = re.match("^\(?(\w+).*", tactic)
-    assert match, "tactic \"{}\" doesn't match!".format(tactic)
-    return match.group(1)
