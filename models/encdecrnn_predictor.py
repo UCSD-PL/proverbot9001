@@ -30,9 +30,6 @@ from models.tactic_predictor import TacticPredictor
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 
-use_cuda = torch.cuda.is_available()
-assert use_cuda
-
 SOS_token = 1
 EOS_token = 0
 
@@ -169,30 +166,6 @@ class DecoderRNN(nn.Module):
             prediction.append(decoder_output)
         return prediction
 
-def LongTensor(arr : Any) -> SomeLongTensor:
-    if use_cuda:
-        return torch.cuda.LongTensor(arr)
-    else:
-        return torch.LongTensor(arr)
-
-def FloatTensor(k : int, val : float) -> SomeFloatTensor:
-    if use_cuda:
-        return torch.cuda.FloatTensor(k, val)
-    else:
-        return torch.FloatTensor(k, val)
-
-def asMinutes(s : float) -> str:
-    m = math.floor(s / 60)
-    s -= m * 60
-    return "{}m {:.2f}s".format(m, s)
-
-def timeSince(since : float, percent : float) -> str:
-    now = time.time()
-    s = now - since
-    es = s / percent
-    rs = es - s
-    return "{} (- {})".format(asMinutes(s), asMinutes(rs))
-
 Sentence = List[int]
 DataSet = List[List[Sentence]]
 
@@ -234,12 +207,6 @@ def adjustLearningRates(initial : float,
         lr = initial * (0.5 ** (epoch // 20))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-
-def maybe_cuda(component):
-    if use_cuda:
-        return component.cuda()
-    else:
-        return component
 
 Checkpoint = Tuple[Dict[Any, Any], Dict[Any, Any]]
 
