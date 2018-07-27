@@ -8,26 +8,8 @@ import torch
 from typing import Dict, Any, List
 
 from models.tactic_predictor import TacticPredictor
+from models.components import SimpleEmbedding
 from format import read_pair
-
-
-class SimpleEmbedding:
-    def __init__(self) -> None:
-        self.tokens_to_indices = {} #type: Dict[str, int]
-        self.indices_to_tokens = {} #type: Dict[int, str]
-    def encode_token(self, token : str) -> int :
-        if token in self.tokens_to_indices:
-            return self.tokens_to_indices[token]
-        else:
-            new_idx = len(self.tokens_to_indices)
-            self.tokens_to_indices[token] = new_idx
-            self.indices_to_tokens[new_idx] = token
-            return new_idx
-
-    def decode_token(self, idx : int) -> str:
-        return self.indices_to_tokens[idx]
-    def num_tokens(self) -> int:
-        return len(self.indices_to_tokens)
 
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
