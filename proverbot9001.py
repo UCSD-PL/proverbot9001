@@ -4,6 +4,7 @@ import signal
 import sys
 import models.encdecrnn_predictor as encdec
 import models.try_common_predictor as trycommon
+import models.wordbagclass_predictor as wordbagclass
 import report
 import argparse
 
@@ -34,6 +35,7 @@ modules = {
 trainable_models = {
     "encdec" : encdec.main,
     "trycommon" : trycommon.train,
+    "wordbagclass" : wordbagclass.main,
 }
 
 
