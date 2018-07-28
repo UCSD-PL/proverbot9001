@@ -27,11 +27,9 @@ import torch.cuda
 
 from itertools import takewhile
 from models.tactic_predictor import TacticPredictor
+from util import *
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
-
-use_cuda = torch.cuda.is_available()
-assert use_cuda
 
 SOS_token = 1
 EOS_token = 0
@@ -91,8 +89,6 @@ class EncoderRNN(nn.Module):
         self.embedding = maybe_cuda(nn.Embedding(input_size, hidden_size))
         self.gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
 
-        if use_cuda:
-            self.cuda()
         pass
 
     def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
@@ -103,9 +99,8 @@ class EncoderRNN(nn.Module):
         return output, hidden
 
     def initHidden(self) -> SomeLongTensor:
-        zeroes = cast(torch.LongTensor, torch.zeros(1, self.batch_size, self.hidden_size))
-        if use_cuda:
-            zeroes = zeroes.cuda()
+        zeroes = cast(torch.LongTensor, maybe_cuda(
+            torch.zeros(1, self.batch_size, self.hidden_size)))
         return Variable(zeroes)
 
     def run(self, sentence : SomeLongTensor) -> SomeLongTensor:
@@ -136,8 +131,6 @@ class DecoderRNN(nn.Module):
         self.beam_width = beam_width
         self.batch_size = batch_size
 
-        if use_cuda:
-            self.cuda()
 
     def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
         -> Tuple[SomeLongTensor, SomeLongTensor]:
@@ -152,9 +145,7 @@ class DecoderRNN(nn.Module):
         return Variable(LongTensor([[SOS_token] * self.batch_size]))
 
     def initHidden(self) -> SomeLongTensor:
-        zeroes = cast(torch.LongTensor, torch.zeros(1, 1, self.hidden_size))
-        if use_cuda:
-            zeroes = zeroes.cuda()
+        zeroes = cast(torch.LongTensor, maybe_cuda(torch.zeros(1, 1, self.hidden_size)))
         return Variable(zeroes)
     def run_teach(self, hidden : SomeLongTensor,
                   output_batch : SomeLongTensor) -> List[SomeLongTensor]:
@@ -168,33 +159,6 @@ class DecoderRNN(nn.Module):
             decoder_input = output_variable[:,di]
             prediction.append(decoder_output)
         return prediction
-
-def LongTensor(arr : Any) -> SomeLongTensor:
-    if use_cuda:
-        return torch.cuda.LongTensor(arr)
-    else:
-        return torch.LongTensor(arr)
-
-def FloatTensor(k : int, val : float) -> SomeFloatTensor:
-    if use_cuda:
-        return torch.cuda.FloatTensor(k, val)
-    else:
-        return torch.FloatTensor(k, val)
-
-def asMinutes(s : float) -> str:
-    m = math.floor(s / 60)
-    s -= m * 60
-    return "{}m {:.2f}s".format(m, s)
-
-def timeSince(since : float, percent : float) -> str:
-    now = time.time()
-    s = now - since
-    es = s / percent
-    rs = es - s
-    return "{} (- {})".format(asMinutes(s), asMinutes(rs))
-
-Sentence = List[int]
-DataSet = List[List[Sentence]]
 
 def read_text_data(data_path : str, max_size:int=None) -> DataSet:
     data_set = []
@@ -234,12 +198,6 @@ def adjustLearningRates(initial : float,
         lr = initial * (0.5 ** (epoch // 20))
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
-
-def maybe_cuda(component):
-    if use_cuda:
-        return component.cuda()
-    else:
-        return component
 
 Checkpoint = Tuple[Dict[Any, Any], Dict[Any, Any]]
 
@@ -304,7 +262,7 @@ def train(dataset : DataSet, hidden_size : int, output_size : int,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args(args):
+def take_args(args : List[str]) -> Any:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
@@ -322,7 +280,7 @@ def take_args(args):
                         default=3, type=int)
     return parser.parse_args(args)
 
-def main(args):
+def main(args : List[str]) -> None:
     # Set up cleanup handler for Ctrl-C
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(args)
