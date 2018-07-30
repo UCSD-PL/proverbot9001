@@ -14,7 +14,7 @@ import torch.utils.data as data
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_pair
-from text_encoder import text_vocab_size, encode_context, \
+from text_encoder import context_vocab_size, encode_context, \
     get_encoder_state, set_encoder_state
 
 from utils import *
@@ -26,7 +26,7 @@ class WordBagClassifyPredictor(TacticPredictor):
 
         self.embedding = checkpoint['stem-embeddings']
         set_encoder_state(checkpoint['text-encoder'])
-        self.linear = maybe_cuda(nn.Linear(text_vocab_size(),
+        self.linear = maybe_cuda(nn.Linear(context_vocab_size(),
                                            self.embedding.num_tokens()))
         self.linear.load_state_dict(checkpoint['linear-state'])
         self.lsoftmax = maybe_cuda(nn.LogSoftmax(dim=1))
@@ -55,9 +55,10 @@ def read_scrapefile(filename, embedding):
     return dataset
 
 def getWordbagVector(goal):
-    wordbag = [0] * text_vocab_size()
+    wordbag = [0] * context_vocab_size()
     for t in goal:
-        assert t < text_vocab_size()
+        assert t < context_vocab_size(), \
+            "t: {}, context_vocab_size(): {}".format(t, context_vocab_size())
         wordbag[t] += 1
     return wordbag
 
@@ -97,7 +98,7 @@ def train(dataset, learning_rate : float, num_epochs : int,
           batch_size : int, num_stems: int, print_every : int):
 
     print("Initializing PyTorch...")
-    linear = maybe_cuda(nn.Linear(text_vocab_size(), num_stems))
+    linear = maybe_cuda(nn.Linear(context_vocab_size(), num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     print("len(dataset): {}".format(len(dataset)))

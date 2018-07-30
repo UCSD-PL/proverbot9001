@@ -1,25 +1,66 @@
 #!/usr/bin/env python3
 
 import re
-from typing import Dict, List, Tuple, Callable
+from typing import Dict, List, Tuple, Callable, Union
 
-debug_tokenizer = False
+TokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
-def next_char(c : str) -> str:
-    return chr(ord(c) + 1)
+class Tokenizer:
+    def __init__(self, distinguished_strings : List[str], num_reserved_tokens : int = 0) \
+        -> None:
+        self.num_reserved_tokens = num_reserved_tokens
+        self.distinguished_strings = distinguished_strings
+        self.next_mangle_ord = num_reserved_tokens + len(distinguished_strings)
+        self.mangle_dict = {}
+        self.unmangle_dict = {}
+        pass
 
-def make_fresh() -> Callable[[], str]:
-    next = "\uAC00" # Hangul syllables (~11k symbols)
-    def fresh():
-        nonlocal next
-        curr = next
-        next = next_char(next)
-        return curr
-    return fresh
+    def _mangle(self, string : str) -> List[int]:
+        for c in string:
+            if not c in self.mangle_dict:
+                self.mangle_dict[c] = self.next_mangle_ord
+                self.unmangle_dict[self.next_mangle_ord] = c
+                self.next_mangle_ord += 1
+        return "".join([chr(self.mangle_dict[c]) for c in string])
 
-fresh = make_fresh()
+    def toTokenList(self, string : str) -> List[int]:
+        string = self._mangle(string)
 
-patterns = [
+        for idx, token_string in enumerate(self.distinguished_strings,
+                                           start=self.num_reserved_tokens):
+            string = re.sub(self._mangle(token_string), chr(idx), string)
+
+        for c in string:
+            assert ord(c) < self.numTokens()
+        return [ord(c) for c in string]
+
+    def toString(self, idxs : List[int]) -> str:
+        result = ""
+        for t in idxs:
+            assert t >= num_reserved_tokens, "Cannot decode a tokenlist containing a reserved token!"
+            if t < len(self.distinguished_strings) + num_reserved_tokens:
+                result += self.distinguished_strings[t - num_reserved_tokens]
+            else:
+                result += self.unmangle_dict[t]
+        return result
+    def numTokens(self) -> int:
+        return self.next_mangle_ord
+
+    def getState(self) -> TokenizerState:
+        return list(self.mangle_dict.items()), self.distinguished_strings, self.next_mangle_ord
+    def setState(self, state : TokenizerState):
+        dict_items, self.distinguished_strings, self.next_mangle_ord = state
+        for k, v in dict_items:
+            self.mangle_dict[k] = v
+            self.unmangle_dict[v] = k
+
+
+context_tokens = {
+    "forall",
+}
+contextTokenizer = Tokenizer(context_tokens, 2)
+
+tactic_tokens = [
     "apply",
     "assert",
     "eauto",
@@ -54,79 +95,26 @@ patterns = [
     "exact",
 ]
 
-tokens = map(lambda p: (p, fresh()), patterns)
-
-# Two dictionaries for fast lookup both ways:
-
-dict_pattern_to_token = {}
-dict_token_to_pattern = {}
-for (p, t) in tokens:
-    dict_pattern_to_token[p] = t
-    dict_token_to_pattern[t] = p
-
-def pattern_to_token(s : str) -> str:
-    s_in = s
-    for k in dict_pattern_to_token:
-        s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_pattern_to_token[k], s)
-    if debug_tokenizer:
-        print("{} -> {}".format(s_in, [ord(c) for c in s]))
-    return s
-
-def token_to_pattern(s : str) -> str:
-    s_in = s
-    for k in dict_token_to_pattern:
-        s = re.sub("(^|(?<=[ ])){}(?=[ ]|;|.)".format(k), dict_token_to_pattern[k], s)
-    if debug_tokenizer:
-        print("{} -> {}".format([ord(c) for c in s_in], s))
-    return s
+tacticTokenizer = Tokenizer(tactic_tokens, 2)
 
 def encode_tactic(tactic : str) -> List[int]:
-    tactic = pattern_to_token(tactic)
-    tokenlist = translate(tactic)
-    return tokenlist
+    return tacticTokenizer.toTokenList(tactic)
 def encode_context(context : str) -> List[int]:
-    return translate(context)
+    return contextTokenizer.toTokenList(context)
 
 def decode_tactic(tokenlist : List[int]) -> str:
-    tactic = untranslate(tokenlist)
-    tactic = token_to_pattern(tactic)
-    return tactic
+    return tacticTokenizer.toString(tokenlist)
 def decode_context(context : List[int]) -> str:
-    return untranslate(context)
+    return contextTokenizer.toString(context)
 
-num_reserved_tokens = 2 # We want '0' to be reserved for "end of stream" and '1' to be reserved for "start of stream"
+def get_encoder_state() -> Tuple[TokenizerState, TokenizerState]:
+    return tacticTokenizer.getState(), contextTokenizer.getState()
+def context_vocab_size() -> int:
+    return contextTokenizer.numTokens()
+def tactic_vocab_size() -> int:
+    return tacticTokenizer.numTokens()
 
-char_to_num = {} # type: Dict[str, int]
-num_to_char = {} # type: Dict[int,str]
-
-def get_encoder_state() -> List[Tuple[str, int]]:
-    return list(char_to_num.items())
-
-def set_encoder_state(keypairs : List[Tuple[str, int]]) -> None:
-    global char_to_num
-    global num_to_char
-    char_to_num = {}
-    num_to_char = {}
-    for k, v in keypairs:
-        assert isinstance(k, str)
-        assert isinstance(v, int)
-        char_to_num[k] = v
-        num_to_char[v] = k
-
-def text_vocab_size() -> int:
-    return num_reserved_tokens + len(char_to_num)# + len(patterns)
-
-def translate(string : str) -> List[int]:
-    result = [] # type: List[int]
-    for c in string:
-        if c in char_to_num:
-            result += [char_to_num[c]]
-        else:
-            new_id = len(char_to_num) + num_reserved_tokens
-            char_to_num[c] = new_id
-            num_to_char[new_id] = c
-            result += [new_id]
-    return result
-
-def untranslate(tokenlist : List[int]) -> str:
-    return "".join([num_to_char[t] for t in tokenlist if t != 0])
+def set_encoder_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
+    tactic_state, context_state = state
+    tacticTokenizer.setState(tactic_state)
+    contextTokenizer.setState(context_state)

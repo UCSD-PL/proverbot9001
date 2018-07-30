@@ -7,7 +7,7 @@ import signal
 import sys
 
 from format import read_pair
-from text_encoder import encode_context, decode_context, text_vocab_size, \
+from text_encoder import encode_context, decode_context, context_vocab_size, \
     get_encoder_state, set_encoder_state
 
 from models.encdecrnn_predictor import inputFromSentence
@@ -46,7 +46,7 @@ class EncClassPredictor(TacticPredictor):
         stem_to_idx = checkpoint['stem-to-idx']
 
         set_encoder_state(checkpoint['text-encoder'])
-        self.vocab_size = text_vocab_size()
+        self.vocab_size = context_vocab_size()
         self.encoder = maybe_cuda(RNNClassifier(self.vocab_size,
                                                 checkpoint['hidden-size'],
                                                 checkpoint['num-tactic-stems'],
@@ -198,7 +198,7 @@ def main(args) -> None:
     dataset = read_text_data(args.scrape_file)
 
     checkpoints = train(dataset,
-                        text_vocab_size(), num_stems(), args.hidden_size,
+                        context_vocab_size(), num_stems(), args.hidden_size,
                         args.learning_rate, args.num_encoder_layers,
                         args.max_length, args.num_epochs, args.batch_size,
                         args.print_every)

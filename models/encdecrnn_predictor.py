@@ -13,7 +13,7 @@ import argparse
 from format import read_pair
 from text_encoder import encode_tactic, encode_context, \
     decode_tactic, decode_context, \
-    text_vocab_size, \
+    context_vocab_size, tactic_vocab_size, \
     get_encoder_state, set_encoder_state
 import text_encoder
 
@@ -50,10 +50,9 @@ class EncDecRNNPredictor(TacticPredictor):
 
         hidden_size = checkpoint['hidden-size']
         set_encoder_state(checkpoint['text-encoder'])
-        self.vocab_size = text_vocab_size()
-        self.encoder = maybe_cuda(EncoderRNN(self.vocab_size, hidden_size,
+        self.encoder = maybe_cuda(EncoderRNN(context_vocab_size, hidden_size,
                                              checkpoint["num-encoder-layers"]))
-        self.decoder = maybe_cuda(DecoderRNN(hidden_size, self.vocab_size,
+        self.decoder = maybe_cuda(DecoderRNN(hidden_size, tactic_vocab_size,
                                              checkpoint["num-decoder-layers"],
                                              beam_width=beam_width))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
@@ -201,7 +200,7 @@ def adjustLearningRates(initial : float,
 
 Checkpoint = Tuple[Dict[Any, Any], Dict[Any, Any]]
 
-def train(dataset : DataSet, hidden_size : int, output_size : int,
+def train(dataset : DataSet, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           num_decoder_layers : int, max_length : int, num_epochs : int, batch_size : int,
           print_every : int) -> Iterable[Checkpoint]:
@@ -214,9 +213,9 @@ def train(dataset : DataSet, hidden_size : int, output_size : int,
                                   shuffle=True, pin_memory=True,
                                   drop_last=True)
 
-    encoder = EncoderRNN(output_size, hidden_size, num_encoder_layers,
+    encoder = EncoderRNN(context_vocab_size(), hidden_size, num_encoder_layers,
                          batch_size=batch_size)
-    decoder = DecoderRNN(hidden_size, output_size, num_decoder_layers,
+    decoder = DecoderRNN(hidden_size, tactic_vocab_size(), num_decoder_layers,
                          batch_size=batch_size)
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
@@ -271,7 +270,7 @@ def take_args(args : List[str]) -> Any:
     parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
     parser.add_argument("--max-length", dest="max_length", default=100, type=int)
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
-    parser.add_argument("--hidden-size", dest="hidden_size", default=None, type=int)
+    parser.add_argument("--hidden-size", dest="hidden_size", default=256, type=int)
     parser.add_argument("--learning-rate", dest="learning_rate",
                         default=0.003, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
@@ -286,13 +285,8 @@ def main(args : List[str]) -> None:
     args = take_args(args)
     print("Reading dataset...")
     dataset = read_text_data(args.scrape_file)
-    output_size = text_vocab_size()
-    if args.hidden_size:
-        hidden_size = args.hidden_size
-    else:
-        hidden_size = output_size * 2
 
-    checkpoints = train(dataset, hidden_size, output_size,
+    checkpoints = train(dataset, hidden_size,
                         args.learning_rate,
                         args.num_encoder_layers,
                         args.num_decoder_layers, args.max_length,
