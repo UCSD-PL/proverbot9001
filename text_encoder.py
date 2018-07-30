@@ -11,11 +11,11 @@ class Tokenizer:
         self.num_reserved_tokens = num_reserved_tokens
         self.distinguished_strings = distinguished_strings
         self.next_mangle_ord = num_reserved_tokens + len(distinguished_strings)
-        self.mangle_dict = {}
-        self.unmangle_dict = {}
+        self.mangle_dict = {} # type: Dict[str, int]
+        self.unmangle_dict = {} # type: Dict[int, str]
         pass
 
-    def _mangle(self, string : str) -> List[int]:
+    def _mangle(self, string : str) -> str:
         for c in string:
             if not c in self.mangle_dict:
                 self.mangle_dict[c] = self.next_mangle_ord
@@ -37,9 +37,9 @@ class Tokenizer:
     def toString(self, idxs : List[int]) -> str:
         result = ""
         for t in idxs:
-            assert t >= num_reserved_tokens, "Cannot decode a tokenlist containing a reserved token!"
-            if t < len(self.distinguished_strings) + num_reserved_tokens:
-                result += self.distinguished_strings[t - num_reserved_tokens]
+            assert t >= self.num_reserved_tokens, "Cannot decode a tokenlist containing a reserved token!"
+            if t < len(self.distinguished_strings) + self.num_reserved_tokens:
+                result += self.distinguished_strings[t - self.num_reserved_tokens]
             else:
                 result += self.unmangle_dict[t]
         return result
@@ -55,9 +55,9 @@ class Tokenizer:
             self.unmangle_dict[v] = k
 
 
-context_tokens = {
+context_tokens = [
     "forall",
-}
+]
 contextTokenizer = Tokenizer(context_tokens, 2)
 
 tactic_tokens = [
