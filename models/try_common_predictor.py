@@ -10,7 +10,7 @@ from typing import Dict, Any, List
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_pair
-from utils import *
+from util import *
 
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:

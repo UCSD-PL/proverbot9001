@@ -17,7 +17,7 @@ from format import read_pair
 from text_encoder import context_vocab_size, encode_context, \
     get_encoder_state, set_encoder_state
 
-from utils import *
+from util import *
 
 class WordBagClassifyPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
