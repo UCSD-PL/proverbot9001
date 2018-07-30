@@ -50,9 +50,9 @@ class EncDecRNNPredictor(TacticPredictor):
 
         hidden_size = checkpoint['hidden-size']
         set_encoder_state(checkpoint['text-encoder'])
-        self.encoder = maybe_cuda(EncoderRNN(context_vocab_size, hidden_size,
+        self.encoder = maybe_cuda(EncoderRNN(context_vocab_size(), hidden_size,
                                              checkpoint["num-encoder-layers"]))
-        self.decoder = maybe_cuda(DecoderRNN(hidden_size, tactic_vocab_size,
+        self.decoder = maybe_cuda(DecoderRNN(hidden_size, tactic_vocab_size(),
                                              checkpoint["num-decoder-layers"],
                                              beam_width=beam_width))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
@@ -413,8 +413,3 @@ def _mask(tensor : torch.Tensor, idx : SomeLongTensor,
     if len(idx.size()) > 0:
         indices = idx[:,0]
         tensor.index_fill_(dim, indices, masking_score)
-
-## ENDING HERE
-
-if __name__ == "__main__":
-    main()
