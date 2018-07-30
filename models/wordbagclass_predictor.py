@@ -2,7 +2,7 @@
 
 import argparse
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any, List, cast
 
 import torch
 import torch.nn as nn
@@ -132,7 +132,7 @@ def train(dataset, learning_rate : float, num_epochs : int,
 
             prediction_distribution = lsoftmax(linear(input_var))
 
-            loss = 0
+            loss = cast(torch.FloatTensor, 0) # type: torch.FloatTensor
 
             loss += criterion(prediction_distribution, output_var)
 
