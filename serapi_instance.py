@@ -8,6 +8,7 @@ import os
 import os.path
 import argparse
 import sys
+import signal
 
 from typing import List, Any, Optional, cast
 # This dependency is in pip, the python package manager
@@ -48,6 +49,10 @@ class LexError(Exception):
     def __init__(self, msg : Any) -> None:
         self.msg = msg
     pass
+class TimeoutError(Exception):
+    def __init__(self, msg : Any) -> None:
+        self.msg = msg
+    pass
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -58,7 +63,8 @@ class SerapiInstance(threading.Thread):
     # expect, and a base directory You can also set the coq objects
     # ".debug" field after you've created it to get more verbose
     # logging.
-    def __init__(self, coq_command : List[str], includes : str, prelude : str) -> None:
+    def __init__(self, coq_command : List[str], includes : str, prelude : str,
+                 timeout : int = 30) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
@@ -72,6 +78,7 @@ class SerapiInstance(threading.Thread):
                                       stderr=subprocess.PIPE)
         self._fout = self._proc.stdout
         self._fin = self._proc.stdin
+        self.timeout = timeout
 
         # Initialize some state that we'll use to keep track of the
         # coq state. This way we don't have to do expensive queries to
@@ -155,7 +162,7 @@ class SerapiInstance(threading.Thread):
         # and then throw it again for other handlers. NOTE: We may
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
-        except (CoqExn, BadResponse, AckError, CompletedError) as e:
+        except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
             self.handle_exception(e, stmt)
 
     def handle_exception(self, e : Exception, stmt : str):
@@ -184,6 +191,9 @@ class SerapiInstance(threading.Thread):
                   type(co.msg[2][3]) == list and
                   co.msg[2][3][0] == Symbol('Stream.Error')):
                 raise ParseError("Couldn't parse command {}".format(stmt))
+        if type(e) == TimeoutError:
+            self.cancel_last()
+            raise TimeoutError("Statement \"{}\" timed out.".format(stmt))
 
         self.cancel_last()
         raise e
@@ -197,7 +207,7 @@ class SerapiInstance(threading.Thread):
             print("Cancelling last statement from state {}".format(self.cur_state))
         # Flush any leftover messages in the queue
         while not self.messages.empty():
-            self.messages.get()
+            self.get_message()
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
@@ -212,7 +222,7 @@ class SerapiInstance(threading.Thread):
     # Get the next message from the message queue, and make sure it's
     # an Ack
     def get_ack(self) -> None:
-        ack = self.messages.get()
+        ack = self.get_message()
         if (not isinstance(ack, list) or
             ack[0] != Symbol("Answer") or
             ack[2] != Symbol("Ack")):
@@ -221,7 +231,7 @@ class SerapiInstance(threading.Thread):
     # Get the next message from the message queue, and make sure it's
     # a Completed.
     def get_completed(self) -> None:
-        completed = self.messages.get()
+        completed = self.get_message()
         if (not isinstance(completed, list) or
             completed[0] != Symbol("Answer") or
             completed[2] != Symbol("Completed")):
@@ -284,9 +294,9 @@ class SerapiInstance(threading.Thread):
     def get_next_state(self) -> int:
         self.get_ack()
 
-        msg = self.messages.get()
+        msg = self.get_message()
         while isinstance(msg, list) and msg[0] == Symbol("Feedback"):
-            msg = self.messages.get()
+            msg = self.get_message()
         if (not isinstance(msg, list) or
             msg[0] != Symbol("Answer")):
             raise BadResponse(msg)
@@ -301,23 +311,53 @@ class SerapiInstance(threading.Thread):
             return state_num
 
     def discard_initial_feedback(self) -> None:
-        feedback1 = self.messages.get()
-        feedback2 = self.messages.get()
+        feedback1 = self.get_message()
+        feedback2 = self.get_message()
         if (not isinstance(feedback1, list) or
             feedback1[0] != Symbol("Feedback") or
             not isinstance(feedback2, list) or
             feedback2[0] != Symbol("Feedback")):
             raise BadResponse("Not feedback")
 
+    def get_message(self) -> 'Sexp':
+        try:
+            return self.messages.get(timeout=self.timeout)
+        except queue.Empty:
+            if self.debug:
+                print("Command timed out! Cancelling")
+            self._proc.send_signal(signal.SIGINT)
+            interrupt_response = self.messages.get(timeout=self.timeout)
+            assert isinstance(interrupt_response, list)
+            assert interrupt_response[0] == Symbol("Feedback")
+            assert len(interrupt_response) > 1, \
+                "too short! interrupt_reponse: {}".format(interrupt_response)
+            assert isinstance(interrupt_response[1], list), \
+                "interrupt_response[1]: {}".format(interrupt_response[1])
+            assert len(interrupt_response[1]) > 2
+            assert isinstance(interrupt_response[1][1], list)
+            assert interrupt_response[1][1][0] == Symbol("contents")
+            assert isinstance(interrupt_response[1][1][1], list)
+            assert interrupt_response[1][1][1][0] == Symbol("Message")
+            assert interrupt_response[1][1][1][1] == Symbol("Error")
+
+            interrupt_response2 = self.messages.get(timeout=self.timeout)
+            assert isinstance(interrupt_response2, list)
+            assert len(interrupt_response2) > 2
+            assert interrupt_response2[0] == Symbol("Answer")
+            assert interrupt_response2[2][0] == Symbol("CoqExn")
+            assert interrupt_response2[2][3] == Symbol("Sys.Break")
+
+            raise TimeoutError("")
+
     def get_feedbacks(self) -> List['Sexp']:
         self.get_ack()
 
         feedbacks = [] #type: List[Sexp]
-        next_message = self.messages.get()
+        next_message = self.get_message()
         while(isinstance(next_message, list) and
               next_message[0] == Symbol("Feedback")):
             feedbacks.append(next_message)
-            next_message = self.messages.get()
+            next_message = self.get_message()
         fin = next_message
         if (not isinstance(fin, list) or
             fin[0] != Symbol("Answer")):
@@ -346,13 +386,13 @@ class SerapiInstance(threading.Thread):
     def get_cancelled(self) -> int:
         finished = False
         while not finished:
-            supposed_ack = self.messages.get()
+            supposed_ack = self.get_message()
             if (not isinstance(supposed_ack, list) or
                 supposed_ack[0] != Symbol("Answer")):
-                raise AckError
+                raise AckError("Symbol is not an ack! {}".format(supposed_ack))
             if supposed_ack[2] == Symbol("Ack"):
                 finished = True
-        feedback = self.messages.get()
+        feedback = self.get_message()
         if (not isinstance(feedback, list) or
             feedback[0] != Symbol("Feedback")):
             raise BadResponse(feedback)
@@ -362,7 +402,7 @@ class SerapiInstance(threading.Thread):
         subsubfeed = subfeed[0][1]
         if (subsubfeed[0] != Symbol("State")):
             raise BadResponse(subsubfeed)
-        cancelled = self.messages.get()
+        cancelled = self.get_message()
         self.get_completed()
         return subsubfeed[1]
 
@@ -382,7 +422,7 @@ class SerapiInstance(threading.Thread):
         self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
         self.get_ack()
 
-        proof_context_message = self.messages.get()
+        proof_context_message = self.get_message()
         if (not isinstance(proof_context_message, list) or
             proof_context_message[0] != Symbol("Answer")):
             raise BadResponse(proof_context_message)

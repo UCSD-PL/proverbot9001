@@ -22,7 +22,7 @@ Line = Callable[..., None]
 
 import serapi_instance
 import linearize_semicolons
-from serapi_instance import ParseError, LexError
+from serapi_instance import ParseError, LexError, TimeoutError
 import text_encoder
 
 from helper import *
@@ -86,7 +86,7 @@ def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tu
         coq.cancel_last()
         assert isinstance(context, str)
         return (prediction, context, None)
-    except (ParseError, LexError, CoqExn, BadResponse) as e:
+    except (ParseError, LexError, BadResponse, CoqExn, TimeoutError) as e:
         return (prediction, "", e)
     finally:
         coq.quiet = False
@@ -316,7 +316,7 @@ class Worker(threading.Thread):
                         actual_result_context = coq.proof_context
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
-                            BadResponse, ParseError, LexError):
+                            BadResponse, ParseError, LexError, TimeoutError):
                         print("In file {}:".format(filename))
                         raise
 
@@ -335,7 +335,7 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                     except (AckError, CompletedError, CoqExn,
-                            BadResponse, ParseError, LexError):
+                            BadResponse, ParseError, LexError, TimeoutError):
                         print("In file {}:".format(filename))
                         raise
                     command_results.append((command,))
