@@ -7,7 +7,7 @@ import re
 
 import torch
 import torch.cuda
-from torch.autograd import Variable
+import torch.autograd as autograd
 
 from typing import List, Any
 
@@ -23,17 +23,17 @@ def maybe_cuda(component):
     else:
         return component
 
-def LongTensor(arr : Any) -> torch.LongTensor:
+def LongTensor(*args : Any) -> torch.LongTensor:
     if use_cuda:
-        return torch.cuda.LongTensor(arr)
+        return torch.cuda.LongTensor(*args)
     else:
-        return torch.LongTensor(arr)
+        return torch.LongTensor(*args)
 
-def FloatTensor(*dims : List[int]) -> torch.FloatTensor:
+def FloatTensor(*args : Any) -> torch.FloatTensor:
     if use_cuda:
-        return torch.cuda.FloatTensor(*dims)
+        return torch.cuda.FloatTensor(*args)
     else:
-        return torch.FloatTensor(*dims)
+        return torch.FloatTensor(*args)
 
 def asMinutes(s : float) -> str:
     m = math.floor(s / 60)
@@ -48,13 +48,13 @@ def timeSince(since : float, percent : float) -> str:
     return "{} (- {})".format(asMinutes(s), asMinutes(rs))
 
 def str_1d_long_tensor(tensor : torch.LongTensor):
-    if (type(tensor) == Variable):
+    if (type(tensor) == autograd.Variable):
         tensor = tensor.data
     tensor = tensor.view(-1)
     return str(list(tensor))
 
 def str_1d_float_tensor(tensor : torch.FloatTensor):
-    if (type(tensor) == Variable):
+    if (type(tensor) == autograd.Variable):
         tensor = tensor.data
     tensor = tensor.view(-1)
     output = io.StringIO()

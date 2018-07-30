@@ -121,9 +121,9 @@ def train(dataset : DataSet,
     print("Initializing PyTorch...")
     in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
     out_stream = [datum[1] for datum in dataset]
-    dataset = data.TensorDataset(torch.LongTensor(in_stream),
-                                 torch.LongTensor(out_stream))
-    dataloader = data.DataLoader(dataset, batch_size=batch_size, num_workers=0,
+    dataloader = data.DataLoader(data.TensorDataset(torch.LongTensor(in_stream),
+                                                     torch.LongTensor(out_stream)),
+                                 batch_size=batch_size, num_workers=0,
                                  shuffle=True, pin_memory=True, drop_last=True)
 
     encoder = maybe_cuda(
@@ -149,7 +149,7 @@ def train(dataset : DataSet,
 
             prediction_distribution = encoder.run(
                 cast(torch.LongTensor, input_batch))
-            loss = 0
+            loss = cast(torch.FloatTensor, 0)
             output_var = maybe_cuda(Variable(output_batch))
             # print("Got distribution: {}"
             #       .format(str_1d_float_tensor(prediction_distribution[0])))
@@ -175,7 +175,7 @@ def train(dataset : DataSet,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args(args) -> Tuple[str, Any]:
+def take_args(args) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
@@ -218,8 +218,8 @@ def main(args) -> None:
                   format(epoch))
             torch.save(state, f)
 
-stem_to_idx = {}
-idx_to_stem = {}
+stem_to_idx = {} # type: Dict[str, int]
+idx_to_stem = {} # type: Dict[int, str]
 def encode_stem(tactic):
     stem = get_stem(tactic)
     if stem in stem_to_idx:

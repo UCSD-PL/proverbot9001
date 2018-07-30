@@ -97,12 +97,12 @@ class EncoderRNN(nn.Module):
             output, hidden = self.gru(output, hidden)
         return output, hidden
 
-    def initHidden(self) -> SomeLongTensor:
-        zeroes = cast(torch.LongTensor, maybe_cuda(
+    def initHidden(self) -> torch.FloatTensor:
+        zeroes = cast(torch.FloatTensor, maybe_cuda(
             torch.zeros(1, self.batch_size, self.hidden_size)))
         return Variable(zeroes)
 
-    def run(self, sentence : SomeLongTensor) -> SomeLongTensor:
+    def run(self, sentence : torch.LongTensor) -> torch.FloatTensor:
         input_variable = maybe_cuda(Variable(sentence))
         assert input_variable.size()[0] == self.batch_size, \
             "input var has size {}, batch_size is {}".format(input_variable.size()[0],
@@ -146,8 +146,8 @@ class DecoderRNN(nn.Module):
     def initHidden(self) -> SomeLongTensor:
         zeroes = cast(torch.LongTensor, maybe_cuda(torch.zeros(1, 1, self.hidden_size)))
         return Variable(zeroes)
-    def run_teach(self, hidden : SomeLongTensor,
-                  output_batch : SomeLongTensor) -> List[SomeLongTensor]:
+    def run_teach(self, hidden : torch.FloatTensor,
+                  output_batch : torch.LongTensor) -> List[torch.FloatTensor]:
         output_variable = maybe_cuda(Variable(output_batch))
         decoder_hidden = hidden
         decoder_input = self.initInput()
@@ -261,7 +261,7 @@ def train(dataset : DataSet, hidden_size : int,
 def exit_early(signal, frame):
     sys.exit(0)
 
-def take_args(args : List[str]) -> Any:
+def take_args(args : List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
@@ -279,14 +279,14 @@ def take_args(args : List[str]) -> Any:
                         default=3, type=int)
     return parser.parse_args(args)
 
-def main(args : List[str]) -> None:
+def main(args_list : List[str]) -> None:
     # Set up cleanup handler for Ctrl-C
     signal.signal(signal.SIGINT, exit_early)
-    args = take_args(args)
+    args = take_args(args_list)
     print("Reading dataset...")
     dataset = read_text_data(args.scrape_file)
 
-    checkpoints = train(dataset, hidden_size,
+    checkpoints = train(dataset, args.hidden_size,
                         args.learning_rate,
                         args.num_encoder_layers,
                         args.num_decoder_layers, args.max_length,
@@ -300,7 +300,7 @@ def main(args : List[str]) -> None:
                  'neural-decoder':decoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
                  'num-decoder-layers':args.num_decoder_layers,
-                 'hidden-size':hidden_size,
+                 'hidden-size':args.hidden_size,
                  'max-length': args.max_length}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
@@ -310,7 +310,7 @@ def main(args : List[str]) -> None:
 # The code below here was copied from
 # https://ibm.github.io/pytorch-seq2seq/public/_modules/seq2seq/models/TopKDecoder.html
 # and modified. This code is available under the apache license.
-def decodeKTactics(decoder : DecoderRNN, encoder_hidden : SomeLongTensor,
+def decodeKTactics(decoder : DecoderRNN, encoder_hidden : torch.FloatTensor,
                    beam_width : int, max_length : int):
     v = decoder.output_size
     pos_index = Variable(LongTensor([0]) * beam_width).view(-1, 1)
@@ -340,7 +340,7 @@ def decodeKTactics(decoder : DecoderRNN, encoder_hidden : SomeLongTensor,
 
         predecessors = (candidates / v +
                         pos_index.expand_as(candidates)).view(beam_width, 1)
-        hidden = hidden.index_select(1, cast(SomeLongTensor, predecessors.squeeze()))
+        hidden = hidden.index_select(1, cast(torch.LongTensor, predecessors.squeeze()))
 
         eos_indices = input_var.data.eq(EOS_token)
         if eos_indices.nonzero().dim() > 0:
