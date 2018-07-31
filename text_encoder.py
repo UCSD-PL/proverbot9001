@@ -59,6 +59,12 @@ class Tokenizer:
 
 context_tokens = [
     "forall",
+    "eq",
+    "Some",
+    "None",
+    "if",
+    "then",
+    "else",
 ]
 tactic_tokens = [
     "apply",
