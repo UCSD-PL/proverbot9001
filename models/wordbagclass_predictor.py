@@ -49,7 +49,8 @@ def read_scrapefile(filename, embedding):
         pair = read_pair(scrapefile)
         while pair:
             context, tactic = pair
-            if not re.match("[\{\}\+\-\*]", get_stem(tactic)):
+            if (not re.match("[\{\}\+\-\*].*", tactic)) and \
+               (not re.match(".*;.*", tactic)):
                 dataset.append([encode_context(context),
                                 embedding.encode_token(get_stem(tactic))])
             pair = read_pair(scrapefile)
