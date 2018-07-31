@@ -24,15 +24,17 @@ class Tokenizer:
         return "".join([chr(self.mangle_dict[c]) for c in string])
 
     def toTokenList(self, string : str) -> List[int]:
-        string = self._mangle(string)
+        mangled_string = self._mangle(string)
 
         for idx, token_string in enumerate(self.distinguished_strings,
                                            start=self.num_reserved_tokens):
-            string = re.sub(self._mangle(token_string), chr(idx), string)
+            mangled_string = re.sub(self._mangle(token_string), chr(idx), mangled_string)
 
-        for c in string:
+        for c in mangled_string:
             assert ord(c) < self.numTokens()
-        return [ord(c) for c in string]
+        tokenlist = [ord(c) for c in mangled_string]
+        assert self.toString(tokenlist) == string
+        return tokenlist
 
     def toString(self, idxs : List[int]) -> str:
         result = ""
