@@ -102,7 +102,7 @@ def evaluate_prediction(fresult : 'FileResult',
     return (prediction, grade)
 
 class GlobalResult:
-    def __init__(self) -> None:
+    def __init__(self, options) -> None:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
@@ -110,6 +110,7 @@ class GlobalResult:
         self.num_topN = 0
         self.num_searched = 0
         self.lock = threading.Lock()
+        self.options = options
         pass
     def add_file_result(self, result : 'FileResult'):
         self.lock.acquire()
@@ -126,6 +127,10 @@ class GlobalResult:
             text("Overall Accuracy: {}% ({}/{})"
                  .format(stringified_percent(self.num_searched, self.num_tactics),
                          self.num_searched, self.num_tactics))
+        with tag('ul'):
+            for k, v in self.options:
+                with tag('li'):
+                    text("{}: {}".format(k, v))
         with tag('table'):
             with tag('tr', klass="header"):
                 line('th', 'Filename')
@@ -246,8 +251,6 @@ class FileResult:
     def details_filename(self) -> str:
         return "{}".format(escape_filename(self.filename))
     pass
-
-gresult = GlobalResult()
 
 class Worker(threading.Thread):
     def __init__(self, workerid : int, coqargs : List[str], includes : str,
@@ -465,6 +468,7 @@ def main(args):
     global num_jobs
     global netLock
     global net
+    global gresult
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
     parser.add_argument('-j', '--threads', default=1, type=int)
@@ -508,6 +512,7 @@ def main(args):
                          "beam-width": num_predictions ** 2},
                         args.predictor)
     netLock = threading.Lock()
+    gresult = GlobalResult(net.getOptions())
 
     for idx in range(args.threads):
         worker = Worker(idx, coqargs, includes, args.output,

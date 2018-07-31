@@ -2,7 +2,7 @@
 
 import argparse
 import time
-from typing import Dict, Any, List, cast
+from typing import Dict, Any, List, Tuple, cast
 
 import torch
 import torch.nn as nn
@@ -30,7 +30,14 @@ class WordBagClassifyPredictor(TacticPredictor):
                                            self.embedding.num_tokens()))
         self.linear.load_state_dict(checkpoint['linear-state'])
         self.lsoftmax = maybe_cuda(nn.LogSoftmax(dim=1))
+
+        self.options = checkpoint['options']
         pass
+
+    def getOptions(self) -> List[Tuple[str, str]]:
+        return [("classifier", "true"),
+                ("num-stems", str(self.embedding.num_tokens())),
+                ] + self.options
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
@@ -90,7 +97,15 @@ def main(args):
         state = {'epoch':epoch,
                  'text-encoder':get_encoder_state(),
                  'linear-state': linear_state,
-                 'stem-embeddings': embedding}
+                 'stem-embeddings': embedding,
+                 'options': [
+                     ("# epochs", str(epoch)),
+                     ("learning rate", str(args.learning_rate)),
+                     ("batch size", str(args.batch_size)),
+                     ("epoch step", str(args.epoch_step)),
+                     ("gamma", str(args.gamma)),
+                     ("dataset size", str(len(dataset))),
+                 ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
                   format(epoch))
