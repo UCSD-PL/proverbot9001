@@ -79,6 +79,8 @@ def main(args):
     parser.add_argument("--num-epochs", dest="num_epochs", default=10, type=int)
     parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
+    parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
+    parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args)
@@ -91,7 +93,8 @@ def main(args):
 
     checkpoints = train(dataset, args.learning_rate,
                         args.num_epochs, args.batch_size,
-                        embedding.num_tokens(), args.print_every)
+                        embedding.num_tokens(), args.print_every,
+                        args.gamma, args.epoch_step)
 
     for epoch, linear_state in enumerate(checkpoints):
         state = {'epoch':epoch,
@@ -112,15 +115,14 @@ def main(args):
             torch.save(state, f)
 
 def train(dataset, learning_rate : float, num_epochs : int,
-          batch_size : int, num_stems: int, print_every : int):
+          batch_size : int, num_stems: int, print_every : int,
+          gamma : float, epoch_step : int):
 
     print("Initializing PyTorch...")
     linear = maybe_cuda(nn.Linear(context_vocab_size(), num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
-    print("len(dataset): {}".format(len(dataset)))
     inputs, outputs = zip(*dataset)
-    print("len(inputs): {}; len(outputs): {}".format(len(inputs), len(outputs)))
     dataloader = data.DataLoader(
         data.TensorDataset(
             torch.FloatTensor([getWordbagVector(input) for input in inputs]),
@@ -130,7 +132,7 @@ def train(dataset, learning_rate : float, num_epochs : int,
 
     optimizer = optim.SGD(linear.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, 5, gamma=0.5)
+    adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
 
     start=time.time()
     num_items = len(dataset) * num_epochs
