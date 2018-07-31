@@ -60,8 +60,6 @@ class Tokenizer:
 context_tokens = [
     "forall",
 ]
-contextTokenizer = Tokenizer(context_tokens, 2)
-
 tactic_tokens = [
     "apply",
     "assert",
@@ -97,8 +95,6 @@ tactic_tokens = [
     "exact",
 ]
 
-tacticTokenizer = Tokenizer(tactic_tokens, 2)
-
 def encode_tactic(tactic : str) -> List[int]:
     return tacticTokenizer.toTokenList(tactic)
 def encode_context(context : str) -> List[int]:
@@ -120,3 +116,16 @@ def set_encoder_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
     tactic_state, context_state = state
     tacticTokenizer.setState(tactic_state)
     contextTokenizer.setState(context_state)
+
+def enable_keywords() -> None:
+    global contextTokenizer
+    global tacticTokenizer
+    contextTokenizer = Tokenizer(context_tokens, 2)
+    tacticTokenizer = Tokenizer(tactic_tokens, 2)
+def disable_keywords() -> None:
+    global contextTokenizer
+    global tacticTokenizer
+    contextTokenizer = Tokenizer([], 2)
+    tacticTokenizer = Tokenizer([], 2)
+
+enable_keywords()

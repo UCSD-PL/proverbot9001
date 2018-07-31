@@ -14,6 +14,7 @@ import torch.utils.data as data
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_pair
+import text_encoder
 from text_encoder import context_vocab_size, encode_context, \
     get_encoder_state, set_encoder_state
 
@@ -81,9 +82,13 @@ def main(args):
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
     parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
+    parser.add_argument("--disable-keywords", dest="disable_keywords",
+                        default=False, const=True, action="store_const")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args)
+    if args.disable_keywords:
+        text_encoder.disable_keywords()
 
     embedding = SimpleEmbedding()
 
@@ -108,6 +113,7 @@ def main(args):
                      ("epoch step", str(args.epoch_step)),
                      ("gamma", str(args.gamma)),
                      ("dataset size", str(len(dataset))),
+                     ("use keywords", str(not args.disable_keywords))
                  ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
