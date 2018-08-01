@@ -9,6 +9,8 @@ import torch
 import torch.cuda
 import torch.autograd as autograd
 
+from serapi_instance import kill_comments
+
 from typing import List, Any
 
 Sentence = List[int]
@@ -69,6 +71,7 @@ def str_1d_float_tensor(tensor : torch.FloatTensor):
     return result
 
 def get_stem(tactic : str) -> str:
+    tactic = kill_comments(tactic).strip()
     if re.match("[-+*\{\}]", tactic):
         return tactic
     if re.match(".*;.*", tactic):
