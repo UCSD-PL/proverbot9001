@@ -82,6 +82,8 @@ def main(args):
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
     parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
+    parser.add_argument("--optimizer", default="SGD",
+                        choices=list(optimizers.keys()), type=str)
     parser.add_argument("--disable-keywords", dest="disable_keywords",
                         default=False, const=True, action="store_const")
     parser.add_argument("scrape_file")
@@ -99,7 +101,7 @@ def main(args):
     checkpoints = train(dataset, args.learning_rate,
                         args.num_epochs, args.batch_size,
                         embedding.num_tokens(), args.print_every,
-                        args.gamma, args.epoch_step)
+                        args.gamma, args.epoch_step, args.optimizer)
 
     for epoch, linear_state in enumerate(checkpoints):
         state = {'epoch':epoch,
@@ -113,16 +115,22 @@ def main(args):
                      ("epoch step", str(args.epoch_step)),
                      ("gamma", str(args.gamma)),
                      ("dataset size", str(len(dataset))),
-                     ("use keywords", str(not args.disable_keywords))
+                     ("use keywords", str(not args.disable_keywords)),
+                     ("optimizer", args.optimizer),
                  ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
                   format(epoch))
             torch.save(state, f)
 
+optimizers = {
+    "SGD": optim.SGD,
+    "Adam": optim.Adam,
+}
+
 def train(dataset, learning_rate : float, num_epochs : int,
           batch_size : int, num_stems: int, print_every : int,
-          gamma : float, epoch_step : int):
+          gamma : float, epoch_step : int, optimizer_type : str):
 
     print("Initializing PyTorch...")
     linear = maybe_cuda(nn.Linear(context_vocab_size(), num_stems))
@@ -136,7 +144,7 @@ def train(dataset, learning_rate : float, num_epochs : int,
         batch_size=batch_size, num_workers=0,
         shuffle=True, pin_memory=True, drop_last=True)
 
-    optimizer = optim.SGD(linear.parameters(), lr=learning_rate)
+    optimizer = optimizers[optimizer_type](linear.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
     adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
 
