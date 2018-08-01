@@ -11,11 +11,10 @@ import math
 import argparse
 
 from format import read_pair
-from text_encoder import encode_tactic, encode_context, \
-    decode_tactic, decode_context, \
+from tokenizer import tokenize_tactic, tokenize_context, \
+    untokenize_tactic, untokenize_context, \
     context_vocab_size, tactic_vocab_size, \
-    get_encoder_state, set_encoder_state
-import text_encoder
+    get_tokenizer_state, set_tokenizer_state
 
 import torch
 import torch.nn as nn
@@ -49,7 +48,7 @@ class EncDecRNNPredictor(TacticPredictor):
         assert checkpoint['max-length']
 
         hidden_size = checkpoint['hidden-size']
-        set_encoder_state(checkpoint['text-encoder'])
+        set_tokenizer_state(checkpoint['text-encoder'])
         self.encoder = maybe_cuda(EncoderRNN(context_vocab_size(), hidden_size,
                                              checkpoint["num-encoder-layers"]))
         self.decoder = maybe_cuda(DecoderRNN(hidden_size, tactic_vocab_size(),
@@ -69,14 +68,14 @@ class EncDecRNNPredictor(TacticPredictor):
         pass
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        in_sentence = LongTensor(inputFromSentence(encode_context(in_data["goal"]),
+        in_sentence = LongTensor(inputFromSentence(tokenize_context(in_data["goal"]),
                                                    self.max_length)).view(1, -1)
         feature_vector = self.encoder.run(in_sentence)
         prediction_sentences = decodeKTactics(self.decoder,
                                               feature_vector,
                                               self.beam_width,
                                               self.max_length)[:k]
-        return [decode_tactic(sentence) for sentence in prediction_sentences]
+        return [untokenize_tactic(sentence) for sentence in prediction_sentences]
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
@@ -167,8 +166,8 @@ def read_text_data(data_path : str, max_size:int=None) -> DataSet:
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            data_set.append([encode_context(context),
-                             encode_tactic(tactic)])
+            data_set.append([tokenize_context(context),
+                             tokenize_tactic(tactic)])
 
             pair = read_pair(data_file)
     assert(len(data_set) > 0)
@@ -295,7 +294,7 @@ def main(args_list : List[str]) -> None:
 
     for epoch, (encoder_state, decoder_state) in enumerate(checkpoints):
         state = {'epoch':epoch,
-                 'text-encoder':get_encoder_state(),
+                 'text-encoder':get_tokenizer_state(),
                  'neural-encoder':encoder_state,
                  'neural-decoder':decoder_state,
                  'num-encoder-layers':args.num_encoder_layers,

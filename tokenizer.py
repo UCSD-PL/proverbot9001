@@ -104,24 +104,24 @@ tactic_tokens = [
 contextTokenizer : Tokenizer
 tacticTokenizer : Tokenizer
 
-def encode_tactic(tactic : str) -> List[int]:
+def tokenize_tactic(tactic : str) -> List[int]:
     return tacticTokenizer.toTokenList(tactic)
-def encode_context(context : str) -> List[int]:
+def tokenize_context(context : str) -> List[int]:
     return contextTokenizer.toTokenList(context)
 
-def decode_tactic(tokenlist : List[int]) -> str:
+def untokenize_tactic(tokenlist : List[int]) -> str:
     return tacticTokenizer.toString(tokenlist)
-def decode_context(context : List[int]) -> str:
+def untokenize_context(context : List[int]) -> str:
     return contextTokenizer.toString(context)
 
-def get_encoder_state() -> Tuple[TokenizerState, TokenizerState]:
+def get_tokenizer_state() -> Tuple[TokenizerState, TokenizerState]:
     return tacticTokenizer.getState(), contextTokenizer.getState()
 def context_vocab_size() -> int:
     return contextTokenizer.numTokens()
 def tactic_vocab_size() -> int:
     return tacticTokenizer.numTokens()
 
-def set_encoder_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
+def set_tokenizer_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
     tactic_state, context_state = state
     tacticTokenizer.setState(tactic_state)
     contextTokenizer.setState(context_state)

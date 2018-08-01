@@ -23,7 +23,7 @@ Line = Callable[..., None]
 import serapi_instance
 import linearize_semicolons
 from serapi_instance import ParseError, LexError, TimeoutError
-import text_encoder
+import tokenizer
 
 from helper import *
 from util import *

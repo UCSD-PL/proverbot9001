@@ -7,8 +7,8 @@ import signal
 import sys
 
 from format import read_pair
-from text_encoder import encode_context, decode_context, context_vocab_size, \
-    get_encoder_state, set_encoder_state
+from tokenizer import tokenize_context, untokenize_context, context_vocab_size, \
+    get_tokenizer_state, set_tokenizer_state
 
 from models.encdecrnn_predictor import inputFromSentence
 
@@ -45,7 +45,7 @@ class EncClassPredictor(TacticPredictor):
         idx_to_stem = checkpoint['idx-to-stem']
         stem_to_idx = checkpoint['stem-to-idx']
 
-        set_encoder_state(checkpoint['text-encoder'])
+        set_tokenizer_state(checkpoint['text-encoder'])
         self.vocab_size = context_vocab_size()
         self.encoder = maybe_cuda(RNNClassifier(self.vocab_size,
                                                 checkpoint['hidden-size'],
@@ -59,7 +59,8 @@ class EncClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        in_sentence = LongTensor(inputFromSentence(encode_context(in_data["goal"]), self.max_length))\
+        in_sentence = LongTensor(inputFromSentence(tokenize_context(in_data["goal"]),
+                                                   self.max_length))\
                       .view(1, -1)
         prediction_distribution = self.encoder.run(in_sentence)
         _, stem_idxs = prediction_distribution.view(-1).topk(k)
@@ -105,7 +106,7 @@ def read_text_data(data_path : str, max_size:int=None) -> DataSet:
         while pair and (not max_size or counter < max_size):
             context, tactic = pair
             counter += 1
-            data_set.append([encode_context(context),
+            data_set.append([tokenize_context(context),
                              encode_stem(tactic)])
             pair = read_pair(data_file)
     assert len(data_set) > 0
@@ -205,7 +206,7 @@ def main(arg_list : List[str]) -> None:
 
     for epoch, encoder_state in enumerate(checkpoints):
         state = {'epoch':epoch,
-                 'text-encoder':get_encoder_state(),
+                 'text-encoder':get_tokenizer_state(),
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
                  'num-tactic-stems':num_stems(),

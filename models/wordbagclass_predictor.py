@@ -14,9 +14,9 @@ import torch.utils.data as data
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_pair
-import text_encoder
-from text_encoder import context_vocab_size, encode_context, \
-    get_encoder_state, set_encoder_state
+import tokenizer
+from tokenizer import context_vocab_size, tokenize_context, \
+    get_tokenizer_state, set_tokenizer_state
 
 from util import *
 
@@ -26,7 +26,7 @@ class WordBagClassifyPredictor(TacticPredictor):
         assert checkpoint['stem-embeddings']
 
         self.embedding = checkpoint['stem-embeddings']
-        set_encoder_state(checkpoint['text-encoder'])
+        set_tokenizer_state(checkpoint['text-encoder'])
         self.linear = maybe_cuda(nn.Linear(context_vocab_size(),
                                            self.embedding.num_tokens()))
         self.linear.load_state_dict(checkpoint['linear-state'])
@@ -47,7 +47,8 @@ class WordBagClassifyPredictor(TacticPredictor):
 
     def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
         goal = in_data["goal"]
-        in_vec = Variable(FloatTensor(getWordbagVector(encode_context(goal)))).view(1, -1)
+        in_vec = Variable(FloatTensor(getWordbagVector(tokenize_context(goal))))\
+                 .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
@@ -81,7 +82,7 @@ def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
             context, tactic = pair
             if (not re.match("[\{\}\+\-\*].*", tactic)) and \
                (not re.match(".*;.*", tactic)):
-                dataset.append((encode_context(context),
+                dataset.append((tokenize_context(context),
                                 embedding.encode_token(get_stem(tactic))))
             pair = read_pair(scrapefile)
     return dataset
@@ -114,7 +115,7 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
     if args.disable_keywords:
-        text_encoder.disable_keywords()
+        tokenizer.disable_keywords()
 
     embedding = SimpleEmbedding()
 
@@ -129,7 +130,7 @@ def main(args_list : List[str]) -> None:
 
     for epoch, (linear_state, loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
-                 'text-encoder':get_encoder_state(),
+                 'text-encoder':get_tokenizer_state(),
                  'linear-state': linear_state,
                  'stem-embeddings': embedding,
                  'options': [
