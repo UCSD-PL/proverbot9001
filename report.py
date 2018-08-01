@@ -493,7 +493,6 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument('-o', '--output', help="output data folder name",
                         default="report")
-    parser.add_argument('--debugtokenizer', default=False, const=True, action='store_const')
     parser.add_argument('-m', '--message', default=None)
     parser.add_argument('--baseline',
                         help="run in baseline mode, predicting {} every time"
