@@ -3,9 +3,9 @@
 import re
 from typing import Dict, List, Tuple, Callable, Union
 
-TokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
+KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
-class Tokenizer:
+class KeywordTokenizer:
     def __init__(self, distinguished_strings : List[str], num_reserved_tokens : int = 0) \
         -> None:
         self.num_reserved_tokens = num_reserved_tokens
@@ -48,9 +48,9 @@ class Tokenizer:
     def numTokens(self) -> int:
         return self.next_mangle_ord
 
-    def getState(self) -> TokenizerState:
+    def getState(self) -> KeywordTokenizerState:
         return list(self.mangle_dict.items()), self.distinguished_strings, self.next_mangle_ord
-    def setState(self, state : TokenizerState):
+    def setState(self, state : KeywordTokenizerState):
         dict_items, self.distinguished_strings, self.next_mangle_ord = state
         for k, v in dict_items:
             self.mangle_dict[k] = v
@@ -101,8 +101,8 @@ tactic_tokens = [
     "exact",
 ]
 
-contextTokenizer : Tokenizer
-tacticTokenizer : Tokenizer
+contextTokenizer : KeywordTokenizer
+tacticTokenizer : KeywordTokenizer
 
 def tokenize_tactic(tactic : str) -> List[int]:
     return tacticTokenizer.toTokenList(tactic)
@@ -113,6 +113,8 @@ def untokenize_tactic(tokenlist : List[int]) -> str:
     return tacticTokenizer.toString(tokenlist)
 def untokenize_context(context : List[int]) -> str:
     return contextTokenizer.toString(context)
+
+TokenizerState = Union[KeywordTokenizerState]
 
 def get_tokenizer_state() -> Tuple[TokenizerState, TokenizerState]:
     return tacticTokenizer.getState(), contextTokenizer.getState()
@@ -129,12 +131,12 @@ def set_tokenizer_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
 def enable_keywords() -> None:
     global contextTokenizer
     global tacticTokenizer
-    contextTokenizer = Tokenizer(context_tokens, 2)
-    tacticTokenizer = Tokenizer(tactic_tokens, 2)
+    contextTokenizer = KeywordTokenizer(context_tokens, 2)
+    tacticTokenizer = KeywordTokenizer(tactic_tokens, 2)
 def disable_keywords() -> None:
     global contextTokenizer
     global tacticTokenizer
-    contextTokenizer = Tokenizer([], 2)
-    tacticTokenizer = Tokenizer([], 2)
+    contextTokenizer = KeywordTokenizer([], 2)
+    tacticTokenizer = KeywordTokenizer([], 2)
 
 enable_keywords()
