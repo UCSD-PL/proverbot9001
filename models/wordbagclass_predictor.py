@@ -2,7 +2,7 @@
 
 import argparse
 import time
-from typing import Dict, Any, List, Tuple, cast
+from typing import Dict, Any, List, Tuple, Iterable, cast
 
 import torch
 import torch.nn as nn
@@ -51,7 +51,8 @@ class WordBagClassifyPredictor(TacticPredictor):
         probs, indices = distribution.squeeze().topk(k)
         return [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
 
-def read_scrapefile(filename, embedding):
+def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
+    List[Tuple[List[int], int]]:
     dataset = []
     with open(filename, 'r') as scrapefile:
         pair = read_pair(scrapefile)
@@ -59,12 +60,12 @@ def read_scrapefile(filename, embedding):
             context, tactic = pair
             if (not re.match("[\{\}\+\-\*].*", tactic)) and \
                (not re.match(".*;.*", tactic)):
-                dataset.append([encode_context(context),
-                                embedding.encode_token(get_stem(tactic))])
+                dataset.append((encode_context(context),
+                                embedding.encode_token(get_stem(tactic))))
             pair = read_pair(scrapefile)
     return dataset
 
-def getWordbagVector(goal):
+def getWordbagVector(goal : List[int]) -> List[int]:
     wordbag = [0] * context_vocab_size()
     for t in goal:
         assert t < context_vocab_size(), \
@@ -72,7 +73,9 @@ def getWordbagVector(goal):
         wordbag[t] += 1
     return wordbag
 
-def main(args):
+Checkpoint = Tuple[Dict[Any, Any], float]
+
+def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "A second-tier predictor which predicts tactic "
                                      "stems based on word frequency in the goal")
@@ -88,7 +91,7 @@ def main(args):
                         default=False, const=True, action="store_const")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
-    args = parser.parse_args(args)
+    args = parser.parse_args(args_list)
     if args.disable_keywords:
         text_encoder.disable_keywords()
 
@@ -131,8 +134,7 @@ optimizers = {
 
 def train(dataset, learning_rate : float, num_epochs : int,
           batch_size : int, num_stems: int, print_every : int,
-          gamma : float, epoch_step : int, optimizer_type : str):
-
+          gamma : float, epoch_step : int, optimizer_type : str) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
     linear = maybe_cuda(nn.Linear(context_vocab_size(), num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))

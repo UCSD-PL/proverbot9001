@@ -191,9 +191,9 @@ def take_args(args) -> argparse.Namespace:
                         default=3, type=int)
     return parser.parse_args(args)
 
-def main(args) -> None:
+def main(arg_list : List[str]) -> None:
     signal.signal(signal.SIGINT, exit_early)
-    args = take_args(args)
+    args = take_args(arg_list)
     print("Reading dataset...")
     dataset = read_text_data(args.scrape_file)
 

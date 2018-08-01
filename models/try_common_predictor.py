@@ -39,13 +39,13 @@ def read_scrapefile(filename, embedding):
             pair = read_pair(scrapefile)
     return dataset
 
-def train(args):
+def train(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "A simple predictor which tries "
                                      "the k most common tactic stems.")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
-    args = parser.parse_args(args)
+    args = parser.parse_args(arg_list)
     embedding = SimpleEmbedding()
     dataset = read_scrapefile(args.scrape_file, embedding)
 

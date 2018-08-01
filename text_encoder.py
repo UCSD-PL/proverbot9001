@@ -101,6 +101,9 @@ tactic_tokens = [
     "exact",
 ]
 
+contextTokenizer : Tokenizer
+tacticTokenizer : Tokenizer
+
 def encode_tactic(tactic : str) -> List[int]:
     return tacticTokenizer.toTokenList(tactic)
 def encode_context(context : str) -> List[int]:

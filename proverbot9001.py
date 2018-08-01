@@ -9,6 +9,8 @@ import models.encclass_predictor as encclass
 import report
 import argparse
 
+from typing import Dict, Callable, List
+
 def exit_early(signal, frame):
     sys.exit(0)
 
@@ -33,7 +35,7 @@ modules = {
     "report":  report.main,
 }
 
-trainable_models = {
+trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "encdec" : encdec.main,
     "encclass" : encclass.main,
     "trycommon" : trycommon.train,

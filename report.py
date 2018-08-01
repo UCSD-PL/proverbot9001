@@ -30,6 +30,7 @@ from syntax import syntax_highlight, strip_comments
 from helper import load_commands_preserve
 
 from predict_tactic import predictors, loadPredictor
+from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
@@ -45,8 +46,15 @@ max_tactic_length = 100
 
 baseline_tactic = "eauto"
 
+predictorName : str
+jobs : 'queue.Queue[str]'
+num_jobs : int
+netLock : threading.Lock
+net : TacticPredictor
+gresult : 'GlobalResult'
+
 def header(tag : Tag, doc : Doc, text : Text, css : List[str],
-           javascript : List[str], title : str):
+           javascript : List[str], title : str) -> None:
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -57,24 +65,24 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def details_header(tag : Any, doc : Doc, text : Text, filename : str):
+def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
     header(tag, doc, text, details_css, details_javascript,
            "Proverbot Detailed Report for {}".format(filename))
 
-def report_header(tag : Any, doc : Doc, text : Text):
+def report_header(tag : Any, doc : Doc, text : Text) -> None:
     header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
-def stringified_percent(total, outof):
+def stringified_percent(total : float, outof : float) -> str:
     if outof == 0:
         return "NaN"
     else:
         return "{:10.2f}".format(total * 100 / outof)
 
-def to_list_string(l):
+def to_list_string(l : List[Any]) -> str:
     return "% ".join([str(item) for item in l])
 
-def shorten_whitespace(string):
+def shorten_whitespace(string : str) -> str:
     return re.sub("    +", "  ", string)
 
 def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tuple[str,str,Optional[Exception]]:
@@ -102,7 +110,7 @@ def evaluate_prediction(fresult : 'FileResult',
     return (prediction, grade)
 
 class GlobalResult:
-    def __init__(self, options) -> None:
+    def __init__(self, options : List[Tuple[str, str]]) -> None:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
@@ -182,7 +190,7 @@ class GlobalResult:
 
     pass
 
-def add_to_freq_table(table, entry):
+def add_to_freq_table(table : Dict[Any, int], entry : Any) -> None:
     if entry not in table:
         table[entry] = 1
     else:
@@ -192,7 +200,7 @@ def get_stem(command):
     return command.strip().split(" ")[0].strip(".")
 
 class FileResult:
-    def __init__(self, filename):
+    def __init__(self, filename : str) -> None:
         self.num_tactics = 0
         self.num_correct = 0
         self.num_partial = 0
@@ -200,9 +208,9 @@ class FileResult:
         self.num_searched = 0
         self.num_failed = 0
         self.filename = filename
-        self.actual_tactic_frequency = {}
-        self.predicted_tactic_frequency = {}
-        self.correctly_predicted_frequency = {}
+        self.actual_tactic_frequency : Dict[str, int] = {}
+        self.predicted_tactic_frequency : Dict[str, int] = {}
+        self.correctly_predicted_frequency : Dict[str, int] = {}
         pass
     def grade_command_result(self, predicted : str, predicted_context : str,
                              actual : str, actual_context : str,
@@ -221,7 +229,7 @@ class FileResult:
             return "badcommand"
     def add_command_result(self,
                            predictions : List[str], grades : List[str],
-                           actual : str):
+                           actual : str, loss : float) -> None:
         add_to_freq_table(self.actual_tactic_frequency,
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
@@ -269,18 +277,20 @@ class Worker(threading.Thread):
         self.baseline = baseline
         pass
 
-    def get_commands(self, filename):
+    def get_commands(self, filename : str) -> List[str]:
         local_filename = self.prelude + "/" + filename
-        commands = linearize_semicolons.try_load_lin(local_filename)
-        if commands == None:
-            commands = lift_and_linearize(
+        loaded_commands = linearize_semicolons.try_load_lin(local_filename)
+        if loaded_commands is None:
+            fresh_commands = lift_and_linearize(
                 load_commands_preserve(self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
                 filename, debug=self.debug)
-            linearize_semicolons.save_lin(commands, local_filename)
-        return commands
+            linearize_semicolons.save_lin(fresh_commands, local_filename)
+            return fresh_commands
+        else:
+            return loaded_commands
 
-    def process_file(self, filename):
+    def process_file(self, filename : str) -> None:
         global gresult
         fresult = FileResult(filename)
 
@@ -288,7 +298,9 @@ class Worker(threading.Thread):
             print("Preprocessing...")
         commands = self.get_commands(filename)
 
-        command_results = []
+        command_results : List[Union[Tuple[str],
+                                     Tuple[str, str, str,
+                                           List[Tuple[str, str]]]]] = []
 
         with serapi_instance.SerapiContext(self.coqargs,
                                            self.includes,
@@ -348,11 +360,12 @@ class Worker(threading.Thread):
         with open("{}/{}.csv".format(self.output_dir, fresult.details_filename()),
                   'w', newline='') as csvfile:
             rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
-            for row in command_results: # type: Union[Tuple[str], Tuple[str, str, str, List[PredictionResult]]]
+            for row in command_results:
                 if len(row) == 1:
                     rowwriter.writerow([re.sub("\n", "\\n", row[0])])
                 else:
-                    command, hyps, goal, prediction_results = row
+                    command, hyps, goal, prediction_results = \
+                        cast(Tuple[str, str, str, List[Tuple[str, str]]], row)
                     first_pred, first_grade = prediction_results[0]
                     if len(prediction_results) >= 2:
                         second_pred, second_grade = prediction_results[1]
@@ -387,7 +400,9 @@ class Worker(threading.Thread):
                         with tag('code', klass='plaincommand'):
                             text(command_result[0])
                     else:
-                        command, hyps, goal, prediction_results = command_result
+                        command, hyps, goal, prediction_results = \
+                            cast(Tuple[str, str, str, List[Tuple[str, str]]],
+                                 command_result)
                         predictions = [prediction for prediction, grade in
                                        prediction_results]
                         grades = [grade for prediction, grade in
@@ -445,7 +460,7 @@ class Worker(threading.Thread):
 
         gresult.add_file_result(fresult)
         rows.put(fresult)
-    def run(self):
+    def run(self) -> None:
         try:
             while(True):
                 job = jobs.get_nowait()
@@ -462,10 +477,10 @@ class Worker(threading.Thread):
         finally:
             finished_queue.put(self.workerid)
 
-def escape_filename(filename):
+def escape_filename(filename : str) -> str:
     return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
-def main(args):
+def main(arg_list : List[str]) -> None:
     global jobs
     global num_jobs
     global netLock
@@ -488,8 +503,7 @@ def main(args):
     parser.add_argument('--weightsfile', default="pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
-    args = parser.parse_args(args)
-    text_encoder.debug_tokenizer = args.debugtokenizer
+    args = parser.parse_args(arg_list)
 
     coqargs = ["{}/coq-serapi/sertop.native".format(base),
                "--prelude={}/coq".format(base)]
@@ -504,7 +518,7 @@ def main(args):
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
-    jobs = queue.Queue() #type: queue.Queue[str]
+    jobs = queue.Queue()
     workers = []
     num_jobs = len(args.filenames)
     for infname in args.filenames:

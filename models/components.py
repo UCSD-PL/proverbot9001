@@ -19,3 +19,5 @@ class SimpleEmbedding:
         return self.indices_to_tokens[idx]
     def num_tokens(self) -> int:
         return len(self.indices_to_tokens)
+    def has_token(self, token : str) -> bool :
+        return token in self.tokens_to_indices

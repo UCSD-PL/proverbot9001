@@ -68,7 +68,7 @@ def str_1d_float_tensor(tensor : torch.FloatTensor):
     output.close()
     return result
 
-def get_stem(tactic):
+def get_stem(tactic : str) -> str:
     if re.match("[-+*\{\}]", tactic):
         return tactic
     if re.match(".*;.*", tactic):
