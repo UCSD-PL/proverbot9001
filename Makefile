@@ -18,6 +18,7 @@ endif
 ifneq ($(MESSAGE),)
 FLAGS+=-m "$(MESSAGE)"
 endif
+REPORT="report"
 
 .PHONY: scrape report setup
 
@@ -39,8 +40,9 @@ train:
 	./proverbot9001.py train encdec scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 publish:
-	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py report/))
-	mv report $(REPORT_NAME)
+	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py $(REPORT)/))
+	mv $(REPORT) $(REPORT_NAME)
+	chmod +rx $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
 	rsync -avz report.tar.gz $(SITE_PATH)/reports/
 	rsync -avz reports/index.js reports/index.css reports/build-index.py $(SITE_PATH)/reports/
@@ -48,7 +50,7 @@ publish:
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
                   ./build-index.py'
-	mv $(REPORT_NAME) report
+	mv $(REPORT_NAME) $(REPORT)
 
 publish-weights:
 	gzip -k pytorch-weights.tar
