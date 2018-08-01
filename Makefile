@@ -60,3 +60,7 @@ publish-weights:
 download-weights:
 	curl -o pytorch-weights.tar.gz proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
 	gzip -d pytorch-weights.tar.gz
+
+clean:
+	rm -r report-*
+	rm log*.txt
