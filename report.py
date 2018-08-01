@@ -26,6 +26,8 @@ from serapi_instance import ParseError, LexError, TimeoutError
 import text_encoder
 
 from helper import *
+from util import *
+
 from syntax import syntax_highlight, strip_comments
 from helper import load_commands_preserve
 
@@ -195,9 +197,6 @@ def add_to_freq_table(table : Dict[Any, int], entry : Any) -> None:
         table[entry] = 1
     else:
         table[entry] += 1
-
-def get_stem(command):
-    return command.strip().split(" ")[0].strip(".")
 
 class FileResult:
     def __init__(self, filename : str) -> None:
