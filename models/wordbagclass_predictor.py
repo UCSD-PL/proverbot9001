@@ -36,7 +36,7 @@ class WordBagClassifyPredictor(TacticPredictor):
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
-        return [("classifier", "true"),
+        return [("classifier", str(True)),
                 ("num-stems", str(self.embedding.num_tokens())),
                 ] + self.options
 
