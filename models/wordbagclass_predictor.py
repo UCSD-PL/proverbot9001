@@ -103,7 +103,7 @@ def main(args):
                         embedding.num_tokens(), args.print_every,
                         args.gamma, args.epoch_step, args.optimizer)
 
-    for epoch, (linear_state, loss) in enumerate(checkpoints):
+    for epoch, (linear_state, loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
                  'text-encoder':get_encoder_state(),
                  'linear-state': linear_state,
