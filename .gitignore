@@ -10,3 +10,4 @@
 *.vo
 /coq-menhirlib/
 scrape.txt
+report*
