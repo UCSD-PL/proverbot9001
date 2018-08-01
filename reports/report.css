@@ -30,10 +30,15 @@ tr:hover td {
 
 li {
     display: inline-block;
-    margin-left: 1em;
-    margin-right: 1em;
-    border-style: dashed;
-    border-width: .1em;
+    margin: .4em;
+    border-style: solid;
+    border-width: .2em;
+    padding: .4em;
+    padding-left: .6em;
+    padding-right: .6em;
+    border-radius: 6px;
+    background-color: lightblue;
+    border-color: darkblue;
 }
 
 h2 {
