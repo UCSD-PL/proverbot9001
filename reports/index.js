@@ -10,7 +10,7 @@ function make_rows_clickable() {
         if (rows[i].className == "header") continue
         rows[i].onclick = (function (row) {
             return function () {
-                window.location = row.children[2].children[0].href
+                window.location = row.children[3].children[0].href
             }
         })(rows[i])
         rows[i].onmouseover = (function (row, idx) {
@@ -38,7 +38,7 @@ function render_graph() {
         g = svg.append("g").attr("transform",
                                  "translate(" + margin.left + "," + margin.top + ")");
 
-    var parseTime = d3.timeParse("%a %b %d %H:%M:%S %Y");
+    var parseTime = d3.timeParse("%a %b %d %Y %H:%M");
     var x = d3.scaleTime()
         .rangeRound([0, width]);
     var y = d3.scaleLinear()
@@ -53,9 +53,10 @@ function render_graph() {
     for (var i = 0; i < rows.length; i++){
         if (rows[i].className == "header") continue
         var d = {};
-        d.percent_correct = +(/(\d+\.\d+)%/.exec(rows[i].children[1].innerText)[1]);
+        d.percent_correct = +(/(\d+\.\d+)%/.exec(rows[i].children[2].innerText)[1]);
         var datetext = rows[i].children[0].innerText;
-        d.date = parseTime(datetext);
+        var timetext = rows[i].children[1].innerText
+        d.date = parseTime(datetext + " " + timetext);
         d.index = i;
         data.push(d);
     }
@@ -118,6 +119,6 @@ function render_graph() {
         })
         .on("click", function(d) {
             var row = document.getElementsByTagName("tr")[d.index];
-            window.location = row.children[2].children[0].href;
+            window.location = row.children[3].children[0].href;
         });
 }
