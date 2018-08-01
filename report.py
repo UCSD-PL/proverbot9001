@@ -131,6 +131,8 @@ class GlobalResult:
             for k, v in self.options:
                 with tag('li'):
                     text("{}: {}".format(k, v))
+            with tag('li'):
+                text("predictor: {}".format(predictorName))
         with tag('table'):
             with tag('tr', klass="header"):
                 line('th', 'Filename')
@@ -469,6 +471,7 @@ def main(args):
     global netLock
     global net
     global gresult
+    global predictorName
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
     parser.add_argument('-j', '--threads', default=1, type=int)
@@ -512,6 +515,7 @@ def main(args):
     net = loadPredictor({"filename": args.weightsfile,
                          "beam-width": num_predictions ** 2},
                         args.predictor)
+    predictorName = args.predictor
     netLock = threading.Lock()
     gresult = GlobalResult(net.getOptions())
 
