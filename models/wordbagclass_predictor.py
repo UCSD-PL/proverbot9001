@@ -33,6 +33,7 @@ class WordBagClassifyPredictor(TacticPredictor):
         self.lsoftmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
         self.options = checkpoint['options']
+        self.criterion = maybe_cuda(nn.NLLLoss())
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
@@ -44,12 +45,32 @@ class WordBagClassifyPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
         goal = in_data["goal"]
         in_vec = Variable(FloatTensor(getWordbagVector(encode_context(goal)))).view(1, -1)
-        distribution = self.lsoftmax(self.linear(in_vec))
+        return self.lsoftmax(self.linear(in_vec))
+
+    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+        distribution = self.predictDistribution(in_data)
         probs, indices = distribution.squeeze().topk(k)
         return [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+
+    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+                                correct : str) -> Tuple[List[str], float]:
+        distribution = self.predictDistribution(in_data)
+        stem = get_stem(correct)
+        if self.embedding.has_token(stem):
+            output_var = maybe_cuda(Variable(torch.
+                                             LongTensor([self.embedding.encode_token\
+                                                         (get_stem(correct))])))
+            loss = self.criterion(distribution, output_var).data[0]
+        else:
+            loss = 0
+
+        probs, indices = distribution.squeeze().topk(k)
+        predictions = [self.embedding.decode_token(idx.data[0]) + "."
+                       for idx in indices]
+        return predictions, loss
 
 def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
     List[Tuple[List[int], int]]:
@@ -120,7 +141,7 @@ def main(args_list : List[str]) -> None:
                      ("dataset size", str(len(dataset))),
                      ("use keywords", str(not args.disable_keywords)),
                      ("optimizer", args.optimizer),
-                     ("final loss", loss),
+                     ("training loss", "{:10.2f}".format(loss)),
                  ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".

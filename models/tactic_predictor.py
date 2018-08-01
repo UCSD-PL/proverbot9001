@@ -11,3 +11,8 @@ class TacticPredictor:
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
         assert False, "You can't predict on the base class!"
         pass
+    def predictKTacticsWithLoss(self, in_data : Dict[str, str],
+                                k : int, correct : str) -> \
+        Tuple[List[str], float]:
+        assert False, "You can't predict on the base class!"
+        pass

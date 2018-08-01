@@ -121,6 +121,7 @@ class GlobalResult:
         self.num_searched = 0
         self.lock = threading.Lock()
         self.options = options
+        self.total_loss = 0.
         pass
     def add_file_result(self, result : 'FileResult'):
         self.lock.acquire()
@@ -130,6 +131,7 @@ class GlobalResult:
         self.num_failed += result.num_failed
         self.num_topN += result.num_topN
         self.num_searched += result.num_searched
+        self.total_loss += result.total_loss
         self.lock.release()
         pass
     def report_results(self, doc : Doc, text : Text, tag : Any, line : Line):
@@ -152,6 +154,7 @@ class GlobalResult:
                 line('th', '% Initially Correct')
                 line('th', '% Top {}'.format(num_predictions))
                 line('th', '% Partial')
+                line('th', 'Testing Loss')
                 line('th', 'Details')
             sorted_rows = []
             while rows.qsize() > 0:
@@ -174,6 +177,7 @@ class GlobalResult:
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_partial,
                                                    fresult.num_tactics))
+                    line('td', "{:10.2f}".format(fresult.total_loss / fresult.num_tactics))
                     with tag('td'):
                         with tag('a', href=fresult.details_filename() + ".html"):
                             text("Details")
@@ -189,6 +193,7 @@ class GlobalResult:
                                                self.num_tactics))
                 line('td', stringified_percent(self.num_partial,
                                                self.num_tactics))
+                line('td', "{:10.2f}".format(self.total_loss / self.num_tactics))
 
     pass
 
@@ -210,6 +215,7 @@ class FileResult:
         self.actual_tactic_frequency : Dict[str, int] = {}
         self.predicted_tactic_frequency : Dict[str, int] = {}
         self.correctly_predicted_frequency : Dict[str, int] = {}
+        self.total_loss = 0.
         pass
     def grade_command_result(self, predicted : str, predicted_context : str,
                              actual : str, actual_context : str,
@@ -233,6 +239,8 @@ class FileResult:
                           get_stem(actual))
         add_to_freq_table(self.predicted_tactic_frequency,
                           get_stem(predictions[0]))
+
+        self.total_loss += loss
 
         self.num_tactics += 1
         if (grades[0] == "goodcommand" or grades[0] == "mostlygoodcommand"):
@@ -318,10 +326,11 @@ class Worker(threading.Thread):
                         predictions = [baseline_tactic + "."] * num_predictions
                     else:
                         netLock.acquire()
-                        predictions = net.predictKTactics(
+                        predictions, loss = net.predictKTacticsWithLoss(
                             {"goal" : format_goal(goals),
                              "hyps" : format_hypothesis(hyps)},
-                            num_predictions);
+                            num_predictions,
+                            command);
                         netLock.release()
 
                     prediction_runs = [run_prediction(coq, prediction) for
@@ -343,7 +352,7 @@ class Worker(threading.Thread):
                     fresult.add_command_result(
                         [pred for pred, ctxt, ex in prediction_runs],
                         [grade for pred, grade in prediction_results],
-                        command)
+                        command, loss)
 
                     command_results.append((command, hyps, goals,
                                             prediction_results))
