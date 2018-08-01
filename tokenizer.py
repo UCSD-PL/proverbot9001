@@ -6,11 +6,11 @@ from typing import Dict, List, Tuple, Callable, Union
 KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
 class KeywordTokenizer:
-    def __init__(self, distinguished_strings : List[str], num_reserved_tokens : int = 0) \
+    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
         -> None:
         self.num_reserved_tokens = num_reserved_tokens
-        self.distinguished_strings = distinguished_strings
-        self.next_mangle_ord = num_reserved_tokens + len(distinguished_strings)
+        self.keywords = keywords
+        self.next_mangle_ord = num_reserved_tokens + len(keywords)
         self.mangle_dict = {} # type: Dict[str, int]
         self.unmangle_dict = {} # type: Dict[int, str]
         pass
@@ -26,7 +26,7 @@ class KeywordTokenizer:
     def toTokenList(self, string : str) -> List[int]:
         mangled_string = self._mangle(string)
 
-        for idx, token_string in enumerate(self.distinguished_strings,
+        for idx, token_string in enumerate(self.keywords,
                                            start=self.num_reserved_tokens):
             mangled_string = re.sub(self._mangle(token_string), chr(idx), mangled_string)
 
@@ -40,8 +40,8 @@ class KeywordTokenizer:
         result = ""
         for t in idxs:
             assert t >= self.num_reserved_tokens, "Cannot decode a tokenlist containing a reserved token!"
-            if t < len(self.distinguished_strings) + self.num_reserved_tokens:
-                result += self.distinguished_strings[t - self.num_reserved_tokens]
+            if t < len(self.keywords) + self.num_reserved_tokens:
+                result += self.keywords[t - self.num_reserved_tokens]
             else:
                 result += self.unmangle_dict[t]
         return result
@@ -49,15 +49,15 @@ class KeywordTokenizer:
         return self.next_mangle_ord
 
     def getState(self) -> KeywordTokenizerState:
-        return list(self.mangle_dict.items()), self.distinguished_strings, self.next_mangle_ord
+        return list(self.mangle_dict.items()), self.keywords, self.next_mangle_ord
     def setState(self, state : KeywordTokenizerState):
-        dict_items, self.distinguished_strings, self.next_mangle_ord = state
+        dict_items, self.keywords, self.next_mangle_ord = state
         for k, v in dict_items:
             self.mangle_dict[k] = v
             self.unmangle_dict[v] = k
 
 
-context_tokens = [
+context_keywords = [
     "forall",
     "eq",
     "Some",
@@ -66,7 +66,7 @@ context_tokens = [
     "then",
     "else",
 ]
-tactic_tokens = [
+tactic_keywords = [
     "apply",
     "assert",
     "eauto",
@@ -131,8 +131,8 @@ def set_tokenizer_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
 def enable_keywords() -> None:
     global contextTokenizer
     global tacticTokenizer
-    contextTokenizer = KeywordTokenizer(context_tokens, 2)
-    tacticTokenizer = KeywordTokenizer(tactic_tokens, 2)
+    contextTokenizer = KeywordTokenizer(context_keywords, 2)
+    tacticTokenizer = KeywordTokenizer(tactic_keywords, 2)
 def disable_keywords() -> None:
     global contextTokenizer
     global tacticTokenizer
