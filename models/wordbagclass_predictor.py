@@ -103,7 +103,7 @@ def main(args):
                         embedding.num_tokens(), args.print_every,
                         args.gamma, args.epoch_step, args.optimizer)
 
-    for epoch, linear_state in enumerate(checkpoints):
+    for epoch, (linear_state, loss) in enumerate(checkpoints):
         state = {'epoch':epoch,
                  'text-encoder':get_encoder_state(),
                  'linear-state': linear_state,
@@ -117,6 +117,7 @@ def main(args):
                      ("dataset size", str(len(dataset))),
                      ("use keywords", str(not args.disable_keywords)),
                      ("optimizer", args.optimizer),
+                     ("final loss", loss),
                  ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
@@ -182,4 +183,4 @@ def train(dataset, learning_rate : float, num_epochs : int,
                       format(timeSince(start, progress),
                              items_processed, progress * 100,
                              total_loss / items_processed))
-        yield linear.state_dict()
+        yield (linear.state_dict(), total_loss / items_processed)
