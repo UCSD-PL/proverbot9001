@@ -482,6 +482,7 @@ def main(args):
                         help="run in baseline mode, predicting {} every time"
                         .format(baseline_tactic),
                         default=False, const=True, action='store_const')
+    parser.add_argument('--weightsfile', default="pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(args)
@@ -508,7 +509,7 @@ def main(args):
 
     args.threads = min(args.threads, len(args.filenames))
 
-    net = loadPredictor({"filename": "pytorch-weights.tar",
+    net = loadPredictor({"filename": args.weightsfile,
                          "beam-width": num_predictions ** 2},
                         args.predictor)
     netLock = threading.Lock()

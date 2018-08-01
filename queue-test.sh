@@ -24,4 +24,5 @@ outdir=$(mktemp -d $PWD/report-XXX)
 echo "Saving to weights $weights"
 echo "Saving report to $outdir"
 
-tsp -fn ./proverbot9001.py train "$@" scrape.txt "$weights" && make FLAGS=--predictor="$1 -o $outdir" report
+
+tsp -fn ./proverbot9001.py train "$@" scrape.txt "$weights" && make FLAGS=--predictor="$1 -o $outdir --weightsfile=$weights" report
