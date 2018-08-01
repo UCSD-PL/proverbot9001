@@ -2,14 +2,15 @@
 
 import subprocess
 import re
+from yattag import Doc
 from subprocess import run
 from datetime import datetime
 
-def get_lines(command):
+def get_lines(command : str):
     return (run([command], shell=True, stdout=subprocess.PIPE)
             .stdout.decode('utf-8').split('\n')[:-1])
 
-def get_file_date(filename):
+def get_file_date(filename : str) -> datetime:
     return datetime.strptime(filename.split("/")[1].split("+")[0], '%Y-%m-%dT%Hd%Md%S%z')
 
 def get_file_percent(filename):
@@ -23,19 +24,35 @@ def get_file_percent(filename):
 
 
 files = sorted(get_lines("find -type d -not -name '.*'"), key=lambda f: get_file_date(f), reverse=True)
-with open('index.md', 'w') as index:
-    index.write("% Proverbot9001 Reports\n"
-                "%\n"
-                "%\n"
-                "\n")
-    index.write("---\n"
-                "header-includes: <script src='index.js'></script>"
-                                 "<script src='https://d3js.org/d3.v4.min.js'></script>\n"
-                "---\n")
-    index.write("<svg width='700' height='400' style='border-style:outset; border-color:#00ffff'></svg>\n\n")
-    index.write("|Date|Overall Accuracy||\n"
-                "|----|----|----|\n")
-    for f in files:
-        index.write("| {} |{}%|[Link]({}/report.html)|\n".format(get_file_date(f).ctime(), get_file_percent(f), f))
 
-assert(run(["pandoc index.md -s --css index.css > index.html"], shell=True))
+doc, tag, text, line = Doc().ttl()
+with tag('html'):
+    with tag('head'):
+        with tag('script', src='index.js'):
+            pass
+        with tag('script', src='https://d3js.org/d3.v4.min.js'):
+            pass
+        doc.stag("link", rel="stylesheet", href="index.css")
+        with tag('title'):
+            text("Proverbot9001 Reports")
+        pass
+    with tag('body'):
+        with tag('svg', width='700', height='400',
+                 style="border-style:outset; border-color:#00ffff"):
+            pass
+    with tag('table'):
+        with tag('tr', klass="header"):
+            line('th', 'Date')
+            line('th', 'Time')
+            line('th', 'Overall Accuracy')
+            line('th', '')
+        for f in files:
+            date = get_file_date(f)
+            with tag('tr'):
+                line('td', date.strftime("%a %b %d %Y"))
+                line('td', date.strftime("%H:%M"))
+                line('td', str(get_file_percent(f)) + "%")
+                with tag('td'):
+                    line('a', 'link', href=(f + "/report.html"))
+with open('index.html', 'w') as index_file:
+    index_file.write(doc.getvalue())
