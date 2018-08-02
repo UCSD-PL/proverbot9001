@@ -51,7 +51,6 @@ baseline_tactic = "eauto"
 predictorName : str
 jobs : 'queue.Queue[str]'
 num_jobs : int
-netLock : threading.Lock
 net : TacticPredictor
 gresult : 'GlobalResult'
 
@@ -325,13 +324,11 @@ class Worker(threading.Thread):
                     if self.baseline:
                         predictions = [baseline_tactic + "."] * num_predictions
                     else:
-                        netLock.acquire()
                         predictions, loss = net.predictKTacticsWithLoss(
                             {"goal" : format_goal(goals),
                              "hyps" : format_hypothesis(hyps)},
                             num_predictions,
                             command);
-                        netLock.release()
 
                     prediction_runs = [run_prediction(coq, prediction) for
                                        prediction in predictions]
@@ -491,7 +488,6 @@ def escape_filename(filename : str) -> str:
 def main(arg_list : List[str]) -> None:
     global jobs
     global num_jobs
-    global netLock
     global net
     global gresult
     global predictorName
@@ -537,7 +533,6 @@ def main(arg_list : List[str]) -> None:
                          "beam-width": num_predictions ** 2},
                         args.predictor)
     predictorName = args.predictor
-    netLock = threading.Lock()
     gresult = GlobalResult(net.getOptions())
 
     for idx in range(args.threads):
