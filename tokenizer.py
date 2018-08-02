@@ -28,7 +28,7 @@ class KeywordTokenizer:
 
         for idx, token_string in enumerate(self.keywords,
                                            start=self.num_reserved_tokens):
-            mangled_string = re.sub(self._mangle(token_string), chr(idx), mangled_string)
+            mangled_string = mangled_string.replace(self._mangle(token_string), chr(idx))
 
         for c in mangled_string:
             assert ord(c) < self.numTokens()
