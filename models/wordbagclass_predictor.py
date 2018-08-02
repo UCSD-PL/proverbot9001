@@ -16,7 +16,7 @@ from models.components import SimpleEmbedding
 from format import read_pair
 import tokenizer
 from tokenizer import context_vocab_size, tokenize_context, \
-    get_tokenizer_state, set_tokenizer_state
+    get_tokenizer_state, set_tokenizer_state, get_topk_keywords
 
 from util import *
 
@@ -76,6 +76,19 @@ class WordBagClassifyPredictor(TacticPredictor):
 def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
     List[Tuple[List[int], int]]:
     dataset = []
+    untokenized_contexts = []
+    print("Loading first pass contexts...")
+    with open(filename, 'r') as scrapefile:
+        pair = read_pair(scrapefile)
+        while pair:
+            context, _ = pair
+            untokenized_contexts.append(context)
+            pair = read_pair(scrapefile)
+    print("Getting keywords...")
+    keywords = get_topk_keywords(untokenized_contexts, 100)
+    print("Building tokenizer...")
+    tokenizer.contextTokenizer = tokenizer.KeywordTokenizer(keywords, 2)
+    print("Loading and tokenizing file...")
     with open(filename, 'r') as scrapefile:
         pair = read_pair(scrapefile)
         while pair:
@@ -85,6 +98,7 @@ def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
                 dataset.append((tokenize_context(context),
                                 embedding.encode_token(get_stem(tactic))))
             pair = read_pair(scrapefile)
+    print("Done.")
     return dataset
 
 def getWordbagVector(goal : List[int]) -> List[int]:
