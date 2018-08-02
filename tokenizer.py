@@ -1,11 +1,43 @@
 #!/usr/bin/env python3
 
 import re
-from typing import Dict, List, Tuple, Callable, Union
+from typing import Dict, List, Tuple, Callable, Union, Iterable
+
+class Tokenizer:
+    def toTokenList(self, string : str) -> List[int]:
+        assert False, "Can't use base class, must override method"
+        pass
+    def toString(self, tokenlist : List[int]) -> str:
+        assert False, "Can't use base class, must override method"
+        pass
+    def numTokens(self) -> int:
+        assert False, "Can't use base class, must override method"
+        pass
+    def getState(self) -> 'TokenizerState':
+        assert False, "Can't use base class, must override method"
+        pass
+    def setState(self, state : 'TokenizerState') -> None:
+        assert False, "Can't use base class, must override method"
+        pass
+
+def get_words(string : str) -> List[str]:
+    return re.split(r'\W|\.+|:', string)
+
+def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
+    counts = {} # type: Dict[str, int]
+    for example in exampleSentences:
+        for token in get_words(example):
+            if token not in counts:
+                counts[token] = 1
+            else:
+                counts[token] += 1
+    keywords = [x[0] for x in sorted(counts.items(),
+                                     key=lambda x: x[1])[:k]]
+    return keywords
 
 KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
-class KeywordTokenizer:
+class KeywordTokenizer(Tokenizer):
     def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
         -> None:
         self.num_reserved_tokens = num_reserved_tokens
