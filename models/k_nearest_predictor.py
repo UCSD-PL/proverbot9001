@@ -6,6 +6,7 @@ import shutil
 import math
 import threading
 import itertools
+import statistics
 from queue import PriorityQueue
 
 import torch
@@ -58,26 +59,22 @@ class NearnessTree(Generic[T]):
     def buildTree(self, items : List[Tuple[List[float], T]],
                   num_dimensions : int, cur_dimension : int) -> Optional[SPTreeNode[T]]:
         assert len(items) > 0
-        feature_vectors = [item[0] for item in items]
-        best_split_dimension = cur_dimension
         if len(items) == 1:
-            return SPTreeNode(items[0][0][best_split_dimension],
-                              best_split_dimension, None, None,
-                              item=items[0])
+            return SPTreeNode(items[0][0][0], 0, None, None, item=items[0])
         else:
+            feature_vectors = [item[0] for item in items]
+            dim_value_list = list(zip(*feature_vectors))
+            best_split_dimension = max(enumerate(statistics.pvariance(dim_values) for
+                                                 dim_values in dim_value_list),
+                                       key=lambda x: x[1])[0]
             dim_sorted = sorted(items, key=lambda x: x[0][best_split_dimension])
             num_items = len(items)
             left_list = dim_sorted[:num_items//2]
             right_list = dim_sorted[num_items//2:]
-            assert len(left_list) > 0
-            assert len(right_list) > 0
-            assert len(left_list) + len(right_list) == len(items)
             split_value = dim_sorted[num_items//2][0][best_split_dimension]
             return SPTreeNode(split_value, best_split_dimension,
-                              self.buildTree(left_list, num_dimensions,
-                                             (cur_dimension + 1) % num_dimensions),
-                              self.buildTree(right_list, num_dimensions,
-                                             (cur_dimension + 1) % num_dimensions))
+                              self.buildTree(left_list),
+                              self.buildTree(right_list))
     def findNearest(self, item : List[int]) -> Optional[Tuple[List[float], T]]:
         normalizedItem = self.normalizeVector(floatVector(item))
         def nearestNeighbor(curTree : SPTreeNode[T], best_distance : float) \
