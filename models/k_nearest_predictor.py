@@ -40,42 +40,37 @@ class SPTreeNode(Generic[V]):
 class NearnessTree(Generic[T]):
     def __init__(self, items : List[Tuple[List[int], T]]) -> None:
         num_dimensions = len(items[0][0])
-        print("Building tree with {} dimensions from {}".format(num_dimensions, items))
         if len(items) == 0:
             self.tree = None
         else:
+            start = time.time()
             self.tree = self.buildTree(items, num_dimensions, 0)
+            timeTaken = time.time() - start
+            print("Built tree in {:.2f}".format(timeTaken))
         pass
     def buildTree(self, items : List[Tuple[List[int], T]],
                   num_dimensions : int, cur_dimension : int) -> Optional[SPTreeNode[T]]:
         assert len(items) > 0
+        feature_vectors = [item[0] for item in items]
+        best_split_dimension = cur_dimension
         if len(items) == 1:
-            return SPTreeNode(items[0][0][cur_dimension],
-                              cur_dimension, None, None,
+            return SPTreeNode(items[0][0][best_split_dimension],
+                              best_split_dimension, None, None,
                               item=items[0])
-        dim_values = [item[0][cur_dimension] for item in items]
-        partition_value = median(dim_values)
-        if partition_value == items[0][0][cur_dimension]:
-            for item in items:
-                assert item[0][cur_dimension] == partition_value,\
-                    "Not a true median! List {}, median {}"\
-                    .format(dim_values, partition_value)
-            # print("All items have the same value on dimension {}".format(cur_dimension))
-            return self.buildTree(items, num_dimensions,
-                                  (cur_dimension + 1) % num_dimensions)
-
-        left_items = list(filter(lambda x: x[0][cur_dimension] <= partition_value,
-                                 items))
-        assert len(left_items) < len(items)
-        right_items = list(filter(lambda x: x[0][cur_dimension] > partition_value,
-                                  items))
-        assert len(right_items) < len(items)
-        newNode = SPTreeNode(partition_value, cur_dimension,
-                             self.buildTree(left_items, num_dimensions,
-                                            (cur_dimension + 1) % num_dimensions),
-                             self.buildTree(right_items, num_dimensions,
-                                            (cur_dimension + 1) % num_dimensions))
-        return newNode
+        else:
+            dim_sorted = sorted(items, key=lambda x: x[0][best_split_dimension])
+            num_items = len(items)
+            left_list = dim_sorted[:num_items//2]
+            right_list = dim_sorted[num_items//2:]
+            assert len(left_list) > 0
+            assert len(right_list) > 0
+            assert len(left_list) + len(right_list) == len(items)
+            split_value = dim_sorted[num_items//2][0][best_split_dimension]
+            return SPTreeNode(split_value, best_split_dimension,
+                              self.buildTree(left_list, num_dimensions,
+                                             (cur_dimension + 1) % num_dimensions),
+                              self.buildTree(right_list, num_dimensions,
+                                             (cur_dimension + 1) % num_dimensions))
     def findNearest(self, item : List[int]) -> Optional[Tuple[List[int], T]]:
         def nearestNeighbor(curTree : SPTreeNode[T], best_distance : float) \
             -> Tuple[Tuple[List[int], T], float]:
@@ -109,75 +104,21 @@ class NearnessTree(Generic[T]):
                     return right_nearest, right_best_distance
         if self.tree is None:
             return None
-        return nearestNeighbor(self.tree, float("Inf"))[0]
-
-def median(lst : List[float]) -> float:
-    def approx_median(lst : List[float]) -> float:
-        assert len(lst) > 0
-        if len(lst) == 1:
-            return lst[0]
-        k = 5
-        chunks = [lst[i:i+k] for i in range(0, len(lst), k)]
-        assert len(chunks) < len(lst), \
-            "Input list is no longer than chunks! len(lst): {}, len(chunks): {}"\
-            .format(len(lst), len(chunks))
-        medians = [sorted(chunk)[len(chunk) // 2] for chunk in chunks]
-        if len(medians) == 1:
-            return medians[0]
-        else:
-            assert len(medians) < len(lst), \
-                "Input list had length {}, but medians list had length {}"\
-                .format(len(lst), len(medians))
-            return approx_median(medians)
-
-    def partition(items : List[T], predicate : Callable[[T], bool]):
-        a, b = itertools.tee((predicate(item), item) for item in items)
-        return ((item for pred, item in a if not pred),
-                (item for pred, item in b if pred))
-
-    def kselect(lst : List[float], k) -> float:
-        assert k < len(lst)
-        assert k > 0
-        if k == 1:
-            return lst[0]
-        amedian = approx_median(lst)
-        if amedian == lst[0]:
-            assert False
-            return lst[0]
-        smaller_half, greater_half = partition(lst, lambda x: x >= amedian)
-        greater_list = list(greater_half)
-        assert len(greater_list) > 0
-        assert len(greater_list) < len(lst)
-        if len(greater_list) >= k:
-            return kselect(greater_list, k)
-        else:
-            smaller_list = list(smaller_half)
-            assert len(smaller_list) < len(lst)
-            return kselect(smaller_list, k - len(greater_list))
-
-    assert len(lst) > 0
-    if len(lst) % 2 == 1:
-        return kselect(lst, len(lst) // 2)
-    else:
-        return (kselect(lst, len(lst) // 2) + kselect(lst, len(lst) // 2 + 1)) / 2
+        start = time.time()
+        answer = nearestNeighbor(self.tree, float("Inf"))[0]
+        timeTaken = time.time() - start
+        # print("Found nearest neighbor in {:.2f} seconds".format(timeTaken))
+        return answer
 
 class KNNPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
-        self.embedding = SimpleEmbedding()
-        print("Reading data...")
-        untokenized_samples = read_scrapefile(filename, 10)
-        print("Getting keywords...")
-        keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 100)
-        self.tokenizer = KeywordTokenizer(keywords, 2)
-        print("Encoding data...")
-        samples = [(getWordbagVector(self.tokenizer.toTokenList(context),
-                                     self.tokenizer.numTokens()),
-                    self.embedding.encode_token(get_stem(tactic)))
-                   for context, tactic in untokenized_samples
-                   if not re.match("[\{\}\+\-\*].*", tactic)]
-        print("Building BST...")
-        self.bst = NearnessTree(samples)
-        print("Loaded.")
+        checkpoint = torch.load(filename)
+        assert checkpoint["embedding"]
+        self.embedding = checkpoint["embedding"]
+        assert checkpoint["tokenizer"]
+        self.tokenizer = checkpoint["tokenizer"]
+        assert checkpoint["tree"]
+        self.bst = checkpoint["tree"]
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
@@ -211,7 +152,7 @@ def getWordbagVector(goal : List[int], vocab_size : int) -> List[int]:
     return wordbag
 
 def read_scrapefile(filename : str, num_pairs : float = float("Inf")) -> List[Tuple[str, str]]:
-    dataset = []
+    dataset : List[Tuple[str,str]] = []
     with open(filename, 'r') as scrapefile:
         pair = read_pair(scrapefile)
         while pair and len(dataset) < num_pairs:
@@ -226,4 +167,25 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
-    shutil.copy2(args.scrape_file, args.save_file)
+
+    embedding = SimpleEmbedding()
+    print("Reading data...")
+    untokenized_samples = read_scrapefile(args.scrape_file, 10000)
+    print("Read {} data pairs".format(len(untokenized_samples)))
+    print("Getting keywords...")
+    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 100)
+    tokenizer = KeywordTokenizer(keywords, 2)
+    print("Encoding data...")
+    samples = [(getWordbagVector(tokenizer.toTokenList(context),
+                                 tokenizer.numTokens()),
+                embedding.encode_token(get_stem(tactic)))
+               for context, tactic in untokenized_samples
+               if not re.match("[\{\}\+\-\*].*", tactic)]
+    print("Building BST...")
+    bst = NearnessTree(samples)
+    print("Loaded.")
+    with open(args.save_file, 'wb') as f:
+        torch.save({'embedding': embedding,
+                    'tokenizer': tokenizer,
+                    'tree': bst}, f)
+    print("Saved.")
