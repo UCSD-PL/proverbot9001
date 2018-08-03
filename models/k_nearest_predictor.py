@@ -27,7 +27,7 @@ class SPTreeNode(Generic[V]):
     def __init__(self, value : float , axis : int,
                  left_child : Optional['SPTreeNode[V]'],
                  right_child : Optional['SPTreeNode[V]'],
-                 item : Optional[Tuple[List[int], V]] = None) -> None:
+                 item : Optional[Tuple[List[float], V]] = None) -> None:
         assert (not left_child is None and not right_child is None and item is None) or \
             (left_child is None and right_child is None and not item is None)
         self.left = left_child
@@ -44,11 +44,18 @@ class NearnessTree(Generic[T]):
             self.tree = None
         else:
             start = time.time()
-            self.tree = self.buildTree(items, num_dimensions, 0)
+            floatItems = [(floatVector(vec), o) for vec, o in items]
+            dim_values = zip(*[vec for vec, o in floatItems])
+            self.dim_maxs = [max(values + (1,)) for values in dim_values]
+            normalizedFloatItems = [(self.normalizeVector(vec), o)
+                                    for vec, o in floatItems]
+            self.tree = self.buildTree(normalizedFloatItems, num_dimensions, 0)
             timeTaken = time.time() - start
             print("Built tree in {:.2f}".format(timeTaken))
         pass
-    def buildTree(self, items : List[Tuple[List[int], T]],
+    def normalizeVector(self, vec : List[float]) -> List[float]:
+        return [floatItem / maxItem for floatItem, maxItem in zip(vec, self.dim_maxs)]
+    def buildTree(self, items : List[Tuple[List[float], T]],
                   num_dimensions : int, cur_dimension : int) -> Optional[SPTreeNode[T]]:
         assert len(items) > 0
         feature_vectors = [item[0] for item in items]
@@ -71,19 +78,21 @@ class NearnessTree(Generic[T]):
                                              (cur_dimension + 1) % num_dimensions),
                               self.buildTree(right_list, num_dimensions,
                                              (cur_dimension + 1) % num_dimensions))
-    def findNearest(self, item : List[int]) -> Optional[Tuple[List[int], T]]:
+    def findNearest(self, item : List[int]) -> Optional[Tuple[List[float], T]]:
+        normalizedItem = self.normalizeVector(floatVector(item))
         def nearestNeighbor(curTree : SPTreeNode[T], best_distance : float) \
-            -> Tuple[Tuple[List[int], T], float]:
+            -> Tuple[Tuple[List[float], T], float]:
             if curTree.left is None and curTree.right is None:
                 assert not curTree.item is None
-                return curTree.item, vectorDistanceSquared(item, curTree.item[0])
+                return curTree.item, vectorDistanceSquared(normalizedItem,
+                                                           curTree.item[0])
             else:
-                if item[curTree.axis] <= curTree.value:
+                if normalizedItem[curTree.axis] <= curTree.value:
                     assert not curTree.left is None
                     left_nearest, left_best_distance = nearestNeighbor(
                         curTree.left, best_distance)
                     new_best_distance = min(left_best_distance, best_distance)
-                    if (item[curTree.axis] + new_best_distance > curTree.value):
+                    if (normalizedItem[curTree.axis] + new_best_distance > curTree.value):
                         assert not curTree.right is None
                         right_nearest, right_best_distance = nearestNeighbor(
                             curTree.right, new_best_distance)
@@ -95,7 +104,7 @@ class NearnessTree(Generic[T]):
                     right_nearest, right_best_distance = nearestNeighbor(
                         curTree.right, best_distance)
                     new_best_distance = min(right_best_distance, best_distance)
-                    if (item[curTree.axis] + new_best_distance > curTree.value):
+                    if (normalizedItem[curTree.axis] + new_best_distance > curTree.value):
                         assert not curTree.left is None
                         left_nearest, left_best_distance = nearestNeighbor(
                             curTree.left, new_best_distance)
@@ -140,8 +149,11 @@ class KNNPredictor(TacticPredictor):
                                 correct : str) -> Tuple[List[str], float]:
         return self.predictKTactics(in_data, k), 0
 
-def vectorDistanceSquared(vec1 : List[int], vec2 : List[int]):
+def vectorDistanceSquared(vec1 : List[float], vec2 : List[float]):
     return sum([(item1 - item2) ** 2 for item1, item2 in zip(vec1, vec2)])
+
+def floatVector(vec : List[int]) -> List[float]:
+    return [float(dim) for dim in vec]
 
 def getWordbagVector(goal : List[int], vocab_size : int) -> List[int]:
     wordbag = [0] * vocab_size
