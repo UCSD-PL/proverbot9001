@@ -79,7 +79,7 @@ def highlight_comments(page : str) -> str:
 def syntax_highlight(page : str) -> str:
     for vernac in vernacular_words:
         page = re.sub("(\s+)" + vernac + "(\s+)",
-                      "\1" + color_word(vernacular_color, vernac) + "\2",
+                      r"\1" + color_word(vernacular_color, vernac) + r"\2",
                       page)
     return highlight_comments(page);
 
