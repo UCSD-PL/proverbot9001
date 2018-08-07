@@ -34,7 +34,7 @@ scrape:
 					       --prelude ./CompCert
 report:
 	($(ENV_PREFIX) ; cat compcert-test-files.txt | $(HEAD_CMD) | \
-	xargs ./proverbot9001.py report $(FLAGS) -j $(NTHREADS) --prelude ./CompCert)
+	xargs ./proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
 
 train:
 	./proverbot9001.py train encdec scrape.txt pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
