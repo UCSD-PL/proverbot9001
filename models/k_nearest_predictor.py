@@ -37,6 +37,14 @@ class SPTreeNode(Generic[V]):
         self.axis = axis
         self.item = item
         pass
+    def getSamples(self) -> List[Tuple[List[float], V]]:
+        if self.left is None:
+            assert self.right is None
+            assert not self.item is None
+            return [self.item]
+        else:
+            assert not self.right is None
+            return self.left.getSamples() + self.right.getSamples()
 
 class NearnessTree(Generic[T]):
     def __init__(self, items : List[Tuple[List[int], T]]) -> None:
