@@ -26,7 +26,8 @@ echo "Saving report to $outdir"
 
 export TS_SOCKET=/tmp/graphicscard
 
-tsp -fn ./proverbot9001.py train "$@" scrape.txt "$weights" && make FLAGS=--predictor="$1 -o $outdir --weightsfile=$weights" report
+tsp -fn ./proverbot9001.py train "$@" scrape.txt "$weights" && \
+  make FLAGS=--predictor="$1 -o $outdir --weightsfile=$weights" report
 
 echo "$weights"
 echo "$outdir"
