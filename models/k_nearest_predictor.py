@@ -57,81 +57,119 @@ class SPTreeNode(Generic[V]):
 
 class NearnessTree(Generic[T]):
     def __init__(self, items : List[Tuple[List[int], T]]) -> None:
+        def buildTree(items : List[Tuple[List[float], T]]) \
+            -> Optional[SPTreeNode[T]]:
+            assert len(items) > 0
+            if len(items) == 1:
+                return SPTreeNode(items[0][0][0], 0, None, None, item=items[0])
+            else:
+                feature_vectors = [item[0] for item in items]
+                dim_value_list = list(zip(*feature_vectors))
+                best_split_dimension = max(enumerate(statistics.pvariance(dim_values) for
+                                                     dim_values in dim_value_list),
+                                           key=lambda x: x[1])[0]
+                dim_sorted = sorted(items, key=lambda x: x[0][best_split_dimension])
+                num_items = len(items)
+                left_list = dim_sorted[:num_items//2]
+                right_list = dim_sorted[num_items//2:]
+                split_value = dim_sorted[num_items//2][0][best_split_dimension]
+                return SPTreeNode(split_value, best_split_dimension,
+                                  buildTree(left_list),
+                                  buildTree(right_list))
         num_dimensions = len(items[0][0])
+        for item in items:
+            assert len(item[0]) == num_dimensions,\
+                "This item has {} dimensions, "\
+                "even though the first item has {} dimensions"\
+                .format(len(item[0]), len(items[0][0]))
         if len(items) == 0:
             self.tree = None
         else:
             start = time.time()
-            floatItems = [(floatVector(vec), o) for vec, o in items]
-            dim_values = zip(*[vec for vec, o in floatItems])
+            dim_values = zip(*[vec for vec, o in items])
             self.dim_maxs = [max(values + (1,)) for values in dim_values]
             normalizedFloatItems = [(self.normalizeVector(vec), o)
-                                    for vec, o in floatItems]
-            self.tree = self.buildTree(normalizedFloatItems, num_dimensions, 0)
+                                    for vec, o in items]
+            self.tree = buildTree(normalizedFloatItems)
             timeTaken = time.time() - start
             print("Built tree in {:.2f}".format(timeTaken))
         pass
-    def normalizeVector(self, vec : List[float]) -> List[float]:
-        return [floatItem / maxItem for floatItem, maxItem in zip(vec, self.dim_maxs)]
-    def buildTree(self, items : List[Tuple[List[float], T]],
-                  num_dimensions : int, cur_dimension : int) -> Optional[SPTreeNode[T]]:
-        assert len(items) > 0
-        if len(items) == 1:
-            return SPTreeNode(items[0][0][0], 0, None, None, item=items[0])
+    def normalizeVector(self, vec : List[int]) -> List[float]:
+        return normalizeVector(self.dim_maxs, vec)
+    def unnormalizeVector(self, vec : List[float]) -> List[int]:
+        return [int(floatItem * maxItem)
+                for floatItem, maxItem in zip(vec, self.dim_maxs)]
+    def getSamples(self, tree = None) -> List[Tuple[List[int], T]]:
+        if tree is None:
+            tree = self.tree
+        if tree is None:
+            return []
         else:
-            feature_vectors = [item[0] for item in items]
-            dim_value_list = list(zip(*feature_vectors))
-            best_split_dimension = max(enumerate(statistics.pvariance(dim_values) for
-                                                 dim_values in dim_value_list),
-                                       key=lambda x: x[1])[0]
-            dim_sorted = sorted(items, key=lambda x: x[0][best_split_dimension])
-            num_items = len(items)
-            left_list = dim_sorted[:num_items//2]
-            right_list = dim_sorted[num_items//2:]
-            split_value = dim_sorted[num_items//2][0][best_split_dimension]
-            return SPTreeNode(split_value, best_split_dimension,
-                              self.buildTree(left_list),
-                              self.buildTree(right_list))
-    def findNearest(self, item : List[int]) -> Optional[Tuple[List[float], T]]:
-        normalizedItem = self.normalizeVector(floatVector(item))
-        def nearestNeighbor(curTree : SPTreeNode[T], best_distance : float) \
-            -> Tuple[Tuple[List[float], T], float]:
+            return [(self.unnormalizeVector(vec), output)
+                    for vec, output in tree.getSamples()]
+    def findKNearest(self, item : List[int], k : int) -> \
+        Optional[List[Tuple[List[int], T]]]:
+        normalizedItem = self.normalizeVector(item)
+        def kNearestNeighbors(curTree : SPTreeNode[T], k_best_distances : List[float]) \
+            -> List[Tuple[Optional[Tuple[List[float], T]], float]]:
             if curTree.left is None and curTree.right is None:
                 assert not curTree.item is None
-                return curTree.item, vectorDistanceSquared(normalizedItem,
-                                                           curTree.item[0])
+                single_item = (curTree.item,
+                               vectorDistanceSquared(normalizedItem,
+                                                     curTree.item[0]))
+                nearest_neighbors = [single_item,
+                                     (None, float("Inf")),
+                                     (None, float("Inf"))]
+                for neighbor in nearest_neighbors:
+                    if not neighbor[0] is None:
+                        assert len(neighbor[0][0]) == len(item), \
+                            "Item has {} dimensions, "\
+                            "but the neighbor only has {} dimensions!"\
+                            .format(len(item), len(neighbor[0][0]))
+                return nearest_neighbors
             else:
                 if normalizedItem[curTree.axis] <= curTree.value:
-                    assert not curTree.left is None
-                    left_nearest, left_best_distance = nearestNeighbor(
-                        curTree.left, best_distance)
-                    new_best_distance = min(left_best_distance, best_distance)
-                    if (normalizedItem[curTree.axis] + new_best_distance > curTree.value):
-                        assert not curTree.right is None
-                        right_nearest, right_best_distance = nearestNeighbor(
-                            curTree.right, new_best_distance)
-                        if right_best_distance < new_best_distance:
-                            return right_nearest, right_best_distance
-                    return left_nearest, left_best_distance
+                    firstSubtree = curTree.left
+                    secondSubtree = curTree.right
                 else:
-                    assert not curTree.right is None
-                    right_nearest, right_best_distance = nearestNeighbor(
-                        curTree.right, best_distance)
-                    new_best_distance = min(right_best_distance, best_distance)
-                    if (normalizedItem[curTree.axis] + new_best_distance > curTree.value):
-                        assert not curTree.left is None
-                        left_nearest, left_best_distance = nearestNeighbor(
-                            curTree.left, new_best_distance)
-                        if left_best_distance < new_best_distance:
-                            return left_nearest, left_best_distance
-                    return right_nearest, right_best_distance
+                    firstSubtree = curTree.right
+                    secondSubtree = curTree.left
+                assert not firstSubtree is None
+                nearest_neighbors = kNearestNeighbors(firstSubtree, k_best_distances)
+                first_k_best_distances = sorted([distance for item, distance in
+                                                 nearest_neighbors] +
+                                                k_best_distances)[:k]
+                if (abs(normalizedItem[curTree.axis] - curTree.value) <
+                    first_k_best_distances[-1]):
+                    assert not secondSubtree is None
+                    second_nearest_neighbors = kNearestNeighbors(secondSubtree,
+                                                                 first_k_best_distances)
+                    nearest_neighbors = sorted(nearest_neighbors +
+                                               second_nearest_neighbors,
+                                               key=lambda x: x[1])[:k]
+                for neighbor in nearest_neighbors:
+                    if not neighbor[0] is None:
+                        assert len(neighbor[0][0]) == len(item), \
+                            "Item has {} dimensions, "\
+                            "but the neighbor only has {} dimensions!"\
+                            .format(len(item), len(neighbor[0][0]))
+                return nearest_neighbors
+        def getNeighbor(pair : Tuple[Optional[Tuple[List[float], T]], float]) \
+            -> Tuple[List[int], T]:
+
+            neighbor, distance = pair
+            assert not neighbor is None
+            return self.unnormalizeVector(neighbor[0]), neighbor[1]
+
         if self.tree is None:
             return None
-        start = time.time()
-        answer = nearestNeighbor(self.tree, float("Inf"))[0]
-        timeTaken = time.time() - start
-        # print("Found nearest neighbor in {:.2f} seconds".format(timeTaken))
+        # start = time.time()
+        answer = [getNeighbor(pair) for pair in
+                  kNearestNeighbors(self.tree, [float("Inf")] * k)]
+        # timeTaken = time.time() - start
+        # print("Found {} nearest neighbors in {:.2f} seconds".format(k, timeTaken))
         return answer
+
 
 class KNNPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
@@ -142,26 +180,39 @@ class KNNPredictor(TacticPredictor):
         self.tokenizer = checkpoint["tokenizer"]
         assert checkpoint["tree"]
         self.bst = checkpoint["tree"]
+        assert checkpoint["num-samples"]
+        self.num_samples = checkpoint["num-samples"]
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
-        return [("num tokens", str(self.tokenizer.numTokens()))]
+        return [("# tokens", str(self.tokenizer.numTokens())),
+                ("# tactics (stems)", self.embedding.num_tokens()),
+                ("# samples used", self.num_samples),
+        ]
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        input_vector = getWordbagVector(self.tokenizer.toTokenList(in_data["goal"]),
-                                        self.tokenizer.numTokens())
+        input_vector = extend(getWordbagVector(
+            self.tokenizer.toTokenList(in_data["goal"])),
+                              self.tokenizer.numTokens())
 
-        nearest = self.bst.findNearest(input_vector)
+        nearest = self.bst.findKNearest(input_vector, k)
         assert not nearest is None
-        return [self.embedding.decode_token(nearest[1])] * k
+        for pair in nearest:
+            assert not pair is None
+        predictions = [self.embedding.decode_token(output) + "."
+                       for neighbor, output in nearest]
+        return predictions
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
                                 correct : str) -> Tuple[List[str], float]:
         return self.predictKTactics(in_data, k), 0
+
+def normalizeVector(dim_maxs : List[int], vec : List[int]) -> List[float]:
+    return [floatItem / maxItem for floatItem, maxItem in zip(vec, dim_maxs)]
 
 def vectorDistanceSquared(vec1 : List[float], vec2 : List[float]):
     return sum([(item1 - item2) ** 2 for item1, item2 in zip(vec1, vec2)])
@@ -169,11 +220,11 @@ def vectorDistanceSquared(vec1 : List[float], vec2 : List[float]):
 def floatVector(vec : List[int]) -> List[float]:
     return [float(dim) for dim in vec]
 
-def getWordbagVector(goal : List[int], vocab_size : int) -> List[int]:
-    wordbag = [0] * vocab_size
+def getWordbagVector(goal : List[int]) -> List[int]:
+    wordbag : List[int] = []
     for t in goal:
-        assert t < vocab_size, \
-            "t: {}, context_vocab_size(): {}".format(t, vocab_size)
+        if t >= len(wordbag):
+            wordbag = extend(wordbag, t+1)
         wordbag[t] += 1
     return wordbag
 
@@ -192,26 +243,63 @@ def main(args_list : List[str]) -> None:
                                      "A k-nearest neighbors predictor")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
+    parser.add_argument("--num-samples", dest="num_samples",
+                        default=float("Inf"), type=float)
     args = parser.parse_args(args_list)
 
     embedding = SimpleEmbedding()
     print("Reading data...")
-    untokenized_samples = read_scrapefile(args.scrape_file, 10000)
-    print("Read {} data pairs".format(len(untokenized_samples)))
+    untokenized_samples = read_scrapefile(args.scrape_file, args.num_samples)
+    print("Read {} input-output pairs".format(len(untokenized_samples)))
     print("Getting keywords...")
     keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 100)
     tokenizer = KeywordTokenizer(keywords, 2)
     print("Encoding data...")
-    samples = [(getWordbagVector(tokenizer.toTokenList(context),
-                                 tokenizer.numTokens()),
+    start = time.time()
+    samples = [(getWordbagVector(tokenizer.toTokenList(context)),
                 embedding.encode_token(get_stem(tactic)))
                for context, tactic in untokenized_samples
                if not re.match("[\{\}\+\-\*].*", tactic)]
+    tokenizer.freezeTokenList()
+    samples = [(extend(vector, tokenizer.numTokens()), output)
+               for vector, output in samples]
+    for vec, output in samples:
+        assert len(vec) == tokenizer.numTokens()
+    timeTaken = time.time() - start
+    print("Encoded data in in {:.2f}".format(timeTaken))
     print("Building BST...")
     bst = NearnessTree(samples)
     print("Loaded.")
     with open(args.save_file, 'wb') as f:
         torch.save({'embedding': embedding,
                     'tokenizer': tokenizer,
-                    'tree': bst}, f)
+                    'tree': bst,
+                    'num-samples': len(samples)}, f)
     print("Saved.")
+
+def filterNones(lst : List[Optional[T]]) -> List[T]:
+    return [item for item in lst if
+            not item is None]
+
+def assertKNearestCorrect(neighbors : List[Tuple[List[int], T]],
+                          samples   : List[Tuple[List[int], T]],
+                          in_vec    : List[int],
+                          k         : int,
+                          dim_maxs  : List[int]) \
+    -> None:
+    samples_with_distance = [
+        ((sample_vec, output),
+         vectorDistanceSquared(normalizeVector(dim_maxs, sample_vec),
+                               normalizeVector(dim_maxs, in_vec)))
+        for sample_vec, output in samples]
+    correct_k_nearest = [
+        sample for sample, distance in
+        sorted(samples_with_distance, key=lambda x: x[1])][:k]
+    for correct, found in zip(correct_k_nearest, neighbors[:len(correct_k_nearest)]):
+        assert correct[0] == found[0], "input:\n {} (len {})\ncorrect:\n{} (len {}),\nfound:\n{} (len {})"\
+            .format(in_vec, len(in_vec), correct[0], len(correct[0]), found[0], len(found[0]))
+    pass
+
+def extend(vector : List[int], length : int):
+    assert len(vector) <= length
+    return vector + [0] * (length - len(vector))
