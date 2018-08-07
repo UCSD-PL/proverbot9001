@@ -8,7 +8,7 @@ function make_rows_clickable() {
         if (rows[i].className == "header") continue
         rows[i].onclick = (function (row) {
             return function () {
-                window.location = row.children[8].children[0].href
+                window.location = row.children[9].children[0].href
             }
         })(rows[i])
         rows[i].style.cursor = "pointer"

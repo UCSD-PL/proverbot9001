@@ -117,6 +117,7 @@ class GlobalResult:
         self.num_partial = 0
         self.num_failed = 0
         self.num_topN = 0
+        self.num_topNPartial = 0
         self.num_searched = 0
         self.lock = threading.Lock()
         self.options = options
@@ -129,6 +130,7 @@ class GlobalResult:
         self.num_partial += result.num_partial
         self.num_failed += result.num_failed
         self.num_topN += result.num_topN
+        self.num_topNPartial += result.num_topNPartial
         self.num_searched += result.num_searched
         self.total_loss += result.total_loss
         self.lock.release()
@@ -153,6 +155,7 @@ class GlobalResult:
                 line('th', '% Initially Correct')
                 line('th', '% Top {}'.format(num_predictions))
                 line('th', '% Partial')
+                line('th', '% Top {} Partial'.format(num_predictions))
                 line('th', 'Testing Loss')
                 line('th', 'Details')
             sorted_rows = []
@@ -176,6 +179,8 @@ class GlobalResult:
                                                    fresult.num_tactics))
                     line('td', stringified_percent(fresult.num_partial,
                                                    fresult.num_tactics))
+                    line('td', stringified_percent(fresult.num_topNPartial,
+                                                   fresult.num_tactics))
                     line('td', "{:10.2f}".format(fresult.total_loss / fresult.num_tactics))
                     with tag('td'):
                         with tag('a', href=fresult.details_filename() + ".html"):
@@ -191,6 +196,8 @@ class GlobalResult:
                 line('td', stringified_percent(self.num_topN,
                                                self.num_tactics))
                 line('td', stringified_percent(self.num_partial,
+                                               self.num_tactics))
+                line('td', stringified_percent(self.num_topNPartial,
                                                self.num_tactics))
                 line('td', "{:10.2f}".format(self.total_loss / self.num_tactics))
 
@@ -208,6 +215,7 @@ class FileResult:
         self.num_correct = 0
         self.num_partial = 0
         self.num_topN = 0
+        self.num_topNPartial = 0
         self.num_searched = 0
         self.num_failed = 0
         self.filename = filename
@@ -255,7 +263,10 @@ class FileResult:
         for grade in grades:
             if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_topN += 1
+                self.num_topNPartial += 1
                 break
+            if (grade == "okaycommand"):
+                self.num_topNPartial += 1
         for grade in grades:
             if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_searched += 1
