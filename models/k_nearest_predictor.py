@@ -37,6 +37,15 @@ class SPTreeNode(Generic[V]):
         self.axis = axis
         self.item = item
         pass
+    def __str__(self):
+        if self.left is None:
+            assert self.right is None
+            assert not self.item is None
+            return "Leaf: {}".format(self.item)
+        else:
+            assert not self.right is None
+            assert self.item is None
+            return "Branch on dim {} at {}".format(self.axis, self.value)
     def getSamples(self) -> List[Tuple[List[float], V]]:
         if self.left is None:
             assert self.right is None
