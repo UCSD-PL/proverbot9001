@@ -40,19 +40,28 @@ KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 class KeywordTokenizer(Tokenizer):
     def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
         -> None:
-        self.num_reserved_tokens = num_reserved_tokens
+        self.num_reserved_tokens = num_reserved_tokens + 1
+        self.unknown_ordinal = num_reserved_tokens
         self.keywords = keywords
-        self.next_mangle_ord = num_reserved_tokens + len(keywords)
+        self.next_mangle_ord = self.num_reserved_tokens + len(keywords)
         self.mangle_dict = {} # type: Dict[str, int]
         self.unmangle_dict = {} # type: Dict[int, str]
+        self.unmangle_dict[self.unknown_ordinal] = "UNKNOWN"
+        self._frozen = False
         pass
+
+    def freezeTokenList(self):
+        self._frozen = True
 
     def _mangle(self, string : str) -> str:
         for c in string:
             if not c in self.mangle_dict:
-                self.mangle_dict[c] = self.next_mangle_ord
-                self.unmangle_dict[self.next_mangle_ord] = c
-                self.next_mangle_ord += 1
+                if self._frozen:
+                    self.mangle_dict[c] = self.unknown_ordinal
+                else:
+                    self.mangle_dict[c] = self.next_mangle_ord
+                    self.unmangle_dict[self.next_mangle_ord] = c
+                    self.next_mangle_ord += 1
         return "".join([chr(self.mangle_dict[c]) for c in string])
 
     def toTokenList(self, string : str) -> List[int]:
@@ -63,21 +72,23 @@ class KeywordTokenizer(Tokenizer):
             mangled_string = mangled_string.replace(self._mangle(token_string), chr(idx))
 
         for c in mangled_string:
-            assert ord(c) < self.numTokens()
+            assert ord(c) < self.next_mangle_ord
         tokenlist = [ord(c) for c in mangled_string]
-        assert self.toString(tokenlist) == string
         return tokenlist
 
     def toString(self, idxs : List[int]) -> str:
         result = ""
         for t in idxs:
-            assert t >= self.num_reserved_tokens, "Cannot decode a tokenlist containing a reserved token!"
-            if t < len(self.keywords) + self.num_reserved_tokens:
+            if t < len(self.keywords) + self.num_reserved_tokens and \
+               t >= self.num_reserved_tokens:
                 result += self.keywords[t - self.num_reserved_tokens]
             else:
                 result += self.unmangle_dict[t]
         return result
     def numTokens(self) -> int:
+        assert self._frozen,\
+            "Can't get number of tokens until the tokenizer is frozen! "\
+            "It still might change"
         return self.next_mangle_ord
 
     def getState(self) -> KeywordTokenizerState:
