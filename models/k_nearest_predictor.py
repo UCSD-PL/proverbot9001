@@ -243,6 +243,8 @@ def main(args_list : List[str]) -> None:
                                      "A k-nearest neighbors predictor")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
+    parser.add_argument("--num-keywords", dest="num_keywords",
+                        default=250, type=int)
     parser.add_argument("--num-samples", dest="num_samples",
                         default=float("Inf"), type=float)
     args = parser.parse_args(args_list)
@@ -252,8 +254,9 @@ def main(args_list : List[str]) -> None:
     untokenized_samples = read_scrapefile(args.scrape_file, args.num_samples)
     print("Read {} input-output pairs".format(len(untokenized_samples)))
     print("Getting keywords...")
-    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 1000)
     tokenizer = CompleteTokenizer(keywords, 2)
+    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples],
+                                 args.num_keywords)
     print("Encoding data...")
     start = time.time()
     samples = [(getWordbagVector(tokenizer.toTokenList(context)),
