@@ -273,7 +273,8 @@ def main(args_list : List[str]) -> None:
     samples = [(getWordbagVector(tokenizer.toTokenList(context)),
                 embedding.encode_token(get_stem(tactic)))
                for context, tactic in untokenized_samples
-               if not re.match("[\{\}\+\-\*].*", tactic)]
+               if (not re.match("[\{\}\+\-\*].*", tactic) and
+                   not re.match(".*;.*", tactic)) ]
     tokenizer.freezeTokenList()
     samples = [(extend(vector, tokenizer.numTokens()), output)
                for vector, output in samples]
