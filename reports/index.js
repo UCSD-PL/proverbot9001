@@ -84,7 +84,7 @@ function all_predictors() {
 function render_graph(predictors) {
     var svg = d3.select("svg");
     svg.selectAll("g").remove()
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    var margin = {top: 20, right: 50, bottom: 50, left: 50},
         width = +svg.attr("width") - margin.left - margin.right,
         height = +svg.attr("height") - margin.top - margin.bottom,
         g = svg.append("g").attr("transform",
