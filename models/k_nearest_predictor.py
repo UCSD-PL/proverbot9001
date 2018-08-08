@@ -17,7 +17,7 @@ from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable
 
 from format import read_pair
 import tokenizer
-from tokenizer import KeywordTokenizer, get_topk_keywords
+from tokenizer import KeywordTokenizer, CompleteTokenizer, get_topk_keywords
 
 from util import *
 
@@ -252,15 +252,14 @@ def main(args_list : List[str]) -> None:
     untokenized_samples = read_scrapefile(args.scrape_file, args.num_samples)
     print("Read {} input-output pairs".format(len(untokenized_samples)))
     print("Getting keywords...")
-    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 100)
-    tokenizer = KeywordTokenizer(keywords, 2)
+    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples], 1000)
+    tokenizer = CompleteTokenizer(keywords, 2)
     print("Encoding data...")
     start = time.time()
     samples = [(getWordbagVector(tokenizer.toTokenList(context)),
                 embedding.encode_token(get_stem(tactic)))
                for context, tactic in untokenized_samples
                if not re.match("[\{\}\+\-\*].*", tactic)]
-    tokenizer.freezeTokenList()
     samples = [(extend(vector, tokenizer.numTokens()), output)
                for vector, output in samples]
     for vec, output in samples:

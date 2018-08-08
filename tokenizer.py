@@ -35,6 +35,43 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
                                      key=lambda x: x[1])[:k]]
     return keywords
 
+CompleteTokenizerState = Tuple[List[str], int]
+
+class CompleteTokenizer(Tokenizer):
+    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
+        -> None:
+        self.keywords = keywords
+        self.num_reserved_tokens = num_reserved_tokens
+        pass
+    def toTokenList(self, string : str) -> List[int]:
+        words = get_words(string)
+        tokens : List[int] = []
+        for word in words:
+            if word in self.keywords:
+                tokens.append(self.num_reserved_tokens + self.keywords.index(word))
+            else:
+                tokens.append(self.num_reserved_tokens + len(self.keywords))
+        return tokens
+    def toString(self, tokenlist : List[int]) -> str:
+        result = ""
+        for token in tokenlist:
+            assert token >= self.num_reserved_tokens and \
+                token <= self.num_reserved_tokens + len(self.keywords)
+            if result != "":
+                result += " "
+            if token == self.num_reserved_tokens + len(self.keywords):
+                result += "UNKNOWN"
+            else:
+                result += self.keywords[token]
+        return result
+    def numTokens(self) -> int:
+        return self.num_reserved_tokens + len(self.keywords) + 1
+    def getState(self) -> CompleteTokenizerState:
+        return self.keywords, self.num_reserved_keywords
+    def setState(self, state : CompleteTokenizerState) -> None:
+        self.keywords, self.num_reserved_tokens = state
+        pass
+
 KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
 class KeywordTokenizer(Tokenizer):
