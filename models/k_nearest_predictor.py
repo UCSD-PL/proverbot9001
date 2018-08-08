@@ -21,6 +21,11 @@ from tokenizer import KeywordTokenizer, CompleteTokenizer, get_topk_keywords
 
 from util import *
 
+tokenizers = {
+    "letters-fallback" : KeywordTokenizer,
+    "no-fallback" : CompleteTokenizer,
+}
+
 T = TypeVar('T')
 V = TypeVar('V')
 
@@ -178,6 +183,8 @@ class KNNPredictor(TacticPredictor):
         self.embedding = checkpoint["embedding"]
         assert checkpoint["tokenizer"]
         self.tokenizer = checkpoint["tokenizer"]
+        assert checkpoint["tokenizer-name"]
+        self.tokenizer_name = checkpoint["tokenizer-name"]
         assert checkpoint["tree"]
         self.bst = checkpoint["tree"]
         assert checkpoint["num-samples"]
@@ -188,6 +195,7 @@ class KNNPredictor(TacticPredictor):
         return [("# tokens", str(self.tokenizer.numTokens())),
                 ("# tactics (stems)", self.embedding.num_tokens()),
                 ("# samples used", self.num_samples),
+                ("tokenizer", self.tokenizer_name),
         ]
 
     def __init__(self, options : Dict[str, Any]) -> None:
@@ -247,6 +255,8 @@ def main(args_list : List[str]) -> None:
                         default=250, type=int)
     parser.add_argument("--num-samples", dest="num_samples",
                         default=float("Inf"), type=float)
+    parser.add_argument("--tokenizer",
+                        choices=list(tokenizers.keys()), type=str)
     args = parser.parse_args(args_list)
 
     embedding = SimpleEmbedding()
@@ -254,15 +264,16 @@ def main(args_list : List[str]) -> None:
     untokenized_samples = read_scrapefile(args.scrape_file, args.num_samples)
     print("Read {} input-output pairs".format(len(untokenized_samples)))
     print("Getting keywords...")
-    tokenizer = CompleteTokenizer(keywords, 2)
     keywords = get_topk_keywords([sample[0] for sample in untokenized_samples],
                                  args.num_keywords)
+    tokenizer = tokenizers[args.tokenizer](keywords, 2)
     print("Encoding data...")
     start = time.time()
     samples = [(getWordbagVector(tokenizer.toTokenList(context)),
                 embedding.encode_token(get_stem(tactic)))
                for context, tactic in untokenized_samples
                if not re.match("[\{\}\+\-\*].*", tactic)]
+    tokenizer.freezeTokenList()
     samples = [(extend(vector, tokenizer.numTokens()), output)
                for vector, output in samples]
     for vec, output in samples:
@@ -275,6 +286,7 @@ def main(args_list : List[str]) -> None:
     with open(args.save_file, 'wb') as f:
         torch.save({'embedding': embedding,
                     'tokenizer': tokenizer,
+                    'tokenizer-name': args.tokenizer,
                     'tree': bst,
                     'num-samples': len(samples)}, f)
     print("Saved.")

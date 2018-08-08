@@ -10,6 +10,8 @@ class Tokenizer:
     def toString(self, tokenlist : List[int]) -> str:
         assert False, "Can't use base class, must override method"
         pass
+    def freezeTokenList(self):
+        pass
     def numTokens(self) -> int:
         assert False, "Can't use base class, must override method"
         pass
