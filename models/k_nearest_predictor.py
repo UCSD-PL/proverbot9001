@@ -256,7 +256,8 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--num-samples", dest="num_samples",
                         default=float("Inf"), type=float)
     parser.add_argument("--tokenizer",
-                        choices=list(tokenizers.keys()), type=str)
+                        choices=list(tokenizers.keys()), type=str,
+                        default=list(tokenizers.keys())[0])
     args = parser.parse_args(args_list)
 
     embedding = SimpleEmbedding()
