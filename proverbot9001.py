@@ -6,6 +6,7 @@ import models.encdecrnn_predictor as encdec
 import models.try_common_predictor as trycommon
 import models.wordbagclass_predictor as wordbagclass
 import models.encclass_predictor as encclass
+import models.dnnclass_predictor as dnnclass
 import models.k_nearest_predictor as knn
 import report
 import argparse
@@ -39,6 +40,7 @@ modules = {
 trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "encdec" : encdec.main,
     "encclass" : encclass.main,
+    "dnnclass" : dnnclass.main,
     "trycommon" : trycommon.train,
     "wordbagclass" : wordbagclass.main,
     "k-nearest" : knn.main,
