@@ -35,6 +35,7 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['num-encoder-layers']
         assert checkpoint['max-length']
         assert checkpoint['hidden-size']
+        assert checkpoint['num-keywords']
 
         self.tokenizer = checkpoint['tokenizer']
         self.embedding = checkpoint['embedding']
@@ -171,6 +172,7 @@ def take_args(args) -> argparse.Namespace:
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
+    parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
     return parser.parse_args(args)
 
 def main(arg_list : List[str]) -> None:
@@ -181,7 +183,7 @@ def main(arg_list : List[str]) -> None:
     raw_data = read_text_data(args.scrape_file)
     dataset, tokenizer, embedding = encode_seq_classify_data(raw_data,
                                                              tokenizers[args.tokenizer],
-                                                             100, 2)
+                                                             args.num_keywords, 2)
 
     checkpoints = train(dataset, tokenizer.numTokens(), embedding.num_tokens(),
                         args.hidden_size,
@@ -197,6 +199,7 @@ def main(arg_list : List[str]) -> None:
                  'num-encoder-layers':args.num_encoder_layers,
                  'max-length': args.max_length,
                  'hidden-size' : args.hidden_size,
+                 'num-keywords' : args.num_keywords,
         }
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
