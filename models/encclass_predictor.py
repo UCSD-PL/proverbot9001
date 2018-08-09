@@ -3,7 +3,6 @@
 import signal
 import argparse
 import time
-import signal
 import sys
 
 from models.encdecrnn_predictor import inputFromSentence
@@ -22,9 +21,6 @@ import torch.cuda
 
 from models.tactic_predictor import TacticPredictor
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast
-
-SomeLongTensor = Union[torch.cuda.LongTensor, torch.LongTensor]
-SomeFloatTensor = Union[torch.cuda.FloatTensor, torch.FloatTensor]
 
 class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
