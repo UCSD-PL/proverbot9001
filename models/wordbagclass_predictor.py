@@ -58,9 +58,8 @@ class WordBagClassifyPredictor(TacticPredictor):
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
-            output_var = maybe_cuda(Variable(torch.
-                                             LongTensor([self.embedding.encode_token\
-                                                         (get_stem(correct))])))
+            output_var = maybe_cuda(
+                Variable(torch. LongTensor([self.embedding.encode_token(stem)])))
             loss = self.criterion(distribution, output_var).data[0]
         else:
             loss = 0

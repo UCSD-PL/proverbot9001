@@ -44,7 +44,7 @@ class EncClassPredictor(TacticPredictor):
         self.embedding = checkpoint['embedding']
         self.encoder = maybe_cuda(RNNClassifier(self.tokenizer.numTokens(),
                                                 checkpoint['hidden-size'],
-                                                self.embedding.numTokens(),
+                                                self.embedding.num_tokens(),
                                                 checkpoint['num-encoder-layers']))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
