@@ -11,20 +11,13 @@ from queue import PriorityQueue
 
 import torch
 from models.tactic_predictor import TacticPredictor
-from models.components import SimpleEmbedding
 
 from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable
 
-from format import read_pair
-import tokenizer
-from tokenizer import KeywordTokenizer, CompleteTokenizer, get_topk_keywords
+from tokenizer import tokenizers
+from data import read_text_data, encode_bag_classify_data, encode_bag_classify_input
 
 from util import *
-
-tokenizers = {
-    "letters-fallback" : KeywordTokenizer,
-    "no-fallback" : CompleteTokenizer,
-}
 
 T = TypeVar('T')
 V = TypeVar('V')
@@ -203,9 +196,7 @@ class KNNPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        input_vector = extend(getWordbagVector(
-            self.tokenizer.toTokenList(in_data["goal"])),
-                              self.tokenizer.numTokens())
+        input_vector = encode_bag_classify_input(in_data["goal"], self.tokenizer)
 
         nearest = self.bst.findKNearest(input_vector, k)
         assert not nearest is None
@@ -228,24 +219,6 @@ def vectorDistanceSquared(vec1 : List[float], vec2 : List[float]):
 def floatVector(vec : List[int]) -> List[float]:
     return [float(dim) for dim in vec]
 
-def getWordbagVector(goal : List[int]) -> List[int]:
-    wordbag : List[int] = []
-    for t in goal:
-        if t >= len(wordbag):
-            wordbag = extend(wordbag, t+1)
-        wordbag[t] += 1
-    return wordbag
-
-def read_scrapefile(filename : str, num_pairs : float = float("Inf")) -> List[Tuple[str, str]]:
-    dataset : List[Tuple[str,str]] = []
-    with open(filename, 'r') as scrapefile:
-        pair = read_pair(scrapefile)
-        while pair and len(dataset) < num_pairs:
-            dataset.append(pair)
-            pair = read_pair(scrapefile)
-
-    return dataset
-
 def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "A k-nearest neighbors predictor")
@@ -260,26 +233,15 @@ def main(args_list : List[str]) -> None:
                         default=list(tokenizers.keys())[0])
     args = parser.parse_args(args_list)
 
-    embedding = SimpleEmbedding()
     print("Reading data...")
-    untokenized_samples = read_scrapefile(args.scrape_file, args.num_samples)
-    print("Read {} input-output pairs".format(len(untokenized_samples)))
-    print("Getting keywords...")
-    keywords = get_topk_keywords([sample[0] for sample in untokenized_samples],
-                                 args.num_keywords)
-    tokenizer = tokenizers[args.tokenizer](keywords, 2)
+    raw_samples = read_text_data(args.scrape_file, args.num_samples)
+    print("Read {} input-output pairs".format(len(raw_samples)))
     print("Encoding data...")
     start = time.time()
-    samples = [(getWordbagVector(tokenizer.toTokenList(context)),
-                embedding.encode_token(get_stem(tactic)))
-               for context, tactic in untokenized_samples
-               if (not re.match("[\{\}\+\-\*].*", tactic) and
-                   not re.match(".*;.*", tactic)) ]
-    tokenizer.freezeTokenList()
-    samples = [(extend(vector, tokenizer.numTokens()), output)
-               for vector, output in samples]
-    for vec, output in samples:
-        assert len(vec) == tokenizer.numTokens()
+    samples, tokenizer, embedding = encode_bag_classify_data(raw_samples,
+                                                             tokenizers[args.tokenizer],
+                                                             args.num_keywords,
+                                                             2)
     timeTaken = time.time() - start
     print("Encoded data in in {:.2f}".format(timeTaken))
     print("Building BST...")
@@ -315,7 +277,3 @@ def assertKNearestCorrect(neighbors : List[Tuple[List[int], T]],
         assert correct[0] == found[0], "input:\n {} (len {})\ncorrect:\n{} (len {}),\nfound:\n{} (len {})"\
             .format(in_vec, len(in_vec), correct[0], len(correct[0]), found[0], len(found[0]))
     pass
-
-def extend(vector : List[int], length : int):
-    assert len(vector) <= length
-    return vector + [0] * (length - len(vector))

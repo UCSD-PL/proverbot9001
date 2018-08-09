@@ -13,9 +13,6 @@ from serapi_instance import kill_comments
 
 from typing import List, Any
 
-Sentence = List[int]
-DataSet = List[List[Sentence]]
-
 use_cuda = torch.cuda.is_available()
 assert use_cuda
 

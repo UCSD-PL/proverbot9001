@@ -12,12 +12,9 @@ import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 
 from models.tactic_predictor import TacticPredictor
-from models.components import SimpleEmbedding
-from format import read_pair
-import tokenizer
-from tokenizer import context_vocab_size, tokenize_context, \
-    get_tokenizer_state, set_tokenizer_state, get_topk_keywords
 
+from tokenizer import tokenizers
+from data import read_text_data, encode_bag_classify_data, encode_bag_classify_input
 from util import *
 
 class WordBagClassifyPredictor(TacticPredictor):
@@ -26,8 +23,8 @@ class WordBagClassifyPredictor(TacticPredictor):
         assert checkpoint['stem-embeddings']
 
         self.embedding = checkpoint['stem-embeddings']
-        set_tokenizer_state(checkpoint['text-encoder'])
-        self.linear = maybe_cuda(nn.Linear(context_vocab_size(),
+        self.tokenizer = checkpoint['tokenizer']
+        self.linear = maybe_cuda(nn.Linear(self.tokenizer.numTokens(),
                                            self.embedding.num_tokens()))
         self.linear.load_state_dict(checkpoint['linear-state'])
         self.lsoftmax = maybe_cuda(nn.LogSoftmax(dim=1))
@@ -47,7 +44,7 @@ class WordBagClassifyPredictor(TacticPredictor):
 
     def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
         goal = in_data["goal"]
-        in_vec = Variable(FloatTensor(getWordbagVector(tokenize_context(goal))))\
+        in_vec = Variable(FloatTensor(encode_bag_classify_input(goal, self.tokenizer)))\
                  .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
@@ -73,42 +70,6 @@ class WordBagClassifyPredictor(TacticPredictor):
                        for idx in indices]
         return predictions, loss
 
-def read_scrapefile(filename : str, embedding : SimpleEmbedding) -> \
-    List[Tuple[List[int], int]]:
-    dataset = []
-    untokenized_contexts = []
-    print("Loading first pass contexts...")
-    with open(filename, 'r') as scrapefile:
-        pair = read_pair(scrapefile)
-        while pair:
-            context, _ = pair
-            untokenized_contexts.append(context)
-            pair = read_pair(scrapefile)
-    print("Getting keywords...")
-    keywords = get_topk_keywords(untokenized_contexts, 100)
-    print("Building tokenizer...")
-    tokenizer.contextTokenizer = tokenizer.KeywordTokenizer(keywords, 2)
-    print("Loading and tokenizing file...")
-    with open(filename, 'r') as scrapefile:
-        pair = read_pair(scrapefile)
-        while pair:
-            context, tactic = pair
-            if (not re.match("[\{\}\+\-\*].*", tactic)) and \
-               (not re.match(".*;.*", tactic)):
-                dataset.append((tokenize_context(context),
-                                embedding.encode_token(get_stem(tactic))))
-            pair = read_pair(scrapefile)
-    print("Done.")
-    return dataset
-
-def getWordbagVector(goal : List[int]) -> List[int]:
-    wordbag = [0] * context_vocab_size()
-    for t in goal:
-        assert t < context_vocab_size(), \
-            "t: {}, context_vocab_size(): {}".format(t, context_vocab_size())
-        wordbag[t] += 1
-    return wordbag
-
 Checkpoint = Tuple[Dict[Any, Any], float]
 
 def main(args_list : List[str]) -> None:
@@ -123,28 +84,24 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
     parser.add_argument("--optimizer", default="SGD",
                         choices=list(optimizers.keys()), type=str)
-    parser.add_argument("--disable-keywords", dest="disable_keywords",
-                        default=False, const=True, action="store_const")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
-    if args.disable_keywords:
-        tokenizer.disable_keywords()
-
-    embedding = SimpleEmbedding()
-
     print("Loading dataset...")
 
-    dataset = read_scrapefile(args.scrape_file, embedding)
+    raw_dataset = read_text_data(args.scrape_file)
+    samples, tokenizer, embedding = encode_bag_classify_data(raw_dataset,
+                                                             tokenizers["char-fallback"],
+                                                             100, 2)
 
-    checkpoints = train(dataset, args.learning_rate,
+    checkpoints = train(samples, args.learning_rate,
                         args.num_epochs, args.batch_size,
                         embedding.num_tokens(), args.print_every,
                         args.gamma, args.epoch_step, args.optimizer)
 
     for epoch, (linear_state, loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
-                 'text-encoder':get_tokenizer_state(),
+                 'text-encoder':tokenizer,
                  'linear-state': linear_state,
                  'stem-embeddings': embedding,
                  'options': [
@@ -153,8 +110,7 @@ def main(args_list : List[str]) -> None:
                      ("batch size", str(args.batch_size)),
                      ("epoch step", str(args.epoch_step)),
                      ("gamma", str(args.gamma)),
-                     ("dataset size", str(len(dataset))),
-                     ("use keywords", str(not args.disable_keywords)),
+                     ("dataset size", str(len(samples))),
                      ("optimizer", args.optimizer),
                      ("training loss", "{:10.2f}".format(loss)),
                  ]}
@@ -172,13 +128,14 @@ def train(dataset, learning_rate : float, num_epochs : int,
           batch_size : int, num_stems: int, print_every : int,
           gamma : float, epoch_step : int, optimizer_type : str) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
-    linear = maybe_cuda(nn.Linear(context_vocab_size(), num_stems))
+    assert len(dataset[0][0]) > 10 and len(dataset[0][0]) < 1000
+    linear = maybe_cuda(nn.Linear(len(dataset[0][0]), num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     inputs, outputs = zip(*dataset)
     dataloader = data.DataLoader(
         data.TensorDataset(
-            torch.FloatTensor([getWordbagVector(input) for input in inputs]),
+            torch.FloatTensor(inputs),
             torch.LongTensor(outputs)),
         batch_size=batch_size, num_workers=0,
         shuffle=True, pin_memory=True, drop_last=True)

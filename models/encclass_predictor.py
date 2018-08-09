@@ -6,11 +6,10 @@ import time
 import signal
 import sys
 
-from format import read_pair
-from tokenizer import tokenize_context, untokenize_context, context_vocab_size, \
-    get_tokenizer_state, set_tokenizer_state
-
 from models.encdecrnn_predictor import inputFromSentence
+from tokenizer import Tokenizer, tokenizers
+from data import read_text_data, encode_seq_classify_data, ClassifySequenceDataset
+from util import *
 
 import torch
 import torch.nn as nn
@@ -24,32 +23,24 @@ import torch.cuda
 from models.tactic_predictor import TacticPredictor
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast
 
-from util import *
-
 SomeLongTensor = Union[torch.cuda.LongTensor, torch.LongTensor]
 SomeFloatTensor = Union[torch.cuda.FloatTensor, torch.FloatTensor]
 
 class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
-        global idx_to_stem
-        global stem_to_idx
         checkpoint = torch.load(filename)
-        assert checkpoint['text-encoder']
+        assert checkpoint['tokenizer']
+        assert checkpoint['embedding']
         assert checkpoint['neural-encoder']
         assert checkpoint['num-encoder-layers']
         assert checkpoint['max-length']
-        assert checkpoint['num-tactic-stems']
         assert checkpoint['hidden-size']
-        assert checkpoint['stem-to-idx']
-        assert checkpoint['idx-to-stem']
-        idx_to_stem = checkpoint['idx-to-stem']
-        stem_to_idx = checkpoint['stem-to-idx']
 
-        set_tokenizer_state(checkpoint['text-encoder'])
-        self.vocab_size = context_vocab_size()
-        self.encoder = maybe_cuda(RNNClassifier(self.vocab_size,
+        self.tokenizer = checkpoint['tokenizer']
+        self.embedding = checkpoint['embedding']
+        self.encoder = maybe_cuda(RNNClassifier(self.tokenizer.numTokens(),
                                                 checkpoint['hidden-size'],
-                                                checkpoint['num-tactic-stems'],
+                                                self.embedding.numTokens(),
                                                 checkpoint['num-encoder-layers']))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
@@ -59,12 +50,13 @@ class EncClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        in_sentence = LongTensor(inputFromSentence(tokenize_context(in_data["goal"]),
-                                                   self.max_length))\
-                      .view(1, -1)
+        in_sentence = LongTensor(inputFromSentence(
+            self.tokenizer.toTokenList(in_data["goal"]),
+            self.max_length))\
+            .view(1, -1)
         prediction_distribution = self.encoder.run(in_sentence)
         _, stem_idxs = prediction_distribution.view(-1).topk(k)
-        return [decode_stem(stem_idx.data[0]) for stem_idx in stem_idxs]
+        return [self.embedding.decode_token(stem_idx.data[0]) for stem_idx in stem_idxs]
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
@@ -98,23 +90,9 @@ class RNNClassifier(nn.Module):
             output, hidden = self(in_var[:,i], hidden)
         return output
 
-def read_text_data(data_path : str, max_size:int=None) -> DataSet:
-    data_set = []
-    with open(data_path, mode="r") as data_file:
-        pair = read_pair(data_file)
-        counter = 0
-        while pair and (not max_size or counter < max_size):
-            context, tactic = pair
-            counter += 1
-            data_set.append([tokenize_context(context),
-                             encode_stem(tactic)])
-            pair = read_pair(data_file)
-    assert len(data_set) > 0
-    return data_set
-
 Checkpoint = Dict[Any, Any]
 
-def train(dataset : DataSet,
+def train(dataset : ClassifySequenceDataset,
           input_vocab_size : int, output_vocab_size : int, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           max_length : int, num_epochs : int, batch_size : int,
@@ -123,7 +101,7 @@ def train(dataset : DataSet,
     in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
     out_stream = [datum[1] for datum in dataset]
     dataloader = data.DataLoader(data.TensorDataset(torch.LongTensor(in_stream),
-                                                     torch.LongTensor(out_stream)),
+                                                    torch.LongTensor(out_stream)),
                                  batch_size=batch_size, num_workers=0,
                                  shuffle=True, pin_memory=True, drop_last=True)
 
@@ -190,49 +168,37 @@ def take_args(args) -> argparse.Namespace:
                         default=.4, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
                         default=3, type=int)
+    parser.add_argument("--tokenizer",
+                        choices=list(tokenizers.keys()), type=str,
+                        default=list(tokenizers.keys())[0])
     return parser.parse_args(args)
 
 def main(arg_list : List[str]) -> None:
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(arg_list)
     print("Reading dataset...")
-    dataset = read_text_data(args.scrape_file)
 
-    checkpoints = train(dataset,
-                        context_vocab_size(), num_stems(), args.hidden_size,
+    raw_data = read_text_data(args.scrape_file)
+    dataset, tokenizer, embedding = encode_seq_classify_data(raw_data,
+                                                             tokenizers[args.tokenizer],
+                                                             100, 2)
+
+    checkpoints = train(dataset, tokenizer.numTokens(), embedding.num_tokens(),
+                        args.hidden_size,
                         args.learning_rate, args.num_encoder_layers,
                         args.max_length, args.num_epochs, args.batch_size,
                         args.print_every)
 
     for epoch, encoder_state in enumerate(checkpoints):
         state = {'epoch':epoch,
-                 'text-encoder':get_tokenizer_state(),
+                 'tokenizer':tokenizer,
+                 'embedding': embedding,
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
-                 'num-tactic-stems':num_stems(),
                  'max-length': args.max_length,
                  'hidden-size' : args.hidden_size,
-                 'stem-to-idx' : stem_to_idx,
-                 'idx-to-stem' : idx_to_stem}
+        }
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
                   format(epoch))
             torch.save(state, f)
-
-stem_to_idx = {} # type: Dict[str, int]
-idx_to_stem = {} # type: Dict[int, str]
-def encode_stem(tactic):
-    stem = get_stem(tactic)
-    if stem in stem_to_idx:
-        return stem_to_idx[stem]
-    else:
-        new_idx = num_stems()
-        stem_to_idx[stem] = new_idx
-        idx_to_stem[new_idx] = stem
-        return new_idx
-
-def decode_stem(idx):
-    return idx_to_stem[idx] + "."
-
-def num_stems():
-    return len(idx_to_stem)

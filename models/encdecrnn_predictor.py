@@ -10,11 +10,10 @@ import time
 import math
 import argparse
 
-from format import read_pair
-from tokenizer import tokenize_tactic, tokenize_context, \
-    untokenize_tactic, untokenize_context, \
-    context_vocab_size, tactic_vocab_size, \
-    get_tokenizer_state, set_tokenizer_state
+from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
+from data import read_text_data, encode_seq_seq_data, Sentence, \
+    SequenceSequenceDataset
+from util import *
 
 import torch
 import torch.nn as nn
@@ -26,7 +25,6 @@ import torch.cuda
 
 from itertools import takewhile
 from models.tactic_predictor import TacticPredictor
-from util import *
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 
@@ -40,7 +38,8 @@ class EncDecRNNPredictor(TacticPredictor):
     def load_saved_state(self, filename : str, beam_width : int) -> None:
         checkpoint = torch.load(filename)
         assert checkpoint['hidden-size']
-        assert checkpoint['text-encoder']
+        assert checkpoint['context-tokenizer']
+        assert checkpoint['tactic-tokenizer']
         assert checkpoint['neural-encoder']
         assert checkpoint['neural-decoder']
         assert checkpoint['num-encoder-layers']
@@ -48,10 +47,13 @@ class EncDecRNNPredictor(TacticPredictor):
         assert checkpoint['max-length']
 
         hidden_size = checkpoint['hidden-size']
-        set_tokenizer_state(checkpoint['text-encoder'])
-        self.encoder = maybe_cuda(EncoderRNN(context_vocab_size(), hidden_size,
+        self.context_tokenizer = checkpoint['context-tokenizer']
+        self.tactic_tokenizer = checkpoint['tactic-tokenizer']
+        self.encoder = maybe_cuda(EncoderRNN(self.context_tokenizer.numTokens(),
+                                             hidden_size,
                                              checkpoint["num-encoder-layers"]))
-        self.decoder = maybe_cuda(DecoderRNN(hidden_size, tactic_vocab_size(),
+        self.decoder = maybe_cuda(DecoderRNN(hidden_size,
+                                             self.tactic_tokenizer.numTokens(),
                                              checkpoint["num-decoder-layers"],
                                              beam_width=beam_width))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
@@ -68,14 +70,16 @@ class EncDecRNNPredictor(TacticPredictor):
         pass
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        in_sentence = LongTensor(inputFromSentence(tokenize_context(in_data["goal"]),
-                                                   self.max_length)).view(1, -1)
+        in_sentence = LongTensor(inputFromSentence(
+            self.context_tokenizer.toTokenList(in_data["goal"]),
+            self.max_length)).view(1, -1)
         feature_vector = self.encoder.run(in_sentence)
         prediction_sentences = decodeKTactics(self.decoder,
                                               feature_vector,
                                               self.beam_width,
                                               self.max_length)[:k]
-        return [untokenize_tactic(sentence) for sentence in prediction_sentences]
+        return [self.tactic_tokenizer.toString(sentence)
+                for sentence in prediction_sentences]
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
@@ -158,21 +162,6 @@ class DecoderRNN(nn.Module):
             prediction.append(decoder_output)
         return prediction
 
-def read_text_data(data_path : str, max_size:int=None) -> DataSet:
-    data_set = []
-    with open(data_path, mode="r") as data_file:
-        pair = read_pair(data_file)
-        counter = 0
-        while pair and (not max_size or counter < max_size):
-            context, tactic = pair
-            counter += 1
-            data_set.append([tokenize_context(context),
-                             tokenize_tactic(tactic)])
-
-            pair = read_pair(data_file)
-    assert(len(data_set) > 0)
-    return data_set
-
 def inputFromSentence(sentence : Sentence, max_length : int) -> Sentence:
     if len(sentence) > max_length:
         sentence = sentence[:max_length]
@@ -199,10 +188,10 @@ def adjustLearningRates(initial : float,
 
 Checkpoint = Tuple[Dict[Any, Any], Dict[Any, Any]]
 
-def train(dataset : DataSet, hidden_size : int,
+def train(dataset : SequenceSequenceDataset, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           num_decoder_layers : int, max_length : int, num_epochs : int, batch_size : int,
-          print_every : int) -> Iterable[Checkpoint]:
+          print_every : int, context_vocab_size : int, tactic_vocab_size : int) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
     in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
     out_stream = [inputFromSentence(datum[1], max_length) for datum in dataset]
@@ -212,9 +201,9 @@ def train(dataset : DataSet, hidden_size : int,
                                   shuffle=True, pin_memory=True,
                                   drop_last=True)
 
-    encoder = EncoderRNN(context_vocab_size(), hidden_size, num_encoder_layers,
+    encoder = EncoderRNN(context_vocab_size, hidden_size, num_encoder_layers,
                          batch_size=batch_size)
-    decoder = DecoderRNN(hidden_size, tactic_vocab_size(), num_decoder_layers,
+    decoder = DecoderRNN(hidden_size, tactic_vocab_size, num_decoder_layers,
                          batch_size=batch_size)
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
@@ -283,18 +272,29 @@ def main(args_list : List[str]) -> None:
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(args_list)
     print("Reading dataset...")
-    dataset = read_text_data(args.scrape_file)
+    raw_dataset = read_text_data(args.scrape_file)
+    dataset, context_tokenizer, tactic_tokenizer = \
+                encode_seq_seq_data(raw_dataset,
+                                    lambda keywords, num_reserved:
+                                    KeywordTokenizer(context_keywords, num_reserved),
+                                    lambda keywords, num_reserved:
+                                    KeywordTokenizer(tactic_keywords, num_reserved),
+                                    0, 2)
+
 
     checkpoints = train(dataset, args.hidden_size,
                         args.learning_rate,
                         args.num_encoder_layers,
                         args.num_decoder_layers, args.max_length,
                         args.num_epochs, args.batch_size,
-                        args.print_every)
+                        args.print_every,
+                        context_tokenizer.numTokens(),
+                        tactic_tokenizer.numTokens())
 
     for epoch, (encoder_state, decoder_state) in enumerate(checkpoints):
         state = {'epoch':epoch,
-                 'text-encoder':get_tokenizer_state(),
+                 'context-tokenizer':context_tokenizer,
+                 'tactic-tokenizer':tactic_tokenizer,
                  'neural-encoder':encoder_state,
                  'neural-decoder':decoder_state,
                  'num-encoder-layers':args.num_encoder_layers,

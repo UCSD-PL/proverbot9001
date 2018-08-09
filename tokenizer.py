@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from typing import Dict, List, Tuple, Callable, Union, Iterable
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast
 
 class Tokenizer:
     def toTokenList(self, string : str) -> List[int]:
@@ -13,12 +13,6 @@ class Tokenizer:
     def freezeTokenList(self):
         pass
     def numTokens(self) -> int:
-        assert False, "Can't use base class, must override method"
-        pass
-    def getState(self) -> 'TokenizerState':
-        assert False, "Can't use base class, must override method"
-        pass
-    def setState(self, state : 'TokenizerState') -> None:
         assert False, "Can't use base class, must override method"
         pass
 
@@ -68,10 +62,6 @@ class CompleteTokenizer(Tokenizer):
         return result
     def numTokens(self) -> int:
         return self.num_reserved_tokens + len(self.keywords) + 1
-    def getState(self) -> CompleteTokenizerState:
-        return self.keywords, self.num_reserved_keywords
-    def setState(self, state : CompleteTokenizerState) -> None:
-        self.keywords, self.num_reserved_tokens = state
         pass
 
 KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
@@ -130,15 +120,6 @@ class KeywordTokenizer(Tokenizer):
             "It still might change"
         return self.next_mangle_ord
 
-    def getState(self) -> KeywordTokenizerState:
-        return list(self.mangle_dict.items()), self.keywords, self.next_mangle_ord
-    def setState(self, state : KeywordTokenizerState):
-        dict_items, self.keywords, self.next_mangle_ord = state
-        for k, v in dict_items:
-            self.mangle_dict[k] = v
-            self.unmangle_dict[v] = k
-
-
 context_keywords = [
     "forall",
     "eq",
@@ -182,43 +163,9 @@ tactic_keywords = [
     "using",
     "exact",
 ]
+TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 
-contextTokenizer : KeywordTokenizer
-tacticTokenizer : KeywordTokenizer
-
-def tokenize_tactic(tactic : str) -> List[int]:
-    return tacticTokenizer.toTokenList(tactic)
-def tokenize_context(context : str) -> List[int]:
-    return contextTokenizer.toTokenList(context)
-
-def untokenize_tactic(tokenlist : List[int]) -> str:
-    return tacticTokenizer.toString(tokenlist)
-def untokenize_context(context : List[int]) -> str:
-    return contextTokenizer.toString(context)
-
-TokenizerState = Union[KeywordTokenizerState]
-
-def get_tokenizer_state() -> Tuple[TokenizerState, TokenizerState]:
-    return tacticTokenizer.getState(), contextTokenizer.getState()
-def context_vocab_size() -> int:
-    return contextTokenizer.numTokens()
-def tactic_vocab_size() -> int:
-    return tacticTokenizer.numTokens()
-
-def set_tokenizer_state(state : Tuple[TokenizerState, TokenizerState]) -> None:
-    tactic_state, context_state = state
-    tacticTokenizer.setState(tactic_state)
-    contextTokenizer.setState(context_state)
-
-def enable_keywords() -> None:
-    global contextTokenizer
-    global tacticTokenizer
-    contextTokenizer = KeywordTokenizer(context_keywords, 2)
-    tacticTokenizer = KeywordTokenizer(tactic_keywords, 2)
-def disable_keywords() -> None:
-    global contextTokenizer
-    global tacticTokenizer
-    contextTokenizer = KeywordTokenizer([], 2)
-    tacticTokenizer = KeywordTokenizer([], 2)
-
-enable_keywords()
+tokenizers = {
+    "no-fallback" : CompleteTokenizer,
+    "chars-fallback" : KeywordTokenizer,
+}
