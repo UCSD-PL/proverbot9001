@@ -30,12 +30,19 @@ class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
         checkpoint = torch.load(filename)
         assert checkpoint['tokenizer']
+        assert checkpoint['tokenizer-name']
         assert checkpoint['embedding']
         assert checkpoint['neural-encoder']
         assert checkpoint['num-encoder-layers']
         assert checkpoint['max-length']
         assert checkpoint['hidden-size']
         assert checkpoint['num-keywords']
+
+        self.options = [("tokenizer", checkpoint['tokenizer-name']),
+                        ("# encoder layers", checkpoint['num-encoder-layers']),
+                        ("input length", checkpoint['max-length']),
+                        ("hidden size", checkpoint['hidden-size']),
+                        ("# keywords", checkpoint['num-keywords'])]
 
         self.tokenizer = checkpoint['tokenizer']
         self.embedding = checkpoint['embedding']
@@ -58,6 +65,9 @@ class EncClassPredictor(TacticPredictor):
         prediction_distribution = self.encoder.run(in_sentence)
         _, stem_idxs = prediction_distribution.view(-1).topk(k)
         return [self.embedding.decode_token(stem_idx.data[0]) for stem_idx in stem_idxs]
+
+    def getOptions(self) -> List[Tuple[str, str]]:
+        return self.options
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
@@ -194,6 +204,7 @@ def main(arg_list : List[str]) -> None:
     for epoch, encoder_state in enumerate(checkpoints):
         state = {'epoch':epoch,
                  'tokenizer':tokenizer,
+                 'tokenizer-name':args.tokenizer,
                  'embedding': embedding,
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
