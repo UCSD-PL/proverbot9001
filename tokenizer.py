@@ -58,7 +58,7 @@ class CompleteTokenizer(Tokenizer):
             if token == self.num_reserved_tokens + len(self.keywords):
                 result += "UNKNOWN"
             else:
-                result += self.keywords[token]
+                result += self.keywords[token - self.num_reserved_tokens]
         return result
     def numTokens(self) -> int:
         return self.num_reserved_tokens + len(self.keywords) + 1
