@@ -29,9 +29,9 @@ class DNNClassPredictor(TacticPredictor):
         assert checkpoint['tokenizer']
         assert checkpoint['embedding']
         assert checkpoint['network-state']
-        assert checkpoint['args']
+        assert checkpoint['training-args']
 
-        args = checkpoint['args']
+        args = checkpoint['training-args']
         self.options = [
             ("tokenizer", args.tokenizer),
             ("# network layers", args.num_layers),
