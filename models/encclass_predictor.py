@@ -4,6 +4,7 @@ import signal
 import argparse
 import time
 import sys
+import threading
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
@@ -33,12 +34,15 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['max-length']
         assert checkpoint['hidden-size']
         assert checkpoint['num-keywords']
+        assert checkpoint['learning-rate']
 
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
                         ("input length", checkpoint['max-length']),
                         ("hidden size", checkpoint['hidden-size']),
-                        ("# keywords", checkpoint['num-keywords'])]
+                        ("# keywords", checkpoint['num-keywords']),
+                        ("learning rate", checkpoint['learning-rate']),
+        ]
 
         self.tokenizer = checkpoint['tokenizer']
         self.embedding = checkpoint['embedding']
@@ -48,19 +52,47 @@ class EncClassPredictor(TacticPredictor):
                                                 checkpoint['num-encoder-layers']))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
+        self.criterion = maybe_cuda(nn.NLLLoss())
+        self.lock = threading.Lock()
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert(options["filename"])
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
         in_sentence = LongTensor(inputFromSentence(
             self.tokenizer.toTokenList(in_data["goal"]),
             self.max_length))\
             .view(1, -1)
-        prediction_distribution = self.encoder.run(in_sentence)
+        return self.encoder.run(in_sentence)
+
+    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+        self.lock.acquire()
+        prediction_distribution = self.predictDistribution(in_data)
         _, stem_idxs = prediction_distribution.view(-1).topk(k)
-        return [self.embedding.decode_token(stem_idx.data[0]) for stem_idx in stem_idxs]
+        result = [self.embedding.decode_token(stem_idx.data[0]) + "."
+                  for stem_idx in stem_idxs]
+        self.lock.release()
+        return result
+
+    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+                                correct : str) -> Tuple[List[str], float]:
+        self.lock.acquire()
+        prediction_distribution = self.predictDistribution(in_data)
+        correct_stem = get_stem(correct)
+        if self.embedding.has_token(correct_stem):
+            output_var = maybe_cuda(Variable(
+                torch.LongTensor([self.embedding.encode_token(correct_stem)])))
+            loss = self.criterion(prediction_distribution, output_var).data[0]
+        else:
+            loss = 0
+
+        _, stem_idxs = prediction_distribution.view(-1).topk(k)
+        predictions = [self.embedding.decode_token(stem_idx.data[0]) + "."
+                       for stem_idx in stem_idxs]
+
+        self.lock.release()
+        return predictions, loss
 
     def getOptions(self) -> List[Tuple[str, str]]:
         return self.options
@@ -201,6 +233,7 @@ def main(arg_list : List[str]) -> None:
         state = {'epoch':epoch,
                  'tokenizer':tokenizer,
                  'tokenizer-name':args.tokenizer,
+                 'learning-rate':args.learning_rate,
                  'embedding': embedding,
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
