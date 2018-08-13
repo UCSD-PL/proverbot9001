@@ -36,6 +36,30 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
 
 CompleteTokenizerState = Tuple[List[str], int]
 
+class CharsTokenizer(Tokenizer):
+    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) -> None:
+        self.unknown_ord = num_reserved_tokens
+        self.next_ord = num_reserved_tokens + 1
+        self.mangle_dict = {} # type: Dict[str, int]
+        self.unmangle_dict = {} # type: Dict[int, str]
+        self._frozen = False
+    def freezeTokenList(self):
+        self._frozen = True
+    def toTokenList(self, string : str) -> List[int]:
+        for c in string:
+            if not c in self.mangle_dict:
+                if self._frozen:
+                    self.mangle_dict[c] = self.unknown_ord
+                else:
+                    self.mangle_dict[c] = self.next_ord
+                    self.unmangle_dict[self.next_ord] = c
+                    self.next_ord += 1
+        return [self.mangle_dict[c] for c in string]
+    def toString(self, tokenlist : List[int]) -> str:
+        return "".join([self.unmangle_dict[t] for t in tokenlist])
+    def numTokens(self) -> int:
+        return self.next_ord
+
 class CompleteTokenizer(Tokenizer):
     def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
         -> None:
@@ -171,4 +195,5 @@ TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 tokenizers = {
     "no-fallback" : CompleteTokenizer,
     "chars-fallback" : KeywordTokenizer,
+    "chars-only" : CharsTokenizer,
 }
