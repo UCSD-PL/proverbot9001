@@ -61,7 +61,9 @@ class DNNClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
-        in_vec = encode_bag_classify_input(in_data["goal"], self.tokenizer)
+        in_vec = maybe_cuda(Variable(torch.FloatTensor(
+            encode_bag_classify_input(in_data["goal"], self.tokenizer))))\
+            .view(1, -1)
         return self.network(in_vec)
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
@@ -79,7 +81,7 @@ class DNNClassPredictor(TacticPredictor):
         if self.embedding.has_token(stem):
             output_var = maybe_cuda(
                 Variable(torch.LongTensor([self.embedding.encode_token(stem)])))
-            loss = self.criterion(distribution, output_var).data[0]
+            loss = self.criterion(distribution.view(1, -1), output_var).data[0]
         else:
             loss = 0
 
@@ -97,18 +99,18 @@ class DNNClassifier(nn.Module):
         super(DNNClassifier, self).__init__()
         self.num_layers = num_layers
         self.batch_size = batch_size
-        self.embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
+        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
         self.layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
                        for _ in range(num_layers)]
-        self.out = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
         self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
-    def forward(self, input : torch.FloatTensor) \
-        -> torch.FloatTensor :
-        layer_values = self.embedding(input).view(1, self.batch_size, -1)
+    def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
+        layer_values = self.in_layer(input)
         for i in range(self.num_layers):
+            layer_values = F.relu(layer_values)
             layer_values = self.layers[i](layer_values)
-        return self.softmax(self.out(layer_values[0]))
+        return self.softmax(self.out_layer(layer_values))
 
 optimizers = {
     "SGD": optim.SGD,
@@ -154,7 +156,9 @@ def train(dataset : ClassifyBagDataset,
             prediction_distribution = network(input_var)
 
             loss = cast(torch.FloatTensor, 0)
-            loss += criterion(prediction_distribution, output_var)
+            # print("prediction_distribution.size(): {}"
+            #       .format(prediction_distribution.size()))
+            loss += criterion(prediction_distribution.squeeze(), output_var)
             loss.backward()
 
             optimizer.step()
@@ -191,7 +195,7 @@ def take_args(args) -> argparse.Namespace:
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
     parser.add_argument("--optimizer", choices=list(optimizers.keys()), type=str,
-                        default=list(tokenizers.keys())[0])
+                        default=list(optimizers.keys())[0])
     return parser.parse_args(args)
 
 def main(arg_list : List[str]) -> None:
