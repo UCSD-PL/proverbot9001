@@ -65,6 +65,20 @@ path.graphline.k-nearest {
 path.graphline.wordbagclass{
     stroke: green;
 }
+path.graphline.encclass {
+    stroke: magenta;
+}
+.dot.encclass {
+    stroke: magenta;
+    fill: magenta;
+}
+path.graphline.dnnclass {
+    stroke: darkgoldenrod;
+}
+.dot.dnnclass {
+    stroke: darkgoldenrod;
+    fill: darkgoldenrod;
+}
 
 
 .dot {
