@@ -4,6 +4,7 @@ import signal
 import argparse
 import time
 import sys
+import threading
 
 from tokenizer import Tokenizer, tokenizers
 from data import read_text_data, encode_bag_classify_data, encode_bag_classify_input, \
@@ -53,6 +54,7 @@ class DNNClassPredictor(TacticPredictor):
                                                 args.num_layers))
         self.network.load_state_dict(checkpoint['network-state'])
         self.criterion = maybe_cuda(nn.NLLLoss())
+        self.lock = threading.Lock()
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
@@ -63,11 +65,15 @@ class DNNClassPredictor(TacticPredictor):
         return self.network(in_vec)
 
     def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         probs, indices = distribution.squeeze().topk(k)
-        return [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        result = [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        self.lock.release()
+        return result
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
                                 correct : str) -> Tuple[List[str], float]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
@@ -79,6 +85,7 @@ class DNNClassPredictor(TacticPredictor):
 
         probs, indices = distribution.squeeze().topk(k)
         predictions = [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        self.lock.release()
 
         return predictions, loss
     def getOptions(self) -> List[Tuple[str, str]]:
