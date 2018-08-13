@@ -88,5 +88,6 @@ def encode_bag_classify_data(data : RawDataset,
                 for context, tactic in seq_data]
     return bag_data, tokenizer, embedding
 
-def encode_bag_classify_input(context : str, tokenizer : Tokenizer ):
+def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
+    -> Bag:
     return extend(getTokenbagVector(tokenizer.toTokenList(context)), tokenizer.numTokens())
