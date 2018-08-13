@@ -6,6 +6,7 @@ from models.components import SimpleEmbedding
 import re
 
 from typing import Tuple, List, Callable
+from util import *
 
 Sentence = List[int]
 Bag = List[int]
@@ -68,7 +69,7 @@ def encode_seq_classify_data(data : RawDataset,
     embedding = SimpleEmbedding()
     keywords = get_topk_keywords([context for context, tactic in data], num_keywords)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
-    result = [(tokenizer.toTokenList(context), embedding.encode_token(tactic))
+    result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
               for context, tactic in data
               if (not re.match("[\{\}\+\-\*].*", tactic) and
                   not re.match(".*;.*", tactic))]
