@@ -18,8 +18,8 @@ def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
     for t in goal:
         if t >= len(tokenbag):
-            wordbag = extend(tokenbag, t+1)
-        wordbag[t] += 1
+            tokenbag = extend(tokenbag, t+1)
+        tokenbag[t] += 1
     return tokenbag
 
 def extend(vector : List[int], length : int):
