@@ -17,7 +17,8 @@ class Tokenizer:
         pass
 
 def get_words(string : str) -> List[str]:
-    return re.split(r'\W|\.+|:', string)
+    return [word for word in re.split(r'\W|\.+|:|\)|\(', string)
+            if word.strip() != '']
 
 def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
     counts = {} # type: Dict[str, int]
