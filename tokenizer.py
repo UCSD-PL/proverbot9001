@@ -27,8 +27,10 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
                 counts[token] = 1
             else:
                 counts[token] += 1
-    keywords = [x[0] for x in sorted(counts.items(),
-                                     key=lambda x: x[1])[:k]]
+    keywords_and_counts = sorted(counts.items(),
+                                 reverse=True,
+                                 key=lambda x: x[1])[:k]
+    keywords = [x[0] for x in keywords_and_counts]
     return keywords
 
 CompleteTokenizerState = Tuple[List[str], int]
