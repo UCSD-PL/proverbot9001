@@ -35,13 +35,21 @@ function update_checkboxes() {
     render_graph(predictors)
 }
 
+function searchClass(list, classname) {
+    for (var i = 0; i < list.length; i++){
+        if (list[i].className == classname){
+            return list[i]
+        }
+    }
+}
+
 function make_rows_clickable() {
     var rows = document.getElementsByTagName("tr")
     for (var i = 0; i < rows.length; i++){
         if (rows[i].className == "header") continue
         rows[i].onclick = (function (row) {
             return function () {
-                window.location = row.children[row.children.length - 1].children[0].href
+                window.location = searchClass(row.children, "link").children[0].href;
             }
         })(rows[i])
         rows[i].onmouseover = (function (row, idx) {
@@ -73,7 +81,7 @@ function all_predictors() {
     var predictors_seen = []
     for (var i = 0; i < rows.length; i++){
         if (rows[i].className == "header") continue
-        var predictor = rows[i].children[2].innerText;
+        var predictor = searchClass(rows[i].children, "predictor").innerText;
         predictors_seen.push(predictor)
     }
     return predictors_seen.filter(function(item, pos, self) {
@@ -106,12 +114,17 @@ function render_graph(predictors) {
     for (var i = 0; i < rows.length; i++){
         if (rows[i].className == "header") continue;
         var d = {};
-        d.percent_correct = +(/(\d+\.\d+)%/.exec(rows[i].children[3].innerText)[1]);
-        var datetext = rows[i].children[0].innerText;
-        var timetext = rows[i].children[1].innerText;
+        d.percent_correct =
+            +(/(\d+\.\d+)%/.exec(searchClass(rows[i].children, "accuracy").innerText)[1]);
+        var lookback = 0
+        while(rows[i-lookback].children[0].className != "date"){
+            lookback += 1
+        }
+        var datetext = rows[i-lookback].children[0].innerText;
+        var timetext = searchClass(rows[i].children, "time").innerText
         d.date = parseTime(datetext + " " + timetext);
         d.idx = i;
-        var predictor = rows[i].children[2].innerText;
+        var predictor = searchClass(rows[i].children, "predictor").innerText;
         if (predictors.indexOf(predictor) < 0) continue;
         all_data.push(d)
         if (typeof data[predictor] == "undefined"){
@@ -185,7 +198,7 @@ function render_graph(predictors) {
             })
             .on("click", function(d) {
                 var row = document.getElementsByTagName("tr")[d.idx];
-                window.location = row.children[4].children[0].href;
+                window.location = searchClass(row.children, "link").children[0].href;
             });
     }
 }

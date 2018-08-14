@@ -61,14 +61,25 @@ with tag('html'):
                 line('th', 'Predictor')
                 line('th', 'Overall Accuracy')
                 line('th', '')
-            for f in files:
+            files_samedate_after = 0
+            for i, f in enumerate(files):
                 date = get_file_date(f)
-                with tag('tr'):
-                    line('td', date.strftime("%a %b %d %Y"))
-                    line('td', date.strftime("%H:%M"))
-                    line('td', get_file_predictor(f))
-                    line('td', str(get_file_percent(f)) + "%")
-                    with tag('td'):
+                with tag('tr', klass="topdate" if files_samedate_after == 0 else ""):
+                    assert files_samedate_after >= 0
+                    if files_samedate_after == 0:
+                        while (i + 1 + files_samedate_after < len(files) and
+                               get_file_date(files[i+1+files_samedate_after]).date() ==
+                               date.date()):
+                            files_samedate_after += 1
+                        line('td', date.strftime("%a %b %d %Y"),
+                             rowspan=files_samedate_after + 1,
+                             klass="date")
+                    else:
+                        files_samedate_after -= 1
+                    line('td', date.strftime("%H:%M"), klass="time")
+                    line('td', get_file_predictor(f), klass="predictor")
+                    line('td', str(get_file_percent(f)) + "%", klass="accuracy")
+                    with tag('td', klass="link"):
                         line('a', 'link', href=(f + "/report.html"))
 with open('index.html', 'w') as index_file:
     index_file.write(doc.getvalue())

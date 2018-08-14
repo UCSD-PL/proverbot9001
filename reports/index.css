@@ -11,8 +11,8 @@ table {
     width: 100%;
 }
 
-tr {
-    border: 2em solid #CCC;
+tr.topdate td {
+    border-top: 2px solid black;
 }
 th {
     font-weight: bold;
@@ -24,12 +24,9 @@ td {
     padding: .6em;
 }
 
-tr:hover:not(.header), tr.highlighted{
+tr:hover:not(.header) td:not(.date), tr.highlighted td {
     background: #00ffff55;
     cursor: pointer;
-}
-tr:hover td, tr.highlighted td {
-    background: transparent;
 }
 
 svg {
