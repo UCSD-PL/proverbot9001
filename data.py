@@ -43,10 +43,10 @@ def read_text_data(data_path : str,  max_size:int=None) -> RawDataset:
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
     return [(context, tactic)
-            for ((context, tactic), (old_context, old_tactic)) in
-            zip(data, [("","")] + data)
+            for ((context, tactic), (next_context, next_tactic)) in
+            zip(data, data[1:])
             if pair_filter({"goal": context}, tactic,
-                           {"goal": old_context}, old_tactic)]
+                           {"goal": next_context})]
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],

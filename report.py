@@ -27,9 +27,9 @@ import tokenizer
 
 from helper import *
 from util import *
+from context_filter import context_filters
 
 from syntax import syntax_highlight, strip_comments
-from helper import load_commands_preserve
 
 from predict_tactic import predictors, loadPredictor
 from models.tactic_predictor import TacticPredictor
@@ -282,7 +282,7 @@ class FileResult:
 class Worker(threading.Thread):
     def __init__(self, workerid : int, coqargs : List[str], includes : str,
                  output_dir : str, prelude : str, debug : bool, num_jobs : int,
-                 baseline=False) -> None:
+                 baseline : bool, context_filter : str) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -292,6 +292,7 @@ class Worker(threading.Thread):
         self.debug = debug
         self.num_jobs = num_jobs
         self.baseline = baseline
+        self.cfilter = context_filters[context_filter]
         pass
 
     def get_commands(self, filename : str) -> List[str]:
@@ -357,13 +358,17 @@ class Worker(threading.Thread):
                                                               actual_result_context,
                                                               prediction_run)
                                           for prediction_run in prediction_runs]
-                    fresult.add_command_result(
-                        [pred for pred, ctxt, ex in prediction_runs],
-                        [grade for pred, grade in prediction_results],
-                        command, loss)
+                    if self.cfilter({"goal": format_goal(goals)}, command,
+                                    {"goal": actual_result_context}):
+                        fresult.add_command_result(
+                            [pred for pred, ctxt, ex in prediction_runs],
+                            [grade for pred, grade in prediction_results],
+                            command, loss)
 
-                    command_results.append((command, hyps, goals,
-                                            prediction_results))
+                        command_results.append((command, hyps, goals,
+                                                prediction_results))
+                    else:
+                        command_results.append((command,))
                 else:
                     try:
                         coq.run_stmt(command)
@@ -514,6 +519,10 @@ def main(arg_list : List[str]) -> None:
                         help="run in baseline mode, predicting {} every time"
                         .format(baseline_tactic),
                         default=False, const=True, action='store_const')
+    parser.add_argument('--no-context-filter',
+                        help="Don't filter data pairs the way it was done in training.",
+                        dest="use_context_filter",
+                        default=False, const=False, action='store_const')
     parser.add_argument('--weightsfile', default="pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
@@ -549,7 +558,9 @@ def main(arg_list : List[str]) -> None:
     for idx in range(args.threads):
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
-                        args.baseline)
+                        args.baseline,
+                        dict(net.getOptions())["context filter"]
+                        if args.use_context_filter else "all")
         worker.start()
         workers.append(worker)
 
