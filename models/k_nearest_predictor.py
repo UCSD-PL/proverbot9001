@@ -184,6 +184,8 @@ class KNNPredictor(TacticPredictor):
         self.bst = checkpoint["tree"]
         assert checkpoint["num-samples"]
         self.num_samples = checkpoint["num-samples"]
+        assert checkpoint["context-filter"]
+        self.context_filter = checkpoint["context-filter"]
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
@@ -191,6 +193,7 @@ class KNNPredictor(TacticPredictor):
                 ("# tactics (stems)", self.embedding.num_tokens()),
                 ("# samples used", self.num_samples),
                 ("tokenizer", self.tokenizer_name),
+                ("context filter", self.context_filter),
         ]
 
     def __init__(self, options : Dict[str, Any]) -> None:
@@ -258,7 +261,8 @@ def main(args_list : List[str]) -> None:
                     'tokenizer': tokenizer,
                     'tokenizer-name': args.tokenizer,
                     'tree': bst,
-                    'num-samples': len(samples)}, f)
+                    'num-samples': len(samples),
+                    'context-filter': args.context_fitler}, f)
     print("Saved.")
 
 def filterNones(lst : List[Optional[T]]) -> List[T]:

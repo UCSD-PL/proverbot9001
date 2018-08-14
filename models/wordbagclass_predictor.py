@@ -118,6 +118,7 @@ def main(args_list : List[str]) -> None:
                      ("dataset size", str(len(samples))),
                      ("optimizer", args.optimizer),
                      ("training loss", "{:10.2f}".format(loss)),
+                     ("context filter", args.context_filter),
                  ]}
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".

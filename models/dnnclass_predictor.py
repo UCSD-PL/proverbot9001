@@ -44,6 +44,7 @@ class DNNClassPredictor(TacticPredictor):
             ("optimizer", args.optimizer),
             ("gamma", args.gamma),
             ("epoch step", args.epoch_step),
+            ("context filter", args.context_filter),
         ]
 
         self.tokenizer = checkpoint['tokenizer']

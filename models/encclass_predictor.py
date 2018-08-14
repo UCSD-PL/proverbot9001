@@ -39,6 +39,7 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['num-keywords']
         assert checkpoint['learning-rate']
         assert checkpoint['epoch']
+        assert checkpoint['context-filter']
 
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
@@ -46,7 +47,8 @@ class EncClassPredictor(TacticPredictor):
                         ("hidden size", checkpoint['hidden-size']),
                         ("# keywords", checkpoint['num-keywords']),
                         ("learning rate", checkpoint['learning-rate']),
-                        ("epoch", checkpoint['epoch'])
+                        ("epoch", checkpoint['epoch']),
+                        ("context filter", checkpoint['context-filter']),
         ]
 
         self.tokenizer = checkpoint['tokenizer']
@@ -258,6 +260,7 @@ def main(arg_list : List[str]) -> None:
                  'max-length': args.max_length,
                  'hidden-size' : args.hidden_size,
                  'num-keywords' : args.num_keywords,
+                 'context-filter' : args.context_filter,
         }
         with open(args.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".
