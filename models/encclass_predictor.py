@@ -15,13 +15,14 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
+from torch.optim import Optimizer
 import torch.optim.lr_scheduler as scheduler
 import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
 from models.tactic_predictor import TacticPredictor
-from typing import Dict, List, Union, Any, Tuple, Iterable, cast
+from typing import Dict, List, Union, Any, Tuple, Iterable, cast, Callable
 
 class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
@@ -35,6 +36,7 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['hidden-size']
         assert checkpoint['num-keywords']
         assert checkpoint['learning-rate']
+        assert checkpoint['epoch']
 
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
@@ -42,6 +44,7 @@ class EncClassPredictor(TacticPredictor):
                         ("hidden size", checkpoint['hidden-size']),
                         ("# keywords", checkpoint['num-keywords']),
                         ("learning rate", checkpoint['learning-rate']),
+                        ("epoch", checkpoint['epoch'])
         ]
 
         self.tokenizer = checkpoint['tokenizer']
@@ -135,7 +138,8 @@ def train(dataset : ClassifySequenceDataset,
           input_vocab_size : int, output_vocab_size : int, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           max_length : int, num_epochs : int, batch_size : int,
-          print_every : int) -> Iterable[Checkpoint]:
+          print_every : int, optimizer_f : Callable[..., Optimizer]) \
+          -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
     in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
     out_stream = [datum[1] for datum in dataset]
@@ -148,7 +152,7 @@ def train(dataset : ClassifySequenceDataset,
         RNNClassifier(input_vocab_size, hidden_size, output_vocab_size,
                       num_encoder_layers,
                       batch_size=batch_size))
-    optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
+    optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
     adjuster = scheduler.StepLR(optimizer, 5, gamma=0.5)
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
@@ -193,6 +197,11 @@ def train(dataset : ClassifySequenceDataset,
 def exit_early(signal, frame):
     sys.exit(0)
 
+optimizers = {
+    "SGD": optim.SGD,
+    "Adam": optim.Adam,
+}
+
 def take_args(args) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=
                                      "pytorch model for proverbot")
@@ -210,6 +219,9 @@ def take_args(args) -> argparse.Namespace:
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
+    parser.add_argument("--optimizer",
+                        choices=list(optimizers.keys()), type=str,
+                        default=list(optimizers.keys())[0])
     parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
     return parser.parse_args(args)
 
@@ -227,7 +239,7 @@ def main(arg_list : List[str]) -> None:
                         args.hidden_size,
                         args.learning_rate, args.num_encoder_layers,
                         args.max_length, args.num_epochs, args.batch_size,
-                        args.print_every)
+                        args.print_every, optimizers[args.optimizer])
 
     for epoch, encoder_state in enumerate(checkpoints):
         state = {'epoch':epoch,
