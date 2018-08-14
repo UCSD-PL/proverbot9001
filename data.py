@@ -7,6 +7,7 @@ import re
 
 from typing import Tuple, List, Callable
 from util import *
+from context_filter import ContextFilter
 
 Sentence = List[int]
 Bag = List[int]
@@ -40,6 +41,13 @@ def read_text_data(data_path : str,  max_size:int=None) -> RawDataset:
     assert len(data_set) > 0
     return data_set
 
+def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
+    return [(context, tactic)
+            for ((context, tactic), (old_context, old_tactic)) in
+            zip(data, [("","")] + data)
+            if pair_filter({"goal": context}, tactic,
+                           {"goal": old_context}, old_tactic)]
+
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
                         tactic_tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -54,9 +62,7 @@ def encode_seq_seq_data(data : RawDataset,
     tactic_tokenizer = tactic_tokenizer_type(tactic_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
-              for context, tactic in data
-              if (not re.match("[\{\}\+\-\*].*", tactic) and
-                  not re.match(".*;.*", tactic))]
+              for context, tactic in data]
     context_tokenizer.freezeTokenList()
     tactic_tokenizer.freezeTokenList()
     return result, context_tokenizer, tactic_tokenizer
@@ -70,9 +76,7 @@ def encode_seq_classify_data(data : RawDataset,
     keywords = get_topk_keywords([context for context, tactic in data], num_keywords)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
-              for context, tactic in data
-              if (not re.match("[\{\}\+\-\*].*", tactic) and
-                  not re.match(".*;.*", tactic))]
+              for context, tactic in data]
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 

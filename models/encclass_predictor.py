@@ -8,8 +8,10 @@ import threading
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
-from data import read_text_data, encode_seq_classify_data, ClassifySequenceDataset
+from data import read_text_data, filter_data, \
+    encode_seq_classify_data, ClassifySequenceDataset
 from util import *
+from context_filter import context_filters
 
 import torch
 import torch.nn as nn
@@ -216,13 +218,16 @@ def take_args(args) -> argparse.Namespace:
                         default=.4, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
                         default=3, type=int)
+    parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
     parser.add_argument("--optimizer",
                         choices=list(optimizers.keys()), type=str,
                         default=list(optimizers.keys())[0])
-    parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
+    parser.add_argument("--context-filter", dest="context_filter",
+                        choices=list(context_filters.keys()), type=str,
+                        default=list(context_filters.keys())[0])
     return parser.parse_args(args)
 
 def main(arg_list : List[str]) -> None:
@@ -231,7 +236,8 @@ def main(arg_list : List[str]) -> None:
     print("Reading dataset...")
 
     raw_data = read_text_data(args.scrape_file)
-    dataset, tokenizer, embedding = encode_seq_classify_data(raw_data,
+    filtered_data = filter_data(raw_data, context_filters[args.context_filter])
+    dataset, tokenizer, embedding = encode_seq_classify_data(filtered_data,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
 

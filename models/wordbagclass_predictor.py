@@ -14,7 +14,9 @@ import torch.utils.data as data
 from models.tactic_predictor import TacticPredictor
 
 from tokenizer import tokenizers
-from data import read_text_data, encode_bag_classify_data, encode_bag_classify_input
+from data import read_text_data, filter_data, \
+    encode_bag_classify_data, encode_bag_classify_input
+from context_filter import context_filters
 from util import *
 
 class WordBagClassifyPredictor(TacticPredictor):
@@ -83,13 +85,17 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
     parser.add_argument("--optimizer", default="SGD",
                         choices=list(optimizers.keys()), type=str)
+    parser.add_argument("--context-filter", dest="context_filter",
+                        choices=list(context_filters.keys()), type=str,
+                        default=list(context_filters.keys())[0])
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
     print("Loading dataset...")
 
     raw_dataset = read_text_data(args.scrape_file)
-    samples, tokenizer, embedding = encode_bag_classify_data(raw_dataset,
+    filtered_dataset = filter_data(raw_dataset, context_filters[args.context_filter])
+    samples, tokenizer, embedding = encode_bag_classify_data(filtered_dataset,
                                                              tokenizers["char-fallback"],
                                                              100, 2)
 
