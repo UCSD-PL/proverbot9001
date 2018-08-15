@@ -42,6 +42,7 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['context-filter']
 
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
+                        ("optimizer", checkpoint['optimizer']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
                         ("input length", checkpoint['max-length']),
                         ("hidden size", checkpoint['hidden-size']),
@@ -253,6 +254,7 @@ def main(arg_list : List[str]) -> None:
         state = {'epoch':epoch,
                  'tokenizer':tokenizer,
                  'tokenizer-name':args.tokenizer,
+                 'optimizer':args.optimizer,
                  'learning-rate':args.learning_rate,
                  'embedding': embedding,
                  'neural-encoder':encoder_state,
