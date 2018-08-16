@@ -411,11 +411,15 @@ class SerapiInstance(threading.Thread):
 
     def get_goals(self) -> str:
         assert isinstance(self.proof_context, str)
+        if self.proof_context == "":
+            return ""
         split = re.split("\n======+\n", self.proof_context)
         return split[1]
 
     def get_hypothesis(self) -> str:
         assert isinstance(self.proof_context, str)
+        if self.proof_context == "":
+            return ""
         return re.split("\n======+\n", self.proof_context)[0]
 
     def get_proof_context(self) -> None:

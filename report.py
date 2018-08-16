@@ -348,6 +348,8 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
+                        actual_result_goal = coq.get_goals()
+                        actual_result_hypothesis = coq.get_hypothesis()
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError, TimeoutError):
@@ -358,8 +360,12 @@ class Worker(threading.Thread):
                                                               actual_result_context,
                                                               prediction_run)
                                           for prediction_run in prediction_runs]
-                    if self.cfilter({"goal": format_goal(goals)}, command,
-                                    {"goal": actual_result_context}):
+                    if self.cfilter({"goal": format_goal(goals),
+                                     "hyps": format_hypothesis(hyps)},
+                                    command,
+                                    {"goal": format_goal(actual_result_goal),
+                                     "hyps":
+                                     format_hypothesis(actual_result_hypothesis)}):
                         fresult.add_command_result(
                             [pred for pred, ctxt, ex in prediction_runs],
                             [grade for pred, grade in prediction_results],
@@ -522,7 +528,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--no-context-filter',
                         help="Don't filter data pairs the way it was done in training.",
                         dest="use_context_filter",
-                        default=False, const=False, action='store_const')
+                        default=True, const=False, action='store_const')
     parser.add_argument('--weightsfile', default="pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")

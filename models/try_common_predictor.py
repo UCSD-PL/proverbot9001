@@ -9,7 +9,7 @@ from typing import Dict, Any, List
 
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
-from format import read_pair
+from format import read_tuple
 from util import *
 
 class TryCommonPredictor(TacticPredictor):
@@ -32,11 +32,11 @@ class TryCommonPredictor(TacticPredictor):
 def read_scrapefile(filename, embedding):
     dataset = []
     with open(filename, 'r') as scrapefile:
-        pair = read_pair(scrapefile)
+        t = read_tuple(scrapefile)
         while pair:
-            context, tactic = pair
+            hyps, context, tactic = t
             dataset.append(embedding.encode_token(get_stem(tactic)))
-            pair = read_pair(scrapefile)
+            t = read_tuple(scrapefile)
     return dataset
 
 def train(arg_list : List[str]) -> None:

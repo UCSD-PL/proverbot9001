@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from tokenizer import Tokenizer, TokenizerState, get_topk_keywords
-from format import read_pair
+from format import read_tuple
 from models.components import SimpleEmbedding
 import re
 
@@ -11,7 +11,7 @@ from context_filter import ContextFilter
 
 Sentence = List[int]
 Bag = List[int]
-RawDataset = List[Tuple[str, str]]
+RawDataset = List[Tuple[List[str], str, str]]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
@@ -31,22 +31,22 @@ def extend(vector : List[int], length : int):
 def read_text_data(data_path : str,  max_size:int=None) -> RawDataset:
     data_set = []
     with open(data_path, mode="r") as data_file:
-        pair = read_pair(data_file)
+        t = read_tuple(data_file)
         counter = 0
-        while pair and (not max_size or counter < max_size):
-            context, tactic = pair
+        while t and (not max_size or counter < max_size):
+            hyps, context, tactic = t
             counter += 1
-            data_set.append((context, tactic))
-            pair = read_pair(data_file)
+            data_set.append((hyps, context, tactic))
+            t = read_tuple(data_file)
     assert len(data_set) > 0
     return data_set
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
-    return [(context, tactic)
-            for ((context, tactic), (next_context, next_tactic)) in
+    return [(hyps, goal, tactic)
+            for ((hyps, goal, tactic), (next_hyps, next_goal, next_tactic)) in
             zip(data, data[1:])
-            if pair_filter({"goal": context}, tactic,
-                           {"goal": next_context})]
+            if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
+                           {"goal": next_goal, "hyps" : next_hyps})]
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -54,15 +54,15 @@ def encode_seq_seq_data(data : RawDataset,
                         num_keywords : int,
                         num_reserved_tokens : int) \
     -> Tuple[SequenceSequenceDataset, Tokenizer, Tokenizer]:
-    context_keywords = get_topk_keywords([context for context, tactic in data],
+    context_keywords = get_topk_keywords([context for hyps, context, tactic in data],
                                          num_keywords)
-    tactic_keywords = get_topk_keywords([tactic for context, tactic in data],
+    tactic_keywords = get_topk_keywords([tactic for hyps, context, tactic in data],
                                         num_keywords)
     context_tokenizer = context_tokenizer_type(context_keywords, num_reserved_tokens)
     tactic_tokenizer = tactic_tokenizer_type(tactic_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
-              for context, tactic in data]
+              for hyps, context, tactic in data]
     context_tokenizer.freezeTokenList()
     tactic_tokenizer.freezeTokenList()
     return result, context_tokenizer, tactic_tokenizer
@@ -73,10 +73,10 @@ def encode_seq_classify_data(data : RawDataset,
                              num_reserved_tokens : int) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    keywords = get_topk_keywords([context for context, tactic in data], num_keywords)
+    keywords = get_topk_keywords([context for hyps, context, tactic in data], num_keywords)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
-              for context, tactic in data]
+              for hyps, context, tactic in data]
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 

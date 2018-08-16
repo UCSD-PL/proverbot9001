@@ -1,23 +1,36 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Callable
+from typing import Dict, Callable, Union, List
 import re
 
-ContextFilter = Callable[[Dict[str, str], str,
-                          Dict[str, str]], bool]
+ContextData = Dict[str, Union[str, List[str]]]
+ContextFilter = Callable[[ContextData, str, ContextData], bool]
 
-def no_compound_or_bullets(in_data : Dict[str, str], tactic : str,
-                           next_in_data : Dict[str, str]) -> bool:
+def filter_and(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
+    return lambda in_data, tactic, next_in_data: (f1(in_data, tactic, next_in_data) and
+                                                  f2(in_data, tactic, next_in_data))
+def filter_or(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
+    return lambda in_data, tactic, next_in_data: (f1(in_data, tactic, next_in_data) or
+                                                  f2(in_data, tactic, next_in_data))
+
+def no_compound_or_bullets(in_data : ContextData, tactic : str,
+                           next_in_data : ContextData) -> bool:
     return (not re.match("[\{\}\+\-\*].*", tactic) and
             not re.match(".*;.*", tactic))
 
-def goal_changed(in_data : Dict[str, str], tactic : str,
-                 next_in_data : Dict[str, str]) -> bool:
-    return (in_data["goal"] != next_in_data["goal"] and
-            no_compound_or_bullets(in_data, tactic, next_in_data))
+def goal_changed(in_data : ContextData, tactic : str,
+                 next_in_data : ContextData) -> bool:
+    return in_data["goal"] != next_in_data["goal"]
+
+def hyps_changed(in_data : ContextData, tactic : str,
+                 next_in_data : ContextData) -> bool:
+    return in_data["hyps"] != next_in_data["hyps"]
 
 context_filters : Dict[str, ContextFilter] = {
     "default": no_compound_or_bullets,
     "all": lambda *args: True,
-    "goal-changes": goal_changed,
+    "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
+    "hyps-change": filter_and(hyps_changed, no_compound_or_bullets),
+    "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
+                                   no_compound_or_bullets),
 }
