@@ -212,7 +212,7 @@ def take_args(args) -> argparse.Namespace:
                                      "pytorch model for proverbot")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
-    parser.add_argument("--num-epochs", dest="num_epochs", default=50, type=int)
+    parser.add_argument("--num-epochs", dest="num_epochs", default=15, type=int)
     parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
     parser.add_argument("--max-length", dest="max_length", default=100, type=int)
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
