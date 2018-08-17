@@ -529,7 +529,7 @@ def main(arg_list : List[str]) -> None:
                         help="Don't filter data pairs the way it was done in training.",
                         dest="use_context_filter",
                         default=True, const=False, action='store_const')
-    parser.add_argument('--weightsfile', default="pytorch-weights.tar")
+    parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(arg_list)
