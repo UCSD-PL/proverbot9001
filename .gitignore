@@ -11,3 +11,4 @@
 /coq-menhirlib/
 scrape.txt
 report*
+*weights*
