@@ -11,6 +11,7 @@ while [ -L "$src" ]; do
   [[ $src != /* ]] && src="$dir/$src"
 done
 MYDIR="$(cd -P "$(dirname "$src")" && pwd)"
+cd $MYDIR
 
 if [ $# -eq 0 ]
 then
@@ -19,15 +20,15 @@ then
 fi
 
 weights=$(mktemp /tmp/proverbot-weights.XXX)
-outdir=$(mktemp -d $PWD/report-XXX)
+outdir=$(mktemp -d $PWD/../report-XXX)
 
 echo "Saving to weights $weights"
 echo "Saving report to $outdir"
 
 export TS_SOCKET=/tmp/graphicscard
 
-tsp -fn ./proverbot9001.py train "$@" scrape.txt "$weights" && \
-  make FLAGS="--predictor=$1 -o $outdir --weightsfile=$weights" report
+tsp -fn ./proverbot9001.py train "$@" ../data/scrape.txt "$weights" && \
+  make -C .. FLAGS="--predictor=$1 -o $outdir --weightsfile=$weights" report
 
 echo "$weights"
 echo "$outdir"

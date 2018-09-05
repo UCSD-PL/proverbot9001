@@ -36,7 +36,7 @@ from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
-base = os.path.dirname(os.path.abspath(__file__))
+base = os.path.dirname(os.path.abspath(__file__)) + "/.."
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
