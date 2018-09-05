@@ -12,3 +12,5 @@
 scrape.txt
 report*
 *weights*
+*.mypy_cache/*
+*/.mypy_cache/*
