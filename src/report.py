@@ -384,29 +384,8 @@ class Worker(threading.Thread):
                         raise
                     command_results.append((command,))
 
-        with open("{}/{}.csv".format(self.output_dir, fresult.details_filename()),
-                  'w', newline='') as csvfile:
-            rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
-            for row in command_results:
-                if len(row) == 1:
-                    rowwriter.writerow([re.sub("\n", "\\n", row[0])])
-                else:
-                    command, hyps, goal, prediction_results = \
-                        cast(Tuple[str, str, str, List[Tuple[str, str]]], row)
-                    first_pred, first_grade = prediction_results[0]
-                    if len(prediction_results) >= 2:
-                        second_pred, second_grade = prediction_results[1]
-                    else:
-                        second_pred, second_grade = "", ""
-                    if len(prediction_results) >= 3:
-                        third_pred, third_grade = prediction_results[2]
-                    else:
-                        third_pred, third_grade = "", ""
-                    rowwriter.writerow([re.sub("\n", "\\n", item) for item in
-                                        [command, hyps, goal,
-                                         first_pred, first_grade,
-                                         second_pred, second_grade,
-                                         third_pred, third_grade]])
+        write_csv(fresult.details_filename(), self.output_dir,
+                  gresult.options, command_results)
 
         doc, tag, text, line = Doc().ttl()
 
@@ -574,6 +553,29 @@ def main(arg_list : List[str]) -> None:
         finished_id = finished_queue.get()
         workers[finished_id].join()
         print("Thread {} finished ({} of {}).".format(finished_id, idx + 1, args.threads))
+
+TacticResult = Tuple[str, str, str, List[Tuple[str, str, float]]]
+CommandResult = Union[Tuple[str], TacticResult]
+
+def write_csv(base_filename : str, output_dir : str,
+              options : List[Tuple[str, str]], command_results : List[CommandResult]):
+    with open("{}/{}.csv".format(output_dir, base_filename),
+              'w', newline='') as csvfile:
+        for k, v in options:
+            csvfile.write("# {}: {}".format(k, v))
+
+        rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
+        for row in command_results:
+            if len(row) == 1:
+                rowwriter.writerow([re.sub("\n", "\\n", row[0])])
+            else:
+                # Type hack
+                command, hyps, goal, prediction_results = cast(TacticResult, row)
+                rowwriter.writerow([re.sub("\n", "\\n", item) for item in
+                                    [command, hyps, goal] +
+                                    [item
+                                     for prediction, grade, certainty in prediction_results
+                                     for item in [prediction, grade]]])
 
     ###
     ### Write the report page out
