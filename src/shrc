@@ -1,2 +1,2 @@
 
-export MYPYPATH=pytorch-types
+export MYPYPATH=../pytorch-types:../mypy-data/numpy-mypy
