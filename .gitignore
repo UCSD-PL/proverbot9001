@@ -9,7 +9,8 @@
 *.swp
 *.vo
 /coq-menhirlib/
-scrape.txt
+/data/scrape.txt
+/data/scrape.bkp
 report*
 *weights*
 *.mypy_cache/*
