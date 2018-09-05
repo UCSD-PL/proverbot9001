@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from tokenizer import Tokenizer, TokenizerState, get_topk_keywords
+from tokenizer import Tokenizer, TokenizerState, get_topk_keywords, get_relevant_k_keywords
 from format import read_tuple
 from models.components import SimpleEmbedding
 import re
@@ -73,7 +73,9 @@ def encode_seq_classify_data(data : RawDataset,
                              num_reserved_tokens : int) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    keywords = get_topk_keywords([context for hyps, context, tactic in data], num_keywords)
+    keywords = get_relevant_k_keywords([(context, embedding.encode_token(get_stem(tactic)))
+                                        for hyps, context, tactic in data][:1000],
+                                       num_keywords)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
               for hyps, context, tactic in data]
