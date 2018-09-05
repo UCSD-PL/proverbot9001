@@ -40,6 +40,7 @@ class EncClassPredictor(TacticPredictor):
         assert checkpoint['learning-rate']
         assert checkpoint['epoch']
         assert checkpoint['context-filter']
+        assert checkpoint['training-loss']
 
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("optimizer", checkpoint['optimizer']),
@@ -49,6 +50,7 @@ class EncClassPredictor(TacticPredictor):
                         ("# keywords", checkpoint['num-keywords']),
                         ("learning rate", checkpoint['learning-rate']),
                         ("epoch", checkpoint['epoch']),
+                        ("training loss", checkpoint['training-loss']),
                         ("context filter", checkpoint['context-filter']),
         ]
 
