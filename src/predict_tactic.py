@@ -20,4 +20,8 @@ predictors = {
 }
 
 def loadPredictor(options : Dict[str, Union[int, str]], predictor_type) -> TacticPredictor:
-    return predictors[predictor_type](options)
+    # Silencing the type checker on this line because the "real" type
+    # of the predictors dictionary is "string to classes constructors
+    # that derive from TacticPredictor, but are not tactic
+    # predictor". But I don't know how to specify that.
+    return predictors[predictor_type](options) # type: ignore
