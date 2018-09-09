@@ -554,6 +554,9 @@ def main(arg_list : List[str]) -> None:
         workers[finished_id].join()
         print("Thread {} finished ({} of {}).".format(finished_id, idx + 1, args.threads))
 
+    write_summary(args.output, num_jobs, cur_commit,
+                  args.message, args.baseline, cur_date, gresult)
+
 TacticResult = Tuple[str, str, str, List[Tuple[str, str, float]]]
 CommandResult = Union[Tuple[str], TacticResult]
 
@@ -577,6 +580,10 @@ def write_csv(base_filename : str, output_dir : str,
                                      for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])
 
+def write_summary(output_dir : str, num_jobs : int, cur_commit : str,
+                  message : str, baseline : bool, cur_date :
+                  datetime.datetime, gresult : GlobalResult):
+
     ###
     ### Write the report page out
     ###
@@ -590,10 +597,10 @@ def write_csv(base_filename : str, output_dir : str,
                 text("{} files processed".format(num_jobs))
             with tag('h5'):
                 text("Commit: {}".format(cur_commit))
-            if args.message:
+            if message:
                 with tag('h5'):
-                    text("Message: {}".format(args.message))
-            if args.baseline:
+                    text("Message: {}".format(message))
+            if baseline:
                 with tag('h5'):
                     text("Baseline build!! Always predicting {}".format(baseline_tactic))
             with tag('h5'):
@@ -607,7 +614,7 @@ def write_csv(base_filename : str, output_dir : str,
     extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
     for filename in extra_files:
-        copy(base + "/reports/" + filename, args.output + "/" + filename)
+        copy(base + "/reports/" + filename, output_dir + "/" + filename)
 
-    with open("{}/report.html".format(args.output), "w") as fout:
+    with open("{}/report.html".format(output_dir), "w") as fout:
         fout.write(doc.getvalue())
