@@ -139,7 +139,7 @@ class RNNClassifier(nn.Module):
             output, hidden = self(in_var[:,i], hidden)
         return output
 
-Checkpoint = Dict[Any, Any]
+Checkpoint = Tuple[Dict[Any, Any], float]
 
 def train(dataset : ClassifySequenceDataset,
           input_vocab_size : int, output_vocab_size : int, hidden_size : int,
@@ -161,7 +161,7 @@ def train(dataset : ClassifySequenceDataset,
                       batch_size=batch_size))
     optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, 5, gamma=0.5)
+    adjuster = scheduler.StepLR(optimizer, 5, gamma=0.9)
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     start=time.time()
@@ -199,7 +199,7 @@ def train(dataset : ClassifySequenceDataset,
                              items_processed, progress * 100,
                              total_loss / items_processed))
 
-        yield encoder.state_dict()
+        yield (encoder.state_dict(), total_loss / items_processed)
 
 def exit_early(signal, frame):
     sys.exit(0)
@@ -241,10 +241,17 @@ def main(arg_list : List[str]) -> None:
     print("Reading dataset...")
 
     raw_data = read_text_data(args.scrape_file)
+    print("Read {} raw input-output pairs".format(len(raw_data)))
+    print("Filtering data based on predicate...")
     filtered_data = filter_data(raw_data, context_filters[args.context_filter])
+    print("{} input-output pairs left".format(len(filtered_data)))
+    print("Encoding data...")
+    start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(filtered_data,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
+    timeTaken = time.time() - start
+    print("Encoded data in {:.2f}".format(timeTaken))
 
     checkpoints = train(dataset, tokenizer.numTokens(), embedding.num_tokens(),
                         args.hidden_size,
@@ -252,8 +259,9 @@ def main(arg_list : List[str]) -> None:
                         args.max_length, args.num_epochs, args.batch_size,
                         args.print_every, optimizers[args.optimizer])
 
-    for epoch, encoder_state in enumerate(checkpoints):
+    for epoch, (encoder_state, training_loss) in enumerate(checkpoints):
         state = {'epoch':epoch,
+                 'training-loss': training_loss,
                  'tokenizer':tokenizer,
                  'tokenizer-name':args.tokenizer,
                  'optimizer':args.optimizer,
