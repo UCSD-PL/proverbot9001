@@ -104,11 +104,11 @@ def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tu
 def evaluate_prediction(fresult : 'FileResult',
                         correct_command : str,
                         correct_result_context : str,
-                        prediction_run : Tuple[str, str, Optional[Exception]]) -> Tuple[str, str]:
+                        prediction_run : Tuple[str, str, Optional[Exception]]) -> str:
     prediction, context, exception = prediction_run
     grade = fresult.grade_command_result(prediction, context, correct_command,
                                          correct_result_context, exception)
-    return (prediction, grade)
+    return grade
 
 class GlobalResult:
     def __init__(self, options : List[Tuple[str, str]]) -> None:
@@ -356,10 +356,13 @@ class Worker(threading.Thread):
                         print("In file {}:".format(filename))
                         raise
 
-                    prediction_results = [evaluate_prediction(fresult, command,
-                                                              actual_result_context,
-                                                              prediction_run)
-                                          for prediction_run in prediction_runs]
+                    prediction_results = [(prediction,
+                                           evaluate_prediction(fresult, command,
+                                                               actual_result_context,
+                                                               prediction_run))
+                                          for prediction_run, prediction in
+                                          zip(prediction_runs,
+                                              predictions)]
                     if self.cfilter({"goal": format_goal(goals),
                                      "hyps": format_hypothesis(hyps)},
                                     command,
@@ -577,7 +580,7 @@ def write_csv(base_filename : str, output_dir : str,
                 rowwriter.writerow([re.sub("\n", "\\n", item) for item in
                                     [command, hyps, goal] +
                                     [item
-                                     for prediction, grade, certainty in prediction_results
+                                     for prediction, grade in prediction_results
                                      for item in [prediction, grade]]])
 
 def write_summary(output_dir : str, num_jobs : int, cur_commit : str,
