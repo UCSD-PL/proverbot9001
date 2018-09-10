@@ -334,11 +334,13 @@ class Worker(threading.Thread):
                     if self.baseline:
                         predictions = [baseline_tactic + "."] * num_predictions
                     else:
-                        predictions, loss = net.predictKTacticsWithLoss(
+                        predictions_and_certainties, loss = net.predictKTacticsWithLoss(
                             {"goal" : format_goal(goals),
                              "hyps" : format_hypothesis(hyps)},
                             num_predictions,
-                            command);
+                            command)
+                        predictions = [prediction for prediction, certainty in
+                                       predictions_and_certainties]
 
                     prediction_runs = [run_prediction(coq, prediction) for
                                        prediction in predictions]

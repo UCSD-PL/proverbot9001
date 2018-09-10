@@ -76,17 +76,17 @@ class EncClassPredictor(TacticPredictor):
             .view(1, -1)
         return self.encoder.run(in_sentence)
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[Tuple[str, float]]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
-        _, stem_idxs = prediction_distribution.view(-1).topk(k)
-        result = [self.embedding.decode_token(stem_idx.data[0]) + "."
-                  for stem_idx in stem_idxs]
+        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".", certainty)
+                  for certainty, stem_idx in certainties_and_idxs]
         self.lock.release()
-        return result
+        return results
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
-                                correct : str) -> Tuple[List[str], float]:
+                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)
@@ -97,12 +97,12 @@ class EncClassPredictor(TacticPredictor):
         else:
             loss = 0
 
-        _, stem_idxs = prediction_distribution.view(-1).topk(k)
-        predictions = [self.embedding.decode_token(stem_idx.data[0]) + "."
-                       for stem_idx in stem_idxs]
+        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".", certainty)
+                   for certainty, stem_idx in zip(*certainties_and_idxs)]
 
         self.lock.release()
-        return predictions, loss
+        return results, loss
 
     def getOptions(self) -> List[Tuple[str, str]]:
         return self.options
