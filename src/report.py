@@ -316,9 +316,7 @@ class Worker(threading.Thread):
             print("Preprocessing...")
         commands = self.get_commands(filename)
 
-        command_results : List[Union[Tuple[str],
-                                     Tuple[str, str, str,
-                                           List[Tuple[str, str]]]]] = []
+        command_results : List[CommandResult] = []
 
         with serapi_instance.SerapiContext(self.coqargs,
                                            self.includes,
