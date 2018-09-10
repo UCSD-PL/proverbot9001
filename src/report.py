@@ -332,18 +332,18 @@ class Worker(threading.Thread):
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
                     if self.baseline:
-                        predictions = [baseline_tactic + "."] * num_predictions
+                        predictions_and_certanties = [baseline_tactic + ".", 1] \
+                                                     * num_predictions
                     else:
                         predictions_and_certainties, loss = net.predictKTacticsWithLoss(
                             {"goal" : format_goal(goals),
                              "hyps" : format_hypothesis(hyps)},
                             num_predictions,
                             command)
-                        predictions = [prediction for prediction, certainty in
-                                       predictions_and_certainties]
 
                     prediction_runs = [run_prediction(coq, prediction) for
-                                       prediction in predictions]
+                                       prediction, certainty in
+                                       predictions_and_certainties]
 
                     try:
                         coq.run_stmt(command)
@@ -360,9 +360,9 @@ class Worker(threading.Thread):
                                            evaluate_prediction(fresult, command,
                                                                actual_result_context,
                                                                prediction_run))
-                                          for prediction_run, prediction in
+                                          for prediction_run, (prediction, certainty) in
                                           zip(prediction_runs,
-                                              predictions)]
+                                              predictions_and_certainties)]
                     if self.cfilter({"goal": format_goal(goals),
                                      "hyps": format_hypothesis(hyps)},
                                     command,
@@ -560,7 +560,7 @@ def main(arg_list : List[str]) -> None:
     write_summary(args.output, num_jobs, cur_commit,
                   args.message, args.baseline, cur_date, gresult)
 
-TacticResult = Tuple[str, str, str, List[Tuple[str, str, float]]]
+TacticResult = Tuple[str, str, str, List[Tuple[str, str]]]
 CommandResult = Union[Tuple[str], TacticResult]
 
 def write_csv(base_filename : str, output_dir : str,
