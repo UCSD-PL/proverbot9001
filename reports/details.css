@@ -57,6 +57,11 @@ code {
 }
 #predicted .tactic {
     font-size: 20pt;
+    display: inline;
+}
+
+#predicted .certainty {
+    display: inline;
 }
 
 #stats tt {

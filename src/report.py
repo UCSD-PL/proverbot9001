@@ -359,7 +359,8 @@ class Worker(threading.Thread):
                     prediction_results = [(prediction,
                                            evaluate_prediction(fresult, command,
                                                                actual_result_context,
-                                                               prediction_run))
+                                                               prediction_run),
+                                           certainty)
                                           for prediction_run, (prediction, certainty) in
                                           zip(prediction_runs,
                                               predictions_and_certainties)]
@@ -371,7 +372,7 @@ class Worker(threading.Thread):
                                      format_hypothesis(actual_result_hypothesis)}):
                         fresult.add_command_result(
                             [pred for pred, ctxt, ex in prediction_runs],
-                            [grade for pred, grade in prediction_results],
+                            [grade for pred, grade, certainty in prediction_results],
                             command, loss)
 
                         command_results.append((command, hyps, goals,
@@ -410,15 +411,11 @@ class Worker(threading.Thread):
                             text(command_result[0])
                     else:
                         command, hyps, goal, prediction_results = \
-                            cast(Tuple[str, str, str, List[Tuple[str, str]]],
-                                 command_result)
-                        predictions = [prediction for prediction, grade in
-                                       prediction_results]
-                        grades = [grade for prediction, grade in
-                                  prediction_results]
+                            cast(TacticResult, command_result)
+                        predictions, grades, certainties = zip(*prediction_results)
                         search_index = 0
                         for pidx, prediction_result in enumerate(prediction_results):
-                            prediction, grade = prediction_result
+                            prediction, grade, certainty = prediction_result
                             if (grade != "failedcommand" and
                                 grade != "superfailedcommand"):
                                 search_index = pidx
@@ -437,6 +434,8 @@ class Worker(threading.Thread):
                                   to_list_string([fresult.correctly_predicted_frequency
                                                   .get(get_stem(prediction), 0)
                                                   for prediction in predictions])),
+                                 ('data-certainties',
+                                  to_list_string(certainties)),
                                  ('data-num-actual-corrects',
                                   fresult.correctly_predicted_frequency
                                   .get(get_stem(command), 0)),
@@ -456,7 +455,7 @@ class Worker(threading.Thread):
                                  .format(idx)):
                             doc.stag("br")
                             for idx, prediction_result in enumerate(prediction_results):
-                                prediction, grade = prediction_result
+                                prediction, grade, certainty = prediction_result
                                 if search_index == idx:
                                     with tag('code', klass=grade):
                                         text(" " + command.strip())
@@ -560,7 +559,7 @@ def main(arg_list : List[str]) -> None:
     write_summary(args.output, num_jobs, cur_commit,
                   args.message, args.baseline, cur_date, gresult)
 
-TacticResult = Tuple[str, str, str, List[Tuple[str, str]]]
+TacticResult = Tuple[str, str, str, List[Tuple[str, str, float]]]
 CommandResult = Union[Tuple[str], TacticResult]
 
 def write_csv(base_filename : str, output_dir : str,
@@ -580,7 +579,7 @@ def write_csv(base_filename : str, output_dir : str,
                 rowwriter.writerow([re.sub("\n", "\\n", item) for item in
                                     [command, hyps, goal] +
                                     [item
-                                     for prediction, grade in prediction_results
+                                     for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])
 
 def write_summary(output_dir : str, num_jobs : int, cur_commit : str,

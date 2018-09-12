@@ -25,9 +25,15 @@ class TryCommonPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
-        probs, indices = list_topk(self.probabilities, k)
-        return [self.embedding.decode_token(idx) + "." for idx in indices]
+    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+        -> List[Tuple[str, float]]:
+        return [(self.embedding.decode_token(idx) + ".", prob) for prob, idx
+                in zip(*list_topk(self.probabilities, k))]
+    def predictKTacticsWithLoss(self, in_data : Dict[str, str],
+                                k : int, correct : str) -> \
+        Tuple[List[Tuple[str, float]], float]:
+        # Try common doesn't calculate a meaningful loss
+        return self.predictKTactics(in_data, k), 0
 
 def read_scrapefile(filename, embedding):
     dataset = []
@@ -64,4 +70,4 @@ T = TypeVar('T')
 def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
     l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
     lk = l[:k]
-    return reversed(list(zip(*lk)))
+    return zip(*reversed(lk))

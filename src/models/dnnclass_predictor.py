@@ -5,6 +5,7 @@ import argparse
 import time
 import sys
 import threading
+import math
 
 from tokenizer import Tokenizer, tokenizers
 from data import read_text_data, filter_data, \
@@ -68,15 +69,18 @@ class DNNClassPredictor(TacticPredictor):
             .view(1, -1)
         return self.network(in_vec)
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+        -> List[Tuple[str, float]]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
-        probs, indices = distribution.squeeze().topk(k)
-        result = [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        certainties_and_idxs = distribution.squeeze().topk(k)
+        results = [(self.embedding.decode_token(idx.data[0]) + ".",
+                    math.exp(certainty.data[0]))
+                   for certainty, idx in zip(*certainties_and_idxs)]
         self.lock.release()
-        return result
+        return results
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
-                                correct : str) -> Tuple[List[str], float]:
+                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
@@ -87,11 +91,13 @@ class DNNClassPredictor(TacticPredictor):
         else:
             loss = 0
 
-        probs, indices = distribution.squeeze().topk(k)
-        predictions = [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        certainties_and_idxs = distribution.squeeze().topk(k)
+        predictions_and_certainties = [(self.embedding.decode_token(idx.data[0]) + ".",
+                                        math.exp(certainty.data[0]))
+                                       for certainty, idx in certainties_and_idxs]
         self.lock.release()
 
-        return predictions, loss
+        return predictions_and_certainties, loss
     def getOptions(self) -> List[Tuple[str, str]]:
         return self.options
 

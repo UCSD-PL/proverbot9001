@@ -62,5 +62,5 @@ download-weights:
 	gzip -d data/pytorch-weights.tar.gz
 
 clean:
-	rm -r report-*
-	rm log*.txt
+	rm -rf report-*
+	rm -f log*.txt

@@ -5,6 +5,7 @@ import argparse
 import time
 import sys
 import threading
+import math
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
@@ -50,7 +51,7 @@ class EncClassPredictor(TacticPredictor):
                         ("# keywords", checkpoint['num-keywords']),
                         ("learning rate", checkpoint['learning-rate']),
                         ("epoch", checkpoint['epoch']),
-                        ("training loss", checkpoint['training-loss']),
+                        ("training loss", "{:.4f}".format(checkpoint['training-loss'])),
                         ("context filter", checkpoint['context-filter']),
         ]
 
@@ -80,7 +81,8 @@ class EncClassPredictor(TacticPredictor):
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".", certainty)
+        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
+                    math.exp(certainty.data[0]))
                   for certainty, stem_idx in certainties_and_idxs]
         self.lock.release()
         return results
@@ -98,7 +100,8 @@ class EncClassPredictor(TacticPredictor):
             loss = 0
 
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".", certainty)
+        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
+                    math.exp(certainty.data[0]))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
 
         self.lock.release()

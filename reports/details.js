@@ -27,6 +27,7 @@ function displayTacticInfo (idx) {
     tacSpan = document.getElementById("command-" + idx)
 
     predictions = from_list_string(tacSpan.dataset.predictions)
+    certainties = from_list_string(tacSpan.dataset.certainties)
     klasses = from_list_string(tacSpan.dataset.grades)
     predictedDiv = document.getElementById("predicted")
     linkLoc = window.location.protocol + "//" + window.location.hostname
@@ -39,6 +40,13 @@ function displayTacticInfo (idx) {
         predictionPre.classList.add('tactic')
         predictionPre.classList.add(klasses[i])
         predictedDiv.appendChild(predictionPre)
+        var predictedCertaintyP = document.createElement("p")
+        predictedCertaintyP.appendChild(document.createTextNode("(" + (certainties[i] * 100).toFixed(2) + "%)"))
+        predictedCertaintyP.classList.add('certainty')
+        predictedCertaintyP.classList.add(klasses[i])
+        predictedDiv.appendChild(predictedCertaintyP)
+        var br = document.createElement("br")
+        predictedDiv.appendChild(br)
     }
 
     hyps = tacSpan.dataset.hyps

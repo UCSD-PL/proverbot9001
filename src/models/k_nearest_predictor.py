@@ -200,7 +200,8 @@ class KNNPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictKTactics(self, in_data : Dict[str, str], k : int) -> \
+        List[Tuple[str, float]]:
         input_vector = encode_bag_classify_input(in_data["goal"], self.tokenizer)
 
         nearest = self.bst.findKNearest(input_vector, k)
@@ -209,10 +210,11 @@ class KNNPredictor(TacticPredictor):
             assert not pair is None
         predictions = [self.embedding.decode_token(output) + "."
                        for neighbor, output in nearest]
-        return predictions
+        return list(zip(predictions, (.5**i for i in itertools.count())))
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
-                                correct : str) -> Tuple[List[str], float]:
+                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+        # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
 
 def normalizeVector(dim_maxs : List[int], vec : List[int]) -> List[float]:

@@ -9,6 +9,7 @@ import signal
 import time
 import math
 import argparse
+import itertools
 
 from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
 from data import read_text_data, encode_seq_seq_data, Sentence, \
@@ -69,7 +70,8 @@ class EncDecRNNPredictor(TacticPredictor):
 
         pass
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictKTactics(self, in_data : Dict[str, str], k : int) -> \
+        List[Tuple[str, float]]:
         in_sentence = LongTensor(inputFromSentence(
             self.context_tokenizer.toTokenList(in_data["goal"]),
             self.max_length)).view(1, -1)
@@ -78,8 +80,8 @@ class EncDecRNNPredictor(TacticPredictor):
                                               feature_vector,
                                               self.beam_width,
                                               self.max_length)[:k]
-        return [self.tactic_tokenizer.toString(sentence)
-                for sentence in prediction_sentences]
+        return [(self.tactic_tokenizer.toString(sentence), .5 **i)
+                for sentence, i in zip(prediction_sentences, itertools.count())]
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,

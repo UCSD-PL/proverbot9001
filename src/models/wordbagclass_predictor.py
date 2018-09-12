@@ -2,6 +2,7 @@
 
 import argparse
 import time
+import math
 from typing import Dict, Any, List, Tuple, Iterable, cast
 
 import torch
@@ -50,13 +51,16 @@ class WordBagClassifyPredictor(TacticPredictor):
                  .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[str]:
+    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+        -> List[Tuple[str, float]]:
         distribution = self.predictDistribution(in_data)
-        probs, indices = distribution.squeeze().topk(k)
-        return [self.embedding.decode_token(idx.data[0]) + "." for idx in indices]
+        probs_and_indices = distribution.squeeze().topk(k)
+        return [(self.embedding.decode_token(idx.data[0]) + ".",
+                 math.exp(certainty.data[0]))
+                for certainty, idx in probs_and_indices]
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
-                                correct : str) -> Tuple[List[str], float]:
+                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
@@ -66,9 +70,10 @@ class WordBagClassifyPredictor(TacticPredictor):
         else:
             loss = 0
 
-        probs, indices = distribution.squeeze().topk(k)
-        predictions = [self.embedding.decode_token(idx.data[0]) + "."
-                       for idx in indices]
+        probs_and_indices = distribution.squeeze().topk(k)
+        predictions = [(self.embedding.decode_token(idx.data[0]) + ".",
+                        math.exp(certainty.data[0]))
+                       for certainty, idx in probs_and_indices]
         return predictions, loss
 
 Checkpoint = Tuple[Dict[Any, Any], float]
