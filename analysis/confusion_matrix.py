@@ -3,11 +3,20 @@
 import csv
 import argparse
 import re
+import itertools
+from collections import namedtuple
+from io import TextIOBase
 
-from typing import Dict, Any, List, Tuple, TypeVar, Callable
+from typing import Dict, Any, List, Tuple, TypeVar, Callable, Iterator, \
+    NamedTuple, Optional
 
 import nmf
+from report_csv import read_csvfile, TacticRow, tactics_only, filter_rows
+
 import numpy as np
+
+from context_filter import ContextFilter, context_filters
+from format import format_goal, format_hypothesis
 
 class SimpleEmbedding:
     def __init__(self) -> None:
@@ -29,45 +38,54 @@ class SimpleEmbedding:
     def has_token(self, token : str) -> bool :
         return token in self.tokens_to_indices
 
+def csv_tactics(csvfile_handle : TextIOBase, cfilter : ContextFilter) \
+    -> Iterator[TacticRow]:
+    reader = csv.reader(csvfile_handle)
+    for row, nextrow in pairwise(reader):
+        if len(row) == 1:
+            continue
+        else:
+            command, hyps, goal, *predictions = row
+            if not nextrow or len(nextrow) == 1:
+                new_hyps, new_goal = "", ""
+            else:
+                _, new_hyps, new_goal, *_ = nextrow
+
+            if not cfilter({"goal": format_goal(goal),
+                            "hyps": format_hypothesis(hyps)},
+                           command,
+                           {"goal": format_goal(new_goal),
+                            "hyps": format_hypothesis(hyps)}):
+                continue
+            yield TacticRow(command=command, hyps=hyps, goal=goal,
+                            predictions=[PredictionResult(predictions[i], predictions[i+1])
+                                         for i in range(0, len(predictions), 2)])
+
 ConfusionMatrix = List[List[int]]
 
-def build_confusion_matrix(filenames : List[str], max_rows : float = float("Inf")) -> \
+def build_confusion_matrix(filenames : List[str], max_rows : Optional[int] = None) -> \
     Tuple[ConfusionMatrix, SimpleEmbedding]:
     matrix : ConfusionMatrix = []
     embedding = SimpleEmbedding()
     rows_processed = 0
     for filename in filenames:
-        with open(filename, newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                if rows_processed >= max_rows:
-                    break
-                if len(row) == 1:
-                    continue
-                else:
-                    rows_processed += 1
-                    assert len(row) == 9
-                    command, hyps, goal, \
-                        first_pred, first_grade, \
-                        second_pred, second_grade, \
-                        third_pred, third_grade = row
-                    encoded_command = embedding.encode_token(get_stem(command))
-                    encoded_prediction = embedding.encode_token(get_stem(first_pred))
-                    while encoded_command >= len(matrix):
-                        matrix += [[]]
-                    if encoded_prediction >= len(matrix[encoded_command]):
-                        matrix[encoded_command] += ([0] *
-                                                    (encoded_prediction -
-                                                     len(matrix[encoded_command])
-                                                     + 1))
-                    matrix[encoded_command][encoded_prediction] += 1
-    print("Built matrix from {} rows.".format(rows_processed))
+        options, rows = read_csvfile(filename)
+        for tactic_row in itertools\
+            .islice(filter_rows(tactics_only(rows),
+                                context_filters[options["context filter"]]),
+                    max_rows):
+            encoded_command = embedding.encode_token(get_stem(tactic_row.command))
+            encoded_prediction = embedding.\
+                encode_token(get_stem(tactic_row.predictions[0].prediction))
+            while encoded_command >= len(matrix):
+                matrix += [[]]
+            if encoded_prediction >= len(matrix[encoded_command]):
+                matrix[encoded_command] += ([0] *
+                                            (encoded_prediction -
+                                             len(matrix[encoded_command])
+                                             + 1))
+            matrix[encoded_command][encoded_prediction] += 1
     return matrix, embedding
-
-def print_matrix(matrix : ConfusionMatrix):
-    print("matrix is ")
-    for row in matrix:
-        print(row)
 
 def print_confusion_info(matrix : ConfusionMatrix, embedding : SimpleEmbedding,
                          num_classes : int, print_num : int = 10) -> None:
@@ -100,23 +118,11 @@ def print_confusion_info(matrix : ConfusionMatrix, embedding : SimpleEmbedding,
         print("{} times: {}"
               .format(count, embedding.decode_token(i)))
 
-    print("Clustering:")
-    w, h = nmf.nmf(extend_conf_matrix(matrix), num_classes)
-    partitions = multipartition(list(enumerate(w)), \
-                                lambda i_cluster_factors: np.argmax(i_cluster_factors[1]))
-    clusters = [[x[0] for x in partition]
-                for partition in partitions]
-    for i, cluster in enumerate(clusters):
-        print("Cluster #{}:".format(i))
-        for item in sorted(cluster, key=lambda i: sum(w[i]), reverse=True):
-            print(embedding.decode_token(item))
-        print()
-
-    # print(nmf.nmf(extend_conf_matrix(matrix), num_classes))
+    print_clusters(matrix, num_classes, embedding)
     pass
 
 T = TypeVar('T')
-def multipartition(xs : List[T], f : Callable[[T], int]):
+def multipartition(xs : List[T], f : Callable[[T], int]) -> List[List[T]]:
     result : List[T] = []
     for x in xs:
         assert x != None
@@ -126,7 +132,39 @@ def multipartition(xs : List[T], f : Callable[[T], int]):
         result[i] += [x]
     return result
 
-def extend_conf_matrix(matrix : ConfusionMatrix):
+def print_clusters(matrix : ConfusionMatrix, num_classes : int,
+                   embedding : SimpleEmbedding):
+    matrix = extend_conf_matrix(matrix)
+    w, h = nmf.nmf(matrix, num_classes)
+    partitions = multipartition(list(enumerate(w)), \
+                                lambda i_cluster_factors: np.argmax(i_cluster_factors[1]))
+    cluster_matrix : List[List[int]] = []
+    for cluster_idx, cluster_items in enumerate(partitions):
+        cluster_matrix.append([])
+        for other_cluster_idx, other_cluster_items in enumerate(partitions):
+            item = 0
+            for cluster_item in cluster_items:
+                for other_cluster_item in other_cluster_items:
+                    command_row = matrix[cluster_item[0]]
+                    if (other_cluster_item[0] < len(command_row)):
+                        item += command_row[other_cluster_item[0]]
+
+            cluster_matrix[-1].append(item)
+
+    for row in cluster_matrix:
+        print("[", end="")
+        for item in row:
+            print("{:5}".format(item), end="")
+        print("]")
+    clusters = [[x[0] for x in partition]
+                for partition in partitions]
+    for i, cluster in enumerate(clusters):
+        print("Cluster #{}: ".format(i), end="")
+        for item in sorted(cluster, key=lambda i: sum(w[i]), reverse=True):
+            print(embedding.decode_token(item), end=", ")
+        print()
+
+def extend_conf_matrix(matrix : ConfusionMatrix) -> ConfusionMatrix:
     max_length = max([len(row) for row in matrix])
     return [row + [0] * (max_length - len(row)) for row in matrix]
 

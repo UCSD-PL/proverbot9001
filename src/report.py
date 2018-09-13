@@ -567,7 +567,7 @@ def write_csv(base_filename : str, output_dir : str,
     with open("{}/{}.csv".format(output_dir, base_filename),
               'w', newline='') as csvfile:
         for k, v in options:
-            csvfile.write("# {}: {}".format(k, v))
+            csvfile.write("# {}: {}\n".format(k, v))
 
         rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
         for row in command_results:

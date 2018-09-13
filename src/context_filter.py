@@ -15,8 +15,8 @@ def filter_or(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
 
 def no_compound_or_bullets(in_data : ContextData, tactic : str,
                            next_in_data : ContextData) -> bool:
-    return (not re.match("[\{\}\+\-\*].*", tactic) and
-            not re.match(".*;.*", tactic))
+    return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
+            not re.match(".*;.*", tactic, flags=re.DOTALL))
 
 def goal_changed(in_data : ContextData, tactic : str,
                  next_in_data : ContextData) -> bool:
