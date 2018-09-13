@@ -26,6 +26,10 @@ def hyps_changed(in_data : ContextData, tactic : str,
                  next_in_data : ContextData) -> bool:
     return in_data["hyps"] != next_in_data["hyps"]
 
+def no_args(in_data : ContextData, tactic : str,
+            next_in_data : ContextData) -> bool:
+    return re.match("\s*\S*\.", tactic) != None
+
 context_filters : Dict[str, ContextFilter] = {
     "default": no_compound_or_bullets,
     "all": lambda *args: True,
@@ -33,4 +37,5 @@ context_filters : Dict[str, ContextFilter] = {
     "hyps-change": filter_and(hyps_changed, no_compound_or_bullets),
     "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
                                    no_compound_or_bullets),
+    "no-args": filter_and(no_args, no_compound_or_bullets),
 }
