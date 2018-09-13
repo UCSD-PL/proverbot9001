@@ -14,7 +14,6 @@ from typing import List, Any, Optional, cast
 # This dependency is in pip, the python package manager
 from sexpdata import *
 
-from timer import TimerBucket
 from traceback import *
 
 # Some Exceptions to throw when various responses come back from coq
