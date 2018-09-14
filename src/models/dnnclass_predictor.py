@@ -26,6 +26,8 @@ from torch.optim import Optimizer
 from models.tactic_predictor import TacticPredictor
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, cast
 
+from serapi_instance import get_stem
+
 class DNNClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
         checkpoint = torch.load(filename)

@@ -11,6 +11,7 @@ from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
 from format import read_tuple
 from util import *
+from serapi_instance import get_stem
 
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:

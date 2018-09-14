@@ -19,6 +19,7 @@ from data import read_text_data, filter_data, \
     encode_bag_classify_data, encode_bag_classify_input
 from context_filter import get_context_filter
 from util import *
+from serapi_instance import get_stem
 
 class WordBagClassifyPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:

@@ -13,6 +13,7 @@ from data import read_text_data, filter_data, \
     encode_seq_classify_data, ClassifySequenceDataset
 from util import *
 from context_filter import get_context_filter
+from serapi_instance import get_stem
 
 import torch
 import torch.nn as nn

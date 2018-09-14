@@ -585,10 +585,12 @@ def preprocess_command(cmd : str) -> List[str]:
                 return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
     return [cmd]
 
-# def count_open_proofs(goals):
-#     return len(goals[2][1])
-#
-# def count_fg_goals(goals):
-#     if count_open_proofs(goals) == 0:
-#         return 0
-#     return len(goals[2][1][0][1][0][1])
+def get_stem(tactic : str) -> str:
+    tactic = kill_comments(tactic).strip()
+    if re.match("[-+*\{\}]", tactic):
+        return tactic
+    if re.match(".*;.*", tactic):
+        return tactic
+    match = re.match("^\(?(\w+).*", tactic)
+    assert match, "tactic \"{}\" doesn't match!".format(tactic)
+    return match.group(1)

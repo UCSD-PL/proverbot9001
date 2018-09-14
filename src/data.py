@@ -8,6 +8,7 @@ import re
 from typing import Tuple, List, Callable
 from util import *
 from context_filter import ContextFilter
+from serapi_instance import get_stem
 
 Sentence = List[int]
 Bag = List[int]
