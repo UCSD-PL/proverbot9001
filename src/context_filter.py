@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Callable, Union, List
+from typing import Dict, Callable, Union, List, cast
 import re
 
 ContextData = Dict[str, Union[str, List[str]]]
@@ -30,6 +30,28 @@ def no_args(in_data : ContextData, tactic : str,
             next_in_data : ContextData) -> bool:
     return re.match("\s*\S*\.", tactic) != None
 
+def get_vars_in_hyps(hyps : str) -> List[str]:
+    hyps_replaced = re.sub("forall.*?,", "",
+                           re.sub("fun.*?=>", "", hyps, flags=re.DOTALL),
+                           flags=re.DOTALL)
+    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
+                           hyps_replaced, flags=re.DOTALL)
+    var_names = [name.strip() for term in var_terms for name in term.split(",")]
+    return var_names
+
+def args_vars_in_context(in_data : ContextData, tactic : str,
+                         next_in_data : ContextData) -> bool:
+    stem, *args = tactic[:-1].split()
+    var_names = get_vars_in_hyps(cast(str, in_data["hyps"]))
+    for arg in args:
+        if not arg in var_names:
+            return False
+    return True
+
+def apply_lemma(in_data : ContextData, tactic : str,
+                next_in_data : ContextData) -> bool:
+    return re.match("\s*apply\s*\S+\.", tactic) != None
+
 def get_context_filter(specstr : str) -> ContextFilter:
     if "+" in specstr:
         curFilter = context_filters["none"]
@@ -54,4 +76,6 @@ context_filters : Dict[str, ContextFilter] = {
     "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
+    "context-var-args":filter_and(args_vars_in_context, no_compound_or_bullets),
+    "apply":apply_lemma,
 }
