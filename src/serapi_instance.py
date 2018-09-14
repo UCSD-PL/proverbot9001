@@ -591,6 +591,14 @@ def get_stem(tactic : str) -> str:
         return tactic
     if re.match(".*;.*", tactic):
         return tactic
+    for prefix in ["try", "now"]:
+        prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
+        if prefix_match:
+            return prefix + " " + get_stem(prefix_match.group(1))
+    for special_stem in ["rewrite\s+<-"]:
+        special_match = re.match("{}\s+.*".format(special_stem), tactic)
+        if special_match:
+            return special_stem
     match = re.match("^\(?(\w+).*", tactic)
     assert match, "tactic \"{}\" doesn't match!".format(tactic)
     return match.group(1)
