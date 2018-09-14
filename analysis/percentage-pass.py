@@ -39,14 +39,16 @@ def main() -> None:
                 num_tactics_total += 1
                 if not passes:
                     current_proof_perfect = False
+                    # print("{} doesn't pass.".format(row))
                 else:
+                    # print("{} passes!".format(row))
                     num_tactics_pass += 1
             elif ending_proof(row.command) and in_proof:
                 in_proof = False
                 num_proofs_total += 1
                 if current_proof_perfect:
                     num_proofs_pass += 1
-                    print("Proof : {},\n in {}, passed!".format(cur_lemma_name, filename))
+                    # print("Proof : {},\n in {}, passed!".format(cur_lemma_name, filename))
             else:
                 if possibly_starting_proof(row.command):
                     cur_lemma_name = row.command
