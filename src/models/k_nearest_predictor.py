@@ -17,7 +17,7 @@ from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable
 from tokenizer import tokenizers
 from data import read_text_data, filter_data, \
     encode_bag_classify_data, encode_bag_classify_input
-from context_filter import context_filters
+from context_filter import get_context_filter
 
 from util import *
 
@@ -239,8 +239,8 @@ def main(args_list : List[str]) -> None:
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
     parser.add_argument("--context-filter", dest="context_filter",
-                        choices=list(context_filters.keys()), type=str,
-                        default=list(context_filters.keys())[0])
+                        type=str,
+                        default="default")
     args = parser.parse_args(args_list)
 
     print("Reading data...")
@@ -248,7 +248,7 @@ def main(args_list : List[str]) -> None:
     print("Read {} input-output pairs".format(len(raw_samples)))
     print("Filtering/Encoding data...")
     start = time.time()
-    filtered_samples = filter_data(raw_samples, context_filters[args.context_filter])
+    filtered_samples = filter_data(raw_samples, get_context_filter(args.context_filter))
     samples, tokenizer, embedding = encode_bag_classify_data(filtered_samples,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords,

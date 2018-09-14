@@ -15,7 +15,7 @@ from report_csv import read_csvfile, TacticRow, tactics_only, filter_rows
 
 import numpy as np
 
-from context_filter import ContextFilter, context_filters
+from context_filter import ContextFilter, get_context_filter
 from format import format_goal, format_hypothesis
 
 class SimpleEmbedding:
@@ -72,7 +72,7 @@ def build_confusion_matrix(filenames : List[str], max_rows : Optional[int] = Non
         options, rows = read_csvfile(filename)
         for tactic_row in itertools\
             .islice(filter_rows(tactics_only(rows),
-                                context_filters[options["context filter"]]),
+                                get_context_filter(options["context filter"])),
                     max_rows):
             encoded_command = embedding.encode_token(get_stem(tactic_row.command))
             encoded_prediction = embedding.\

@@ -12,7 +12,7 @@ from tokenizer import Tokenizer, tokenizers
 from data import read_text_data, filter_data, \
     encode_seq_classify_data, ClassifySequenceDataset
 from util import *
-from context_filter import context_filters
+from context_filter import get_context_filter
 
 import torch
 import torch.nn as nn
@@ -234,8 +234,7 @@ def take_args(args) -> argparse.Namespace:
                         choices=list(optimizers.keys()), type=str,
                         default=list(optimizers.keys())[0])
     parser.add_argument("--context-filter", dest="context_filter",
-                        choices=list(context_filters.keys()), type=str,
-                        default=list(context_filters.keys())[0])
+                        type=str, default="default")
     return parser.parse_args(args)
 
 def main(arg_list : List[str]) -> None:
@@ -246,7 +245,7 @@ def main(arg_list : List[str]) -> None:
     raw_data = read_text_data(args.scrape_file)
     print("Read {} raw input-output pairs".format(len(raw_data)))
     print("Filtering data based on predicate...")
-    filtered_data = filter_data(raw_data, context_filters[args.context_filter])
+    filtered_data = filter_data(raw_data, get_context_filter(args.context_filter))
     print("{} input-output pairs left".format(len(filtered_data)))
     print("Encoding data...")
     start = time.time()

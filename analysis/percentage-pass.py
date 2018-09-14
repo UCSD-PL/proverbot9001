@@ -2,7 +2,7 @@ import csv
 import argparse
 import re
 
-from context_filter import ContextFilter, context_filters
+from context_filter import ContextFilter, get_context_filter
 from format import format_goal, format_hypothesis
 from serapi_instance import possibly_starting_proof, ending_proof
 
@@ -15,11 +15,10 @@ def main() -> None:
 
     parser.add_argument("filenames", nargs="+", help="csv file names")
     parser.add_argument("--context-filter", dest="context_filter",
-                        choices=list(context_filters.keys()), type=str,
-                        default=list(context_filters.keys())[0])
+                        type=str, default="default")
     args = parser.parse_args()
 
-    cfilter = context_filters[args.context_filter]
+    cfilter = get_context_filter(args.context_filter)
 
     num_tactics_pass = 0
     num_proofs_pass = 0

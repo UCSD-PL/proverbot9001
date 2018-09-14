@@ -27,7 +27,7 @@ import tokenizer
 
 from helper import *
 from util import *
-from context_filter import context_filters
+from context_filter import get_context_filter
 
 from syntax import syntax_highlight, strip_comments
 
@@ -292,7 +292,7 @@ class Worker(threading.Thread):
         self.debug = debug
         self.num_jobs = num_jobs
         self.baseline = baseline
-        self.cfilter = context_filters[context_filter]
+        self.cfilter = get_context_filter(context_filter)
         pass
 
     def get_commands(self, filename : str) -> List[str]:

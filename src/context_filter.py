@@ -30,8 +30,24 @@ def no_args(in_data : ContextData, tactic : str,
             next_in_data : ContextData) -> bool:
     return re.match("\s*\S*\.", tactic) != None
 
+def get_context_filter(specstr : str) -> ContextFilter:
+    if "+" in specstr:
+        curFilter = context_filters["none"]
+        for cfilter in specstr.split("+"):
+            assert cfilter in context_filters, \
+                "Not a valid atom! {}\nValid atoms are {}"\
+                .format(cfilter, context_filters.keys())
+            curFilter = filter_or(curFilter, context_filters[cfilter])
+        return curFilter
+    else:
+        assert specstr in context_filters, \
+            "Not a valid atom! {}\nValid atoms are {}"\
+            .format(cfilter, context_filters.keys())
+        return context_filters[specstr]
+
 context_filters : Dict[str, ContextFilter] = {
     "default": no_compound_or_bullets,
+    "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
     "hyps-change": filter_and(hyps_changed, no_compound_or_bullets),
