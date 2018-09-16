@@ -18,10 +18,9 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, ParseError)
+                             BadResponse, ParseError, get_stem)
 
-from typing import Optional, List
-from helper import read_commands_preserve
+from typing import Optional, List, Iterator
 
 # exception for when things go bad, but not necessarily because of the linearizer
 class LinearizerCouldNotLinearize(Exception):
@@ -175,6 +174,7 @@ def linearize_commands(commands_sequence, coq, filename):
             with_tactic = ""
 
         orig = command_batch[:]
+        command_batch = list(split_commas(command_batch))
         try:
             linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch))
             leftover_commands = []
@@ -389,3 +389,33 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         run_statement_timer_bucket.print_statistics()
         count_goals_after_timer_bucket.print_statistics()
 
+def split_commas(commands : Iterator[str]) -> Iterator[str]:
+    def split_commas_command(command : str) -> Iterator[str]:
+        if not "," in command:
+            yield command
+        else:
+            stem = get_stem(command)
+            if stem == "rewrite":
+                in_match = re.match("\s*(rewrite\s+\S*?),\s+(.*)\s+in(.*\.)", command)
+                if in_match:
+                    first_command, rest, context = in_match.group(1, 2, 3)
+                    print("Splitting {} into {} and {}"
+                          .format(command, first_command + " in" + context,
+                                  "rewrite " + rest + " in" + context))
+                    yield first_command + " in" + context
+                    yield from split_commas_command("rewrite " + rest + " in" + context)
+                else:
+                    parts_match = re.match("\s*(rewrite\s+!?\s*\S*?),\s+(.*)", command)
+                    assert parts_match, "Couldn't match \"{}\"".format(command)
+                    first_command, rest = parts_match.group(1, 2)
+                    print("Splitting {} into {} and {}"
+                          .format(command, first_command + ". ", "rewrite " + rest))
+                    yield first_command + ". "
+                    yield from split_commas_command("rewrite " + rest)
+            else:
+                yield command
+    new_commands : List[str] = []
+    for command in commands:
+        split_commands = split_commas_command(command)
+        # print("Split {} into {}".format(command, list(split_commands)))
+        yield from split_commands
