@@ -186,10 +186,13 @@ class SerapiInstance(threading.Thread):
                   len(co.msg) == 3 and
                   type(co.msg[2]) == list and
                   co.msg[2][0] == Symbol('CoqExn') and
-                  len(co.msg[2]) == 4 and
-                  type(co.msg[2][3]) == list and
-                  co.msg[2][3][0] == Symbol('Stream.Error')):
-                raise ParseError("Couldn't parse command {}".format(stmt))
+                  len(co.msg[2]) == 4):
+                if (type(co.msg[2][3]) == list and
+                    co.msg[2][3][0] == Symbol('Stream.Error')):
+                    raise ParseError("Couldn't parse command {}".format(stmt))
+                elif (type(co.msg[2][3]) == list and
+                      co.msg[2][3][0] == Symbol('Invalid_argument')):
+                    raise ParseError("Invalid argument {}".format(stmt))
         if type(e) == TimeoutError:
             self.cancel_last()
             raise TimeoutError("Statement \"{}\" timed out.".format(stmt))
