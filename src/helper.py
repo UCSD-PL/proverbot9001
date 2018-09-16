@@ -4,6 +4,7 @@ import serapi_instance
 from serapi_instance import AckError, CompletedError, CoqExn, BadResponse
 import linearize_semicolons
 import re
+import os
 
 from typing import List, Match, Any, Optional
 
@@ -84,3 +85,34 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance):
         if serapi_instance.ending_proof(command):
             yield from lemma_stack.pop()
     assert(len(lemma_stack) == 0)
+
+import hashlib
+BLOCKSIZE = 65536
+
+def hash_file(filename : str) -> str:
+    hasher = hashlib.md5()
+    with open(filename, 'rb') as f:
+        buf = f.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+def try_load_lin(filename : str) -> Optional[List[str]]:
+    print("Attempting to load cached linearized version from {}"
+          .format(filename + '.lin'))
+    if not os.path.exists(filename + '.lin'):
+        return None
+    file_hash = hash_file(filename)
+    with open(filename + '.lin', 'r') as f:
+        if file_hash == f.readline().strip():
+            return read_commands_preserve(f.read())
+        else:
+            return None
+
+def save_lin(commands : List[str], filename : str) -> None:
+    output_file = filename + '.lin'
+    with open(output_file, 'w') as f:
+        print(hash_file(filename), file=f)
+        for command in commands:
+            print(command.strip(), file=f)
