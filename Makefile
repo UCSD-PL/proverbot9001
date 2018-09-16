@@ -29,9 +29,10 @@ setup:
 
 scrape:
 	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
-	cat data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3 src/scrape.py $(FLAGS) -j $(NTHREADS) --output data/scrape.txt \
-						       --prelude ./CompCert
+	cd src && \
+	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
+	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
+						       	--prelude ../CompCert
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
@@ -64,3 +65,6 @@ download-weights:
 clean:
 	rm -rf report-*
 	rm -f log*.txt
+
+clean-lin:
+	fd -e v.lin CompCert | xargs rm
