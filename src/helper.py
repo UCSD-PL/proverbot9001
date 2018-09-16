@@ -6,7 +6,7 @@ import linearize_semicolons
 import re
 import os
 
-from typing import List, Match, Any, Optional
+from typing import List, Match, Any, Optional, Iterator
 
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
@@ -70,7 +70,8 @@ def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str
         print("In file {}".format(filename))
         raise
 
-def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance):
+def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) \
+    -> Iterator[str]:
     lemma_stack = [] # type: List[List[str]]
     for command in commands:
         if serapi_instance.possibly_starting_proof(command):
