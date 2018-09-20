@@ -605,3 +605,14 @@ def get_stem(tactic : str) -> str:
     match = re.match("^\(?(\w+).*", tactic)
     assert match, "tactic \"{}\" doesn't match!".format(tactic)
     return match.group(1)
+def get_var_terms_in_hyps(hyps : str) -> List[str]:
+    hyps_replaced = re.sub("forall.*?,", "",
+                           re.sub("fun.*?=>", "", hyps, flags=re.DOTALL),
+                           flags=re.DOTALL)
+    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
+                           hyps_replaced, flags=re.DOTALL)
+    return var_terms
+def get_vars_in_hyps(hyps : str) -> List[str]:
+    var_terms = get_var_terms_in_hyps(hyps)
+    var_names = [name.strip() for term in var_terms for name in term.split(",")]
+    return var_names

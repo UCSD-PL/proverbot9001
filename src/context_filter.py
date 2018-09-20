@@ -2,6 +2,7 @@
 
 from typing import Dict, Callable, Union, List, cast
 import re
+import serapi_instance
 
 ContextData = Dict[str, Union[str, List[str]]]
 ContextFilter = Callable[[ContextData, str, ContextData], bool]
@@ -30,19 +31,10 @@ def no_args(in_data : ContextData, tactic : str,
             next_in_data : ContextData) -> bool:
     return re.match("\s*\S*\.", tactic) != None
 
-def get_vars_in_hyps(hyps : str) -> List[str]:
-    hyps_replaced = re.sub("forall.*?,", "",
-                           re.sub("fun.*?=>", "", hyps, flags=re.DOTALL),
-                           flags=re.DOTALL)
-    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
-                           hyps_replaced, flags=re.DOTALL)
-    var_names = [name.strip() for term in var_terms for name in term.split(",")]
-    return var_names
-
 def args_vars_in_context(in_data : ContextData, tactic : str,
                          next_in_data : ContextData) -> bool:
     stem, *args = tactic[:-1].split()
-    var_names = get_vars_in_hyps(cast(str, in_data["hyps"]))
+    var_names = serapi_instance.get_vars_in_hyps(cast(str, in_data["hyps"]))
     for arg in args:
         if not arg in var_names:
             return False
