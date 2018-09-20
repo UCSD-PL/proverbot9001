@@ -10,7 +10,7 @@ import argparse
 import sys
 import signal
 
-from typing import List, Any, Optional, cast
+from typing import List, Any, Optional, cast, Tuple
 # This dependency is in pip, the python package manager
 from sexpdata import *
 
@@ -589,22 +589,28 @@ def preprocess_command(cmd : str) -> List[str]:
     return [cmd]
 
 def get_stem(tactic : str) -> str:
+    return split_tactic(tactic)[0]
+
+def split_tactic(tactic : str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
     if re.match("[-+*\{\}]", tactic):
-        return tactic
+        return tactic, ""
     if re.match(".*;.*", tactic):
-        return tactic
     for prefix in ["try", "now"]:
+        return tactic, ""
         prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
         if prefix_match:
-            return prefix + " " + get_stem(prefix_match.group(1))
-    for special_stem in ["rewrite\s+<-"]:
-        special_match = re.match("{}\s+.*".format(special_stem), tactic)
+            rest_stem, rest_rest = split_tactic(prefix_match.group(1))
+            return prefix + " " + rest_stem, rest_rest
         if special_match:
-            return special_stem
-    match = re.match("^\(?(\w+).*", tactic)
+            return special_stem, special_match.group(1)
+    match = re.match("^\(?(\w+)(?:\s+(.*))?", tactic)
     assert match, "tactic \"{}\" doesn't match!".format(tactic)
-    return match.group(1)
+    stem, rest = match.group(1, 2)
+    if not rest:
+        rest = ""
+    return stem, rest
+
 def get_var_terms_in_hyps(hyps : str) -> List[str]:
     hyps_replaced = re.sub("forall.*?,", "",
                            re.sub("fun.*?=>", "", hyps, flags=re.DOTALL),

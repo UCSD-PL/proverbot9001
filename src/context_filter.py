@@ -2,6 +2,7 @@
 
 from typing import Dict, Callable, Union, List, cast
 import re
+from tokenizer import get_symbols
 import serapi_instance
 
 ContextData = Dict[str, Union[str, List[str]]]
@@ -50,6 +51,16 @@ def exploit_lemma(in_data : ContextData, tactic : str,
                   next_in_data : ContextData) -> bool:
     return re.match("\s*e?exploit.*\.", tactic) != None
 
+def args_in_goal(in_data : ContextData, tactic : str,
+                 next_in_data : ContextData) -> bool:
+    goal = in_data["goal"]
+    goal_words = get_symbols(cast(str, goal))
+    stem, rest = serapi_instance.split_tactic(tactic)
+    args = get_symbols(rest)
+    for arg in args:
+        if not arg in goal_words:
+            return False
+    return True
 
 def get_context_filter(specstr : str) -> ContextFilter:
     if "+" in specstr:
@@ -76,6 +87,7 @@ context_filters : Dict[str, ContextFilter] = {
                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
     "context-var-args":filter_and(args_vars_in_context, no_compound_or_bullets),
+    "goal-args" : args_in_goal,
     "apply":apply_lemma,
     "rewrite":rewrite_lemma,
     "exploit":exploit_lemma,
