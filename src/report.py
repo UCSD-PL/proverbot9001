@@ -559,7 +559,7 @@ def main(arg_list : List[str]) -> None:
     write_summary(args.output, num_jobs, cur_commit,
                   args.message, args.baseline, cur_date, gresult)
 
-TacticResult = Tuple[str, str, str, List[Tuple[str, str, float]]]
+TacticResult = Tuple[str, List[str], str, List[Tuple[str, str, float]]]
 CommandResult = Union[Tuple[str], TacticResult]
 
 def write_csv(base_filename : str, output_dir : str,
@@ -572,12 +572,15 @@ def write_csv(base_filename : str, output_dir : str,
         rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
         for row in command_results:
             if len(row) == 1:
-                rowwriter.writerow([re.sub("\n", "\\n", row[0])])
+                rowwriter.writerow([re.sub(r"\n", r"\\n", row[0])])
             else:
                 # Type hack
                 command, hyps, goal, prediction_results = cast(TacticResult, row)
-                rowwriter.writerow([re.sub("\n", "\\n", item) for item in
-                                    [command, hyps, goal] +
+
+                rowwriter.writerow([re.sub(r"\n", r"\\n", item) for item in
+                                    [command] +
+                                    hyps +
+                                    [goal] +
                                     [item
                                      for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])

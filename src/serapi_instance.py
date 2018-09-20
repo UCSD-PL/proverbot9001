@@ -418,11 +418,11 @@ class SerapiInstance(threading.Thread):
         split = re.split("\n======+\n", self.proof_context)
         return split[1]
 
-    def get_hypothesis(self) -> str:
+    def get_hypothesis(self) -> List[str]:
         assert isinstance(self.proof_context, str)
         if self.proof_context == "":
-            return ""
-        return re.split("\n======+\n", self.proof_context)[0]
+            return []
+        return parse_hyps(re.split("\n======+\n", self.proof_context)[0])
 
     def get_proof_context(self) -> None:
         self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
@@ -596,8 +596,8 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     if re.match("[-+*\{\}]", tactic):
         return tactic, ""
     if re.match(".*;.*", tactic):
-    for prefix in ["try", "now"]:
         return tactic, ""
+    for prefix in ["try", "now"]:
         prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
         if prefix_match:
             rest_stem, rest_rest = split_tactic(prefix_match.group(1))
@@ -610,6 +610,20 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     if not rest:
         rest = ""
     return stem, rest
+
+def parse_hyps(hyps_str : str) -> List[str]:
+    var_terms = get_var_terms_in_hyps(hyps_str)
+    rest_hyps_str = hyps_str
+    hyps_list = []
+    for next_term in var_terms[1:]:
+        next_match = re.search(next_term, rest_hyps_str)
+        assert next_match is not None, \
+            "Can't find var term {} in hypothesis!".format(next_term)
+        hyp = rest_hyps_str[:next_match.start()]
+        rest_hyps_str = rest_hyps_str[next_match.start():]
+        hyps_list.append(hyp)
+    hyps_list.append(rest_hyps_str)
+    return hyps_list
 
 def get_var_terms_in_hyps(hyps : str) -> List[str]:
     hyps_replaced = re.sub("forall.*?,", "",

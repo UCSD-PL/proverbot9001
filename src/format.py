@@ -6,7 +6,7 @@ from typing import List, Tuple, TextIO, Optional
 def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
 
-def format_context(prev_tactics : List[str], prev_hyps : str, prev_goal : str,
+def format_context(prev_tactics : List[str], prev_hyps : List[str], prev_goal : str,
                    rel_lemmas : str) -> str:
     return (format_tactics(prev_tactics) + "\n*****\n" +
             format_hypothesis(prev_hyps) + "\n*****\n" +
@@ -16,8 +16,8 @@ def format_context(prev_tactics : List[str], prev_hyps : str, prev_goal : str,
 def format_tactics(tactics : List[str]) -> str:
     return "\n".join([minimize_whitespace(tactic) for tactic in tactics]) + "\n"
 
-def format_hypothesis(prev_hyps : str) -> str:
-    return re.sub("[ \t]+", " ", prev_hyps).strip()
+def format_hypothesis(prev_hyps : List[str]) -> str:
+    return "\n".join([re.sub(r"\n", r"\\n", re.sub("[ \t]+", " ", prev_hyp)).strip() for prev_hyp in prev_hyps])
 
 def format_goal(prev_goal : str) -> str:
     return minimize_whitespace(prev_goal)
