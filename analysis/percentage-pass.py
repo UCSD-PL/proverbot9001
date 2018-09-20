@@ -26,6 +26,7 @@ def main() -> None:
     num_proofs_total = 0
 
     for filename in args.filenames:
+        # print("In file: {}".format(filename))
         options, rows = read_csvfile(filename)
         in_proof = False
         current_proof_perfect = False
@@ -39,9 +40,9 @@ def main() -> None:
                 num_tactics_total += 1
                 if not passes:
                     current_proof_perfect = False
-                    # print("{} doesn't pass.".format(row))
+                    # print("{} doesn't pass.".format(row.command.strip()))
                 else:
-                    # print("{} passes!".format(row))
+                    # print("{} passes!".format(row.command.strip()))
                     num_tactics_pass += 1
             elif ending_proof(row.command) and in_proof:
                 in_proof = False
@@ -49,6 +50,10 @@ def main() -> None:
                 if current_proof_perfect:
                     num_proofs_pass += 1
                     # print("Proof : {},\n in {}, passed!".format(cur_lemma_name, filename))
+                else:
+                    # print("Proof : {},\n in {}, didn't pass!"
+                    #       .format(cur_lemma_name, filename))
+                    pass
             else:
                 if possibly_starting_proof(row.command):
                     cur_lemma_name = row.command
