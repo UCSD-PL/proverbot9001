@@ -43,6 +43,13 @@ def args_vars_in_context(in_data : ContextData, tactic : str,
 def apply_lemma(in_data : ContextData, tactic : str,
                 next_in_data : ContextData) -> bool:
     return re.match("\s*e?apply\s*\S+\.", tactic) != None
+def rewrite_lemma(in_data : ContextData, tactic : str,
+                  next_in_data : ContextData) -> bool:
+    return re.match("\s*e?rewrite.*\.", tactic) != None
+def exploit_lemma(in_data : ContextData, tactic : str,
+                  next_in_data : ContextData) -> bool:
+    return re.match("\s*e?exploit.*\.", tactic) != None
+
 
 def get_context_filter(specstr : str) -> ContextFilter:
     if "+" in specstr:
@@ -70,4 +77,6 @@ context_filters : Dict[str, ContextFilter] = {
     "no-args": filter_and(no_args, no_compound_or_bullets),
     "context-var-args":filter_and(args_vars_in_context, no_compound_or_bullets),
     "apply":apply_lemma,
+    "rewrite":rewrite_lemma,
+    "exploit":exploit_lemma,
 }
