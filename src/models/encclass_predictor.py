@@ -14,6 +14,7 @@ from data import read_text_data, filter_data, \
 from util import *
 from context_filter import get_context_filter
 from serapi_instance import get_stem
+from models.args import take_std_args, optimizers
 
 import torch
 import torch.nn as nn
@@ -205,42 +206,8 @@ def train(dataset : ClassifySequenceDataset,
 
         yield (encoder.state_dict(), total_loss / items_processed)
 
-def exit_early(signal, frame):
-    sys.exit(0)
-
-optimizers = {
-    "SGD": optim.SGD,
-    "Adam": optim.Adam,
-}
-
-def take_args(args) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=
-                                     "pytorch model for proverbot")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
-    parser.add_argument("--num-epochs", dest="num_epochs", default=15, type=int)
-    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-    parser.add_argument("--max-length", dest="max_length", default=100, type=int)
-    parser.add_argument("--print-every", dest="print_every", default=10, type=int)
-    parser.add_argument("--hidden-size", dest="hidden_size", default=128, type=int)
-    parser.add_argument("--learning-rate", dest="learning_rate",
-                        default=.4, type=float)
-    parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
-                        default=3, type=int)
-    parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
-    parser.add_argument("--tokenizer",
-                        choices=list(tokenizers.keys()), type=str,
-                        default=list(tokenizers.keys())[0])
-    parser.add_argument("--optimizer",
-                        choices=list(optimizers.keys()), type=str,
-                        default=list(optimizers.keys())[0])
-    parser.add_argument("--context-filter", dest="context_filter",
-                        type=str, default="default")
-    return parser.parse_args(args)
-
 def main(arg_list : List[str]) -> None:
-    signal.signal(signal.SIGINT, exit_early)
-    args = take_args(arg_list)
+    args = take_std_args(arg_list, "a classifier pytorch model for proverbot")
     print("Reading dataset...")
 
     raw_data = read_text_data(args.scrape_file)
