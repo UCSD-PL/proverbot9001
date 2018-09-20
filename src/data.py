@@ -49,18 +49,26 @@ def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps})]
 
+def make_keyword_tokenizer(data : List[str],
+                           tokenizer_type : Callable[[List[str], int], Tokenizer],
+                           num_keywords : int,
+                           num_reserved_tokens : int) -> Tokenizer:
+    keywords = get_topk_keywords(data, num_keywords)
+    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
+    return tokenizer
+
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
                         tactic_tokenizer_type : Callable[[List[str], int], Tokenizer],
                         num_keywords : int,
                         num_reserved_tokens : int) \
     -> Tuple[SequenceSequenceDataset, Tokenizer, Tokenizer]:
-    context_keywords = get_topk_keywords([context for hyps, context, tactic in data],
-                                         num_keywords)
-    tactic_keywords = get_topk_keywords([tactic for hyps, context, tactic in data],
-                                        num_keywords)
-    context_tokenizer = context_tokenizer_type(context_keywords, num_reserved_tokens)
-    tactic_tokenizer = tactic_tokenizer_type(tactic_keywords, num_reserved_tokens)
+    context_tokenizer = make_keyword_tokenizer([context for hyps, context, tactic in data],
+                                               context_tokenizer_type,
+                                               num_keywords, num_reserved_tokens)
+    tactic_tokenizer = make_keyword_tokenizer([tactic for hyps, context, tactic in data],
+                                              tactic_tokenizer_type,
+                                              num_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
               for hyps, context, tactic in data]
