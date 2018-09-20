@@ -50,7 +50,7 @@ def args_vars_in_context(in_data : ContextData, tactic : str,
 
 def apply_lemma(in_data : ContextData, tactic : str,
                 next_in_data : ContextData) -> bool:
-    return re.match("\s*apply\s*\S+\.", tactic) != None
+    return re.match("\s*e?apply\s*\S+\.", tactic) != None
 
 def get_context_filter(specstr : str) -> ContextFilter:
     if "+" in specstr:
