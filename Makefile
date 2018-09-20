@@ -67,4 +67,4 @@ clean:
 	rm -f log*.txt
 
 clean-lin:
-	fd -e v.lin CompCert | xargs rm
+	fd '.*\.v\.lin' CompCert | xargs rm
