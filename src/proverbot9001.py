@@ -39,8 +39,8 @@ modules = {
 }
 
 trainable_models : Dict[str, Callable[[List[str]], None]] = {
-    "encdec" : encdec.main,
     "encclass" : encclass.main,
+    "encdec" : encdec.main,
     "encstruct" : encstruct.main,
     "dnnclass" : dnnclass.main,
     "trycommon" : trycommon.train,
