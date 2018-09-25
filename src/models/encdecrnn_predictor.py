@@ -386,25 +386,6 @@ def decodeKTactics(decoder : DecoderRNN, encoder_hidden : torch.FloatTensor,
 
     return int_seqs
 
-@overload
-def _inflate(tensor : SomeLongTensor, times : int) -> SomeLongTensor: ...
-@overload
-def _inflate(tensor : SomeFloatTensor, times : int) -> SomeFloatTensor: ...
-
-def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
-    tensor_dim = len(tensor.size())
-    if tensor_dim == 3:
-        b = tensor.size(1)
-        return tensor.repeat(1, 1, times).view(tensor.size(0), b * times, -1)
-    elif tensor_dim == 2:
-        return tensor.repeat(1, times)
-    elif tensor_dim == 1:
-        b = tensor.size(0)
-        return tensor.repeat(times).view(b, -1)
-    else:
-        raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
-                         "This one is {}D.".format(tensor_dim))
-
 def _mask_symbol_scores(self, score : List[float], idx : int,
                         masking_score : float=-float('inf')) -> None:
     score[idx] = masking_score

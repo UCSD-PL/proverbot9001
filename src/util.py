@@ -11,7 +11,7 @@ import torch.autograd as autograd
 
 from serapi_instance import kill_comments
 
-from typing import List, Any
+from typing import List, Any, overload
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -66,3 +66,22 @@ def str_1d_float_tensor(tensor : torch.FloatTensor):
     result = output.getvalue()
     output.close()
     return result
+
+@overload
+def _inflate(tensor : torch.LongTensor, times : int) -> torch.LongTensor: ...
+@overload
+def _inflate(tensor : torch.FloatTensor, times : int) -> torch.FloatTensor: ...
+
+def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
+    tensor_dim = len(tensor.size())
+    if tensor_dim == 3:
+        b = tensor.size(1)
+        return tensor.repeat(1, 1, times).view(tensor.size(0), b * times, -1)
+    elif tensor_dim == 2:
+        return tensor.repeat(1, times)
+    elif tensor_dim == 1:
+        b = tensor.size(0)
+        return tensor.repeat(times).view(b, -1)
+    else:
+        raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
+                         "This one is {}D.".format(tensor_dim))
