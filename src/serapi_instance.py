@@ -614,7 +614,14 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     return stem, rest
 
 def parse_hyps(hyps_str : str) -> List[str]:
-    var_terms = get_var_terms_in_hyps(hyps_str)
+    hyps_replaced = re.sub(":=.*?:", ":",
+                           kill_nested("forall", ",",
+                                       kill_nested("fun", "=>",
+                                                   kill_nested("let\s", "\sin\s",
+                                                               hyps))),
+                           flags=re.DOTALL)
+    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
+                           hyps_replaced, flags=re.DOTALL)
     rest_hyps_str = hyps_str
     hyps_list = []
     for next_term in var_terms[1:]:
@@ -655,17 +662,12 @@ def kill_nested(start_string : str, end_string : str, hyps : str) -> str:
             re.search(end_string, hyps[cur_position:], flags=re.DOTALL) + cur_position
     return hyps
 
-def get_var_terms_in_hyps(hyps : str) -> List[str]:
-    hyps_replaced = re.sub(":=.*?:", ":",
-                           kill_nested("forall", ",",
-                                       kill_nested("fun", "=>",
-                                                   kill_nested("let\s", "\sin\s",
-                                                               hyps))),
-                           flags=re.DOTALL)
-    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
-                           hyps_replaced, flags=re.DOTALL)
-    return var_terms
-def get_vars_in_hyps(hyps : str) -> List[str]:
-    var_terms = get_var_terms_in_hyps(hyps)
+def get_var_term_in_hyp(hyp : str) -> str:
+    return hyp.split(":")[0].strip()
+def get_vars_in_hyps(hyps : List[str]) -> List[str]:
+    var_terms = [get_var_term_in_hyp(hyp) for hyp in hyps]
     var_names = [name.strip() for term in var_terms for name in term.split(",")]
     return var_names
+
+def get_first_var_in_hyp(hyp : str) -> str:
+    return get_var_term_in_hyp(hyp).split(",")[0].strip()
