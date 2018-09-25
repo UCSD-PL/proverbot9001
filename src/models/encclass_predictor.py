@@ -99,13 +99,13 @@ class EncClassPredictor(TacticPredictor):
         if self.embedding.has_token(correct_stem):
             output_var = maybe_cuda(Variable(
                 torch.LongTensor([self.embedding.encode_token(correct_stem)])))
-            loss = self.criterion(prediction_distribution, output_var).data[0]
+            loss = self.criterion(prediction_distribution, output_var).item()
         else:
             loss = 0
 
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.item()) + ".",
-                    math.exp(certainty.data[0]))
+                    math.exp(certainty.item()))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
 
         self.lock.release()
