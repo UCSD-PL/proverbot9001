@@ -635,31 +635,33 @@ def parse_hyps(hyps_str : str) -> List[str]:
     return hyps_list
 
 def kill_nested(start_string : str, end_string : str, hyps : str) -> str:
-    next_forall_match = re.search(start_string, hyps, flags=re.DOTALL)
-    next_comma_match = re.search(end_string, hyps, flags=re.DOTALL)
+    def searchpos(pattern : str, hyps : str):
+        match = re.search(pattern, hyps, flags=re.DOTALL)
+        if match:
+            return match.start()
+        else:
+            return float("Inf")
+    next_forall_pos = searchpos(start_string, hyps)
+    next_comma_pos = searchpos(end_string, hyps)
     forall_depth = 0
     last_forall_position = -1
     cur_position = 0
-    while next_forall_match != None or next_comma_match != None:
-        next_comma_position = next_comma_match.start()
-        next_forall_position = next_forall_match.start()
-        if next_forall_position < next_comma_position:
-            cur_position = next_forall_position
+    while next_forall_pos != float("Inf") or next_comma_pos != float("Inf"):
+        if next_forall_pos < next_comma_pos:
+            cur_position = next_forall_pos
             if forall_depth == 0:
-                last_forall_position = next_forall_position
+                last_forall_position = next_forall_pos
             forall_depth += 1
         else:
             if forall_depth == 1:
-                hyps = hyps[:last_forall_position] + hyps[next_comma_position:]
-                cur_position = last_forall_position
+                hyps = hyps[:last_forall_pos] + hyps[next_comma_pos:]
+                cur_position = last_forall_pos
                 last_forall_position = -1
             else:
-                cur_position = next_comma_position
+                cur_position = next_comma_pos
             forall_depth -= 1
-        next_forall_match = \
-            re.search(start_string, hyps[cur_position:], flags=re.DOTALL) + cur_position
-        next_comma_match = \
-            re.search(end_string, hyps[cur_position:], flags=re.DOTALL) + cur_position
+        next_forall_pos = searchpos(start_string, hyps[cur_position:]) + cur_position
+        next_comma_pos = searchpos(end_string, hyps[cur_position:]) + cur_position
     return hyps
 
 def get_var_term_in_hyp(hyp : str) -> str:
