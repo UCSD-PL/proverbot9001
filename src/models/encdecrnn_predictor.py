@@ -15,6 +15,7 @@ from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
 from data import read_text_data, encode_seq_seq_data, Sentence, \
     SequenceSequenceDataset
 from util import *
+from util import _inflate
 
 import torch
 import torch.nn as nn
@@ -95,7 +96,7 @@ class EncoderRNN(nn.Module):
 
         pass
 
-    def forward(self, input : SomeLongTensor, hidden : SomeLongTensor) \
+    def forward(self, input : torch.LongTensor, hidden : torch.LongTensor) \
         -> Tuple[SomeLongTensor, SomeLongTensor] :
         output = self.embedding(input).view(1, self.batch_size, -1)
         for i in range(self.num_layers):

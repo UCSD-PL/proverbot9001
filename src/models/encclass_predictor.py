@@ -119,7 +119,6 @@ class RNNClassifier(nn.Module):
                  num_layers : int, batch_size : int=1) -> None:
         super(RNNClassifier, self).__init__()
         self.num_layers = num_layers
-        self.input_vocab_size = input_vocab_size
         self.hidden_size = hidden_size
         self.batch_size = batch_size
         self.embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
