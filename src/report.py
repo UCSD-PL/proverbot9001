@@ -425,17 +425,19 @@ class Worker(threading.Thread):
                                  ('data-goal',shorten_whitespace(goal)),
                                  ('data-num-total', str(fresult.num_tactics)),
                                  ('data-predictions',
-                                  to_list_string(predictions)),
+                                  to_list_string(cast(List[str], predictions))),
                                  ('data-num-predicteds',
                                   to_list_string([fresult.predicted_tactic_frequency
                                                   .get(get_stem(prediction), 0)
-                                                  for prediction in predictions])),
+                                                  for prediction in cast(List[str],
+                                                                         predictions)])),
                                  ('data-num-corrects',
                                   to_list_string([fresult.correctly_predicted_frequency
                                                   .get(get_stem(prediction), 0)
-                                                  for prediction in predictions])),
+                                                  for prediction in
+                                                  cast(List[str], predictions)])),
                                  ('data-certainties',
-                                  to_list_string(certainties)),
+                                  to_list_string(cast(List[float], certainties))),
                                  ('data-num-actual-corrects',
                                   fresult.correctly_predicted_frequency
                                   .get(get_stem(command), 0)),
@@ -445,7 +447,7 @@ class Worker(threading.Thread):
                                  ('data-actual-tactic',
                                   strip_comments(command)),
                                  ('data-grades',
-                                  to_list_string(grades)),
+                                  to_list_string(cast(List[str], grades))),
                                  ('data-search-idx',
                                   search_index),
                                  id='command-' + str(idx),
