@@ -35,7 +35,7 @@ def no_args(in_data : ContextData, tactic : str,
 def args_vars_in_context(in_data : ContextData, tactic : str,
                          next_in_data : ContextData) -> bool:
     stem, *args = tactic[:-1].split()
-    var_names = serapi_instance.get_vars_in_hyps(cast(str, in_data["hyps"]))
+    var_names = serapi_instance.get_vars_in_hyps(cast(List[str], in_data["hyps"]))
     for arg in args:
         if not arg in var_names:
             return False

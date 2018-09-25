@@ -5,7 +5,7 @@ import re
 
 import torch
 
-from typing import Dict, Any, List, Tuple, TypeVar
+from typing import Dict, Any, List, Tuple, TypeVar, Union
 
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
@@ -26,11 +26,11 @@ class TryCommonPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         return [(self.embedding.decode_token(idx) + ".", prob) for prob, idx
                 in zip(*list_topk(self.probabilities, k))]
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str],
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
                                 k : int, correct : str) -> \
         Tuple[List[Tuple[str, float]], float]:
         # Try common doesn't calculate a meaningful loss
@@ -71,4 +71,4 @@ T = TypeVar('T')
 def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
     l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
     lk = l[:k]
-    return zip(*reversed(lk))
+    return tuple(zip(*reversed(lk))) # type: ignore

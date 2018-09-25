@@ -70,7 +70,7 @@ class EncDecRNNPredictor(TacticPredictor):
 
         pass
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> \
+    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) -> \
         List[Tuple[str, float]]:
         in_sentence = LongTensor(inputFromSentence(
             self.context_tokenizer.toTokenList(in_data["goal"]),

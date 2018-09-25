@@ -12,7 +12,7 @@ from queue import PriorityQueue
 import torch
 from models.tactic_predictor import TacticPredictor
 
-from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable
+from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast
 
 from tokenizer import tokenizers
 from data import read_text_data, filter_data, \
@@ -200,9 +200,9 @@ class KNNPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> \
+    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) -> \
         List[Tuple[str, float]]:
-        input_vector = encode_bag_classify_input(in_data["goal"], self.tokenizer)
+        input_vector = encode_bag_classify_input(cast(str, in_data["goal"]), self.tokenizer)
 
         nearest = self.bst.findKNearest(input_vector, k)
         assert not nearest is None
@@ -212,7 +212,7 @@ class KNNPredictor(TacticPredictor):
                        for neighbor, output in nearest]
         return list(zip(predictions, (.5**i for i in itertools.count())))
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0

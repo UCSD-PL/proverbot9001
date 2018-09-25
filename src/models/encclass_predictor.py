@@ -65,31 +65,33 @@ class EncClassPredictor(TacticPredictor):
                                                 checkpoint['num-encoder-layers']))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
-        self.criterion = maybe_cuda(nn.NLLLoss())
-        self.lock = threading.Lock()
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert(options["filename"])
         self.load_saved_state(options["filename"])
+        self.criterion = maybe_cuda(nn.NLLLoss())
+        self.lock = threading.Lock()
 
-    def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
+    def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
+        -> torch.FloatTensor:
         in_sentence = LongTensor(inputFromSentence(
             self.tokenizer.toTokenList(in_data["goal"]),
             self.max_length))\
             .view(1, -1)
         return self.encoder.run(in_sentence)
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) -> List[Tuple[str, float]]:
+    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
+        -> List[Tuple[str, float]]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
                     math.exp(certainty.data[0]))
-                  for certainty, stem_idx in certainties_and_idxs]
+                   for certainty, stem_idx in zip(*certainties_and_idxs)]
         self.lock.release()
         return results
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[List[str], str]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
@@ -102,7 +104,7 @@ class EncClassPredictor(TacticPredictor):
             loss = 0
 
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
+        results = [(self.embedding.decode_token(stem_idx.item()) + ".",
                     math.exp(certainty.data[0]))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
 

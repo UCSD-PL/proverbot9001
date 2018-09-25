@@ -3,7 +3,7 @@
 import argparse
 import time
 import math
-from typing import Dict, Any, List, Tuple, Iterable, cast
+from typing import Dict, Any, List, Tuple, Iterable, cast, Union
 
 import torch
 import torch.nn as nn
@@ -46,13 +46,14 @@ class WordBagClassifyPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
-        goal = in_data["goal"]
+    def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
+        -> torch.FloatTensor:
+        goal = cast(str, in_data["goal"])
         in_vec = Variable(FloatTensor(encode_bag_classify_input(goal, self.tokenizer)))\
                  .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         distribution = self.predictDistribution(in_data)
         probs_and_indices = distribution.squeeze().topk(k)
@@ -60,7 +61,7 @@ class WordBagClassifyPredictor(TacticPredictor):
                  math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)

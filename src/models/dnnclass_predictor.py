@@ -65,13 +65,14 @@ class DNNClassPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
+    def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
+        -> torch.FloatTensor:
         in_vec = maybe_cuda(Variable(torch.FloatTensor(
-            encode_bag_classify_input(in_data["goal"], self.tokenizer))))\
+            encode_bag_classify_input(cast(str, in_data["goal"]), self.tokenizer))))\
             .view(1, -1)
         return self.network(in_vec)
 
-    def predictKTactics(self, in_data : Dict[str, str], k : int) \
+    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
@@ -81,7 +82,7 @@ class DNNClassPredictor(TacticPredictor):
                    for certainty, idx in zip(*certainties_and_idxs)]
         self.lock.release()
         return results
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str], k : int,
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)

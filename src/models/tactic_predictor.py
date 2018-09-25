@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Iterable
 from abc import ABCMeta, abstractmethod
 
 class TacticPredictor(metaclass=ABCMeta):
@@ -10,9 +10,9 @@ class TacticPredictor(metaclass=ABCMeta):
     def __init__(self, options : Dict[str, Union[int, str]]) -> None:
         pass
     @abstractmethod
-    def predictKTactics(self, in_data : Dict[str, str], k : int) \
-        -> List[Tuple[str, float]]: pass
+    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+        -> Iterable[Tuple[str, float]]: pass
     @abstractmethod
-    def predictKTacticsWithLoss(self, in_data : Dict[str, str],
+    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
                                 k : int, correct : str) -> \
         Tuple[List[Tuple[str, float]], float]: pass
