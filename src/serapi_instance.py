@@ -627,9 +627,40 @@ def parse_hyps(hyps_str : str) -> List[str]:
     hyps_list.append(rest_hyps_str)
     return hyps_list
 
+def kill_nested(start_string : str, end_string : str, hyps : str) -> str:
+    next_forall_match = re.search(start_string, hyps, flags=re.DOTALL)
+    next_comma_match = re.search(end_string, hyps, flags=re.DOTALL)
+    forall_depth = 0
+    last_forall_position = -1
+    cur_position = 0
+    while next_forall_match != None or next_comma_match != None:
+        next_comma_position = next_comma_match.start()
+        next_forall_position = next_forall_match.start()
+        if next_forall_position < next_comma_position:
+            cur_position = next_forall_position
+            if forall_depth == 0:
+                last_forall_position = next_forall_position
+            forall_depth += 1
+        else:
+            if forall_depth == 1:
+                hyps = hyps[:last_forall_position] + hyps[next_comma_position:]
+                cur_position = last_forall_position
+                last_forall_position = -1
+            else:
+                cur_position = next_comma_position
+            forall_depth -= 1
+        next_forall_match = \
+            re.search(start_string, hyps[cur_position:], flags=re.DOTALL) + cur_position
+        next_comma_match = \
+            re.search(end_string, hyps[cur_position:], flags=re.DOTALL) + cur_position
+    return hyps
+
 def get_var_terms_in_hyps(hyps : str) -> List[str]:
-    hyps_replaced = re.sub("forall.*?,", "",
-                           re.sub("fun.*?=>", "", hyps, flags=re.DOTALL),
+    hyps_replaced = re.sub(":=.*?:", ":",
+                           kill_nested("forall", ",",
+                                       kill_nested("fun", "=>",
+                                                   kill_nested("let\s", "\sin\s",
+                                                               hyps))),
                            flags=re.DOTALL)
     var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
                            hyps_replaced, flags=re.DOTALL)
