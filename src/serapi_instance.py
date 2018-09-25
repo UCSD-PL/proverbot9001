@@ -614,17 +614,18 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     return stem, rest
 
 def parse_hyps(hyps_str : str) -> List[str]:
-    hyps_replaced = re.sub(":=.*?:", ":",
-                           kill_nested("forall", ",",
-                                       kill_nested("fun", "=>",
-                                                   kill_nested("let\s", "\sin\s",
-                                                               hyps_str))),
-                           flags=re.DOTALL)
+    lets_killed = kill_nested("\Wlet\s", "\sin\s", hyps_str)
+    funs_killed = kill_nested("\Wfun\s", "=>", lets_killed)
+    foralls_killed = kill_nested("\Wforall\s", ",", funs_killed)
+    fixs_killed = kill_nested("\Wfix\s", ":=", foralls_killed)
+    hyps_replaced = re.sub(":=.*?:", ":", fixs_killed, flags=re.DOTALL)
     var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
                            hyps_replaced, flags=re.DOTALL)
     rest_hyps_str = hyps_str
     hyps_list = []
     for next_term in var_terms[1:]:
+        assert "(" not in next_term and ")" not in next_term, \
+            "Got term {} from hyps string {}".format(next_term, hyps_str)
         next_match = re.search(next_term, rest_hyps_str)
         assert next_match is not None, \
             "Can't find var term {} in hypothesis!".format(next_term)
@@ -634,15 +635,19 @@ def parse_hyps(hyps_str : str) -> List[str]:
     hyps_list.append(rest_hyps_str)
     return hyps_list
 
-def kill_nested(start_string : str, end_string : str, hyps : str) -> str:
-    def searchpos(pattern : str, hyps : str):
+def kill_nested(start_string : str, end_string : str, hyps : str) \
+    -> str:
+    def searchpos(pattern : str, hyps : str, end : bool = False):
         match = re.search(pattern, hyps, flags=re.DOTALL)
         if match:
-            return match.start()
+            if end:
+                return match.end()
+            else:
+                return match.start()
         else:
             return float("Inf")
     next_forall_pos = searchpos(start_string, hyps)
-    next_comma_pos = searchpos(end_string, hyps)
+    next_comma_pos = searchpos(end_string, hyps, end=True)
     forall_depth = 0
     last_forall_position = -1
     cur_position = 0
@@ -654,14 +659,26 @@ def kill_nested(start_string : str, end_string : str, hyps : str) -> str:
             forall_depth += 1
         else:
             if forall_depth == 1:
-                hyps = hyps[:last_forall_pos] + hyps[next_comma_pos:]
-                cur_position = last_forall_pos
+                hyps = hyps[:last_forall_position] + hyps[next_comma_pos:]
+                cur_position = last_forall_position
                 last_forall_position = -1
             else:
                 cur_position = next_comma_pos
-            forall_depth -= 1
-        next_forall_pos = searchpos(start_string, hyps[cur_position:]) + cur_position
-        next_comma_pos = searchpos(end_string, hyps[cur_position:]) + cur_position
+            if forall_depth > 0:
+                forall_depth -= 1
+
+        new_next_forall_pos = \
+            searchpos(start_string, hyps[cur_position+1:]) + cur_position + 1
+        new_next_comma_pos = \
+            searchpos(end_string, hyps[cur_position+1:], end=True) + cur_position + 1
+        assert new_next_forall_pos != next_forall_pos or \
+            new_next_comma_pos != next_comma_pos, \
+            "old start pos was {}, new start pos is {}, old end pos was {},"\
+            "new end pos is {}, cur_position is {}"\
+            .format(next_forall_pos, new_next_forall_pos, next_comma_pos,
+                    new_next_comma_pos, cur_position)
+        next_forall_pos = new_next_forall_pos
+        next_comma_pos = new_next_comma_pos
     return hyps
 
 def get_var_term_in_hyp(hyp : str) -> str:
