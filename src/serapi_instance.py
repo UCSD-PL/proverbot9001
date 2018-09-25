@@ -618,7 +618,7 @@ def parse_hyps(hyps_str : str) -> List[str]:
                            kill_nested("forall", ",",
                                        kill_nested("fun", "=>",
                                                    kill_nested("let\s", "\sin\s",
-                                                               hyps))),
+                                                               hyps_str))),
                            flags=re.DOTALL)
     var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
                            hyps_replaced, flags=re.DOTALL)
