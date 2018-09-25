@@ -651,7 +651,8 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
     forall_depth = 0
     last_forall_position = -1
     cur_position = 0
-    while next_forall_pos != float("Inf") or next_comma_pos != float("Inf"):
+    while next_forall_pos != float("Inf") or (next_comma_pos != float("Inf") and forall_depth > 0):
+        old_forall_depth = forall_depth
         if next_forall_pos < next_comma_pos:
             cur_position = next_forall_pos
             if forall_depth == 0:
@@ -672,7 +673,8 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
         new_next_comma_pos = \
             searchpos(end_string, hyps[cur_position+1:], end=True) + cur_position + 1
         assert new_next_forall_pos != next_forall_pos or \
-            new_next_comma_pos != next_comma_pos, \
+            new_next_comma_pos != next_comma_pos or \
+                forall_depth != old_forall_depth, \
             "old start pos was {}, new start pos is {}, old end pos was {},"\
             "new end pos is {}, cur_position is {}"\
             .format(next_forall_pos, new_next_forall_pos, next_comma_pos,
