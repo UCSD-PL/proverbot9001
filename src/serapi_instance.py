@@ -621,18 +621,21 @@ def parse_hyps(hyps_str : str) -> List[str]:
     hyps_replaced = re.sub(":=.*?:", ":", fixs_killed, flags=re.DOTALL)
     var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
                            hyps_replaced, flags=re.DOTALL)
+    if len(var_terms) == 0:
+        return []
     rest_hyps_str = hyps_str
     hyps_list = []
-    for next_term in var_terms[1:]:
-        assert "(" not in next_term and ")" not in next_term, \
-            "Got term {} from hyps string {}".format(next_term, hyps_str)
-        next_match = re.search(next_term, rest_hyps_str)
-        assert next_match is not None, \
-            "Can't find var term {} in hypothesis!".format(next_term)
-        hyp = rest_hyps_str[:next_match.start()]
-        rest_hyps_str = rest_hyps_str[next_match.start():]
+    # Assumes hypothesis are printed in reverse order, because for
+    # whatever reason they seem to be.
+    for next_term in reversed(var_terms[1:]):
+        next_match = rest_hyps_str.rfind(next_term + " :")
+        hyp = rest_hyps_str[next_match:].strip()
+        rest_hyps_str = rest_hyps_str[:next_match].strip()
         hyps_list.append(hyp)
     hyps_list.append(rest_hyps_str)
+    for hyp in hyps_list:
+        assert ":" in hyp, "hyps_str: {}\nhyps_list: {}\nvar_terms: {}"\
+            .format(hyps_str, hyps_list, var_terms)
     return hyps_list
 
 def kill_nested(start_string : str, end_string : str, hyps : str) \
