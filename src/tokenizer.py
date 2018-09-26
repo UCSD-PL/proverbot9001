@@ -194,6 +194,15 @@ class KeywordTokenizer(Tokenizer):
             "It still might change"
         return self.next_mangle_ord
 
+def make_keyword_tokenizer(data : List[str],
+                           tokenizer_type : Callable[[List[str], int], Tokenizer],
+                           num_keywords : int,
+                           num_reserved_tokens : int) -> Tokenizer:
+    keywords = get_topk_keywords(data, num_keywords)
+    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
+    return tokenizer
+
+
 context_keywords = [
     "forall",
     "eq",

@@ -5,7 +5,7 @@ import itertools
 import multiprocessing
 
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords, tokenizers
+    get_topk_keywords, get_relevant_k_keywords, make_keyword_tokenizer
 from format import read_tuple
 from models.components import SimpleEmbedding
 import re
@@ -86,14 +86,6 @@ def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
             zip(data, itertools.islice(data, 1, None))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps}))
-
-def make_keyword_tokenizer(data : List[str],
-                           tokenizer_type : Callable[[List[str], int], Tokenizer],
-                           num_keywords : int,
-                           num_reserved_tokens : int) -> Tokenizer:
-    keywords = get_topk_keywords(data, num_keywords)
-    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
-    return tokenizer
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
