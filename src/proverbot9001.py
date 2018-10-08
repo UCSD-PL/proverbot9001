@@ -9,6 +9,8 @@ import models.encclass_predictor as encclass
 import models.dnnclass_predictor as dnnclass
 import models.k_nearest_predictor as knn
 import models.encstruct_predictor as encstruct
+import models.term_autoencoder as autoencoder
+import models.autoclass_predictor as autoclass
 import report
 import argparse
 
@@ -46,6 +48,8 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "trycommon" : trycommon.train,
     "wordbagclass" : wordbagclass.main,
     "k-nearest" : knn.main,
+    "autoencoder" : autoencoder.main,
+    "autoclass" : autoclass.main,
 }
 
 
