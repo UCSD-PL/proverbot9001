@@ -24,6 +24,7 @@ RawDataset = Iterable[Tuple[List[str], str, str]]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
+TermDataset = List[Sentence]
 
 def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
@@ -139,6 +140,18 @@ def encode_bag_classify_data(data : RawDataset,
 def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
     -> Bag:
     return extend(getTokenbagVector(tokenizer.toTokenList(context)), tokenizer.numTokens())
+
+def term_data(data : RawDataset,
+              tokenizer_type : Callable[[List[str], int], Tokenizer],
+              num_keywords : int,
+              num_reserved_tokens : int) -> Tuple[TermDataset, Tokenizer]:
+    term_strings = list(itertools.chain.from_iterable(
+        [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
+         for hyps, goal, tactic in data]))
+    tokenizer = make_keyword_tokenizer_topk(term_strings, tokenizer_type,
+                                            num_keywords, num_reserved_tokens)
+    return [tokenizer.toTokenList(term_string) for term_string in term_strings], \
+        tokenizer
 
 def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
     if len(sentence) > max_length:
