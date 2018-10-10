@@ -17,14 +17,11 @@ import torch.cuda
 
 from util import *
 from models.args import add_std_args, optimizers
-from data import read_text_data, Sentence
+from data import read_text_data, Sentence, SOS_token, normalizeSentenceLength
 import tokenizer as tk
 
 from typing import List, Dict, Tuple, NamedTuple, Iterable, Callable
 from typing import cast
-
-SOS_token = 1
-EOS_token = 0
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
@@ -181,13 +178,6 @@ def train(dataset : List[Sentence],
                          training_loss=total_loss)
     pass
 
-def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
-    if len(sentence) > max_length:
-        sentence = sentence[:max_length]
-    elif len(sentence) < max_length:
-        sentence.extend([EOS_token] * (max_length - len(sentence)))
-    return sentence
-
 def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description="Autoencoder for coq terms")
     add_std_args(parser)
@@ -206,9 +196,9 @@ def main(args_list : List[str]) -> None:
          for hyps, goal, tactic in dataset]))
 
     print("Parsing data...")
-    tokenizer = tk.make_keyword_tokenizer(term_strings,
-                                          tk.tokenizers[args.tokenizer],
-                                          args.num_keywords, 2)
+    tokenizer = tk.make_keyword_tokenizer_topk(term_strings,
+                                               tk.tokenizers[args.tokenizer],
+                                               args.num_keywords, 2)
     tokenized_data = [normalizeSentenceLength(tokenizer.toTokenList(term), args.max_length)
                       for term in term_strings]
     checkpoints = train(tokenized_data,

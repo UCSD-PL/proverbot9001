@@ -17,14 +17,14 @@ import torch.cuda
 import models.args as stdargs
 import data
 from data import ClassifySequenceDataset, read_text_data, filter_data, \
-    encode_seq_classify_data
+    encode_seq_classify_data, normalizeSentenceLength
 from context_filter import get_context_filter
 from tokenizer import tokenizers
 
 from util import *
 from models.components import SimpleEmbedding
 from models.tactic_predictor import TacticPredictor
-from models.term_autoencoder import EncoderRNN, normalizeSentenceLength
+from models.term_autoencoder import EncoderRNN
 from serapi_instance import get_stem
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable

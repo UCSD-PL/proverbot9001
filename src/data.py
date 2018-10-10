@@ -5,15 +5,18 @@ import itertools
 import multiprocessing
 
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords, make_keyword_tokenizer
+    get_topk_keywords, get_relevant_k_keywords, \
+    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers
 from format import read_tuple
 from models.components import SimpleEmbedding
-import re
 
 from typing import Tuple, List, Callable, Optional
 from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
+
+SOS_token = 1
+EOS_token = 0
 
 Sentence = List[int]
 Bag = List[int]
@@ -93,12 +96,12 @@ def encode_seq_seq_data(data : RawDataset,
                         num_keywords : int,
                         num_reserved_tokens : int) \
     -> Tuple[SequenceSequenceDataset, Tokenizer, Tokenizer]:
-    context_tokenizer = make_keyword_tokenizer([context for hyps, context, tactic in data],
-                                               context_tokenizer_type,
-                                               num_keywords, num_reserved_tokens)
-    tactic_tokenizer = make_keyword_tokenizer([tactic for hyps, context, tactic in data],
-                                              tactic_tokenizer_type,
-                                              num_keywords, num_reserved_tokens)
+    context_tokenizer = make_keyword_tokenizer_topk([context for hyps, context, tactic in data],
+                                                    context_tokenizer_type,
+                                                    num_keywords, num_reserved_tokens)
+    tactic_tokenizer = make_keyword_tokenizer_topk([tactic for hyps, context, tactic in data],
+                                                   tactic_tokenizer_type,
+                                                   num_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
               for hyps, context, tactic in data]
@@ -136,3 +139,10 @@ def encode_bag_classify_data(data : RawDataset,
 def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
     -> Bag:
     return extend(getTokenbagVector(tokenizer.toTokenList(context)), tokenizer.numTokens())
+
+def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
+    if len(sentence) > max_length:
+        sentence = sentence[:max_length]
+    elif len(sentence) < max_length:
+        sentence.extend([EOS_token] * (max_length - len(sentence)))
+    return sentence

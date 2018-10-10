@@ -7,7 +7,7 @@ from typing import Dict, List, Union, Any, Tuple, Iterable, cast, Callable
 from itertools import takewhile
 
 from models.encdecrnn_predictor import inputFromSentence
-from tokenizer import Tokenizer, tokenizers, get_symbols, make_keyword_tokenizer
+from tokenizer import Tokenizer, tokenizers, get_symbols, make_keyword_tokenizer_relevance
 from models.tactic_predictor import TacticPredictor
 from models.args import add_std_args, optimizers
 from models.components import SimpleEmbedding
@@ -199,7 +199,8 @@ def encode_seq_structural_data(data : RawDataset,
     hyps_and_goals = [hyp_or_goal
                       for hyp_and_goal in [hyps + [goal] for hyps, goal, tactic in data]
                       for hyp_or_goal in hyp_and_goal]
-    context_tokenizer = make_keyword_tokenizer(hyps_and_goals, context_tokenizer_type,
+    context_tokenizer = make_keyword_tokenizer_relevance(hyps_and_goals,
+                                                         context_tokenizer_type,
                                                num_keywords, num_reserved_tokens)
     embedding = SimpleEmbedding()
 
