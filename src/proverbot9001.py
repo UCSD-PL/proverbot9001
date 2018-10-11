@@ -49,6 +49,8 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
     parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
     parser.add_argument("--max-length", dest="max_length", default=None, type=int)
+    parser.add_argument("--lineend", dest="lineend", default=False, const=True,
+                        action='store_const')
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(data.read_text_data(arg_values.datafile_path,
@@ -61,7 +63,7 @@ def get_data(args : List[str]) -> None:
         for term in terms:
             print(tokenizer.toString(
                 list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
-                  end="\\n\n")
+                  end="\\n\n" if arg_values.lineend else "\n")
         pass
 
 modules = {
