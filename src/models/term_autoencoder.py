@@ -3,6 +3,8 @@
 import re
 import time
 import argparse
+import sys
+import itertools
 from itertools import chain
 
 import torch
@@ -17,7 +19,7 @@ import torch.cuda
 
 from util import *
 from models.args import add_std_args, optimizers
-from data import read_text_data, Sentence, SOS_token, normalizeSentenceLength
+from data import read_text_data, Sentence, SOS_token, EOS_token, normalizeSentenceLength
 import tokenizer as tk
 
 from typing import List, Dict, Tuple, NamedTuple, Iterable, Callable
@@ -85,6 +87,21 @@ class DecoderRNN(nn.Module):
     def initHidden(self) -> torch.LongTensor:
         zeroes = cast(torch.LongTensor, maybe_cuda(torch.zeros(1, 1, self.hidden_size)))
         return Variable(zeroes)
+    def run(self, hidden : torch.FloatTensor, max_length : int) -> Sentence:
+        decoder_hidden = hidden
+        assert self.batch_size == 1
+        decoder_input = self.initInput()
+        prediction : Sentence = []
+
+        for di in range(max_length):
+            decoder_output, decoder_hidden = self(decoder_input, decoder_hidden)
+            probability, decoder_input = decoder_output.view(1, -1).topk(1)
+            decoded_char = decoder_input.item()
+            prediction.append(decoded_char)
+            if decoded_char == EOS_token:
+                prediction = normalizeSentenceLength(prediction, max_length)
+                break
+        return prediction
     def run_teach(self, hidden : torch.FloatTensor,
                   output_batch : torch.LongTensor) -> List[torch.FloatTensor]:
         output_variable = maybe_cuda(Variable(output_batch))
@@ -120,7 +137,7 @@ def train(dataset : List[Sentence],
     encoder = maybe_cuda(EncoderRNN(token_vocab_size, hidden_size,
                                     num_encoder_layers, batch_size=batch_size))
     decoder = maybe_cuda(DecoderRNN(hidden_size, token_vocab_size,
-                                    num_decoder_layers, batch_size))
+                                    num_decoder_layers, batch_size=batch_size))
     encoder_optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optimizer_f(decoder.parameters(), lr=learning_rate)
     encoder_adjuster = scheduler.StepLR(encoder_optimizer, epoch_step, gamma)
@@ -188,9 +205,6 @@ def main(args_list : List[str]) -> None:
     args = parser.parse_args(args_list)
     print("Loading data...")
     dataset = read_text_data(args.scrape_file, args.max_tuples)
-    for hyps, goal, tactic in dataset:
-        for hyp in hyps:
-            assert ":" in hyp, "hyps: {}".format(hyps)
     term_strings = list(chain.from_iterable(
         [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
          for hyps, goal, tactic in dataset]))
@@ -217,6 +231,7 @@ def main(args_list : List[str]) -> None:
                  'encoder':encoder_state,
                  'decoder':decoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
+                 'num-decoder-layers':args.num_decoder_layers,
                  'max-length': args.max_length,
                  'hidden-size' : args.hidden_size,
                  'num-keywords' : args.num_keywords,
@@ -227,3 +242,39 @@ def main(args_list : List[str]) -> None:
                   format(epoch))
             torch.save(state, f)
     pass
+
+def run_test(args_list : List[str]):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("save_file", type=str)
+    parser.add_argument("--max-length", dest="max_length", default=100, type=int)
+    arg_values = parser.parse_args(args_list)
+
+    checkpoint = torch.load(arg_values.save_file)
+
+    assert checkpoint['tokenizer']
+    assert checkpoint['tokenizer-name']
+    assert checkpoint['encoder']
+    assert checkpoint['num-encoder-layers']
+    assert checkpoint['decoder']
+    assert checkpoint['num-decoder-layers']
+    assert checkpoint['hidden-size']
+    assert checkpoint['context-filter']
+
+    tokenizer = checkpoint['tokenizer']
+    encoder = maybe_cuda(EncoderRNN(tokenizer.numTokens(),
+                                    checkpoint['hidden-size'],
+                                    checkpoint['num-encoder-layers']))
+    encoder.load_state_dict(checkpoint['encoder'])
+
+    decoder = maybe_cuda(DecoderRNN(checkpoint['hidden-size'],
+                                    tokenizer.numTokens(),
+                                    checkpoint['num-decoder-layers']))
+    decoder.load_state_dict(checkpoint['decoder'])
+
+    for term in sys.stdin:
+        data_in = torch.LongTensor(normalizeSentenceLength(tokenizer.toTokenList(term),
+                                                           arg_values.max_length)).view(1, -1)
+        data_out = decoder.run(encoder.run(data_in),
+                               arg_values.max_length)
+        print(tokenizer.toString(
+            list(itertools.takewhile(lambda x: x != EOS_token, data_out))))

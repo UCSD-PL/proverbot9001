@@ -66,10 +66,23 @@ def get_data(args : List[str]) -> None:
                   end="\\n\n" if arg_values.lineend else "\n")
         pass
 
+def run_test(args):
+    parser = argparse.ArgumentParser(description=
+                                     "Proverbot9001 module for running a model on "
+                                     "some inputs")
+    parser.add_argument("model", choices=list(test_modules.keys()))
+    arg_values = parser.parse_args(args[:1])
+    test_modules[arg_values.model](args[1:])
+
 modules = {
     "train" : train,
     "report":  report.main,
     "data": get_data,
+    "run": run_test,
+}
+
+test_modules = {
+    "autoencoder" : autoencoder.run_test,
 }
 
 trainable_models : Dict[str, Callable[[List[str]], None]] = {
