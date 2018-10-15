@@ -285,11 +285,11 @@ def main(args_list : List[str]) -> None:
 def run_test(args_list : List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument("save_file", type=str)
-    parser.add_argument("--max-length", dest="max_length", default=100, type=int)
     arg_values = parser.parse_args(args_list)
 
     checkpoint = torch.load(arg_values.save_file)
 
+    assert checkpoint['max-length']
     assert checkpoint['tokenizer']
     assert checkpoint['tokenizer-name']
     assert checkpoint['encoder']
@@ -312,8 +312,8 @@ def run_test(args_list : List[str]):
 
     for term in sys.stdin:
         data_in = torch.LongTensor(normalizeSentenceLength(tokenizer.toTokenList(term),
-                                                           arg_values.max_length)).view(1, -1)
+                                                           checkpoint['max-length'])).view(1, -1)
         data_out = decoder.run(encoder.run(data_in),
-                               arg_values.max_length)
+                               checkpoint['max-length'])
         print(tokenizer.toString(
             list(itertools.takewhile(lambda x: x != EOS_token, data_out))))
