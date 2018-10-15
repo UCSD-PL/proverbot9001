@@ -70,7 +70,6 @@ def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
         result = list(itertools.islice(itertools.chain.from_iterable(data_chunks),
                                        max_size))
         return result
-
 def get_text_data(data_path : str, context_filter_name : str,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
     def _print(*args, **kwargs):

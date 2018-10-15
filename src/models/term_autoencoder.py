@@ -5,6 +5,7 @@ import time
 import argparse
 import sys
 import itertools
+import multiprocessing
 from itertools import chain
 
 import torch
@@ -128,12 +129,19 @@ def train(dataset : List[Sentence],
           num_epochs : int, batch_size : int, print_every : int,
           optimizer_f : Callable[..., Optimizer]) \
           -> Iterable[Checkpoint]:
+    curtime = time.time()
+    print("Building pytorch dataset...", end="")
+    sys.stdout.flush()
     data_loader = data.DataLoader(data.TensorDataset(torch.LongTensor(dataset[:]),
                                                      torch.LongTensor(dataset[:])),
                                   batch_size=batch_size, num_workers=0,
                                   shuffle=True, pin_memory=True,
                                   drop_last=True)
+    print(" {}".format(time.time() - curtime))
 
+    curtime = time.time()
+    print("Initializing model...", end="")
+    sys.stdout.flush()
     encoder = maybe_cuda(EncoderRNN(token_vocab_size, hidden_size,
                                     num_encoder_layers, batch_size=batch_size))
     decoder = maybe_cuda(DecoderRNN(hidden_size, token_vocab_size,
@@ -143,6 +151,7 @@ def train(dataset : List[Sentence],
     encoder_adjuster = scheduler.StepLR(encoder_optimizer, epoch_step, gamma)
     decoder_adjuster = scheduler.StepLR(decoder_optimizer, epoch_step, gamma)
     criterion = maybe_cuda(nn.NLLLoss())
+    print(" {}".format(time.time() - curtime))
 
     start=time.time()
     num_items = len(dataset) * num_epochs
@@ -195,6 +204,16 @@ def train(dataset : List[Sentence],
                          training_loss=total_loss)
     pass
 
+def extract_terms(triple : Tuple[List[str], str, str]):
+    hyps, goal, tactic = triple
+    return [hyp.split(":")[1].strip() for hyp in hyps] + [goal]
+
+def use_tokenizer(tokenizer : tk.Tokenizer, max_length : int, term_strings : str):
+    return [normalizeSentenceLength(tokenizer.toTokenList(term_string), max_length)
+            for term_string in term_strings]
+
+import functools
+
 def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description="Autoencoder for coq terms")
     add_std_args(parser)
@@ -203,18 +222,38 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--num-decoder-layers", dest="num_decoder_layers",
                         default=3, type=int)
     args = parser.parse_args(args_list)
-    print("Loading data...")
+    curtime = time.time()
+    print("Loading data...", end="")
+    sys.stdout.flush()
     dataset = read_text_data(args.scrape_file, args.max_tuples)
+
+    print(" {}".format(time.time() - curtime))
+    curtime = time.time()
+    print("Extracting terms...", end="")
+    sys.stdout.flush()
     term_strings = list(chain.from_iterable(
         [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
          for hyps, goal, tactic in dataset]))
+    print(" {}".format(time.time() - curtime))
 
-    print("Parsing data...")
+    curtime = time.time()
+    print("Building tokenizer...", end="")
+    sys.stdout.flush()
     tokenizer = tk.make_keyword_tokenizer_topk(term_strings,
                                                tk.tokenizers[args.tokenizer],
                                                args.num_keywords, 2)
-    tokenized_data = [normalizeSentenceLength(tokenizer.toTokenList(term), args.max_length)
-                      for term in term_strings]
+    print(" {}".format(time.time() - curtime))
+    curtime = time.time()
+    print("Tokenizing {} strings...".format(len(term_strings)), end="")
+    sys.stdout.flush()
+
+    with multiprocessing.Pool(None) as pool:
+        tokenized_data_chunks = pool.imap_unordered(functools.partial(
+            use_tokenizer, tokenizer, args.max_length),
+                                                    chunks(term_strings, 32768))
+        tokenized_data = list(chain.from_iterable(tokenized_data_chunks))
+
+    print(" {}".format(time.time() - curtime))
     checkpoints = train(tokenized_data,
                         tokenizer.numTokens(), args.max_length, args.hidden_size,
                         args.learning_rate, args.epoch_step, args.gamma,
