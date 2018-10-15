@@ -44,6 +44,7 @@ class AutoClassPredictor(TacticPredictor):
         assert checkpoint['stem-embedding']
         assert checkpoint['decoder']
         assert checkpoint['num-decoder-layers']
+        assert checkpoint['encoded-size']
         assert checkpoint['hidden-size']
         assert checkpoint['context-filter']
         assert checkpoint['learning-rate']
@@ -82,7 +83,8 @@ class AutoClassPredictor(TacticPredictor):
         self.encoder.load_state_dict(checkpoint['encoder'])
         print("Have {} embedding tokens".format(self.embedding.num_tokens()))
         self.decoder = maybe_cuda(
-            ClassifierDNN(checkpoint['hidden-size'],
+            ClassifierDNN(checkpoint['encoded-size'],
+                          checkpoint['hidden-size'],
                           self.embedding.num_tokens(),
                           checkpoint['num-decoder-layers']))
         self.decoder.load_state_dict(checkpoint['decoder'])
@@ -135,21 +137,24 @@ class AutoClassPredictor(TacticPredictor):
         return self.options
 
 class ClassifierDNN(nn.Module):
-    def __init__(self, hidden_size : int, output_vocab_size : int,
+    def __init__(self, input_size : int, hidden_size : int, output_vocab_size : int,
                  num_layers : int, batch_size : int=1) -> None:
         super(ClassifierDNN, self).__init__()
         self.num_layers = num_layers
+        self.input_size = input_size
         self.hidden_size = hidden_size
         self.batch_size = batch_size
+        self.in_layer = maybe_cuda(nn.Linear(input_size, hidden_size))
         self.layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                       for _ in range(num_layers)]
+                       for _ in range(1, num_layers)]
         self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
         self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
         pass
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
         layer_values = input.view(self.batch_size, -1)
-        for i in range(self.num_layers):
+        layer_values = self.in_layer(layer_values)
+        for i in range(self.num_layers - 1):
             layer_values = F.relu(layer_values)
             layer_values = self.layers[i](layer_values)
         return self.softmax(self.out_layer(layer_values))
@@ -164,8 +169,9 @@ class Checkpoint(NamedTuple):
     training_loss : float
 
 def train(dataset : ClassifySequenceDataset,
-          hidden_size : int, output_vocab_size : int, num_layers : int, batch_size : int,
           autoencoder : EncoderRNN, train_autoencoder: bool, max_length : int,
+          encoder_hidden_size : int, classifier_hidden_size : int,
+          output_vocab_size : int, num_layers : int, batch_size : int,
           learning_rate : float, gamma : float, epoch_step : int, num_epochs : int,
           print_every : int, optimizer_f : Callable[..., Optimizer]) \
           -> Iterable[Checkpoint]:
@@ -179,7 +185,8 @@ def train(dataset : ClassifySequenceDataset,
                              batch_size=batch_size, num_workers=0,
                              shuffle=True, pin_memory=True, drop_last=True)
 
-    classifier = maybe_cuda(ClassifierDNN(hidden_size, output_vocab_size,
+    classifier = maybe_cuda(ClassifierDNN(encoder_hidden_size,
+                                          classifier_hidden_size, output_vocab_size,
                                           num_layers, batch_size))
     optimizers = [optimizer_f(classifier.parameters(), lr=learning_rate)]
     if train_autoencoder:
@@ -251,6 +258,8 @@ def main(arg_list : List[str]) -> None:
                         default=list(stdargs.optimizers.keys())[0])
     parser.add_argument("--num-classifier-layers", dest="num_classifier_layers",
                         default=3, type=int)
+    parser.add_argument("--classifier-hidden-size", dest="classifier_hidden_size",
+                        default=128, type=int)
     parser.add_argument("--train-autoencoder", dest="train_autoencoder",
                        default=False, const=True, action='store_const')
     args = parser.parse_args(arg_list)
@@ -260,11 +269,7 @@ def main(arg_list : List[str]) -> None:
     raw_data = read_text_data(args.scrape_file, args.max_tuples)
     print("Read {} raw input-output pairs".format(len(raw_data)))
     print("Filtering data based on predicate...")
-    if 'context-filter' in autoenc_state:
-        cfilter = autoenc_state['context-filter']
-    else:
-        print("Warning: could not find context filter in saved autoencoder state, using default...")
-        cfilter = "default"
+    cfilter = autoenc_state['context-filter']
     filtered_data = filter_data(raw_data,
                                 get_context_filter(cfilter))
     print("{} input-output pairs left".format(len(filtered_data)))
@@ -284,6 +289,7 @@ def main(arg_list : List[str]) -> None:
     loadedAutoencoder.load_state_dict(autoenc_state['encoder'])
     checkpoints = train(dataset, loadedAutoencoder, args.train_autoencoder,
                         autoenc_state['max-length'], autoenc_state['hidden-size'],
+                        args.classifier_hidden_size,
                         embedding.num_tokens(),
                         args.num_classifier_layers, args.batch_size,
                         args.learning_rate, args.gamma, args.epoch_step, args.num_epochs,
@@ -307,7 +313,8 @@ def main(arg_list : List[str]) -> None:
                  'num-encoder-layers' : autoenc_state['num-encoder-layers'],
                  'context-filter' : cfilter,
                  'max-length' : autoenc_state['max-length'],
-                 'hidden-size' : autoenc_state['hidden-size'],
+                 'encoded-size' : autoenc_state['hidden-size'],
+                 'hidden-size' : args.classifier_hidden_size,
                  'num-keywords' : autoenc_state['num-keywords'],
                  'stem-embedding' : embedding,
         }
