@@ -180,6 +180,7 @@ def train(dataset : List[Sentence],
             for i in range(target_length):
                 loss += criterion(decoded_output[i], output_var[:,i])
             total_loss += (loss.data.item() / target_length) * batch_size
+            assert total_loss == total_loss
             assert isinstance(total_loss, float)
 
             # Update the weights
