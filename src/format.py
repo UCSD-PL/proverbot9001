@@ -50,11 +50,12 @@ def read_tuple(f_handle : TextIO) -> Optional[Tuple[List[str], str, str]]:
     stars2 = next_hypothesis
     assert stars2 == "*****\n"
 
-    goal = f_handle.readline()
-    assert goal != ""
+    goal = f_handle.readline().strip()
+    assert goal != "", "Lemma name is {}".format(prev_tactics[0])
     plusses = f_handle.readline()
-    assert plusses == "+++++\n", "Plusses line is: {}, goal is {}".format(
-        plusses, goal)
+    assert plusses == "+++++\n", \
+        "Plusses line is: {}, goal is {}, hypotheses are {}"\
+        .format(plusses, goal, hypotheses)
     tactic = f_handle.readline()
     assert tactic != ""
     minuses = f_handle.readline()

@@ -2,7 +2,11 @@
 
 import re
 import math
-from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any
+from abc import ABCMeta, abstractmethod
+import collections
+import multiprocessing
+from util import *
 
 class Tokenizer:
     def toTokenList(self, string : str) -> List[int]:
@@ -25,19 +29,20 @@ def get_symbols(string : str) -> List[str]:
     return [word for word in re.split(r'\W|,|:|\)|\(', string)
             if word.strip() != '']
 
+def get_topk_keywords_worker__(sentence_list : List[str]) -> collections.Counter:
+    counts = collections.Counter()
+    for example in sentence_list:
+        counts.update(get_words(example))
+    return counts
+
 def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
-    counts = {} # type: Dict[str, int]
-    for example in exampleSentences:
-        for token in get_words(example):
-            if token not in counts:
-                counts[token] = 1
-            else:
-                counts[token] += 1
-    keywords_and_counts = sorted(counts.items(),
-                                 reverse=True,
-                                 key=lambda x: x[1])[:k]
-    keywords = [x[0] for x in keywords_and_counts]
-    return keywords
+    with multiprocessing.Pool(None) as pool:
+        sub_counts = pool.imap_unordered(get_topk_keywords_worker__,
+                                         chunks(exampleSentences, 32768))
+        counts = collections.Counter()
+        for sub_count in sub_counts:
+            counts.update(sub_count)
+    return [word for word, count in counts.most_common(k)]
 
 def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     -> List[str]:

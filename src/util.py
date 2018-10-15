@@ -11,7 +11,7 @@ import torch.autograd as autograd
 
 from serapi_instance import kill_comments
 
-from typing import List, Any, overload
+from typing import List, Iterable, Any, overload
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -85,3 +85,10 @@ def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
     else:
         raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
                          "This one is {}D.".format(tensor_dim))
+
+def chunks(l : Iterable[Any], chunk_size : int):
+    rest_list = l
+    while len(rest_list) > 0:
+        chunk = rest_list[:chunk_size]
+        rest_list = rest_list[chunk_size:]
+        yield chunk
