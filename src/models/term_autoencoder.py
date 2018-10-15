@@ -134,7 +134,7 @@ def train(dataset : List[Sentence],
                                   batch_size=batch_size, num_workers=0,
                                   shuffle=True, pin_memory=True,
                                   drop_last=True)
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
 
     curtime = time.time()
     print("Initializing model...", end="")
@@ -148,7 +148,7 @@ def train(dataset : List[Sentence],
     encoder_adjuster = scheduler.StepLR(encoder_optimizer, epoch_step, gamma)
     decoder_adjuster = scheduler.StepLR(decoder_optimizer, epoch_step, gamma)
     criterion = maybe_cuda(nn.NLLLoss())
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
 
     start=time.time()
     num_items = len(dataset) * num_epochs
@@ -225,14 +225,14 @@ def main(args_list : List[str]) -> None:
     sys.stdout.flush()
     dataset = read_text_data(args.scrape_file, args.max_tuples)
 
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
     curtime = time.time()
     print("Extracting terms...", end="")
     sys.stdout.flush()
     term_strings = list(chain.from_iterable(
         [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
          for hyps, goal, tactic in dataset]))
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
 
     curtime = time.time()
     print("Building tokenizer...", end="")
@@ -240,7 +240,7 @@ def main(args_list : List[str]) -> None:
     tokenizer = tk.make_keyword_tokenizer_topk(term_strings,
                                                tk.tokenizers[args.tokenizer],
                                                args.num_keywords, 2)
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
     curtime = time.time()
     print("Tokenizing {} strings...".format(len(term_strings)), end="")
     sys.stdout.flush()
@@ -251,7 +251,7 @@ def main(args_list : List[str]) -> None:
                                                     chunks(term_strings, 32768))
         tokenized_data = list(chain.from_iterable(tokenized_data_chunks))
 
-    print(" {}".format(time.time() - curtime))
+    print(" {:.2f}s".format(time.time() - curtime))
     checkpoints = train(tokenized_data,
                         tokenizer.numTokens(), args.max_length, args.hidden_size,
                         args.learning_rate, args.epoch_step, args.gamma,
