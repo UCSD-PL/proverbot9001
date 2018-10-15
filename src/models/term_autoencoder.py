@@ -283,6 +283,8 @@ def main(args_list : List[str]) -> None:
 def run_test(args_list : List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument("save_file", type=str)
+    parser.add_argument("--print-inputs", dest="print_inputs", default=False,
+                        action='store_const', const=True)
     arg_values = parser.parse_args(args_list)
 
     checkpoint = torch.load(arg_values.save_file)
@@ -311,6 +313,8 @@ def run_test(args_list : List[str]):
     for term in sys.stdin:
         data_in = torch.LongTensor(normalizeSentenceLength(tokenizer.toTokenList(term),
                                                            checkpoint['max-length'])).view(1, -1)
+        if arg_values.print_inputs:
+            print("{} ({}) -> ".format(term.strip(), data_in), end="")
         data_out = decoder.run(encoder.run(data_in),
                                checkpoint['max-length'])
         print(tokenizer.toString(
