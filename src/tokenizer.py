@@ -108,10 +108,11 @@ class CharsTokenizer(Tokenizer):
         return self.next_ord
 
 class CompleteTokenizer(Tokenizer):
-    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
-        -> None:
+    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0,
+                 use_unknowns : bool = True) -> None:
         self.keywords = keywords
         self.num_reserved_tokens = num_reserved_tokens
+        self.use_unknowns = use_unknowns
         pass
     def toTokenList(self, string : str) -> List[int]:
         words = get_words(string)
@@ -119,7 +120,7 @@ class CompleteTokenizer(Tokenizer):
         for word in words:
             if word in self.keywords:
                 tokens.append(self.num_reserved_tokens + self.keywords.index(word))
-            else:
+            elif self.use_unknowns:
                 tokens.append(self.num_reserved_tokens + len(self.keywords))
         return tokens
     def toString(self, tokenlist : List[int]) -> str:
@@ -258,6 +259,8 @@ TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 
 tokenizers = {
     "no-fallback" : CompleteTokenizer,
+    "no-unknowns" : lambda *args, **kwargs: \
+    CompleteTokenizer(*args, **kwargs, use_unknowns=False),
     "chars-fallback" : KeywordTokenizer,
     "chars-only" : CharsTokenizer,
 }
