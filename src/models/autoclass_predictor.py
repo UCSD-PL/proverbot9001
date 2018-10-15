@@ -27,7 +27,7 @@ from models.tactic_predictor import TacticPredictor
 from models.term_autoencoder import EncoderRNN
 from serapi_instance import get_stem
 
-from typing import Dict, List, Union, Any, Tuple, Iterable, Callable
+from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, NamedTuple
 from typing import cast, overload
 
 class AutoClassPredictor(TacticPredictor):
@@ -158,11 +158,14 @@ class ClassifierDNN(nn.Module):
         result = self(sentence)
         return result
 
-Checkpoint = Tuple[Dict[Any, Any], float]
+class Checkpoint(NamedTuple):
+    classifier_state : Dict[Any, Any]
+    autoencoder_state : Dict[Any, Any]
+    training_loss : float
 
 def train(dataset : ClassifySequenceDataset,
-          autoencoder : EncoderRNN, max_length : int,
           hidden_size : int, output_vocab_size : int, num_layers : int, batch_size : int,
+          autoencoder : EncoderRNN, train_autoencoder: bool, max_length : int,
           learning_rate : float, gamma : float, epoch_step : int, num_epochs : int,
           print_every : int, optimizer_f : Callable[..., Optimizer]) \
           -> Iterable[Checkpoint]:
@@ -178,9 +181,12 @@ def train(dataset : ClassifySequenceDataset,
 
     classifier = maybe_cuda(ClassifierDNN(hidden_size, output_vocab_size,
                                           num_layers, batch_size))
-    optimizer = optimizer_f(classifier.parameters(), lr=learning_rate)
+    optimizers = [optimizer_f(classifier.parameters(), lr=learning_rate)]
+    if train_autoencoder:
+        optimizers += [optimizer_f(autoencoder.parameters(), lr=learning_rate)]
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, epoch_step, gamma)
+    adjusters = [scheduler.StepLR(optimizer, epoch_step, gamma)
+                 for optimizer in optimizers]
 
     start=time.time()
     num_items = len(dataset) * num_epochs
@@ -189,11 +195,13 @@ def train(dataset : ClassifySequenceDataset,
     print("Training...")
     for epoch in range(num_epochs):
         print("Epoch {}".format(epoch))
-        adjuster.step()
+        for adjuster in adjusters:
+            adjuster.step()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
 
             # Reset the optimizer
-            optimizer.zero_grad()
+            for optimizer in optimizers:
+                optimizer.zero_grad()
 
             # Run the classifier on pre-encoded vectors
             encoded_input_batch = autoencoder.run(cast(torch.LongTensor, input_batch))
@@ -205,7 +213,8 @@ def train(dataset : ClassifySequenceDataset,
 
             # Update the weights
             loss.backward()
-            optimizer.step()
+            for optimizer in optimizers:
+                optimizer.step()
 
             # Report progress
             items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
@@ -220,7 +229,9 @@ def train(dataset : ClassifySequenceDataset,
                              items_processed, progress * 100,
                              total_loss / items_processed))
 
-        yield (classifier.state_dict(), total_loss / items_processed)
+        yield Checkpoint(classifier_state=classifier.state_dict(),
+                         autoencoder_state=autoencoder.state_dict(),
+                         training_loss=total_loss / items_processed)
 
 def main(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description="Autoencoder for coq terms")
@@ -240,6 +251,8 @@ def main(arg_list : List[str]) -> None:
                         default=list(stdargs.optimizers.keys())[0])
     parser.add_argument("--num-classifier-layers", dest="num_classifier_layers",
                         default=3, type=int)
+    parser.add_argument("--train-autoencoder", dest="train_autoencoder",
+                       default=False, const=True, action='store_const')
     args = parser.parse_args(arg_list)
     print("Loading autoencoder state...")
     autoenc_state = torch.load(args.autoencoder_weights)
@@ -269,13 +282,15 @@ def main(arg_list : List[str]) -> None:
                                               autoenc_state['num-encoder-layers'],
                                               args.batch_size))
     loadedAutoencoder.load_state_dict(autoenc_state['encoder'])
-    checkpoints = train(dataset, loadedAutoencoder, autoenc_state['max-length'],
-                        autoenc_state['hidden-size'], embedding.num_tokens(),
+    checkpoints = train(dataset, loadedAutoencoder, args.train_autoencoder,
+                        autoenc_state['max-length'], autoenc_state['hidden-size'],
+                        embedding.num_tokens(),
                         args.num_classifier_layers, args.batch_size,
                         args.learning_rate, args.gamma, args.epoch_step, args.num_epochs,
                         args.print_every, stdargs.optimizers[args.optimizer])
 
-    for epoch, (decoder_state, training_loss) in enumerate(checkpoints):
+    for epoch, (decoder_state, autoencoder_state, training_loss) in enumerate(checkpoints):
+        print("Autoenc training loss is {:.4f}".format(autoenc_state['training-loss']))
         state = {'epoch': epoch,
                  'training-loss' : training_loss,
                  'autoenc-training-loss' : autoenc_state['training-loss'],
@@ -286,7 +301,7 @@ def main(arg_list : List[str]) -> None:
                  'autoenc-optimizer' : autoenc_state['optimizer'],
                  'learning-rate' : args.learning_rate,
                  'autoenc-learning-rate' : autoenc_state['learning-rate'],
-                 'encoder' : autoenc_state['encoder'],
+                 'encoder' : autoencoder_state,
                  'decoder' : decoder_state,
                  'num-decoder-layers' : args.num_classifier_layers,
                  'num-encoder-layers' : autoenc_state['num-encoder-layers'],
