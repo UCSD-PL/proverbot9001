@@ -35,12 +35,12 @@ class EncoderRNN(nn.Module):
         self.batch_size = batch_size
         self.embedding = maybe_cuda(nn.Embedding(input_size, hidden_size))
         self.gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-    def forward(self, input : torch.LongTensor, hidden : torch.LongTensor) \
+    def forward(self, input : torch.LongTensor, encoded : torch.LongTensor) \
         -> Tuple[torch.LongTensor, torch.LongTensor] :
         embedded = self.embedding(input)
         output = embedded.view(1, self.batch_size, -1)
+        hidden = encoded
         for i in range(self.num_layers):
-            output = F.relu(output)
             output, hidden = self.gru(output, hidden)
         return output, hidden
     def initHidden(self) -> torch.FloatTensor:
@@ -85,9 +85,6 @@ class DecoderRNN(nn.Module):
     def initInput(self) -> torch.LongTensor:
         return Variable(LongTensor([[SOS_token] * self.batch_size]))
 
-    def initHidden(self) -> torch.LongTensor:
-        zeroes = cast(torch.LongTensor, maybe_cuda(torch.zeros(1, 1, self.hidden_size)))
-        return Variable(zeroes)
     def run(self, hidden : torch.FloatTensor, max_length : int) -> Sentence:
         decoder_hidden = hidden
         assert self.batch_size == 1
