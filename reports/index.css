@@ -1,7 +1,7 @@
 
 body {
     width: auto;
-    max-width: 700px;
+    max-width: 850px;
     margin: 1em auto;
     position: relative;
     text-rendering: optimizeLegibility;
@@ -11,8 +11,8 @@ table {
     width: 100%;
 }
 
-tr {
-    border: 2em solid #CCC;
+tr.topdate td {
+    border-top: 2px solid black;
 }
 th {
     font-weight: bold;
@@ -24,28 +24,77 @@ td {
     padding: .6em;
 }
 
-tr:hover:not(.header), tr.highlighted{
+tr:hover:not(.header) td:not(.date), tr.highlighted td {
     background: #00ffff55;
     cursor: pointer;
-}
-tr:hover td, tr.highlighted td {
-    background: transparent;
 }
 
 svg {
     border-style:outset;
     border-color:#00ffff;
     margin: .5em;
+    display: block;
+    margin: auto;
+}
+path.graphline.Unknown {
+    stroke: black;
 }
 
-.dot {
-    color: steelblue;
+.dot.Unknown {
+    fill: black;
+    stroke: black;
+}
+path.graphline.k-nearest {
+    stroke: steelblue;
+}
+
+.dot.k-nearest{
     fill: steelblue;
     stroke: steelblue;
+}
+path.graphline.k-nearest {
+    stroke: steelblue;
+}
+.dot.wordbagclass{
+    fill: green;
+    stroke: green;
+}
+path.graphline.wordbagclass{
+    stroke: green;
+}
+path.graphline.encclass {
+    stroke: magenta;
+}
+.dot.encclass {
+    stroke: magenta;
+    fill: magenta;
+}
+path.graphline.dnnclass {
+    stroke: darkgoldenrod;
+}
+.dot.dnnclass {
+    stroke: darkgoldenrod;
+    fill: darkgoldenrod;
+}
+
+
+.dot {
     cursor: pointer;
 }
 
 #header {
     margin-left: -4em;
     font-family: monospace;
+}
+p.checkbox-label {
+    display: inline;
+    margin: 1em;
+}
+p.control-label {
+    display: inline;
+    margin: 1em;
+    margin-left: 10em;
+}
+div.checkbox-box {
+    height: 3em;
 }
