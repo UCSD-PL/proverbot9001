@@ -25,7 +25,7 @@ REPORT="report"
 all: scrape report
 
 setup:
-	./src/setup.sh
+	./src/setup.sh && $(MAKE) publish-depv
 
 scrape:
 	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
@@ -61,6 +61,9 @@ publish-weights:
 download-weights:
 	curl -o data/pytorch-weights.tar.gz proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
 	gzip -d data/pytorch-weights.tar.gz
+
+publish-depv:
+	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 > known-good-dependency-versions.md
 
 clean:
 	rm -rf report-*
