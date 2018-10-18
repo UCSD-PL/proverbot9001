@@ -266,12 +266,12 @@ def main(arg_list : List[str]) -> None:
     print("Loading autoencoder state...")
     autoenc_state = torch.load(args.autoencoder_weights)
     print("Loading data...")
-    raw_data = read_text_data(args.scrape_file, args.max_tuples)
+    raw_data = list(read_text_data(args.scrape_file, args.max_tuples))
     print("Read {} raw input-output pairs".format(len(raw_data)))
     print("Filtering data based on predicate...")
     cfilter = autoenc_state['context-filter']
-    filtered_data = filter_data(raw_data,
-                                get_context_filter(cfilter))
+    filtered_data = list(filter_data(raw_data,
+                                     get_context_filter(cfilter)))
     print("{} input-output pairs left".format(len(filtered_data)))
     print("Encoding data...")
     start = time.time()

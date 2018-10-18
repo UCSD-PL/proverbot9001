@@ -63,7 +63,6 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
     return list(worker_generator())
 
 def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
-    data_set : RawDataset = []
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
