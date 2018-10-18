@@ -263,4 +263,4 @@ tokenizers = {
     CompleteTokenizer(*args, **kwargs, use_unknowns=False),
     "chars-fallback" : KeywordTokenizer,
     "chars-only" : CharsTokenizer,
-}
+} # type: Dict[str, Callable[[List[str], int], Tokenizer]]
