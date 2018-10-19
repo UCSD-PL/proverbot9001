@@ -443,8 +443,10 @@ class SerapiInstance(threading.Thread):
             if len(ol_msg[1]) != 0:
                 newcontext = self.extract_proof_context(ol_msg[1])
                 self.proof_context = newcontext.split("\n\n")[0]
+                self.full_context = newcontext
             else:
                 self.proof_context = None
+                self.full_context = None
 
     def get_lemmas_about_head(self) -> str:
         goal_head = self.get_goals().split()[0]

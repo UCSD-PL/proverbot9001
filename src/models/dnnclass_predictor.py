@@ -65,7 +65,9 @@ class DNNClassPredictor(TacticPredictor):
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
+        assert options["skip-nochange-tac"]
         self.load_saved_state(options["filename"])
+        self.skip_nochange_tac = options["skip-nochange-tac"]
 
     def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
         -> torch.FloatTensor:
