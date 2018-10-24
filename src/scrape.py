@@ -8,6 +8,7 @@ import os
 import os.path
 import argparse
 import sys
+import tempfile
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
@@ -18,7 +19,7 @@ from helper import *
 import linearize_semicolons
 import serapi_instance
 
-from typing import Dict, Any
+from typing import Dict, Any, TextIO
 
 # This stuff synchronizes between the different threads
 num_jobs = 0
@@ -53,11 +54,11 @@ class Worker(threading.Thread):
         # a temp file for each worker.
         self.prelude = prelude
         self.workerid = workerid
-        self.tmpfile_name = "/tmp/proverbot_worker{}".format(workerid)
         self.outfile_name = output
         pass
 
-    def process_statement(self, coq : serapi_instance.SerapiInstance, command : str) -> None:
+    def process_statement(self, coq : serapi_instance.SerapiInstance, command : str,
+                          result_file : TextIO) -> None:
         # When the no-semis option is enabled, skip the scraping of
         # commands with semicolons in them. We have a pass that's
         # supposed to remove these no matter what, but in some proofs
@@ -81,19 +82,14 @@ class Worker(threading.Thread):
             # Write out all the information about the current context,
             # and the tactic that is in the file and should be run
             # next.
-            with open(self.tmpfile_name, 'a') as tmp_file:
-                tmp_file.write(format_context(prev_tactics, prev_hyps,
-                                              prev_goal, ""))
-                tmp_file.write(format_tactic(command))
+            result_file.write(format_context(prev_tactics, prev_hyps,
+                                             prev_goal, ""))
+            result_file.write(format_tactic(command))
         # Run the actual command, advancing the coq state.
         coq.run_stmt(command)
         pass
 
     def process_file(self, filename : str) -> None:
-        # First, clear the temp file, since it might have old data in
-        # it.
-        with open(self.tmpfile_name, 'w') as tmp_file:
-            tmp_file.write('')
         # Wrap this in a try block so that we can display the file
         # that failed if there are any weird failures.
         try:
@@ -119,25 +115,27 @@ class Worker(threading.Thread):
                 # things. Otherwise this is a noop.
                 coq.debug = options["debug"]
                 # Now, process each command.
-                for command in commands:
-                    self.process_statement(coq, command)
+                with tempfile.TemporaryFile() as temp_file:
+                    # Scrape the file
+                    for command in commands:
+                        self.process_statement(coq, command, temp_file)
+                    # When we're done with scraping this file, lock the output
+                    # file and write the contents of our temp file to it.
+                    temp_file.seek(0)
+                    output_lock.acquire()
+                    if self.outfile_name:
+                        with open(self.outfile_name, 'a') as out_file:
+                            for line in temp_file:
+                                out_file.write(line)
+                            out_file.flush()
+                    else:
+                        for line in tmp_file:
+                            print(line)
+                    output_lock.release()
         except:
             print("In file {}:".format(filename))
             raise
 
-        # When we're done with scraping this file, lock the output
-        # file and write the contents of our temp file to it.
-        output_lock.acquire()
-        with open(self.tmpfile_name, 'r') as tmp_file:
-            if self.outfile_name:
-                with open(self.outfile_name, 'a') as out_file:
-                    for line in tmp_file:
-                        out_file.write(line)
-                    out_file.flush()
-            else:
-                for line in tmp_file:
-                    print(line)
-        output_lock.release()
 
     def run(self) -> None:
         # Until there are no more jobs left in the queue, pull a job,
