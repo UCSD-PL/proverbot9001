@@ -3,7 +3,7 @@
 /CompCert/
 /coq/
 /coq-serapi/
-/SoftwareFoundation/
+/software-foundations/
 /darknet/
 *.aux
 *.glob

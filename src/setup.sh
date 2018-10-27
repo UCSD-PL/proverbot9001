@@ -82,15 +82,13 @@ function setup-compcert {
 
 function setup-software-foundation {
     check-and-clone\
-        "SoftwareFoundation" "https://github.com/fabriceleal/Software-Foundations-Solutions.git"\
-        "a6fcbe4c0711a90cd364c075b2a8c1edfd3b30cc"
+        "software-foundations"\
+        "https://github.com/Liby99/software-foundations.git"\
+        "99a3f3d1e2526f2f89028605b1b441076d9c2838"
     (
         set -euv
-        cd SoftwareFoundation
-        if [[ ! -f "Makefile.config" ]]; then
-            PATH="$PWD/../coq/bin:$PATH" ./configure x86_64-linux
-        fi
-        PATH="$PWD/../coq/bin:$PATH" make -j `nproc`
+        cd software-foundations
+        PATH="$PWD/../coq/bin:$PATH" make
     ) || exit 1
 }
 
