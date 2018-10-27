@@ -80,7 +80,22 @@ function setup-compcert {
     ) || exit 1
 }
 
+function setup-software-foundation {
+    check-and-clone\
+        "SoftwareFoundation" "https://github.com/fabriceleal/Software-Foundations-Solutions.git"\
+        "a6fcbe4c0711a90cd364c075b2a8c1edfd3b30cc"
+    (
+        set -euv
+        cd SoftwareFoundation
+        if [[ ! -f "Makefile.config" ]]; then
+            PATH="$PWD/../coq/bin:$PATH" ./configure x86_64-linux
+        fi
+        PATH="$PWD/../coq/bin:$PATH" make -j `nproc`
+    ) || exit 1
+}
+
 setup-coq
 setup-coq-serapi
 setup-coq-menhir
 setup-compcert
+setup-software-foundation
