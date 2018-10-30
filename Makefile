@@ -40,6 +40,8 @@ report:
 train:
 	./src/proverbot9001.py train encdec data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
+INDEX_FILES=index.js index.css build-index.py
+
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py $(REPORT)/))
 	mv $(REPORT) $(REPORT_NAME)
@@ -50,7 +52,9 @@ publish:
 	ssh goto 'cd proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
-                  ./build-index.py'
+		  chgrp -R proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \
+		  chmod -R g+rw $(REPORT_NAME) $(INDEX_FILES) && \
+                  python3 build-index.py'
 	mv $(REPORT_NAME) $(REPORT)
 
 publish-weights:
