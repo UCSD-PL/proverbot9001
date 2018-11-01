@@ -22,11 +22,11 @@ class Tokenizer:
         pass
 
 def get_words(string : str) -> List[str]:
-    return [word for word in re.split(r'\W|,|\.+|:|\)|\(', string)
+    return [word for word in re.sub('(,|\.+|:|\)|\()', r' \1 ', string).split()
             if word.strip() != '']
 
 def get_symbols(string : str) -> List[str]:
-    return [word for word in re.split(r'\W|,|:|\)|\(', string)
+    return [word for word in re.sub('(,|:|\)|\()', r' \1 ', string).split()
             if word.strip() != '']
 
 def get_topk_keywords_worker__(sentence_list : List[str]) -> collections.Counter:
