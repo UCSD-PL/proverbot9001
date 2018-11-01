@@ -194,7 +194,7 @@ def train(dataset : ClassifySequenceDataset,
 
             optimizer.step()
 
-            total_loss += loss.data[0] * batch_size
+            total_loss += loss.data.item() * batch_size
 
             if (batch_num + 1) % print_every == 0:
 
@@ -214,7 +214,7 @@ def main(arg_list : List[str]) -> None:
     raw_data = read_text_data(args.scrape_file)
     print("Read {} raw input-output pairs".format(len(raw_data)))
     print("Filtering data based on predicate...")
-    filtered_data = filter_data(raw_data, get_context_filter(args.context_filter))
+    filtered_data = list(filter_data(raw_data, get_context_filter(args.context_filter)))
     print("{} input-output pairs left".format(len(filtered_data)))
     print("Encoding data...")
     start = time.time()
