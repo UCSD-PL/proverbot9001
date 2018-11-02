@@ -34,6 +34,11 @@ def add_std_args(parser : argparse.ArgumentParser) -> None:
     parser.add_argument("--context-filter", dest="context_filter",
                         type=str, default="default")
 
+def start_std_args(args : List[str], description : str) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=description)
+    add_std_args(parser)
+    return parser
+
 def take_std_args(args : List[str], description : str) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
     add_std_args(parser)

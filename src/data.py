@@ -67,6 +67,19 @@ def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
                                        max_size))
         return result
 
+def get_text_data(data_path : str, context_filter_name : str,
+                  max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
+    def _print(*args, **kwargs):
+        if verbose:
+            print(*args, **kwargs)
+    _print("Reading dataset...")
+    raw_data = read_text_data(args.scrape_file)
+    _print("Read {} raw input-output pairs".format(len(raw_data)))
+    _print("Filtering data based on predicate...")
+    filtered_data = list(filter_data(raw_data, get_context_filter(context_filter_name)))
+    _print("{} input-output pairs left".format(len(filtered_data)))
+    return filtered_data
+
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
     return ((hyps, goal, tactic)
             for ((hyps, goal, tactic), (next_hyps, next_goal, next_tactic)) in

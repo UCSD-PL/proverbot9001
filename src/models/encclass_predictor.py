@@ -14,7 +14,7 @@ from data import read_text_data, filter_data, \
 from util import *
 from context_filter import get_context_filter
 from serapi_instance import get_stem
-from models.args import take_std_args, optimizers
+from models.args import start_std_args, optimizers
 
 import torch
 import torch.nn as nn
@@ -208,14 +208,11 @@ def train(dataset : ClassifySequenceDataset,
         yield (encoder.state_dict(), total_loss / items_processed)
 
 def main(arg_list : List[str]) -> None:
-    args = take_std_args(arg_list, "a classifier pytorch model for proverbot")
-    print("Reading dataset...")
+    parser = start_std_args(arg_list, "a classifier pytorch model for proverbot")
+    parser.add_argument("--start-from", dest="start_from", default=None, type=str)
+    args = parser.parse_args(arg_list)
 
-    raw_data = read_text_data(args.scrape_file)
-    print("Read {} raw input-output pairs".format(len(raw_data)))
-    print("Filtering data based on predicate...")
-    filtered_data = list(filter_data(raw_data, get_context_filter(args.context_filter)))
-    print("{} input-output pairs left".format(len(filtered_data)))
+    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
     print("Encoding data...")
     start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(filtered_data,
