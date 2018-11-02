@@ -21,7 +21,7 @@ def add_std_args(parser : argparse.ArgumentParser) -> None:
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
     parser.add_argument("--hidden-size", dest="hidden_size", default=128, type=int)
     parser.add_argument("--learning-rate", dest="learning_rate",
-                        default=.4, type=float)
+                        default=.7, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
                         default=3, type=int)
     parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
