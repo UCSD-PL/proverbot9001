@@ -1,0 +1,68 @@
+body {
+    width: auto;
+    max-width: 850px;
+    margin: 1em auto;
+    position: relative;
+    text-rendering: optimizeLegibility;
+    table {
+        width: 100%;
+        tr.topdate td {
+            border-top: 2px solid black;
+        }
+        th {
+            font-weight: bold;
+        }
+        td {
+            text-align: center;
+            min-width: 10em;
+            min-height: 30px;
+            padding: .6em;
+        }
+        tr:hover:not(.header) td:not(.date), tr.highlighted td {
+            background: #00ffff55;
+            cursor: pointer;
+        }
+        tr.header {
+            margin-left: -4em;
+            font-family: monospace;
+        }
+    }
+    svg {
+        border-style:outset;
+        border-color:#00ffff;
+        margin: .5em;
+        display: block;
+        margin: auto;
+        .dot {
+            cursor: pointer;
+        }
+    }
+    div.checkbox-box {
+        height: 3em;
+        p.checkbox-label {
+            display: inline;
+            margin: 1em;
+        }
+        p.control-label {
+            display: inline;
+            margin: 1em;
+            margin-left: 10em;
+        }
+    }
+}
+
+svg {
+    $models: Unknown k-nearest wordbagclass encclass dnnclass hmmencclass ngramclass autoclass;
+    $colors: black   steelblue green       magenta  darkgoldenrod purple darkred    brown;
+
+    @for $i from 1 through length($models) {
+        $model: nth($models, $i);
+        $color: nth($colors, $i);
+        path.graphline.#{$model} {
+            stroke: $color;
+        }
+        .dot.#{$model} {
+            fill: $color;
+        }
+    }
+}

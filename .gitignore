@@ -11,7 +11,8 @@
 /coq-menhirlib/
 /data/scrape.txt
 /data/scrape.bkp
-report*
+report-*
+report/
 *weights*
 *.mypy_cache/*
 */.mypy_cache/*

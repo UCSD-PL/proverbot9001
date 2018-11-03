@@ -7,7 +7,9 @@ NTHREADS=16
 FLAGS=
 HIDDEN_SIZE=512
 
-SITE_PATH=goto:/home/alexss/proverbot9001-site
+SITE_SERVER=goto
+SITE_DIR=~alexss/proverbot9001-site
+SITE_PATH=$(SITE_SERVER):$(SITE_DIR)
 
 ifeq ($(NUM_FILES),)
 HEAD_CMD=cat
@@ -42,20 +44,27 @@ train:
 
 INDEX_FILES=index.js index.css build-index.py
 
+reports/index.css: reports/index.scss
+	sass $^ $@
+
+update-index: $(addprefix reports/, $(INDEX_FILES))
+	rsync -avz $(addprefix reports/, $(INDEX_FILES)) $(SITE_PATH)/reports/
+	ssh goto 'cd $(SITE_DIR)/reports && \
+		  python3 build-index.py'
+
 publish:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py $(REPORT)/))
 	mv $(REPORT) $(REPORT_NAME)
 	chmod +rx $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
 	rsync -avz report.tar.gz $(SITE_PATH)/reports/
-	rsync -avz reports/index.js reports/index.css reports/build-index.py $(SITE_PATH)/reports/
 	ssh goto 'cd proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
 		  chgrp -R proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \
-		  chmod -R g+rw $(REPORT_NAME) $(INDEX_FILES) && \
-                  python3 build-index.py'
+		  chmod -R g+rw $(REPORT_NAME) $(INDEX_FILES)'
 	mv $(REPORT_NAME) $(REPORT)
+	$(MAKE) update-index
 
 publish-weights:
 	gzip -k data/pytorch-weights.tar
