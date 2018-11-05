@@ -87,10 +87,6 @@ function setup-software-foundation {
     (
         set -euv
         cd SoftwareFoundation
-        if [[ ! -f "Makefile.config" ]]; then
-            PATH="$PWD/../coq/bin:$PATH" ./configure x86_64-linux
-        fi
-        PATH="$PWD/../coq/bin:$PATH" make -j `nproc`
     ) || exit 1
 }
 
