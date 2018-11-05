@@ -87,17 +87,13 @@ function setup-software-foundation {
         "99a3f3d1e2526f2f89028605b1b441076d9c2838"
     (
         set -euv
-<<<<<<< HEAD
         cd software-foundations
         PATH="$PWD/../coq/bin:$PATH" make
-=======
-        cd SoftwareFoundation
->>>>>>> Temporary commit
     ) || exit 1
 }
 
 setup-coq
-setup-coq-serapi
-setup-coq-menhir
-setup-compcert
+# setup-coq-serapi
+# setup-coq-menhir
+# setup-compcert
 setup-software-foundation
