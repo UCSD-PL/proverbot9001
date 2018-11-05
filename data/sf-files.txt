@@ -1,0 +1,15 @@
+./Auto.v
+./Basics.v
+./Equiv.v
+./Hoare.v
+./Hoare2.v
+./Imp.v
+./IndProp.v
+./Induction.v
+./Logic.v
+./Maps.v
+./Lists.v
+./Poly.v
+./Tactics.v
+./Types.v
+./Smallstep.v
