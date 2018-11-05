@@ -1,6 +1,4 @@
 ./Auto.v
-./Basics.v
-./Equiv.v
 ./Hoare.v
 ./Hoare2.v
 ./Imp.v
