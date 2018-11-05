@@ -12,7 +12,7 @@ import re
 
 from typing import Tuple, List, Callable, Optional
 from util import *
-from context_filter import ContextFilter
+from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
 
 Sentence = List[int]
@@ -73,7 +73,7 @@ def get_text_data(data_path : str, context_filter_name : str,
         if verbose:
             print(*args, **kwargs)
     _print("Reading dataset...")
-    raw_data = read_text_data(args.scrape_file)
+    raw_data = read_text_data(data_path)
     _print("Read {} raw input-output pairs".format(len(raw_data)))
     _print("Filtering data based on predicate...")
     filtered_data = list(filter_data(raw_data, get_context_filter(context_filter_name)))

@@ -9,7 +9,7 @@ import math
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
-from data import read_text_data, filter_data, \
+from data import get_text_data, filter_data, \
     encode_seq_classify_data, ClassifySequenceDataset
 from util import *
 from context_filter import get_context_filter
@@ -205,7 +205,7 @@ def train(dataset : ClassifySequenceDataset,
                              items_processed, progress * 100,
                              total_loss / items_processed))
 
-        yield (encoder.state_dict(), total_loss / items_processed)
+        yield (encoder.state_dict(), total_loss / ((epoch + 1) * len(dataset)))
 
 def main(arg_list : List[str]) -> None:
     parser = start_std_args(arg_list, "a classifier pytorch model for proverbot")
@@ -215,7 +215,7 @@ def main(arg_list : List[str]) -> None:
     text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
     print("Encoding data...")
     start = time.time()
-    dataset, tokenizer, embedding = encode_seq_classify_data(filtered_data,
+    dataset, tokenizer, embedding = encode_seq_classify_data(text_dataset,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
     timeTaken = time.time() - start
