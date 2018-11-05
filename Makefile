@@ -39,6 +39,17 @@ report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
 
+scrape_sf:
+	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
+	cd src && \
+	cat ../data/sf-train-files.txt | $(HEAD_CMD) | \
+	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
+						       	--prelude ../software-foundations
+
+report_sf:
+	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
+	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./software-foundations $(FLAGS))
+
 train:
 	./src/proverbot9001.py train encdec data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
