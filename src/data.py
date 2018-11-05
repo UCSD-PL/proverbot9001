@@ -5,8 +5,7 @@ import itertools
 import multiprocessing
 
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords, \
-    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers
+    get_topk_keywords, get_relevant_k_keywords
 from format import read_tuple
 from models.components import SimpleEmbedding
 import re
