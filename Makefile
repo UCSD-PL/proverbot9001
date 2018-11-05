@@ -35,6 +35,7 @@ scrape:
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
 						       	--prelude ../CompCert
+
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
@@ -48,10 +49,11 @@ scrape-sf:
 
 report-sf:
 	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
-	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./software_foundations $(FLAGS))
+	xargs ./src/proverbot9001.py report -j $(NTHREADS) --predictor encclass \
+								--prelude ./software_foundations $(FLAGS))
 
 train:
-	./src/proverbot9001.py train encdec data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 INDEX_FILES=index.js index.css build-index.py
 
