@@ -1,2 +1,1 @@
-./BinTest.v
 ./Basics.v

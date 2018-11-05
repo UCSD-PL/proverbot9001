@@ -4,12 +4,15 @@
 ./Hoare.v
 ./Hoare2.v
 ./Imp.v
+./IndPrinciples.v
 ./IndProp.v
 ./Induction.v
+./Lists.v
 ./Logic.v
 ./Maps.v
-./Lists.v
 ./Poly.v
+./ProofObjects.v
+./Smallstep.v
+./Symbols.v
 ./Tactics.v
 ./Types.v
-./Smallstep.v
