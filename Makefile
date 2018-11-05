@@ -42,7 +42,7 @@ scrape_sf:
 	cd src && \
 	cat ../data/sf-train-files.txt | $(HEAD_CMD) | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
-						       	--prelude ../software-foundations
+						       	--prelude ../software-foundations --debug
 
 report_sf:
 	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
