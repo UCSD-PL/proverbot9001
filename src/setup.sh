@@ -93,7 +93,7 @@ function setup-software-foundation {
 }
 
 setup-coq
-# setup-coq-serapi
+setup-coq-serapi
 # setup-coq-menhir
 # setup-compcert
 setup-software-foundation
