@@ -42,11 +42,11 @@ scrape_sf:
 	cd src && \
 	cat ../data/sf-train-files.txt | $(HEAD_CMD) | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
-						       	--prelude ../software-foundations --debug
+						       	--prelude ../software_foundations --debug
 
 report_sf:
 	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
-	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./software-foundations $(FLAGS))
+	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./software_foundations $(FLAGS))
 
 train:
 	./src/proverbot9001.py train encdec data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
