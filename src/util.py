@@ -14,7 +14,7 @@ from serapi_instance import kill_comments
 from typing import List, Iterable, Any, overload
 
 use_cuda = torch.cuda.is_available()
-# assert use_cuda
+assert use_cuda
 
 def maybe_cuda(component):
     if use_cuda:
