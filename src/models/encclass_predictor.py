@@ -215,7 +215,7 @@ def main(arg_list : List[str]) -> None:
     text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
     print("Encoding data...")
     start = time.time()
-    dataset, tokenizer, embedding = encode_seq_classify_data(filtered_data,
+    dataset, tokenizer, embedding = encode_seq_classify_data(text_dataset,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
     timeTaken = time.time() - start

@@ -244,7 +244,7 @@ def main(args_list : List[str]) -> None:
     args = parser.parse_args(args_list)
 
     print("Reading data...")
-    raw_samples = read_text_data(args.scrape_file, args.num_samples)
+    raw_samples = list(read_text_data(args.scrape_file, args.num_samples))
     print("Read {} input-output pairs".format(len(raw_samples)))
     print("Filtering/Encoding data...")
     start = time.time()

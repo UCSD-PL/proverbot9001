@@ -2,7 +2,7 @@
 
 import re
 import math
-from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any, Counter
 from abc import ABCMeta, abstractmethod
 import collections
 import multiprocessing
@@ -30,7 +30,7 @@ def get_symbols(string : str) -> List[str]:
             if word.strip() != '']
 
 def get_topk_keywords_worker__(sentence_list : List[str]) -> collections.Counter:
-    counts = collections.Counter()
+    counts : Counter[str] = collections.Counter()
     for example in sentence_list:
         counts.update(get_words(example))
     return counts
@@ -39,7 +39,7 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
     with multiprocessing.Pool(None) as pool:
         sub_counts = pool.imap_unordered(get_topk_keywords_worker__,
                                          chunks(exampleSentences, 32768))
-        counts = collections.Counter()
+        counts : Counter[str] = collections.Counter()
         for sub_count in sub_counts:
             counts.update(sub_count)
     return [word for word, count in counts.most_common(k)]

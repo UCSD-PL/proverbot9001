@@ -13,7 +13,7 @@ from models.args import add_std_args, optimizers
 from models.components import SimpleEmbedding
 from context_filter import get_context_filter
 
-from data import read_text_data, filter_data, RawDataset, make_keyword_tokenizer, Sentence
+from data import get_text_data, filter_data, RawDataset, make_keyword_tokenizer, Sentence
 from util import *
 from util import _inflate
 import serapi_instance
@@ -227,14 +227,7 @@ def main(arg_list : List[str]) -> None:
     argparser.add_argument("--num-decoder-layers", dest="num_decoder_layers",
                            default=3, type=int)
     args = argparser.parse_args(arg_list)
-    print("Reading dataset...")
-
-    raw_data = read_text_data(args.scrape_file)
-    print("Read {} raw input-output pairs".format(len(raw_data)))
-    print("Filtering data based on predicate...")
-    filtered_data = filter_data(raw_data, get_context_filter(args.context_filter))
-
-    print("{} input-output pairs left".format(len(filtered_data)))
+    filtered_data = get_text_data(args.scrape_file, args.context_filter, verbose=True)
     print("Encoding data...")
     start = time.time()
 
