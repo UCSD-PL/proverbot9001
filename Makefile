@@ -40,7 +40,10 @@ report:
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
 
 train:
-	./src/proverbot9001.py train encdec data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train ngramclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+
+test:
+	./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert ./lib/Parmov.v --predictor=ngramclass
 
 INDEX_FILES=index.js index.css build-index.py
 
@@ -58,7 +61,7 @@ publish:
 	chmod +rx $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
 	rsync -avz report.tar.gz $(SITE_PATH)/reports/
-	ssh goto 'cd proverbot9001-site/reports && \
+	ssh goto 'cd ~alexss/proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
 		  chgrp -R proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \

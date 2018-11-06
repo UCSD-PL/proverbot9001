@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+import pdb
 import re
 import itertools
 import multiprocessing
-
+from sparse_list import SparseList
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords, \
-    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers
+    get_topk_keywords, get_relevant_k_keywords#, \
+#    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers
 from format import read_tuple
 from models.components import SimpleEmbedding
 
@@ -32,6 +33,18 @@ def getTokenbagVector(goal : Sentence) -> Bag:
         if t >= len(tokenbag):
             tokenbag = extend(tokenbag, t+1)
         tokenbag[t] += 1
+    return tokenbag
+
+def getNGramTokenbagVector(n : int, goal : Sentence, num_tokens : int) -> Bag:
+    tokenbag: SparseList[int] = SparseList(num_tokens ** n, 0)
+#    tokenbag: List[int] = extend([], num_tokens ** n)
+    for i in range(n-1, len(goal)):
+        v_index = goal[i]
+        for j in range(1, n):
+            v_index *= num_tokens
+            v_index += goal[i-j]
+        tokenbag[v_index] += 1
+#    pdb.set_trace()
     return tokenbag
 
 def extend(vector : List[int], length : int):
@@ -138,6 +151,25 @@ def encode_bag_classify_data(data : RawDataset,
 def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
     -> Bag:
     return extend(getTokenbagVector(tokenizer.toTokenList(context)), tokenizer.numTokens())
+
+def encode_ngram_classify_data(data : RawDataset,
+                               num_grams : int,
+                             tokenizer_type : Callable[[List[str], int], Tokenizer],
+                             num_keywords : int,
+                             num_reserved_tokens : int) \
+    -> Tuple[ClassifyBagDataset, Tokenizer, SimpleEmbedding]:
+    seq_data, tokenizer, embedding = encode_seq_classify_data(data, tokenizer_type,
+                                                              num_keywords,
+                                                              num_reserved_tokens)
+#    import pdb
+#    pdb.set_trace()
+    bag_data = [(getNGramTokenbagVector(num_grams, context, tokenizer.numTokens()), tactic)
+                for context, tactic in seq_data]
+    return bag_data, tokenizer, embedding
+
+def encode_ngram_classify_input(context : str, num_grams : int, tokenizer : Tokenizer ) \
+    -> Bag:
+    return getNGramTokenbagVector(num_grams, tokenizer.toTokenList(context), tokenizer.numTokens())
 
 def term_data(data : RawDataset,
               tokenizer_type : Callable[[List[str], int], Tokenizer],
