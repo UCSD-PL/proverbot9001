@@ -88,7 +88,7 @@ def get_text_data(data_path : str, context_filter_name : str,
         if verbose:
             print(*args, **kwargs)
     _print("Reading dataset...")
-    raw_data = list(read_text_data(data_path))
+    raw_data = list(itertools.islice(read_text_data(data_path), max_tuples))
     _print("Read {} raw input-output pairs".format(len(raw_data)))
     _print("Filtering data based on predicate...")
     filtered_data = list(filter_data(raw_data, get_context_filter(context_filter_name)))
