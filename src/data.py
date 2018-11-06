@@ -12,7 +12,7 @@ import re
 
 from typing import Tuple, List, Callable, Optional
 from util import *
-from context_filter import ContextFilter
+from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
 
 Sentence = List[int]

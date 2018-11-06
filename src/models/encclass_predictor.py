@@ -9,7 +9,7 @@ import math
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
-from data import read_text_data, filter_data, \
+from data import get_text_data, filter_data, \
     encode_seq_classify_data, ClassifySequenceDataset
 from util import *
 from context_filter import get_context_filter

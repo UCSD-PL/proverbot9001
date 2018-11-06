@@ -4,6 +4,7 @@ import time
 import io
 import math
 import re
+import itertools
 
 import torch
 import torch.cuda
