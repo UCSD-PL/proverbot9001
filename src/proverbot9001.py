@@ -6,6 +6,7 @@ import models.encdecrnn_predictor as encdec
 import models.try_common_predictor as trycommon
 import models.wordbagclass_predictor as wordbagclass
 import models.ngramclass_predictor as ngramclass
+import models.wordbagsvm_classifier as wordbagsvm
 import models.encclass_predictor as encclass
 import models.dnnclass_predictor as dnnclass
 import models.k_nearest_predictor as knn
@@ -94,6 +95,7 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "trycommon" : trycommon.train,
     "wordbagclass" : wordbagclass.main,
     "ngramclass" : ngramclass.main,
+    "wordbagsvm" : wordbagsvm.main,
     "k-nearest" : knn.main,
     "autoencoder" : autoencoder.main,
     "autoclass" : autoclass.main,

@@ -11,6 +11,7 @@ from models import encclass_predictor
 from models import dnnclass_predictor
 from models import k_nearest_predictor
 from models import autoclass_predictor
+from models import wordbagsvm_classifier
 
 predictors = {
     'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -19,6 +20,7 @@ predictors = {
     'trycommon' : try_common_predictor.TryCommonPredictor,
     'wordbagclass' : wordbagclass_predictor.WordBagClassifyPredictor,
     'ngramclass' : ngramclass_predictor.NGramClassifyPredictor,
+    'wordbagsvm' : wordbagsvm_classifier.WordBagSVMClassifier,
     'k-nearest' : k_nearest_predictor.KNNPredictor,
     'autoclass' : autoclass_predictor.AutoClassPredictor,
 }
