@@ -31,6 +31,7 @@ class WordBagSVMClassifier(TacticPredictor):
 
         self.embedding = checkpoint['stem-embeddings']
         self.tokenizer = checkpoint['tokenizer']
+        self.tokenizer.use_unknowns = False
         self.classifier = checkpoint['classifier']
         self.options = checkpoint['options']
         pass
@@ -63,7 +64,7 @@ class WordBagSVMClassifier(TacticPredictor):
         distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)
         if self.embedding.has_token(correct_stem):
-            loss = self.criterion(distribution, Variable(torch.LongTensor([self.embedding.encode_token(correct_stem)]))).item()
+            loss = self.criterion(torch.FloatTensor(distribution).view(1, -1), Variable(torch.LongTensor([self.embedding.encode_token(correct_stem)]))).item()
         else:
             loss = float("+inf")
         indices, probabilities = list_topk(list(distribution), k)

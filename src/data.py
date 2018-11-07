@@ -119,6 +119,9 @@ def encode_seq_seq_data(data : RawDataset,
     tactic_tokenizer.freezeTokenList()
     return result, context_tokenizer, tactic_tokenizer
 
+def _tokenize(t : Tokenizer, s : str):
+    return t.toTokenList(s)
+
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
@@ -134,10 +137,10 @@ def encode_seq_classify_data(data : RawDataset,
                                                  num_keywords, num_reserved_tokens)
     with multiprocessing.Pool(None) as pool:
         hyps, contexts, tactics = zip(*data)
-        tokenized_contexts = pool.imap_unordered(functools.partial(
-            Tokenizer.toTokenList, tokenizer), contexts)
+        tokenized_contexts = list(pool.imap_unordered(functools.partial(
+            _tokenize, tokenizer), contexts))
         embedded_tactics = pool.imap_unordered(functools.partial(
-            Embedding.encode_token, embedding),
+            SimpleEmbedding.encode_token, embedding),
                                                pool.imap_unordered(get_stem, tactics))
         result = list(zip(tokenized_contexts, embedded_tactics))
     tokenizer.freezeTokenList()
@@ -161,10 +164,10 @@ def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
 
 def encode_ngram_classify_data(data : RawDataset,
                                num_grams : int,
-                             tokenizer_type : Callable[[List[str], int], Tokenizer],
-                             num_keywords : int,
-                             num_reserved_tokens : int) \
-    -> Tuple[ClassifyBagDataset, Tokenizer, SimpleEmbedding]:
+                               tokenizer_type : Callable[[List[str], int], Tokenizer],
+                               num_keywords : int,
+                               num_reserved_tokens : int) \
+                               -> Tuple[ClassifyBagDataset, Tokenizer, SimpleEmbedding]:
     seq_data, tokenizer, embedding = encode_seq_classify_data(data, tokenizer_type,
                                                               num_keywords,
                                                               num_reserved_tokens)
