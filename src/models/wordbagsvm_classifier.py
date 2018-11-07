@@ -9,6 +9,10 @@ from typing import Dict, Any, List, Tuple, Iterable, cast, Union
 
 from sklearn import svm
 
+import torch
+from torch import nn
+from torch.autograd import Variable
+
 from models.tactic_predictor import TacticPredictor
 
 from tokenizer import tokenizers
@@ -37,6 +41,7 @@ class WordBagSVMClassifier(TacticPredictor):
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
         self.load_saved_state(options["filename"])
+        self.criterion = nn.NLLLoss()
 
     def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
         -> torch.FloatTensor:
@@ -56,8 +61,11 @@ class WordBagSVMClassifier(TacticPredictor):
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         distribution = self.predictDistribution(in_data)
-        stem = get_stem(correct)
-        loss = 0
+        correct_stem = get_stem(correct)
+        if self.embedding.has_token(correct_stem):
+            loss = self.criterion(distribution, Variable(torch.LongTensor([self.embedding.encode_token(correct_stem)]))).item()
+        else:
+            loss = float("+inf")
         indices, probabilities = list_topk(list(distribution), k)
         predictions = [(self.embedding.decode_token(idx) + ".",
                         math.exp(certainty))
