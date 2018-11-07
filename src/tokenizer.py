@@ -2,10 +2,12 @@
 
 import re
 import math
-from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any, Counter
-from abc import ABCMeta, abstractmethod
 import collections
 import multiprocessing
+import functools
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any, Counter
+from abc import ABCMeta, abstractmethod
+
 from util import *
 
 class Tokenizer(metaclass=ABCMeta):
@@ -44,16 +46,24 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
             counts.update(sub_count)
     return [word for word, count in counts.most_common(k)]
 
+def get_relevant_k_keywords_worker__(examplePairs : List[Tuple[str, int]],
+                                     word : str):
+    return (word, word_partitioned_entropy(examplePairs, word))
+
 def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     -> List[str]:
     words : Set[str] = set()
     for input, output in examplePairs:
         words = words | set(get_words(input))
 
-    words_and_entropies = sorted([(word, word_partitioned_entropy(examplePairs, word)) for
-                                  word in words],
-                                 reverse=True,
-                                 key=lambda x: x[1])[:k]
+    with multiprocessing.Pool(None) as pool:
+        words_and_entropies = sorted(list(
+            pool.imap_unordered(functools.partial(get_relevant_k_keywords_worker__,
+                                                  examplePairs),
+                                words)),
+                                    reverse=True,
+                                    key=lambda x: x[1])[:k]
+
     tokens = [x[0] for x in words_and_entropies]
     print("Highest information tokens are {}".format(tokens))
     return tokens

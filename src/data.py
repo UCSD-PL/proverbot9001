@@ -4,6 +4,7 @@ import pdb
 import re
 import itertools
 import multiprocessing
+import functools
 from sparse_list import SparseList
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
@@ -34,7 +35,7 @@ def getTokenbagVector(goal : Sentence) -> Bag:
         tokenbag[t] += 1
     return tokenbag
 
-def getNGramTokenbagVector(n : int, goal : Sentence, num_tokens : int) -> Bag:
+def getNGramTokenbagVector(n : int, num_tokens : int, goal : Sentence) -> Bag:
     tokenbag: SparseList[int] = SparseList(num_tokens ** n, 0)
 #    tokenbag: List[int] = extend([], num_tokens ** n)
     for i in range(n-1, len(goal)):
@@ -133,8 +134,14 @@ def encode_seq_classify_data(data : RawDataset,
                                                   in data][:1000],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
-    result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
-              for hyps, context, tactic in data]
+    with multiprocessing.Pool(None) as pool:
+        hyps, contexts, tactics = zip(*data)
+        tokenized_contexts = pool.imap_unordered(functools.partial(
+            Tokenizer.toTokenList, tokenizer), contexts)
+        embedded_tactics = pool.imap_unordered(functools.partial(
+            Embedding.encode_token, embedding),
+                                               pool.imap_unordered(get_stem, tactics))
+        result = list(zip(tokenized_contexts, embedded_tactics))
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 
@@ -163,15 +170,16 @@ def encode_ngram_classify_data(data : RawDataset,
     seq_data, tokenizer, embedding = encode_seq_classify_data(data, tokenizer_type,
                                                               num_keywords,
                                                               num_reserved_tokens)
-#    import pdb
-#    pdb.set_trace()
-    bag_data = [(getNGramTokenbagVector(num_grams, context, tokenizer.numTokens()), tactic)
-                for context, tactic in seq_data]
-    return bag_data, tokenizer, embedding
+    print("Getting grams")
+    inputs, outputs = zip(*seq_data)
+    with multiprocessing.Pool(None) as pool:
+        bag_data = list(pool.imap_unordered(functools.partial(
+            getNGramTokenbagVector, num_grams, tokenizer.numTokens()), inputs))
+    return list(zip(bag_data, outputs)), tokenizer, embedding
 
 def encode_ngram_classify_input(context : str, num_grams : int, tokenizer : Tokenizer ) \
     -> Bag:
-    return getNGramTokenbagVector(num_grams, tokenizer.toTokenList(context), tokenizer.numTokens())
+    return getNGramTokenbagVector(num_grams, tokenizer.numTokens(), tokenizer.toTokenList(context))
 
 def term_data(data : RawDataset,
               tokenizer_type : Callable[[List[str], int], Tokenizer],
