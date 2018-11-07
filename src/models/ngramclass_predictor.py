@@ -16,7 +16,7 @@ from torch.utils.data.dataset import Dataset
 from models.tactic_predictor import TacticPredictor
 
 from tokenizer import tokenizers
-from data import read_text_data, filter_data, Sentence, \
+from data import get_text_data, filter_data, Sentence, \
     encode_ngram_classify_data, encode_ngram_classify_input, encode_seq_classify_data
 from context_filter import get_context_filter
 from util import *
@@ -90,7 +90,7 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--learning-rate", dest="learning_rate", default=.3, type=float)
     parser.add_argument("--num-epochs", dest="num_epochs", default=20, type=int)
     parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-    parser.add_argument("--print-every", dest="print_every", default=10, type=int)
+    parser.add_argument("--print-every", dest="print_every", default=50, type=int)
     parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
     parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
     parser.add_argument("--optimizer", default="SGD",
@@ -101,18 +101,14 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
-    print("Loading dataset...")
 
-    raw_dataset = read_text_data(args.scrape_file)
-    filtered_dataset = filter_data(raw_dataset, get_context_filter(args.context_filter))
-#    samples, tokenizer, embedding = encode_seq_classify_data(filtered_dataset,
-#                                                             tokenizers["no-fallback"],
-#                                                             100, 2)
-    samples, tokenizer, embedding = encode_ngram_classify_data(filtered_dataset,
+    raw_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
+    print("Encoding data...")
+    samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
-#                                                             tokenizers["chars-fallback"],
                                                                100, 2)
+    print("Training...")
     checkpoints = train(samples, args.num_grams, tokenizer.numTokens(), args.learning_rate,
                         args.num_epochs, args.batch_size,
                         embedding.num_tokens(), args.print_every,
