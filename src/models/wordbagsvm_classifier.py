@@ -72,6 +72,8 @@ def main(args_list : List[str]) -> None:
                                      "stems based on word frequency in the goal")
     parser.add_argument("--context-filter", dest="context_filter",
                         type=str, default="default")
+    parser.add_argument("--num-keywords", dest="num_keywords",
+                        type=int, default=100)
     parser.add_argument("--max-tuples", dest="max_tuples",
                         type=int, default=None)
     parser.add_argument("scrape_file")
@@ -81,7 +83,7 @@ def main(args_list : List[str]) -> None:
                             max_tuples=args.max_tuples, verbose=True)
     samples, tokenizer, embedding = encode_bag_classify_data(dataset,
                                                              tokenizers["no-fallback"],
-                                                             100, 2)
+                                                             args.num_keywords, 2)
 
     classifier = train(samples, embedding.num_tokens())
 
