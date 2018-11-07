@@ -6,8 +6,7 @@ import itertools
 import multiprocessing
 from sparse_list import SparseList
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords#, \
-#    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers
+    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
 from format import read_tuple
 from models.components import SimpleEmbedding
 
@@ -127,10 +126,13 @@ def encode_seq_classify_data(data : RawDataset,
                              num_reserved_tokens : int) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    keywords = get_relevant_k_keywords([(context, embedding.encode_token(get_stem(tactic)))
-                                        for hyps, context, tactic in data][:1000],
-                                       num_keywords)
-    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
+    tokenizer = make_keyword_tokenizer_relevance([(context,
+                                                   embedding.encode_token(
+                                                       get_stem(tactic)))
+                                                  for hyps, context, tactic
+                                                  in data][:1000],
+                                                 tokenizer_type,
+                                                 num_keywords, num_reserved_tokens)
     result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
               for hyps, context, tactic in data]
     tokenizer.freezeTokenList()

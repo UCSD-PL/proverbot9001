@@ -150,7 +150,7 @@ def padInputs(inputs):
     new_inputs = []
     from collections import Counter
     c = Counter([len(i) for i in inputs])
-    pdb.set_trace()    
+    pdb.set_trace()
     for i in range(len(inputs)):
         c[len(inputs[i])] += 1
         if i % 1000 == 0:
@@ -193,14 +193,14 @@ def getSingleSparseFloatTensor(inputs):
         x = torch.sparse.FloatTensor(i.t(), v, torch.Size([1,len(inputs)])).to_dense()
     except:
         pdb.set_trace()
-        
+
 #    x = torch.sparse.FloatTensor(i, v, torch.Size([len(inputs)])).to_dense()
     return x
 
 def getSparseFloatTensor(inputs):
 #    import pdb
     pdb.set_trace()
-    
+
     indecies = []
     values = []
     for i in range(len(inputs)):
@@ -261,7 +261,7 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
     start=time.time()
 #    num_items = len(dataset) * num_epochs
     num_items = len(inputs) * num_epochs
-    total_loss = 0
+    total_loss = 0.
 #    pdb.set_trace()
     print("Training...")
     for epoch in range(num_epochs):

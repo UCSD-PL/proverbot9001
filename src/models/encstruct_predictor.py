@@ -14,7 +14,7 @@ from models.args import add_std_args, optimizers
 from models.components import SimpleEmbedding
 from context_filter import get_context_filter
 
-from data import read_text_data, filter_data, RawDataset, Sentence
+from data import get_text_data, filter_data, RawDataset, Sentence
 from util import *
 from util import _inflate
 import serapi_instance
