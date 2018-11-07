@@ -42,26 +42,26 @@ class WordBagSVMClassifier(TacticPredictor):
         -> torch.FloatTensor:
         goal = cast(str, in_data["goal"])
         feature_vector = encode_bag_classify_input(goal, self.tokenizer)
-        distribution = self.classifier.predict_log_proba([feature_vector])
+        distribution = self.classifier.predict_log_proba([feature_vector])[0]
         return distribution
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         distribution = self.predictDistribution(in_data)
-        probs_and_indices = list_topk(list(distribution), k)
-        return [(self.embedding.decode_token(idx.data[0]) + ".",
-                 math.exp(certainty.data[0]))
-                for certainty, idx in probs_and_indices]
+        indices, probabilities = list_topk(list(distribution), k)
+        return [(self.embedding.decode_token(idx) + ".",
+                 math.exp(certainty))
+                for certainty, idx in zip(probabilities, indices)]
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
                                 correct : str) -> Tuple[List[Tuple[str, float]], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         loss = 0
-        probs_and_indices = list_topk(list(distribution), k)
-        predictions = [(self.embedding.decode_token(idx.data[0]) + ".",
-                        math.exp(certainty.data[0]))
-                       for certainty, idx in probs_and_indices]
+        indices, probabilities = list_topk(list(distribution), k)
+        predictions = [(self.embedding.decode_token(idx) + ".",
+                        math.exp(certainty))
+                       for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
 
 Checkpoint = Tuple[Dict[Any, Any], float]
