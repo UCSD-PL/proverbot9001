@@ -85,7 +85,7 @@ def main(args_list : List[str]) -> None:
                                                              tokenizers["no-fallback"],
                                                              args.num_keywords, 2)
 
-    classifier = train(samples, embedding.num_tokens())
+    classifier, loss = train(samples, embedding.num_tokens())
 
     state = {'stem-embeddings': embedding,
              'tokenizer':tokenizer,
@@ -93,6 +93,9 @@ def main(args_list : List[str]) -> None:
              'options': [
                  ("dataset size", str(len(samples))),
                  ("context filter", args.context_filter),
+                 ("training loss", loss),
+                 ("# stems", embedding.num_tokens()),
+                 ("# tokens", args.num_keywords),
              ]}
     with open(args.save_file, 'wb') as f:
         pickle.dump(state, f)
@@ -106,4 +109,6 @@ def train(dataset, num_stems: int) -> Checkpoint:
     model = svm.SVC(gamma='scale', probability=True)
     model.fit(inputs, outputs)
     print(" {:.2f}s".format(time.time() - curtime))
-    return model
+    loss = model.score(inputs, outputs)
+    print("Training loss: {}".format(loss))
+    return model, loss
