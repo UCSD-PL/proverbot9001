@@ -65,7 +65,6 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
                                     key=lambda x: x[1])[:k]
 
     tokens = [x[0] for x in words_and_entropies]
-    print("Highest information tokens are {}".format(tokens))
     return tokens
 
 def word_partitioned_entropy(examplePairs : Iterable[Tuple[str, int]], word : str) \
