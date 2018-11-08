@@ -98,4 +98,4 @@ T = TypeVar('T')
 def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
     l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
     lk = l[:k]
-    return tuple(zip(*reversed(lk))) # type: ignore
+    return tuple(zip(*lk)) # type: ignore
