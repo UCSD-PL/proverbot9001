@@ -98,11 +98,15 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--context-filter", dest="context_filter",
                         type=str, default="default")
     parser.add_argument("-n", "--num-grams", dest="num_grams", default=1, type=int)
+    parser.add_argument("--max-tuples", dest="max_tuples",
+                        type=int, default=None)
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
 
-    raw_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
+    raw_dataset = get_text_data(args.scrape_file, args.context_filter,
+                                max_tuples=args.max_tuples,
+                                verbose=True)
     print("Encoding data...")
     samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
                                                                args.num_grams,
