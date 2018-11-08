@@ -128,6 +128,7 @@ def encode_seq_classify_data(data : RawDataset,
                              num_reserved_tokens : int) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
+    print("Making tokenizer...")
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
@@ -135,6 +136,7 @@ def encode_seq_classify_data(data : RawDataset,
                                                   in data][:1000],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
+    print("Tokenizing/embedding data...")
     with multiprocessing.Pool(None) as pool:
         hyps, contexts, tactics = zip(*data)
         tokenized_contexts = pool.imap_unordered(functools.partial(
