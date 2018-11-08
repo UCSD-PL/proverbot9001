@@ -137,8 +137,8 @@ def encode_seq_classify_data(data : RawDataset,
                                                  num_keywords, num_reserved_tokens)
     with multiprocessing.Pool(None) as pool:
         hyps, contexts, tactics = zip(*data)
-        tokenized_contexts = list(pool.imap_unordered(functools.partial(
-            _tokenize, tokenizer), contexts))
+        tokenized_contexts = pool.imap_unordered(functools.partial(
+            _tokenize, tokenizer), contexts)
         embedded_tactics = pool.imap_unordered(functools.partial(
             SimpleEmbedding.encode_token, embedding),
                                                pool.imap_unordered(get_stem, tactics))
