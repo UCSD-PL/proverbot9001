@@ -106,6 +106,7 @@ def main(args_list : List[str]) -> None:
                  ("dataset size", str(len(samples))),
                  ("context filter", args.context_filter),
                  ("training loss", loss),
+                 ("n", args.n),
                  ("# stems", embedding.num_tokens()),
                  ("# tokens", args.num_keywords),
              ]}
