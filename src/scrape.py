@@ -82,8 +82,7 @@ class Worker(threading.Thread):
             # Write out all the information about the current context,
             # and the tactic that is in the file and should be run
             # next.
-            result_file.write(format_context(prev_tactics, prev_hyps,
-                                             prev_goal, ""))
+            result_file.write(format_context(prev_tactics, prev_hyps, prev_goal, ""))
             result_file.write(format_tactic(command))
         # Run the actual command, advancing the coq state.
         coq.run_stmt(command)
@@ -115,7 +114,7 @@ class Worker(threading.Thread):
                 # things. Otherwise this is a noop.
                 coq.debug = options["debug"]
                 # Now, process each command.
-                with tempfile.TemporaryFile() as temp_file:
+                with tempfile.TemporaryFile(mode='w+') as temp_file:
                     # Scrape the file
                     for command in commands:
                         self.process_statement(coq, command, temp_file)
