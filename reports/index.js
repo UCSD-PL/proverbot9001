@@ -19,7 +19,7 @@ function add_checkboxes() {
             .attr("checked", '')
             .on("change", update_checkboxes);
         div.append("p")
-            .attr("class", "checkbox-label")
+            .attr("class", "checkbox-label " + data[i])
             .text(data[i])
     }
 }

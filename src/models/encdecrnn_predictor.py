@@ -13,7 +13,7 @@ import itertools
 
 from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
 from data import read_text_data, encode_seq_seq_data, Sentence, \
-    SequenceSequenceDataset
+    SequenceSequenceDataset, EOS_token, SOS_token
 from util import *
 from util import _inflate
 
@@ -29,9 +29,6 @@ from itertools import takewhile
 from models.tactic_predictor import TacticPredictor
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
-
-SOS_token = 1
-EOS_token = 0
 
 SomeLongTensor = Union[torch.cuda.LongTensor, torch.LongTensor]
 SomeFloatTensor = Union[torch.cuda.FloatTensor, torch.FloatTensor]

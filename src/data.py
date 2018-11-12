@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 
+import pdb
 import re
 import itertools
 import multiprocessing
-
+import functools
+from sparse_list import SparseList
 from tokenizer import Tokenizer, TokenizerState, \
-    get_topk_keywords, get_relevant_k_keywords, tokenizers
+    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
 from format import read_tuple
 from models.components import SimpleEmbedding
-import re
 
 from typing import Tuple, List, Callable, Optional
 from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
+
+SOS_token = 1
+EOS_token = 0
 
 Sentence = List[int]
 Bag = List[int]
@@ -21,6 +25,7 @@ RawDataset = Iterable[Tuple[List[str], str, str]]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
+TermDataset = List[Sentence]
 
 def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
@@ -28,6 +33,18 @@ def getTokenbagVector(goal : Sentence) -> Bag:
         if t >= len(tokenbag):
             tokenbag = extend(tokenbag, t+1)
         tokenbag[t] += 1
+    return tokenbag
+
+def getNGramTokenbagVector(n : int, num_tokens : int, goal : Sentence) -> Bag:
+    tokenbag: SparseList[int] = SparseList(num_tokens ** n, 0)
+#    tokenbag: List[int] = extend([], num_tokens ** n)
+    for i in range(n-1, len(goal)):
+        v_index = goal[i]
+        for j in range(1, n):
+            v_index *= num_tokens
+            v_index += goal[i-j]
+        tokenbag[v_index] += 1
+#    pdb.set_trace()
     return tokenbag
 
 def extend(vector : List[int], length : int):
@@ -59,25 +76,21 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
     return list(worker_generator())
 
 def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
-    data_set : RawDataset = []
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
         result = list(itertools.islice(itertools.chain.from_iterable(data_chunks),
                                        max_size))
         return result
-
 def get_text_data(data_path : str, context_filter_name : str,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
     def _print(*args, **kwargs):
         if verbose:
             print(*args, **kwargs)
     _print("Reading dataset...")
-    raw_data = list(read_text_data(data_path))
-    _print("Read {} raw input-output pairs".format(len(raw_data)))
-    _print("Filtering data based on predicate...")
-    filtered_data = list(filter_data(raw_data, get_context_filter(context_filter_name)))
-    _print("{} input-output pairs left".format(len(filtered_data)))
+    raw_data = read_text_data(data_path)
+    filtered_data = list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples))
+    _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
@@ -87,26 +100,18 @@ def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps}))
 
-def make_keyword_tokenizer(data : List[str],
-                           tokenizer_type : Callable[[List[str], int], Tokenizer],
-                           num_keywords : int,
-                           num_reserved_tokens : int) -> Tokenizer:
-    keywords = get_topk_keywords(data, num_keywords)
-    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
-    return tokenizer
-
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
                         tactic_tokenizer_type : Callable[[List[str], int], Tokenizer],
                         num_keywords : int,
                         num_reserved_tokens : int) \
     -> Tuple[SequenceSequenceDataset, Tokenizer, Tokenizer]:
-    context_tokenizer = make_keyword_tokenizer([context for hyps, context, tactic in data],
-                                               context_tokenizer_type,
-                                               num_keywords, num_reserved_tokens)
-    tactic_tokenizer = make_keyword_tokenizer([tactic for hyps, context, tactic in data],
-                                              tactic_tokenizer_type,
-                                              num_keywords, num_reserved_tokens)
+    context_tokenizer = make_keyword_tokenizer_topk([context for hyps, context, tactic in data],
+                                                    context_tokenizer_type,
+                                                    num_keywords, num_reserved_tokens)
+    tactic_tokenizer = make_keyword_tokenizer_topk([tactic for hyps, context, tactic in data],
+                                                   tactic_tokenizer_type,
+                                                   num_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
               for hyps, context, tactic in data]
@@ -114,18 +119,32 @@ def encode_seq_seq_data(data : RawDataset,
     tactic_tokenizer.freezeTokenList()
     return result, context_tokenizer, tactic_tokenizer
 
+def _tokenize(t : Tokenizer, s : str):
+    return t.toTokenList(s)
+
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
                              num_reserved_tokens : int) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    keywords = get_relevant_k_keywords([(context, embedding.encode_token(get_stem(tactic)))
-                                        for hyps, context, tactic in data][:1000],
-                                       num_keywords)
-    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
-    result = [(tokenizer.toTokenList(context), embedding.encode_token(get_stem(tactic)))
-              for hyps, context, tactic in data]
+    print("Making tokenizer...")
+    tokenizer = make_keyword_tokenizer_relevance([(context,
+                                                   embedding.encode_token(
+                                                       get_stem(tactic)))
+                                                  for hyps, context, tactic
+                                                  in data][:1000],
+                                                 tokenizer_type,
+                                                 num_keywords, num_reserved_tokens)
+    print("Tokenizing/embedding data...")
+    with multiprocessing.Pool(None) as pool:
+        hyps, contexts, tactics = zip(*data)
+        tokenized_contexts = pool.imap_unordered(functools.partial(
+            _tokenize, tokenizer), contexts)
+        embedded_tactics = pool.imap_unordered(functools.partial(
+            SimpleEmbedding.encode_token, embedding),
+                                               pool.imap_unordered(get_stem, tactics))
+        result = list(zip(tokenized_contexts, embedded_tactics))
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 
@@ -144,3 +163,42 @@ def encode_bag_classify_data(data : RawDataset,
 def encode_bag_classify_input(context : str, tokenizer : Tokenizer ) \
     -> Bag:
     return extend(getTokenbagVector(tokenizer.toTokenList(context)), tokenizer.numTokens())
+
+def encode_ngram_classify_data(data : RawDataset,
+                               num_grams : int,
+                               tokenizer_type : Callable[[List[str], int], Tokenizer],
+                               num_keywords : int,
+                               num_reserved_tokens : int) \
+                               -> Tuple[ClassifyBagDataset, Tokenizer, SimpleEmbedding]:
+    seq_data, tokenizer, embedding = encode_seq_classify_data(data, tokenizer_type,
+                                                              num_keywords,
+                                                              num_reserved_tokens)
+    print("Getting grams")
+    inputs, outputs = zip(*seq_data)
+    with multiprocessing.Pool(None) as pool:
+        bag_data = list(pool.imap_unordered(functools.partial(
+            getNGramTokenbagVector, num_grams, tokenizer.numTokens()), inputs))
+    return list(zip(bag_data, outputs)), tokenizer, embedding
+
+def encode_ngram_classify_input(context : str, num_grams : int, tokenizer : Tokenizer ) \
+    -> Bag:
+    return getNGramTokenbagVector(num_grams, tokenizer.numTokens(), tokenizer.toTokenList(context))
+
+def term_data(data : RawDataset,
+              tokenizer_type : Callable[[List[str], int], Tokenizer],
+              num_keywords : int,
+              num_reserved_tokens : int) -> Tuple[TermDataset, Tokenizer]:
+    term_strings = list(itertools.chain.from_iterable(
+        [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
+         for hyps, goal, tactic in data]))
+    tokenizer = make_keyword_tokenizer_topk(term_strings, tokenizer_type,
+                                            num_keywords, num_reserved_tokens)
+    return [tokenizer.toTokenList(term_string) for term_string in term_strings], \
+        tokenizer
+
+def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
+    if len(sentence) > max_length:
+        sentence = sentence[:max_length]
+    elif len(sentence) < max_length:
+        sentence.extend([EOS_token] * (max_length - len(sentence)))
+    return sentence

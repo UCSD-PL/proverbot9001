@@ -5,7 +5,7 @@ import re
 
 import torch
 
-from typing import Dict, Any, List, Tuple, TypeVar, Union
+from typing import Dict, Any, List, Tuple, Union
 
 from models.tactic_predictor import TacticPredictor
 from models.components import SimpleEmbedding
@@ -66,9 +66,3 @@ def train(arg_list : List[str]) -> None:
     with open(args.save_file, 'wb') as f:
         torch.save({'probabilities' : stem_probs,
                     'stem-embeddings' : embedding}, f)
-
-T = TypeVar('T')
-def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
-    l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
-    lk = l[:k]
-    return tuple(zip(*reversed(lk))) # type: ignore
