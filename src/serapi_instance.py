@@ -502,6 +502,10 @@ def ending_proof(command : str) -> bool:
             (re.match("\s*Proof\s+\S+\s*", stripped_command) != None and
              re.match("\s*Proof\s+with", stripped_command) == None))
 
+def terminate_proof(command : str) -> bool:
+    stripped_command = kill_comments(command).strip()
+    return ("Admitted" in stripped_command or "Abort" in stripped_command)
+
 def split_commands(string : str) -> List[str]:
     result = []
     next_command = ""
