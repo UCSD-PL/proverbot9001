@@ -17,4 +17,4 @@ report/
 *weights*
 *.mypy_cache/*
 */.mypy_cache/*
-*.DS_Store
+.DS_Store
