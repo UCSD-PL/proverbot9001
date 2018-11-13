@@ -1,15 +1,1 @@
-./Auto.v
-./Hoare.v
-./Hoare2.v
-./Imp.v
-./IndPrinciples.v
-./IndProp.v
-./Induction.v
-./Lists.v
-./Logic.v
-./Maps.v
-./Poly.v
-./ProofObjects.v
-./Symbols.v
-./Tactics.v
-./Types.v
+./Bin.v

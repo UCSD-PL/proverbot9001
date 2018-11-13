@@ -74,6 +74,9 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) 
     -> Iterator[str]:
     lemma_stack = [] # type: List[List[str]]
     for command in commands:
+        if "bin" in command and "Inductive" in command:
+            print(command)
+            print(serapi_instance.possibly_starting_proof(command))
         if serapi_instance.possibly_starting_proof(command):
             coq.run_stmt(command)
             if coq.proof_context != None:
