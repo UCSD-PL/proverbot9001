@@ -2,23 +2,25 @@
 
 import re
 import math
-from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any
-from abc import ABCMeta, abstractmethod
 import collections
 import multiprocessing
+import functools
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any, Counter
+from abc import ABCMeta, abstractmethod
+
 from util import *
 
-class Tokenizer:
+class Tokenizer(metaclass=ABCMeta):
+    @abstractmethod
     def toTokenList(self, string : str) -> List[int]:
-        assert False, "Can't use base class, must override method"
         pass
+    @abstractmethod
     def toString(self, tokenlist : List[int]) -> str:
-        assert False, "Can't use base class, must override method"
         pass
     def freezeTokenList(self):
         pass
+    @abstractmethod
     def numTokens(self) -> int:
-        assert False, "Can't use base class, must override method"
         pass
 
 def get_words(string : str) -> List[str]:
@@ -30,7 +32,7 @@ def get_symbols(string : str) -> List[str]:
             if word.strip() != '']
 
 def get_topk_keywords_worker__(sentence_list : List[str]) -> collections.Counter:
-    counts = collections.Counter()
+    counts : Counter[str] = collections.Counter()
     for example in sentence_list:
         counts.update(get_words(example))
     return counts
@@ -39,10 +41,14 @@ def get_topk_keywords(exampleSentences : Iterable[str], k : int) -> List[str]:
     with multiprocessing.Pool(None) as pool:
         sub_counts = pool.imap_unordered(get_topk_keywords_worker__,
                                          chunks(exampleSentences, 32768))
-        counts = collections.Counter()
+        counts : Counter[str] = collections.Counter()
         for sub_count in sub_counts:
             counts.update(sub_count)
     return [word for word, count in counts.most_common(k)]
+
+def get_relevant_k_keywords_worker__(examplePairs : List[Tuple[str, int]],
+                                     word : str):
+    return (word, word_partitioned_entropy(examplePairs, word))
 
 def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     -> List[str]:
@@ -50,12 +56,15 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     for input, output in examplePairs:
         words = words | set(get_words(input))
 
-    words_and_entropies = sorted([(word, word_partitioned_entropy(examplePairs, word)) for
-                                  word in words],
-                                 reverse=True,
-                                 key=lambda x: x[1])[:k]
+    with multiprocessing.Pool(None) as pool:
+        words_and_entropies = sorted(list(
+            pool.imap_unordered(functools.partial(get_relevant_k_keywords_worker__,
+                                                  examplePairs),
+                                words)),
+                                    reverse=True,
+                                    key=lambda x: x[1])[:k]
+
     tokens = [x[0] for x in words_and_entropies]
-    print("Highest information tokens are {}".format(tokens))
     return tokens
 
 def word_partitioned_entropy(examplePairs : Iterable[Tuple[str, int]], word : str) \
@@ -108,10 +117,11 @@ class CharsTokenizer(Tokenizer):
         return self.next_ord
 
 class CompleteTokenizer(Tokenizer):
-    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0) \
-        -> None:
+    def __init__(self, keywords : List[str], num_reserved_tokens : int = 0,
+                 use_unknowns : bool = True) -> None:
         self.keywords = keywords
         self.num_reserved_tokens = num_reserved_tokens
+        self.use_unknowns = use_unknowns
         pass
     def toTokenList(self, string : str) -> List[int]:
         words = get_words(string)
@@ -119,7 +129,7 @@ class CompleteTokenizer(Tokenizer):
         for word in words:
             if word in self.keywords:
                 tokens.append(self.num_reserved_tokens + self.keywords.index(word))
-            else:
+            elif self.use_unknowns:
                 tokens.append(self.num_reserved_tokens + len(self.keywords))
         return tokens
     def toString(self, tokenlist : List[int]) -> str:
@@ -194,6 +204,23 @@ class KeywordTokenizer(Tokenizer):
             "It still might change"
         return self.next_mangle_ord
 
+def make_keyword_tokenizer_relevance(data : List[Tuple[str, int]],
+                                     tokenizer_type : Callable[[List[str], int],
+                                                               Tokenizer],
+                                     num_keywords : int,
+                                     num_reserved_tokens : int) -> Tokenizer:
+    keywords = get_relevant_k_keywords(data, num_keywords)
+    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
+    return tokenizer
+
+def make_keyword_tokenizer_topk(data : List[str],
+                                tokenizer_type : Callable[[List[str], int], Tokenizer],
+                                num_keywords : int,
+                                num_reserved_tokens : int) -> Tokenizer:
+    keywords = get_topk_keywords(data, num_keywords)
+    tokenizer = tokenizer_type(keywords, num_reserved_tokens)
+    return tokenizer
+
 context_keywords = [
     "forall",
     "eq",
@@ -241,6 +268,8 @@ TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 
 tokenizers = {
     "no-fallback" : CompleteTokenizer,
+    "no-unknowns" : lambda *args, **kwargs: \
+    CompleteTokenizer(*args, **kwargs, use_unknowns=False),
     "chars-fallback" : KeywordTokenizer,
     "chars-only" : CharsTokenizer,
-}
+} # type: Dict[str, Callable[[List[str], int], Tokenizer]]

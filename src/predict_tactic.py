@@ -6,9 +6,13 @@ from models.tactic_predictor import TacticPredictor
 from models import encdecrnn_predictor
 from models import try_common_predictor
 from models import wordbagclass_predictor
+from models import ngramclass_predictor
 from models import encclass_predictor
 from models import dnnclass_predictor
 from models import k_nearest_predictor
+from models import autoclass_predictor
+from models import wordbagsvm_classifier
+from models import ngramsvm_classifier
 
 predictors = {
     'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -16,7 +20,11 @@ predictors = {
     'dnnclass' : dnnclass_predictor.DNNClassPredictor,
     'trycommon' : try_common_predictor.TryCommonPredictor,
     'wordbagclass' : wordbagclass_predictor.WordBagClassifyPredictor,
+    'ngramclass' : ngramclass_predictor.NGramClassifyPredictor,
     'k-nearest' : k_nearest_predictor.KNNPredictor,
+    'autoclass' : autoclass_predictor.AutoClassPredictor,
+    'wordbagsvm' : wordbagsvm_classifier.WordBagSVMClassifier,
+    'ngramsvm' : ngramsvm_classifier.NGramSVMClassifier,
 }
 
 def loadPredictor(options : Dict[str, Union[int, str]], predictor_type) -> TacticPredictor:

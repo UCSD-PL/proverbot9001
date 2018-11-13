@@ -4,6 +4,7 @@ import time
 import io
 import math
 import re
+import itertools
 
 import torch
 import torch.cuda
@@ -11,7 +12,7 @@ import torch.autograd as autograd
 
 from serapi_instance import kill_comments
 
-from typing import List, Iterable, Any, overload
+from typing import List, Tuple, Iterable, Any, overload, TypeVar
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -86,9 +87,15 @@ def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
         raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
                          "This one is {}D.".format(tensor_dim))
 
-def chunks(l : Iterable[Any], chunk_size : int):
-    rest_list = l
-    while len(rest_list) > 0:
-        chunk = rest_list[:chunk_size]
-        rest_list = rest_list[chunk_size:]
-        yield chunk
+def chunks(l : Iterable[Any], chunk_size : int) -> Iterable[List[Any]]:
+    i = iter(l)
+    next_chunk = list(itertools.islice(i, chunk_size))
+    while next_chunk:
+        yield next_chunk
+        next_chunk = list(itertools.islice(i, chunk_size))
+
+T = TypeVar('T')
+def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
+    l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
+    lk = l[:k]
+    return tuple(zip(*lk)) # type: ignore

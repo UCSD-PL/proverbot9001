@@ -41,14 +41,18 @@ def read_tuple(f_handle : TextIO) -> Optional[Tuple[List[str], str, str]]:
     assert stars == "*****\n"
 
     hypotheses = [] # type: List[str]
-    next_hypothesis = f_handle.readline()
-    while next_hypothesis != "*****\n":
-        assert hypotheses != ""
+    next_hypothesis = f_handle.readline().strip()
+    while next_hypothesis != "*****":
+        if next_hypothesis == "":
+            next_hypothesis = f_handle.readline().strip()
+            continue
         hypotheses.append(next_hypothesis)
-        next_hypothesis = f_handle.readline()
+        next_hypothesis = f_handle.readline().strip()
+    for hyp in hypotheses:
+        assert ":" in hyp, "hyps: {}".format(hypotheses)
 
     stars2 = next_hypothesis
-    assert stars2 == "*****\n"
+    assert stars2 == "*****"
 
     goal = f_handle.readline().strip()
     assert goal != "", "Lemma name is {}".format(prev_tactics[0])

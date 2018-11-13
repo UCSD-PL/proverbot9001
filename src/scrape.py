@@ -82,8 +82,9 @@ class Worker(threading.Thread):
             # Write out all the information about the current context,
             # and the tactic that is in the file and should be run
             # next.
-            result_file.write(format_context(prev_tactics, prev_hyps, prev_goal, ""))
-            result_file.write(format_tactic(command))
+            result_file.write(format_context(prev_tactics, prev_hyps,
+                                             prev_goal, "").encode('utf-8'))
+            result_file.write(format_tactic(command).encode('utf-8'))
         # Run the actual command, advancing the coq state.
         coq.run_stmt(command)
         pass
@@ -125,7 +126,7 @@ class Worker(threading.Thread):
                     if self.outfile_name:
                         with open(self.outfile_name, 'a') as out_file:
                             for line in temp_file:
-                                out_file.write(line)
+                                out_file.write(line.decode())
                             out_file.flush()
                     else:
                         for line in tmp_file:

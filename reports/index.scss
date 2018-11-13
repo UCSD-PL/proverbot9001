@@ -52,8 +52,8 @@ body {
 }
 
 svg {
-    $models: Unknown k-nearest wordbagclass encclass dnnclass hmmencclass ngramclass autoclass;
-    $colors: black   steelblue green       magenta  darkgoldenrod purple darkred    brown;
+    $models: Unknown k-nearest wordbagclass encclass dnnclass hmmencclass ngramclass autoclass ngramsvm;
+    $colors: black   steelblue green       magenta  darkgoldenrod purple darkred    brown    darkgreen;
 
     @for $i from 1 through length($models) {
         $model: nth($models, $i);
