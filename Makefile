@@ -1,4 +1,3 @@
-
 SHELL=/usr/bin/env bash
 
 ENV_PREFIX=export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
@@ -45,19 +44,18 @@ scrape-sf:
 	cd src && \
 	cat ../data/sf-train-files.txt | $(HEAD_CMD) | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
-						       	--prelude ../software_foundations --debug 
+						       	--prelude ../software-foundations 
 
 report-sf:
 	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --predictor encclass \
-								--prelude ./software_foundations $(FLAGS))
+								--prelude ./software-foundations $(FLAGS))
 
 train:
 	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
 test:
 	./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert ./lib/Parmov.v --predictor=ngramclass
->>>>>>> f6cfaa096462f8f06a03f48211dfd35448821fed
 
 INDEX_FILES=index.js index.css build-index.py
 

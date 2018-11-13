@@ -82,12 +82,12 @@ function setup-compcert {
 
 function setup-software-foundation {
     check-and-clone\
-        "software_foundations"\
-        "https://github.com/Liby99/software_foundations.git"\
-        "c4cde02b660a92b1e06e40b660293fb8f75d5ed4"
+        "software-foundations"\
+        "https://github.com/Liby99/software-foundations.git"\
+        "300823c76046e1b6a7103e0ab80651acb09924f0"
     (
         set -euv
-        cd software_foundations
+        cd software-foundations
         PATH="$PWD/../coq/bin:$PATH" make
     ) || exit 1
 }

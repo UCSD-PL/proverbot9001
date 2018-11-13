@@ -486,7 +486,6 @@ def possibly_starting_proof(command : str) -> bool:
             re.match("Definition\s", stripped_command) != None or
             re.match("Example\s", stripped_command) != None or
             re.match("Fixpoint\s", stripped_command) != None or
-            # re.match("Inductive\s", stripped_command) != None or
             re.match("Corollary\s", stripped_command) != None or
             re.match("Let\s", stripped_command) != None or
             ("Instance" in stripped_command and

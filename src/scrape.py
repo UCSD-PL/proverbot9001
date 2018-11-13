@@ -115,7 +115,7 @@ class Worker(threading.Thread):
                 # things. Otherwise this is a noop.
                 coq.debug = options["debug"]
                 # Now, process each command.
-                with tempfile.TemporaryFile(mode='w+') as temp_file:
+                with tempfile.TemporaryFile() as temp_file:
                     # Scrape the file
                     for command in commands:
                         self.process_statement(coq, command, temp_file)
