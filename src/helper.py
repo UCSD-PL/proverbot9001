@@ -79,10 +79,12 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) 
             if coq.proof_context != None:
                 lemma_stack.append([])
             coq.cancel_last()
+
+        # First check if the lemma_stack has content and the command is early terminating
         if len(lemma_stack) > 0 and serapi_instance.terminate_proof(command):
-            print(command)
             lemma_stack.pop()
-        elif len(lemma_stack) > 0 and not lifted_vernac(command): # and not "Inductive" in command:
+        # Then check if the command goes to lemma_stack
+        elif len(lemma_stack) > 0 and not lifted_vernac(command):
             lemma_stack[-1].append(command)
         else:
             yield command

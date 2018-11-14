@@ -42,7 +42,7 @@ report:
 scrape-sf:
 	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
-	cat ../data/sf-train-files.txt | $(HEAD_CMD) | \
+	cat ../data/sf-train-files.txt | $(HEAD_CMD) | grep -v "#" | \
 	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
 						       	--prelude ../software-foundations
 

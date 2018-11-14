@@ -1,3 +1,7 @@
-./Basics.v
-./Induction.v
-./Lists.v
+# ./Auto.v
+# ./Basics.v
+# ./IndPrinciples.v
+./IndProp.v
+# ./Induction.v
+# ./Lists.v
+# ./Poly.v
