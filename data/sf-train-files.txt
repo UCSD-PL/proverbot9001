@@ -1,6 +1,6 @@
 # ./Auto.v
 # ./Basics.v
-# ./Equiv.v
+# NOT WORKING ./Equiv.v
 # NOT WORKING ./Hoare.v
 # NOT WORKING ./Hoare2.v
 # NOT WORKING ./Imp.v
