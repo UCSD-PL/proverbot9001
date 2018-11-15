@@ -84,7 +84,7 @@ function setup-software-foundation {
     check-and-clone\
         "software-foundations"\
         "https://github.com/Liby99/software-foundations.git"\
-        "300823c76046e1b6a7103e0ab80651acb09924f0"
+        "4ebb2252ccb779c39403375d642be0c006879a8f"
     (
         set -euv
         cd software-foundations
