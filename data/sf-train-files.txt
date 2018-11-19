@@ -1,18 +1,18 @@
-# ./Auto.v
-# ./Basics.v
+./Auto.v
+./Basics.v
 # NOT WORKING ./Equiv.v
 # NOT WORKING ./Hoare.v
 # NOT WORKING ./Hoare2.v
 # NOT WORKING ./Imp.v
-# ./IndPrinciples.v
-./IndProp.v
-# ./Induction.v
-# ./Lists.v
-# ./Logic.v
-# ./Maps.v
-# ./Poly.v
-# ./ProofObjects.v
+./IndPrinciples.v
+# NOT WORKING ./IndProp.v
+./Induction.v
+./Lists.v
+./Logic.v
+./Maps.v
+./Poly.v
+./ProofObjects.v
 # NOT WORKING ./Smallstep.v
-# ./Symbols.v
-# ./Tactics.v
+./Symbols.v
+./Tactics.v
 # NOT WORKING ./Types.v
