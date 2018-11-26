@@ -1,3 +1,1 @@
-./Basics.v
-./Equiv.v
-./Smallstep.v
+./Auto.v

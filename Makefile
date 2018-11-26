@@ -39,18 +39,6 @@ report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
 
-scrape-sf:
-	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
-	cd src && \
-	cat ../data/sf-train-files.txt | $(HEAD_CMD) | grep -v "#" | \
-	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
-						       	--prelude ../software-foundations
-
-report-sf:
-	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
-	xargs ./src/proverbot9001.py report -j $(NTHREADS) --predictor encclass \
-								--prelude ./software-foundations $(FLAGS))
-
 train:
 	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE)
 
@@ -99,3 +87,33 @@ clean:
 
 clean-lin:
 	fd '.*\.v\.lin' CompCert | xargs rm
+
+scrape-sf:
+	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
+	cd src && \
+	cat ../data/sf-train-files.txt | $(HEAD_CMD) | grep -v "#" | \
+	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
+						       	--prelude ../software-foundations
+
+report-sf:
+	($(ENV_PREFIX) ; cat data/sf-test-files.txt | $(HEAD_CMD) | \
+	xargs ./src/proverbot9001.py report -j $(NTHREADS) --predictor encclass \
+								--prelude ./software-foundations $(FLAGS))
+
+train-sf:
+	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE) --print-every=1 --learning-rate=0.1
+
+publish-sf:
+	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py $(REPORT)/))
+	mv $(REPORT) $(REPORT_NAME)
+	chmod +rx $(REPORT_NAME)
+	tar czf report.tar.gz $(REPORT_NAME)
+	rsync -avz report.tar.gz $(SITE_PATH)/reports/
+	ssh goto 'cd ~alexss/proverbot9001-site/reports && \
+                  tar xzf report.tar.gz && \
+                  rm report.tar.gz && \
+		  chgrp -R proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \
+		  chmod -R g+rw $(REPORT_NAME) $(INDEX_FILES)'
+	mv $(REPORT_NAME) $(REPORT)
+	$(MAKE) update-index
+
