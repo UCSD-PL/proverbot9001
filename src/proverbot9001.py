@@ -54,6 +54,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--max-length", dest="max_length", default=None, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
+    parser.add_argument("--context-filter", dest="context_filter", default="default")
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(data.read_text_data(arg_values.datafile_path,
