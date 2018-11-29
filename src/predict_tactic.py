@@ -13,6 +13,7 @@ from models import k_nearest_predictor
 from models import autoclass_predictor
 from models import wordbagsvm_classifier
 from models import ngramsvm_classifier
+from models import hyparg_predictor
 
 predictors = {
     'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -25,6 +26,7 @@ predictors = {
     'autoclass' : autoclass_predictor.AutoClassPredictor,
     'wordbagsvm' : wordbagsvm_classifier.WordBagSVMClassifier,
     'ngramsvm' : ngramsvm_classifier.NGramSVMClassifier,
+    'hyparg' : hyparg_predictor.HypArgPredictor,
 }
 
 def loadPredictor(options : Dict[str, Union[int, str]], predictor_type) -> TacticPredictor:

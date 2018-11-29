@@ -14,6 +14,7 @@ import models.term_autoencoder as autoencoder
 import models.autoclass_predictor as autoclass
 import models.wordbagsvm_classifier as wordbagsvm
 import models.ngramsvm_classifier as ngramsvm
+import models.hyparg_predictor as hyparg
 from tokenizer import tokenizers
 import report
 import argparse
@@ -109,8 +110,8 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "autoclass" : autoclass.main,
     "wordbagsvm" : wordbagsvm.main,
     "ngramsvm" : ngramsvm.main,
+    "hyparg" : hyparg.main,
 }
-
 
 if __name__ == "__main__":
     main()
