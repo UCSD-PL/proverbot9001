@@ -104,6 +104,8 @@ def main(args_list : List[str]) -> None:
                         type=int, default=None)
     parser.add_argument("--num-keywords", dest="num_keywords",
                         type=int, default=None)
+    parser.add_argument("--print-keywords", default=False, action='store_const',
+                        const=True, dest="print_keywords")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
@@ -116,6 +118,8 @@ def main(args_list : List[str]) -> None:
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
                                                                args.num_keywords, 2)
+    if args.print_keywords:
+        print("Keywords are {}".format(tokenizer.listTokens()))
     print("Training...")
     checkpoints = train(samples, args.num_grams, tokenizer.numTokens(), args.learning_rate,
                         args.num_epochs, args.batch_size,
