@@ -216,7 +216,8 @@ def main(arg_list : List[str]) -> None:
     parser = start_std_args("a classifier pytorch model for proverbot")
     args = parser.parse_args(arg_list)
 
-    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
+    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True,
+                                 max_tuples=args.max_tuples)
     print("Encoding data...")
     start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(text_dataset,
