@@ -74,7 +74,8 @@ class NGramSVMClassifier(TacticPredictor):
                        for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
 
-Checkpoint = Tuple[Dict[Any, Any], float]
+Checkpoint = Tuple[svm.SVC, float]
+
 
 def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
