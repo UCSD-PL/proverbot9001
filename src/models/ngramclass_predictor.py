@@ -102,6 +102,8 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("-n", "--num-grams", dest="num_grams", default=1, type=int)
     parser.add_argument("--max-tuples", dest="max_tuples",
                         type=int, default=None)
+    parser.add_argument("--num-keywords", dest="num_keywords",
+                        type=int, default=None)
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
@@ -113,7 +115,7 @@ def main(args_list : List[str]) -> None:
     samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
-                                                               100, 2)
+                                                               args.num_keywords, 2)
     print("Training...")
     checkpoints = train(samples, args.num_grams, tokenizer.numTokens(), args.learning_rate,
                         args.num_epochs, args.batch_size,
