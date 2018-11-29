@@ -130,11 +130,12 @@ def encode_seq_classify_data(data : RawDataset,
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
     print("Making tokenizer...")
+    subset = random.sample(data, 1000)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
                                                   for hyps, context, tactic
-                                                  in data][:1000],
+                                                  in subset],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
     print("Tokenizing/embedding data...")
