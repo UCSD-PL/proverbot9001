@@ -16,6 +16,7 @@ from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
 
+TOKEN_START = 2
 SOS_token = 1
 EOS_token = 0
 

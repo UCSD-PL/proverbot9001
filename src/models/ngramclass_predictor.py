@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
-from torch.utils.data.dataset import Dataset
+from torch.utils.data import Dataset
 
 from models.tactic_predictor import TacticPredictor
 
