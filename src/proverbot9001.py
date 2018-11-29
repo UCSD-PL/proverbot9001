@@ -44,7 +44,7 @@ def train(args):
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Parse datafiles into multiple formats")
-    parser.add_argument("format", choices=["terms"])
+    parser.add_argument("format", choices=["terms", "goals"])
     parser.add_argument("datafile_path", type=str)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
@@ -68,6 +68,13 @@ def get_data(args : List[str]) -> None:
             print(tokenizer.toString(
                 list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
                   end="\\n\n" if arg_values.lineend else "\n")
+    elif arg_values.format == "goals":
+        dataset = data.get_text_data(arg_values.datafile_path,
+                                     arg_values.context_filter,
+                                     arg_values.max_tuples,
+                                     verbose=True)
+        for hyps, goal, tactic in dataset:
+            print(goal)
         pass
 
 def run_test(args):
