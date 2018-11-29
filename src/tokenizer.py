@@ -278,7 +278,7 @@ TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 tokenizers = {
     "no-fallback" : CompleteTokenizer,
     "no-unknowns" : lambda *args, **kwargs: \
-    CompleteTokenizer(*args, **kwargs, use_unknowns=False),
+    CompleteTokenizer(*args, **kwargs, use_unknowns=False), # type: ignore
     "chars-fallback" : KeywordTokenizer,
     "chars-only" : CharsTokenizer,
 } # type: Dict[str, Callable[[List[str], int], Tokenizer]]
