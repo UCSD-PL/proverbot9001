@@ -421,7 +421,7 @@ class Worker(threading.Thread):
                                 search_index = pidx
                                 break
                         with tag('span',
-                                 ('data-hyps',"".join(hyps)),
+                                 ('data-hyps',"\n".join(hyps)),
                                  ('data-goal',shorten_whitespace(goal)),
                                  ('data-num-total', str(fresult.num_tactics)),
                                  ('data-predictions',
