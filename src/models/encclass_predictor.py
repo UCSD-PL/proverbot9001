@@ -155,6 +155,7 @@ def train(dataset : ClassifySequenceDataset,
           input_vocab_size : int, output_vocab_size : int, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           max_length : int, num_epochs : int, batch_size : int,
+          epoch_step : float, gamma : int,
           print_every : int, optimizer_f : Callable[..., Optimizer]) \
           -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
@@ -171,7 +172,7 @@ def train(dataset : ClassifySequenceDataset,
                       batch_size=batch_size))
     optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, 5, gamma=0.9)
+    adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     start=time.time()
@@ -229,6 +230,7 @@ def main(arg_list : List[str]) -> None:
                         args.hidden_size,
                         args.learning_rate, args.num_encoder_layers,
                         args.max_length, args.num_epochs, args.batch_size,
+                        args.epoch_step, args.gamma,
                         args.print_every, optimizers[args.optimizer])
 
     for epoch, (encoder_state, training_loss) in enumerate(checkpoints):
