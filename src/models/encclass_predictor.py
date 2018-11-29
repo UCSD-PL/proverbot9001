@@ -180,7 +180,7 @@ def train(dataset : ClassifySequenceDataset,
     total_loss = 0
 
     print("Training...")
-    for epoch in range(num_epochs):
+    for epoch in range(1, num_epochs+1):
         print("Epoch {}".format(epoch))
         adjuster.step()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
@@ -203,7 +203,7 @@ def train(dataset : ClassifySequenceDataset,
 
             if (batch_num + 1) % print_every == 0:
 
-                items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
+                items_processed = (batch_num + 1) * batch_size + (epoch - 1) * len(dataset)
                 progress = items_processed / num_items
                 print("{} ({:7} {:5.2f}%) {:.4f}".
                       format(timeSince(start, progress),
@@ -213,8 +213,7 @@ def train(dataset : ClassifySequenceDataset,
         yield (encoder.state_dict(), total_loss / items_processed)
 
 def main(arg_list : List[str]) -> None:
-    parser = start_std_args(arg_list, "a classifier pytorch model for proverbot")
-    parser.add_argument("--start-from", dest="start_from", default=None, type=str)
+    parser = start_std_args("a classifier pytorch model for proverbot")
     args = parser.parse_args(arg_list)
 
     text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
@@ -233,7 +232,7 @@ def main(arg_list : List[str]) -> None:
                         args.epoch_step, args.gamma,
                         args.print_every, optimizers[args.optimizer])
 
-    for epoch, (encoder_state, training_loss) in enumerate(checkpoints):
+    for epoch, (encoder_state, training_loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
                  'training-loss': training_loss,
                  'tokenizer':tokenizer,
