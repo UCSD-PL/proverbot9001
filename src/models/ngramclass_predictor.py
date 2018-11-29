@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import pdb
+
 import argparse
 import time
 import math
@@ -158,7 +158,6 @@ def padInputs(inputs):
     new_inputs = []
     from collections import Counter
     c = Counter([len(i) for i in inputs])
-    pdb.set_trace()
     for i in range(len(inputs)):
         c[len(inputs[i])] += 1
         if i % 1000 == 0:
@@ -197,17 +196,10 @@ def getSingleSparseFloatTensor(inputs):
         values.append(inputs.elements[j])
     i = torch.LongTensor(indecies)
     v = torch.FloatTensor(values)
-    try:
-        x = torch.sparse.FloatTensor(i.t(), v, torch.Size([1,len(inputs)])).to_dense()
-    except:
-        pdb.set_trace()
-
-#    x = torch.sparse.FloatTensor(i, v, torch.Size([len(inputs)])).to_dense()
+    x = torch.sparse.FloatTensor(i.t(), v, torch.Size([1,len(inputs)])).to_dense()
     return x
 
 def getSparseFloatTensor(inputs):
-#    import pdb
-    pdb.set_trace()
 
     indecies = []
     values = []
@@ -248,7 +240,6 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
 #    for i in range(len(inputs)):
 #        new_inputs.append(inputFromSentence(inputs[i], 100))
 #    inputs = new_inputs
-#    pdb.set_trace()
 
     dataloader = data.DataLoader(
         CustomDataset(
@@ -270,14 +261,12 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
 #    num_items = len(dataset) * num_epochs
     num_items = len(inputs) * num_epochs
     total_loss = 0.
-#    pdb.set_trace()
     print("Training...")
     for epoch in range(num_epochs):
         print("Epoch {}".format(epoch))
 #        print("1")
         adjuster.step()
 #        print("2")
-#        pdb.set_trace()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
 #        for i in range(1):
 #            input_batch = dataloader.dataset.tensors[0]
@@ -286,7 +275,6 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
             input_batch = input_batch.squeeze()
             optimizer.zero_grad()
 #            print("4")
-#            pdb.set_trace()
 #            input_batch = getSparseFloatTensor(input_batch)
 #            input_batch = unpadInputs(input_batch)
 #            input_batch = [getNGramTokenbagVector(num_grams, context, num_tokens) \
