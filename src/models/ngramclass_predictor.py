@@ -57,6 +57,8 @@ class NGramClassifyPredictor(TacticPredictor):
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         distribution = self.predictDistribution(in_data)
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
         return [(self.embedding.decode_token(idx.data[0]) + ".",
                  math.exp(certainty.data[0]))
@@ -73,9 +75,9 @@ class NGramClassifyPredictor(TacticPredictor):
         else:
             loss = 0
 
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-#        import pdb
-#        pdb.set_trace()
         predictions = [(self.embedding.decode_token(idx.item()) + ".",
                         math.exp(certainty.item()))
                        for certainty, idx in zip(*probs_and_indices)]

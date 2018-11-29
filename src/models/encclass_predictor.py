@@ -84,6 +84,8 @@ class EncClassPredictor(TacticPredictor):
         -> List[Tuple[str, float]]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
+        if k > self.embedding.num_tokens():
+            k= self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
                     math.exp(certainty.data[0]))
@@ -103,6 +105,8 @@ class EncClassPredictor(TacticPredictor):
         else:
             loss = 0
 
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.item()) + ".",
                     math.exp(certainty.item()))
