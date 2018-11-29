@@ -6,6 +6,7 @@ import itertools
 import multiprocessing
 import functools
 from sparse_list import SparseList
+import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
 from format import read_tuple
@@ -123,6 +124,17 @@ def encode_seq_seq_data(data : RawDataset,
 def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
+def encode_seq_classify_data_worker__(embedding : SimpleEmbedding, tokenizer : Tokenizer,
+                                      chunk : List[Tuple[List[str], str, str]])\
+    -> List[Tuple[Sentence, int]]:
+    for hyps, goal, tactic in chunk:
+        assert get_stem(tactic) == "eauto" or get_stem(tactic) == "intros", tactic
+        embedded = embedding.encode_token(get_stem(tactic))
+        assert embedded == embedding.encode_token("eauto") or \
+            embedded == embedding.encode_token("intros")
+    return [(tokenizer.toTokenList(goal), embedding.encode_token(get_stem(tactic)))
+            for hyps, goal, tactic in chunk]
+
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
@@ -140,13 +152,9 @@ def encode_seq_classify_data(data : RawDataset,
                                                  num_keywords, num_reserved_tokens)
     print("Tokenizing/embedding data...")
     with multiprocessing.Pool(None) as pool:
-        hyps, contexts, tactics = zip(*data)
-        tokenized_contexts = pool.imap_unordered(functools.partial(
-            _tokenize, tokenizer), contexts)
-        embedded_tactics = pool.imap_unordered(functools.partial(
-            SimpleEmbedding.encode_token, embedding),
-                                               pool.imap_unordered(get_stem, tactics))
-        result = list(zip(tokenized_contexts, embedded_tactics))
+        result = list(chain.from_iterable(pool.imap_unordered(functools.partial(
+            encode_seq_classify_data_worker__, embedding, tokenizer),
+                                          chunks(data, 1024))))
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 
