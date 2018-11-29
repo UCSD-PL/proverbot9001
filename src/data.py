@@ -5,6 +5,7 @@ import re
 import itertools
 import multiprocessing
 import functools
+from itertools import chain
 from sparse_list import SparseList
 import random
 from tokenizer import Tokenizer, TokenizerState, \
