@@ -267,12 +267,13 @@ class FileResult:
                 break
             if (grade == "okaycommand"):
                 self.num_topNPartial += 1
+                break
         for grade in grades:
             if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_searched += 1
                 break
             if grade != "failedcommand":
-                break;
+                break
         pass
 
     def details_filename(self) -> str:
