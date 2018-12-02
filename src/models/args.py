@@ -15,8 +15,8 @@ optimizers = {
 def add_std_args(parser : argparse.ArgumentParser) -> None:
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
-    parser.add_argument("--num-epochs", dest="num_epochs", default=15, type=int)
-    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
+    parser.add_argument("--num-epochs", dest="num_epochs", default=30, type=int)
+    parser.add_argument("--batch-size", dest="batch_size", default=4096, type=int)
     parser.add_argument("--max-length", dest="max_length", default=100, type=int)
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
     parser.add_argument("--print-every", dest="print_every", default=10, type=int)
