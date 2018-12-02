@@ -35,6 +35,7 @@ class EncClassPredictor(TacticPredictor):
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("optimizer", checkpoint['optimizer']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
+                        ("# decoder layers", checkpoint['num-decoder-layers']),
                         ("input length", checkpoint['max-length']),
                         ("hidden size", checkpoint['hidden-size']),
                         ("# keywords", checkpoint['num-keywords']),
@@ -51,7 +52,9 @@ class EncClassPredictor(TacticPredictor):
         self.encoder = maybe_cuda(RNNClassifier(self.tokenizer.numTokens(),
                                                 checkpoint['hidden-size'],
                                                 self.embedding.num_tokens(),
-                                                checkpoint['num-encoder-layers']))
+                                                checkpoint['num-encoder-layers'],
+                                                checkpoint['num-decoder-layers'],
+                                                batch_size=1))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
 
@@ -109,9 +112,11 @@ class EncClassPredictor(TacticPredictor):
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
-                 num_layers : int, batch_size : int=1) -> None:
+                 num_encoder_layers : int, num_decoder_layers : int =1,
+                 batch_size : int=1) -> None:
         super(RNNClassifier, self).__init__()
-        self.num_layers = num_layers
+        self.num_encoder_layers = num_encoder_layers
+        self.num_decoder_layers = num_decoder_layers
         self.hidden_size = hidden_size
         self.batch_size = batch_size
         self.embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
@@ -122,7 +127,7 @@ class RNNClassifier(nn.Module):
     def forward(self, input : torch.FloatTensor, hidden : torch.FloatTensor) \
         -> Tuple[torch.FloatTensor, torch.FloatTensor] :
         output = self.embedding(input).view(1, self.batch_size, -1)
-        for i in range(self.num_layers):
+        for i in range(self.num_encoder_layers):
             output = F.relu(output)
             output, hidden = self.gru(output, hidden)
         output = self.softmax(self.out(output[0]))
@@ -228,6 +233,7 @@ def main(arg_list : List[str]) -> None:
                  'embedding': embedding,
                  'neural-encoder':encoder_state,
                  'num-encoder-layers':args.num_encoder_layers,
+                 'num-decoder-layers':args.num_decoder_layers,
                  'max-length': args.max_length,
                  'hidden-size' : args.hidden_size,
                  'num-keywords' : args.num_keywords,
