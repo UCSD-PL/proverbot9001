@@ -32,19 +32,6 @@ from typing import Dict, List, Union, Any, Tuple, Iterable, cast, Callable
 class EncClassPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
         checkpoint = torch.load(filename)
-        assert checkpoint['tokenizer']
-        assert checkpoint['tokenizer-name']
-        assert checkpoint['embedding']
-        assert checkpoint['neural-encoder']
-        assert checkpoint['num-encoder-layers']
-        assert checkpoint['max-length']
-        assert checkpoint['hidden-size']
-        assert checkpoint['num-keywords']
-        assert checkpoint['learning-rate']
-        assert checkpoint['epoch']
-        assert checkpoint['context-filter']
-        assert checkpoint['training-loss']
-
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("optimizer", checkpoint['optimizer']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
