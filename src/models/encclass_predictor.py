@@ -141,35 +141,33 @@ class RNNClassifier(nn.Module):
 Checkpoint = Tuple[Dict[Any, Any], float]
 
 def train(dataset : ClassifySequenceDataset,
-          input_vocab_size : int, output_vocab_size : int, hidden_size : int,
-          learning_rate : float, num_encoder_layers : int,
-          max_length : int, num_epochs : int, batch_size : int,
-          epoch_step : float, gamma : int,
-          print_every : int, optimizer_f : Callable[..., Optimizer]) \
-          -> Iterable[Checkpoint]:
+          input_vocab_size : int,
+          output_vocab_size : int,
+          args : argparse.Namespace) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
-    in_stream = [inputFromSentence(datum[0], max_length) for datum in dataset]
+    in_stream = [inputFromSentence(datum[0], args.max_length) for datum in dataset]
     out_stream = [datum[1] for datum in dataset]
     dataloader = data.DataLoader(data.TensorDataset(torch.LongTensor(in_stream),
                                                     torch.LongTensor(out_stream)),
-                                 batch_size=batch_size, num_workers=0,
+                                 batch_size=args.batch_size, num_workers=0,
                                  shuffle=True, pin_memory=True, drop_last=True)
 
     encoder = maybe_cuda(
-        RNNClassifier(input_vocab_size, hidden_size, output_vocab_size,
-                      num_encoder_layers,
-                      batch_size=batch_size))
-    optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
+        RNNClassifier(input_vocab_size, args.hidden_size, output_vocab_size,
+                      args.num_encoder_layers,
+                      args.num_decoder_layers,
+                      batch_size=args.batch_size))
+    optimizer = optimizers[args.optimizer](encoder.parameters(), lr=args.learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
+    adjuster = scheduler.StepLR(optimizer, args.epoch_step, gamma=args.gamma)
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     start=time.time()
-    num_items = len(dataset) * num_epochs
+    num_items = len(dataset) * args.num_epochs
     total_loss = 0
 
     print("Training...")
-    for epoch in range(1, num_epochs+1):
+    for epoch in range(1, args.num_epochs+1):
         print("Epoch {}".format(epoch))
         adjuster.step()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
@@ -188,11 +186,12 @@ def train(dataset : ClassifySequenceDataset,
 
             optimizer.step()
 
-            total_loss += loss.data.item() * batch_size
+            total_loss += loss.data.item() * args.batch_size
 
-            if (batch_num + 1) % print_every == 0:
+            if (batch_num + 1) % args.print_every == 0:
 
-                items_processed = (batch_num + 1) * batch_size + (epoch - 1) * len(dataset)
+                items_processed = (batch_num + 1) * args.batch_size + \
+                    (epoch - 1) * len(dataset)
                 progress = items_processed / num_items
                 print("{} ({:7} {:5.2f}%) {:.4f}".
                       format(timeSince(start, progress),
@@ -215,12 +214,7 @@ def main(arg_list : List[str]) -> None:
     timeTaken = time.time() - start
     print("Encoded data in {:.2f}".format(timeTaken))
 
-    checkpoints = train(dataset, tokenizer.numTokens(), embedding.num_tokens(),
-                        args.hidden_size,
-                        args.learning_rate, args.num_encoder_layers,
-                        args.max_length, args.num_epochs, args.batch_size,
-                        args.epoch_step, args.gamma,
-                        args.print_every, optimizers[args.optimizer])
+    checkpoints = train(dataset, tokenizer.numTokens(), embedding.num_tokens(), args)
 
     for epoch, (encoder_state, training_loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
