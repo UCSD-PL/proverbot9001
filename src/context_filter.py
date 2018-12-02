@@ -3,7 +3,7 @@
 import re
 import functools
 
-from typing import Dict, Callable, Union, List, cast
+from typing import Dict, Callable, Union, List, cast, Tuple
 
 from tokenizer import get_symbols
 import serapi_instance
@@ -108,12 +108,10 @@ def split_toplevel(specstr : str) -> List[str]:
 def get_context_filter(specstr : str) -> ContextFilter:
     pieces = split_toplevel(specstr)
     if not "+" in specstr and not "%" in specstr:
-        etactic_match = re.match("etactic:(.*)", specstr)
-        if etactic_match:
-            return functools.partial(tactic_eliteral, etactic_match.group(1))
-        tactic_match = re.match("tactic:(.*)", specstr)
-        if tactic_match:
-            return functools.partial(tactic_literal, tactic_match.group(1))
+        for prefix, func in special_prefixes:
+            match = re.match("^{}(.*)".format(prefix), specstr)
+            if match:
+                return functools.partial(func, match.group(1))
         assert specstr in context_filters, "Invalid atom {}! Valid atoms are {}"\
             .format(specstr, context_filters.keys())
         return context_filters[specstr]
@@ -128,6 +126,14 @@ def get_context_filter(specstr : str) -> ContextFilter:
             assert pieces[1] == "+", pieces
             assert all([operator == "+" for operator in pieces[1::2]])
             return filter_or(*[get_context_filter(substr) for substr in pieces[::2]])
+
+special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData], bool]]] \
+    = [
+        ("tactic:", tactic_literal),
+        ("etactic:", tactic_eliteral),
+        ("~tactic:", lambda *args: not tactic_literal(*args)),
+        ("~etactic:", lambda *args: not tactic_eliteral(*args))
+    ]
 
 context_filters : Dict[str, ContextFilter] = {
     "default": no_compound_or_bullets,
