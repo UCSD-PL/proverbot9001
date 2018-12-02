@@ -17,7 +17,7 @@ from models.tactic_predictor import TacticPredictor
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, Sentence, \
-    encode_ngram_classify_data, encode_ngram_classify_input, encode_seq_classify_data
+    encode_ngram_classify_data, encode_ngram_classify_input
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
@@ -219,9 +219,7 @@ class CustomDataset(Dataset):
         self.outputs = outputs
 
     def __getitem__(self, index):
-#        return self.inputs[index].elements, self.outputs[index]
         return getSingleSparseFloatTensor(self.inputs[index]), self.outputs[index]
-#        return (self.inputs[index], self.outputs[index])
 
     def __len__(self):
         return len(self.inputs)
@@ -230,29 +228,17 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
           num_epochs : int, batch_size : int, num_stems: int, print_every : int,
           gamma : float, epoch_step : int, optimizer_type : str) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
-#    print(dataset)
-#    assert len(dataset[0][0]) > 10 and len(dataset[0][0]) < 1000
-#    linear = maybe_cuda(nn.Linear( len(dataset[0][0]), num_stems))
     linear = maybe_cuda(nn.Linear( num_tokens ** num_grams, num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
     inputs, outputs = zip(*dataset)
-#    new_inputs = []
-#    for i in range(len(inputs)):
-#        new_inputs.append(inputFromSentence(inputs[i], 100))
-#    inputs = new_inputs
 
     dataloader = data.DataLoader(
         CustomDataset(
             inputs,
             outputs),
-#        data.TensorDataset(
-#            torch.sparse.FloatTensor(i.t(), v, torch.Size([len(inputs), len(inputs[0])])).to_dense(),
-#            getSparseFloatTensor(inputs),
-#            torch.FloatTensor(inputs),
-#            Variable(inputs),
-#            torch.LongTensor(outputs)),
         batch_size=batch_size, num_workers=0,
         shuffle=True, pin_memory=True, drop_last=True)
+
     optimizer = optimizers[optimizer_type](linear.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
     adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
