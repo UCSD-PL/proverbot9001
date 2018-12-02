@@ -14,6 +14,7 @@ import models.term_autoencoder as autoencoder
 import models.autoclass_predictor as autoclass
 import models.wordbagsvm_classifier as wordbagsvm
 import models.ngramsvm_classifier as ngramsvm
+import models.hyparg_predictor as hyparg
 from tokenizer import tokenizers
 import report
 import argparse
@@ -44,7 +45,7 @@ def train(args):
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Parse datafiles into multiple formats")
-    parser.add_argument("format", choices=["terms"])
+    parser.add_argument("format", choices=["terms", "goals"])
     parser.add_argument("datafile_path", type=str)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
@@ -54,6 +55,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--max-length", dest="max_length", default=None, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
+    parser.add_argument("--context-filter", dest="context_filter", default="default")
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(data.read_text_data(arg_values.datafile_path,
@@ -67,6 +69,13 @@ def get_data(args : List[str]) -> None:
             print(tokenizer.toString(
                 list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
                   end="\\n\n" if arg_values.lineend else "\n")
+    elif arg_values.format == "goals":
+        dataset = data.get_text_data(arg_values.datafile_path,
+                                     arg_values.context_filter,
+                                     arg_values.max_tuples,
+                                     verbose=True)
+        for hyps, goal, tactic in dataset:
+            print(goal)
         pass
 
 def run_test(args):
@@ -101,8 +110,8 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "autoclass" : autoclass.main,
     "wordbagsvm" : wordbagsvm.main,
     "ngramsvm" : ngramsvm.main,
+    "hyparg" : hyparg.main,
 }
-
 
 if __name__ == "__main__":
     main()

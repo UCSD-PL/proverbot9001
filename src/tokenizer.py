@@ -19,8 +19,10 @@ class Tokenizer(metaclass=ABCMeta):
         pass
     def freezeTokenList(self):
         pass
-    @abstractmethod
     def numTokens(self) -> int:
+        return len(self.listTokens)
+    @abstractmethod
+    def listTokens(self) -> List[str]:
         pass
 
 def get_words(string : str) -> List[str]:
@@ -61,7 +63,7 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
             pool.imap_unordered(functools.partial(get_relevant_k_keywords_worker__,
                                                   examplePairs),
                                 words)),
-                                    reverse=True,
+                                    reverse=False,
                                     key=lambda x: x[1])[:k]
 
     tokens = [x[0] for x in words_and_entropies]
@@ -69,10 +71,11 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
 
 def word_partitioned_entropy(examplePairs : Iterable[Tuple[str, int]], word : str) \
     -> float:
-    return ((entropy([output for input, output in examplePairs
-                      if word in get_words(input)]) +
-             entropy([output for input, output in examplePairs
-                      if word in get_words(input)])) / 2)
+    entropy1 = entropy([output for input, output in examplePairs
+                        if word in get_words(input)])
+    entropy2 = entropy([output for input, output in examplePairs
+                        if word not in get_words(input)])
+    return ((entropy1 + entropy2) / 2)
 
 def entropy(outputs : List[int]) -> float:
     output_counts : Dict[int, int] = {}
@@ -115,6 +118,8 @@ class CharsTokenizer(Tokenizer):
         return "".join([self.unmangle_dict[t] for t in tokenlist])
     def numTokens(self) -> int:
         return self.next_ord
+    def listTokens(self) -> List[str]:
+        return self.mangle_dict.keys()
 
 class CompleteTokenizer(Tokenizer):
     def __init__(self, keywords : List[str], num_reserved_tokens : int = 0,
@@ -146,7 +151,8 @@ class CompleteTokenizer(Tokenizer):
         return result
     def numTokens(self) -> int:
         return self.num_reserved_tokens + len(self.keywords) + 1
-        pass
+    def listTokens(self) -> List[str]:
+        return self.keywords
 
 KeywordTokenizerState = Tuple[List[Tuple[str, int]], List[str], int]
 
@@ -203,6 +209,9 @@ class KeywordTokenizer(Tokenizer):
             "Can't get number of tokens until the tokenizer is frozen! "\
             "It still might change"
         return self.next_mangle_ord
+
+    def listTokens(self) -> List[str]:
+        return self.keywords
 
 def make_keyword_tokenizer_relevance(data : List[Tuple[str, int]],
                                      tokenizer_type : Callable[[List[str], int],
@@ -269,7 +278,7 @@ TokenizerState = Union[KeywordTokenizerState, CompleteTokenizerState]
 tokenizers = {
     "no-fallback" : CompleteTokenizer,
     "no-unknowns" : lambda *args, **kwargs: \
-    CompleteTokenizer(*args, **kwargs, use_unknowns=False),
+    CompleteTokenizer(*args, **kwargs, use_unknowns=False), # type: ignore
     "chars-fallback" : KeywordTokenizer,
     "chars-only" : CharsTokenizer,
 } # type: Dict[str, Callable[[List[str], int], Tokenizer]]

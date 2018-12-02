@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import pdb
+
 import argparse
 import time
 import math
@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
-from torch.utils.data.dataset import Dataset
+from torch.utils.data import Dataset
 
 from models.tactic_predictor import TacticPredictor
 
@@ -57,6 +57,8 @@ class NGramClassifyPredictor(TacticPredictor):
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Tuple[str, float]]:
         distribution = self.predictDistribution(in_data)
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
         return [(self.embedding.decode_token(idx.data[0]) + ".",
                  math.exp(certainty.data[0]))
@@ -73,9 +75,9 @@ class NGramClassifyPredictor(TacticPredictor):
         else:
             loss = 0
 
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-#        import pdb
-#        pdb.set_trace()
         predictions = [(self.embedding.decode_token(idx.item()) + ".",
                         math.exp(certainty.item()))
                        for certainty, idx in zip(*probs_and_indices)]
@@ -100,6 +102,10 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("-n", "--num-grams", dest="num_grams", default=1, type=int)
     parser.add_argument("--max-tuples", dest="max_tuples",
                         type=int, default=None)
+    parser.add_argument("--num-keywords", dest="num_keywords",
+                        type=int, default=None)
+    parser.add_argument("--print-keywords", default=False, action='store_const',
+                        const=True, dest="print_keywords")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
@@ -111,7 +117,9 @@ def main(args_list : List[str]) -> None:
     samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
-                                                               100, 2)
+                                                               args.num_keywords, 2)
+    if args.print_keywords:
+        print("Keywords are {}".format(tokenizer.listTokens()))
     print("Training...")
     checkpoints = train(samples, args.num_grams, tokenizer.numTokens(), args.learning_rate,
                         args.num_epochs, args.batch_size,
@@ -150,7 +158,6 @@ def padInputs(inputs):
     new_inputs = []
     from collections import Counter
     c = Counter([len(i) for i in inputs])
-    pdb.set_trace()
     for i in range(len(inputs)):
         c[len(inputs[i])] += 1
         if i % 1000 == 0:
@@ -189,17 +196,10 @@ def getSingleSparseFloatTensor(inputs):
         values.append(inputs.elements[j])
     i = torch.LongTensor(indecies)
     v = torch.FloatTensor(values)
-    try:
-        x = torch.sparse.FloatTensor(i.t(), v, torch.Size([1,len(inputs)])).to_dense()
-    except:
-        pdb.set_trace()
-
-#    x = torch.sparse.FloatTensor(i, v, torch.Size([len(inputs)])).to_dense()
+    x = torch.sparse.FloatTensor(i.t(), v, torch.Size([1,len(inputs)])).to_dense()
     return x
 
 def getSparseFloatTensor(inputs):
-#    import pdb
-    pdb.set_trace()
 
     indecies = []
     values = []
@@ -240,7 +240,6 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
 #    for i in range(len(inputs)):
 #        new_inputs.append(inputFromSentence(inputs[i], 100))
 #    inputs = new_inputs
-#    pdb.set_trace()
 
     dataloader = data.DataLoader(
         CustomDataset(
@@ -262,14 +261,12 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
 #    num_items = len(dataset) * num_epochs
     num_items = len(inputs) * num_epochs
     total_loss = 0.
-#    pdb.set_trace()
     print("Training...")
     for epoch in range(num_epochs):
         print("Epoch {}".format(epoch))
 #        print("1")
         adjuster.step()
 #        print("2")
-#        pdb.set_trace()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
 #        for i in range(1):
 #            input_batch = dataloader.dataset.tensors[0]
@@ -278,7 +275,6 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
             input_batch = input_batch.squeeze()
             optimizer.zero_grad()
 #            print("4")
-#            pdb.set_trace()
 #            input_batch = getSparseFloatTensor(input_batch)
 #            input_batch = unpadInputs(input_batch)
 #            input_batch = [getNGramTokenbagVector(num_grams, context, num_tokens) \

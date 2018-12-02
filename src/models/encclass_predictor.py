@@ -84,6 +84,8 @@ class EncClassPredictor(TacticPredictor):
         -> List[Tuple[str, float]]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
+        if k > self.embedding.num_tokens():
+            k= self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
                     math.exp(certainty.data[0]))
@@ -103,6 +105,8 @@ class EncClassPredictor(TacticPredictor):
         else:
             loss = 0
 
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
         results = [(self.embedding.decode_token(stem_idx.item()) + ".",
                     math.exp(certainty.item()))
@@ -151,6 +155,7 @@ def train(dataset : ClassifySequenceDataset,
           input_vocab_size : int, output_vocab_size : int, hidden_size : int,
           learning_rate : float, num_encoder_layers : int,
           max_length : int, num_epochs : int, batch_size : int,
+          epoch_step : float, gamma : int,
           print_every : int, optimizer_f : Callable[..., Optimizer]) \
           -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
@@ -167,7 +172,7 @@ def train(dataset : ClassifySequenceDataset,
                       batch_size=batch_size))
     optimizer = optimizer_f(encoder.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, 5, gamma=0.9)
+    adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
 
     start=time.time()
@@ -175,7 +180,7 @@ def train(dataset : ClassifySequenceDataset,
     total_loss = 0
 
     print("Training...")
-    for epoch in range(num_epochs):
+    for epoch in range(1, num_epochs+1):
         print("Epoch {}".format(epoch))
         adjuster.step()
         for batch_num, (input_batch, output_batch) in enumerate(dataloader):
@@ -198,7 +203,7 @@ def train(dataset : ClassifySequenceDataset,
 
             if (batch_num + 1) % print_every == 0:
 
-                items_processed = (batch_num + 1) * batch_size + epoch * len(dataset)
+                items_processed = (batch_num + 1) * batch_size + (epoch - 1) * len(dataset)
                 progress = items_processed / num_items
                 print("{} ({:7} {:5.2f}%) {:.4f}".
                       format(timeSince(start, progress),
@@ -208,11 +213,11 @@ def train(dataset : ClassifySequenceDataset,
         yield (encoder.state_dict(), total_loss / ((epoch + 1) * len(dataset)))
 
 def main(arg_list : List[str]) -> None:
-    parser = start_std_args(arg_list, "a classifier pytorch model for proverbot")
-    parser.add_argument("--start-from", dest="start_from", default=None, type=str)
+    parser = start_std_args("a classifier pytorch model for proverbot")
     args = parser.parse_args(arg_list)
 
-    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
+    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True,
+                                 max_tuples=args.max_tuples)
     print("Encoding data...")
     start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(text_dataset,
@@ -225,9 +230,10 @@ def main(arg_list : List[str]) -> None:
                         args.hidden_size,
                         args.learning_rate, args.num_encoder_layers,
                         args.max_length, args.num_epochs, args.batch_size,
+                        args.epoch_step, args.gamma,
                         args.print_every, optimizers[args.optimizer])
 
-    for epoch, (encoder_state, training_loss) in enumerate(checkpoints):
+    for epoch, (encoder_state, training_loss) in enumerate(checkpoints, start=1):
         state = {'epoch':epoch,
                  'training-loss': training_loss,
                  'tokenizer':tokenizer,

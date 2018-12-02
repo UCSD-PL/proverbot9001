@@ -12,6 +12,7 @@ from data import read_text_data, filter_data, \
     encode_bag_classify_data, encode_bag_classify_input, ClassifyBagDataset
 from context_filter import get_context_filter
 from util import *
+from models.components import DNNClassifier
 
 import torch
 import torch.nn as nn
@@ -103,25 +104,6 @@ class DNNClassPredictor(TacticPredictor):
         return predictions_and_certainties, loss
     def getOptions(self) -> List[Tuple[str, str]]:
         return self.options
-
-class DNNClassifier(nn.Module):
-    def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
-                 num_layers : int, batch_size : int=1) -> None:
-        super(DNNClassifier, self).__init__()
-        self.num_layers = num_layers
-        self.batch_size = batch_size
-        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        self.layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                       for _ in range(num_layers)]
-        self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
-        self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
-
-    def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
-        layer_values = self.in_layer(input)
-        for i in range(self.num_layers):
-            layer_values = F.relu(layer_values)
-            layer_values = self.layers[i](layer_values)
-        return self.softmax(self.out_layer(layer_values))
 
 optimizers = {
     "SGD": optim.SGD,

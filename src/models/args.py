@@ -23,7 +23,11 @@ def add_std_args(parser : argparse.ArgumentParser) -> None:
     parser.add_argument("--hidden-size", dest="hidden_size", default=128, type=int)
     parser.add_argument("--learning-rate", dest="learning_rate",
                         default=.7, type=float)
+    parser.add_argument("--epoch-step", dest="epoch_step", default=10, type=int)
+    parser.add_argument("--gamma", dest="gamma", default=0.8, type=float)
     parser.add_argument("--num-encoder-layers", dest="num_encoder_layers",
+                        default=3, type=int)
+    parser.add_argument("--num-decoder-layers", dest="num_decoder_layers",
                         default=3, type=int)
     parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
     parser.add_argument("--tokenizer",
@@ -35,7 +39,7 @@ def add_std_args(parser : argparse.ArgumentParser) -> None:
     parser.add_argument("--context-filter", dest="context_filter",
                         type=str, default="default")
 
-def start_std_args(args : List[str], description : str) -> argparse.ArgumentParser:
+def start_std_args(description : str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
     add_std_args(parser)
     return parser

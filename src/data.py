@@ -5,7 +5,9 @@ import re
 import itertools
 import multiprocessing
 import functools
+from itertools import chain
 from sparse_list import SparseList
+import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
 from format import read_tuple
@@ -16,6 +18,7 @@ from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
 
+TOKEN_START = 2
 SOS_token = 1
 EOS_token = 0
 
@@ -122,6 +125,12 @@ def encode_seq_seq_data(data : RawDataset,
 def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
+def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
+                                      chunk : List[Tuple[List[str], str, str]])\
+    -> List[Tuple[Sentence, int]]:
+    return [(tokenizer.toTokenList(goal), get_stem(tactic))
+            for hyps, goal, tactic in chunk]
+
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
@@ -129,22 +138,20 @@ def encode_seq_classify_data(data : RawDataset,
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
     print("Making tokenizer...")
+    subset = random.sample(data, 1000)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
                                                   for hyps, context, tactic
-                                                  in data][:1000],
+                                                  in subset],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
     print("Tokenizing/embedding data...")
     with multiprocessing.Pool(None) as pool:
-        hyps, contexts, tactics = zip(*data)
-        tokenized_contexts = pool.imap_unordered(functools.partial(
-            _tokenize, tokenizer), contexts)
-        embedded_tactics = pool.imap_unordered(functools.partial(
-            SimpleEmbedding.encode_token, embedding),
-                                               pool.imap_unordered(get_stem, tactics))
-        result = list(zip(tokenized_contexts, embedded_tactics))
+        result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
+                  chain.from_iterable(pool.imap_unordered(functools.partial(
+                      encode_seq_classify_data_worker__, tokenizer),
+                                                          chunks(data, 1024)))]
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
 

@@ -267,12 +267,13 @@ class FileResult:
                 break
             if (grade == "okaycommand"):
                 self.num_topNPartial += 1
+                break
         for grade in grades:
             if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_searched += 1
                 break
             if grade != "failedcommand":
-                break;
+                break
         pass
 
     def details_filename(self) -> str:
@@ -421,7 +422,7 @@ class Worker(threading.Thread):
                                 search_index = pidx
                                 break
                         with tag('span',
-                                 ('data-hyps',"".join(hyps)),
+                                 ('data-hyps',"\n".join(hyps)),
                                  ('data-goal',shorten_whitespace(goal)),
                                  ('data-num-total', str(fresult.num_tactics)),
                                  ('data-predictions',

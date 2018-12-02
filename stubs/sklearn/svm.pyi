@@ -1,0 +1,13 @@
+
+
+from typing import Any, List
+
+class SVC:
+    def __init__(self, gamma:Any='scale',kernel:str='rbf', probability: bool=False) \
+        -> None:
+        ...
+    def fit(self, inputs : List[List[int]], outputs : List[int]) -> None:
+        ...
+    def score(self, inputs : List[List[int]], outputs : List[int]) -> float:
+        ...
+    ...

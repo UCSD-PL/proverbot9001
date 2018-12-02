@@ -74,7 +74,12 @@ class NGramSVMClassifier(TacticPredictor):
                        for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
 
-Checkpoint = Tuple[Dict[Any, Any], float]
+Checkpoint = Tuple[svm.SVC, float]
+
+svm_kernels = [
+    "rbf",
+    "linear",
+]
 
 def main(args_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
@@ -87,6 +92,7 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("--max-tuples", dest="max_tuples",
                         type=int, default=None)
     parser.add_argument("--gram-size", "-n", dest="n", type=int, default=1)
+    parser.add_argument("--kernel", choices=svm_kernels, type=str, default=svm_kernels[0])
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
@@ -96,7 +102,7 @@ def main(args_list : List[str]) -> None:
                                                                tokenizers["no-fallback"],
                                                                args.num_keywords, 2)
 
-    classifier, loss = train(samples, embedding.num_tokens())
+    classifier, loss = train(samples, args.kernel, embedding.num_tokens())
 
     state = {'stem-embeddings': embedding,
              'tokenizer':tokenizer,
@@ -113,13 +119,13 @@ def main(args_list : List[str]) -> None:
     with open(args.save_file, 'wb') as f:
         pickle.dump(state, f)
 
-def train(dataset, num_stems: int) -> Checkpoint:
+def train(dataset, kernel : str, num_stems: int) -> Checkpoint:
     curtime = time.time()
     print("Training SVM...", end="")
     sys.stdout.flush()
 
     inputs, outputs = zip(*dataset)
-    model = svm.SVC(gamma='scale', probability=True)
+    model = svm.SVC(gamma='scale', kernel=kernel, probability=True)
     model.fit(inputs, outputs)
     print(" {:.2f}s".format(time.time() - curtime))
     loss = model.score(inputs, outputs)
