@@ -184,10 +184,7 @@ def train(dataset : ClassifySequenceDataset,
                 cast(torch.LongTensor, input_batch))
             loss = cast(torch.FloatTensor, 0)
             output_var = maybe_cuda(Variable(output_batch))
-            # print("Got distribution: {}"
-            #       .format(str_1d_float_tensor(prediction_distribution[0])))
             loss += criterion(prediction_distribution, output_var)
-            # print("Correct answer: {}".format(output_var.data[0]))
             loss.backward()
 
             optimizer.step()
