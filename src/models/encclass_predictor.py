@@ -94,7 +94,7 @@ class EncClassPredictor(TacticPredictor):
         if self.embedding.has_token(correct_stem):
             output_var = maybe_cuda(Variable(
                 torch.LongTensor([self.embedding.encode_token(correct_stem)])))
-            loss = self.criterion(prediction_distribution, output_var).item()
+            loss = self.criterion(prediction_distribution.view(1, -1), output_var).item()
         else:
             loss = 0
 
@@ -142,7 +142,7 @@ class RNNClassifier(nn.Module):
         hidden = self.initHidden()
         for i in range(in_var.size()[1]):
             output, hidden = self(in_var[:,i], hidden)
-        return output
+        return output.view(self.batch_size, -1)
 
 Checkpoint = Tuple[Dict[Any, Any], float]
 
