@@ -194,7 +194,7 @@ class SerapiInstance(threading.Thread):
                       co.msg[2][3][0] == Symbol('Invalid_argument')):
                     raise ParseError("Invalid argument {}".format(stmt))
         if type(e) == TimeoutError:
-            self.cancel_last()
+            # self.cancel_last()
             raise TimeoutError("Statement \"{}\" timed out.".format(stmt))
 
         self.cancel_last()
