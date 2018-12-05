@@ -35,7 +35,7 @@ def get_file_predictor(filename : str) -> str:
         return re.match("predictor: (.*)", predictor_li.string).group(1)
 
 
-files = sorted(get_lines("find -type d -not -name '.*'"), key=lambda f: get_file_date(f), reverse=True)
+files = sorted(get_lines("find -maxdepth 1 -type d -not -name '.*' -not -name 'trivial'"), key=lambda f: get_file_date(f), reverse=True)
 
 doc, tag, text, line = Doc().ttl()
 with tag('html'):
