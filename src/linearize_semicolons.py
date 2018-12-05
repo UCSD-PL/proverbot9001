@@ -414,7 +414,9 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
                 else:
                     parts_match = re.match("\s*(rewrite\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)",
                                            command)
-                    assert parts_match, "Couldn't match \"{}\"".format(command)
+                    if not parts_match:
+                        yield command
+                        return
                     first_command, rest = parts_match.group(1, 3)
                     # print("Splitting {} into {} and {}"
                     #       .format(command, first_command + ". ", "rewrite " + rest))
