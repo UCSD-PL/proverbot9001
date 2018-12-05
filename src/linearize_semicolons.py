@@ -412,7 +412,7 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
                     yield first_command + " in" + context
                     yield from split_commas_command("rewrite " + rest + " in" + context)
                 else:
-                    parts_match = re.match("\s*(rewrite\s+(!?\s+\S+|\(.*?\))\s*),\s*(.*)",
+                    parts_match = re.match("\s*(rewrite\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)",
                                            command)
                     assert parts_match, "Couldn't match \"{}\"".format(command)
                     first_command, rest = parts_match.group(1, 3)
