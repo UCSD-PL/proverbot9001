@@ -18,7 +18,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, ParseError, get_stem)
+                             BadResponse, TimeoutError, ParseError, get_stem)
 
 from typing import Optional, List, Iterator
 
@@ -190,7 +190,7 @@ def linearize_commands(commands_sequence, coq, filename):
             yield from linearized_commands
             for command in leftover_commands:
                 yield command
-        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError) as e:
+        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
