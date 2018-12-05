@@ -21,6 +21,7 @@ from data import get_text_data, filter_data, Sentence, \
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
+from models.args import start_std_args
 
 class NGramClassifyPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
@@ -86,30 +87,13 @@ class NGramClassifyPredictor(TacticPredictor):
 Checkpoint = Tuple[Dict[Any, Any], float]
 
 def main(args_list : List[str]) -> None:
-    parser = argparse.ArgumentParser(description=
-                                     "A second-tier predictor which predicts tactic "
-                                     "stems based on word frequency in the goal")
-    parser.add_argument("--learning-rate", dest="learning_rate", default=.3, type=float)
-    parser.add_argument("--num-epochs", dest="num_epochs", default=20, type=int)
-    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-    parser.add_argument("--print-every", dest="print_every", default=50, type=int)
-    parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
-    parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
-    parser.add_argument("--optimizer", default="SGD",
-                        choices=list(optimizers.keys()), type=str)
-    parser.add_argument("--context-filter", dest="context_filter",
-                        type=str, default="default")
-    parser.add_argument("-n", "--num-grams", dest="num_grams", default=1, type=int)
-    parser.add_argument("--max-tuples", dest="max_tuples",
-                        type=int, default=None)
-    parser.add_argument("--num-keywords", dest="num_keywords",
-                        type=int, default=None)
-    parser.add_argument("--print-keywords", default=False, action='store_const',
-                        const=True, dest="print_keywords")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
+    parser = start_std_args("A second-tier predictor which predicts tactic stems "
+                            "based on word frequency in the goal",
+                            defaults={"learning-rate": 0.0005})
+    parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
+    parser.add_argument("--print-keywords", dest="print_keywords",
+                        default=False, action='store_const', const=True)
     args = parser.parse_args(args_list)
-
     raw_dataset = get_text_data(args.scrape_file, args.context_filter,
                                 max_tuples=args.max_tuples,
                                 verbose=True)
