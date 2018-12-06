@@ -17,7 +17,7 @@ def format_tactics(tactics : List[str]) -> str:
     return "\n".join([minimize_whitespace(tactic) for tactic in tactics]) + "\n"
 
 def format_hypothesis(prev_hyps : List[str]) -> str:
-    return "\n".join([re.sub(r"\n", r"\\n", re.sub("[ \t]+", " ", prev_hyp)).strip() for prev_hyp in prev_hyps])
+    return "\n".join([re.sub(r"\n", r"\\n", re.sub("[ \t]+", " ", prev_hyp.strip())).strip() for prev_hyp in prev_hyps])
 
 def format_goal(prev_goal : str) -> str:
     return minimize_whitespace(prev_goal)
