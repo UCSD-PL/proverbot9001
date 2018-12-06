@@ -78,12 +78,11 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
                 t = read_tuple(f)
     return list(worker_generator())
 
-def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
+def read_text_data(data_path : str) -> RawDataset:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
-        result = list(itertools.islice(itertools.chain.from_iterable(data_chunks),
-                                       max_size))
+        result = itertools.chain.from_iterable(data_chunks)
         return result
 def get_text_data(data_path : str, context_filter_name : str,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
