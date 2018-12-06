@@ -89,7 +89,7 @@ Checkpoint = Tuple[Dict[Any, Any], float]
 def main(args_list : List[str]) -> None:
     parser = start_std_args("A second-tier predictor which predicts tactic stems "
                             "based on word frequency in the goal",
-                            defaults={"learning-rate": 0.0005})
+                            default_values={"learning-rate": 0.0005})
     parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
     parser.add_argument("--print-keywords", dest="print_keywords",
                         default=False, action='store_const', const=True)
