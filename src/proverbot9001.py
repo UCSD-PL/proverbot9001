@@ -17,6 +17,7 @@ import models.ngramsvm_classifier as ngramsvm
 import models.hyparg_predictor as hyparg
 from tokenizer import tokenizers
 import report
+import report2
 import argparse
 import data
 import itertools
@@ -58,10 +59,11 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--context-filter", dest="context_filter", default="default")
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
-        terms, tokenizer = data.term_data(data.read_text_data(arg_values.datafile_path,
-                                                              arg_values.max_tuples),
-                                          tokenizers[arg_values.tokenizer],
-                                          arg_values.num_keywords, 2)
+        terms, tokenizer = data.term_data(
+            list(itertools.islice(data.read_text_data(arg_values.datafile_path),
+                                  arg_values.max_tuples)),
+            tokenizers[arg_values.tokenizer],
+            arg_values.num_keywords, 2)
         if arg_values.max_length:
             terms = [data.normalizeSentenceLength(term, arg_values.max_length)
                      for term in terms]
@@ -89,6 +91,7 @@ def run_test(args):
 modules = {
     "train" : train,
     "report":  report.main,
+    "static-report":report2.main,
     "data": get_data,
     "run": run_test,
 }

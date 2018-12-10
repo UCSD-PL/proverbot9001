@@ -166,7 +166,7 @@ class SerapiInstance(threading.Thread):
 
     def handle_exception(self, e : Exception, stmt : str):
         if not self.quiet or self.debug:
-            print("Problem running statement: {}".format(stmt))
+            print("Problem running statement: {}\n{}".format(stmt, e))
         if (type(e) == CoqExn):
             ce = cast(CoqExn, e)
             if   (type(ce.msg) == list and
@@ -329,7 +329,7 @@ class SerapiInstance(threading.Thread):
                 print("Command timed out! Cancelling")
             self._proc.send_signal(signal.SIGINT)
             try:
-                interrupt_response = self.messages.get(timeout.self.timeout * 10)
+                interrupt_response = self.messages.get(timeout=self.timeout * 10)
             except:
                 raise TimeoutError("")
             if interrupt_response != Symbol("Sys.Break"):

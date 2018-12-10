@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Union, Tuple, Iterable
+from typing import Dict, List, Union, Tuple, Iterable, NamedTuple
 from abc import ABCMeta, abstractmethod
+
+class Prediction(NamedTuple):
+    prediction : str
+    certainty : float
 
 class TacticPredictor(metaclass=ABCMeta):
     @abstractmethod
@@ -11,8 +15,13 @@ class TacticPredictor(metaclass=ABCMeta):
         pass
     @abstractmethod
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> Iterable[Tuple[str, float]]: pass
+        -> List[Prediction]: pass
     @abstractmethod
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
                                 k : int, correct : str) -> \
-        Tuple[List[Tuple[str, float]], float]: pass
+        Tuple[List[Prediction], float]: pass
+    @abstractmethod
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[Dict[str, Union[str, List[str]]]],
+                                      k : int, correct : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]: pass

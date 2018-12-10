@@ -26,7 +26,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, Callable
 
 class EncClassPredictor(TacticPredictor):
@@ -35,7 +35,7 @@ class EncClassPredictor(TacticPredictor):
         self.options = [("tokenizer", checkpoint['tokenizer-name']),
                         ("optimizer", checkpoint['optimizer']),
                         ("# encoder layers", checkpoint['num-encoder-layers']),
-                        ("# decoder layers", checkpoint['num-decoder-layers']),
+                        # ("# decoder layers", checkpoint['num-decoder-layers']),
                         ("input length", checkpoint['max-length']),
                         ("hidden size", checkpoint['hidden-size']),
                         ("# keywords", checkpoint['num-keywords']),
@@ -54,7 +54,8 @@ class EncClassPredictor(TacticPredictor):
                                                 checkpoint['hidden-size'],
                                                 self.embedding.num_tokens(),
                                                 checkpoint['num-encoder-layers'],
-                                                checkpoint['num-decoder-layers'],
+                                                1,
+                                                # checkpoint['num-decoder-layers'],
                                                 batch_size=1))
         self.encoder.load_state_dict(checkpoint['neural-encoder'])
         self.max_length = checkpoint["max-length"]
@@ -67,27 +68,26 @@ class EncClassPredictor(TacticPredictor):
 
     def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
         -> torch.FloatTensor:
-        in_sentence = LongTensor(inputFromSentence(
-            self.tokenizer.toTokenList(in_data["goal"]),
-            self.max_length))\
-            .view(1, -1)
-        return self.encoder.run(in_sentence)
+        tokenized_goal = self.tokenizer.toTokenList(in_data["goal"])
+        input_list = inputFromSentence(tokenized_goal, self.max_length)
+        input_tensor = LongTensor(input_list).view(1, -1)
+        return self.encoder.run(input_tensor)
 
     def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         if k > self.embedding.num_tokens():
             k= self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [(self.embedding.decode_token(stem_idx.data[0]) + ".",
-                    math.exp(certainty.data[0]))
+        results = [Prediction(self.embedding.decode_token(stem_idx.data[0]) + ".",
+                              math.exp(certainty.data[0]))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
         self.lock.release()
         return results
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[List[str], str]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)
@@ -101,10 +101,42 @@ class EncClassPredictor(TacticPredictor):
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [(self.embedding.decode_token(stem_idx.item()) + ".",
-                    math.exp(certainty.item()))
+        results = [Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+                              math.exp(certainty.item()))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
 
+        self.lock.release()
+        return results, loss
+
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[Dict[str, Union[str, List[str]]]],
+                                      k : int, corrects : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+        if len(in_data) == 0:
+            return [], 0
+        self.lock.acquire()
+        tokenized_goals = [self.tokenizer.toTokenList(in_data_point["goal"])
+                           for in_data_point in in_data]
+        input_tensor = LongTensor([inputFromSentence(tokenized_goal, self.max_length)
+                                  for tokenized_goal in tokenized_goals])
+        prediction_distributions = self.encoder.run(input_tensor, batch_size=len(in_data))
+        correct_stems = [get_stem(correct) for correct in corrects]
+        output_var = maybe_cuda(Variable(
+            torch.LongTensor([self.embedding.encode_token(correct_stem)
+                              if self.embedding.has_token(correct_stem)
+                              else 0
+                              for correct_stem in correct_stems])))
+        loss = self.criterion(prediction_distributions, output_var).item()
+
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
+
+        certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
+                                for single_distribution in list(prediction_distributions)]
+        results = [[Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+                               math.exp(certainty.item()))
+                    for certainty, stem_idx in zip(*certainties_and_idxs)]
+                   for certainties_and_idxs in certainties_and_idxs_list]
         self.lock.release()
         return results, loss
 
@@ -122,7 +154,7 @@ class RNNClassifier(nn.Module):
         self.batch_size = batch_size
         self.embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
         self.gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self.out = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self.decoder_out = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
         self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
     def forward(self, input : torch.FloatTensor, hidden : torch.FloatTensor) \
@@ -131,13 +163,14 @@ class RNNClassifier(nn.Module):
         for i in range(self.num_encoder_layers):
             output = F.relu(output)
             output, hidden = self.gru(output, hidden)
-        output = self.softmax(self.out(output[0]))
+        output = self.softmax(self.decoder_out(output[0]))
         return output, hidden
 
     def initHidden(self):
         return maybe_cuda(Variable(torch.zeros(1, self.batch_size, self.hidden_size)))
 
-    def run(self, input : torch.LongTensor):
+    def run(self, input : torch.LongTensor, batch_size : int=1):
+        self.batch_size = batch_size
         in_var = maybe_cuda(Variable(input))
         hidden = self.initHidden()
         for i in range(in_var.size()[1]):
@@ -205,15 +238,27 @@ def train(dataset : ClassifySequenceDataset,
 
 def main(arg_list : List[str]) -> None:
     parser = start_std_args("a classifier pytorch model for proverbot")
+    parser.add_argument("--print-keywords", dest="print_keywords",
+                        default=False, action='store_const', const=True)
     args = parser.parse_args(arg_list)
 
     text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True,
                                  max_tuples=args.max_tuples)
+    substitutions = {"auto": "eauto.",
+                     "intros until": "intros.",
+                     "intro": "intros.",
+                     "constructor": "econstructor."}
+    preprocessed_dataset = [(hyps, goal, tactic
+                             if get_stem(tactic) not in substitutions
+                             else substitutions[get_stem(tactic)])
+                            for hyps, goal, tactic in text_dataset]
     print("Encoding data...")
     start = time.time()
-    dataset, tokenizer, embedding = encode_seq_classify_data(text_dataset,
+    dataset, tokenizer, embedding = encode_seq_classify_data(preprocessed_dataset,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
+    if args.print_keywords:
+        print("Keywords are {}".format(tokenizer.listTokens()))
     timeTaken = time.time() - start
     print("Encoded data in {:.2f}".format(timeTaken))
 

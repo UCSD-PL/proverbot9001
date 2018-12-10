@@ -12,7 +12,7 @@ import torch.autograd as autograd
 
 from serapi_instance import kill_comments
 
-from typing import List, Tuple, Iterable, Any, overload, TypeVar
+from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -99,3 +99,13 @@ def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
     l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
     lk = l[:k]
     return tuple(zip(*lk)) # type: ignore
+
+def multipartition(xs : List[T], f : Callable[[T], int]) -> List[List[T]]:
+    result : List[List[T]] = []
+    for x in xs:
+        assert x != None
+        i = f(x)
+        while i >= len(result):
+            result += [[]]
+        result[i] += [x]
+    return result
