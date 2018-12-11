@@ -146,6 +146,8 @@ class GlobalResult:
                     text("{}: {}".format(k, v))
             with tag('li'):
                 text("predictor: {}".format(predictorName))
+            with tag('li'):
+                text("report type: dynamic")
         with tag('table'):
             with tag('tr', klass="header"):
                 line('th', 'Filename')
