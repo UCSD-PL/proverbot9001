@@ -20,7 +20,7 @@ class Tokenizer(metaclass=ABCMeta):
     def freezeTokenList(self):
         pass
     def numTokens(self) -> int:
-        return len(self.listTokens)
+        return len(self.listTokens())
     @abstractmethod
     def listTokens(self) -> List[str]:
         pass
@@ -119,7 +119,7 @@ class CharsTokenizer(Tokenizer):
     def numTokens(self) -> int:
         return self.next_ord
     def listTokens(self) -> List[str]:
-        return self.mangle_dict.keys()
+        return list(self.mangle_dict.keys())
 
 class CompleteTokenizer(Tokenizer):
     def __init__(self, keywords : List[str], num_reserved_tokens : int = 0,
