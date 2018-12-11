@@ -6,7 +6,7 @@ import itertools
 import multiprocessing
 import functools
 from itertools import chain
-from sparse_list import SparseList
+from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
@@ -83,7 +83,7 @@ def read_text_data(data_path : str) -> RawDataset:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
         result = itertools.chain.from_iterable(data_chunks)
-        return result
+        yield from result
 def get_text_data(data_path : str, context_filter_name : str,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
     def _print(*args, **kwargs):
@@ -126,7 +126,7 @@ def _tokenize(t : Tokenizer, s : str):
 
 def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
                                       chunk : List[Tuple[List[str], str, str]])\
-    -> List[Tuple[Sentence, int]]:
+    -> List[Tuple[Sentence, str]]:
     return [(tokenizer.toTokenList(goal), get_stem(tactic))
             for hyps, goal, tactic in chunk]
 
@@ -137,7 +137,7 @@ def encode_seq_classify_data(data : RawDataset,
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
     print("Making tokenizer...")
-    subset = random.sample(data, 1000)
+    subset : RawDataset = random.sample(list(data), 1000)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))

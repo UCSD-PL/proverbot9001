@@ -187,7 +187,7 @@ def report_file(args : argparse.Namespace,
                   for tactic_interaction in tactic_interactions]
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]
-        predictions = []
+        predictions : List[List[Prediction]] = []
         for inputs_chunk, corrects_chunk in zip(chunks(inputs, chunk_size),
                                                 chunks(corrects, chunk_size)):
             predictions_chunk, loss = predictor.predictKTacticsWithLoss_batch(
@@ -314,7 +314,7 @@ def grade_prediction(correct_tactic : str, prediction : str):
 ###
 ### Write the report page out
 ###
-def write_summary(args : argparse.Namespace, options : Dict[str, Any],
+def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
                   cur_commit : str, cur_date : datetime.datetime,
                   individual_stats : List['ResultStats']) -> None:
     def report_header(tag : Any, doc : Doc, text : Text) -> None:
