@@ -7,7 +7,7 @@ import torch
 
 from typing import Dict, Any, List, Tuple, Union
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import SimpleEmbedding
 from format import read_tuple
 from util import *
@@ -27,12 +27,12 @@ class TryCommonPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> List[Tuple[str, float]]:
-        return [(self.embedding.decode_token(idx) + ".", prob) for prob, idx
+        -> List[Prediction]:
+        return [Prediction(self.embedding.decode_token(idx) + ".", prob) for prob, idx
                 in zip(*list_topk(self.probabilities, k))]
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
                                 k : int, correct : str) -> \
-        Tuple[List[Tuple[str, float]], float]:
+        Tuple[List[Prediction], float]:
         # Try common doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
 

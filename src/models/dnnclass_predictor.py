@@ -8,10 +8,11 @@ import threading
 import math
 
 from tokenizer import Tokenizer, tokenizers
-from data import read_text_data, filter_data, \
+from data import get_text_data, \
     encode_bag_classify_data, encode_bag_classify_input, ClassifyBagDataset
 from context_filter import get_context_filter
 from util import *
+from models.args import take_std_args
 from models.components import DNNClassifier
 
 import torch
@@ -24,7 +25,7 @@ import torch.utils.data as data
 import torch.cuda
 from torch.optim import Optimizer
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, cast
 
 from serapi_instance import get_stem
@@ -40,7 +41,7 @@ class DNNClassPredictor(TacticPredictor):
         args = checkpoint['training-args']
         self.options = [
             ("tokenizer", args.tokenizer),
-            ("# network layers", args.num_layers),
+            ("# network layers", args.num_decoder_layers),
             ("hidden size", args.hidden_size),
             ("# keywords", args.num_keywords),
             ("learning rate", args.learning_rate),
@@ -57,7 +58,7 @@ class DNNClassPredictor(TacticPredictor):
         self.network = maybe_cuda(DNNClassifier(self.tokenizer.numTokens(),
                                                 args.hidden_size,
                                                 self.embedding.num_tokens(),
-                                                args.num_layers))
+                                                args.num_decoder_layers))
         self.network.load_state_dict(checkpoint['network-state'])
         self.criterion = maybe_cuda(nn.NLLLoss())
         self.lock = threading.Lock()
@@ -74,31 +75,32 @@ class DNNClassPredictor(TacticPredictor):
         return self.network(in_vec)
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         certainties_and_idxs = distribution.squeeze().topk(k)
-        results = [(self.embedding.decode_token(idx.data[0]) + ".",
-                    math.exp(certainty.data[0]))
+        results = [Prediction(self.embedding.decode_token(idx.data[0]) + ".",
+                              math.exp(certainty.data[0]))
                    for certainty, idx in zip(*certainties_and_idxs)]
         self.lock.release()
         return results
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
             output_var = maybe_cuda(
                 Variable(torch.LongTensor([self.embedding.encode_token(stem)])))
-            loss = self.criterion(distribution.view(1, -1), output_var).data[0]
+            loss = self.criterion(distribution.view(1, -1), output_var).item()
         else:
             loss = 0
 
-        certainties_and_idxs = distribution.squeeze().topk(k)
-        predictions_and_certainties = [(self.embedding.decode_token(idx.data[0]) + ".",
-                                        math.exp(certainty.data[0]))
-                                       for certainty, idx in certainties_and_idxs]
+        certainties, idxs = distribution.squeeze().topk(k)
+        predictions_and_certainties = \
+            [Prediction(self.embedding.decode_token(idx.item()) + ".",
+                        math.exp(certainty.item()))
+             for certainty, idx in zip(list(certainties), list(idxs))]
         self.lock.release()
 
         return predictions_and_certainties, loss
@@ -166,47 +168,18 @@ def train(dataset : ClassifyBagDataset,
                               total_loss / items_processed))
         yield (network.state_dict(), total_loss / items_processed)
 
-def exit_early(signal, frame):
-    sys.exit(0)
-
-def take_args(args) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=
-                                     "non-recurrent neural network "
-                                     "model for Proverbot9001")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
-    parser.add_argument("--tokenizer",
-                        choices=list(tokenizers.keys()), type=str,
-                        default=list(tokenizers.keys())[0])
-    parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
-    parser.add_argument("--hidden-size", dest="hidden_size", default=256, type=int)
-    parser.add_argument("--num-layers", dest="num_layers", default=3, type=int)
-    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-    parser.add_argument("--learning-rate", dest="learning_rate", default=.4, type=float)
-    parser.add_argument("--num-epochs", dest="num_epochs", default=50, type=int)
-    parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
-    parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
-    parser.add_argument("--print-every", dest="print_every", default=10, type=int)
-    parser.add_argument("--optimizer", choices=list(optimizers.keys()), type=str,
-                        default=list(optimizers.keys())[0])
-    parser.add_argument("--context-filter", dest="context_filter",
-                        type=str, default="default")
-    return parser.parse_args(args)
-
 def main(arg_list : List[str]) -> None:
-    signal.signal(signal.SIGINT, exit_early)
-    args = take_args(arg_list)
+    args = take_std_args(arg_list, "non-recurrent neural network "
+                                     "model for Proverbot9001")
 
-    print("Reading dataset...")
-    raw_data = read_text_data(args.scrape_file)
-    print("Encoding/Filtering dataset...")
-    filtered_data = filter_data(raw_data, get_context_filter(args.context_filter))
-    dataset, tokenizer, embedding = encode_bag_classify_data(filtered_data,
+    raw_dataset = get_text_data(args.scrape_file, args.context_filter,
+                            max_tuples=args.max_tuples, verbose=True)
+    dataset, tokenizer, embedding = encode_bag_classify_data(raw_dataset,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
     checkpoints = train(dataset,
                         tokenizer.numTokens(), args.hidden_size, embedding.num_tokens(),
-                        args.num_layers, args.batch_size, args.learning_rate,
+                        args.num_decoder_layers, args.batch_size, args.learning_rate,
                         args.gamma, args.epoch_step,
                         args.num_epochs, args.print_every, optimizers[args.optimizer])
 

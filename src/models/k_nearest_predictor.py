@@ -10,12 +10,12 @@ import statistics
 from queue import PriorityQueue
 
 import torch
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 
 from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast
 
 from tokenizer import tokenizers
-from data import read_text_data, filter_data, \
+from data import get_text_data, filter_data, \
     encode_bag_classify_data, encode_bag_classify_input
 from context_filter import get_context_filter
 
@@ -201,19 +201,19 @@ class KNNPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) -> \
-        List[Tuple[str, float]]:
+        List[Prediction]:
         input_vector = encode_bag_classify_input(cast(str, in_data["goal"]), self.tokenizer)
 
         nearest = self.bst.findKNearest(input_vector, k)
         assert not nearest is None
         for pair in nearest:
             assert not pair is None
-        predictions = [self.embedding.decode_token(output) + "."
-                       for neighbor, output in nearest]
-        return list(zip(predictions, (.5**i for i in itertools.count())))
+        predictions = [Prediction(self.embedding.decode_token(output) + ".", .5**i)
+                       for i, (neighbor, output) in enumerate(nearest)]
+        return predictions
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
 
@@ -243,13 +243,10 @@ def main(args_list : List[str]) -> None:
                         default="default")
     args = parser.parse_args(args_list)
 
-    print("Reading data...")
-    raw_samples = list(read_text_data(args.scrape_file, args.num_samples))
-    print("Read {} input-output pairs".format(len(raw_samples)))
-    print("Filtering/Encoding data...")
+    text_data = get_text_data(args.scrape_file, args.context_filter,
+                              max_tuples=args.max_tuples, verbose=True)
     start = time.time()
-    filtered_samples = filter_data(raw_samples, get_context_filter(args.context_filter))
-    samples, tokenizer, embedding = encode_bag_classify_data(filtered_samples,
+    samples, tokenizer, embedding = encode_bag_classify_data(text_data,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords,
                                                              2)

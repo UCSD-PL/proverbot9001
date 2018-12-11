@@ -223,7 +223,7 @@ def main(args_list : List[str]) -> None:
     curtime = time.time()
     print("Loading data...", end="")
     sys.stdout.flush()
-    dataset = read_text_data(args.scrape_file, args.max_tuples)
+    dataset = list(itertools.islice(read_text_data(args.scrape_file), args.max_tuples))
 
     print(" {:.2f}s".format(time.time() - curtime))
     curtime = time.time()

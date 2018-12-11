@@ -13,7 +13,7 @@ import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 from torch.utils.data import Dataset
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, Sentence, \
@@ -56,17 +56,17 @@ class NGramClassifyPredictor(TacticPredictor):
         return self.lsoftmax(self.linear(in_vec))
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         distribution = self.predictDistribution(in_data)
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-        return [(self.embedding.decode_token(idx.data[0]) + ".",
-                 math.exp(certainty.data[0]))
+        return [Prediction(self.embedding.decode_token(idx.data[0]) + ".",
+                           math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
@@ -79,8 +79,8 @@ class NGramClassifyPredictor(TacticPredictor):
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-        predictions = [(self.embedding.decode_token(idx.item()) + ".",
-                        math.exp(certainty.item()))
+        predictions = [Prediction(self.embedding.decode_token(idx.item()) + ".",
+                                  math.exp(certainty.item()))
                        for certainty, idx in zip(*probs_and_indices)]
         return predictions, loss
 
