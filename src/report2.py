@@ -46,51 +46,17 @@ extra_files = details_css + details_javascript + report_css + report_js + ["logo
 
 predictor : TacticPredictor
 
-def read_tuple2(f_handle : TextIO) -> Optional[ScrapedCommand]:
-    lines : List[str] = []
-    next_line = f_handle.readline()
-    while next_line != "-----\n" and next_line != "":
-        lines.append(next_line)
-        next_line = f_handle.readline()
-    if len(lines) == 0:
-        return None
-    elif len(lines) == 1:
-        return "\n" + re.sub(r"\\n", r"\n", lines[0])
-    else:
-        prev_tactics : List[str] = []
-        lines_it = iter(lines)
-        for line in lines_it:
-            if line == "*****\n":
-                break
-            elif line.strip() == "":
-                continue
-            else:
-                prev_tactics += line.strip()
-        hyps : List[str] = []
-        for line in lines_it:
-            if line == "*****\n":
-                break
-            elif line.strip() == "":
-                continue
-            else:
-                hyps.append(line.strip())
-        goal = next(lines_it)
-        assert next(lines_it) == "+++++\n"
-        tactic = next(lines_it)
-        return ScrapedTactic(prev_tactics=prev_tactics, hypotheses=hyps,
-                             goal=goal, tactic=tactic)
-
 def read_text_data2_worker__(lines : List[str]) -> MixedDataset:
     def worker_generator():
         with io.StringIO("".join(lines)) as f:
-            t = read_tuple2(f)
+            t = read_tuple(f)
             while t:
                 yield t
-                t = read_tuple2(f)
+                t = read_tuple(f)
     return list(worker_generator())
 
 def read_text_data_singlethreaded(data_path : str,
-                              num_threads:Optional[int]=None) -> MixedDataset:
+                                  num_threads:Optional[int]=None) -> MixedDataset:
     line_chunks = file_chunks(data_path, 32768)
     yield from itertools.chain.from_iterable((read_text_data2_worker__(chunk) for chunk in line_chunks))
 

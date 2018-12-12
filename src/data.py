@@ -10,7 +10,7 @@ from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
-from format import read_tuple
+from format import read_tactic_tuple, ScrapedTactic
 from models.components import SimpleEmbedding
 
 from typing import Tuple, List, Callable, Optional
@@ -24,7 +24,7 @@ EOS_token = 0
 
 Sentence = List[int]
 Bag = List[int]
-RawDataset = Iterable[Tuple[List[str], str, str]]
+RawDataset = Iterable[ScrapedTactic]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
@@ -72,10 +72,10 @@ def file_chunks(filepath : str, chunk_size : int):
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
     def worker_generator():
         with io.StringIO("".join(lines)) as f:
-            t = read_tuple(f)
+            t = read_tactic_tuple(f)
             while t:
                 yield t
-                t = read_tuple(f)
+                t = read_tactic_tuple(f)
     return list(worker_generator())
 
 def read_text_data(data_path : str) -> RawDataset:
@@ -97,8 +97,10 @@ def get_text_data(data_path : str, context_filter_name : str,
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
     return ((hyps, goal, tactic)
-            for ((hyps, goal, tactic), (next_hyps, next_goal, next_tactic)) in
-            zip(data, itertools.islice(data, 1, None))
+            for ((prev_tactics, hyps, goal, tactic),
+                 (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
+            zip(data, itertools.chain(itertools.islice(data, 1, None),
+                                      [(None, None, None, None)]))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps}))
 
