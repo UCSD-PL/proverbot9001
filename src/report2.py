@@ -26,7 +26,8 @@ from serapi_instance import get_stem
 from predict_tactic import predictors, loadPredictor
 from models.tactic_predictor import TacticPredictor, Prediction
 from yattag import Doc
-from format import format_goal, format_hypothesis, format_tactic
+from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
+    ScrapedTactic, ScrapedCommand
 from helper import try_load_lin, load_commands_preserve
 from syntax import syntax_highlight, strip_comments
 from util import multipartition, chunks
@@ -35,13 +36,6 @@ Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
 
-class ScrapedTactic(NamedTuple):
-    prev_tactics : List[str]
-    hypotheses : List[str]
-    goal : str
-    tactic : str
-
-ScrapedCommand = Union[ScrapedTactic, str]
 MixedDataset = Iterable[ScrapedCommand]
 
 details_css = ["details.css"]

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 
 import re
-from typing import List, Tuple, TextIO, Optional
+from typing import List, Tuple, TextIO, Optional, NamedTuple, Union
+
+class ScrapedTactic(NamedTuple):
+    prev_tactics : List[str]
+    hypotheses : List[str]
+    goal : str
+    tactic : str
+
+ScrapedCommand = Union[ScrapedTactic, str]
 
 def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
