@@ -13,7 +13,7 @@ import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 from torch.utils.data import Dataset
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, Sentence, \
@@ -55,7 +55,7 @@ class NGramClassifyPredictor(TacticPredictor):
                  .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+    def predictKTactics(self, in_data : ContextInfo, k : int) \
         -> List[Prediction]:
         distribution = self.predictDistribution(in_data)
         if k > self.embedding.num_tokens():
@@ -65,7 +65,7 @@ class NGramClassifyPredictor(TacticPredictor):
                            math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : ContextInfo, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)

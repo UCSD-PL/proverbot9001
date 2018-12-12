@@ -7,6 +7,8 @@ class Prediction(NamedTuple):
     prediction : str
     certainty : float
 
+ContextInfo = Dict[str, Union[str, List[str]]]
+
 class TacticPredictor(metaclass=ABCMeta):
     @abstractmethod
     def getOptions(self) -> List[Tuple[str, str]]: pass
@@ -14,14 +16,13 @@ class TacticPredictor(metaclass=ABCMeta):
     def __init__(self, options : Dict[str, Union[int, str]]) -> None:
         pass
     @abstractmethod
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+    def predictKTactics(self, in_data : ContextInfo, k : int) \
         -> List[Prediction]: pass
     @abstractmethod
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
-                                k : int, correct : str) -> \
+    def predictKTacticsWithLoss(self, in_data : ContextInfo, k : int, correct : str) -> \
         Tuple[List[Prediction], float]: pass
     @abstractmethod
     def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[Dict[str, Union[str, List[str]]]],
+                                      in_data : List[ContextInfo],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]: pass
