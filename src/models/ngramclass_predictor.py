@@ -3,6 +3,7 @@
 import argparse
 import time
 import math
+import threading
 from typing import Dict, Any, List, Tuple, Iterable, cast, Union
 
 import torch
@@ -47,6 +48,7 @@ class NGramClassifyPredictor(TacticPredictor):
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
         self.load_saved_state(options["filename"])
+        self.lock = threading.Lock()
 
     def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
         -> torch.FloatTensor:
@@ -57,16 +59,19 @@ class NGramClassifyPredictor(TacticPredictor):
 
     def predictKTactics(self, in_data : ContextInfo, k : int) \
         -> List[Prediction]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
+        self.lock.release()
         return [Prediction(self.embedding.decode_token(idx.data[0]) + ".",
                            math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
     def predictKTacticsWithLoss(self, in_data : ContextInfo, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
@@ -82,6 +87,7 @@ class NGramClassifyPredictor(TacticPredictor):
         predictions = [Prediction(self.embedding.decode_token(idx.item()) + ".",
                                   math.exp(certainty.item()))
                        for certainty, idx in zip(*probs_and_indices)]
+        self.lock.release()
         return predictions, loss
 
 Checkpoint = Tuple[Dict[Any, Any], float]
