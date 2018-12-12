@@ -90,6 +90,35 @@ class NGramClassifyPredictor(TacticPredictor):
         self.lock.release()
         return predictions, loss
 
+    def predictKTacticsWithLoss_batch(self, in_data : List[ContextInfo],
+                                      k : int, corrects : List[str]):
+        self.lock.acquire()
+        tokenized_goals = [self.tokenizer.toTokenList(in_data_point["goal"])
+                           for in_data_point in in_data]
+        input_tensor = Variable(FloatTensor([encode_ngram_classify_input(
+            cast(str, in_data_point["goal"]), self.num_grams, self.tokenizer)
+                                             for in_data_point in in_data]))
+        prediction_distributions = self.lsoftmax(self.linear(input_tensor))
+        correct_stems = [get_stem(correct) for correct in corrects]
+        output_var = maybe_cuda(Variable(torch.LongTensor(
+            [self.embedding.encode_token(correct_stem)
+             if self.embedding.has_token(correct_stem)
+             else 0
+             for correct_stem in correct_stems])))
+        loss = self.criterion(prediction_distributions, output_var).item()
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
+
+        certainties_and_idxs_list = \
+            [single_distribution.view(-1).topk(k)
+             for single_distribution in list(prediction_distributions)]
+        results = [[Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+                               math.exp(certainty.item()))
+                    for certainty, stem_idx in zip(*certainties_and_idxs)]
+                   for certainties_and_idxs in certainties_and_idxs_list]
+        self.lock.release()
+        return results, loss
+
 Checkpoint = Tuple[Dict[Any, Any], float]
 
 def main(args_list : List[str]) -> None:
@@ -105,8 +134,16 @@ def main(args_list : List[str]) -> None:
     raw_dataset = get_text_data(args.scrape_file, args.context_filter,
                                 max_tuples=args.max_tuples,
                                 verbose=True)
+    substitutions = {"auto": "eauto.",
+                     "intros until": "intros.",
+                     "intro": "intros.",
+                     "constructor": "econstructor."}
+    preprocessed_dataset = [(hyps, goal, tactic
+                             if get_stem(tactic) not in substitutions
+                             else substitutions[get_stem(tactic)])
+                            for hyps, goal, tactic in raw_dataset]
     print("Encoding data...")
-    samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
+    samples, tokenizer, embedding = encode_ngram_classify_data(preprocessed_dataset,
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
                                                                args.num_keywords, 2)
