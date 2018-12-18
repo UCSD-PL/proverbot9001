@@ -3,6 +3,7 @@
 import argparse
 import time
 import math
+import threading
 from typing import Dict, Any, List, Tuple, Iterable, cast, Union
 
 import torch
@@ -13,14 +14,15 @@ import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 from torch.utils.data import Dataset
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, Sentence, \
-    encode_ngram_classify_data, encode_ngram_classify_input, encode_seq_classify_data
+    encode_ngram_classify_data, encode_ngram_classify_input
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
+from models.args import start_std_args
 
 class NGramClassifyPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
@@ -46,6 +48,7 @@ class NGramClassifyPredictor(TacticPredictor):
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
         self.load_saved_state(options["filename"])
+        self.lock = threading.Lock()
 
     def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
         -> torch.FloatTensor:
@@ -54,18 +57,21 @@ class NGramClassifyPredictor(TacticPredictor):
                  .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> List[Tuple[str, float]]:
+    def predictKTactics(self, in_data : ContextInfo, k : int) \
+        -> List[Prediction]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-        return [(self.embedding.decode_token(idx.data[0]) + ".",
-                 math.exp(certainty.data[0]))
+        self.lock.release()
+        return [Prediction(self.embedding.decode_token(idx.data[0]) + ".",
+                           math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+    def predictKTacticsWithLoss(self, in_data : ContextInfo, k : int,
+                                correct : str) -> Tuple[List[Prediction], float]:
+        self.lock.acquire()
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
         if self.embedding.has_token(stem):
@@ -78,43 +84,66 @@ class NGramClassifyPredictor(TacticPredictor):
         if k > self.embedding.num_tokens():
             k = self.embedding.num_tokens()
         probs_and_indices = distribution.squeeze().topk(k)
-        predictions = [(self.embedding.decode_token(idx.item()) + ".",
-                        math.exp(certainty.item()))
+        predictions = [Prediction(self.embedding.decode_token(idx.item()) + ".",
+                                  math.exp(certainty.item()))
                        for certainty, idx in zip(*probs_and_indices)]
+        self.lock.release()
         return predictions, loss
+
+    def predictKTacticsWithLoss_batch(self, in_data : List[ContextInfo],
+                                      k : int, corrects : List[str]):
+        self.lock.acquire()
+        tokenized_goals = [self.tokenizer.toTokenList(in_data_point["goal"])
+                           for in_data_point in in_data]
+        input_tensor = Variable(FloatTensor([encode_ngram_classify_input(
+            cast(str, in_data_point["goal"]), self.num_grams, self.tokenizer)
+                                             for in_data_point in in_data]))
+        prediction_distributions = self.lsoftmax(self.linear(input_tensor))
+        correct_stems = [get_stem(correct) for correct in corrects]
+        output_var = maybe_cuda(Variable(torch.LongTensor(
+            [self.embedding.encode_token(correct_stem)
+             if self.embedding.has_token(correct_stem)
+             else 0
+             for correct_stem in correct_stems])))
+        loss = self.criterion(prediction_distributions, output_var).item()
+        if k > self.embedding.num_tokens():
+            k = self.embedding.num_tokens()
+
+        certainties_and_idxs_list = \
+            [single_distribution.view(-1).topk(k)
+             for single_distribution in list(prediction_distributions)]
+        results = [[Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+                               math.exp(certainty.item()))
+                    for certainty, stem_idx in zip(*certainties_and_idxs)]
+                   for certainties_and_idxs in certainties_and_idxs_list]
+        self.lock.release()
+        return results, loss
 
 Checkpoint = Tuple[Dict[Any, Any], float]
 
 def main(args_list : List[str]) -> None:
-    parser = argparse.ArgumentParser(description=
-                                     "A second-tier predictor which predicts tactic "
-                                     "stems based on word frequency in the goal")
-    parser.add_argument("--learning-rate", dest="learning_rate", default=.3, type=float)
-    parser.add_argument("--num-epochs", dest="num_epochs", default=20, type=int)
-    parser.add_argument("--batch-size", dest="batch_size", default=256, type=int)
-    parser.add_argument("--print-every", dest="print_every", default=50, type=int)
-    parser.add_argument("--epoch-step", dest="epoch_step", default=5, type=int)
-    parser.add_argument("--gamma", dest="gamma", default=0.5, type=float)
-    parser.add_argument("--optimizer", default="SGD",
-                        choices=list(optimizers.keys()), type=str)
-    parser.add_argument("--context-filter", dest="context_filter",
-                        type=str, default="default")
-    parser.add_argument("-n", "--num-grams", dest="num_grams", default=1, type=int)
-    parser.add_argument("--max-tuples", dest="max_tuples",
-                        type=int, default=None)
-    parser.add_argument("--num-keywords", dest="num_keywords",
-                        type=int, default=None)
-    parser.add_argument("--print-keywords", default=False, action='store_const',
-                        const=True, dest="print_keywords")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
+    parser = start_std_args("A second-tier predictor which predicts tactic stems "
+                            "based on word frequency in the goal",
+                            default_values={"num-epochs": 50,
+                                            "learning-rate": 0.0008,
+                                            "print-every":20})
+    parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
+    parser.add_argument("--print-keywords", dest="print_keywords",
+                        default=False, action='store_const', const=True)
     args = parser.parse_args(args_list)
-
     raw_dataset = get_text_data(args.scrape_file, args.context_filter,
                                 max_tuples=args.max_tuples,
                                 verbose=True)
+    substitutions = {"auto": "eauto.",
+                     "intros until": "intros.",
+                     "intro": "intros.",
+                     "constructor": "econstructor."}
+    preprocessed_dataset = [(hyps, goal, tactic
+                             if get_stem(tactic) not in substitutions
+                             else substitutions[get_stem(tactic)])
+                            for hyps, goal, tactic in raw_dataset]
     print("Encoding data...")
-    samples, tokenizer, embedding = encode_ngram_classify_data(raw_dataset,
+    samples, tokenizer, embedding = encode_ngram_classify_data(preprocessed_dataset,
                                                                args.num_grams,
                                                                tokenizers["no-fallback"],
                                                                args.num_keywords, 2)
@@ -219,9 +248,7 @@ class CustomDataset(Dataset):
         self.outputs = outputs
 
     def __getitem__(self, index):
-#        return self.inputs[index].elements, self.outputs[index]
         return getSingleSparseFloatTensor(self.inputs[index]), self.outputs[index]
-#        return (self.inputs[index], self.outputs[index])
 
     def __len__(self):
         return len(self.inputs)
@@ -230,29 +257,17 @@ def train(dataset, num_grams : int, num_tokens : int, learning_rate : float,
           num_epochs : int, batch_size : int, num_stems: int, print_every : int,
           gamma : float, epoch_step : int, optimizer_type : str) -> Iterable[Checkpoint]:
     print("Initializing PyTorch...")
-#    print(dataset)
-#    assert len(dataset[0][0]) > 10 and len(dataset[0][0]) < 1000
-#    linear = maybe_cuda(nn.Linear( len(dataset[0][0]), num_stems))
     linear = maybe_cuda(nn.Linear( num_tokens ** num_grams, num_stems))
     lsoftmax = maybe_cuda(nn.LogSoftmax(1))
     inputs, outputs = zip(*dataset)
-#    new_inputs = []
-#    for i in range(len(inputs)):
-#        new_inputs.append(inputFromSentence(inputs[i], 100))
-#    inputs = new_inputs
 
     dataloader = data.DataLoader(
         CustomDataset(
             inputs,
             outputs),
-#        data.TensorDataset(
-#            torch.sparse.FloatTensor(i.t(), v, torch.Size([len(inputs), len(inputs[0])])).to_dense(),
-#            getSparseFloatTensor(inputs),
-#            torch.FloatTensor(inputs),
-#            Variable(inputs),
-#            torch.LongTensor(outputs)),
         batch_size=batch_size, num_workers=0,
         shuffle=True, pin_memory=True, drop_last=True)
+
     optimizer = optimizers[optimizer_type](linear.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())
     adjuster = scheduler.StepLR(optimizer, epoch_step, gamma=gamma)

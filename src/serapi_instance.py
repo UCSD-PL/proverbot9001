@@ -166,7 +166,7 @@ class SerapiInstance(threading.Thread):
 
     def handle_exception(self, e : Exception, stmt : str):
         if not self.quiet or self.debug:
-            print("Problem running statement: {}".format(stmt))
+            print("Problem running statement: {}\n{}".format(stmt, e))
         if (type(e) == CoqExn):
             ce = cast(CoqExn, e)
             if   (type(ce.msg) == list and
@@ -194,7 +194,7 @@ class SerapiInstance(threading.Thread):
                       co.msg[2][3][0] == Symbol('Invalid_argument')):
                     raise ParseError("Invalid argument {}".format(stmt))
         if type(e) == TimeoutError:
-            self.cancel_last()
+            # self.cancel_last()
             raise TimeoutError("Statement \"{}\" timed out.".format(stmt))
 
         self.cancel_last()
@@ -328,19 +328,23 @@ class SerapiInstance(threading.Thread):
             if self.debug:
                 print("Command timed out! Cancelling")
             self._proc.send_signal(signal.SIGINT)
-            interrupt_response = self.messages.get(timeout=self.timeout)
-            assert isinstance(interrupt_response, list)
-            assert interrupt_response[0] == Symbol("Feedback")
-            assert len(interrupt_response) > 1, \
-                "too short! interrupt_reponse: {}".format(interrupt_response)
-            assert isinstance(interrupt_response[1], list), \
-                "interrupt_response[1]: {}".format(interrupt_response[1])
-            assert len(interrupt_response[1]) > 2
-            assert isinstance(interrupt_response[1][1], list)
-            assert interrupt_response[1][1][0] == Symbol("contents")
-            assert isinstance(interrupt_response[1][1][1], list)
-            assert interrupt_response[1][1][1][0] == Symbol("Message")
-            assert interrupt_response[1][1][1][1] == Symbol("Error")
+            try:
+                interrupt_response = self.messages.get(timeout=self.timeout * 10)
+            except:
+                raise TimeoutError("")
+            if interrupt_response != Symbol("Sys.Break"):
+                assert isinstance(interrupt_response, list), interrupt_response
+                assert interrupt_response[0] == Symbol("Feedback")
+                assert len(interrupt_response) > 1, \
+                    "too short! interrupt_reponse: {}".format(interrupt_response)
+                assert isinstance(interrupt_response[1], list), \
+                    "interrupt_response[1]: {}".format(interrupt_response[1])
+                assert len(interrupt_response[1]) > 2
+                assert isinstance(interrupt_response[1][1], list)
+                assert interrupt_response[1][1][0] == Symbol("contents")
+                assert isinstance(interrupt_response[1][1][1], list), interrupt_response
+                assert interrupt_response[1][1][1][0] == Symbol("Message")
+                assert interrupt_response[1][1][1][1] == Symbol("Error")
 
             interrupt_response2 = self.messages.get(timeout=self.timeout)
             assert isinstance(interrupt_response2, list)

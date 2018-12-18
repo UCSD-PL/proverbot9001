@@ -16,7 +16,7 @@ from models import ngramsvm_classifier
 from models import hyparg_predictor
 
 predictors = {
-    'encdecrnn' : encdecrnn_predictor.EncDecRNNPredictor,
+    'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
     'encclass' : encclass_predictor.EncClassPredictor,
     'dnnclass' : dnnclass_predictor.DNNClassPredictor,
     'trycommon' : try_common_predictor.TryCommonPredictor,

@@ -13,7 +13,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 
 from tokenizer import tokenizers
 from data import get_text_data, encode_bag_classify_data, encode_bag_classify_input
@@ -52,15 +52,15 @@ class WordBagSVMClassifier(TacticPredictor):
         return distribution
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         distribution = self.predictDistribution(in_data)
         indices, probabilities = list_topk(list(distribution), k)
-        return [(self.embedding.decode_token(idx) + ".",
-                 math.exp(certainty))
+        return [Prediction(self.embedding.decode_token(idx) + ".",
+                           math.exp(certainty))
                 for certainty, idx in zip(probabilities, indices)]
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)
         if self.embedding.has_token(correct_stem):
@@ -68,8 +68,8 @@ class WordBagSVMClassifier(TacticPredictor):
         else:
             loss = float("+inf")
         indices, probabilities = list_topk(list(distribution), k)
-        predictions = [(self.embedding.decode_token(idx) + ".",
-                        math.exp(certainty))
+        predictions = [Prediction(self.embedding.decode_token(idx) + ".",
+                                  math.exp(certainty))
                        for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
 

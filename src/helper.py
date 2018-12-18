@@ -69,6 +69,9 @@ def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str
     except (CoqExn, BadResponse, AckError, CompletedError):
         print("In file {}".format(filename))
         raise
+    except serapi_instance.TimeoutError:
+        print("Timed out while lifting commands! Skipping linearization...")
+        return commands
 
 def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) \
     -> Iterator[str]:

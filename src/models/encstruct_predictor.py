@@ -9,7 +9,7 @@ from itertools import takewhile
 
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers, get_symbols, make_keyword_tokenizer_relevance
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from models.args import add_std_args, optimizers
 from models.components import SimpleEmbedding
 from context_filter import get_context_filter
@@ -76,7 +76,7 @@ class EncStructPredictor(TacticPredictor):
     def predictDistribution(self, in_data : Dict[str, str]) -> torch.FloatTensor:
         pass
     def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         self.lock.acquire()
         in_sentence = LongTensor(inputFromSentence(
             self.tokenizer.toTokenList(in_data["goal"]),
@@ -87,9 +87,10 @@ class EncStructPredictor(TacticPredictor):
             self.decodeKTactics(encoded_vector, k, cast(List[str], in_data["hyps"]),
                                 k * k, 3)
         self.lock.release()
-        return [(decode_tactic_structure(self.tokenizer, self.embedding,
-                                         structure, cast(List[str], in_data["hyps"])),
-                 certainty)
+        return [Prediction(decode_tactic_structure(self.tokenizer, self.embedding,
+                                                   structure,
+                                                   cast(List[str], in_data["hyps"])),
+                           certainty)
                 for structure, certainty in zip(prediction_structures, certainties)]
     def decodeKTactics(self, encoded_vector : torch.FloatTensor, k : int,
                        hyps : List[str],
@@ -126,7 +127,7 @@ class EncStructPredictor(TacticPredictor):
             results.append((predecessor, result[::-1]))
         return results[:k], scores[:k]
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 1.0
         pass
     def getOptions(self) -> List[Tuple[str, str]]:

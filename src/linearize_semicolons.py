@@ -18,7 +18,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, ParseError, get_stem)
+                             BadResponse, TimeoutError, ParseError, get_stem)
 
 from typing import Optional, List, Iterator
 
@@ -190,7 +190,7 @@ def linearize_commands(commands_sequence, coq, filename):
             yield from linearized_commands
             for command in leftover_commands:
                 yield command
-        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError) as e:
+        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
             print("Aborting current proof linearization!")
             print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             print()
@@ -412,19 +412,12 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
                     yield first_command + " in" + context
                     yield from split_commas_command("rewrite " + rest + " in" + context)
                 else:
-                    part_reg = "((->|<-)\s*)?[a-zA-Z'_][a-zA-Z0-9'_]*"
-                    rewrite_reg = "rewrite\s*({}?(\s*,\s*{})*)\s*\.".format(part_reg, part_reg)
-                    parts_match = re.match(rewrite_reg, command)
-                    assert parts_match, "Couldn't match \"{}\"".format(command)
-                    parts = parts_match.group(1).split(',')
-                    for part in parts:
-                        yield "rewrite {}.".format(part)
-
-                    # OLD CODE
-                    # parts_match = re.match("\s*(rewrite\s+(!?\s+\S+|\(.*?\))\s*),\s*(.*)",
-                    #                        command)
-                    # assert parts_match, "Couldn't match \"{}\"".format(command)
-                    # first_command, rest = parts_match.group(1, 3)
+                    parts_match = re.match("\s*(rewrite\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)",
+                                           command)
+                    if not parts_match:
+                        yield command
+                        return
+                    first_command, rest = parts_match.group(1, 3)
                     # print("Splitting {} into {} and {}"
                     #       .format(command, first_command + ". ", "rewrite " + rest))
                     # yield first_command + ". "

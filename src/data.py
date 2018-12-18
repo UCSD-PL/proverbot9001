@@ -6,11 +6,11 @@ import itertools
 import multiprocessing
 import functools
 from itertools import chain
-from sparse_list import SparseList
+from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
-from format import read_tuple
+from format import read_tactic_tuple, ScrapedTactic
 from models.components import SimpleEmbedding
 
 from typing import Tuple, List, Callable, Optional
@@ -24,7 +24,7 @@ EOS_token = 0
 
 Sentence = List[int]
 Bag = List[int]
-RawDataset = Iterable[Tuple[List[str], str, str]]
+RawDataset = Iterable[ScrapedTactic]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
@@ -72,19 +72,18 @@ def file_chunks(filepath : str, chunk_size : int):
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
     def worker_generator():
         with io.StringIO("".join(lines)) as f:
-            t = read_tuple(f)
+            t = read_tactic_tuple(f)
             while t:
                 yield t
-                t = read_tuple(f)
+                t = read_tactic_tuple(f)
     return list(worker_generator())
 
-def read_text_data(data_path : str,  max_size:Optional[int]=None) -> RawDataset:
+def read_text_data(data_path : str) -> RawDataset:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
-        result = list(itertools.islice(itertools.chain.from_iterable(data_chunks),
-                                       max_size))
-        return result
+        result = itertools.chain.from_iterable(data_chunks)
+        yield from result
 def get_text_data(data_path : str, context_filter_name : str,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
     def _print(*args, **kwargs):
@@ -98,8 +97,10 @@ def get_text_data(data_path : str, context_filter_name : str,
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
     return ((hyps, goal, tactic)
-            for ((hyps, goal, tactic), (next_hyps, next_goal, next_tactic)) in
-            zip(data, itertools.islice(data, 1, None))
+            for ((prev_tactics, hyps, goal, tactic),
+                 (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
+            zip(data, itertools.chain(itertools.islice(data, 1, None),
+                                      [(None, None, None, None)]))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps}))
 
@@ -127,7 +128,7 @@ def _tokenize(t : Tokenizer, s : str):
 
 def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
                                       chunk : List[Tuple[List[str], str, str]])\
-    -> List[Tuple[Sentence, int]]:
+    -> List[Tuple[Sentence, str]]:
     return [(tokenizer.toTokenList(goal), get_stem(tactic))
             for hyps, goal, tactic in chunk]
 
@@ -138,7 +139,7 @@ def encode_seq_classify_data(data : RawDataset,
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
     print("Making tokenizer...")
-    subset = random.sample(data, 1000)
+    subset : RawDataset = random.sample(list(data), 1000)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))

@@ -10,7 +10,7 @@ from argparse import Namespace
 from util import *
 from data import Sentence, SOS_token, EOS_token, TOKEN_START, get_text_data, RawDataset
 from data import getNGramTokenbagVector
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from models.args import start_std_args, optimizers
@@ -56,7 +56,7 @@ class HypArgPredictor(TacticPredictor):
         self.load_saved_state(cast(str, options["filename"]))
         pass
     def predictOneTactic(self, in_data : Dict[str, Union[List[str], str]]) \
-        -> Tuple[str, float]:
+        -> Prediction:
 
         # Size: (1, self.features_size)
         general_features : torch.FloatTensor = self.encode_general_context(in_data)
@@ -88,17 +88,17 @@ class HypArgPredictor(TacticPredictor):
 
         result_struct = TacticStructure(stem_idx=stem, hyp_idxs=arg_idxs)
 
-        return decode_tactic_structure(self.embedding, result_struct,
-                                       cast(List[str], in_data["hyps"])), \
-                                       probability
+        return Prediction(decode_tactic_structure(self.embedding, result_struct,
+                                                  cast(List[str], in_data["hyps"])),
+                          probability)
 
     def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
-        -> List[Tuple[str, float]]:
+        -> List[Prediction]:
         tactic, probability = self.predictOneTactic(in_data)
-        return [(tactic, probability)] * k
+        return [Prediction(tactic, probability)] * k
 
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
-                                correct : str) -> Tuple[List[Tuple[str, float]], float]:
+                                correct : str) -> Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 1.0
     def encode_general_context(self, in_data : Dict[str, Union[List[str], str]]) \
         -> torch.FloatTensor:
