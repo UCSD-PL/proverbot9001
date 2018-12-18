@@ -288,7 +288,15 @@ def linearize_proof(coq, theorem_name, with_tactic, commands, skip_nochange_tac)
         context_after = coq.full_context
         if show_trace:
             print('    ' + tactic)
-        if (not skip_nochange_tac) or context_before != context_after or \
+
+        if re.match("^try", tactic.strip()):
+            if context_before == context_after:
+                coq.cancel_last()
+                pass
+            else:
+                new_tactic = " ".join(tactic.strip().split()[1:])
+                yield new_tactic
+        elif (not skip_nochange_tac) or context_before != context_after or \
             re.match("^Proof", tactic.strip()):
             yield tactic
         else:
