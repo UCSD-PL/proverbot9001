@@ -336,11 +336,13 @@ class Worker(threading.Thread):
                         predictions_and_certanties = [baseline_tactic + ".", 1] \
                                                      * num_predictions
                     else:
+                        # print("goals: {}, hyps: {}".format(goals, hyps))
                         predictions_and_certainties, loss = net.predictKTacticsWithLoss(
                             {"goal" : format_goal(goals),
                              "hyps" : format_hypothesis(hyps)},
                             num_predictions,
                             command)
+                        # print("predictions_and_certainties: {}".format(predictions_and_certainties))
 
                     prediction_runs = [run_prediction(coq, prediction) for
                                        prediction, certainty in

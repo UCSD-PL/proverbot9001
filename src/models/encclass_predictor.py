@@ -187,6 +187,8 @@ def train(dataset : ClassifySequenceDataset,
 
             optimizer.zero_grad()
 
+            # print("input: {}, \noutput: {}".format(input_batch, output_batch))
+
             prediction_distribution = encoder.run(
                 cast(torch.LongTensor, input_batch))
             loss = cast(torch.FloatTensor, 0)
