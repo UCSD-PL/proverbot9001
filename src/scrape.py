@@ -104,6 +104,7 @@ class Worker(threading.Thread):
                 commands = lift_and_linearize(load_commands(filename),
                                               self.coqargs, self.includes, self.prelude,
                                               filename,
+                                              options["skip-nochange-tac"],
                                               debug=options["debug"])
                 save_lin(commands, filename)
 
@@ -168,10 +169,13 @@ parser.add_argument('--prelude', default=".")
 parser.add_argument('--no-semis', default=False, const=True, action='store_const',
                     dest='no_semis')
 parser.add_argument('--debug', default=False, const=True, action='store_const')
+parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                    dest='skip_nochange_tac')
 parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
 args = parser.parse_args()
 options["no-semis"] = args.no_semis
 options["debug"] = args.debug
+options["skip-nochange-tac"] = args.skip_nochange_tac
 
 # Put each job on the work queue.
 num_jobs = len(args.inputs)

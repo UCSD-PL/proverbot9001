@@ -127,7 +127,7 @@ def show_semiands(semiands):
 #     goals = coq.query_goals()
 #     return count_open_proofs(goals)
 
-def linearize_commands(commands_sequence, coq, filename):
+def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
     if show_debug:
         print("Linearizing commands")
     command = next(commands_sequence, None)
@@ -176,7 +176,7 @@ def linearize_commands(commands_sequence, coq, filename):
         orig = command_batch[:]
         command_batch = list(split_commas(command_batch))
         try:
-            linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch))
+            linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch, skip_nochange_tac))
             leftover_commands = []
 
             for command in command_batch:
@@ -216,7 +216,7 @@ def branch_done(done, nb_subgoals, branch_index):
 if measure_time:
     linearizing_timer_bucket = TimerBucket("linearizing", True)
 
-def linearize_proof(coq, theorem_name, with_tactic, commands):
+def linearize_proof(coq, theorem_name, with_tactic, commands, skip_nochange_tac):
 
     theorem_name = theorem_name.split(" ")[1]
     if measure_time:
@@ -283,17 +283,25 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
         if len(semiand) != 1:
             raise LinearizeThisShouldNotHappen("Error: popped a semiand that was not preprocessed")
         tactic = '\n' + semiand[0].strip() + '.'
-        context_before = coq.proof_context
+        context_before = coq.full_context
         coq.run_stmt(tactic)
-        context_after = coq.proof_context
+        context_after = coq.full_context
         if show_trace:
             print('    ' + tactic)
-        if (context_before != context_after or
-            not (re.match(".*auto", tactic)  or
-                 re.match(".*Proof", tactic))):
+
+        if re.match("^try", tactic.strip()):
+            if context_before == context_after:
+                coq.cancel_last()
+                pass
+            else:
+                new_tactic = " ".join(tactic.strip().split()[1:])
+                yield new_tactic
+        elif (not skip_nochange_tac) or context_before != context_after or \
+            re.match("^Proof", tactic.strip()):
             yield tactic
         else:
             # print("Skipping {} because it didn't change the context.".format(tactic))
+            coq.cancel_last()
             pass
         if measure_time: stop_timer()
 
@@ -426,8 +434,8 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
                 parts_match = re.match("\s*(unfold\s+.*?),\s*(.*\.)", command)
                 assert parts_match, "Couldn't match \"{}\"".format(command)
                 first_command, rest = parts_match.group(1, 2)
-                print("Splitting {} into {} and {}"
-                      .format(command, first_command + ". ", "unfold " + rest))
+                #print("Splitting {} into {} and {}"
+                #      .format(command, first_command + ". ", "unfold " + rest))
                 yield first_command + ". "
                 yield from split_commas_command("unfold " + rest)
             else:

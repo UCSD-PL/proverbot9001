@@ -65,6 +65,7 @@ class EncClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
         self.criterion = maybe_cuda(nn.NLLLoss())
         self.lock = threading.Lock()
+        self.options.append(("skip nochange tactics:", str(options["skip-nochange-tac"])))
 
     def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
         -> torch.FloatTensor:

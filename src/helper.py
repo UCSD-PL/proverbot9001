@@ -58,13 +58,13 @@ def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
 def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str,
-                       prelude : str, filename : str, debug=False) -> List[str]:
+                       prelude : str, filename : str, skip_nochange_tac : bool, debug=False) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             coq.debug = debug
             result = list(linearize_semicolons.linearize_commands(generate_lifted(commands,
                                                                                   coq),
-                                                                  coq, filename))
+                                                                  coq, filename, skip_nochange_tac))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
         print("In file {}".format(filename))

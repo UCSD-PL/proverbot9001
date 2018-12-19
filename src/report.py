@@ -285,7 +285,7 @@ class FileResult:
 class Worker(threading.Thread):
     def __init__(self, workerid : int, coqargs : List[str], includes : str,
                  output_dir : str, prelude : str, debug : bool, num_jobs : int,
-                 baseline : bool, context_filter : str) -> None:
+                 baseline : bool, skip_nochange_tac : bool, context_filter : str) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -296,6 +296,7 @@ class Worker(threading.Thread):
         self.num_jobs = num_jobs
         self.baseline = baseline
         self.cfilter = get_context_filter(context_filter)
+        self.skip_nochange_tac = skip_nochange_tac
         pass
 
     def get_commands(self, filename : str) -> List[str]:
@@ -305,7 +306,7 @@ class Worker(threading.Thread):
             fresh_commands = lift_and_linearize(
                 load_commands_preserve(self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
-                filename, debug=self.debug)
+                filename, self.skip_nochange_tac, debug=self.debug)
             save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:
@@ -517,6 +518,8 @@ def main(arg_list : List[str]) -> None:
                         default=True, const=False, action='store_const')
     parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
+    parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                        dest='skip_nochange_tac')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(arg_list)
 
@@ -542,6 +545,7 @@ def main(arg_list : List[str]) -> None:
     args.threads = min(args.threads, len(args.filenames))
 
     net = loadPredictor({"filename": args.weightsfile,
+                         "skip-nochange-tac": args.skip_nochange_tac,
                          "beam-width": num_predictions ** 2},
                         args.predictor)
     predictorName = args.predictor
@@ -550,7 +554,7 @@ def main(arg_list : List[str]) -> None:
     for idx in range(args.threads):
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
-                        args.baseline,
+                        args.baseline, args.skip_nochange_tac,
                         dict(net.getOptions())["context filter"]
                         if args.use_context_filter else "all")
         worker.start()
