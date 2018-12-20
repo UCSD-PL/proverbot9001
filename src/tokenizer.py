@@ -5,7 +5,8 @@ import math
 import collections
 import multiprocessing
 import functools
-from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, Set, Any, Counter
+from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, \
+    Set, Any, Counter, Sequence
 from abc import ABCMeta, abstractmethod
 
 from util import *
@@ -69,13 +70,94 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     tokens = [x[0] for x in words_and_entropies]
     return tokens
 
-def word_partitioned_entropy(examplePairs : Iterable[Tuple[str, int]], word : str) \
+def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int) \
+    -> List[str]:
+    def leader_entropy(pool : List[Tuple[str, int]]) -> Tuple[int, float]:
+        if len(pool) == 0:
+            return 0, 0
+        tactic_counter : Counter[int] = collections.Counter()
+        for context, tactic in pool:
+            tactic_counter[tactic] += 1
+        leader_tactic, leader_count = tactic_counter.most_common(1)[0]
+        return leader_tactic, entropy([1 if tactic == leader_tactic else 0
+                                       for context, tactic in pool])
+
+    # Given a pools list, split each pool into two pools based on the
+    # presence of the word 'word' in the samples, dropping pools with
+    # no entropy (only one tactic).
+    def split_pools(pools : List[Tuple[List[Tuple[str, int]], int, float]], word : str):
+        new_pools : List[Tuple[List[Tuple[str, int]], int, float]] = []
+        for old_pool, old_leader, old_entropy in pools:
+            subpools = \
+                multipartition(old_pool,
+                               lambda ctxt_and_tactic:
+                               1 if word in get_words(ctxt_and_tactic[0])
+                               else 0)
+            for subpool in subpools:
+                leader, entropy = leader_entropy(subpool)
+                if entropy > 0:
+                    new_pools.append((subpool, leader, entropy))
+        return new_pools
+
+    pairs_list = list(examplePairs)
+
+    # Get a starting set of "potential" tokens from the k^2 most common words
+    words_counter : Counter[str] = collections.Counter()
+    for context, tactic in examplePairs:
+        words_counter.update(get_words(context))
+    common_words = [word for word, count in words_counter.most_common(k**2)]
+
+    # Set up the initial pool
+    total_leader, total_leader_entropy = leader_entropy(pairs_list)
+    pools : List[Tuple[List[Tuple[str, int]], int, float]] \
+        = [(pairs_list, total_leader, total_leader_entropy)]
+    keywords : List[str] = []
+
+    while len(keywords) < k:
+        if len(pools) == 0:
+            print("Returning early with {} keywords: "
+                  "ran out of  pools".format(len(keywords)))
+            return keywords
+        highest_entropy_pool, leader, pool_entropy = \
+            max(pools, key=lambda pool_pair: pool_pair[-1])
+
+        with multiprocessing.Pool(None) as process_pool:
+            word_entropy_pairs = list(
+                process_pool.imap_unordered(
+                    functools.partial(
+                        get_relevant_k_keywords_worker__,
+                        [(context, 1
+                         if tactic == leader
+                         else 0)
+                         for context, tactic in highest_entropy_pool]),
+                    common_words))
+            word, word_partitioned_entropy = min(word_entropy_pairs,
+                                                 key=lambda x: x[1])
+            if word_partitioned_entropy >= pool_entropy:
+                pools.remove((highest_entropy_pool, leader, pool_entropy))
+                continue
+        if word in keywords:
+            print("Returning early with {} keywords: "
+                  "ran out of samples that could be differentiated "
+                  "with the presence of keywords in {} most common"
+                  .format(len(keywords), k**2))
+            return keywords
+        keywords.append(word)
+        pools = split_pools(pools, word)
+    return keywords
+
+def word_partitioned_entropy(examplePairs : Sequence[Tuple[str, int]], word : str) \
     -> float:
-    entropy1 = entropy([output for input, output in examplePairs
-                        if word in get_words(input)])
-    entropy2 = entropy([output for input, output in examplePairs
-                        if word not in get_words(input)])
-    return ((entropy1 + entropy2) / 2)
+    has_word = [output for input, output in examplePairs if word in get_words(input)]
+    entropy1 = entropy(has_word)
+    not_has_word = [output for input, output in examplePairs
+                    if word not in get_words(input)]
+    entropy2 = entropy(not_has_word)
+    scaled_entropy1 = entropy1 * len(has_word)
+    scaled_entropy2 = entropy2 * len(not_has_word)
+    answer = (scaled_entropy1 + scaled_entropy2) / len(examplePairs)
+    assert answer <= 1
+    return answer
 
 def entropy(outputs : List[int]) -> float:
     output_counts : Dict[int, int] = {}
@@ -218,7 +300,7 @@ def make_keyword_tokenizer_relevance(data : List[Tuple[str, int]],
                                                                Tokenizer],
                                      num_keywords : int,
                                      num_reserved_tokens : int) -> Tokenizer:
-    keywords = get_relevant_k_keywords(data, num_keywords)
+    keywords = get_relevant_k_keywords2(data, num_keywords)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     return tokenizer
 
