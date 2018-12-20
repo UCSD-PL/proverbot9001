@@ -7,7 +7,7 @@ import torch
 
 from typing import Dict, Any, List, Tuple, Union
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
 from models.components import SimpleEmbedding
 from format import read_tuple, ScrapedTactic
 from util import *
@@ -17,11 +17,10 @@ from data import get_text_data
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:
         checkpoint = torch.load(filename)
-        assert checkpoint['probabilities']
-        assert checkpoint['stem-embeddings']
 
         self.probabilities = checkpoint['probabilities']
         self.embedding = checkpoint['stem-embeddings']
+        self.context_filter = checkpoint['context-filter']
 
     def __init__(self, options : Dict[str, Any]) -> None:
         assert options["filename"]
@@ -29,23 +28,20 @@ class TryCommonPredictor(TacticPredictor):
 
     def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
         -> List[Prediction]:
-        return [Prediction(self.embedding.decode_token(idx) + ".", prob) for prob, idx
+        return [Prediction(self.embedding.decode_token(idx) + ".", prob) for idx, prob
                 in zip(*list_topk(self.probabilities, k))]
     def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
                                 k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
         # Try common doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
-
-def read_scrapefile(filename, embedding):
-    dataset = []
-    with open(filename, 'r') as scrapefile:
-        t = read_tuple(scrapefile)
-        while pair:
-            hyps, context, tactic = t
-            dataset.append(embedding.encode_token(get_stem(tactic)))
-            t = read_tuple(scrapefile)
-    return dataset
+    def getOptions(self) -> List[Tuple[str, str]]:
+        return [("context filter", self.context_filter)]
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[ContextInfo],
+                                      k : int, correct : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+        return [self.predictKTactics({}, k)] * len(in_data), 0.
 
 def train(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
@@ -53,10 +49,22 @@ def train(arg_list : List[str]) -> None:
                                      "the k most common tactic stems.")
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
+    parser.add_argument("--context-filter", dest="context_filter", type=str,
+                        default="goal-changes%no-args")
     args = parser.parse_args(arg_list)
+    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
+    substitutions = {"auto": "eauto.",
+                     "intros until": "intros.",
+                     "intro": "intros.",
+                     "constructor": "econstructor."}
+    preprocessed_dataset = [ScrapedTactic(prev_tactics, hyps, goal, tactic
+                                          if get_stem(tactic) not in substitutions
+                                          else substitutions[get_stem(tactic)])
+                            for prev_tactics, hyps, goal, tactic in text_dataset]
     embedding = SimpleEmbedding()
-    dataset = read_scrapefile(args.scrape_file, embedding)
-
+    dataset = [embedding.encode_token(get_stem(tactic))
+               for prev_tactics, hyps, context, tactic
+               in preprocessed_dataset]
     stem_counts = [0] * embedding.num_tokens()
     for stem in dataset:
         stem_counts[stem] += 1
@@ -66,4 +74,5 @@ def train(arg_list : List[str]) -> None:
 
     with open(args.save_file, 'wb') as f:
         torch.save({'probabilities' : stem_probs,
-                    'stem-embeddings' : embedding}, f)
+                    'stem-embeddings' : embedding,
+                    'context-filter': args.context_filter}, f)
