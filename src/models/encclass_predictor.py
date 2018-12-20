@@ -215,7 +215,8 @@ def train(dataset : ClassifySequenceDataset,
             optimizer.zero_grad()
 
             prediction_distribution = encoder.run(
-                cast(torch.LongTensor, input_batch))
+                cast(torch.LongTensor, input_batch),
+                batch_size=args.batch_size)
             loss = cast(torch.FloatTensor, 0)
             output_var = maybe_cuda(Variable(output_batch))
             loss += criterion(prediction_distribution, output_var)
