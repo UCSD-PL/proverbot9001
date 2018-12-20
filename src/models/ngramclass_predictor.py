@@ -18,7 +18,7 @@ from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, Sentence, \
-    encode_ngram_classify_data, encode_ngram_classify_input
+    encode_ngram_classify_data, encode_ngram_classify_input, ScrapedTactic
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
@@ -138,10 +138,10 @@ def main(args_list : List[str]) -> None:
                      "intros until": "intros.",
                      "intro": "intros.",
                      "constructor": "econstructor."}
-    preprocessed_dataset = [(hyps, goal, tactic
+    preprocessed_dataset = [ScrapedTactic(prev_tactics, hyps, goal, tactic
                              if get_stem(tactic) not in substitutions
                              else substitutions[get_stem(tactic)])
-                            for hyps, goal, tactic in raw_dataset]
+                            for prev_tactics, hyps, goal, tactic in raw_dataset]
     print("Encoding data...")
     samples, tokenizer, embedding = encode_ngram_classify_data(preprocessed_dataset,
                                                                args.num_grams,

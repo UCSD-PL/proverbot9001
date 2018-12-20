@@ -74,9 +74,9 @@ def get_data(args : List[str]) -> None:
     elif arg_values.format == "goals":
         dataset = data.get_text_data(arg_values.datafile_path,
                                      arg_values.context_filter,
-                                     arg_values.max_tuples,
+                                     max_tuples=arg_values.max_tuples,
                                      verbose=True)
-        for hyps, goal, tactic in dataset:
+        for prev_tactics, hyps, goal, tactic in dataset:
             print(goal)
         pass
 

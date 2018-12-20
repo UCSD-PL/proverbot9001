@@ -9,9 +9,10 @@ from typing import Dict, Any, List, Tuple, Union
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import SimpleEmbedding
-from format import read_tuple
+from format import read_tuple, ScrapedTactic
 from util import *
 from serapi_instance import get_stem
+from data import get_text_data
 
 class TryCommonPredictor(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:

@@ -231,7 +231,7 @@ def main(args_list : List[str]) -> None:
     sys.stdout.flush()
     term_strings = list(chain.from_iterable(
         [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
-         for hyps, goal, tactic in dataset]))
+         for prev_tactics, hyps, goal, tactic in dataset]))
     print(" {:.2f}s".format(time.time() - curtime))
 
     curtime = time.time()

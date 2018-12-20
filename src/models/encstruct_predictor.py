@@ -204,13 +204,13 @@ def encode_seq_structural_data(data : RawDataset,
                       for hyp_and_goal in [zip(hyps + [goal],
                                                itertools.repeat(
                                                    embedding.encode_token(tactic)))
-                                           for hyps, goal, tactic in data]
+                                           for prev_tactics, hyps, goal, tactic in data]
                       for hyp_or_goal in hyp_and_goal]
     context_tokenizer = make_keyword_tokenizer_relevance(hyps_and_goals,
                                                          context_tokenizer_type,
                                                          num_keywords, num_reserved_tokens)
     encodedData = []
-    for hyps, goal, tactic in data:
+    for prev_tactics, hyps, goal, tactic in data:
         stem, rest = serapi_instance.split_tactic(tactic)
         encodedData.append(([context_tokenizer.toTokenList(hyp) for hyp in hyps],
                             context_tokenizer.toTokenList(goal),

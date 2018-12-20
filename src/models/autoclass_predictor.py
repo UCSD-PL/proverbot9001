@@ -274,7 +274,7 @@ def main(arg_list : List[str]) -> None:
     tokenizer = autoenc_state['tokenizer']
     embedding = SimpleEmbedding()
     dataset = [(tokenizer.toTokenList(goal), embedding.encode_token(get_stem(tactic)))
-               for hyps, goal, tactic in text_data]
+               for prev_tactics, hyps, goal, tactic in text_data]
     timeTaken = time.time() - start
     print("Encoded data in {:.2f}".format(timeTaken))
 

@@ -96,7 +96,7 @@ def get_text_data(data_path : str, context_filter_name : str,
     return filtered_data
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
-    return ((hyps, goal, tactic)
+    return (ScrapedTactic(prev_tactics, hyps, goal, tactic)
             for ((prev_tactics, hyps, goal, tactic),
                  (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
@@ -110,15 +110,18 @@ def encode_seq_seq_data(data : RawDataset,
                         num_keywords : int,
                         num_reserved_tokens : int) \
     -> Tuple[SequenceSequenceDataset, Tokenizer, Tokenizer]:
-    context_tokenizer = make_keyword_tokenizer_topk([context for hyps, context, tactic in data],
+    context_tokenizer = make_keyword_tokenizer_topk([context for
+                                                     prev_tactics, hyps, context, tactic
+                                                     in data],
                                                     context_tokenizer_type,
                                                     num_keywords, num_reserved_tokens)
-    tactic_tokenizer = make_keyword_tokenizer_topk([tactic for hyps, context, tactic in data],
+    tactic_tokenizer = make_keyword_tokenizer_topk([tactic for prev_tactics, hyps,
+                                                    context, tactic in data],
                                                    tactic_tokenizer_type,
                                                    num_keywords, num_reserved_tokens)
     result = [(context_tokenizer.toTokenList(context),
                tactic_tokenizer.toTokenList(tactic))
-              for hyps, context, tactic in data]
+              for prev_tactics, hyps, context, tactic in data]
     context_tokenizer.freezeTokenList()
     tactic_tokenizer.freezeTokenList()
     return result, context_tokenizer, tactic_tokenizer
@@ -127,10 +130,10 @@ def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
 def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
-                                      chunk : List[Tuple[List[str], str, str]])\
+                                      chunk : List[Tuple[List[str], List[str], str, str]])\
     -> List[Tuple[Sentence, str]]:
     return [(tokenizer.toTokenList(goal), get_stem(tactic))
-            for hyps, goal, tactic in chunk]
+            for prev_tactics, hyps, goal, tactic in chunk]
 
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -143,7 +146,7 @@ def encode_seq_classify_data(data : RawDataset,
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
-                                                  for hyps, context, tactic
+                                                  for prev_tactics, hyps, context, tactic
                                                   in subset],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
@@ -198,7 +201,7 @@ def term_data(data : RawDataset,
               num_reserved_tokens : int) -> Tuple[TermDataset, Tokenizer]:
     term_strings = list(itertools.chain.from_iterable(
         [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
-         for hyps, goal, tactic in data]))
+         for prev_tactics, hyps, goal, tactic in data]))
     tokenizer = make_keyword_tokenizer_topk(term_strings, tokenizer_type,
                                             num_keywords, num_reserved_tokens)
     return [tokenizer.toTokenList(term_string) for term_string in term_strings], \

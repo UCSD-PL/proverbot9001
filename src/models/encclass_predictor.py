@@ -10,7 +10,7 @@ import math
 from models.encdecrnn_predictor import inputFromSentence
 from tokenizer import Tokenizer, tokenizers
 from data import get_text_data, filter_data, \
-    encode_seq_classify_data, ClassifySequenceDataset
+    encode_seq_classify_data, ClassifySequenceDataset, ScrapedTactic
 from util import *
 from context_filter import get_context_filter
 from serapi_instance import get_stem
@@ -249,10 +249,10 @@ def main(arg_list : List[str]) -> None:
                      "intros until": "intros.",
                      "intro": "intros.",
                      "constructor": "econstructor."}
-    preprocessed_dataset = [(hyps, goal, tactic
-                             if get_stem(tactic) not in substitutions
-                             else substitutions[get_stem(tactic)])
-                            for hyps, goal, tactic in text_dataset]
+    preprocessed_dataset = [ScrapedTactic(prev_tactics, hyps, goal, tactic
+                                          if get_stem(tactic) not in substitutions
+                                          else substitutions[get_stem(tactic)])
+                            for prev_tactics, hyps, goal, tactic in text_dataset]
     print("Encoding data...")
     start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(preprocessed_dataset,
