@@ -9,49 +9,46 @@ import os.path
 import argparse
 import sys
 import signal
+from dataclasses import dataclass
 
 from typing import List, Any, Optional, cast, Tuple
-# This dependency is in pip, the python package manager
-from sexpdata import *
+# These dependencies is in pip, the python package manager
+from pampy import match, _, TAIL
 
+from sexpdata import *
 from traceback import *
 
 # Some Exceptions to throw when various responses come back from coq
+@dataclass
 class AckError(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : Optional['Sexp']
+@dataclass
 class CompletedError(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : 'Sexp'
 
+@dataclass
 class CoqExn(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : 'Sexp'
+@dataclass
 class BadResponse(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : 'Sexp'
 
+@dataclass
 class NotInProof(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : str
+@dataclass
 class ParseError(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : str
 
+@dataclass
 class LexError(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : str
+@dataclass
 class TimeoutError(Exception):
-    def __init__(self, msg : Any) -> None:
-        self.msg = msg
-    pass
+    msg : str
+
+def raise_(ex):
+    raise ex
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -167,44 +164,34 @@ class SerapiInstance(threading.Thread):
     def handle_exception(self, e : Exception, stmt : str):
         if not self.quiet or self.debug:
             print("Problem running statement: {}\n{}".format(stmt, e))
-        if (type(e) == CoqExn):
-            ce = cast(CoqExn, e)
-            if   (type(ce.msg) == list and
-                  ce.msg[0] == Symbol('CoqExn') and
-                  len(ce.msg) == 4 and
-                  type(ce.msg[3]) == list):
-                if   (ce.msg[3][0] == Symbol('Stream.Error')):
-                    self.get_completed()
-                    raise ParseError("Could't parse command {}".format(stmt))
-                if   (ce.msg[3][0] == 'CLexer.Error.E(3)'):
-                    self.get_completed()
-                    raise LexError("Couldn't lex command {}".format(stmt))
-        if    (type(e) == CompletedError):
-            co = cast(CompletedError, e)
-            if   (type(co.msg) == list and
-                  co.msg[0] == Symbol('Answer') and
-                  len(co.msg) == 3 and
-                  type(co.msg[2]) == list and
-                  co.msg[2][0] == Symbol('CoqExn') and
-                  len(co.msg[2]) == 4):
-                if (type(co.msg[2][3]) == list and
-                    co.msg[2][3][0] == Symbol('Stream.Error')):
-                    raise ParseError("Couldn't parse command {}".format(stmt))
-                elif (type(co.msg[2][3]) == list and
-                      co.msg[2][3][0] == Symbol('Invalid_argument')):
-                    raise ParseError("Invalid argument {}".format(stmt))
-        if type(e) == TimeoutError:
-            # self.cancel_last()
-            raise TimeoutError("Statement \"{}\" timed out.".format(stmt))
+        match(e,
+              CoqExn(['CoqExn', _, _, ['Stream.Error', TAIL]]),
+              lambda *args: progn(self.get_completed(),
+                                  raise_(ParseError("Couldn't parse command {}"
+                                                    .format(stmt)))),
 
-        self.cancel_last()
-        raise e
+              CoqExn(['CoqExn', _, _, ['CLexer.Error.E(3)', TAIL]]),
+              lambda *args: raise_(ParseError("Couldn't parse command {}"
+                                              .format(stmt))),
+
+              CoqExn(['CoqExn', TAIL]),
+              lambda *args: progn(self.cancel_last(), raise_(e)),
+
+              CompletedError(['Answer', int, ['CoqExn', _, _, 'Stream.Error']]),
+              lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
+
+              CompletedError(['Answer', int, ['CoqExn', _, _, 'Invalid_argument']]),
+              lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
+
+              TimeoutError, lambda *args: raise_(TimeoutError("Statment \"{}\" timed out."
+                                                              .format(stmt))),
+              _, lambda *args: progn(self.cancel_last(), raise_(e)))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
-    def cancel_last(self) -> None:
+    def cancel_last(self) -> Any:
         if self.debug:
             print("Cancelling last statement from state {}".format(self.cur_state))
         # Flush any leftover messages in the queue
@@ -225,19 +212,17 @@ class SerapiInstance(threading.Thread):
     # an Ack
     def get_ack(self) -> None:
         ack = self.get_message()
-        if (not isinstance(ack, list) or
-            ack[0] != Symbol("Answer") or
-            ack[2] != Symbol("Ack")):
-            raise AckError(ack)
+        match(ack,
+              ["Answer", int, "Ack"], lambda state: None,
+              _, lambda msg: raise_(AckError(ack)))
 
     # Get the next message from the message queue, and make sure it's
     # a Completed.
-    def get_completed(self) -> None:
+    def get_completed(self) -> Any:
         completed = self.get_message()
-        if (not isinstance(completed, list) or
-            completed[0] != Symbol("Answer") or
-            completed[2] != Symbol("Completed")):
-            raise CompletedError(completed)
+        match(completed,
+              ["Answer", int, "Completed"], lambda state: None,
+              _, lambda msg: raise_(CompletedError(completed)))
 
     def add_lib(self, origpath : str, logicalpath : str) -> None:
         addStm = ("(Control (StmAdd () \"Add Rec LoadPath \\\"{}\\\" as {}.\"))\n"
@@ -260,21 +245,21 @@ class SerapiInstance(threading.Thread):
     # casting. Will reassess when recursive types are added to mypy
     # https://github.com/python/mypy/issues/731
     def ppSexpContent(self, content):
-        if content[0] == Symbol("Feedback"):
+        if content[0] == "Feedback":
             return self.ppSexpContent(content[1][1][1][3][1][2])
-        elif (content[0] == Symbol("PCData") and len(content) == 2
+        elif (content[0] == "PCData" and len(content) == 2
               and isinstance(content[1], str)):
             return content[1]
-        elif (content[0] == Symbol("PCData") and len(content) == 2
-              and content[1] == Symbol(".")):
+        elif (content[0] == "PCData" and len(content) == 2
+              and content[1] == "."):
             return "."
-        elif (content[0] == Symbol("Element") and len(content) == 2
+        elif (content[0] == "Element" and len(content) == 2
               and isinstance(content[1], list) and
-              (content[1][0] == Symbol("constr.keyword") or
-               content[1][0] == Symbol("constr.type") or
-               content[1][0] == Symbol("constr.variable") or
-               content[1][0] == Symbol("constr.reference") or
-               content[1][0] == Symbol("constr.path"))):
+              (content[1][0] == "constr.keyword" or
+               content[1][0] == "constr.type" or
+               content[1][0] == "constr.variable" or
+               content[1][0] == "constr.reference" or
+               content[1][0] == "constr.path")):
             return dumps(content[1][2][0][1])
         elif isinstance(content[0], list):
             return "".join([self.ppSexpContent(item) for item in content])
@@ -297,33 +282,31 @@ class SerapiInstance(threading.Thread):
         self.get_ack()
 
         msg = self.get_message()
-        while isinstance(msg, list) and msg[0] == Symbol("Feedback"):
+        while match(msg,
+                    ["Feedback", TAIL], lambda tail: True,
+                    _, lambda x: False):
             msg = self.get_message()
-        if (not isinstance(msg, list) or
-            msg[0] != Symbol("Answer")):
-            raise BadResponse(msg)
-        submsg = msg[2]
-        if (submsg[0] == Symbol("CoqExn")):
-            raise CoqExn(submsg)
-        elif submsg[0] != Symbol("StmAdded"):
-            raise BadResponse(submsg)
-        else:
-            state_num = submsg[1]
-            self.get_completed()
-            return state_num
+
+        return match(msg,
+                     ["Answer", int, list],
+                     lambda state_num, contents:
+                     match(contents,
+                           ["CoqExn"], lambda coqexn: raise_(CoqExn(contents)),
+                           ["StmAdded", int, TAIL],
+                           lambda state_num, tail: progn(self.get_completed(), state_num)),
+                     _, lambda x: raise_(BadResponse(msg)))
 
     def discard_initial_feedback(self) -> None:
         feedback1 = self.get_message()
         feedback2 = self.get_message()
-        if (not isinstance(feedback1, list) or
-            feedback1[0] != Symbol("Feedback") or
-            not isinstance(feedback2, list) or
-            feedback2[0] != Symbol("Feedback")):
-            raise BadResponse("Not feedback")
+        match(feedback1, ["Feedback", TAIL], lambda *args: None,
+              _, lambda *args: raise_(BadResponse(feedback1)))
+        match(feedback2, ["Feedback", TAIL], lambda *args: None,
+              _, lambda *args: raise_(BadResponse(feedback2)))
 
-    def get_message(self) -> 'Sexp':
+    def get_message(self) -> Any:
         try:
-            return self.messages.get(timeout=self.timeout)
+            return normalizeMessage(self.messages.get(timeout=self.timeout))
         except queue.Empty:
             if self.debug:
                 print("Command timed out! Cancelling")
@@ -332,26 +315,26 @@ class SerapiInstance(threading.Thread):
                 interrupt_response = self.messages.get(timeout=self.timeout * 10)
             except:
                 raise TimeoutError("")
-            if interrupt_response != Symbol("Sys.Break"):
+            if interrupt_response != "Sys.Break":
                 assert isinstance(interrupt_response, list), interrupt_response
-                assert interrupt_response[0] == Symbol("Feedback")
+                assert interrupt_response[0] == "Feedback"
                 assert len(interrupt_response) > 1, \
                     "too short! interrupt_reponse: {}".format(interrupt_response)
                 assert isinstance(interrupt_response[1], list), \
                     "interrupt_response[1]: {}".format(interrupt_response[1])
                 assert len(interrupt_response[1]) > 2
                 assert isinstance(interrupt_response[1][1], list)
-                assert interrupt_response[1][1][0] == Symbol("contents")
+                assert interrupt_response[1][1][0] == "contents"
                 assert isinstance(interrupt_response[1][1][1], list), interrupt_response
-                assert interrupt_response[1][1][1][0] == Symbol("Message")
-                assert interrupt_response[1][1][1][1] == Symbol("Error")
+                assert interrupt_response[1][1][1][0] == "Message"
+                assert interrupt_response[1][1][1][1] == "Error"
 
             interrupt_response2 = self.messages.get(timeout=self.timeout)
             assert isinstance(interrupt_response2, list)
             assert len(interrupt_response2) > 2
-            assert interrupt_response2[0] == Symbol("Answer")
-            assert interrupt_response2[2][0] == Symbol("CoqExn")
-            assert interrupt_response2[2][3] == Symbol("Sys.Break")
+            assert interrupt_response2[0] == "Answer"
+            assert interrupt_response2[2][0] == "CoqExn"
+            assert interrupt_response2[2][3] == "Sys.Break"
 
             raise TimeoutError("")
 
@@ -361,16 +344,13 @@ class SerapiInstance(threading.Thread):
         feedbacks = [] #type: List[Sexp]
         next_message = self.get_message()
         while(isinstance(next_message, list) and
-              next_message[0] == Symbol("Feedback")):
+              next_message[0] == "Feedback"):
             feedbacks.append(next_message)
             next_message = self.get_message()
         fin = next_message
-        if (not isinstance(fin, list) or
-            fin[0] != Symbol("Answer")):
-            raise BadResponse(fin)
-        if (isinstance(fin[2], list) or
-            fin[2] != Symbol("Completed")):
-            raise BadResponse(fin)
+        match(fin,
+              ["Answer", _, "Completed", TAIL], lambda *args: None,
+              _, lambda *args: raise_(BadResponse(fin)))
 
         return feedbacks
 
@@ -393,24 +373,34 @@ class SerapiInstance(threading.Thread):
         finished = False
         while not finished:
             supposed_ack = self.get_message()
-            if (not isinstance(supposed_ack, list) or
-                supposed_ack[0] != Symbol("Answer")):
-                raise AckError("Symbol is not an ack! {}".format(supposed_ack))
-            if supposed_ack[2] == Symbol("Ack"):
-                finished = True
+            finished = match(supposed_ack,
+                             ['Answer', int, 'Ack'],
+                             lambda state_num: True,
+
+                             ["Answer", TAIL], lambda *args: False,
+
+                             _, lambda *args: raise_(AckError(["Symbol is not an ack! {}"
+                                                               .format(supposed_ack)])))
+
+
         feedback = self.get_message()
-        if (not isinstance(feedback, list) or
-            feedback[0] != Symbol("Feedback")):
-            raise BadResponse(feedback)
-        subfeed = feedback[1]
-        if (not isinstance(subfeed[0] , list)):
-            raise BadResponse(subfeed)
-        subsubfeed = subfeed[0][1]
-        if (subsubfeed[0] != Symbol("State")):
-            raise BadResponse(subsubfeed)
-        cancelled = self.get_message()
+
+        new_statenum = \
+            match(feedback,
+                  ["Feedback", [['id', ['State', int]], TAIL]],
+                  lambda statenum, *rest: statenum,
+                  _, lambda *args: raise_(BadResponse(feedback)))
+
+        cancelled_answer = self.get_message()
+        old_statenum = \
+            match(cancelled_answer,
+                  ["Answer", int, ["StmCanceled", [int]]],
+                  lambda _, new_statenum: new_statenum,
+                  _, lambda *args: raise_(BadResponse(cancelled_answer)))
+
         self.get_completed()
-        return subsubfeed[1]
+
+        return new_statenum
 
     def extract_proof_context(self, raw_proof_context : 'Sexp') -> str:
         return cast(List[List[str]], raw_proof_context)[0][1]
@@ -434,11 +424,11 @@ class SerapiInstance(threading.Thread):
 
         proof_context_message = self.get_message()
         if (not isinstance(proof_context_message, list) or
-            proof_context_message[0] != Symbol("Answer")):
+            proof_context_message[0] != "Answer"):
             raise BadResponse(proof_context_message)
         else:
             ol_msg = proof_context_message[2]
-            if (ol_msg[0] != Symbol("ObjList")):
+            if (ol_msg[0] != "ObjList"):
                 raise BadResponse(proof_context_message)
             if len(ol_msg[1]) != 0:
                 newcontext = self.extract_proof_context(ol_msg[1])
@@ -701,3 +691,12 @@ def get_vars_in_hyps(hyps : List[str]) -> List[str]:
 
 def get_first_var_in_hyp(hyp : str) -> str:
     return get_var_term_in_hyp(hyp).split(",")[0].strip()
+
+def normalizeMessage(sexp):
+    return match(sexp,
+                 list, lambda sexp: [normalizeMessage(item) for item in sexp],
+                 Symbol, lambda sym: dumps(sym),
+                 _, lambda sexp: sexp)
+
+def progn(*args):
+    return args[-1]

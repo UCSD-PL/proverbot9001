@@ -17,9 +17,7 @@ else
     # For SerAPI:
     opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
     eval `opam config env`
-    pip3 install --user sexpdata
-    pip3 install --user yattag
-    pip3 install --user torch torchvision
+    pip3 install --user -r requirements.txt
 fi
 
 function check-and-clone {

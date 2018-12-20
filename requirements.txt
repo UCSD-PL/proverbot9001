@@ -1,4 +1,6 @@
 scikit-learn
 sexpdata
 torch
+torchvision
 yattag
+pampy
