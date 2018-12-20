@@ -5,6 +5,8 @@ import re
 import itertools
 import multiprocessing
 import functools
+import sys
+import time
 from itertools import chain
 from sparse_list import SparseList # type: ignore
 import random
@@ -138,11 +140,14 @@ def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
-                             num_reserved_tokens : int) \
+                             num_reserved_tokens : int,
+                             num_relevance_samples : int = 1000) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    print("Making tokenizer...")
-    subset : RawDataset = random.sample(list(data), 1000)
+    start = time.time()
+    print("Making tokenizer...", end="")
+    sys.stdout.flush()
+    subset : RawDataset = random.sample(list(data), num_relevance_samples)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
@@ -150,6 +155,7 @@ def encode_seq_classify_data(data : RawDataset,
                                                   in subset],
                                                  tokenizer_type,
                                                  num_keywords, num_reserved_tokens)
+    print("{}s".format(time.time() - start))
     print("Tokenizing/embedding data...")
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
