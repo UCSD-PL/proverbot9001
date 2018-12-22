@@ -39,7 +39,7 @@ def add_std_args(parser : argparse.ArgumentParser,
     parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
                         default=default_values.get("num-decoder-layers", 3))
     parser.add_argument("--num-keywords", dest="num_keywords", type=int,
-                        default=default_values.get("num-keyworeds", 100))
+                        default=default_values.get("num-keywordes", 60))
     parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
                         default=default_values.get("tokenizer",
                                                    list(tokenizers.keys())[0]))
