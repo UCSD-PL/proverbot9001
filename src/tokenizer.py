@@ -113,6 +113,11 @@ def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int) 
         = [(pairs_list, total_leader, total_leader_entropy)]
     keywords : List[str] = []
 
+    common_keywords_and_counts = words_counter.most_common(int(k / 4))
+    for word, count in common_keywords_and_counts:
+        common_words.remove(word)
+        keywords.append(word)
+
     while len(keywords) < k:
         if len(pools) == 0:
             print("Returning early with {} keywords: "
