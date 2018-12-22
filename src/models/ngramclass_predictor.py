@@ -125,8 +125,7 @@ def main(args_list : List[str]) -> None:
     parser = start_std_args("A second-tier predictor which predicts tactic stems "
                             "based on word frequency in the goal",
                             default_values={"num-epochs": 50,
-                                            "learning-rate": 0.0008,
-                                            "print-every":20})
+                                            "learning-rate": 0.0008})
     parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
     parser.add_argument("--print-keywords", dest="print_keywords",
                         default=False, action='store_const', const=True)
