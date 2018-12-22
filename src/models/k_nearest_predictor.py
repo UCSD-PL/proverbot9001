@@ -10,14 +10,16 @@ import statistics
 from queue import PriorityQueue
 
 import torch
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
+from models.args import take_std_args
 
 from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, \
-    encode_bag_classify_data, encode_bag_classify_input
+    encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic
 from context_filter import get_context_filter
+from serapi_instance import get_stem
 
 from util import *
 
@@ -216,6 +218,11 @@ class KNNPredictor(TacticPredictor):
                                 correct : str) -> Tuple[List[Prediction], float]:
         # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[ContextInfo],
+                                      k : int, correct : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+        return [self.predictKTactics(in_data_point, k) for in_data_point in in_data], 0
 
 def normalizeVector(dim_maxs : List[int], vec : List[int]) -> List[float]:
     return [floatItem / maxItem for floatItem, maxItem in zip(vec, dim_maxs)]
@@ -227,26 +234,20 @@ def floatVector(vec : List[int]) -> List[float]:
     return [float(dim) for dim in vec]
 
 def main(args_list : List[str]) -> None:
-    parser = argparse.ArgumentParser(description=
-                                     "A k-nearest neighbors predictor")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
-    parser.add_argument("--num-keywords", dest="num_keywords",
-                        default=250, type=int)
-    parser.add_argument("--num-samples", dest="num_samples",
-                        default=float("Inf"), type=float)
-    parser.add_argument("--tokenizer",
-                        choices=list(tokenizers.keys()), type=str,
-                        default=list(tokenizers.keys())[0])
-    parser.add_argument("--context-filter", dest="context_filter",
-                        type=str,
-                        default="default")
-    args = parser.parse_args(args_list)
+    args = take_std_args(args_list, "A k-nearest neighbors predictor")
 
     text_data = get_text_data(args.scrape_file, args.context_filter,
                               max_tuples=args.max_tuples, verbose=True)
+    substitutions = {"auto": "eauto.",
+                     "intros until": "intros.",
+                     "intro": "intros.",
+                     "constructor": "econstructor."}
+    preprocessed_data = [ScrapedTactic(prev_tactics, hyps, goal, tactic
+                                       if get_stem(tactic) not in substitutions
+                                       else substitutions[get_stem(tactic)])
+                         for prev_tactics, hyps, goal, tactic in text_data]
     start = time.time()
-    samples, tokenizer, embedding = encode_bag_classify_data(text_data,
+    samples, tokenizer, embedding = encode_bag_classify_data(preprocessed_data,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords,
                                                              2)
@@ -261,7 +262,7 @@ def main(args_list : List[str]) -> None:
                     'tokenizer-name': args.tokenizer,
                     'tree': bst,
                     'num-samples': len(samples),
-                    'context-filter': args.context_fitler}, f)
+                    'context-filter': args.context_filter}, f)
     print("Saved.")
 
 def filterNones(lst : List[Optional[T]]) -> List[T]:
