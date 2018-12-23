@@ -14,7 +14,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
 from tokenizer import tokenizers
 from data import get_text_data, encode_ngram_classify_data, encode_ngram_classify_input
 from util import *
@@ -73,6 +73,15 @@ class NGramSVMClassifier(TacticPredictor):
                                   math.exp(certainty))
                        for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
+    def predictKTacticsWithLoss_batch(self,
+                                      in_datas : List[ContextInfo],
+                                      k : int, corrects : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+
+        prediction_lists, losses = zip(*[self.predictKTacticsWithLoss(in_data, k, correct)
+                                         for in_data, correct in zip(in_datas, corrects)])
+        return prediction_lists, sum(losses)/len(losses)
+
 
 Checkpoint = Tuple[svm.SVC, float]
 
@@ -86,7 +95,7 @@ def main(args_list : List[str]) -> None:
                                      "A second-tier predictor which predicts tactic "
                                      "stems based on word frequency in the goal")
     parser.add_argument("--context-filter", dest="context_filter",
-                        type=str, default="default")
+                        type=str, default="goal-changes%no-args")
     parser.add_argument("--num-keywords", dest="num_keywords",
                         type=int, default=100)
     parser.add_argument("--max-tuples", dest="max_tuples",
