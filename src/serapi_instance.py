@@ -165,27 +165,30 @@ class SerapiInstance(threading.Thread):
         if not self.quiet or self.debug:
             print("Problem running statement: {}\n{}".format(stmt, e))
         match(e,
-              CoqExn(['CoqExn', _, _, ['Stream.Error', TAIL]]),
-              lambda *args: progn(self.get_completed(),
-                                  raise_(ParseError("Couldn't parse command {}"
-                                                    .format(stmt)))),
-
-              CoqExn(['CoqExn', _, _, ['CLexer.Error.E(3)', TAIL]]),
-              lambda *args: raise_(ParseError("Couldn't parse command {}"
-                                              .format(stmt))),
-
-              CoqExn(['CoqExn', TAIL]),
-              lambda *args: progn(self.cancel_last(), raise_(e)),
-
-              CompletedError(['Answer', int, ['CoqExn', _, _, 'Stream.Error']]),
-              lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
-
-              CompletedError(['Answer', int, ['CoqExn', _, _, 'Invalid_argument']]),
-              lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-
               TimeoutError, lambda *args: raise_(TimeoutError("Statment \"{}\" timed out."
                                                               .format(stmt))),
-              _, lambda *args: progn(self.cancel_last(), raise_(e)))
+              _, lambda e:
+              match(e.msg,
+                    ['Stream\.Error', str],
+                    lambda *args: progn(self.get_completed(),
+                                        raise_(ParseError("Couldn't parse command {}"
+                                                          .format(stmt)))),
+
+                    ['CLexer.Error.E(3)'],
+                    lambda *args: progn(self.get_completed(),
+                                        raise_(ParseError("Couldn't parse command {}"
+                                                          .format(stmt)))),
+                    ['CErrors\.UserError', _],
+                    lambda inner: progn(self.cancel_last(), raise_(e)),
+                    ['ExplainErr\.EvaluatedError', TAIL],
+                    lambda inner: progn(self.cancel_last(), raise_(e)),
+
+                    ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
+                    lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
+
+                    ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
+                    lambda *args: raise_(ParseError("Invalid argument{}".format(stmt)))))#,
+                    # _, lambda *args: progn(self.cancel_last(), raise_(e))))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
@@ -291,7 +294,9 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, list],
                      lambda state_num, contents:
                      match(contents,
-                           ["CoqExn"], lambda coqexn: raise_(CoqExn(contents)),
+                           ["CoqExn", _, _, list],
+                           lambda loc1, loc2, inner:
+                           raise_(CoqExn(inner)),
                            ["StmAdded", int, TAIL],
                            lambda state_num, tail: progn(self.get_completed(), state_num)),
                      _, lambda x: raise_(BadResponse(msg)))
@@ -315,7 +320,7 @@ class SerapiInstance(threading.Thread):
                 interrupt_response = self.messages.get(timeout=self.timeout * 10)
             except:
                 raise TimeoutError("")
-            if interrupt_response != "Sys.Break":
+            if interrupt_response != Symbol("Sys.Break"):
                 assert isinstance(interrupt_response, list), interrupt_response
                 assert interrupt_response[0] == "Feedback"
                 assert len(interrupt_response) > 1, \
@@ -350,7 +355,10 @@ class SerapiInstance(threading.Thread):
         fin = next_message
         match(fin,
               ["Answer", _, "Completed", TAIL], lambda *args: None,
-              _, lambda *args: raise_(BadResponse(fin)))
+              ['Answer', _, ["CoqExn", _, _, _]],
+              lambda statenum, loc1, loc2, inner: raise_(CoqExn(inner))# ,
+              # _, lambda *args: raise_(BadResponse(fin))
+        )
 
         return feedbacks
 
