@@ -100,6 +100,8 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=3)
+    parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                        dest='skip_nochange_tac')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(arg_list)
 
@@ -107,7 +109,8 @@ def main(arg_list : List[str]) -> None:
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
     predictor = loadPredictor({"filename": args.weightsfile,
-                               "beam-width":args.num_predictions ** 2},
+                               "beam-width":args.num_predictions ** 2,
+                               "skip-nochange-tac":args.skip_nochange_tac},
                               args.predictor)
 
     if not os.path.exists(args.output):
