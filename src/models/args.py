@@ -43,6 +43,10 @@ def add_std_args(parser : argparse.ArgumentParser,
     parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
                         default=default_values.get("tokenizer",
                                                    list(tokenizers.keys())[0]))
+    parser.add_argument("--save-tokens", dest="save_tokens",
+                        default=default_values.get("save-tokens", None))
+    parser.add_argument("--load-tokens", dest="load_tokens",
+                        default=default_values.get("load-tokens", None))
     parser.add_argument("--optimizer",
                         choices=list(optimizers.keys()), type=str,
                         default=default_values.get("optimizer",

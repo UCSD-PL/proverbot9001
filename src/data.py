@@ -154,22 +154,33 @@ def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
                              num_reserved_tokens : int,
+                             save_tokens : Optional[str] = None,
+                             load_tokens : Optional[str] = None,
                              num_relevance_samples : int = 1000) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
-    start = time.time()
-    print("Making tokenizer...", end="")
-    sys.stdout.flush()
     subset = RawDataset(random.sample(data, num_relevance_samples))
-    tokenizer = make_keyword_tokenizer_relevance([(context,
-                                                   embedding.encode_token(
-                                                       get_stem(tactic)))
-                                                  for prev_tactics, hyps, context, tactic
-                                                  in subset],
-                                                 tokenizer_type,
-                                                 num_keywords, num_reserved_tokens)
-    print("{}s".format(time.time() - start))
-    print("Tokenizing/embedding data...")
+    if load_tokens:
+        print("Loading tokens from {}".format(load_tokens))
+        with open(load_tokens, 'wb') as f:
+            tokenizer = pickle.load(f)
+    else:
+        start = time.time()
+        print("Picking tokens...", end="")
+        sys.stdout.flush()
+        tokenizer = make_keyword_tokenizer_relevance([(context,
+                                                       embedding.encode_token(
+                                                           get_stem(tactic)))
+                                                      for prev_tactics, hyps,
+                                                      context, tactic
+                                                      in subset],
+                                                     tokenizer_type,
+                                                     num_keywords, num_reserved_tokens)
+        print("{}s".format(time.time() - start))
+    if save_tokens:
+        print("Saving tokens to {}".format(save_tokens))
+        with open(save_tokens, 'wb') as f:
+            torch.save(tokenizer, f)
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
                   chain.from_iterable(pool.imap_unordered(functools.partial(

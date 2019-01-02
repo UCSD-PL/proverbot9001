@@ -258,7 +258,9 @@ def main(arg_list : List[str]) -> None:
     start = time.time()
     dataset, tokenizer, embedding = encode_seq_classify_data(preprocessed_dataset,
                                                              tokenizers[args.tokenizer],
-                                                             args.num_keywords, 2)
+                                                             args.num_keywords, 2,
+                                                             args.save_tokens,
+                                                             args.load_tokens)
     if args.print_keywords:
         print("Keywords are {}".format(tokenizer.listTokens()))
     timeTaken = time.time() - start
