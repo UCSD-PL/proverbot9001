@@ -159,8 +159,7 @@ def encode_seq_classify_data(data : RawDataset,
     subset = RawDataset(random.sample(data, num_relevance_samples))
     if load_tokens:
         print("Loading tokens from {}".format(load_tokens))
-        with open(load_tokens, 'wb') as f:
-            tokenizer = pickle.load(f)
+        tokenizer = torch.load(load_tokens)
     else:
         start = time.time()
         print("Picking tokens...", end="")
@@ -176,8 +175,7 @@ def encode_seq_classify_data(data : RawDataset,
         print("{}s".format(time.time() - start))
     if save_tokens:
         print("Saving tokens to {}".format(save_tokens))
-        with open(save_tokens, 'wb') as f:
-            torch.save(tokenizer, f)
+        torch.save(tokenizer, save_tokens)
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
                   chain.from_iterable(pool.imap_unordered(functools.partial(
