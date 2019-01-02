@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
 
 from typing import Dict, Any, List
+from abc import ABCMeta, abstractmethod
 
-class SimpleEmbedding:
+class Embedding:
+    @abstractmethod
+    def __init__(self) -> None: pass
+    @abstractmethod
+    def encode_token(self, token : str) -> int : pass
+    @abstractmethod
+    def decode_token(self, idx : int) -> str: pass
+    @abstractmethod
+    def num_tokens(self) -> int: pass
+    @abstractmethod
+    def has_token(self, token : str) -> bool : pass
+    pass
+
+class SimpleEmbedding(Embedding):
     def __init__(self) -> None:
         self.tokens_to_indices = {} #type: Dict[str, int]
         self.indices_to_tokens = {} #type: Dict[int, str]
