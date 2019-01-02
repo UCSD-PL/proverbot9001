@@ -317,12 +317,13 @@ class SerapiInstance(threading.Thread):
                 print("Command timed out! Cancelling")
             self._proc.send_signal(signal.SIGINT)
             try:
-                interrupt_response = self.messages.get(timeout=self.timeout * 10)
+                interrupt_response = \
+                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
             except:
                 raise TimeoutError("")
-            if interrupt_response != Symbol("Sys.Break"):
+            if interrupt_response != "Sys.Break":
                 assert isinstance(interrupt_response, list), interrupt_response
-                assert interrupt_response[0] == "Feedback"
+                assert interrupt_response[0] == "Feedback", interrupt_response
                 assert len(interrupt_response) > 1, \
                     "too short! interrupt_reponse: {}".format(interrupt_response)
                 assert isinstance(interrupt_response[1], list), \
@@ -334,12 +335,12 @@ class SerapiInstance(threading.Thread):
                 assert interrupt_response[1][1][1][0] == "Message"
                 assert interrupt_response[1][1][1][1] == "Error"
 
-            interrupt_response2 = self.messages.get(timeout=self.timeout)
+            interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout))
             assert isinstance(interrupt_response2, list)
             assert len(interrupt_response2) > 2
             assert interrupt_response2[0] == "Answer"
             assert interrupt_response2[2][0] == "CoqExn"
-            assert interrupt_response2[2][3] == "Sys.Break"
+            assert interrupt_response2[2][3] == "Sys\.Break", interrupt_response2
 
             raise TimeoutError("")
 
