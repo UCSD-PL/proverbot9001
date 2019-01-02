@@ -160,6 +160,7 @@ def encode_seq_classify_data(data : RawDataset,
     start = time.time()
     print("Making tokenizer...", end="")
     sys.stdout.flush()
+    subset = RawDataset(random.sample(data, num_relevance_samples))
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
@@ -169,7 +170,6 @@ def encode_seq_classify_data(data : RawDataset,
                                                  num_keywords, num_reserved_tokens)
     print("{}s".format(time.time() - start))
     print("Tokenizing/embedding data...")
-    subset = RawDataset(random.sample(data, num_relevance_samples))
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
                   chain.from_iterable(pool.imap_unordered(functools.partial(
