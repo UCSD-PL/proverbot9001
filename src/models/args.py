@@ -16,6 +16,8 @@ def add_std_args(parser : argparse.ArgumentParser,
                  default_values : Dict[str, Any] = {}) -> None:
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
+    parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
+                        default=default_values.get("num-threads", None))
     parser.add_argument("--num-epochs", dest="num_epochs", type=int,
                         default=default_values.get("num-epochs", 20))
     parser.add_argument("--batch-size", dest="batch_size", type=int,
@@ -24,6 +26,8 @@ def add_std_args(parser : argparse.ArgumentParser,
                         default=default_values.get("max-length", 100))
     parser.add_argument("--max-tuples", dest="max_tuples", type=int,
                         default=default_values.get("max-tuples", None))
+    parser.add_argument("--start-from", dest="start_from", type=str,
+                        default=default_values.get("start-from", None))
     parser.add_argument("--print-every", dest="print_every", type=int,
                         default=default_values.get("print-every", 5))
     parser.add_argument("--hidden-size", dest="hidden_size", type=int,
