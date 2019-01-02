@@ -6,7 +6,7 @@ import collections
 import multiprocessing
 import functools
 from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, \
-    Set, Any, Counter, Sequence
+    Set, Any, Counter, Sequence, Optional
 from abc import ABCMeta, abstractmethod
 
 from util import *
@@ -70,7 +70,8 @@ def get_relevant_k_keywords(examplePairs : Iterable[Tuple[str, int]], k : int) \
     tokens = [x[0] for x in words_and_entropies]
     return tokens
 
-def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int) \
+def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int,
+                             num_threads : Optional[int]) \
     -> List[str]:
     def leader_entropy(pool : List[Tuple[str, int]]) -> Tuple[int, float]:
         if len(pool) == 0:
@@ -126,7 +127,7 @@ def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int) 
         highest_entropy_pool, leader, pool_entropy = \
             max(pools, key=lambda pool_pair: pool_pair[-1])
 
-        with multiprocessing.Pool(None) as process_pool:
+        with multiprocessing.Pool(num_threads) as process_pool:
             word_entropy_pairs = list(
                 process_pool.imap_unordered(
                     functools.partial(
@@ -304,8 +305,9 @@ def make_keyword_tokenizer_relevance(data : List[Tuple[str, int]],
                                      tokenizer_type : Callable[[List[str], int],
                                                                Tokenizer],
                                      num_keywords : int,
-                                     num_reserved_tokens : int) -> Tokenizer:
-    keywords = get_relevant_k_keywords2(data, num_keywords)
+                                     num_reserved_tokens : int,
+                                     num_threads : Optional[int]=None) -> Tokenizer:
+    keywords = get_relevant_k_keywords2(data, num_keywords, num_threads)
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     return tokenizer
 
