@@ -598,7 +598,8 @@ def get_stem(tactic : str) -> str:
 def split_tactic(tactic : str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
     if re.match("[-+*\{\}]", tactic):
-        return tactic, ""
+        stripped = tactic.strip()
+        return stripped[:-1], stripped[-1]
     if re.match(".*;.*", tactic):
         return tactic, ""
     for prefix in ["try", "now", "repeat"]:
