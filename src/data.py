@@ -190,6 +190,23 @@ def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
 
+def tokenize_data(tokenizer : Tokenizer, embedding : SimpleEmbedding,
+                  data : EmbeddedDataset, num_threads : int) \
+    -> TokenizedDataset:
+    with multiprocessing.Pool(num_threads) as pool:
+        result=TokenizedDataset(list(chain.from_iterable(pool.imap_unordered(
+            functools.partial(tokenize_worker__, tokenizer, embedding),
+            chunks(list(data), 1024)))))
+    tokenizer.freezeTokenList()
+    return result
+
+def tokenize_worker__(tokenizer : Tokenizer, embedding : SimpleEmbedding,
+                      chunk : EmbeddedDataset) -> TokenizedDataset:
+    return TokenizedDataset([TokenizedSample(prev_tactics,
+                                             tokenizer.toTokenList(goal),
+                                             tactic)
+                             for prev_tactics, hypotheses, goal, tactic in chunk])
+
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
                              num_keywords : int,
@@ -287,3 +304,14 @@ def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
     elif len(sentence) < max_length:
         sentence.extend([EOS_token] * (max_length - len(sentence)))
     return sentence
+
+def stemmify_data(point : ScrapedTactic) -> ScrapedTactic:
+    prev_tactics, hypotheses, goal, tactic = point
+    return ScrapedTactic(prev_tactics, hypotheses, goal, get_stem(tactic))
+
+def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic) \
+    -> ScrapedTactic:
+    prev_tactics, hyps, goal, tactic = sample
+    return ScrapedTactic(prev_tactics, hyps, goal,
+                         tactic if get_stem(tactic) not in substitutions
+                         else substitutions[get_stem(tactic)])
