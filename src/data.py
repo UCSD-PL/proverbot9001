@@ -7,6 +7,7 @@ import multiprocessing
 import functools
 import sys
 import time
+import pickle
 from itertools import chain
 from sparse_list import SparseList # type: ignore
 import random

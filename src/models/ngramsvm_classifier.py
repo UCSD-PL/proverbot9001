@@ -14,7 +14,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from tokenizer import tokenizers
 from data import get_text_data, encode_ngram_classify_data, encode_ngram_classify_input
 from util import *
@@ -74,12 +74,15 @@ class NGramSVMClassifier(TacticPredictor):
                        for certainty, idx in zip(probabilities, indices)]
         return predictions, loss
     def predictKTacticsWithLoss_batch(self,
-                                      in_datas : List[ContextInfo],
+                                      in_datas : List[TacticContext],
                                       k : int, corrects : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
 
-        prediction_lists, losses = zip(*[self.predictKTacticsWithLoss(in_data, k, correct)
-                                         for in_data, correct in zip(in_datas, corrects)])
+        results = [self.predictKTacticsWithLoss(in_data, k, correct)
+                   for in_data, correct in zip(in_datas, corrects)]
+
+        results2 : Tuple[List[List[Prediction]], List[float]] = tuple(zip(*results)) # type: ignore
+        prediction_lists, losses = results2
         return prediction_lists, sum(losses)/len(losses)
 
 

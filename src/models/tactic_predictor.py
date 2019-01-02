@@ -8,6 +8,10 @@ class Prediction(NamedTuple):
     certainty : float
 
 ContextInfo = Dict[str, Union[str, List[str]]]
+class TacticContext(NamedTuple):
+    prev_tactics : List[str]
+    hypotheses : List[str]
+    goal : str
 
 class TacticPredictor(metaclass=ABCMeta):
     @abstractmethod

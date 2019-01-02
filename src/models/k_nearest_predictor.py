@@ -10,7 +10,7 @@ import statistics
 from queue import PriorityQueue
 
 import torch
-from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from models.args import take_std_args
 
 from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast
@@ -219,7 +219,7 @@ class KNNPredictor(TacticPredictor):
         # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
     def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[ContextInfo],
+                                      in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         return [self.predictKTactics(in_data_point, k) for in_data_point in in_data], 0
