@@ -8,11 +8,12 @@ import functools
 import sys
 import time
 import pickle
+from argparse import Namespace
 from itertools import chain
 from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
-    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk
+    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
 from format import read_tactic_tuple, ScrapedTactic
 from models.components import SimpleEmbedding
 
@@ -86,7 +87,7 @@ def file_chunks(filepath : str, chunk_size : int):
             yield chunk
 
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
-    def worker_generator():
+    def worker_generator() -> Iterable[ScrapedTactic]:
         with io.StringIO("".join(lines)) as f:
             t = read_tactic_tuple(f)
             while t:
@@ -145,11 +146,6 @@ def encode_seq_seq_data(data : RawDataset,
 def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
-def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
-                                      chunk : List[Tuple[List[str], List[str], str, str]])\
-    -> List[Tuple[Sentence, str]]:
-    return [(tokenizer.toTokenList(goal), get_stem(tactic))
-            for prev_tactics, hyps, goal, tactic in chunk]
 
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -189,6 +185,12 @@ def encode_seq_classify_data(data : RawDataset,
                                                           chunks(data, 1024)))]
     tokenizer.freezeTokenList()
     return result, tokenizer, embedding
+def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
+                                      chunk : List[Tuple[List[str], List[str], str, str]])\
+    -> List[Tuple[Sentence, str]]:
+    return [(tokenizer.toTokenList(goal), get_stem(tactic))
+            for prev_tactics, hyps, goal, tactic in chunk]
+
 
 def encode_bag_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
