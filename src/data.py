@@ -37,6 +37,8 @@ TermDataset = List[Sentence]
 
 class Dataset(Sized, metaclass=ABCMeta):
     pass
+class DatasetMetadata(metaclass=ABCMeta):
+    pass
 
 @dataclass(init=True, repr=True)
 class RawDataset(Dataset, Sequence[ScrapedTactic]):
@@ -47,6 +49,47 @@ class RawDataset(Dataset, Sequence[ScrapedTactic]):
         return len(self.data)
     def __getitem__(self, i : Any):
         return self.data[i]
+
+class EmbeddedSample(NamedTuple):
+    prev_tactics : List[str]
+    hypotheses : List[str]
+    goal : str
+    tactic : int
+
+@dataclass(init=True, repr=True)# type: ignore
+class EmbeddedDataset(Dataset, Iterable[EmbeddedSample], metaclass=ABCMeta):
+    pass
+
+@dataclass(init=True, repr=True)
+class StrictEmbeddedDataset(EmbeddedDataset, Sequence[EmbeddedSample]):
+    data : List[EmbeddedSample]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, i : Any):
+        return self.data[i]
+@dataclass(init=True, repr=True)
+class LazyEmbeddedDataset(EmbeddedDataset):
+    data : Iterable[EmbeddedSample]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+
+class TokenizedSample(NamedTuple):
+    prev_tactics : List[str]
+    goal : Sentence
+    tactic : int
+
+@dataclass(init=True, repr=True)
+class TokenizedDataset(Dataset):
+    data : Iterable[TokenizedSample]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+
 def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
     for t in goal:
