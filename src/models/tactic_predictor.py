@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Union, Tuple, Iterable, NamedTuple
+from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
 from abc import ABCMeta, abstractmethod
 
 class Prediction(NamedTuple):
