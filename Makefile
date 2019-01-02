@@ -33,8 +33,8 @@ scrape:
 	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3 scrape.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
-						       	--prelude ../CompCert
+	xargs python3 scrape2.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
+				        		 --prelude ../CompCert
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --prelude ./CompCert $(FLAGS))
