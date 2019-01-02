@@ -272,7 +272,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
                               tactic_vocab_size : int, term_vocab_size : int) \
         -> Iterable[NeuralPredictorState]:
         dataloader = data.DataLoader(data.TensorDataset(
-            *(self._data_tensors(encoded_data, arg_values, embedding, tokenizer))),
+            *(self._data_tensors(encoded_data, arg_values))),
                                      batch_size=arg_values.batch_size, num_workers=0,
                                      shuffle=True, pin_memory=True, drop_last=True)
         # Drop the last batch in the count
