@@ -20,13 +20,13 @@ class TacticPredictor(metaclass=ABCMeta):
     def __init__(self, options : Dict[str, Union[int, str]]) -> None:
         pass
     @abstractmethod
-    def predictKTactics(self, in_data : ContextInfo, k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]: pass
     @abstractmethod
-    def predictKTacticsWithLoss(self, in_data : ContextInfo, k : int, correct : str) -> \
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]: pass
     @abstractmethod
     def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[ContextInfo],
+                                      in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]: pass
