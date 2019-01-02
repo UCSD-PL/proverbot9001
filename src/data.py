@@ -15,7 +15,9 @@ from tokenizer import Tokenizer, TokenizerState, \
 from format import read_tactic_tuple, ScrapedTactic
 from models.components import SimpleEmbedding
 
-from typing import Tuple, List, Callable, Optional
+from typing import Tuple, NamedTuple, List, Callable, Optional, Sized, Sequence, Dict
+from abc import ABCMeta
+from dataclasses import dataclass
 from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
@@ -26,12 +28,23 @@ EOS_token = 0
 
 Sentence = List[int]
 Bag = List[int]
-RawDataset = Iterable[ScrapedTactic]
 ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
 TermDataset = List[Sentence]
 
+class Dataset(Sized, metaclass=ABCMeta):
+    pass
+
+@dataclass(init=True, repr=True)
+class RawDataset(Dataset, Sequence[ScrapedTactic]):
+    data : List[ScrapedTactic]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, i : Any):
+        return self.data[i]
 def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
     for t in goal:
@@ -78,9 +91,9 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
             while t:
                 yield t
                 t = read_tactic_tuple(f)
-    return list(worker_generator())
+    return RawDataset(list(worker_generator()))
 
-def read_text_data(data_path : str) -> RawDataset:
+def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
@@ -93,11 +106,11 @@ def get_text_data(data_path : str, context_filter_name : str,
             print(*args, **kwargs)
     _print("Reading dataset...")
     raw_data = read_text_data(data_path)
-    filtered_data = list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples))
+    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples)))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
-def filter_data(data : RawDataset, pair_filter : ContextFilter) -> RawDataset:
+def filter_data(data : RawDataset, pair_filter : ContextFilter) -> Iterable[ScrapedTactic]:
     return (ScrapedTactic(prev_tactics, hyps, goal, tactic)
             for ((prev_tactics, hyps, goal, tactic),
                  (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
@@ -147,7 +160,6 @@ def encode_seq_classify_data(data : RawDataset,
     start = time.time()
     print("Making tokenizer...", end="")
     sys.stdout.flush()
-    subset : RawDataset = random.sample(list(data), num_relevance_samples)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
@@ -157,6 +169,7 @@ def encode_seq_classify_data(data : RawDataset,
                                                  num_keywords, num_reserved_tokens)
     print("{}s".format(time.time() - start))
     print("Tokenizing/embedding data...")
+    subset = RawDataset(random.sample(data, num_relevance_samples))
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
                   chain.from_iterable(pool.imap_unordered(functools.partial(

@@ -12,7 +12,7 @@ import argparse
 import itertools
 
 from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
-from data import read_text_data, encode_seq_seq_data, Sentence, \
+from data import get_text_data, encode_seq_seq_data, Sentence, \
     SequenceSequenceDataset, EOS_token, SOS_token
 from util import *
 from util import _inflate
@@ -272,7 +272,7 @@ def main(args_list : List[str]) -> None:
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(args_list)
     print("Reading dataset...")
-    raw_dataset = read_text_data(args.scrape_file)
+    raw_dataset = get_text_data(args.scrape_file, args.context_filter)
     dataset, context_tokenizer, tactic_tokenizer = \
                 encode_seq_seq_data(raw_dataset,
                                     lambda keywords, num_reserved:
