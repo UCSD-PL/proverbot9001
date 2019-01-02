@@ -33,8 +33,8 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from models.tactic_predictor import TacticPredictor, Prediction, TokenizingPredictor, TokenizerEmbeddingState, NeuralPredictorState
-from typing import Dict, List, Union, Any, Tuple, NamedTuple, Iterable, cast, Callable, Optional
+from models.tactic_predictor import TacticPredictor, Prediction, NeuralPredictor, TokenizerEmbeddingState, NeuralPredictorState
+from typing import Dict, List, Union, Any, Tuple, NamedTuple, Iterable, cast, Callable, Optional, Sequence
 
 class ECSample(NamedTuple):
     goal : Sentence
@@ -50,26 +50,26 @@ class ECDataset(Dataset):
     def __getitem__(self, i : Any):
         return self.data[i]
 
-class EncClassPredictor(TokenizingPredictor[ECDataset, NeuralPredictorState]):
+class EncClassPredictor(NeuralPredictor[ECDataset, 'RNNClassifier']):
     def __init__(self) -> None:
         self.criterion = maybe_cuda(nn.NLLLoss())
         self.lock = threading.Lock()
 
     def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
         -> torch.FloatTensor:
-        tokenized_goal = self.tokenizer.toTokenList(in_data["goal"])
-        input_list = inputFromSentence(tokenized_goal, self.max_length)
+        tokenized_goal = self._tokenizer.toTokenList(in_data["goal"])
+        input_list = inputFromSentence(tokenized_goal, self.training_args.max_length)
         input_tensor = LongTensor(input_list).view(1, -1)
-        return self.encoder.run(input_tensor)
+        return self._model.run(input_tensor)
 
     def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
         -> List[Prediction]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
-        if k > self.embedding.num_tokens():
-            k= self.embedding.num_tokens()
+        if k > self._embedding.num_tokens():
+            k = self._embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self.embedding.decode_token(stem_idx.data[0]) + ".",
+        results = [Prediction(self._embedding.decode_token(stem_idx.data[0]) + ".",
                               math.exp(certainty.data[0]))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
         self.lock.release()
@@ -80,17 +80,17 @@ class EncClassPredictor(TokenizingPredictor[ECDataset, NeuralPredictorState]):
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)
-        if self.embedding.has_token(correct_stem):
+        if self._embedding.has_token(correct_stem):
             output_var = maybe_cuda(Variable(
-                torch.LongTensor([self.embedding.encode_token(correct_stem)])))
+                torch.LongTensor([self._embedding.encode_token(correct_stem)])))
             loss = self.criterion(prediction_distribution.view(1, -1), output_var).item()
         else:
             loss = 0
 
-        if k > self.embedding.num_tokens():
-            k = self.embedding.num_tokens()
+        if k > self._embedding.num_tokens():
+            k = self._embedding.num_tokens()
         certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+        results = [Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
                               math.exp(certainty.item()))
                    for certainty, stem_idx in zip(*certainties_and_idxs)]
 
@@ -104,25 +104,25 @@ class EncClassPredictor(TokenizingPredictor[ECDataset, NeuralPredictorState]):
         if len(in_data) == 0:
             return [], 0
         self.lock.acquire()
-        tokenized_goals = [self.tokenizer.toTokenList(in_data_point["goal"])
+        tokenized_goals = [self._tokenizer.toTokenList(in_data_point["goal"])
                            for in_data_point in in_data]
-        input_tensor = LongTensor([inputFromSentence(tokenized_goal, self.max_length)
+        input_tensor = LongTensor([inputFromSentence(tokenized_goal, self.training_args.max_length)
                                   for tokenized_goal in tokenized_goals])
-        prediction_distributions = self.encoder.run(input_tensor, batch_size=len(in_data))
+        prediction_distributions = self._model.run(input_tensor, batch_size=len(in_data))
         correct_stems = [get_stem(correct) for correct in corrects]
         output_var = maybe_cuda(Variable(
-            torch.LongTensor([self.embedding.encode_token(correct_stem)
-                              if self.embedding.has_token(correct_stem)
+            torch.LongTensor([self._embedding.encode_token(correct_stem)
+                              if self._embedding.has_token(correct_stem)
                               else 0
                               for correct_stem in correct_stems])))
         loss = self.criterion(prediction_distributions, output_var).item()
 
-        if k > self.embedding.num_tokens():
-            k = self.embedding.num_tokens()
+        if k > self._embedding.num_tokens():
+            k = self._embedding.num_tokens()
 
         certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
                                 for single_distribution in list(prediction_distributions)]
-        results = [[Prediction(self.embedding.decode_token(stem_idx.item()) + ".",
+        results = [[Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
                                math.exp(certainty.item()))
                     for certainty, stem_idx in zip(*certainties_and_idxs)]
                    for certainties_and_idxs in certainties_and_idxs_list]
@@ -130,73 +130,44 @@ class EncClassPredictor(TokenizingPredictor[ECDataset, NeuralPredictorState]):
         return results, loss
 
     def getOptions(self) -> List[Tuple[str, str]]:
-        return self.options
+        return list(vars(self.training_args).items()) + \
+            [("training loss", self.training_loss),
+             ("# epochs", self.num_epochs)]
 
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
         super().add_args_to_parser(parser, default_values)
-        parser.add_argument("--num-epochs", dest="num_epochs", type=int,
-                            default=default_values.get("num-epochs", 20))
-        parser.add_argument("--batch-size", dest="batch_size", type=int,
-                            default=default_values.get("batch-size", 256))
         parser.add_argument("--max-length", dest="max_length", type=int,
                             default=default_values.get("max-length", 100))
-        parser.add_argument("--start-from", dest="start_from", type=str,
-                            default=default_values.get("start-from", None))
-        parser.add_argument("--print-every", dest="print_every", type=int,
-                            default=default_values.get("print-every", 5))
         parser.add_argument("--hidden-size", dest="hidden_size", type=int,
                             default=default_values.get("hidden-size", 128))
-        parser.add_argument("--learning-rate", dest="learning_rate", type=float,
-                            default=default_values.get("learning-rate", .7))
-        parser.add_argument("--epoch-step", dest="epoch_step", type=int,
-                            default=default_values.get("epoch-step", 10))
-        parser.add_argument("--gamma", dest="gamma", type=float,
-                            default=default_values.get("gamma", 0.8))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
-        parser.add_argument("--optimizer",
-                            choices=list(optimizers.keys()), type=str,
-                            default=default_values.get("optimizer",
-                                                       list(optimizers.keys())[0]))
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace) \
         -> ECDataset:
         return ECDataset([ECSample(goal, tactic) for prev_tactics, goal, tactic in
                           data])
-    def _optimize_model_to_disc(self,
-                                encoded_data : ECDataset,
-                                encdec_state : TokenizerEmbeddingState,
-                                arg_values : Namespace) \
-        -> None:
-        for epoch, predictor_state in enumerate(
-                train(encoded_data,
-                      encdec_state.tokenizer.numTokens(),
-                      encdec_state.embedding.num_tokens(),
-                      arg_values),
-                start=1):
-            with open(arg_values.save_file, 'wb') as f:
-                print("=> Saving checkpoint at epoch {}".format(epoch))
-                torch.save((arg_values, encdec_state, predictor_state), f)
+    def _data_tensors(self, encoded_data : ECDataset,
+                      arg_values : Namespace) \
+        -> List[torch.Tensor]:
+        in_stream = torch.LongTensor([inputFromSentence(datum.goal, arg_values.max_length)
+                                      for datum in encoded_data])
+        out_stream = torch.LongTensor([datum.tactic for datum in encoded_data])
+        return [in_stream, out_stream]
+    def _get_model(self, arg_values : Namespace,
+                   tactic_vocab_size : int, term_vocab_size : int) \
+        -> 'RNNClassifier':
+        return RNNClassifier(term_vocab_size, arg_values.hidden_size, tactic_vocab_size,
+                             arg_values.num_encoder_layers)
+    def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
+                                model : 'RNNClassifier') \
+        -> torch.FloatTensor:
+        input_batch, output_batch = data_batch
+        predictionDistribution = model.run(input_batch, batch_size=len(input_batch))
+        output_var = maybe_cuda(Variable(output_batch))
+        return self.criterion(predictionDistribution, output_var)
     def _description(self) -> str:
-        return "a classifier pytorch model for proverbot"
-    def load_saved_state(self,
-                         args : Namespace,
-                         metadata : TokenizerEmbeddingState,
-                         state : NeuralPredictorState) -> None:
-        epoch, state = state
-        self.options = list(vars(args).items()) + \
-            [("training loss", state.loss),
-             ("# epochs", state.epoch)]
-        self.tokenizer = metadata.tokenizer
-        self.embedding = metadata.embedding
-        self.encoder = maybe_cuda(RNNClassifier(self.tokenizer.numTokens(),
-                                                args.hidden_size,
-                                                self.embedding.num_tokens(),
-                                                args.num_encoder_layers,
-                                                1,
-                                                batch_size=1))
-        self.encoder.load_state_dict(state.weights)
-        self.max_length = args.max_length
+       return "a classifier pytorch model for proverbot"
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
@@ -231,67 +202,6 @@ class RNNClassifier(nn.Module):
         for i in range(in_var.size()[1]):
             output, hidden = self(in_var[:,i], hidden)
         return output.view(self.batch_size, -1)
-
-Checkpoint = Tuple[Dict[Any, Any], float]
-
-def train(dataset : ECDataset,
-          input_vocab_size : int,
-          output_vocab_size : int,
-          args : argparse.Namespace) -> Iterable[Checkpoint]:
-    print("Initializing PyTorch...")
-    in_stream = [inputFromSentence(datum[0], args.max_length) for datum in dataset]
-    out_stream = [datum[1] for datum in dataset]
-    dataloader = data.DataLoader(data.TensorDataset(torch.LongTensor(in_stream),
-                                                    torch.LongTensor(out_stream)),
-                                 batch_size=args.batch_size, num_workers=0,
-                                 shuffle=True, pin_memory=True, drop_last=True)
-
-    encoder = maybe_cuda(
-        RNNClassifier(input_vocab_size, args.hidden_size, output_vocab_size,
-                      args.num_encoder_layers,
-                      batch_size=args.batch_size))
-    optimizer = optimizers[args.optimizer](encoder.parameters(), lr=args.learning_rate)
-    criterion = maybe_cuda(nn.NLLLoss())
-    adjuster = scheduler.StepLR(optimizer, args.epoch_step, gamma=args.gamma)
-    lsoftmax = maybe_cuda(nn.LogSoftmax(1))
-
-    start=time.time()
-    num_items = len(dataset) * args.num_epochs
-    total_loss = 0
-
-    print("Training...")
-    for epoch in range(1, args.num_epochs+1):
-        print("Epoch {}".format(epoch))
-        adjuster.step()
-        for batch_num, (input_batch, output_batch) in enumerate(dataloader):
-
-            optimizer.zero_grad()
-
-            prediction_distribution = encoder.run(
-                cast(torch.LongTensor, input_batch),
-                batch_size=args.batch_size)
-            loss = cast(torch.FloatTensor, 0)
-            output_var = maybe_cuda(Variable(output_batch))
-            loss += criterion(prediction_distribution, output_var)
-            loss.backward()
-
-            optimizer.step()
-
-            total_loss += loss.data.item() * args.batch_size
-
-            if (batch_num + 1) % args.print_every == 0:
-
-                items_processed = (batch_num + 1) * args.batch_size + \
-                    (epoch - 1) * len(dataset)
-                progress = items_processed / num_items
-                print("{} ({:7} {:5.2f}%) {:.4f}".
-                      format(timeSince(start, progress),
-                             items_processed, progress * 100,
-                             total_loss / items_processed))
-
-        yield (epoch, NeuralPredictorState(epoch,
-                                           total_loss / items_processed,
-                                           encoder.state_dict()))
 
 def main(arg_list : List[str]) -> None:
     predictor = EncClassPredictor()
