@@ -64,11 +64,14 @@ def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
                 continue
             else:
                 hyps.append(line.strip())
-        goal = next(lines_it)
-        assert next(lines_it) == "+++++\n"
-        tactic = next(lines_it)
-        return ScrapedTactic(prev_tactics=prev_tactics, hypotheses=hyps,
-                             goal=goal, tactic=tactic)
+        try:
+            goal = next(lines_it)
+            assert next(lines_it) == "+++++\n"
+            tactic = next(lines_it)
+            return ScrapedTactic(prev_tactics=prev_tactics, hypotheses=hyps,
+                                 goal=goal, tactic=tactic)
+        except StopIteration:
+            return None
 
 def read_tactic_tuple(f_handle : TextIO) -> Optional[ScrapedTactic]:
     next_tuple = read_tuple(f_handle)
