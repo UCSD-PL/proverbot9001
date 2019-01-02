@@ -17,7 +17,7 @@ from models.encdecrnn_predictor import inputFromSentence
 from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from data import get_text_data, filter_data, \
-    encode_seq_classify_data, ScrapedTactic, Sentence, Dataset, RawDataset
+    encode_seq_classify_data, ScrapedTactic, Sentence, Dataset, TokenizedDataset
 from util import *
 from context_filter import get_context_filter
 from serapi_instance import get_stem
@@ -33,7 +33,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from models.tactic_predictor import TacticPredictor, Prediction, TrainablePredictor, TokenizerEmbeddingState, NeuralPredictorState
+from models.tactic_predictor import TacticPredictor, Prediction, TokenizingPredictor, TokenizerEmbeddingState, NeuralPredictorState
 from typing import Dict, List, Union, Any, Tuple, NamedTuple, Iterable, cast, Callable, Optional
 
 class ECSample(NamedTuple):
@@ -50,7 +50,7 @@ class ECDataset(Dataset):
     def __getitem__(self, i : Any):
         return self.data[i]
 
-class EncClassPredictor(TrainablePredictor[ECDataset, TokenizerEmbeddingState, NeuralPredictorState]):
+class EncClassPredictor(TokenizingPredictor[ECDataset, NeuralPredictorState]):
     def __init__(self) -> None:
         self.criterion = maybe_cuda(nn.NLLLoss())
         self.lock = threading.Lock()
@@ -135,8 +135,6 @@ class EncClassPredictor(TrainablePredictor[ECDataset, TokenizerEmbeddingState, N
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
         super().add_args_to_parser(parser, default_values)
-        parser.add_argument("--print-keywords", dest="print_keywords",
-                            default=False, action='store_const', const=True)
         parser.add_argument("--num-epochs", dest="num_epochs", type=int,
                             default=default_values.get("num-epochs", 20))
         parser.add_argument("--batch-size", dest="batch_size", type=int,
@@ -157,31 +155,14 @@ class EncClassPredictor(TrainablePredictor[ECDataset, TokenizerEmbeddingState, N
                             default=default_values.get("gamma", 0.8))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
-        parser.add_argument("--num-keywords", dest="num_keywords", type=int,
-                            default=default_values.get("num-keywordes", 60))
-        parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
-                            default=default_values.get("tokenizer",
-                                                       list(tokenizers.keys())[0]))
-        parser.add_argument("--save-tokens", dest="save_tokens",
-                            default=default_values.get("save-tokens", None))
-        parser.add_argument("--load-tokens", dest="load_tokens",
-                            default=default_values.get("load-tokens", None))
         parser.add_argument("--optimizer",
                             choices=list(optimizers.keys()), type=str,
                             default=default_values.get("optimizer",
                                                        list(optimizers.keys())[0]))
-    def _encode_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Tuple[ECDataset, TokenizerEmbeddingState]:
-        preprocessed_data = self._preprocess_data(data, arg_values)
-        dataset, tokenizer, embedding = \
-            encode_seq_classify_data(preprocessed_data,
-                                     tokenizers[arg_values.tokenizer],
-                                     arg_values.num_keywords, 2,
-                                     arg_values.save_tokens,
-                                     arg_values.load_tokens)
-        if arg_values.print_keywords:
-            print("Keywords are {}".format(tokenizer.listTokens()))
-        return dataset, TokenizerEmbeddingState(tokenizer, embedding)
+    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace) \
+        -> ECDataset:
+        return ECDataset([ECSample(goal, tactic) for prev_tactics, goal, tactic in
+                          data])
     def _optimize_model_to_disc(self,
                                 encoded_data : ECDataset,
                                 encdec_state : TokenizerEmbeddingState,
@@ -202,19 +183,20 @@ class EncClassPredictor(TrainablePredictor[ECDataset, TokenizerEmbeddingState, N
                          args : Namespace,
                          metadata : TokenizerEmbeddingState,
                          state : NeuralPredictorState) -> None:
+        epoch, state = state
         self.options = list(vars(args).items()) + \
-            [("training loss", self.training_loss),
-             ("# epochs", self.num_epochs),
-             ("skip nochange tactics:", str(options["skip-nochange-tac"]))]
-        self.tokenizer, self.embedding = metadata
+            [("training loss", state.loss),
+             ("# epochs", state.epoch)]
+        self.tokenizer = metadata.tokenizer
+        self.embedding = metadata.embedding
         self.encoder = maybe_cuda(RNNClassifier(self.tokenizer.numTokens(),
-                                                arg_values.hidden_size,
+                                                args.hidden_size,
                                                 self.embedding.num_tokens(),
-                                                arg_values.num_encoder_layers,
+                                                args.num_encoder_layers,
                                                 1,
                                                 batch_size=1))
         self.encoder.load_state_dict(state.weights)
-        self.max_length = arg_values.max_length
+        self.max_length = args.max_length
 
 class RNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size: int,
@@ -314,47 +296,3 @@ def train(dataset : ECDataset,
 def main(arg_list : List[str]) -> None:
     predictor = EncClassPredictor()
     predictor.train(arg_list)
-
-def encode_seq_classify_data(data : RawDataset,
-                             tokenizer_type : Callable[[List[str], int], Tokenizer],
-                             num_keywords : int,
-                             num_reserved_tokens : int,
-                             save_tokens : Optional[str] = None,
-                             load_tokens : Optional[str] = None,
-                             num_relevance_samples : int = 1000) \
-    -> Tuple[ECDataset, Tokenizer, SimpleEmbedding]:
-    embedding = SimpleEmbedding()
-    data = list(data)
-    subset = RawDataset(random.sample(data, num_relevance_samples))
-    if load_tokens:
-        print("Loading tokens from {}".format(load_tokens))
-        tokenizer = torch.load(load_tokens)
-    else:
-        start = time.time()
-        print("Picking tokens...", end="")
-        sys.stdout.flush()
-        tokenizer = make_keyword_tokenizer_relevance([(context,
-                                                       embedding.encode_token(
-                                                           get_stem(tactic)))
-                                                      for prev_tactics, hyps,
-                                                      context, tactic
-                                                      in subset],
-                                                     tokenizer_type,
-                                                     num_keywords, num_reserved_tokens)
-        print("{}s".format(time.time() - start))
-    if save_tokens:
-        print("Saving tokens to {}".format(save_tokens))
-        torch.save(tokenizer, save_tokens)
-    with multiprocessing.Pool(None) as pool:
-        result = ECDataset([ECSample(goal, embedding.encode_token(tactic))
-                            for goal, tactic in
-                            chain.from_iterable(pool.imap_unordered(functools.partial(
-                                encode_seq_classify_data_worker__, tokenizer),
-                                                                    chunks(data, 1024)))])
-    tokenizer.freezeTokenList()
-    return result, tokenizer, embedding
-def encode_seq_classify_data_worker__(tokenizer : Tokenizer,
-                                      chunk : List[Tuple[List[str], List[str], str, str]])\
-    -> List[Tuple[Sentence, str]]:
-    return [(tokenizer.toTokenList(goal), get_stem(tactic))
-            for prev_tactics, hyps, goal, tactic in chunk]

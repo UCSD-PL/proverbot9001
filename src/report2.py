@@ -116,7 +116,7 @@ def main(arg_list : List[str]) -> None:
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
-    context_filter = args.context_filter or dict(predictor.getOptions())["context filter"]
+    context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
 
     with multiprocessing.pool.ThreadPool(args.threads) as pool:
         file_results = \
