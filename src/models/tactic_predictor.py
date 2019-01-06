@@ -298,7 +298,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
         print("Training...")
         for epoch in range(1, arg_values.num_epochs + 1):
             adjuster.step()
-            print("Epoch {} (learning rate {})".format(epoch, optimizer.param_groups[0]['lr']))
+            print("Epoch {} (learning rate {:.6f})".format(epoch, optimizer.param_groups[0]['lr']))
 
             epoch_loss = 0.
 
