@@ -88,7 +88,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                              "intro": "intros.",
                              "constructor": "econstructor."}
             with multiprocessing.Pool(arg_values.num_threads) as pool:
-                iterator = pool.imap_unordered(
+                iterator = pool.imap(
                     functools.partial(tactic_substitutions, substitutions),
                     text_dataset)
                 yield from iterator
@@ -159,7 +159,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         embedding = SimpleEmbedding()
         embedded_data : EmbeddedDataset
         with multiprocessing.Pool(args.num_threads) as pool:
-            stemmed_data = pool.imap_unordered(
+            stemmed_data = pool.imap(
                 stemmify_data, preprocessed_data, chunksize=10240)
             lazy_embedded_data = LazyEmbeddedDataset((
                 EmbeddedSample(prev_tactics, hypotheses, goal,
