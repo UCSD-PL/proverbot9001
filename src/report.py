@@ -555,7 +555,7 @@ def main(arg_list : List[str]) -> None:
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
                         args.baseline, args.skip_nochange_tac,
-                        dict(net.getOptions())["context filter"]
+                        dict(net.getOptions())["context_filter"]
                         if args.use_context_filter else "all")
         worker.start()
         workers.append(worker)
