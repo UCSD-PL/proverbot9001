@@ -33,7 +33,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from models.tactic_predictor import TacticPredictor, Prediction, NeuralPredictor, TokenizerEmbeddingState, NeuralPredictorState
+from models.tactic_predictor import Prediction, NeuralPredictor, NeuralPredictorState, TacticContext
 from typing import Dict, List, Union, Any, Tuple, NamedTuple, Iterable, cast, Callable, Optional, Sequence
 
 class ECSample(NamedTuple):
@@ -52,87 +52,82 @@ class ECDataset(Dataset):
 
 class EncClassPredictor(NeuralPredictor[ECDataset, 'RNNClassifier']):
     def __init__(self) -> None:
-        self.criterion = maybe_cuda(nn.NLLLoss())
-        self.lock = threading.Lock()
+        self._criterion = maybe_cuda(nn.NLLLoss())
+        self._lock = threading.Lock()
 
-    def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
+    def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        tokenized_goal = self._tokenizer.toTokenList(in_data["goal"])
+        tokenized_goal = self._tokenizer.toTokenList(in_data.goal)
         input_list = inputFromSentence(tokenized_goal, self.training_args.max_length)
         input_tensor = LongTensor(input_list).view(1, -1)
         return self._model.run(input_tensor)
 
-    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
-        self.lock.acquire()
-        prediction_distribution = self.predictDistribution(in_data)
-        if k > self._embedding.num_tokens():
-            k = self._embedding.num_tokens()
-        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self._embedding.decode_token(stem_idx.data[0]) + ".",
-                              math.exp(certainty.data[0]))
-                   for certainty, stem_idx in zip(*certainties_and_idxs)]
-        self.lock.release()
+        with self._lock:
+            prediction_distribution = self.predictDistribution(in_data)
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
+            certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+            results = [Prediction(self._embedding.decode_token(stem_idx.data[0]) + ".",
+                                  math.exp(certainty.data[0]))
+                       for certainty, stem_idx in zip(*certainties_and_idxs)]
         return results
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[List[str], str]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
-        self.lock.acquire()
-        prediction_distribution = self.predictDistribution(in_data)
-        correct_stem = get_stem(correct)
-        if self._embedding.has_token(correct_stem):
-            output_var = maybe_cuda(Variable(
-                torch.LongTensor([self._embedding.encode_token(correct_stem)])))
-            loss = self.criterion(prediction_distribution.view(1, -1), output_var).item()
-        else:
-            loss = 0
+        with self._lock:
+            prediction_distribution = self.predictDistribution(in_data)
+            correct_stem = get_stem(correct)
+            if self._embedding.has_token(correct_stem):
+                output_var = maybe_cuda(Variable(
+                    torch.LongTensor([self._embedding.encode_token(correct_stem)])))
+                loss = self._criterion(prediction_distribution.view(1, -1), output_var).item()
+            else:
+                loss = 0
 
-        if k > self._embedding.num_tokens():
-            k = self._embedding.num_tokens()
-        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
-                              math.exp(certainty.item()))
-                   for certainty, stem_idx in zip(*certainties_and_idxs)]
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
+            certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+            results = [Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
+                                  math.exp(certainty.item()))
+                       for certainty, stem_idx in zip(*certainties_and_idxs)]
 
-        self.lock.release()
         return results, loss
 
     def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[Dict[str, Union[str, List[str]]]],
+                                      in_data : List[TacticContext],
                                       k : int, corrects : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         if len(in_data) == 0:
             return [], 0
-        self.lock.acquire()
-        tokenized_goals = [self._tokenizer.toTokenList(in_data_point["goal"])
-                           for in_data_point in in_data]
-        input_tensor = LongTensor([inputFromSentence(tokenized_goal, self.training_args.max_length)
-                                  for tokenized_goal in tokenized_goals])
-        prediction_distributions = self._model.run(input_tensor, batch_size=len(in_data))
-        correct_stems = [get_stem(correct) for correct in corrects]
-        output_var = maybe_cuda(Variable(
-            torch.LongTensor([self._embedding.encode_token(correct_stem)
-                              if self._embedding.has_token(correct_stem)
-                              else 0
-                              for correct_stem in correct_stems])))
-        loss = self.criterion(prediction_distributions, output_var).item()
+        with self._lock:
+            tokenized_goals = [self._tokenizer.toTokenList(goal)
+                               for prev_tactics, hypotheses, goal in in_data]
+            input_tensor = LongTensor([inputFromSentence(tokenized_goal,
+                                                         self.training_args.max_length)
+                                      for tokenized_goal in tokenized_goals])
+            prediction_distributions = self._model.run(input_tensor,
+                                                       batch_size=len(in_data))
+            correct_stems = [get_stem(correct) for correct in corrects]
+            output_var = maybe_cuda(Variable(
+                torch.LongTensor([self._embedding.encode_token(correct_stem)
+                                  if self._embedding.has_token(correct_stem)
+                                  else 0
+                                  for correct_stem in correct_stems])))
+            loss = self._criterion(prediction_distributions, output_var).item()
 
-        if k > self._embedding.num_tokens():
-            k = self._embedding.num_tokens()
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
 
-        certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
-                                for single_distribution in list(prediction_distributions)]
-        results = [[Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
-                               math.exp(certainty.item()))
-                    for certainty, stem_idx in zip(*certainties_and_idxs)]
-                   for certainties_and_idxs in certainties_and_idxs_list]
-        self.lock.release()
+            certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
+                                         for single_distribution in
+                                         list(prediction_distributions)]
+            results = [[Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
+                                   math.exp(certainty.item()))
+                        for certainty, stem_idx in zip(*certainties_and_idxs)]
+                       for certainties_and_idxs in certainties_and_idxs_list]
         return results, loss
-
-    def getOptions(self) -> List[Tuple[str, str]]:
-        return list(vars(self.training_args).items()) + \
-            [("training loss", self.training_loss),
-             ("# epochs", self.num_epochs)]
 
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
@@ -143,7 +138,8 @@ class EncClassPredictor(NeuralPredictor[ECDataset, 'RNNClassifier']):
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
-    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace) \
+    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
+                               term_vocab_size : int, tactic_vocab_size : int) \
         -> ECDataset:
         return ECDataset([ECSample(goal, tactic) for prev_tactics, goal, tactic in
                           data])
@@ -162,10 +158,11 @@ class EncClassPredictor(NeuralPredictor[ECDataset, 'RNNClassifier']):
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
                                 model : 'RNNClassifier') \
         -> torch.FloatTensor:
-        input_batch, output_batch = data_batch
+        input_batch, output_batch = cast(Tuple[torch.LongTensor, torch.LongTensor],
+                                         data_batch)
         predictionDistribution = model.run(input_batch, batch_size=len(input_batch))
         output_var = maybe_cuda(Variable(output_batch))
-        return self.criterion(predictionDistribution, output_var)
+        return self._criterion(predictionDistribution, output_var)
     def _description(self) -> str:
        return "a classifier pytorch model for proverbot"
 

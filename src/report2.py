@@ -24,7 +24,7 @@ from data import file_chunks, filter_data
 from context_filter import get_context_filter
 from serapi_instance import get_stem
 from predict_tactic import predictors, loadPredictor
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from yattag import Doc
 from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
     ScrapedTactic, ScrapedCommand
@@ -108,10 +108,7 @@ def main(arg_list : List[str]) -> None:
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
-    predictor = loadPredictor({"filename": args.weightsfile,
-                               "beam-width":args.num_predictions ** 2,
-                               "skip-nochange-tac":args.skip_nochange_tac},
-                              args.predictor)
+    predictor = loadPredictor(args.weightsfile, args.predictor)
 
     if not os.path.exists(args.output):
         os.makedirs(args.output)
@@ -145,8 +142,9 @@ def report_file(args : argparse.Namespace,
         total_loss = 0.
         for tactic_interaction in tactic_interactions:
             assert isinstance(tactic_interaction.goal, str)
-        inputs = [{"goal" : format_goal(tactic_interaction.goal),
-                   "hyps" : tactic_interaction.hypotheses}
+        inputs = [TacticContext(tactic_interaction.prev_tactics,
+                                tactic_interaction.hypotheses,
+                                format_goal(tactic_interaction.goal))
                   for tactic_interaction in tactic_interactions]
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]

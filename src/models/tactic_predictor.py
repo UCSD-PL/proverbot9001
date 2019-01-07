@@ -149,7 +149,8 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         parser.add_argument("--print-keywords", dest="print_keywords",
                             default=False, action='store_const', const=True)
     @abstractmethod
-    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace) \
+    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
+                               term_vocab_size : int, tactic_vocab_size : int) \
         -> DatasetType:
         pass
 
@@ -200,7 +201,9 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             tokenized_data = tokenize_data(tokenizer, embedding, embedded_data, args.num_threads)
             gc.collect()
 
-        return self._encode_tokenized_data(tokenized_data, args), \
+        return self._encode_tokenized_data(tokenized_data, args,
+                                           tokenizer.numTokens(),
+                                           embedding.num_tokens()), \
             TokenizerEmbeddingState(tokenizer, embedding)
     @abstractmethod
     def load_saved_state(self,
@@ -339,7 +342,8 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
             [("training loss", self.training_loss),
              ("# epochs", self.num_epochs)]
     @abstractmethod
-    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace) \
+    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
+                               term_vocab_size : int, tactic_vocab_size : int) \
         -> DatasetType:
         pass
     @abstractmethod

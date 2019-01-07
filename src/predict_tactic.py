@@ -30,11 +30,11 @@ predictors = {
     'hyparg' : hyparg_predictor.HypArgPredictor,
 }
 
-def loadPredictor(options : Dict[str, Union[int, str]], predictor_type) -> TacticPredictor:
+def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic
     # predictor". But I don't know how to specify that.
     predictor = predictors[predictor_type]() # type: ignore
-    predictor.load_saved_state(*torch.load(options["filename"]))
+    predictor.load_saved_state(*torch.load(filename))
     return predictor

@@ -32,7 +32,7 @@ from context_filter import get_context_filter
 from syntax import syntax_highlight, strip_comments
 
 from predict_tactic import predictors, loadPredictor
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, TacticContext
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
@@ -327,12 +327,14 @@ class Worker(threading.Thread):
                                            self.prelude) as coq:
             coq.debug = self.debug
             nb_commands = len(commands)
+            prev_tactics = []
             for i in range(nb_commands):
                 command = commands[i]
                 # print("Processing command {}/{}".format(str(i+1), str(nb_commands)))
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
+                    prev_tactics.append(command)
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
                     if self.baseline:
@@ -340,8 +342,7 @@ class Worker(threading.Thread):
                                                      * num_predictions
                     else:
                         predictions_and_certainties, loss = net.predictKTacticsWithLoss(
-                            {"goal" : format_goal(goals),
-                             "hyps" : format_hypothesis(hyps)},
+                            TacticContext(prev_tactics, hyps, goals),
                             num_predictions,
                             command)
 
@@ -384,6 +385,7 @@ class Worker(threading.Thread):
                     else:
                         command_results.append((command,))
                 else:
+                    prev_tactics = []
                     try:
                         coq.run_stmt(command)
                     except (AckError, CompletedError, CoqExn,
@@ -544,10 +546,7 @@ def main(arg_list : List[str]) -> None:
 
     args.threads = min(args.threads, len(args.filenames))
 
-    net = loadPredictor({"filename": args.weightsfile,
-                         "skip-nochange-tac": args.skip_nochange_tac,
-                         "beam-width": num_predictions ** 2},
-                        args.predictor)
+    net = loadPredictor(args.weightsfile, args.predictor)
     predictorName = args.predictor
     gresult = GlobalResult(net.getOptions())
 
