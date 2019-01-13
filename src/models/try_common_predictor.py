@@ -1,78 +1,86 @@
 #!/usr/bin/env python3
 
 import argparse
+from argparse import Namespace
 import re
 
 import torch
 
-from typing import Dict, Any, List, Tuple, Union
+from typing import Dict, Any, List, Tuple, NamedTuple, Union
 
-from models.tactic_predictor import TacticPredictor, Prediction, ContextInfo
+from models.tactic_predictor import TokenizingPredictor, Prediction, TacticContext, TokenizerEmbeddingState
 from models.components import SimpleEmbedding
 from format import read_tuple, ScrapedTactic
 from util import *
 from serapi_instance import get_stem
-from data import get_text_data
+from data import get_text_data, Dataset, TokenizedDataset
 
-class TryCommonPredictor(TacticPredictor):
-    def load_saved_state(self, filename : str) -> None:
-        checkpoint = torch.load(filename)
+from dataclasses import dataclass
 
-        self.probabilities = checkpoint['probabilities']
-        self.embedding = checkpoint['stem-embeddings']
-        self.context_filter = checkpoint['context-filter']
+class TryCommonSample(NamedTuple):
+    tactic : int
+@dataclass(init=True, repr=True)
+class TryCommonDataset(Dataset):
+    data : List[TryCommonSample]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, i : Any):
+        return self.data[i]
 
-    def __init__(self, options : Dict[str, Any]) -> None:
-        assert options["filename"]
-        self.load_saved_state(options["filename"])
-
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
+    def __init__(self) -> None:
+        super().__init__()
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
-        return [Prediction(self.embedding.decode_token(idx) + ".", prob) for idx, prob
+        return [Prediction(self._embedding.decode_token(idx) + ".", prob) for idx, prob
                 in zip(*list_topk(self.probabilities, k))]
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]],
+    def predictKTacticsWithLoss(self, in_data : TacticContext,
                                 k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
         # Try common doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
     def getOptions(self) -> List[Tuple[str, str]]:
-        return [("context filter", self.context_filter)]
+        return list(vars(self.training_args).items())
     def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[ContextInfo],
+                                      in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         return [self.predictKTactics({}, k)] * len(in_data), 0.
+    def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
+                              term_vocab_size : int, tactic_vocab_size : int) \
+                              -> TryCommonDataset:
+        return TryCommonDataset([TryCommonSample(tactic)
+                                 for prev_tactics, goal, tactic in
+                                 data])
+    def _optimize_model_to_disc(self,
+                                encoded_data : TryCommonDataset,
+                                encdec_state : TokenizerEmbeddingState,
+                                arg_values : Namespace) \
+        -> None:
+        stem_counts = [0] * encdec_state.embedding.num_tokens()
+        for sample in encoded_data:
+            stem_counts[sample.tactic] += 1
+
+        total_count = sum(stem_counts)
+        stem_probs = [count / total_count for count in stem_counts]
+
+        with open(arg_values.save_file, 'wb') as f:
+            torch.save((arg_values, encdec_state, stem_probs), f)
+    def load_saved_state(self,
+                         args : Namespace,
+                         metadata : TokenizerEmbeddingState,
+                         state : List[float]) -> None:
+        self._tokenizer = metadata.tokenizer
+        self._embedding = metadata.embedding
+        self.training_args = args
+        self.context_filter = args.context_filter
+        self.probabilities = state
+        pass
+    def _description(self) -> str:
+        return "A simple predictor which tries the k most common tactic stems."
 
 def train(arg_list : List[str]) -> None:
-    parser = argparse.ArgumentParser(description=
-                                     "A simple predictor which tries "
-                                     "the k most common tactic stems.")
-    parser.add_argument("scrape_file")
-    parser.add_argument("save_file")
-    parser.add_argument("--context-filter", dest="context_filter", type=str,
-                        default="goal-changes%no-args")
-    args = parser.parse_args(arg_list)
-    text_dataset = get_text_data(args.scrape_file, args.context_filter, verbose=True)
-    substitutions = {"auto": "eauto.",
-                     "intros until": "intros.",
-                     "intro": "intros.",
-                     "constructor": "econstructor."}
-    preprocessed_dataset = [ScrapedTactic(prev_tactics, hyps, goal, tactic
-                                          if get_stem(tactic) not in substitutions
-                                          else substitutions[get_stem(tactic)])
-                            for prev_tactics, hyps, goal, tactic in text_dataset]
-    embedding = SimpleEmbedding()
-    dataset = [embedding.encode_token(get_stem(tactic))
-               for prev_tactics, hyps, context, tactic
-               in preprocessed_dataset]
-    stem_counts = [0] * embedding.num_tokens()
-    for stem in dataset:
-        stem_counts[stem] += 1
-
-    total_count = sum(stem_counts)
-    stem_probs = [count / total_count for count in stem_counts]
-
-    with open(args.save_file, 'wb') as f:
-        torch.save({'probabilities' : stem_probs,
-                    'stem-embeddings' : embedding,
-                    'context-filter': args.context_filter}, f)
+    predictor = TryCommonPredictor()
+    predictor.train(arg_list)
