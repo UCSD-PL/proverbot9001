@@ -165,8 +165,9 @@ class SerapiInstance(threading.Thread):
         if not self.quiet or self.debug:
             print("Problem running statement: {}\n{}".format(stmt, e))
         match(e,
-              TimeoutError, lambda *args: raise_(TimeoutError("Statment \"{}\" timed out."
-                                                              .format(stmt))),
+              TimeoutError, lambda *args: progn(self.cancel_last(),
+                                                raise_(TimeoutError("Statment \"{}\" timed out."
+                                                                    .format(stmt)))),
               _, lambda e:
               match(e.msg,
                     ['Stream\.Error', str],
@@ -316,12 +317,9 @@ class SerapiInstance(threading.Thread):
             if self.debug:
                 print("Command timed out! Cancelling")
             self._proc.send_signal(signal.SIGINT)
-            try:
-                interrupt_response = \
-                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
-            except:
-                raise TimeoutError("")
-            if interrupt_response != "Sys.Break":
+            interrupt_response = \
+                normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+            if interrupt_response != "Sys\.Break":
                 assert isinstance(interrupt_response, list), interrupt_response
                 assert interrupt_response[0] == "Feedback", interrupt_response
                 assert len(interrupt_response) > 1, \
@@ -336,7 +334,8 @@ class SerapiInstance(threading.Thread):
                 assert interrupt_response[1][1][1][1] == "Error"
 
             interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout))
-            assert isinstance(interrupt_response2, list)
+
+            assert isinstance(interrupt_response2, list), interrupt_response2
             assert len(interrupt_response2) > 2
             assert interrupt_response2[0] == "Answer"
             assert interrupt_response2[2][0] == "CoqExn"
@@ -357,8 +356,7 @@ class SerapiInstance(threading.Thread):
         match(fin,
               ["Answer", _, "Completed", TAIL], lambda *args: None,
               ['Answer', _, ["CoqExn", _, _, _]],
-              lambda statenum, loc1, loc2, inner: raise_(CoqExn(inner))# ,
-              # _, lambda *args: raise_(BadResponse(fin))
+              lambda statenum, loc1, loc2, inner: raise_(CoqExn(inner)),
         )
 
         return feedbacks
