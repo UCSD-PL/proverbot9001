@@ -90,6 +90,23 @@ class TokenizedDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
+
+NGram = List[int]
+
+class NGramSample(NamedTuple):
+    goal : NGram
+    tactic : int
+
+@dataclass(init=True, repr=True)
+class NGramDataset(Dataset):
+    data : List[NGramSample]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, i : Any):
+        return self.data[i]
+
 def getTokenbagVector(goal : Sentence) -> Bag:
     tokenbag: List[int] = []
     for t in goal:

@@ -18,29 +18,13 @@ from models.tactic_predictor import NeuralPredictor, NeuralPredictorState, Predi
 
 from tokenizer import tokenizers
 from data import get_text_data, Sentence, getNGramTokenbagVector, ScrapedTactic, \
-    TokenizedDataset, encode_ngram_classify_input, Dataset
+    TokenizedDataset, encode_ngram_classify_input, Dataset, NGram, NGramSample, NGramDataset
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
 from models.args import start_std_args
 
 from dataclasses import dataclass
-
-NGram = List[int]
-
-class NGramSample(NamedTuple):
-    goal : NGram
-    tactic : int
-
-@dataclass(init=True, repr=True)
-class NGramDataset(Dataset):
-    data : List[NGramSample]
-    def __iter__(self):
-        return iter(self.data)
-    def __len__(self):
-        return len(self.data)
-    def __getitem__(self, i : Any):
-        return self.data[i]
 
 class NGramClassifyPredictor(NeuralPredictor[NGramDataset, 'nn.Linear']):
     def __init__(self) -> None:
