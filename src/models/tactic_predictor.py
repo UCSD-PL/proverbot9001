@@ -238,7 +238,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
         -> None:
-        super().add_args_to_parser(parser)
+        super().add_args_to_parser(parser, default_values)
         parser.add_argument("--num-epochs", dest="num_epochs", type=int,
                             default=default_values.get("num-epochs", 20))
         parser.add_argument("--batch-size", dest="batch_size", type=int,
