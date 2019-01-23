@@ -15,6 +15,7 @@ from models import autoclass_predictor
 from models import wordbagsvm_classifier
 from models import ngramsvm_classifier
 from models import hyparg_predictor
+from models import pec_predictor
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -28,6 +29,7 @@ predictors = {
     'wordbagsvm' : wordbagsvm_classifier.WordBagSVMClassifier,
     'ngramsvm' : ngramsvm_classifier.NGramSVMClassifier,
     'hyparg' : hyparg_predictor.HypArgPredictor,
+    'pec' : pec_predictor.PECPredictor,
 }
 
 def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:

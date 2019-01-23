@@ -150,7 +150,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
                             default=False, action='store_const', const=True)
     @abstractmethod
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
-                               term_vocab_size : int, tactic_vocab_size : int) \
+                               tokenizer : Tokenizer, embedding : Embedding) \
         -> DatasetType:
         pass
 
@@ -201,9 +201,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             tokenized_data = tokenize_data(tokenizer, embedding, embedded_data, args.num_threads)
             gc.collect()
 
-        return self._encode_tokenized_data(tokenized_data, args,
-                                           tokenizer.numTokens(),
-                                           embedding.num_tokens()), \
+        return self._encode_tokenized_data(tokenized_data, args, tokenizer, embedding), \
             TokenizerEmbeddingState(tokenizer, embedding)
     @abstractmethod
     def load_saved_state(self,
@@ -343,7 +341,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
              ("# epochs", self.num_epochs)]
     @abstractmethod
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
-                               term_vocab_size : int, tactic_vocab_size : int) \
+                               tokenizer : Tokenizer, embedding : Embedding) \
         -> DatasetType:
         pass
     @abstractmethod
@@ -363,3 +361,51 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
         pass
     @abstractmethod
     def _description(self) -> str: pass
+
+import threading
+from torch.autograd import Variable
+
+class NeuralClassifier(NeuralPredictor[DatasetType, ModelType],
+                       metaclass=ABCMeta):
+    def __init__(self) -> None:
+        super().__init__()
+        self._criterion = maybe_cuda(nn.NLLLoss())
+        self._lock = threading.Lock()
+
+    @abstractmethod
+    def _predictDistribution(self, in_data : TacticContext) \
+        -> torch.FloatTensor:
+        pass
+
+    def predictKTactics(self, in_data : TacticContext, k : int) \
+        -> List[Prediction]:
+        with self._lock:
+            prediction_distribution = self._predictDistribution(in_data)
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
+            certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+            results = [Prediction(self._embedding.decode_token(stem_idx.data[0]) + ".",
+                                  math.exp(certainty.data[0]))
+                       for certainty, stem_idx in zip(*certainties_and_idxs)]
+        return results
+
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
+                                correct : str) -> Tuple[List[Prediction], float]:
+        with self._lock:
+            prediction_distribution = self._predictDistribution(in_data)
+            correct_stem = get_stem(correct)
+            if self._embedding.has_token(correct_stem):
+                output_var = maybe_cuda(Variable(
+                    torch.LongTensor([self._embedding.encode_token(correct_stem)])))
+                loss = self._criterion(prediction_distribution.view(1, -1), output_var).item()
+            else:
+                loss = 0
+
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
+            certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+            results = [Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
+                                  math.exp(certainty.item()))
+                       for certainty, stem_idx in zip(*certainties_and_idxs)]
+
+        return results, loss

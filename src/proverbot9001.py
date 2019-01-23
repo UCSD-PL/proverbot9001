@@ -15,6 +15,7 @@ import models.autoclass_predictor as autoclass
 import models.wordbagsvm_classifier as wordbagsvm
 import models.ngramsvm_classifier as ngramsvm
 import models.hyparg_predictor as hyparg
+import models.pec_predictor as pec
 from tokenizer import tokenizers
 import report
 import report2
@@ -114,6 +115,7 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "wordbagsvm" : wordbagsvm.main,
     "ngramsvm" : ngramsvm.main,
     "hyparg" : hyparg.main,
+    "pec" : pec.main,
 }
 
 if __name__ == "__main__":

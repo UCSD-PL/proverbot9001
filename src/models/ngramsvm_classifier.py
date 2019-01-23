@@ -16,8 +16,10 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-from models.tactic_predictor import TokenizingPredictor, Prediction, TacticContext, TokenizerEmbeddingState
-from tokenizer import tokenizers
+from models.tactic_predictor import (TokenizingPredictor, Prediction,
+                                     TacticContext, TokenizerEmbeddingState)
+from models.components import Embedding
+from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, getNGramTokenbagVector, encode_ngram_classify_data, \
     encode_ngram_classify_input, TokenizedDataset, Dataset, NGram, NGramSample, \
     NGramDataset
@@ -43,7 +45,7 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
         self._lock = threading.Lock()
 
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
-                               term_vocab_size : int, tactic_vocab_size : int) \
+                               tokenizer : Tokenizer, embedding : Embedding) \
         -> NGramDataset:
         return NGramDataset([NGramSample(getNGramTokenbagVector(arg_values.num_grams,
                                                                 term_vocab_size,

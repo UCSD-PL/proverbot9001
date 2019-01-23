@@ -14,9 +14,11 @@ from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 
-from models.tactic_predictor import NeuralPredictor, NeuralPredictorState, Prediction, TacticContext
+from models.tactic_predictor import (NeuralPredictor,
+                                     NeuralPredictorState, Prediction, TacticContext)
+from models.components import Embedding
 
-from tokenizer import tokenizers
+from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, Sentence, getNGramTokenbagVector, ScrapedTactic, \
     TokenizedDataset, encode_ngram_classify_input, Dataset, NGram, NGramSample, NGramDataset
 from context_filter import get_context_filter
@@ -100,10 +102,10 @@ class NGramClassifyPredictor(NeuralPredictor[NGramDataset, 'nn.Linear']):
                                             "learning-rate": 0.0008})
         parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
-                               term_vocab_size : int, tactic_vocab_size : int) \
+                               tokenizer : Tokenizer, embedding : Embedding) \
         -> NGramDataset:
         return NGramDataset([NGramSample(getNGramTokenbagVector(arg_values.num_grams,
-                                                                term_vocab_size,
+                                                                tokenizer.numTokens(),
                                                                 goal),
                                          tactic) for prev_tactic, goal, tactic in data])
     def _data_tensors(self, encoded_data : NGramDataset,
