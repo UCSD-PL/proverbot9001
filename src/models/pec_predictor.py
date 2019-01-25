@@ -38,43 +38,45 @@ class PECDataset(Dataset):
 
 class PEClassifier(nn.Module):
     def __init__(self, goal_vocab_size : int, hidden_size : int,
-                 tactic_vocab_size : int, num_encoder_layers : int) -> None:
+                 tactic_vocab_size : int, num_encoder_layers : int,
+                 num_decoder_layers : int) -> None:
         super().__init__()
         self.num_encoder_layers = num_encoder_layers
+        self.num_decoder_layers = num_decoder_layers
         self.hidden_size = hidden_size
         self.goal_embedding = maybe_cuda(nn.Embedding(goal_vocab_size, hidden_size))
         self.tactic_embedding = maybe_cuda(nn.Embedding(tactic_vocab_size, hidden_size))
         self.gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self.decoder_out = maybe_cuda(nn.Linear(hidden_size * 2, tactic_vocab_size))
         self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
+        self.squish = maybe_cuda(nn.Linear(hidden_size * 2, hidden_size))
+        self.decoder_layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
+                               for _ in range(num_decoder_layers-1)]
+        self.decoder_out = maybe_cuda(nn.Linear(hidden_size, tactic_vocab_size))
 
-    def forward(self, goal_token : torch.LongTensor, hidden :
-                torch.FloatTensor) \
-        -> Tuple[torch.FloatTensor, torch.FloatTensor]:
-        batch_size = goal_token.size()[0]
-        output = self.goal_embedding(goal_token).view(1, batch_size, self.hidden_size)
-        for i in range(self.num_encoder_layers):
-            output = F.relu(output)
-            output, hidden = self.gru(output, hidden)
-        return output[0], hidden
+    def forward(self, goal_tokens : torch.LongTensor, prev_tactic : torch.LongTensor) \
+        -> torch.FloatTensor:
+        batch_size = goal_tokens.size()[0]
+        prev_data = self.tactic_embedding(prev_tactic).view(batch_size, self.hidden_size)
+        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        for i in range(goal_tokens.size()[1]):
+            goal_data = self.goal_embedding(goal_tokens[:,i])\
+                            .view(1, batch_size, self.hidden_size)
+            for _ in range(self.num_encoder_layers):
+                goal_data = F.relu(goal_data)
+                goal_data, hidden = self.gru(goal_data, hidden)
+
+        goal_output = goal_data[0]
+
+        full_data = self.squish(torch.cat((goal_output, prev_data), dim=1))
+        for i in range(self.num_decoder_layers-1):
+            full_data = F.relu(full_data)
+            full_data = self.decoder_layers[i](full_data)
+        return self.softmax(self.decoder_out(F.relu(full_data)))
 
     def run(self,
             goal_tokens : torch.LongTensor,
             prev_tactic : torch.LongTensor):
-        batch_size = goal_tokens.size()[0]
-        assert prev_tactic.size()[0] == batch_size
-        in_var = maybe_cuda(Variable(goal_tokens))
-        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
-
-        for i in range(in_var.size()[1]):
-            goal_output, hidden = self(in_var[:,i], hidden)
-
-        embedded_prev = self.tactic_embedding(maybe_cuda(prev_tactic))\
-                            .view(batch_size, self.hidden_size)
-        catted = torch.cat((goal_output, embedded_prev), dim=1)
-        full_output = self.decoder_out(catted)
-
-        return self.softmax(full_output).view(batch_size, -1)
+        return self(maybe_cuda(goal_tokens), maybe_cuda(prev_tactic))
 
 class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
     def _get_prev(self, in_data : TacticContext) -> int:
@@ -131,6 +133,8 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
+        parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
+                            default=default_values.get("num-decoder-layers", 3))
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
                                tokenizer : Tokenizer, embedding : Embedding) \
         -> PECDataset:
@@ -152,7 +156,7 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
                    term_vocab_size : int) \
                    -> PEClassifier:
         return PEClassifier(term_vocab_size, arg_values.hidden_size, tactic_vocab_size,
-                            arg_values.num_encoder_layers)
+                            arg_values.num_encoder_layers, arg_values.num_decoder_layers)
 
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
                                 model : PEClassifier) \
