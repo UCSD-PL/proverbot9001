@@ -88,7 +88,12 @@ function setup-software-foundation {
     (
         set -euv
         cd software-foundations
-        PATH="$PWD/../coq/bin:$PATH" make
+        export PATH="$PWD/../coq/bin:$PATH"
+        coq_makefile `cat ../data/sf-files.txt` > Makefile
+        echo "print-includes:" >> Makefile
+        echo -e "\tcat _CoqProject" >> Makefile
+        echo "-R . Top" >> _CoqProject
+        echo "-I ." >> _CoqProject
     ) || exit 1
 }
 
