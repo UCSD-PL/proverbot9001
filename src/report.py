@@ -524,8 +524,13 @@ def main(arg_list : List[str]) -> None:
 
     coqargs = ["{}/coq-serapi/sertop.native".format(base),
                "--prelude={}/coq".format(base)]
-    includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
-                                stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+    try:
+        with open("{}/_CoqProject".format(args.prelude), 'r') as coqproject:
+            includes = coqproject.read().strip()
+    except FileNotFoundError:
+        includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
+                                    stdout=subprocess.PIPE).communicate()[0]\
+                             .decode('utf-8')
 
     # Get some metadata
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
