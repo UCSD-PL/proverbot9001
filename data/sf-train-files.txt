@@ -1,18 +1,30 @@
-./Basics.v
-# ./Auto.v
-# NOT WORKING ./Equiv.v
-# NOT WORKING ./Hoare.v
-# NOT WORKING ./Hoare2.v
-# NOT WORKING ./Imp.v
-./IndPrinciples.v
-# NOT WORKING ./IndProp.v
-./Induction.v
-./Lists.v
-./Logic.v
-./Maps.v
-./Poly.v
-./ProofObjects.v
-# NOT WORKING ./Smallstep.v
-./Symbols.v
-./Tactics.v
-# NOT WORKING ./Types.v
+AutoTest.v
+Auto.v
+BasicsTest.v
+Basics.v
+BibTest.v
+Bib.v
+EquivTest.v
+Equiv.v
+Hoare2Test.v
+Hoare2.v
+HoareAsLogicTest.v
+HoareAsLogic.v
+HoareTest.v
+Hoare.v
+ImpCEvalFunTest.v
+ImpCEvalFun.v
+ImpParserTest.v
+ImpParser.v
+ImpTest.v
+Imp.v
+IndPrinciplesTest.v
+IndPrinciples.v
+IndPropTest.v
+IndProp.v
+InductionTest.v
+Induction.v
+LibTacticsTest.v
+LibTactics.v
+ListsTest.v
+Lists.v
