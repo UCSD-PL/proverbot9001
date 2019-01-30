@@ -139,7 +139,10 @@ def encode_seq_classify_data(data : RawDataset,
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()
     print("Making tokenizer...")
-    subset : RawDataset = random.sample(list(data), 1000)
+    if (len(data) > 1000):
+        subset : RawDataset = random.sample(list(data), 1000)
+    else:
+        subset = list(data)
     tokenizer = make_keyword_tokenizer_relevance([(context,
                                                    embedding.encode_token(
                                                        get_stem(tactic)))
