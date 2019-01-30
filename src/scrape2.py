@@ -27,9 +27,13 @@ def main():
     args = parser.parse_args()
 
 
-    includes=subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
-                              stdout=subprocess.PIPE).communicate()[0]\
-                       .strip().decode('utf-8')
+    try:
+        with open("{}/_CoqProject".format(args.prelude), 'r') as coqproject:
+            includes = coqproject.read().strip()
+    except FileNotFoundError:
+        includes=subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
+                                  stdout=subprocess.PIPE).communicate()[0]\
+                           .strip().decode('utf-8')
 
     thispath = os.path.dirname(os.path.abspath(__file__))
     # Set up the command which runs sertop.
