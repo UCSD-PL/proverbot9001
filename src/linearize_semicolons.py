@@ -150,7 +150,8 @@ def linearize_commands(commands_sequence, coq, filename):
             command_batch.append(command)
             command = next(commands_sequence, None)
         # Get the QED on there too.
-        command_batch.append(command)
+        if command:
+            command_batch.append(command)
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
@@ -176,7 +177,13 @@ def linearize_commands(commands_sequence, coq, filename):
         orig = command_batch[:]
         command_batch = list(split_commas(command_batch))
         try:
-            linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch))
+            if any([serapi_instance.admitting_proof(command)
+                    for command in command_batch]):
+                linearized_commands = []
+                command_batch = ["Admitted."]
+            else:
+                linearized_commands = \
+                    list(linearize_proof(coq, theorem_name, with_tactic, command_batch))
             leftover_commands = []
 
             for command in command_batch:

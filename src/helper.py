@@ -84,8 +84,8 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) 
             coq.cancel_last()
 
         # First check if the lemma_stack has content and the command is early terminating
-        early_terminating = serapi_instance.aborting_proof(command) or \
-                            serapi_instance.admitting_proof(command)
+        early_terminating = serapi_instance.aborting_proof(command)#  or \
+                            # serapi_instance.admitting_proof(command)
         if len(lemma_stack) > 0 and early_terminating:
             lemma_stack.pop()
         # Then check if the command goes to lemma_stack
