@@ -330,7 +330,9 @@ class Worker(threading.Thread):
                 command = commands[i]
                 # print("Processing command {}/{}".format(str(i+1), str(nb_commands)))
                 in_proof = (coq.proof_context and
-                            not re.match(".*Proof.*", command.strip()))
+                            not re.match(".*Proof.*", command.strip()) and
+                            not re.match(".*Admitted.*", command.strip()) and
+                            not re.match(".*Abort.*", command.strip()))
                 if in_proof:
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
