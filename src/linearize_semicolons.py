@@ -398,7 +398,7 @@ def linearize_proof(coq, theorem_name, with_tactic, commands):
 
 def split_commas(commands : Iterator[str]) -> Iterator[str]:
     def split_commas_command(command : str) -> Iterator[str]:
-        if not "," in command:
+        if not "," in serapi_instance.kill_comments(command):
             yield command
         else:
             stem = get_stem(command)
