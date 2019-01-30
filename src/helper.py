@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 
 import serapi_instance
 from serapi_instance import AckError, CompletedError, CoqExn, BadResponse

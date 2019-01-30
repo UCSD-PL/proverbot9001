@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 
 from typing import Dict, Any, List
 from abc import ABCMeta, abstractmethod
