@@ -1,1 +1,16 @@
-./Auto.v
+StlcTest.v
+Stlc.v
+SubTest.v
+Sub.v
+SymbolsTest.v
+Symbols.v
+TacticsTest.v
+Tactics.v
+TypecheckingTest.v
+Typechecking.v
+TypesTest.v
+Types.v
+UseAutoTest.v
+UseAuto.v
+UseTacticsTest.v
+UseTactics.v
