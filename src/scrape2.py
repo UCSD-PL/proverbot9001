@@ -73,7 +73,8 @@ def scrape_file(coqargs : List[str], debug : bool, includes : str,
 
 def process_statement(coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
-    if coq.proof_context:
+    if coq.proof_context and not \
+       (re.match("\s*Admitted.", command) or re.match("\s*Abort.", command)):
         prev_tactics = coq.prev_tactics
         prev_hyps = coq.get_hypothesis()
         prev_goal = coq.get_goals()
