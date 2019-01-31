@@ -23,6 +23,8 @@ def main():
     parser.add_argument('-j', '--threads', default=1, type=int)
     parser.add_argument('--prelude', default=".")
     parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                    dest='skip_nochange_tac')
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -38,7 +40,7 @@ def main():
 
     with multiprocessing.Pool(args.threads) as pool:
         scrape_result_files = pool.imap_unordered(
-            functools.partial(scrape_file, coqargs, args.debug, includes, args.prelude),
+            functools.partial(scrape_file, coqargs, args.skip_nochange_tac, args.debug, includes, args.prelude),
             args.inputs)
         with open(args.output or "scrape.txt", 'w') as out:
             for idx, scrape_result_file in enumerate(scrape_result_files, start=1):
@@ -47,13 +49,13 @@ def main():
                     for line in f:
                         out.write(line)
 
-def scrape_file(coqargs : List[str], debug : bool, includes : str,
+def scrape_file(coqargs : List[str], skip_nochange_tac : bool, debug : bool, includes : str,
                 prelude : str, filename : str) -> str:
     full_filename = prelude + "/" + filename
     commands = try_load_lin(full_filename)
     if not commands:
         commands = lift_and_linearize(load_commands(full_filename),
-                                      coqargs, includes, prelude, full_filename)
+                                      coqargs, includes, prelude, full_filename, skip_nochange_tac)
         save_lin(commands, full_filename)
 
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
