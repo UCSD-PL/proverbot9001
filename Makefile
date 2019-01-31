@@ -101,7 +101,7 @@ report-sf:
 								--prelude ./software-foundations $(FLAGS))
 
 train-sf:
-	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.tar $(FLAGS) --hidden-size $(HIDDEN_SIZE) --print-every=1 --learning-rate=0.1
+	./src/proverbot9001.py train encclass data/scrape.txt data/pytorch-weights.dat $(FLAGS) --hidden-size $(HIDDEN_SIZE) --num-epochs=50 --batch-size=32 --learning-rate=0.4
 
 publish-sf:
 	$(eval REPORT_NAME := $(shell ./reports/get-report-name.py $(REPORT)/))
