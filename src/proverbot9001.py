@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7.7
+#!/usr/bin/env python3
 import pdb
 import signal
 import sys
@@ -16,6 +16,7 @@ import models.wordbagsvm_classifier as wordbagsvm
 import models.ngramsvm_classifier as ngramsvm
 import models.hyparg_predictor as hyparg
 import models.pec_predictor as pec
+import models.features_predictor as features
 from tokenizer import tokenizers
 import report
 import report2
@@ -116,6 +117,7 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "ngramsvm" : ngramsvm.main,
     "hyparg" : hyparg.main,
     "pec" : pec.main,
+    "features" : features.main,
 }
 
 if __name__ == "__main__":

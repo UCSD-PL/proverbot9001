@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
 from abc import ABCMeta, abstractmethod
@@ -43,7 +43,7 @@ class PredictorState(metaclass=ABCMeta):
     pass
 
 DatasetType = TypeVar('DatasetType', bound=Dataset)
-MetadataType = TypeVar('MetadataType', bound=DatasetMetadata)
+MetadataType = TypeVar('MetadataType')
 StateType = TypeVar('StateType', bound=PredictorState)
 
 class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, StateType],
@@ -109,8 +109,11 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                          state : StateType) -> None: pass
     pass
 
-from tokenizer import make_keyword_tokenizer_relevance, tokenizers, Tokenizer, get_words
-from data import EmbeddedSample, EmbeddedDataset, StrictEmbeddedDataset, LazyEmbeddedDataset, DatasetMetadata, tokenize_data
+from tokenizer import (make_keyword_tokenizer_relevance, tokenizers,
+                       Tokenizer, get_words)
+from data import (EmbeddedSample, EmbeddedDataset,
+                  StrictEmbeddedDataset, LazyEmbeddedDataset, DatasetMetadata,
+                  tokenize_data, TOKEN_START)
 from models.components import SimpleEmbedding, Embedding
 
 import pickle
@@ -185,7 +188,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
                 tokenizer = make_keyword_tokenizer_relevance(
                     [(goal, next_tactic) for
                      prev_tactics, hypotheses, goal, next_tactic in subset],
-                    tokenizers[args.tokenizer], args.num_keywords, 2, args.num_threads)
+                    tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
                 del subset
                 print("{}s".format(time.time() - start))
             if args.save_tokens:
@@ -203,12 +206,13 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 
         return self._encode_tokenized_data(tokenized_data, args, tokenizer, embedding), \
             TokenizerEmbeddingState(tokenizer, embedding)
-    @abstractmethod
     def load_saved_state(self,
                          args : Namespace,
                          metadata : TokenizerEmbeddingState,
                          state : StateType) -> None:
-        pass
+        self._tokenizer = metadata.tokenizer
+        self._embedding = metadata.embedding
+
 import torch
 import torch.utils.data as data
 import torch.optim.lr_scheduler as scheduler
@@ -373,14 +377,14 @@ class NeuralClassifier(NeuralPredictor[DatasetType, ModelType],
         self._lock = threading.Lock()
 
     @abstractmethod
-    def _predictDistribution(self, in_data : TacticContext) \
+    def _predictDistributions(self, in_datas : List[TacticContext]) \
         -> torch.FloatTensor:
         pass
 
     def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         with self._lock:
-            prediction_distribution = self._predictDistribution(in_data)
+            prediction_distribution = self._predictDistributions([in_data])[0]
             if k > self._embedding.num_tokens():
                 k = self._embedding.num_tokens()
             certainties_and_idxs = prediction_distribution.view(-1).topk(k)
@@ -392,7 +396,7 @@ class NeuralClassifier(NeuralPredictor[DatasetType, ModelType],
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         with self._lock:
-            prediction_distribution = self._predictDistribution(in_data)
+            prediction_distribution = self._predictDistributions([in_data])[0]
             correct_stem = get_stem(correct)
             if self._embedding.has_token(correct_stem):
                 output_var = maybe_cuda(Variable(
@@ -409,3 +413,158 @@ class NeuralClassifier(NeuralPredictor[DatasetType, ModelType],
                        for certainty, stem_idx in zip(*certainties_and_idxs)]
 
         return results, loss
+
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[TacticContext],
+                                      k : int, correct_stems : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+        if len(in_data) == 0:
+            return [], 0
+        with self._lock:
+            prediction_distributions = self._predictDistributions(in_data)
+            output_var = maybe_cuda(Variable(
+                torch.LongTensor([self._embedding.encode_token(correct_stem)
+                                  if self._embedding.has_token(correct_stem)
+                                  else 0
+                                  for correct_stem in correct_stems])))
+            loss = self._criterion(prediction_distributions, output_var).item()
+            if k > self._embedding.num_tokens():
+                k = self._embedding.num_tokens()
+            certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
+                                         for single_distribution in
+                                         list(prediction_distributions)]
+            results = [[Prediction(self._embedding.decode_token(stem_idx.item()) + ".",
+                                   math.exp(certainty.item()))
+                        for certainty, stem_idx in zip(*certainties_and_idxs)]
+                       for certainties_and_idxs in certainties_and_idxs_list]
+            return results, loss
+        pass
+
+def save_checkpoints(metadata : MetadataType, arg_values : Namespace,
+                     checkpoints_stream : Iterable[StateType]):
+    for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
+        with open(arg_values.save_file, 'wb') as f:
+            print("=> Saving checkpoint at epoch {}".format(epoch))
+            torch.save((arg_values, metadata, predictor_state), f)
+
+def optimize_checkpoints(data_tensors : List[torch.Tensor],
+                         arg_values : Namespace,
+                         model : ModelType,
+                         batchLoss :
+                         Callable[[Sequence[torch.Tensor], ModelType],
+                                  torch.FloatTensor]) \
+    -> Iterable[NeuralPredictorState]:
+    dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
+                                 batch_size=arg_values.batch_size, num_workers=0,
+                                 shuffle=True, pin_memory=True, drop_last=True)
+    # Drop the last batch in the count
+    dataset_size = data_tensors[0].size()[0]
+    num_batches = int(dataset_size / arg_values.batch_size)
+    dataset_size = num_batches * arg_values.batch_size
+    print("Initializing model...")
+    model = maybe_cuda(model)
+    optimizer = optimizers[arg_values.optimizer](model.parameters(),
+                                                 lr=arg_values.learning_rate)
+    adjuster = scheduler.StepLR(optimizer, arg_values.epoch_step,
+                                gamma=arg_values.gamma)
+    training_start=time.time()
+    print("Training...")
+    for epoch in range(1, arg_values.num_epochs + 1):
+        adjuster.step()
+        print("Epoch {} (learning rate {:.6f})"
+              .format(epoch, optimizer.param_groups[0]['lr']))
+        epoch_loss = 0.
+        for batch_num, data_batch in enumerate(dataloader, start=1):
+            optimizer.zero_grad()
+            loss = batchLoss(data_batch, model)
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+            if batch_num % arg_values.print_every == 0:
+                items_processed = batch_num * arg_values.batch_size + \
+                    (epoch - 1) * dataset_size
+                progress = items_processed / (dataset_size * arg_values.num_epochs)
+                print("{} ({:7} {:5.2f}%) {:.4f}"
+                      .format(timeSince(training_start, progress),
+                              items_processed, progress * 100,
+                              epoch_loss / batch_num))
+        yield NeuralPredictorState(epoch,
+                                   epoch_loss / num_batches,
+        model.state_dict())
+
+def predictKTactics(prediction_distribution : torch.FloatTensor,
+                    embedding : Embedding, k : int) \
+    -> List[Prediction]:
+    if k > embedding.num_tokens():
+        k = embedding.num_tokens()
+    certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+    results = [Prediction(embedding.decode_token(stem_idx.data[0]) + ".",
+                          math.exp(certainty.data[0]))
+               for certainty, stem_idx in zip(*certainties_and_idxs)]
+    return results
+
+def predictKTacticsWithLoss(prediction_distribution : torch.FloatTensor,
+                            embedding : Embedding,
+                            k : int,
+                            correct : str,
+                            criterion : nn.Module) -> Tuple[List[Prediction], float]:
+    if k > embedding.num_tokens():
+        k = embedding.num_tokens()
+    correct_stem = get_stem(correct)
+    if embedding.has_token(correct_stem):
+        output_var = maybe_cuda(Variable(
+            torch.LongTensor([embedding.encode_token(correct_stem)])))
+        loss = criterion(prediction_distribution.view(1, -1), output_var).item()
+    else:
+        loss = 0
+
+    certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+    results = [Prediction(embedding.decode_token(stem_idx.item()) + ".",
+                          math.exp(certainty.item()))
+               for certainty, stem_idx in zip(*certainties_and_idxs)]
+
+    return results, loss
+
+def predictKTacticsWithLoss_batch(prediction_distributions : torch.FloatTensor,
+                                  embedding : Embedding,
+                                  k : int,
+                                  correct_stems : List[str],
+                                  criterion : nn.Module) -> \
+                                  Tuple[List[List[Prediction]], float]:
+    output_var = maybe_cuda(Variable(
+        torch.LongTensor([embedding.encode_token(correct_stem)
+                          if embedding.has_token(correct_stem)
+                          else 0
+                          for correct_stem in correct_stems])))
+    loss = criterion(prediction_distributions, output_var).item()
+    if k > embedding.num_tokens():
+        k = embedding.num_tokens()
+    certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
+                                 for single_distribution in
+                                 list(prediction_distributions)]
+    results = [[Prediction(embedding.decode_token(stem_idx.item()) + ".",
+                           math.exp(certainty.item()))
+                for certainty, stem_idx in zip(*certainties_and_idxs)]
+               for certainties_and_idxs in certainties_and_idxs_list]
+    return results, loss
+
+def add_nn_args(parser : argparse.ArgumentParser,
+                default_values : Dict[str, Any] = {}) -> Namespace:
+    parser.add_argument("--num-epochs", dest="num_epochs", type=int,
+                        default=default_values.get("num-epochs", 20))
+    parser.add_argument("--batch-size", dest="batch_size", type=int,
+                        default=default_values.get("batch-size", 256))
+    parser.add_argument("--start-from", dest="start_from", type=str,
+                        default=default_values.get("start-from", None))
+    parser.add_argument("--print-every", dest="print_every", type=int,
+                        default=default_values.get("print-every", 5))
+    parser.add_argument("--learning-rate", dest="learning_rate", type=float,
+                        default=default_values.get("learning-rate", .7))
+    parser.add_argument("--epoch-step", dest="epoch_step", type=int,
+                        default=default_values.get("epoch-step", 10))
+    parser.add_argument("--gamma", dest="gamma", type=float,
+                        default=default_values.get("gamma", 0.8))
+    parser.add_argument("--optimizer",
+                        choices=list(optimizers.keys()), type=str,
+                        default=default_values.get("optimizer",
+                                                   list(optimizers.keys())[0]))

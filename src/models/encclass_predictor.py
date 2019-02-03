@@ -162,6 +162,10 @@ class RNNClassifier(nn.Module):
             output, hidden = self(in_var[:,i], hidden)
         decoded = self.decoder_out(output)
         return self.softmax(decoded).view(self.batch_size, -1)
+    def getOptions(self) -> List[Tuple[str, str]]:
+        return list(vars(self.training_args).items()) + \
+            [("training loss", self.training_loss),
+             ("# epochs", self.num_epochs)]
 
 def main(arg_list : List[str]) -> None:
     predictor = EncClassPredictor()

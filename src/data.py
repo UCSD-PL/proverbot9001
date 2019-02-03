@@ -17,7 +17,8 @@ from tokenizer import Tokenizer, TokenizerState, \
 from format import read_tactic_tuple, ScrapedTactic
 from models.components import SimpleEmbedding
 
-from typing import Tuple, NamedTuple, List, Callable, Optional, Sized, Sequence, Dict
+from typing import (Tuple, NamedTuple, List, Callable, Optional,
+                    Sized, Sequence, Dict, Generic)
 from abc import ABCMeta
 from dataclasses import dataclass
 from util import *
@@ -39,6 +40,18 @@ class Dataset(Sized, metaclass=ABCMeta):
     pass
 class DatasetMetadata(metaclass=ABCMeta):
     pass
+
+SampleType = TypeVar('SampleType')
+
+@dataclass(init=True, repr=True)
+class ListDataset(Dataset, Generic[SampleType]):
+    data : List[SampleType]
+    def __iter__(self):
+        return iter(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, i : Any):
+        return self.data[i]
 
 @dataclass(init=True, repr=True)
 class RawDataset(Dataset, Sequence[ScrapedTactic]):
