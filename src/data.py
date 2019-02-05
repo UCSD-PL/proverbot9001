@@ -92,6 +92,7 @@ class LazyEmbeddedDataset(EmbeddedDataset):
 
 class TokenizedSample(NamedTuple):
     prev_tactics : List[str]
+    hypotheses : List[str]
     goal : Sentence
     tactic : int
 
@@ -220,19 +221,20 @@ def _tokenize(t : Tokenizer, s : str):
     return t.toTokenList(s)
 
 
-def tokenize_data(tokenizer : Tokenizer, embedding : SimpleEmbedding,
-                  data : EmbeddedDataset, num_threads : int) \
+def tokenize_data(tokenizer : Tokenizer, data : EmbeddedDataset,
+                  num_threads : int) \
     -> TokenizedDataset:
     with multiprocessing.Pool(num_threads) as pool:
-        result=TokenizedDataset(list(chain.from_iterable(pool.imap_unordered(
-            functools.partial(tokenize_worker__, tokenizer, embedding),
+        result=TokenizedDataset(list(chain.from_iterable(pool.imap(
+            functools.partial(tokenize_worker__, tokenizer),
             chunks(list(data), 1024)))))
     tokenizer.freezeTokenList()
     return result
 
-def tokenize_worker__(tokenizer : Tokenizer, embedding : SimpleEmbedding,
+def tokenize_worker__(tokenizer : Tokenizer,
                       chunk : EmbeddedDataset) -> TokenizedDataset:
     return TokenizedDataset([TokenizedSample(prev_tactics,
+                                             hypotheses,
                                              tokenizer.toTokenList(goal),
                                              tactic)
                              for prev_tactics, hypotheses, goal, tactic in chunk])

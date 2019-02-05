@@ -113,7 +113,7 @@ from tokenizer import (make_keyword_tokenizer_relevance, tokenizers,
                        Tokenizer, get_words)
 from data import (EmbeddedSample, EmbeddedDataset,
                   StrictEmbeddedDataset, LazyEmbeddedDataset, DatasetMetadata,
-                  tokenize_data, TOKEN_START)
+                  tokenize_data, TOKEN_START, Sentence)
 from models.components import SimpleEmbedding, Embedding
 
 import pickle
@@ -159,7 +159,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 
     def _encode_data(self, data : RawDataset, args : Namespace) \
         -> Tuple[DatasetType, TokenizerEmbeddingState]:
-        preprocessed_data = super()._preprocess_data(data, args)
+        preprocessed_data = self._preprocess_data(data, args)
         embedding = SimpleEmbedding()
         embedded_data : EmbeddedDataset
         with multiprocessing.Pool(args.num_threads) as pool:
@@ -201,7 +201,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 
 
             print("Tokenizing...")
-            tokenized_data = tokenize_data(tokenizer, embedding, embedded_data, args.num_threads)
+            tokenized_data = tokenize_data(tokenizer, embedded_data, args.num_threads)
             gc.collect()
 
         return self._encode_tokenized_data(tokenized_data, args, tokenizer, embedding), \
@@ -492,6 +492,40 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                    epoch_loss / num_batches,
         model.state_dict())
 
+def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
+    embedding = SimpleEmbedding()
+    return embedding, StrictEmbeddedDataset([EmbeddedSample(
+        prev_tactics, hypotheses, goal, embedding.encode_token(get_stem(tactic)))
+                                             for prev_tactics, hypotheses, goal, tactic
+                                             in data])
+
+def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
+    -> Tuple[Tokenizer, List[Sentence]]:
+    if args.load_tokens:
+        print("Loading tokens from {}".format(args.load_tokens))
+        with open(args.load_tokens, 'rb') as f:
+            tokenizer = pickle.load(f)
+            assert isinstance(tokenizer, Tokenizer)
+    else:
+        start = time.time()
+        print("Picking tokens...", end="")
+        sys.stdout.flush()
+        tokenizer = make_keyword_tokenizer_relevance(
+            [(goal, next_tactic) for
+             prev_tactics, hypotheses, goal, next_tactic in
+             random.sample(data, args.num_relevance_samples)],
+            tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
+        print("{}s".format(time.time() - start))
+    if args.save_tokens:
+        print("Saving tokens to {}".format(args.save_tokens))
+        with open(args.save_tokens, 'wb') as f:
+            pickle.dump(tokenizer, f)
+    if args.print_keywords:
+        print("Keywords are {}".format(tokenizer.listTokens()))
+    print("Tokenizing...")
+    tokenized_data = tokenize_data(tokenizer, data, args.num_threads)
+    return tokenizer, [goal for prev_tactics, hypotheses, goal, tactic in tokenized_data]
+
 def predictKTactics(prediction_distribution : torch.FloatTensor,
                     embedding : Embedding, k : int) \
     -> List[Prediction]:
@@ -549,7 +583,7 @@ def predictKTacticsWithLoss_batch(prediction_distributions : torch.FloatTensor,
     return results, loss
 
 def add_nn_args(parser : argparse.ArgumentParser,
-                default_values : Dict[str, Any] = {}) -> Namespace:
+                default_values : Dict[str, Any] = {}) -> None:
     parser.add_argument("--num-epochs", dest="num_epochs", type=int,
                         default=default_values.get("num-epochs", 20))
     parser.add_argument("--batch-size", dest="batch_size", type=int,
@@ -568,3 +602,19 @@ def add_nn_args(parser : argparse.ArgumentParser,
                         choices=list(optimizers.keys()), type=str,
                         default=default_values.get("optimizer",
                                                    list(optimizers.keys())[0]))
+def add_tokenizer_args(parser : argparse.ArgumentParser,
+                       default_values : Dict[str, Any] = {}) -> None:
+    parser.add_argument("--num-keywords", dest="num_keywords", type=int,
+                        default=default_values.get("num-keywordes", 60))
+    parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
+                        default=default_values.get("tokenizer",
+                                                   list(tokenizers.keys())[0]))
+    parser.add_argument("--num-relevance-samples", dest="num_relevance_samples",
+                        type=int, default=default_values.get("num_relevance_samples",
+                                                             1000))
+    parser.add_argument("--save-tokens", dest="save_tokens",
+                        default=default_values.get("save-tokens", None))
+    parser.add_argument("--load-tokens", dest="load_tokens",
+                        default=default_values.get("load-tokens", None))
+    parser.add_argument("--print-keywords", dest="print_keywords",
+                        default=False, action='store_const', const=True)

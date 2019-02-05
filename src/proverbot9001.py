@@ -17,6 +17,7 @@ import models.ngramsvm_classifier as ngramsvm
 import models.hyparg_predictor as hyparg
 import models.pec_predictor as pec
 import models.features_predictor as features
+import models.encfeatures_predictor as encfeatures
 from tokenizer import tokenizers
 import report
 import report2
@@ -118,6 +119,7 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "hyparg" : hyparg.main,
     "pec" : pec.main,
     "features" : features.main,
+    "encfeatures" : encfeatures.main,
 }
 
 if __name__ == "__main__":

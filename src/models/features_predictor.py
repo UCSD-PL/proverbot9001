@@ -133,7 +133,7 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
                                 model : FeaturesClassifier) \
         -> torch.FloatTensor:
-        input_batch, output_batch = cast(Tuple[torch.LongTensor, torch.LongTensor],
+        input_batch, output_batch = cast(Tuple[torch.FloatTensor, torch.LongTensor],
                                          data_batch)
         input_var = maybe_cuda(Variable(input_batch))
         output_var = maybe_cuda(Variable(output_batch))

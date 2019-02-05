@@ -17,6 +17,7 @@ from models import ngramsvm_classifier
 from models import hyparg_predictor
 from models import pec_predictor
 from models import features_predictor
+from models import encfeatures_predictor
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -32,6 +33,7 @@ predictors = {
     'hyparg' : hyparg_predictor.HypArgPredictor,
     'pec' : pec_predictor.PECPredictor,
     'features' : features_predictor.FeaturesPredictor,
+    'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
 }
 
 def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:
