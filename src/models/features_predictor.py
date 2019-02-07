@@ -55,7 +55,7 @@ class FeaturesClassifier(nn.Module):
         for i in range(self.num_layers - 1):
             vals = F.relu(vals)
             vals = self._layers[i](vals)
-        result = self._softmax(self._out_layer(vals))
+        result = self._softmax(self._out_layer(vals)).view(batch_size, -1)
         return result
 
 class FeaturesPredictor(TrainablePredictor[FeaturesDataset,

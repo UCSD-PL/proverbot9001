@@ -87,7 +87,7 @@ class EncFeaturesClassifier(nn.Module):
             full_data = F.relu(full_data)
             full_data = self._decoder_layers[i](full_data)
 
-        result = self._softmax(self._decoder_out_layer(full_data))
+        result = self._softmax(self._decoder_out_layer(full_data)).view(batch_size, -1)
         return result
 
 class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
