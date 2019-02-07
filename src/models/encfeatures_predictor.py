@@ -100,10 +100,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         self._lock = threading.Lock()
 
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
-        features_batch = [[feature_val
-                          for feature in self._feature_functions
-                          for feature_val in feature(in_data)]
-                         for in_data in in_datas]
+        features_batch = [self._get_features(in_data) for in_data in in_datas]
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
                                                self.training_args.max_length)
                        for _, _, goal in in_datas]
@@ -122,6 +119,9 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                             default=default_values.get("num-encoder-layers", 2))
         parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
                             default=default_values.get("num-decoder-layers", 2))
+    def _get_features(self, context : TacticContext) -> List[float]:
+        return [feature_val for feature in self._feature_functions
+                for feature_val in feature(context)]
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding]]:
@@ -129,8 +129,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         embedding, embedded_data = embed_data(RawDataset(list(preprocessed_data)))
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         result_data = EncFeaturesDataset([EncFeaturesSample(
-            [feature_val for feature in self._feature_functions
-             for feature_val in feature(TacticContext(prev_tactics, hypotheses, goal))],
+            self._get_features(TacticContext(prev_tactics, hypotheses, goal)),
             normalizeSentenceLength(tokenized_goal, arg_values.max_length),
             tactic)
                                            for (prev_tactics, hypotheses, goal, tactic),
