@@ -12,7 +12,6 @@ from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength)
 from serapi_instance import get_stem
 from util import *
-from tokenizer import Tokenizer
 
 import torch
 import torch.nn as nn
@@ -51,7 +50,8 @@ class FeaturesClassifier(nn.Module):
 
     def forward(self, features_batch : torch.FloatTensor) -> torch.FloatTensor:
         batch_size = features_batch.size()[0]
-        vals = self._in_layer(features_batch)
+        features_var = maybe_cuda(Variable(featres_batch))
+        vals = self._in_layer(features_var)
         for i in range(self.num_layers - 1):
             vals = F.relu(vals)
             vals = self._layers[i](vals)
@@ -82,16 +82,17 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
                             default=default_values.get("num-layers", 3))
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesDataset, Embedding]:
-        embedding = SimpleEmbedding()
+        preprocessed_data = self._preprocess_data(data, arg_values)
+        embedding, embedded_data = embed_data(RawDataset(list(preprocessed_data)))
         return (FeaturesDataset([
             FeaturesSample([feature_val for feature in
                             self._feature_functions
                             for feature_val in feature(TacticContext(prev_tactics,
                                                                      hypotheses,
                                                                      goal))],
-                           embedding.encode_token(get_stem(tactic)))
+                           tactic)
             for prev_tactics, hypotheses, goal, tactic in
-            self._preprocess_data(data, arg_values)]),
+            embedded_data]),
                 embedding)
     def _optimize_model_to_disc(self,
                                 encoded_data : FeaturesDataset,

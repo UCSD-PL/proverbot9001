@@ -73,7 +73,6 @@ class EncFeaturesClassifier(nn.Module):
                               .view(1, batch_size, self.hidden_size)
             token_batch = F.relu(token_batch)
             token_out, hidden = self._goal_gru(token_batch, hidden)
-        # return self._softmax(self._decoder_out_layer(token_out[0])).view(batch_size, -1)
         goal_data = token_out[0]
 
         features_var = maybe_cuda(Variable(features_batch))
