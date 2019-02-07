@@ -18,6 +18,7 @@ from models import hyparg_predictor
 from models import pec_predictor
 from models import features_predictor
 from models import encfeatures_predictor
+from models import featuressvm_predictor
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -33,6 +34,7 @@ predictors = {
     'hyparg' : hyparg_predictor.HypArgPredictor,
     'pec' : pec_predictor.PECPredictor,
     'features' : features_predictor.FeaturesPredictor,
+    'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
 }
 
