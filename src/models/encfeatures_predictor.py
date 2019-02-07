@@ -82,10 +82,12 @@ class EncFeaturesClassifier(nn.Module):
             features_data = F.relu(features_data)
             features_data = self._features_encoder_layers[i](features_data)
 
-        full_data = self._decoder_in_layer(torch.cat((goal_data, features_data), dim=1))
-        for i in range(self.num_decoder_layers - 1):
-            full_data = F.relu(full_data)
-            full_data = self._decoder_layers[i](full_data)
+        full_data = self._decoder_in_layer(F.relu(torch.cat((goal_data, features_data), dim=1)))
+        # for i in range(self.num_decoder_layers - 1):
+        #     assert False, self.num_decoder_layers
+        #     full_data = self._decoder_layers[i](full_data)
+        #     full_data = F.relu(full_data)
+        full_data = F.relu(full_data)
 
         result = self._softmax(self._decoder_out_layer(full_data)).view(batch_size, -1)
         return result
@@ -117,8 +119,6 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 2))
-        parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
-                            default=default_values.get("num-decoder-layers", 2))
     def _get_features(self, context : TacticContext) -> List[float]:
         return [feature_val for feature in self._feature_functions
                 for feature_val in feature(context)]
