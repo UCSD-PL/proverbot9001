@@ -476,8 +476,9 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
         epoch_loss = 0.
         for batch_num, data_batch in enumerate(dataloader, start=1):
             optimizer.zero_grad()
-            loss = batchLoss(data_batch, model)
-            loss.backward()
+            with autograd.detect_anomaly():
+                loss = batchLoss(data_batch, model)
+                loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
             if batch_num % arg_values.print_every == 0:
