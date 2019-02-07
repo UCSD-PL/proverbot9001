@@ -145,20 +145,23 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
              ("# epochs", self.num_epochs)]
     def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
-        return predictKTactics(self._predictDistributions([in_data])[0],
-                               self._embedding, k)
+        with self._lock:
+            return predictKTactics(self._predictDistributions([in_data])[0],
+                                   self._embedding, k)
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
-        return predictKTacticsWithLoss(self._predictDistributions([in_data])[0],
-                                       self._embedding, k,
-                                       correct, self._criterion)
+        with self._lock:
+            return predictKTacticsWithLoss(self._predictDistributions([in_data])[0],
+                                           self._embedding, k,
+                                           correct, self._criterion)
     def predictKTacticsWithLoss_batch(self,
                                       in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
-        return predictKTacticsWithLoss_batch(self._predictDistributions(in_data),
-                                             self._embedding, k,
-                                             correct, self._criterion)
+        with self._lock:
+            return predictKTacticsWithLoss_batch(self._predictDistributions(in_data),
+                                                 self._embedding, k,
+                                                 correct, self._criterion)
 
 def main(arg_list : List[str]) -> None:
     predictor = FeaturesPredictor()
