@@ -3,6 +3,7 @@ from models.tactic_predictor import (NeuralPredictorState,
                                      TacticContext, Prediction,
                                      save_checkpoints,
                                      optimize_checkpoints,
+                                     embed_data,
                                      predictKTactics,
                                      predictKTacticsWithLoss,
                                      predictKTacticsWithLoss_batch,
@@ -50,11 +51,12 @@ class FeaturesClassifier(nn.Module):
 
     def forward(self, features_batch : torch.FloatTensor) -> torch.FloatTensor:
         batch_size = features_batch.size()[0]
-        features_var = maybe_cuda(Variable(featres_batch))
+        features_var = maybe_cuda(Variable(features_batch))
         vals = self._in_layer(features_var)
         for i in range(self.num_layers - 1):
             vals = F.relu(vals)
             vals = self._layers[i](vals)
+        vals = F.relu(vals)
         result = self._softmax(self._out_layer(vals)).view(batch_size, -1)
         return result
 
