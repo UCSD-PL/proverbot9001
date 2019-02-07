@@ -64,8 +64,8 @@ publish:
 	ssh goto 'cd ~alexss/proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
-		  chgrp -R proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \
-		  chmod -R g+rw $(REPORT_NAME) $(INDEX_FILES)'
+		  chgrp -Rf proverbot9001 $(REPORT_NAME) $(INDEX_FILES) && \
+		  chmod -Rf g+rw $(REPORT_NAME) $(INDEX_FILES) || true'
 	mv $(REPORT_NAME) $(REPORT)
 	$(MAKE) update-index
 
