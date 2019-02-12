@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
+from format import ScrapedTactic
 from abc import ABCMeta, abstractmethod
 
 class Prediction(NamedTuple):
@@ -12,6 +13,10 @@ class TacticContext(NamedTuple):
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : str
+
+def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
+    prev_tactic, hypotheses, goal, output = scraped
+    return TacticContext(prev_tactic, hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
     def __init__(self) -> None:
