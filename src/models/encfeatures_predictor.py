@@ -1,13 +1,9 @@
-from models.tactic_predictor import (NeuralPredictorState,
-                                     TrainablePredictor,
-                                     TacticContext, Prediction,
-                                     save_checkpoints,
-                                     optimize_checkpoints,
-                                     predictKTactics,
-                                     predictKTacticsWithLoss,
-                                     predictKTacticsWithLoss_batch,
-                                     add_nn_args, add_tokenizer_args,
-                                     embed_data, tokenize_goals)
+from models.tactic_predictor import \
+    (NeuralPredictorState, TrainablePredictor, TacticContext,
+     Prediction, save_checkpoints, optimize_checkpoints,
+     predictKTactics, predictKTacticsWithLoss,
+     predictKTacticsWithLoss_batch, add_nn_args, add_tokenizer_args,
+     embed_data, tokenize_goals, strip_scraped_output)
 
 from models.components import (Embedding, SimpleEmbedding)
 from data import (Sentence, ListDataset, RawDataset,
@@ -15,6 +11,7 @@ from data import (Sentence, ListDataset, RawDataset,
 from serapi_instance import get_stem
 from util import *
 from tokenizer import Tokenizer
+from features import feature_constructors
 
 import torch
 import torch.nn as nn
@@ -22,12 +19,11 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 
 from typing import (List, Any, Tuple, NamedTuple, Dict, Sequence,
-                    cast)
+                    cast, Optional)
 from dataclasses import dataclass
 import threading
 import argparse
 from argparse import Namespace
-from features import feature_functions
 
 class EncFeaturesSample(NamedTuple):
     features : List[float]
@@ -96,7 +92,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                               NeuralPredictorState]):
     def __init__(self) \
         -> None:
-        self._feature_functions = feature_functions
+        self._feature_functions : Optional[Callable[[TacticContext], List[float]]] = None
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
 
@@ -125,6 +121,9 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding]]:
         preprocessed_data = self._preprocess_data(data, arg_values)
+        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        self._feature_functions = [feature_constructor(stripped_data, arg_values) for
+                                   feature_constructor in feature_constructors]
         embedding, embedded_data = embed_data(RawDataset(list(preprocessed_data)))
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         result_data = EncFeaturesDataset([EncFeaturesSample(

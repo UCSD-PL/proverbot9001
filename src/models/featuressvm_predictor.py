@@ -1,11 +1,7 @@
-from models.tactic_predictor import (TrainablePredictor,
-                                     TacticContext, Prediction,
-                                     save_checkpoints,
-                                     optimize_checkpoints,
-                                     embed_data,
-                                     predictKTactics,
-                                     predictKTacticsWithLoss,
-                                     predictKTacticsWithLoss_batch)
+from models.tactic_predictor import \
+    (TrainablePredictor, TacticContext, Prediction, save_checkpoints,
+     optimize_checkpoints, embed_data, predictKTactics,
+     predictKTacticsWithLoss, predictKTacticsWithLoss_batch, strip_scraped_output)
 from models.components import (Embedding)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength)
@@ -13,7 +9,7 @@ from serapi_instance import get_stem
 from util import *
 
 from typing import (List, Any, Tuple, NamedTuple, Dict, Sequence,
-                    cast)
+                    cast, Optional)
 from dataclasses import dataclass
 import threading
 import argparse
@@ -21,7 +17,7 @@ import pickle
 import sys
 from argparse import Namespace
 
-from features import feature_functions
+from features import feature_constructors, Feature
 # Using sklearn for the actual learning
 from sklearn import svm
 
@@ -36,13 +32,16 @@ class FeaturesSample(NamedTuple):
 
 class FeaturesDataset(ListDataset[FeaturesSample]):
     pass
-class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset, Embedding, svm.SVC]):
+class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
+                                              Tuple[Embedding, List[Feature]],
+                                              svm.SVC]):
     def __init__(self) \
         -> None:
-        self._feature_functions = feature_functions
+        self._feature_functions : Optional[List[Feature]] = None
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
+        assert self._feature_functions
         feature_vectors = [self._get_features(in_data) for in_data in in_datas]
         distribution = self._model.predict_log_proba(feature_vectors)
         return distribution
@@ -51,26 +50,28 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset, Embedding, svm.SV
         super().add_args_to_parser(parser, default_values)
         parser.add_argument("--kernel", choices=svm_kernels, type=str,
                             default=svm_kernels[0])
+        parser.add_argument("--print-keywords", dest="print_keywords",
+                            default=False, action='store_const', const=True)
+        parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
+                            default=default_values.get("num-head-keywords", 20))
     def _get_features(self, context : TacticContext) -> List[float]:
         return [feature_val for feature in self._feature_functions
                 for feature_val in feature(context)]
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Tuple[FeaturesDataset, Embedding]:
-        preprocessed_data = self._preprocess_data(data, arg_values)
-        embedding, embedded_data = embed_data(RawDataset(list(preprocessed_data)))
+        -> Tuple[FeaturesDataset, Tuple[Embedding, List[Feature]]]:
+        preprocessed_data = list(self._preprocess_data(data, arg_values))
+        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        self._feature_functions = [feature_constructor(stripped_data, arg_values) for
+                                   feature_constructor in feature_constructors]
+        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
         return (FeaturesDataset([
-            FeaturesSample([feature_val for feature in
-                            self._feature_functions
-                            for feature_val in feature(TacticContext(prev_tactics,
-                                                                     hypotheses,
-                                                                     goal))],
-                           tactic)
-            for prev_tactics, hypotheses, goal, tactic in
-            embedded_data]),
-                embedding)
+            FeaturesSample(self._get_features(strip_scraped_output(scraped)),
+                           scraped.tactic)
+            for scraped in embedded_data]),
+                (embedding, self._feature_functions))
     def _optimize_model_to_disc(self,
                                 encoded_data : FeaturesDataset,
-                                embedding : Embedding,
+                                metadata : Tuple[Embedding, List[Feature]],
                                 arg_values : Namespace) \
         -> None:
         curtime = time.time()
@@ -83,14 +84,14 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset, Embedding, svm.SV
         loss = model.score(inputs, outputs)
         print("Training loss: {}".format(loss))
         with open(arg_values.save_file, 'wb') as f:
-            torch.save((arg_values, embedding, model), f)
+            torch.save((arg_values, metadata, model), f)
     def _description(self) -> str:
         return "An svm predictor using only hand-engineered features"
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : Embedding,
+                         metadata : Tuple[Embedding, List[Feature]],
                          state : svm.SVC) -> None:
-        self._embedding = metadata
+        self._embedding, self._feature_functions = metadata
         self._model = state
         self.training_args = args
     def getOptions(self) -> List[Tuple[str, str]]:
