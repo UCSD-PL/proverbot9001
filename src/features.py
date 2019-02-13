@@ -1,5 +1,6 @@
 from models.tactic_predictor import TacticContext
 from tokenizer import get_symbols
+import serapi_instance
 
 import typing
 from typing import List
@@ -58,7 +59,34 @@ class TopLevelTokenInGoal(Feature):
     def feature_size(self):
         return len(self.headKeywords)
 
-def numUnboundIdentifiersInGoal(context : TacticContext) -> List[float]:
-    pass
+class NumUnboundIdentifiersInGoal(Feature):
+    def __call__(self, context : TacticContext) -> List[float]:
+        identifiers = get_symbols(context.goal)
+        locallyBoundInHyps = serapi_instance.get_vars_in_hyps(context.hypotheses)
+        binders = ["forall\s+(.*)(?::.*)?,",
+                   "fun\s+(.*)(?::.*)?,",
+                   "let\s+\S+\s+:="]
+        punctuation = ["(", ")", ":", ",", "_", ":=", "=>", "{|", "|}"]
+        locallyBoundInTerm = [var
+                              for binder_pattern in binders
+                              for varString in re.findall(binder_pattern, context.goal)
+                              for var in re.findall("\((\S+)\s+:", varString)
+                              if var not in punctuation]
+        globallyBoundIdentifiers = \
+            [ident for ident in identifiers
+             if not ident in locallyBoundInHyps + locallyBoundInTerm + punctuation]
+        locallyBoundIdentifiers = [ident for ident in identifiers
+                                   if not ident in globallyBoundIdentifiers + punctuation]
+        for var in locallyBoundInTerm:
+            assert var in locallyBoundIdentifiers, \
+                "{}, {}".format(globallyBoundIdentifiers, locallyBoundInTerm)
+            locallyBoundIdentifiers.remove(var)
+        return [float(len(locallyBoundIdentifiers)),
+                float(len(globallyBoundIdentifiers)) /
+                float(len(globallyBoundIdentifiers) + len(locallyBoundIdentifiers))]
+    def feature_size(self):
+        return 2
 
-feature_constructors = [NumEqualitiesInHyps, NumEvarsInGoal, TopLevelTokenInGoal]
+feature_constructors = [NumUnboundIdentifiersInGoal,
+                        NumEqualitiesInHyps, NumEvarsInGoal,
+                        TopLevelTokenInGoal]
