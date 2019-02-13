@@ -53,9 +53,9 @@ class EncFeaturesClassifier(nn.Module):
             maybe_cuda(nn.Embedding(goal_vocab_size, hidden_size))
         self._goal_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._decoder_in_layer = maybe_cuda(nn.Linear(hidden_size * 2, hidden_size))
-        for i in range(num_decoder_layers - 1):
-            self.add_module("_decoder_in_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        # for i in range(num_decoder_layers - 1):
+        #     self.add_module("_decoder_layer{}".format(i),
+        #                     maybe_cuda(nn.Linear(hidden_size, hidden_size)))
         self._decoder_out_layer = maybe_cuda(nn.Linear(hidden_size, tactic_vocab_size))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
@@ -82,9 +82,9 @@ class EncFeaturesClassifier(nn.Module):
 
         full_data = self._decoder_in_layer(F.relu(torch.cat((goal_data, features_data), dim=1)))
         # for i in range(self.num_decoder_layers - 1):
-        #     assert False, self.num_decoder_layers
-        #     full_data = self._decoder_layers[i](full_data)
         #     full_data = F.relu(full_data)
+        #     full_data = \
+        #         getattr(self, "_decoder_layer{}".format(i))(full_data)
         full_data = F.relu(full_data)
 
         result = self._softmax(self._decoder_out_layer(full_data)).view(batch_size, -1)
@@ -117,8 +117,8 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
-        parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
-                            default=default_values.get("num-decoder-layers", 2))
+        # parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
+        #                     default=default_values.get("num-decoder-layers", 2))
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
                             default=default_values.get("num-head-keywords", 100))
     def _get_features(self, context : TacticContext) -> List[float]:
