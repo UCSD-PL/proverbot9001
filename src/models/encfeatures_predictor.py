@@ -91,7 +91,7 @@ class EncFeaturesClassifier(nn.Module):
         return result
 
 class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
-                                              Tuple[Tokenizer, Embedding],
+                                              Tuple[Tokenizer, Embedding, List[Feature]],
                                               NeuralPredictorState]):
     def __init__(self) \
         -> None:
@@ -127,7 +127,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                 for feature_val in feature(context)]
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding]]:
+        -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding, List[Feature]]]:
         preprocessed_data = list(self._preprocess_data(data, arg_values))
         stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
         self._feature_functions = [
@@ -142,13 +142,13 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                            for (prev_tactics, hypotheses, goal, tactic),
                                            tokenized_goal in
                                            zip(embedded_data, tokenized_goals)])
-        return result_data, (tokenizer, embedding)
+        return result_data, (tokenizer, embedding, self._feature_functions)
     def _optimize_model_to_disc(self,
                                 encoded_data : EncFeaturesDataset,
-                                metadata : Tuple[Tokenizer, Embedding],
+                                metadata : Tuple[Tokenizer, Embedding, List[Feature]],
                                 arg_values : Namespace) \
         -> None:
-        tokenizer, embedding = metadata
+        tokenizer, embedding, features = metadata
         save_checkpoints(metadata, arg_values,
                          self._optimize_checkpoints(encoded_data, arg_values,
                                                     tokenizer, embedding))
@@ -165,9 +165,9 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                     self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : Tuple[Tokenizer, Embedding],
+                         metadata : Tuple[Tokenizer, Embedding, List[Feature]],
                          state : NeuralPredictorState) -> None:
-        self._tokenizer, self._embedding = metadata
+        self._tokenizer, self._embedding, self._feature_functions = metadata
         self._model = maybe_cuda(self._get_model(args,
                                                  self._embedding.num_tokens(),
                                                  self._tokenizer.numTokens()))
