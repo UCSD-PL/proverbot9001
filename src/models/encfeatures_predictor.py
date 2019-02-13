@@ -11,7 +11,7 @@ from data import (Sentence, ListDataset, RawDataset,
 from serapi_instance import get_stem
 from util import *
 from tokenizer import Tokenizer
-from features import feature_constructors
+from features import feature_constructors, Feature
 
 import torch
 import torch.nn as nn
@@ -46,14 +46,16 @@ class EncFeaturesClassifier(nn.Module):
         self.num_decoder_layers = num_decoder_layers
         self.hidden_size = hidden_size
         self._features_in_layer = maybe_cuda(nn.Linear(num_features, hidden_size))
-        self._features_encoder_layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                                        for _ in range(num_encoder_layers - 1)]
+        for i in range(num_encoder_layers- 1):
+            self.add_module("_features_encoder_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
         self._goal_token_embedding = \
             maybe_cuda(nn.Embedding(goal_vocab_size, hidden_size))
         self._goal_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._decoder_in_layer = maybe_cuda(nn.Linear(hidden_size * 2, hidden_size))
-        self._decoder_layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                                for _ in range(num_decoder_layers - 1)]
+        for i in range(num_decoder_layers - 1):
+            self.add_module("_decoder_in_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
         self._decoder_out_layer = maybe_cuda(nn.Linear(hidden_size, tactic_vocab_size))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
@@ -75,7 +77,8 @@ class EncFeaturesClassifier(nn.Module):
         features_data = self._features_in_layer(features_var)
         for i in range(self.num_encoder_layers - 1):
             features_data = F.relu(features_data)
-            features_data = self._features_encoder_layers[i](features_data)
+            features_data = \
+                getattr(self, "_features_encoder_layer{}".format(i))(features_data)
 
         full_data = self._decoder_in_layer(F.relu(torch.cat((goal_data, features_data), dim=1)))
         # for i in range(self.num_decoder_layers - 1):
@@ -92,7 +95,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                               NeuralPredictorState]):
     def __init__(self) \
         -> None:
-        self._feature_functions : Optional[Callable[[TacticContext], List[float]]] = None
+        self._feature_functions : Optional[List[Feature]] = None
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
 
@@ -113,18 +116,24 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         parser.add_argument("--hidden-size", dest="hidden_size", type=int,
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
-                            default=default_values.get("num-encoder-layers", 2))
+                            default=default_values.get("num-encoder-layers", 3))
+        parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,
+                            default=default_values.get("num-decoder-layers", 2))
+        parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
+                            default=default_values.get("num-head-keywords", 100))
     def _get_features(self, context : TacticContext) -> List[float]:
+        assert self._feature_functions
         return [feature_val for feature in self._feature_functions
                 for feature_val in feature(context)]
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding]]:
-        preprocessed_data = self._preprocess_data(data, arg_values)
+        preprocessed_data = list(self._preprocess_data(data, arg_values))
         stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
-        self._feature_functions = [feature_constructor(stripped_data, arg_values) for
-                                   feature_constructor in feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(list(preprocessed_data)))
+        self._feature_functions = [
+            feature_constructor(stripped_data, arg_values) for # type: ignore
+            feature_constructor in feature_constructors]
+        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         result_data = EncFeaturesDataset([EncFeaturesSample(
             self._get_features(TacticContext(prev_tactics, hypotheses, goal)),
@@ -177,7 +186,10 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                    tactic_vocab_size : int,
                    goal_vocab_size : int) \
         -> EncFeaturesClassifier:
-        return EncFeaturesClassifier(len(self._feature_functions),
+        assert self._feature_functions
+        feature_vec_size = sum([feature.feature_size()
+                                for feature in self._feature_functions])
+        return EncFeaturesClassifier(feature_vec_size,
                                      goal_vocab_size,
                                      arg_values.hidden_size,
                                      tactic_vocab_size,
