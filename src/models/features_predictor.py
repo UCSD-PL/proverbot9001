@@ -39,8 +39,10 @@ class FeaturesClassifier(nn.Module):
         self.num_layers = num_layers
 
         self._in_layer = maybe_cuda(nn.Linear(num_features, hidden_size))
-        self._layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                       for _ in range(num_layers - 1)]
+        for i in range(num_layers - 1):
+            self.add_module("_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+
         self._out_layer = maybe_cuda(nn.Linear(hidden_size, tactic_vocab_size))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
@@ -50,7 +52,7 @@ class FeaturesClassifier(nn.Module):
         vals = self._in_layer(features_var)
         for i in range(self.num_layers - 1):
             vals = F.relu(vals)
-            vals = self._layers[i](vals)
+            vals = getattr(self, "_layer{}".format(i))(vals)
         vals = F.relu(vals)
         result = self._softmax(self._out_layer(vals)).view(batch_size, -1)
         return result
@@ -117,8 +119,6 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
                          metadata : Tuple[Embedding, List[Feature]],
                          state : NeuralPredictorState) -> None:
         self._embedding, self._feature_functions = metadata
-        print("Loading predictor with head keywords: {}"
-              .format(self._feature_functions[0].headKeywords))
         self._model = maybe_cuda(self._get_model(args, self._embedding.num_tokens()))
         self._model.load_state_dict(state.weights)
         self.training_loss = state.loss
@@ -132,8 +132,9 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
     def _get_model(self, arg_values : Namespace, tactic_vocab_size : int) \
         -> FeaturesClassifier:
         assert self._feature_functions
-        return FeaturesClassifier(sum([feature.feature_size()
-                                       for feature in self._feature_functions]),
+        feature_vec_size = sum([feature.feature_size()
+                                for feature in self._feature_functions])
+        return FeaturesClassifier(feature_vec_size,
                                   arg_values.hidden_size,
                                   tactic_vocab_size, arg_values.num_layers)
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],

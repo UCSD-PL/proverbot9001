@@ -61,5 +61,4 @@ class TopLevelTokenInGoal(Feature):
 def numUnboundIdentifiersInGoal(context : TacticContext) -> List[float]:
     pass
 
-feature_constructors = [NumEqualitiesInHyps, NumEvarsInGoal,
-                        TopLevelTokenInGoal]
+feature_constructors = [NumEqualitiesInHyps, NumEvarsInGoal, TopLevelTokenInGoal]
