@@ -82,7 +82,7 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
         parser.add_argument("--print-keywords", dest="print_keywords",
                             default=False, action='store_const', const=True)
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
-                            default=default_values.get("num-head-keywords", 20))
+                            default=default_values.get("num-head-keywords", 100))
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesDataset, Tuple[Embedding, List[Feature]]]:
         preprocessed_data = list(self._preprocess_data(data, arg_values))
