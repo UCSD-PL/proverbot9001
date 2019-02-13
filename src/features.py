@@ -81,7 +81,8 @@ class NumUnboundIdentifiersInGoal(Feature):
             assert var in locallyBoundIdentifiers, \
                 "{}, {}".format(globallyBoundIdentifiers, locallyBoundInTerm)
             locallyBoundIdentifiers.remove(var)
-        return [float(len(locallyBoundIdentifiers)),
+        return [math.log1p(float(len(locallyBoundIdentifiers))),
+                # math.log1p(float(len(globallyBoundIdentifiers))),
                 float(len(globallyBoundIdentifiers)) /
                 float(len(globallyBoundIdentifiers) + len(locallyBoundIdentifiers))]
     def feature_size(self):
