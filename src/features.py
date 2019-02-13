@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 import re
 import argparse
+import math
 
 class Feature(metaclass=ABCMeta):
     def __init__(self, init_dataset : List[TacticContext],
@@ -52,7 +53,6 @@ class TopLevelTokenInGoal(Feature):
     def __call__(self, context : TacticContext) -> List[float]:
         onehotHeads = [0.] * len(self.headKeywords)
         headToken = get_symbols(context.goal)[0]
-        # print("head token of {} is {}".format(context.goal, headToken))
         if headToken in self.headKeywords:
             onehotHeads[self.headKeywords.index(headToken)] = 1.0
         return onehotHeads
@@ -87,6 +87,30 @@ class NumUnboundIdentifiersInGoal(Feature):
     def feature_size(self):
         return 2
 
-feature_constructors = [NumUnboundIdentifiersInGoal,
-                        NumEqualitiesInHyps, NumEvarsInGoal,
-                        TopLevelTokenInGoal]
+class NumHypotheses(Feature):
+    def __call__(self, context : TacticContext) -> List[float]:
+        return [math.log1p(float(len(context.hypotheses)))]
+    def feature_size(self):
+        return 1
+
+class HasFalseToken(Feature):
+    def __call__(self, context : TacticContext) -> List[float]:
+        goalHasFalse = re.match("\bFalse\b", context.goal)
+        hypsHaveFalse = False
+        for hyp in context.hypotheses:
+            if re.match("\bFalse\b", hyp):
+                hypsHaveFalse = True
+                break
+        return [float(bool(goalHasFalse)), float(bool(hypsHaveFalse))]
+        pass
+    def feature_size(self):
+        return 2
+
+feature_constructors = [
+    HasFalseToken,
+    NumHypotheses,
+    NumUnboundIdentifiersInGoal,
+    NumEqualitiesInHyps,
+    NumEvarsInGoal,
+    TopLevelTokenInGoal
+]
