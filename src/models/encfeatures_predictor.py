@@ -39,11 +39,12 @@ class EncFeaturesClassifier(nn.Module):
                  goal_vocab_size : int,
                  hidden_size : int,
                  tactic_vocab_size : int,
-                 num_encoder_layers : int,
-                 num_decoder_layers : int) -> None:
+                 num_encoder_layers : int# ,
+                 # num_decoder_layers : int
+    ) -> None:
         super().__init__()
         self.num_encoder_layers = num_encoder_layers
-        self.num_decoder_layers = num_decoder_layers
+        # self.num_decoder_layers = num_decoder_layers
         self.hidden_size = hidden_size
         self._features_in_layer = maybe_cuda(nn.Linear(num_features, hidden_size))
         for i in range(num_encoder_layers- 1):
@@ -193,8 +194,9 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                      goal_vocab_size,
                                      arg_values.hidden_size,
                                      tactic_vocab_size,
-                                     arg_values.num_encoder_layers,
-                                     arg_values.num_decoder_layers)
+                                     arg_values.num_encoder_layers# ,
+                                     # arg_values.num_decoder_layers
+        )
 
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
                                 model : EncFeaturesClassifier) \
