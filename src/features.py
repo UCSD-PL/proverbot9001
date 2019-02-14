@@ -73,6 +73,28 @@ class TopLevelTokenInGoal(WordFeature):
     def vocab_size(self) -> int:
         return len(self.headKeywords) + 1
 
+class PrevTactic(WordFeature):
+    def __init__(self, init_dataset : List[TacticContext],
+                 args : argparse.Namespace) -> None:
+        prevTacticsCounts : typing.Counter[str] = Counter()
+        for prev_tactics, hyps, goal in init_dataset:
+            if len(prev_tactics) > 2:
+                prevTacticsCounts[serapi_instance.get_stem(prev_tactics[-1])] += 1
+        self.tacticKeywords = ["Proof"] + \
+            [word for word, count in
+             prevTacticsCounts.most_common(args.num_tactic_keywords)]
+        if args.print_keywords:
+            print("Tactic keywords are {}".format(self.tacticKeywords))
+    def __call__(self, context : TacticContext) -> int:
+        prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
+                       len(context.prev_tactics) > 1 else "Proof")
+        if prev_tactic in self.tacticKeywords:
+            return self.tacticKeywords.index(prev_tactic) + 1
+        else:
+            return 0
+    def vocab_size(self) -> int:
+        return len(self.tacticKeywords) + 1
+
 class NumUnboundIdentifiersInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         identifiers = get_symbols(context.goal)
@@ -132,6 +154,7 @@ vec_feature_constructors = [
 ]
 
 word_feature_constructors = [
+    PrevTactic,
     TopLevelTokenInGoal,
     # ConstFeatureW,
 ]

@@ -151,6 +151,8 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         #                     default=default_values.get("num-decoder-layers", 2))
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
                             default=default_values.get("num-head-keywords", 100))
+        parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
+                            default=default_values.get("num-tactic-keywords", 50))
         parser.add_argument("--word-embedding-size", dest="word_embedding_size", type=int,
                             default=default_values.get("word_embedding_size", 10))
     def _get_vec_features(self, context : TacticContext) -> List[float]:

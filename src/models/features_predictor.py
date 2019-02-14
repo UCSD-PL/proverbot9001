@@ -115,6 +115,8 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
                             default=False, action='store_const', const=True)
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
                             default=default_values.get("num-head-keywords", 100))
+        parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
+                            default=default_values.get("num-tactic-keywords", 50))
         parser.add_argument("--word-embedding-size", dest="word_embedding_size", type=int,
                             default=default_values.get("word_embedding_size", 10))
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
