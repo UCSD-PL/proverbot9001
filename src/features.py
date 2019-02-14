@@ -14,6 +14,7 @@ class Feature(metaclass=ABCMeta):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         pass
+class VecFeature(Feature, metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, context : TacticContext) -> List[float]:
         pass
@@ -21,25 +22,38 @@ class Feature(metaclass=ABCMeta):
     def feature_size(self) -> int:
         pass
 
-class ConstFeature(Feature):
+class WordFeature(Feature, metaclass=ABCMeta):
+    @abstractmethod
+    def __call__(self, context : TacticContext) -> int:
+        pass
+    @abstractmethod
+    def vocab_size(self) -> int:
+        pass
+
+class ConstFeature(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         return [0.5]
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 1
-class NumEvarsInGoal(Feature):
+class ConstFeatureW(WordFeature):
+    def __call__(self, context : TacticContext) -> int:
+        return 0
+    def vocab_size(self) -> int:
+        return 1
+class NumEvarsInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         return [float(len(re.findall("\s\?\w", context.goal)))]
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 1
 
-class NumEqualitiesInHyps(Feature):
+class NumEqualitiesInHyps(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         return [float(sum([re.match("\w+ : eq ", hypothesis) != None
                            for hypothesis in context.hypotheses]))]
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 1
 
-class TopLevelTokenInGoal(Feature):
+class TopLevelTokenInGoal(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         headTokenCounts : typing.Counter[str] = Counter()
@@ -50,16 +64,16 @@ class TopLevelTokenInGoal(Feature):
                              headTokenCounts.most_common(args.num_head_keywords)]
         if args.print_keywords:
             print("Head keywords are {}".format(self.headKeywords))
-    def __call__(self, context : TacticContext) -> List[float]:
-        onehotHeads = [0.] * len(self.headKeywords)
+    def __call__(self, context : TacticContext) -> int:
         headToken = get_symbols(context.goal)[0]
         if headToken in self.headKeywords:
-            onehotHeads[self.headKeywords.index(headToken)] = 1.0
-        return onehotHeads
-    def feature_size(self):
-        return len(self.headKeywords)
+            return self.headKeywords.index(headToken) + 1
+        else:
+            return 0
+    def vocab_size(self) -> int:
+        return len(self.headKeywords) + 1
 
-class NumUnboundIdentifiersInGoal(Feature):
+class NumUnboundIdentifiersInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         identifiers = get_symbols(context.goal)
         locallyBoundInHyps = serapi_instance.get_vars_in_hyps(context.hypotheses)
@@ -81,20 +95,22 @@ class NumUnboundIdentifiersInGoal(Feature):
             assert var in locallyBoundIdentifiers, \
                 "{}, {}".format(globallyBoundIdentifiers, locallyBoundInTerm)
             locallyBoundIdentifiers.remove(var)
-        return [math.log1p(float(len(locallyBoundIdentifiers))),
+        return [# math.log1p(
+            float(len(locallyBoundIdentifiers))# )
+    ,
                 # math.log1p(float(len(globallyBoundIdentifiers))),
                 float(len(globallyBoundIdentifiers)) /
                 float(len(globallyBoundIdentifiers) + len(locallyBoundIdentifiers))]
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 2
 
-class NumHypotheses(Feature):
+class NumHypotheses(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         return [math.log1p(float(len(context.hypotheses)))]
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 1
 
-class HasFalseToken(Feature):
+class HasFalseToken(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         goalHasFalse = re.match("\bFalse\b", context.goal)
         hypsHaveFalse = False
@@ -103,15 +119,21 @@ class HasFalseToken(Feature):
                 hypsHaveFalse = True
                 break
         return [float(bool(goalHasFalse)), float(bool(hypsHaveFalse))]
-        pass
-    def feature_size(self):
+    def feature_size(self) -> int:
         return 2
 
-feature_constructors = [
+vec_feature_constructors = [
     HasFalseToken,
     NumHypotheses,
     NumUnboundIdentifiersInGoal,
     NumEqualitiesInHyps,
     NumEvarsInGoal,
-    TopLevelTokenInGoal
+    # ConstFeature,
 ]
+
+word_feature_constructors = [
+    TopLevelTokenInGoal,
+    # ConstFeatureW,
+]
+
+feature_constructors = vec_feature_constructors
