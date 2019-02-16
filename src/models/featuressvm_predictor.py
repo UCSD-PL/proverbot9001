@@ -54,6 +54,8 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
                             default=False, action='store_const', const=True)
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
                             default=default_values.get("num-head-keywords", 20))
+        parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
+                            default=default_values.get("num-tactic-keywords", 50))
     def _get_features(self, context : TacticContext) -> List[float]:
         return [feature_val for feature in self._feature_functions
                 for feature_val in feature(context)]
