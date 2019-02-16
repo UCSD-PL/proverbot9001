@@ -7,6 +7,8 @@ vernacular_binder = [
     "Inductive",
     "Fixpoint",
     "Theorem",
+    "Remark",
+    "Hypothesis",
     "Lemma",
     "Example",
     "Ltac",
@@ -27,7 +29,9 @@ vernacular_words = vernacular_binder + [
     "Export",
     "Print",
     "Assumptions",
-
+    "Local",
+    "Open",
+    "Scope",
 ]
 
 local_binder = [
@@ -78,8 +82,8 @@ def highlight_comments(page : str) -> str:
 
 def syntax_highlight(page : str) -> str:
     for vernac in vernacular_words:
-        page = re.sub("(\s+)" + vernac + "(\s+)",
-                      r"\1" + color_word(vernacular_color, vernac) + r"\2",
+        page = re.sub(r"(?<!\")\b" + vernac + r"\b",
+                      color_word(vernacular_color, vernac),
                       page)
     return highlight_comments(page);
 

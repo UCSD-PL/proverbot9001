@@ -246,7 +246,7 @@ def report_file(args : argparse.Namespace,
             stats.add_tactic(prediction_results,
                              correct_tactic)
         elif isinstance(inter, ScrapedTactic):
-            command_results.append((inter.tactic,))
+            command_results.append((inter.tactic,inter.hypotheses, inter.goal, []))
         else:
             command_results.append((inter,))
 
@@ -378,6 +378,28 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
                 pass
         with tag('title'):
             text(title)
+
+def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult]]:
+    regions : List[List[CommandResult]] = []
+    curRegion : List[CommandResult] = []
+    inProof = False
+    for prev_command_result, command_result, next_command_result in \
+        zip([("None")] + results, results, results[1:]):
+        if inProof and len(command_result) == 1:
+            inProof = False
+            regions.append(curRegion + [command_result])
+            curRegion = []
+        elif not inProof and len(next_command_result) > 1:
+            inProof = True
+            if len(curRegion) > 0:
+                regions.append(curRegion)
+            curRegion = [command_result]
+        else:
+            curRegion.append(command_result)
+    if len(curRegion) > 0:
+        regions.append(curRegion)
+    return regions
+
 def write_html(output_dir : str, filename : str, command_results : List[CommandResult],
                stats : 'ResultStats') -> None:
     def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
@@ -395,56 +417,81 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                 pass
             pass
         with tag('body', onclick='deselectTactic()',
-                 onload='setSelectedIdx()'), tag('pre'):
-            for idx, command_result in enumerate(command_results):
-                if len(command_result) == 1:
-                    assert isinstance(command_result[0], str)
-                    with tag('code', klass='plaincommand'):
-                        text("\n" + command_result[0].strip('\n'))
+                 onload='init()'), tag('pre'):
+            for region_idx, region in enumerate(split_into_regions(command_results)):
+                if len(region) > 1 and len(region[1]) == 1:
+                    for cmd_idx, command_result in enumerate(region):
+                        assert isinstance(command_result[0], str)
+                        with tag('code', klass='plaincommand'):
+                            text("\n" + command_result[0].strip('\n'))
                 else:
-                    command, hyps, goal, prediction_results = \
-                        cast(TacticResult, command_result)
-                    predictions, grades, certainties = zip(*prediction_results)
-                    with tag('span',
-                             ('data-hyps',"\n".join(hyps)),
-                             ('data-goal',format_goal(goal)),
-                             ('data-num-total', str(stats.num_tactics)),
-                             ('data-predictions',
-                              to_list_string(cast(List[str], predictions))),
-                             ('data-num-predicteds',
-                              to_list_string([stats.predicted_tactic_frequency
-                                              .get(get_stem(prediction), 0)
-                                              for prediction in cast(List[str],
-                                                                     predictions)])),
-                             ('data-num-corrects',
-                              to_list_string([stats.correctly_predicted_frequency
-                                              .get(get_stem(prediction), 0)
-                                              for prediction in
-                                              cast(List[str], predictions)])),
-                             ('data-certainties',
-                              to_list_string(cast(List[float], certainties))),
-                             ('data-num-actual-corrects',
-                              stats.correctly_predicted_frequency
-                              .get(get_stem(command), 0)),
-                             ('data-num-actual-in-file',
-                              stats.actual_tactic_frequency
-                              .get(get_stem(command), 0)),
-                             ('data-actual-tactic',
-                              strip_comments(command)),
-                             ('data-grades',
-                              to_list_string(cast(List[str], grades))),
-                             ('data-search-idx', 0),
-                             id='command-' + str(idx),
-                             onmouseover='hoverTactic({})'.format(idx),
-                             onmouseout='unhoverTactic()',
-                             onclick='selectTactic({}); event.stopPropagation();'
-                             .format(idx)):
-                        doc.stag("br")
-                        with tag('code', klass=grades[0]):
-                            text(command.strip("\n"))
-                        for grade in grades[1:]:
-                            with tag('span', klass=grade):
-                                doc.asis(" &#11044;")
+                    doc.stag("br")
+                    with tag('button', klass='collapsible'):
+                        with tag('code', klass='buttontext'):
+                            text(region[0][0].strip("\n"))
+                    with tag('div', klass='region'):
+                        for cmd_idx, command_result in enumerate(region[1:]):
+                            if len(command_result) == 1:
+                                assert isinstance(command_result[0], str)
+                                with tag('code', klass='plaincommand'):
+                                    text("\n" + command_result[0].strip('\n'))
+                            # elif len(command_result[3]) == 0:
+                            #     assert isinstance(command_result[0], str)
+                            #     with tag('code', klass='plaincommand'):
+                            #         text("\n" + command_result[0].strip('\n'))
+                            else:
+                                command, hyps, goal, prediction_results = \
+                                    cast(TacticResult, command_result)
+                                if len(prediction_results) > 0:
+                                    predictions, grades, certainties = \
+                                        zip(*prediction_results)
+                                else:
+                                    predictions, grades, certainties = [], [], []
+                                with tag('span',
+                                         ('data-hyps',"\n".join(hyps)),
+                                         ('data-goal',format_goal(goal)),
+                                         ('data-num-total', str(stats.num_tactics)),
+                                         ('data-predictions',
+                                          to_list_string(cast(List[str], predictions))),
+                                         ('data-num-predicteds',
+                                          to_list_string([stats.predicted_tactic_frequency
+                                                          .get(get_stem(prediction), 0)
+                                                          for prediction in cast(List[str],
+                                                                                 predictions)])),
+                                         ('data-num-corrects',
+                                          to_list_string([stats.correctly_predicted_frequency
+                                                          .get(get_stem(prediction), 0)
+                                                          for prediction in
+                                                          cast(List[str], predictions)])),
+                                         ('data-certainties',
+                                          to_list_string(cast(List[float], certainties))),
+                                         ('data-num-actual-corrects',
+                                          stats.correctly_predicted_frequency
+                                          .get(get_stem(command), 0)),
+                                         ('data-num-actual-in-file',
+                                          stats.actual_tactic_frequency
+                                          .get(get_stem(command), 0)),
+                                         ('data-actual-tactic',
+                                          strip_comments(command)),
+                                         ('data-grades',
+                                          to_list_string(cast(List[str], grades))),
+                                         ('data-search-idx', 0),
+                                         id='command-{}-{}'.format(region_idx, cmd_idx),
+                                         onmouseover='hoverTactic("{}-{}")'\
+                                         .format(region_idx, cmd_idx),
+                                         onmouseout='unhoverTactic()',
+                                         onclick='selectTactic("{}-{}"); event.stopPropagation();'
+                                         .format(region_idx, cmd_idx)):
+                                    doc.stag("br")
+                                    if len(grades) == 0:
+                                        with tag('code', klass="plaincommand"):
+                                            text(command.strip("\n"))
+                                    else:
+                                        with tag('code', klass=grades[0]):
+                                            text(command.strip("\n"))
+                                        for grade in grades[1:]:
+                                            with tag('span', klass=grade):
+                                                doc.asis(" &#11044;")
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), "w") as fout:
         fout.write(syntax_highlight(doc.getvalue()))
 

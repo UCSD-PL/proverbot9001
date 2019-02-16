@@ -1,4 +1,24 @@
 selectedIdx = -1
+function initRegions(){
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    }
+}
+function init() {
+    setSelectedIdx()
+    initRegions()
+}
 function setSelectedIdx(){
     if (window.location.hash != ""){
         idx = /\#command-(\d+)/.exec(window.location.hash)[1]
@@ -18,7 +38,11 @@ function getStem(command) {
 }
 
 function from_list_string(string){
-    return string.split("% ")
+    items = string.split("% ")
+    if (items.length == 1 && items[0] == "")
+        return []
+    else
+        return items
 }
 function displayTacticInfo (idx) {
     overlay = document.getElementById("overlay")
@@ -65,17 +89,22 @@ function displayTacticInfo (idx) {
     actual_tactic = tacSpan.dataset.actualTactic
     search_index = tacSpan.dataset.searchIdx
     statsDiv = document.getElementById("stats")
-    statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predictions[search_index]) +
-        " *</tt>\" " + Math.floor((num_predicteds[search_index] / num_total) * 100) +
-        "% of the time (" + num_predicteds[search_index] + "/" + num_total + ")<br>\n" +
-        Math.floor((num_corrects[search_index] / num_predicteds[search_index]) * 100) +
-        "% of \"<tt>" + getStem(predictions[search_index]) +
-        " *</tt>\" predictions are correct (" +
-        num_corrects[search_index] + "/" + num_predicteds[search_index] + "). " +
-        Math.floor((num_actual_corrects / num_actual_in_file) * 100) +
-        "% of \"<tt>" + getStem(actual_tactic) +
-        " *</tt>\"'s in file correctly predicted (" +
-        num_actual_corrects + "/" + num_actual_in_file + ").";
+    if (predictions.length > 0){
+        statsDiv.innerHTML = "Predicted \"<tt>" + getStem(predictions[search_index]) +
+            " *</tt>\" " + Math.floor((num_predicteds[search_index] / num_total) * 100) +
+            "% of the time (" + num_predicteds[search_index] + "/" + num_total + ")<br>\n" +
+            Math.floor((num_corrects[search_index] / num_predicteds[search_index]) * 100) +
+            "% of \"<tt>" + getStem(predictions[search_index]) +
+            " *</tt>\" predictions are correct (" +
+            num_corrects[search_index] + "/" + num_predicteds[search_index] + "). " +
+            Math.floor((num_actual_corrects / num_actual_in_file) * 100) +
+            "% of \"<tt>" + getStem(actual_tactic) +
+            " *</tt>\"'s in file correctly predicted (" +
+            num_actual_corrects + "/" + num_actual_in_file + ").";
+    } else {
+        statsDiv.innerHTML = ""
+    }
+
 }
 function unhoverTactic() {
     if (selectedIdx != -1){
@@ -87,13 +116,17 @@ function hideTacticInfo () {
     document.getElementById("overlay").style.display = "none";
 }
 function selectTactic(idx) {
-    if (selectedIdx != 1){
+    if (idx == selectedIdx){
         deselectTactic()
+    } else {
+        if (selectedIdx != 1){
+            deselectTactic()
+        }
+        selectedIdx = idx
+        displayTacticInfo(idx)
+        tacSpan = document.getElementById("command-" + idx)
+        tacSpan.style.backgroundColor = "LightCyan"
     }
-    selectedIdx = idx
-    displayTacticInfo(idx)
-    tacSpan = document.getElementById("command-" + idx)
-    tacSpan.style.backgroundColor = "LightCyan"
 }
 function deselectTactic() {
     tacSpan = document.getElementById("command-" + selectedIdx)

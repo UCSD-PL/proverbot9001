@@ -71,3 +71,34 @@ code {
 #context pre {
     font-size: 14pt;
 }
+.collapsible {
+  cursor: pointer;
+  padding: 3px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  background-color: white;
+}
+
+.collapsible:hover {
+  background-color: #b6b6b6;
+}
+
+.region {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+.collapsible:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 20px;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+}
+.buttontext {
+  float: left;
+}
