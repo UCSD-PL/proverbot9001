@@ -53,6 +53,25 @@ class NumEqualitiesInHyps(VecFeature):
     def feature_size(self) -> int:
         return 1
 
+class TopLevelTokenInGoalV(VecFeature):
+    def __init__(self, init_dataset : List[TacticContext],
+                 args : argparse.Namespace) -> None:
+        headTokenCounts : typing.Counter[str] = Counter()
+        for prev_tactics, hyps, goal in init_dataset:
+            headToken = get_symbols(goal)[0]
+            headTokenCounts[headToken] += 1
+        self.headKeywords = [word for word, count in
+                             headTokenCounts.most_common(args.num_head_keywords)]
+        if args.print_keywords:
+            print("Head keywords are {}".format(self.headKeywords))
+    def __call__(self, context : TacticContext) -> List[float]:
+        headToken = get_symbols(context.goal)[0]
+        oneHotHeads = [0.] * len(self.headKeywords)
+        if headToken in self.headKeywords:
+            oneHotHeads[self.headKeywords.index(headToken)] = 1.
+        return oneHotHeads
+    def feature_size(self) -> int:
+        return len(self.headKeywords)
 class TopLevelTokenInGoal(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
@@ -73,6 +92,27 @@ class TopLevelTokenInGoal(WordFeature):
     def vocab_size(self) -> int:
         return len(self.headKeywords) + 1
 
+class PrevTacticV(VecFeature):
+    def __init__(self, init_dataset : List[TacticContext],
+                 args : argparse.Namespace) -> None:
+        prevTacticsCounts : typing.Counter[str] = Counter()
+        for prev_tactics, hyps, goal in init_dataset:
+            if len(prev_tactics) > 2:
+                prevTacticsCounts[serapi_instance.get_stem(prev_tactics[-1])] += 1
+        self.tacticKeywords = ["Proof"] + \
+            [word for word, count in
+             prevTacticsCounts.most_common(args.num_tactic_keywords)]
+        if args.print_keywords:
+            print("Tactic keywords are {}".format(self.tacticKeywords))
+    def __call__(self, context : TacticContext) -> List[float]:
+        prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
+                       len(context.prev_tactics) > 1 else "Proof")
+        oneHotPrevs= [0.] * len(self.tacticKeywords)
+        if prev_tactic in self.tacticKeywords:
+            oneHotPrevs[self.tacticKeywords.index(prev_tactic)] = 1.
+        return oneHotPrevs
+    def feature_size(self) -> int:
+        return len(self.tacticKeywords)
 class PrevTactic(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
