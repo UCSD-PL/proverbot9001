@@ -606,8 +606,8 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
         if prefix_match:
             rest_stem, rest_rest = split_tactic(prefix_match.group(1))
             return prefix + " " + rest_stem, rest_rest
-    for special_stem in ["rewrite <-", "intros until", "simpl in"]:
-        special_match = re.match("{}\s+(.*)".format(special_stem), tactic)
+    for special_stem in ["rewrite <-", "rewrite !", "intros until", "simpl in"]:
+        special_match = re.match("{}\s*(.*)".format(special_stem), tactic)
         if special_match:
             return special_stem, special_match.group(1)
     match = re.match("^\(?(\w+)(?:\s+(.*))?", tactic)
@@ -623,7 +623,7 @@ def parse_hyps(hyps_str : str) -> List[str]:
     foralls_killed = kill_nested("\Wforall\s", ",", funs_killed)
     fixs_killed = kill_nested("\Wfix\s", ":=", foralls_killed)
     hyps_replaced = re.sub(":=.*?:", ":", fixs_killed, flags=re.DOTALL)
-    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?: .*?",
+    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?:\s.*?",
                            hyps_replaced, flags=re.DOTALL)
     if len(var_terms) == 0:
         return []
