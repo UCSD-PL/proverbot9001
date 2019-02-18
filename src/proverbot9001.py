@@ -50,7 +50,8 @@ def train(args):
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Parse datafiles into multiple formats")
-    parser.add_argument("format", choices=["terms", "goals", "hyps+goal"])
+    parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
+                                           "hyps+goal+tactic"])
     parser.add_argument("datafile_path", type=str)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
@@ -92,6 +93,17 @@ def get_data(args : List[str]) -> None:
                 print(hyp)
             print("================================")
             print(goal)
+    elif arg_values.format =="hyps+goal+tactic":
+        dataset = data.get_text_data(arg_values.datafile_path,
+                                     arg_values.context_filter,
+                                     max_tuples=arg_values.max_tuples,
+                                     verbose=True)
+        for prev_tactics, hyps, goal, tactic in dataset:
+            for hyp in hyps:
+                print(hyp)
+            print("================================")
+            print(goal)
+            print("====> {}".format(tactic))
         pass
 
 def run_test(args):
