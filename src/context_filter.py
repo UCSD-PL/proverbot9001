@@ -147,6 +147,6 @@ context_filters : Dict[str, ContextFilter] = {
     "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
-    "context-var-args":filter_and(args_vars_in_context, no_compound_or_bullets),
+    "hyp-args":filter_and(args_vars_in_context, no_compound_or_bullets),
     "goal-args" : args_in_goal,
 }
