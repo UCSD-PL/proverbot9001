@@ -535,6 +535,12 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
     tokenized_data = tokenize_data(tokenizer, data, args.num_threads)
     return tokenizer, [goal for prev_tactics, hypotheses, goal, tactic in tokenized_data]
 
+def tokenize_hyps(data : RawDataset, args : Namespace, tokenizer : Tokenizer) \
+    -> List[List[Sentence]]:
+    return [[tokenizer.toTokenList(hyp.partition(":")[2].strip())
+             for hyp in hyp_list]
+            for prevs, hyp_list, goal, tactic in data]
+
 def predictKTactics(prediction_distribution : torch.FloatTensor,
                     embedding : Embedding, k : int) \
     -> List[Prediction]:
