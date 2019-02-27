@@ -19,6 +19,7 @@ from models import pec_predictor
 from models import features_predictor
 from models import encfeatures_predictor
 from models import featuressvm_predictor
+from models import apply_predictor
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -36,6 +37,7 @@ predictors = {
     'features' : features_predictor.FeaturesPredictor,
     'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
+    'apply' : apply_predictor.ApplyPredictor,
 }
 
 def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:

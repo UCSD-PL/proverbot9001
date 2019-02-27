@@ -19,6 +19,7 @@ import models.pec_predictor as pec
 import models.features_predictor as features
 import models.encfeatures_predictor as encfeatures
 import models.featuressvm_predictor as featuressvm
+import models.apply_predictor as apply_predictor
 from tokenizer import tokenizers
 import report
 import report2
@@ -144,6 +145,7 @@ trainable_models : Dict[str, Callable[[List[str]], None]] = {
     "features" : features.main,
     "encfeatures" : encfeatures.main,
     "featuressvm" : featuressvm.main,
+    "apply" : apply_predictor.main,
 }
 
 if __name__ == "__main__":
