@@ -516,10 +516,13 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
         start = time.time()
         print("Picking tokens...", end="")
         sys.stdout.flush()
+        if args.num_relevance_samples > len(data):
+            subset = data
+        else:
+            subset = random.sample(data, args.num_relevance_samples)
         tokenizer = make_keyword_tokenizer_relevance(
             [(goal, next_tactic) for
-             prev_tactics, hypotheses, goal, next_tactic in
-             random.sample(data, args.num_relevance_samples)],
+             prev_tactics, hypotheses, goal, next_tactic in subset],
             tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
         print("{}s".format(time.time() - start))
     if args.save_tokens:
