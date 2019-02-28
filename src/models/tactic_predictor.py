@@ -44,12 +44,9 @@ import argparse
 from argparse import Namespace
 from serapi_instance import get_stem
 
-class PredictorState(metaclass=ABCMeta):
-    pass
-
 DatasetType = TypeVar('DatasetType', bound=Dataset)
 MetadataType = TypeVar('MetadataType')
-StateType = TypeVar('StateType', bound=PredictorState)
+StateType = TypeVar('StateType')
 
 class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, StateType],
                          metaclass=ABCMeta):
@@ -234,7 +231,7 @@ optimizers = {
 ModelType = TypeVar('ModelType', bound=nn.Module)
 
 @dataclass(init=True)
-class NeuralPredictorState(PredictorState):
+class NeuralPredictorState:
     epoch : int
     loss : float
     weights : Dict[str, Any]
