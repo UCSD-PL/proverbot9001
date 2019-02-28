@@ -12,7 +12,7 @@ import torch.autograd as autograd
 
 from serapi_instance import kill_comments
 
-from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable
+from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable, Optional
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -95,8 +95,11 @@ def chunks(l : Iterable[Any], chunk_size : int) -> Iterable[List[Any]]:
         next_chunk = list(itertools.islice(i, chunk_size))
 
 T = TypeVar('T')
-def list_topk(lst : List[T], k : int) -> Tuple[List[int], List[T]]:
-    l = sorted(enumerate(lst), key=lambda x:x[1], reverse=True)
+def list_topk(lst : List[T], k : int, f : Optional[Callable[[T], float]] = None) \
+    -> Tuple[List[int], List[T]]:
+    if f == None:
+        f = lambda x: float(x) # type: ignore
+    l = sorted(enumerate(lst), key=lambda x:f(x[1]), reverse=True) # type: ignore
     lk = l[:k]
     return tuple(zip(*lk)) # type: ignore
 
