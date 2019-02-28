@@ -39,12 +39,13 @@ class TacticPredictor(metaclass=ABCMeta):
 
 from data import Dataset, RawDataset, ScrapedTactic, get_text_data, TokenizedDataset, \
     DatasetMetadata, stemmify_data, tactic_substitutions
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Sized
 import argparse
 from argparse import Namespace
 from serapi_instance import get_stem
 
-DatasetType = TypeVar('DatasetType', bound=Dataset)
+DatasetType = TypeVar('DatasetType')
+RestrictedDatasetType = TypeVar('RestrictedDatasetType', bound=Sized)
 MetadataType = TypeVar('MetadataType')
 StateType = TypeVar('StateType')
 
@@ -236,8 +237,8 @@ class NeuralPredictorState:
     loss : float
     weights : Dict[str, Any]
 
-class NeuralPredictor(Generic[DatasetType, ModelType],
-                      TokenizingPredictor[DatasetType, NeuralPredictorState],
+class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
+                      TokenizingPredictor[RestrictedDatasetType, NeuralPredictorState],
                       metaclass=ABCMeta):
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
@@ -263,7 +264,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
                                                        list(optimizers.keys())[0]))
 
     def _optimize_model_to_disc(self,
-                                encoded_data : DatasetType,
+                                encoded_data : RestrictedDatasetType,
                                 encdec_state : TokenizerEmbeddingState,
                                 arg_values : Namespace) \
         -> None:
@@ -275,7 +276,8 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
             with open(arg_values.save_file, 'wb') as f:
                 print("=> Saving checkpoint at epoch {}".format(epoch))
                 torch.save((arg_values, encdec_state, predictor_state), f)
-    def _optimize_checkpoints(self, encoded_data : DatasetType, arg_values : Namespace,
+    def _optimize_checkpoints(self, encoded_data : RestrictedDatasetType,
+                              arg_values : Namespace,
                               tactic_vocab_size : int, term_vocab_size : int) \
         -> Iterable[NeuralPredictorState]:
         dataloader = data.DataLoader(data.TensorDataset(
@@ -348,10 +350,10 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
     @abstractmethod
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
                                tokenizer : Tokenizer, embedding : Embedding) \
-        -> DatasetType:
+        -> RestrictedDatasetType:
         pass
     @abstractmethod
-    def _data_tensors(self, encoded_data : DatasetType,
+    def _data_tensors(self, encoded_data : RestrictedDatasetType,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:
         pass
@@ -371,7 +373,7 @@ class NeuralPredictor(Generic[DatasetType, ModelType],
 import threading
 from torch.autograd import Variable
 
-class NeuralClassifier(NeuralPredictor[DatasetType, ModelType],
+class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
                        metaclass=ABCMeta):
     def __init__(self) -> None:
         super().__init__()
@@ -513,6 +515,7 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
         start = time.time()
         print("Picking tokens...", end="")
         sys.stdout.flush()
+        subset : Sequence[EmbeddedSample]
         if args.num_relevance_samples > len(data):
             subset = data
         else:
