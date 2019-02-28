@@ -209,8 +209,8 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         tensors = self._data_tensors(encoded_data, arg_values)
         model = self._get_model(arg_values, tokenizer.numTokens())
         return optimize_checkpoints(tensors, arg_values, model,
-                                    lambda batch_tensors, model, show:
-                                    self._getBatchPredictionLoss(batch_tensors, model, show))
+                                    lambda batch_tensors, model:
+                                    self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
                          tokenizer : Tokenizer,
@@ -236,15 +236,12 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                    arg_values.hidden_size,
                                    arg_values.num_layers)
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
-                                model : RelevanceClassifier, show : bool) \
+                                model : RelevanceClassifier) \
         -> torch.FloatTensor:
         hypotheses_batch, goals_batch, outputs_batch = \
             cast(Tuple[torch.FloatTensor, torch.FloatTensor, torch.LongTensor],
                  data_batch)
         predictionDistribution = model(hypotheses_batch, goals_batch)
-        # if show:
-        #     print(outputs_batch)
-        #     print(predictionDistribution)
         output_var = maybe_cuda(Variable(outputs_batch))
         return self._criterion(predictionDistribution, output_var)
     def getOptions(self) -> List[Tuple[str, str]]:
