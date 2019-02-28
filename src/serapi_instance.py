@@ -692,6 +692,8 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
 
 def get_var_term_in_hyp(hyp : str) -> str:
     return hyp.split(":")[0].strip()
+def get_hyp_term(hyp : str) -> str:
+    return hyp.partition(":")[2].strip()
 def get_vars_in_hyps(hyps : List[str]) -> List[str]:
     var_terms = [get_var_term_in_hyp(hyp) for hyp in hyps]
     var_names = [name.strip() for term in var_terms for name in term.split(",")]
