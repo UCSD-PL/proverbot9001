@@ -102,11 +102,13 @@ def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tu
 
 # Warning: Mutates fresult
 def evaluate_prediction(fresult : 'FileResult',
+                        initial_context : str,
                         correct_command : str,
                         correct_result_context : str,
                         prediction_run : Tuple[str, str, Optional[Exception]]) -> str:
     prediction, context, exception = prediction_run
-    grade = fresult.grade_command_result(prediction, context, correct_command,
+    grade = fresult.grade_command_result(initial_context,
+                                         prediction, context, correct_command,
                                          correct_result_context, exception)
     return grade
 
@@ -226,7 +228,8 @@ class FileResult:
         self.correctly_predicted_frequency : Dict[str, int] = {}
         self.total_loss = 0.
         pass
-    def grade_command_result(self, predicted : str, predicted_context : str,
+    def grade_command_result(self, initial_context : str,
+                             predicted : str, predicted_context : str,
                              actual : str, actual_context : str,
                              exception : Optional[Exception]) -> str:
         if actual.strip() == predicted.strip():
@@ -239,6 +242,8 @@ class FileResult:
             return "failedcommand"
         elif predicted_context == actual_context:
             return "mostlygoodcommand"
+        elif predicted_context == initial_context:
+            return "uselesscommand"
         else:
             return "badcommand"
     def add_command_result(self,
@@ -259,7 +264,8 @@ class FileResult:
             self.num_partial += 1
         elif (grades[0] == "okaycommand"):
             self.num_partial += 1
-        elif (grades[0] == "failedcommand"):
+        elif (grades[0] == "failedcommand" or
+              grades[0] == "superfailedcommand"):
             self.num_failed += 1
 
         for grade in grades:
@@ -274,7 +280,9 @@ class FileResult:
             if (grade == "goodcommand" or grade == "mostlygoodcommand"):
                 self.num_searched += 1
                 break
-            if grade != "failedcommand":
+            if (grade != "failedcommand" and
+                grade != "superfailedcommand" and
+                grade != "uselesscommand"):
                 break
         pass
 
@@ -335,6 +343,7 @@ class Worker(threading.Thread):
                             not re.match(".*Proof.*", command.strip()))
                 if in_proof:
                     prev_tactics.append(command)
+                    initial_context = coq.proof_context
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
                     if self.baseline:
@@ -362,7 +371,8 @@ class Worker(threading.Thread):
                         raise
 
                     prediction_results = [(prediction,
-                                           evaluate_prediction(fresult, command,
+                                           evaluate_prediction(initial_context,
+                                                               fresult, command,
                                                                actual_result_context,
                                                                prediction_run),
                                            certainty)
