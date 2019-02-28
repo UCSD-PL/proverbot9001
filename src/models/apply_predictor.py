@@ -88,7 +88,8 @@ class StemClassifier(nn.Module):
         hypotheses_var = maybe_cuda(Variable(hypotheses_batch))
         goals_var = maybe_cuda(Variable(goals_batch))
 
-        vals = self._in_layer(torch.cat((relevances_var, hypotheses_var, goals_var),
+        vals = self._in_layer(torch.cat((relevances_var.view(batch_size, 1),
+                                         hypotheses_var, goals_var),
                                         dim=1))
         for i in range(self.num_layers - 1):
             vals = F.relu(vals)
