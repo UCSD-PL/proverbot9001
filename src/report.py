@@ -514,10 +514,8 @@ def main(arg_list : List[str]) -> None:
                         help="run in baseline mode, predicting {} every time"
                         .format(baseline_tactic),
                         default=False, const=True, action='store_const')
-    parser.add_argument('--no-context-filter',
-                        help="Don't filter data pairs the way it was done in training.",
-                        dest="use_context_filter",
-                        default=True, const=False, action='store_const')
+    parser.add_argument('--context-filter', dest="context_filter", type=str,
+                        default=None)
     parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
     parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
@@ -549,13 +547,13 @@ def main(arg_list : List[str]) -> None:
     net = loadPredictor(args.weightsfile, args.predictor)
     predictorName = args.predictor
     gresult = GlobalResult(net.getOptions())
+    context_filter = args.context_filter or dict(net.getOptions())["context_filter"]
 
     for idx in range(args.threads):
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
                         args.baseline, args.skip_nochange_tac,
-                        dict(net.getOptions())["context_filter"]
-                        if args.use_context_filter else "all")
+                        context_filter)
         worker.start()
         workers.append(worker)
 
