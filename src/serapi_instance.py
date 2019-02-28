@@ -183,6 +183,8 @@ class SerapiInstance(threading.Thread):
                     lambda inner: progn(self.cancel_last(), raise_(e)),
                     ['ExplainErr\.EvaluatedError', TAIL],
                     lambda inner: progn(self.cancel_last(), raise_(e)),
+                    ['Proofview.NoSuchGoals(1)', _],
+                    lambda inner: progn(self.cancel_last(), raise_(e)),
 
                     ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
