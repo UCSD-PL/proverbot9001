@@ -36,39 +36,6 @@ class HypothesisRelevanceSample(NamedTuple):
 class ApplyDataset(ListDataset[HypothesisRelevanceSample]):
     pass
 
-class StemClassifier(nn.Module):
-    def __init__(self, term_vocab_size : int,
-                 hidden_size : int, num_layers : int,
-                 output_vocab_size : int) -> None:
-        super().__init__()
-        self.num_layers = num_layers
-        self._in_layer = maybe_cuda(nn.Linear(term_vocab_size * 2 + 1, hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
-        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
-        self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
-
-    def forward(self,
-                relevances_batch : torch.FloatTensor,
-                hypotheses_batch : torch.FloatTensor,
-                goals_batch : torch.FloatTensor) -> torch.FloatTensor:
-        batch_size = relevances_batch.size()[0]
-        relevances_var = maybe_cuda(Variable(relevances_batch))
-        hypotheses_var = maybe_cuda(Variable(hypotheses_batch))
-        goals_var = maybe_cuda(Variable(goals_batch))
-
-        vals = self._in_layer(torch.cat((relevances_var.view(batch_size, 1),
-                                         hypotheses_var, goals_var),
-                                        dim=1))
-        for i in range(self.num_layers - 1):
-            vals = F.relu(vals)
-            vals = getattr(self, "_layer{}".format(i))(vals)
-        vals = F.relu(vals)
-        result = self._softmax(self._out_layer(vals)).view(batch_size, -1)
-        return result
-
-
 class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                         Tokenizer,
                                         NeuralPredictorState]):
@@ -76,23 +43,19 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
 
-    def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
-        return torch.cat([self._predictDistribution(in_data) for in_data in in_datas])
+    def _encode_term(self, term : str) -> List[int]:
+        return getNGramTokenbagVector(self.training_args.num_grams,
+                                      self._tokenizer.numTokens(),
+                                      self._tokenizer.toTokenList(term))
 
     def _predictDistribution(self, in_data : TacticContext) -> torch.FloatTensor:
-        encoded_goals = FloatTensor(getNGramTokenbagVector(
-            self.training_args.num_grams,
-            self._tokenizer.numTokens(),
-            self._tokenizer.toTokenList(in_data.goal))) \
+        hyp_terms = [serapi_instance.get_hyp_term(hyp) for hyp in in_data.hypotheses]
+        encoded_hyps = FloatTensor([self._encode_term(term) for term in hyp_terms])
+        encoded_goals = FloatTensor(self._encode_term(in_data.goal)) \
             .view(1, -1).expand(len(in_data.hypotheses), -1)
 
-        hyp_terms = [hyp.partition(":")[2].strip() for hyp in in_data.hypotheses]
-        encoded_hyps = FloatTensor([getNGramTokenbagVector(
-            self.training_args.num_grams,
-            self._tokenizer.numTokens(),
-            self._tokenizer.toTokenList(term))
-                                    for term in hyp_terms])
-        relevance_predictions = self._model(torch.cat((encoded_hyps, encoded_goals), dim=1))
+        relevance_predictions = \
+            self._model(torch.cat((encoded_hyps, encoded_goals), dim=1))
         return relevance_predictions[:,1]
     def predictKTactics(self, in_data : TacticContext, k : int) -> List[Prediction]:
         if len(in_data.hypotheses) == 0:
