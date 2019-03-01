@@ -21,7 +21,15 @@ function init() {
 }
 function setSelectedIdx(){
     if (window.location.hash != ""){
-        idx = /\#command-(\d+)/.exec(window.location.hash)[1]
+        idx = /\#command-(\d+-?\d*)/.exec(window.location.hash)[1]
+        collapsible_idx_match = /(\d+)-?\d*/.exec(idx)
+        if (collapsible_idx_match != null){
+            regionIdx = collapsible_idx_match[1]
+            var button = document.getElementById("collapsible-"+regionIdx);
+            button.classList.add("active")
+            content = button.nextElementSibling
+            content.style.maxHeight = content.scrollHeight + "px";
+        }
         selectTactic(idx)
     }
     window.onhashchange = setSelectedIdx

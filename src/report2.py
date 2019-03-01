@@ -426,7 +426,8 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                             text("\n" + command_result[0].strip('\n'))
                 else:
                     doc.stag("br")
-                    with tag('button', klass='collapsible'):
+                    with tag('button', klass='collapsible',
+                             id='collapsible-{}'.format(region_idx)):
                         with tag('code', klass='buttontext'):
                             text(region[0][0].strip("\n"))
                     with tag('div', klass='region'):
