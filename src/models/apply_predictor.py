@@ -49,7 +49,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                       self._tokenizer.toTokenList(term))
 
     def _predictDistribution(self, in_data : TacticContext) -> torch.FloatTensor:
-        hyp_terms = [serapi_instance.get_hyp_term(hyp) for hyp in in_data.hypotheses]
+        hyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in in_data.hypotheses]
         encoded_hyps = FloatTensor([self._encode_term(term) for term in hyp_terms])
         encoded_goals = FloatTensor(self._encode_term(in_data.goal)) \
             .view(1, -1).expand(len(in_data.hypotheses), -1)
