@@ -27,7 +27,8 @@ class Tokenizer(metaclass=ABCMeta):
         pass
 
 def get_words(string : str) -> List[str]:
-    return [word for word in re.sub('(,|\.+|:|\)|\()', r' \1 ', string).split()
+    return [word for word in
+            re.sub('(,|\.+|(?::(?!=))|(?::=)|\)|\()', r' \1 ', string).split()
             if word.strip() != '']
 
 def get_symbols(string : str) -> List[str]:

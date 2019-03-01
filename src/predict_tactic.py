@@ -41,6 +41,7 @@ predictors = {
     'apply_longest' : apply_baselines.ApplyLongestPredictor,
     'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
+    'apply_wordsim' : apply_baselines.ApplyWordSimlarPredictor,
 }
 
 trainable_modules : Dict[str, Callable[[List[str]], None]] = {
