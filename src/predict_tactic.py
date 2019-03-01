@@ -32,12 +32,29 @@ predictors = {
     'autoclass' : autoclass_predictor.AutoClassPredictor,
     'wordbagsvm' : wordbagsvm_classifier.WordBagSVMClassifier,
     'ngramsvm' : ngramsvm_classifier.NGramSVMClassifier,
-    'hyparg' : hyparg_predictor.HypArgPredictor,
     'pec' : pec_predictor.PECPredictor,
     'features' : features_predictor.FeaturesPredictor,
     'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
     'apply' : apply_predictor.ApplyPredictor,
+}
+
+trainable_modules : Dict[str, Callable[[List[str]], None]] = {
+    "encdec" : encdecrnn_predictor.main,
+    "encclass" : encclass_predictor.main,
+    "dnnclass" : dnnclass_predictor.main,
+    "trycommon" : try_common_predictor.train,
+    "wordbagclass" : wordbagclass_predictor.main,
+    "ngramclass" : ngramclass_predictor.main,
+    "k-nearest" : k_nearest_predictor.main,
+    "autoclass" : autoclass_predictor.main,
+    "wordbagsvm" : wordbagsvm_classifier.main,
+    "ngramsvm" : ngramsvm_classifier.main,
+    "pec" : pec_predictor.main,
+    "features" : features_predictor.main,
+    "featuressvm" : featuressvm_predictor.main,
+    "encfeatures" : encfeatures_predictor.main,
+    "apply" : apply_predictor.main,
 }
 
 def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:
