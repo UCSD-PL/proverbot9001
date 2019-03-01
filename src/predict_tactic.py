@@ -20,6 +20,7 @@ from models import features_predictor
 from models import encfeatures_predictor
 from models import featuressvm_predictor
 from models import apply_predictor
+from models import apply_baselines
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -37,6 +38,9 @@ predictors = {
     'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
     'apply' : apply_predictor.ApplyPredictor,
+    'apply_longest' : apply_baselines.ApplyLongestPredictor,
+    'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
+    'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
 }
 
 trainable_modules : Dict[str, Callable[[List[str]], None]] = {
