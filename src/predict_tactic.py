@@ -1,8 +1,8 @@
 #!/usr/bin/env python3.7
 
 import torch
-from typing import Dict, List, Union
 from models.tactic_predictor import TacticPredictor
+from typing import Dict, List, Union, Callable
 
 from models import encdecrnn_predictor
 from models import try_common_predictor
