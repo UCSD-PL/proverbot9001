@@ -123,7 +123,9 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                            default_values : Dict[str, Any] = {}) -> None:
         super().add_args_to_parser(parser)
         add_tokenizer_args(parser)
-        add_nn_args(parser)
+        add_nn_args(parser, dict([('num-epochs', 50), ('hidden-size', 256),
+                                  ('batch-size', 64)]
+                                 + list(default_values.items())))
         parser.add_argument("--num-grams", dest="num_grams", default=1, type=int)
         parser.add_argument("--hidden-size", dest="hidden_size", type=int,
                             default=default_values.get("hidden-size", 128))
