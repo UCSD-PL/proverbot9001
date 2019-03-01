@@ -107,7 +107,6 @@ modules = {
 }
 
 test_modules = {
-    "autoencoder" : autoencoder.run_test,
 }
 
 if __name__ == "__main__":
