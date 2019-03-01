@@ -54,7 +54,7 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "features" : features_predictor.main,
     "featuressvm" : featuressvm_predictor.main,
     "encfeatures" : encfeatures_predictor.main,
-    "apply" : apply_predictor.main,
+    "relevance" : apply_predictor.train_relevance,
 }
 
 def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:

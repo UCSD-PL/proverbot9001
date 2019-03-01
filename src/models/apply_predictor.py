@@ -192,6 +192,6 @@ def encodeHypList(num_grams : int, num_tokens : int, hyps_list : List[List[int]]
     List[List[int]]:
     return [getNGramTokenbagVector(num_grams, num_tokens, hyp) for hyp in hyps_list]
 
-def main(arg_list : List[str]) -> None:
+def train_relevance(arg_list : List[str]) -> None:
     predictor = ApplyPredictor()
     predictor.train(arg_list)
