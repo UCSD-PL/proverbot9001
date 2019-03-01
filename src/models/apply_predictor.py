@@ -4,7 +4,7 @@ from models.tactic_predictor import \
      predictKTactics, predictKTacticsWithLoss,
      predictKTacticsWithLoss_batch, add_nn_args, add_tokenizer_args,
      strip_scraped_output, tokenize_goals, tokenize_hyps)
-from models.components import (Embedding, SimpleEmbedding)
+from models.components import (Embedding, SimpleEmbedding, DNNClassifier)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength, getNGramTokenbagVector)
 from tokenizer import Tokenizer
@@ -35,36 +35,6 @@ class HypothesisRelevanceSample(NamedTuple):
 
 class ApplyDataset(ListDataset[HypothesisRelevanceSample]):
     pass
-
-class RelevanceClassifier(nn.Module):
-    def __init__(self,
-                 term_vocab_size : int,
-                 hidden_size : int,
-                 num_layers : int) -> None:
-        super().__init__()
-        self.num_layers = num_layers
-
-        self._in_layer = maybe_cuda(nn.Linear(term_vocab_size * 2, hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
-        self._out_layer = maybe_cuda(nn.Linear(hidden_size, 2))
-        self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
-
-    def forward(self,
-                hypotheses_batch : torch.FloatTensor,
-                goals_batch : torch.FloatTensor) -> torch.FloatTensor:
-        batch_size = hypotheses_batch.size()[0]
-        hypotheses_var = maybe_cuda(Variable(hypotheses_batch))
-        goals_var = maybe_cuda(Variable(goals_batch))
-
-        vals = self._in_layer(torch.cat((hypotheses_var, goals_var), dim=1))
-        for i in range(self.num_layers - 1):
-            vals = F.relu(vals)
-            vals = getattr(self, "_layer{}".format(i))(vals)
-        vals = F.relu(vals)
-        result = self._softmax(self._out_layer(vals)).view(batch_size, -1)
-        return result
 
 class StemClassifier(nn.Module):
     def __init__(self, term_vocab_size : int,
@@ -122,7 +92,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
             self._tokenizer.numTokens(),
             self._tokenizer.toTokenList(term))
                                     for term in hyp_terms])
-        relevance_predictions = self._model(encoded_hyps, encoded_goals)
+        relevance_predictions = self._model(torch.cat((encoded_hyps, encoded_goals), dim=1))
         return relevance_predictions[:,1]
     def predictKTactics(self, in_data : TacticContext, k : int) -> List[Prediction]:
         if len(in_data.hypotheses) == 0:
@@ -231,17 +201,18 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         tensors = [hypothesesTensor, goalsTensor, relevanceTensor]
         return tensors
     def _get_model(self, arg_values : Namespace, num_tokens : int) \
-        -> RelevanceClassifier:
-        return RelevanceClassifier(num_tokens ** arg_values.num_grams,
-                                   arg_values.hidden_size,
-                                   arg_values.num_layers)
+        -> DNNClassifier:
+        return DNNClassifier(2 * (num_tokens ** arg_values.num_grams),
+                             arg_values.hidden_size,
+                             2,
+                             arg_values.num_layers)
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
-                                model : RelevanceClassifier) \
+                                model : DNNClassifier) \
         -> torch.FloatTensor:
         hypotheses_batch, goals_batch, outputs_batch = \
             cast(Tuple[torch.FloatTensor, torch.FloatTensor, torch.LongTensor],
                  data_batch)
-        predictionDistribution = model(hypotheses_batch, goals_batch)
+        predictionDistribution = model(torch.cat((hypotheses_batch, goals_batch), dim=1))
         output_var = maybe_cuda(Variable(outputs_batch))
         return self._criterion(predictionDistribution, output_var)
     def getOptions(self) -> List[Tuple[str, str]]:
