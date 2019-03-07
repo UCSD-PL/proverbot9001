@@ -44,30 +44,36 @@ def main():
             args.inputs)
         with open(args.output or "scrape.txt", 'w') as out:
             for idx, scrape_result_file in enumerate(scrape_result_files, start=1):
-                print("Finished file {} of {}".format(idx, len(args.inputs)))
-                with open(scrape_result_file, 'r') as f:
-                    for line in f:
-                        out.write(line)
+                if scrape_result_file is None:
+                    print("Failed file {} of {}".format(idx, len(args.inputs)))
+                else:
+                    print("Finished file {} of {}".format(idx, len(args.inputs)))
+                    with open(scrape_result_file, 'r') as f:
+                        for line in f:
+                            out.write(line)
 
 def scrape_file(coqargs : List[str], skip_nochange_tac : bool, debug : bool, includes : str,
                 prelude : str, filename : str) -> str:
-    full_filename = prelude + "/" + filename
-    commands = try_load_lin(full_filename)
-    if not commands:
-        commands = lift_and_linearize(load_commands(full_filename),
-                                      coqargs, includes, prelude, full_filename, skip_nochange_tac)
-        save_lin(commands, full_filename)
+    try:
+        full_filename = prelude + "/" + filename
+        commands = try_load_lin(full_filename)
+        if not commands:
+            commands = lift_and_linearize(load_commands(full_filename),
+                                        coqargs, includes, prelude, full_filename, skip_nochange_tac)
+            save_lin(commands, full_filename)
 
-    with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-        result_file = full_filename + ".scrape"
-        coq.debug = debug
-        try:
-            with open(result_file, 'w') as f:
-                for command in commands:
-                    process_statement(coq, command, f)
-        except serapi_instance.TimeoutError:
-            print("Command in {} timed out.".format(filename))
-        return result_file
+        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+            result_file = full_filename + ".scrape"
+            coq.debug = debug
+            try:
+                with open(result_file, 'w') as f:
+                    for command in commands:
+                        process_statement(coq, command, f)
+            except serapi_instance.TimeoutError:
+                print("Command in {} timed out.".format(filename))
+            return result_file
+    except:
+        print("In file {}:".format(filename))        
 
 def process_statement(coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
