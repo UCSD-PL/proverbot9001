@@ -87,6 +87,8 @@ def split_toplevel(specstr : str) -> List[str]:
         if paren_depth > 0:
             if c == ")":
                 paren_depth -= 1
+            elif c == "(":
+                paren_depth += 1
             if paren_depth > 0:
                 curPiece += c
             else:
@@ -106,7 +108,8 @@ def split_toplevel(specstr : str) -> List[str]:
         else:
             curPiece += c
     assert paren_depth == 0
-    pieces.append(curPiece)
+    if curPiece != "":
+        pieces.append(curPiece)
     return pieces
 
 def get_context_filter(specstr : str) -> ContextFilter:
@@ -122,7 +125,7 @@ def get_context_filter(specstr : str) -> ContextFilter:
     if len(pieces) == 1:
         return get_context_filter(pieces[0])
     else:
-        assert len(pieces) % 2 == 1, "Malformed subexpression {}!".format(specstr)
+        assert len(pieces) % 2 == 1, "Malformed subexpression {}! {}".format(specstr, pieces)
         if pieces[1] == "%":
             assert all([operator == "%" for operator in pieces[1::2]])
             return filter_and(*[get_context_filter(substr) for substr in pieces[::2]])
