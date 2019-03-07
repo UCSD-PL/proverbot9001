@@ -29,16 +29,19 @@ from serapi_instance import get_stem
 class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : TokenizerEmbeddingState,
+                         metadata : Tuple[Tokenizer, Embedding],
                          state : svm.SVC) -> None:
-        self._tokenizer = metadata.tokenizer
-        self._embedding = metadata.embedding
+        self._tokenizer, self._embedding = metadata
         self.training_args = args
         self.context_filter = args.context_filter
         self._model = state
         pass
     def getOptions(self) -> List[Tuple[str, str]]:
         return list(vars(self.training_args).items())
+    def _encode_term(self, term : str) -> List[int]:
+        return getNGramTokenbagVector(self.training_args.num_grams,
+                                      self._tokenizer.numTokens(),
+                                      self._tokenizer.toTokenList(term))
 
     def __init__(self) -> None:
         self._criterion = nn.NLLLoss()
@@ -48,17 +51,15 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
                                tokenizer : Tokenizer, embedding : Embedding) \
         -> NGramDataset:
         return NGramDataset([NGramSample(getNGramTokenbagVector(arg_values.num_grams,
-                                                                term_vocab_size,
+                                                                tokenizer.numTokens(),
                                                                 goal),
-                                         tactic) for prev_tactic, goal, tactic in data])
+                                         tactic) for prev_tactic, hyps, goal, tactic
+                             in data])
 
     def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        feature_vector = \
-            encode_ngram_classify_input(in_data.goal,
-                                        self.training_args.num_grams,
-                                        self._tokenizer)
-        distribution = self._model.predict_log_proba([feature_vector])[0]
+        feature_vector = self._encode_term(in_data.goal)
+        distribution = FloatTensor(self._model.predict_log_proba([feature_vector])[0])
         return distribution
 
     def predictKTactics(self, in_data : TacticContext, k : int) \
@@ -76,7 +77,7 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
             distribution = self.predictDistribution(in_data)
             correct_stem = get_stem(correct)
             if self._embedding.has_token(correct_stem):
-                loss = self._criterion(torch.FloatTensor(distribution).view(1, -1), Variable(torch.LongTensor([self._embedding.encode_token(correct_stem)]))).item()
+                loss = self._criterion(FloatTensor(distribution).view(1, -1), Variable(LongTensor([self._embedding.encode_token(correct_stem)]))).item()
             else:
                 loss = float("+inf")
             indices, probabilities = list_topk(list(distribution), k)
@@ -111,7 +112,8 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
         print("Training SVM...", end="")
         sys.stdout.flush()
         model = svm.SVC(gamma='scale', kernel=arg_values.kernel, probability=True)
-        inputs, outputs = zip(*encoded_data.data)
+        inputs, outputs = cast(Tuple[List[List[int]], List[int]],
+                               zip(*encoded_data.data))
         model.fit(inputs, outputs)
         print(" {:.2f}s".format(time.time() - curtime))
         loss = model.score(inputs, outputs)
