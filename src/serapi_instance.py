@@ -640,8 +640,9 @@ def parse_hyps(hyps_str : str) -> List[str]:
         hyps_list.append(hyp)
     hyps_list.append(rest_hyps_str)
     for hyp in hyps_list:
-        assert ":" in hyp, "hyps_str: {}\nhyps_list: {}\nvar_terms: {}"\
-            .format(hyps_str, hyps_list, var_terms)
+        assert re.match(":(?!=)", hyp) != None, \
+            "hyp: {}, hyps_str: {}\nhyps_list: {}\nvar_terms: {}"\
+            .format(hyp, hyps_str, hyps_list, var_terms)
     return hyps_list
 
 def kill_nested(start_string : str, end_string : str, hyps : str) \
@@ -695,6 +696,8 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
 def get_var_term_in_hyp(hyp : str) -> str:
     return hyp.partition(":")[0].strip()
 def get_hyp_type(hyp : str) -> str:
+    if re.search(":(?!=)", hyp) == None:
+        return ""
     return re.split(":(?!=)", hyp, maxsplit=1)[1].strip()
 def get_vars_in_hyps(hyps : List[str]) -> List[str]:
     var_terms = [get_var_term_in_hyp(hyp) for hyp in hyps]
