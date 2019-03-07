@@ -172,7 +172,7 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
 def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
-        data_chunks = pool.imap_unordered(read_text_data_worker__, line_chunks)
+        data_chunks = pool.imap(read_text_data_worker__, line_chunks)
         result = itertools.chain.from_iterable(data_chunks)
         yield from result
 def get_text_data(data_path : str, context_filter_name : str,
@@ -270,7 +270,7 @@ def encode_seq_classify_data(data : RawDataset,
         torch.save(tokenizer, save_tokens)
     with multiprocessing.Pool(None) as pool:
         result = [(goal, embedding.encode_token(tactic)) for goal, tactic in
-                  chain.from_iterable(pool.imap_unordered(functools.partial(
+                  chain.from_iterable(pool.imap(functools.partial(
                       encode_seq_classify_data_worker__, tokenizer),
                                                           chunks(data, 1024)))]
     tokenizer.freezeTokenList()
@@ -310,7 +310,7 @@ def encode_ngram_classify_data(data : RawDataset,
     print("Getting grams")
     inputs, outputs = zip(*seq_data)
     with multiprocessing.Pool(None) as pool:
-        bag_data = list(pool.imap_unordered(functools.partial(
+        bag_data = list(pool.imap(functools.partial(
             getNGramTokenbagVector, num_grams, tokenizer.numTokens()), inputs))
     return list(zip(bag_data, outputs)), tokenizer, embedding
 
