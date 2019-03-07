@@ -122,3 +122,9 @@ class DecoderGRU(nn.Module):
         hidden = hidden.expand(self.num_layers, -1, -1).contiguous()
         output, hidden = self.gru(input, hidden)
         return self.softmax(input), hidden[0]
+@dataclass(init=True)
+class NeuralPredictorState:
+    epoch : int
+    loss : float
+    weights : Dict[str, Any]
+

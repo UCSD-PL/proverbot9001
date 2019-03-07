@@ -223,6 +223,7 @@ from torch import optim
 import torch.nn as nn
 from util import *
 from util import chunks
+from models.components import NeuralPredictorState
 
 optimizers = {
     "SGD": optim.SGD,
@@ -230,12 +231,6 @@ optimizers = {
 }
 
 ModelType = TypeVar('ModelType', bound=nn.Module)
-
-@dataclass(init=True)
-class NeuralPredictorState:
-    epoch : int
-    loss : float
-    weights : Dict[str, Any]
 
 class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
                       TokenizingPredictor[RestrictedDatasetType, NeuralPredictorState],
