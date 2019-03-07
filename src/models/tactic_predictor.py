@@ -597,26 +597,6 @@ def predictKTacticsWithLoss_batch(prediction_distributions : torch.FloatTensor,
                for certainties_and_idxs in certainties_and_idxs_list]
     return results, loss
 
-def add_nn_args(parser : argparse.ArgumentParser,
-                default_values : Dict[str, Any] = {}) -> None:
-    parser.add_argument("--num-epochs", dest="num_epochs", type=int,
-                        default=default_values.get("num-epochs", 20))
-    parser.add_argument("--batch-size", dest="batch_size", type=int,
-                        default=default_values.get("batch-size", 256))
-    parser.add_argument("--start-from", dest="start_from", type=str,
-                        default=default_values.get("start-from", None))
-    parser.add_argument("--print-every", dest="print_every", type=int,
-                        default=default_values.get("print-every", 5))
-    parser.add_argument("--learning-rate", dest="learning_rate", type=float,
-                        default=default_values.get("learning-rate", .7))
-    parser.add_argument("--epoch-step", dest="epoch_step", type=int,
-                        default=default_values.get("epoch-step", 10))
-    parser.add_argument("--gamma", dest="gamma", type=float,
-                        default=default_values.get("gamma", 0.8))
-    parser.add_argument("--optimizer",
-                        choices=list(optimizers.keys()), type=str,
-                        default=default_values.get("optimizer",
-                                                   list(optimizers.keys())[0]))
 def add_tokenizer_args(parser : argparse.ArgumentParser,
                        default_values : Dict[str, Any] = {}) -> None:
     parser.add_argument("--num-keywords", dest="num_keywords", type=int,

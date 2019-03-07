@@ -2,9 +2,9 @@ from models.tactic_predictor import \
     (NeuralPredictorState, TrainablePredictor, TacticContext,
      Prediction, save_checkpoints, optimize_checkpoints, embed_data,
      predictKTactics, predictKTacticsWithLoss,
-     predictKTacticsWithLoss_batch, add_nn_args, add_tokenizer_args,
+     predictKTacticsWithLoss_batch, add_tokenizer_args,
      strip_scraped_output, tokenize_goals, tokenize_hyps)
-from models.components import (Embedding, SimpleEmbedding, DNNClassifier)
+from models.components import (Embedding, SimpleEmbedding, DNNClassifier, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength, getNGramTokenbagVector)
 from tokenizer import Tokenizer

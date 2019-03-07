@@ -2,10 +2,10 @@ from models.tactic_predictor import \
     (NeuralPredictorState, TrainablePredictor, TacticContext,
      Prediction, save_checkpoints, optimize_checkpoints,
      predictKTactics, predictKTacticsWithLoss,
-     predictKTacticsWithLoss_batch, add_nn_args, add_tokenizer_args,
+     predictKTacticsWithLoss_batch, add_tokenizer_args,
      embed_data, tokenize_goals, strip_scraped_output)
 
-from models.components import (Embedding, SimpleEmbedding)
+from models.components import (Embedding, SimpleEmbedding, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength)
 from serapi_instance import get_stem
