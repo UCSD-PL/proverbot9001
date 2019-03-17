@@ -109,6 +109,63 @@ class DNNClassifier(nn.Module):
         layer_values = F.relu(layer_values)
         return self.softmax(self.out_layer(layer_values)).view(input.size()[0], -1)
 
+class WordFeaturesEncoder(nn.Module):
+    def __init__(self, input_vocab_sizes : List[int],
+                 hidden_size : int, num_layers : int,
+                 output_vocab_size : int) -> None:
+        super().__init__()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.num_word_features = len(input_vocab_sizes)
+        for i, vocab_size in enumerate(input_vocab_sizes):
+            self.add_module("_word_embedding{}".format(i),
+                            maybe_cuda(nn.Embedding(vocab_size, hidden_size)))
+        self._in_layer = maybe_cuda(nn.Linear(hidden_size * len(input_vocab_sizes),
+                                              hidden_size))
+        for i in range(num_layers - 1):
+            self.add_module("_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+
+    def forward(self, input_vec : torch.LongTensor) -> torch.FloatTensor:
+        batch_size = input_vec.size()[0]
+        word_embedded_features = []
+        for i in range(self.num_word_features):
+            word_feature_var = maybe_cuda(Variable(input_vec[:,i]))
+            embedded = getattr(self, "_word_embedding{}".format(i))(word_feature_var)\
+                .view(batch_size, self.hidden_size)
+            word_embedded_features.append(embedded)
+        word_embedded_features_vec = \
+            torch.cat(word_embedded_features, dim=1)
+        vals = self._in_layer(word_embedded_features_vec)
+        for i in range(self.num_layers - 1):
+            vals = F.relu(vals)
+            vals = getattr(self, "_layer{}".format(i))(vals)
+        vals = F.relu(vals)
+        result = self._out_layer(vals).view(batch_size, -1)
+        return result
+
+class EncoderRNN(nn.Module):
+    def __init__(self, input_vocab_size : int,
+                 hidden_size : int,
+                 output_vocab_size : int) -> None:
+        super().__init__()
+        self.hidden_size = hidden_size
+        self._word_embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
+        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
+        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+    def forward(self, input_seq : torch.LongTensor) -> torch.FloatTensor:
+        input_var = maybe_cuda(Variable(input_seq))
+        batch_size = input_seq.size()[0]
+        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        for i in range(input_seq.size()[1]):
+            token_batch = self._word_embedding(input_var[:,i])\
+                .view(1, batch_size, self.hidden_size)
+            token_batch = F.relu(token_batch)
+            token_out, hidden = self._gru(token_batch, hidden)
+        result = self._out_layer(token_out.view(batch_size, self.hidden_size))
+        return result
+
 class EncoderDNN(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
                  num_layers : int, batch_size : int=1) -> None:
