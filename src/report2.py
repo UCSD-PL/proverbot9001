@@ -93,7 +93,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
-                        default="report")
+                        default="static-report")
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
