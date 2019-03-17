@@ -713,5 +713,9 @@ def normalizeMessage(sexp):
                  Symbol, lambda sym: dumps(sym),
                  _, lambda sexp: sexp)
 
+def tacticTakesHypArgs(stem : str) -> bool:
+    return (stem == "apply" or stem == "exploit"
+            or stem == "rewrite" or stem == "rewrite <-")
+
 def progn(*args):
     return args[-1]
