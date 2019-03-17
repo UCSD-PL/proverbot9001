@@ -439,7 +439,7 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                     with tag('button', klass='collapsible',
                              id='collapsible-{}'.format(region_idx)):
                         with tag('code', klass='buttontext'):
-                            assert isinstance(region, TacticResult)
+                            assert isinstance(region[0][0], str), region
                             text(region[0][0].strip("\n"))
                     with tag('div', klass='region'):
                         for cmd_idx, command_result in enumerate(region[1:]):
