@@ -10,7 +10,7 @@ from argparse import Namespace
 from util import *
 from data import Sentence, SOS_token, EOS_token, TOKEN_START, get_text_data, RawDataset
 from data import getNGramTokenbagVector
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from models.args import start_std_args, optimizers
@@ -55,14 +55,14 @@ class HypArgPredictor(TacticPredictor):
     def __init__(self, options : Dict[str, Any]) -> None:
         self.load_saved_state(cast(str, options["filename"]))
         pass
-    def predictOneTactic(self, in_data : Dict[str, Union[List[str], str]]) \
+    def predictOneTactic(self, in_data : TacticContext) \
         -> Prediction:
 
         # Size: (1, self.features_size)
         general_features : torch.FloatTensor = self.encode_general_context(in_data)
         # Size: (1, num_hypotheses, self.features_size)
         hypothesis_features : torch.FloatTensor = \
-            self.encode_hypotheses(cast(List[str], in_data["hyps"]))
+            self.encode_hypotheses(in_data.hypotheses)
         # Size: (1, num_hypotheses)
         stem_distribution : torch.FloatTensor = self.predict_stem(general_features)
         # Size(stem): (1, 1)
@@ -89,20 +89,20 @@ class HypArgPredictor(TacticPredictor):
         result_struct = TacticStructure(stem_idx=stem, hyp_idxs=arg_idxs)
 
         return Prediction(decode_tactic_structure(self.embedding, result_struct,
-                                                  cast(List[str], in_data["hyps"])),
+                                                  in_data.hypotheses),
                           probability)
 
-    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         tactic, probability = self.predictOneTactic(in_data)
         return [Prediction(tactic, probability)] * k
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 1.0
-    def encode_general_context(self, in_data : Dict[str, Union[List[str], str]]) \
+    def encode_general_context(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        return FloatTensor(self.term_encoder(self.tokenizer.toTokenList(in_data["goal"])))
+        return FloatTensor(self.term_encoder(self.tokenizer.toTokenList(in_data.goal)))
     def encode_hypotheses(self, hyps : List[str]) -> torch.FloatTensor:
         return FloatTensor([self.term_encoder(self.tokenizer.toTokenList(hyp))
                             for hyp in hyps])
@@ -376,8 +376,7 @@ def train(dataset : StructDataset, args : Namespace,
                                             args.hidden_size, args.num_encoder_layers,
                                             args.batch_size))
     stem_decoder = maybe_cuda(DNNClassifier(encoded_term_size, args.hidden_size,
-                                            num_stems, args.num_decoder_layers,
-                                            args.batch_size))
+                                            num_stems, args.num_decoder_layers))
     arg_decoder = maybe_cuda(DecoderGRU(encoded_term_size * 2, args.hidden_size,
                                         args.num_decoder_layers, args.batch_size))
     optimizer = optimizers[args.optimizer](

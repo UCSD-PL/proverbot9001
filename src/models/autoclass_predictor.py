@@ -23,7 +23,7 @@ from tokenizer import tokenizers
 
 from util import *
 from models.components import SimpleEmbedding
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from models.term_autoencoder import EncoderRNN
 from serapi_instance import get_stem
 
@@ -96,13 +96,13 @@ class AutoClassPredictor(TacticPredictor):
         self.criterion = maybe_cuda(nn.NLLLoss())
         self.lock = threading.Lock()
 
-    def predictDistribution(self, in_data : Dict[str, Union[List[str], str]]) \
+    def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
         return self.decoder.run(self.encoder.run(LongTensor(normalizeSentenceLength(
-            self.tokenizer.toTokenList(in_data["goal"]),
+            self.tokenizer.toTokenList(in_data.goal),
             self.max_length)).view(1, -1)))
 
-    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)
@@ -113,7 +113,7 @@ class AutoClassPredictor(TacticPredictor):
         self.lock.release()
         return results
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[List[str], str]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         self.lock.acquire()
         prediction_distribution = self.predictDistribution(in_data)

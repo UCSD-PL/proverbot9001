@@ -51,11 +51,13 @@ class ECDataset(Dataset):
         return self.data[i]
 
 class EncClassPredictor(NeuralClassifier[ECDataset, 'RNNClassifier']):
-    def _predictDistribution(self, in_data : TacticContext) \
+    def _predictDistributions(self, in_datas : List[TacticContext]) \
         -> torch.FloatTensor:
-        tokenized_goal = self._tokenizer.toTokenList(in_data.goal)
-        input_list = inputFromSentence(tokenized_goal, self.training_args.max_length)
-        input_tensor = LongTensor(input_list).view(1, -1)
+        tokenized_goals = [self._tokenizer.toTokenList(in_data.goal)
+                           for in_data in in_datas]
+        input_list = [inputFromSentence(tokenized_goal, self.training_args.max_length)
+                      for tokenized_goal in tokenized_goals]
+        input_tensor = LongTensor(input_list).view(len(in_datas), -1)
         return self._model.run(input_tensor)
 
     def predictKTacticsWithLoss_batch(self,
@@ -126,6 +128,10 @@ class EncClassPredictor(NeuralClassifier[ECDataset, 'RNNClassifier']):
         predictionDistribution = model.run(input_batch, batch_size=len(input_batch))
         output_var = maybe_cuda(Variable(output_batch))
         return self._criterion(predictionDistribution, output_var)
+    def getOptions(self) -> List[Tuple[str, str]]:
+        return list(vars(self.training_args).items()) + \
+            [("training loss", self.training_loss),
+             ("# epochs", self.num_epochs)]
     def _description(self) -> str:
        return "a classifier pytorch model for proverbot"
 
@@ -162,10 +168,6 @@ class RNNClassifier(nn.Module):
             output, hidden = self(in_var[:,i], hidden)
         decoded = self.decoder_out(output)
         return self.softmax(decoded).view(self.batch_size, -1)
-    def getOptions(self) -> List[Tuple[str, str]]:
-        return list(vars(self.training_args).items()) + \
-            [("training loss", self.training_loss),
-             ("# epochs", self.num_epochs)]
 
 def main(arg_list : List[str]) -> None:
     predictor = EncClassPredictor()

@@ -8,8 +8,9 @@ import torch
 
 from typing import Dict, Any, List, Tuple, NamedTuple, Union
 
+from tokenizer import Tokenizer
 from models.tactic_predictor import TokenizingPredictor, Prediction, TacticContext, TokenizerEmbeddingState
-from models.components import SimpleEmbedding
+from models.components import Embedding, SimpleEmbedding
 from format import read_tuple, ScrapedTactic
 from util import *
 from serapi_instance import get_stem
@@ -47,10 +48,10 @@ class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
                                       in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
-        return [self.predictKTactics({}, k)] * len(in_data), 0.
+        return [self.predictKTactics(TacticContext([], [], ""), k)] * len(in_data), 0.
     def _encode_tokenized_data(self, data : TokenizedDataset, arg_values : Namespace,
-                              term_vocab_size : int, tactic_vocab_size : int) \
-                              -> TryCommonDataset:
+                               t : Tokenizer, e : Embedding)\
+                               -> TryCommonDataset:
         return TryCommonDataset([TryCommonSample(tactic)
                                  for prev_tactics, goal, tactic in
                                  data])

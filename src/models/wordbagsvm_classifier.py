@@ -13,7 +13,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 
 from tokenizer import tokenizers
 from data import get_text_data, encode_bag_classify_data, encode_bag_classify_input
@@ -44,14 +44,13 @@ class WordBagSVMClassifier(TacticPredictor):
         self.load_saved_state(options["filename"])
         self.criterion = nn.NLLLoss()
 
-    def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
+    def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        goal = cast(str, in_data["goal"])
-        feature_vector = encode_bag_classify_input(goal, self.tokenizer)
+        feature_vector = encode_bag_classify_input(in_data.goal, self.tokenizer)
         distribution = self.classifier.predict_log_proba([feature_vector])[0]
         return distribution
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         distribution = self.predictDistribution(in_data)
         indices, probabilities = list_topk(list(distribution), k)
@@ -59,7 +58,7 @@ class WordBagSVMClassifier(TacticPredictor):
                            math.exp(certainty))
                 for certainty, idx in zip(probabilities, indices)]
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         distribution = self.predictDistribution(in_data)
         correct_stem = get_stem(correct)

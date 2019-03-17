@@ -17,7 +17,7 @@ from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cas
 
 from tokenizer import tokenizers
 from data import get_text_data, filter_data, \
-    encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic
+    encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic, RawDataset
 from context_filter import get_context_filter
 from serapi_instance import get_stem
 
@@ -202,9 +202,9 @@ class KNNPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) -> \
+    def predictKTactics(self, in_data : TacticContext, k : int) -> \
         List[Prediction]:
-        input_vector = encode_bag_classify_input(cast(str, in_data["goal"]), self.tokenizer)
+        input_vector = encode_bag_classify_input(in_data.goal, self.tokenizer)
 
         nearest = self.bst.findKNearest(input_vector, k)
         assert not nearest is None
@@ -214,7 +214,7 @@ class KNNPredictor(TacticPredictor):
                        for i, (neighbor, output) in enumerate(nearest)]
         return predictions
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         # k-nearest doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
@@ -242,10 +242,10 @@ def main(args_list : List[str]) -> None:
                      "intros until": "intros.",
                      "intro": "intros.",
                      "constructor": "econstructor."}
-    preprocessed_data = [ScrapedTactic(prev_tactics, hyps, goal, tactic
-                                       if get_stem(tactic) not in substitutions
-                                       else substitutions[get_stem(tactic)])
-                         for prev_tactics, hyps, goal, tactic in text_data]
+    preprocessed_data = RawDataset([ScrapedTactic(prev_tactics, hyps, goal, tactic
+                                                  if get_stem(tactic) not in substitutions
+                                                  else substitutions[get_stem(tactic)])
+                                    for prev_tactics, hyps, goal, tactic in text_data])
     start = time.time()
     samples, tokenizer, embedding = encode_bag_classify_data(preprocessed_data,
                                                              tokenizers[args.tokenizer],

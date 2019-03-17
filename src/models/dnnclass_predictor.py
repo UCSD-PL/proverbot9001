@@ -25,7 +25,7 @@ import torch.utils.data as data
 import torch.cuda
 from torch.optim import Optimizer
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, cast
 
 from serapi_instance import get_stem
@@ -69,14 +69,14 @@ class DNNClassPredictor(TacticPredictor):
         self.load_saved_state(options["filename"])
         self.skip_nochange_tac = options["skip-nochange-tac"]
 
-    def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
+    def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
         in_vec = maybe_cuda(Variable(torch.FloatTensor(
-            encode_bag_classify_input(cast(str, in_data["goal"]), self.tokenizer))))\
+            encode_bag_classify_input(in_data.goal, self.tokenizer))))\
             .view(1, -1)
         return self.network(in_vec)
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
@@ -86,7 +86,7 @@ class DNNClassPredictor(TacticPredictor):
                    for certainty, idx in zip(*certainties_and_idxs)]
         self.lock.release()
         return results
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         self.lock.acquire()
         distribution = self.predictDistribution(in_data)
@@ -129,7 +129,7 @@ def train(dataset : ClassifyBagDataset,
                                  batch_size = batch_size, num_workers = 0,
                                  shuffle=True, pin_memory=True, drop_last=True)
     network = maybe_cuda(DNNClassifier(input_vocab_size, hidden_size, output_vocab_size,
-                                       num_layers, batch_size=batch_size))
+                                       num_layers))
 
     optimizer = optimizer_f(network.parameters(), lr=learning_rate)
     criterion = maybe_cuda(nn.NLLLoss())

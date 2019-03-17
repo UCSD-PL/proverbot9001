@@ -344,6 +344,7 @@ class Worker(threading.Thread):
                 if in_proof:
                     prev_tactics.append(command)
                     initial_context = coq.proof_context
+                    assert initial_context
                     hyps = coq.get_hypothesis()
                     goals = coq.get_goals()
                     if self.baseline:
@@ -371,8 +372,9 @@ class Worker(threading.Thread):
                         raise
 
                     prediction_results = [(prediction,
-                                           evaluate_prediction(initial_context,
-                                                               fresult, command,
+                                           evaluate_prediction(fresult,
+                                                               initial_context,
+                                                               command,
                                                                actual_result_context,
                                                                prediction_run),
                                            certainty)

@@ -90,23 +90,11 @@ def get_data(args : List[str]) -> None:
             print("====> {}".format(tactic))
         pass
 
-def run_test(args):
-    parser = argparse.ArgumentParser(description=
-                                     "Proverbot9001 module for running a model on "
-                                     "some inputs")
-    parser.add_argument("model", choices=list(test_modules.keys()))
-    arg_values = parser.parse_args(args[:1])
-    test_modules[arg_values.model](args[1:])
-
 modules = {
     "train" : train,
     "report":  report.main,
     "static-report":report2.main,
     "data": get_data,
-    "run": run_test,
-}
-
-test_modules = {
 }
 
 if __name__ == "__main__":

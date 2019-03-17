@@ -66,8 +66,8 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                 k = len(in_data.hypotheses)
             probs, indices = distribution.squeeze().topk(k)
             if k == 1:
-                probs = [probs]
-                indices = [indices]
+                probs = FloatTensor([probs])
+                indices = LongTensor([indices])
         return [Prediction("apply " +
                            serapi_instance.get_first_var_in_hyp(
                                in_data.hypotheses[idx.item()]) + ".",
@@ -132,7 +132,8 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                 arg_values : Namespace) \
                                 -> None:
         tokenizer = metadata
-        save_checkpoints(metadata, arg_values,
+        save_checkpoints("apply",
+                         metadata, arg_values,
                          self._optimize_checkpoints(encoded_data, arg_values,
                                                     tokenizer))
 

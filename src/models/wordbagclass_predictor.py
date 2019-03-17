@@ -12,11 +12,11 @@ from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 
 from tokenizer import tokenizers
-from data import read_text_data, filter_data, \
-    encode_bag_classify_data, encode_bag_classify_input
+from data import (get_text_data, encode_bag_classify_data,
+                  encode_bag_classify_input)
 from context_filter import get_context_filter
 from util import *
 from serapi_instance import get_stem
@@ -46,14 +46,13 @@ class WordBagClassifyPredictor(TacticPredictor):
         assert options["filename"]
         self.load_saved_state(options["filename"])
 
-    def predictDistribution(self, in_data : Dict[str, Union[str, List[str]]]) \
+    def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        goal = cast(str, in_data["goal"])
-        in_vec = Variable(FloatTensor(encode_bag_classify_input(goal, self.tokenizer)))\
-                 .view(1, -1)
+        in_vec = Variable(FloatTensor(encode_bag_classify_input(
+            in_data.goal, self.tokenizer))) .view(1, -1)
         return self.lsoftmax(self.linear(in_vec))
 
-    def predictKTactics(self, in_data : Dict[str, Union[str, List[str]]], k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         distribution = self.predictDistribution(in_data)
         probs_and_indices = distribution.squeeze().topk(k)
@@ -61,7 +60,7 @@ class WordBagClassifyPredictor(TacticPredictor):
                            math.exp(certainty.data[0]))
                 for certainty, idx in probs_and_indices]
 
-    def predictKTacticsWithLoss(self, in_data : Dict[str, Union[str, List[str]]], k : int,
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int,
                                 correct : str) -> Tuple[List[Prediction], float]:
         distribution = self.predictDistribution(in_data)
         stem = get_stem(correct)
@@ -99,9 +98,8 @@ def main(args_list : List[str]) -> None:
     args = parser.parse_args(args_list)
     print("Loading dataset...")
 
-    raw_dataset = read_text_data(args.scrape_file)
-    filtered_dataset = filter_data(raw_dataset, get_context_filter(args.context_filter))
-    samples, tokenizer, embedding = encode_bag_classify_data(filtered_dataset,
+    text_dataset = get_text_data(args.scrape_file, args.context_filter)
+    samples, tokenizer, embedding = encode_bag_classify_data(text_dataset,
                                                              tokenizers["char-fallback"],
                                                              100, 2)
 

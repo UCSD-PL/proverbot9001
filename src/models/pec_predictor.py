@@ -86,12 +86,15 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
             return self._embedding.encode_token(stem)
         else:
             return self._embedding.encode_token("eauto")
-    def _predictDistribution(self, in_data : TacticContext) \
+    def _predictDistributions(self, in_datas : List[TacticContext]) \
         -> torch.FloatTensor:
-        tokenized_goal = self._tokenizer.toTokenList(in_data.goal)
-        goal_list = normalizeSentenceLength(tokenized_goal, self.training_args.max_length)
-        goal_tensor = LongTensor(goal_list).view(1, -1)
-        prev_tensor = LongTensor([self._get_prev(in_data)]).view(1, -1)
+        tokenized_goals = [self._tokenizer.toTokenList(in_data.goal) for
+                           in_data in in_datas]
+        goal_list = [normalizeSentenceLength(tokenized_goal, self.training_args.max_length)
+                     for tokenized_goal in tokenized_goals]
+        goal_tensor = LongTensor(goal_list).view(len(in_datas), -1)
+        prev_tensor = LongTensor([self._get_prev(in_data) for in_data in in_datas])\
+            .view(len(in_datas), -1)
         return self._model.run(goal_tensor, prev_tensor)
 
     def predictKTacticsWithLoss_batch(self,

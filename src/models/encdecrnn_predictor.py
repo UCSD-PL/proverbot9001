@@ -26,7 +26,7 @@ import torch.utils.data as data
 import torch.cuda
 
 from itertools import takewhile
-from models.tactic_predictor import TacticPredictor, Prediction
+from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 
@@ -68,10 +68,10 @@ class EncDecRNNPredictor(TacticPredictor):
 
         pass
 
-    def predictKTactics(self, in_data : Dict[str, Union[List[str], str]], k : int) -> \
+    def predictKTactics(self, in_data : TacticContext, k : int) -> \
         List[Prediction]:
         in_sentence = LongTensor(inputFromSentence(
-            self.context_tokenizer.toTokenList(in_data["goal"]),
+            self.context_tokenizer.toTokenList(in_data.goal),
             self.max_length)).view(1, -1)
         feature_vector = self.encoder.run(in_sentence)
         prediction_sentences = decodeKTactics(self.decoder,
@@ -175,7 +175,7 @@ def commandLinePredict(predictor : EncDecRNNPredictor, k : int) -> None:
     while next_line != "+++++\n":
         sentence += next_line
         next_line = sys.stdin.readline()
-    for result in predictor.predictKTactics({"goal": sentence}, k):
+    for result in predictor.predictKTactics(TacticContext([], [], sentence), k):
         print(result)
 
 def adjustLearningRates(initial : float,

@@ -29,9 +29,10 @@ from serapi_instance import get_stem
 class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : Tuple[Tokenizer, Embedding],
+                         metadata : TokenizerEmbeddingState,
                          state : svm.SVC) -> None:
-        self._tokenizer, self._embedding = metadata
+        self._tokenizer = metadata.tokenizer
+        self._embedding = metadata.embedding
         self.training_args = args
         self.context_filter = args.context_filter
         self._model = state
@@ -58,7 +59,7 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
 
     def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
-        feature_vector = self._encode_term(in_data.goal)
+        feature_vector = cast(List[float], self._encode_term(in_data.goal))
         distribution = FloatTensor(self._model.predict_log_proba([feature_vector])[0])
         return distribution
 
@@ -112,7 +113,7 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
         print("Training SVM...", end="")
         sys.stdout.flush()
         model = svm.SVC(gamma='scale', kernel=arg_values.kernel, probability=True)
-        inputs, outputs = cast(Tuple[List[List[int]], List[int]],
+        inputs, outputs = cast(Tuple[List[List[float]], List[int]],
                                zip(*encoded_data.data))
         model.fit(inputs, outputs)
         print(" {:.2f}s".format(time.time() - curtime))
