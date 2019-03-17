@@ -6,6 +6,7 @@ import typing
 from typing import List
 from abc import ABCMeta, abstractmethod
 from collections import Counter
+from difflib import SequenceMatcher
 import re
 import argparse
 import math
@@ -91,6 +92,47 @@ class TopLevelTokenInGoal(WordFeature):
             return 0
     def vocab_size(self) -> int:
         return len(self.headKeywords) + 1
+
+class TopLevelTokenInBestHyp(WordFeature):
+    def __init__(self, init_dataset : List[TacticContext],
+                 args : argparse.Namespace) -> None:
+        headTokenCounts : typing.Counter[str] = Counter()
+        for prev_tactics, hyps, goal in init_dataset:
+            for hyp in hyps:
+                headToken = get_symbols(hyp)[0]
+                headTokenCounts[headToken] += 1
+        self.headKeywords = [word for word, count in
+                             headTokenCounts.most_common(args.num_head_keywords)]
+        if args.print_keywords:
+            print("Hypothesis head keywords are {}".format(self.headKeywords))
+    def __call__(self, context : TacticContext) -> int:
+        if len(context.hypotheses) == 0:
+            return 0
+        hyp_types = [serapi_instance.get_hyp_type(hyp) for hyp in context.hypotheses]
+        closest_hyp_type = max(hyp_types,
+                               key=lambda x:
+                               SequenceMatcher(None, context.goal, x).ratio() * len(x))
+        headToken = get_symbols(closest_hyp_type)[0]
+        if headToken in self.headKeywords:
+            return self.headKeywords.index(headToken) + 1
+        else:
+            return 0
+    def vocab_size(self) -> int:
+        return len(self.headKeywords) + 1
+
+class BestHypScore(VecFeature):
+    def __init__(self, init_dataset : List[TacticContext],
+                 args : argparse.Namespace) -> None:
+        pass
+    def __call__(self, context : TacticContext) -> List[float]:
+        if len(context.hypotheses) == 0:
+            return [0.]
+        hyp_types = [serapi_instance.get_hyp_type(hyp)[:100] for hyp in context.hypotheses]
+        best_hyp_score = max([SequenceMatcher(None, context.goal,hyp).ratio() * len(hyp)
+                        for hyp in hyp_types])
+        return [best_hyp_score / 100]
+    def feature_size(self) -> int:
+        return 1
 
 class PrevTacticV(VecFeature):
     def __init__(self, init_dataset : List[TacticContext],
@@ -183,17 +225,19 @@ class HasFalseToken(VecFeature):
         return 2
 
 vec_feature_constructors = [
-    HasFalseToken,
-    NumHypotheses,
-    NumUnboundIdentifiersInGoal,
-    NumEqualitiesInHyps,
-    NumEvarsInGoal,
+    # HasFalseToken,
+    # NumHypotheses,
+    # NumUnboundIdentifiersInGoal,
+    # NumEqualitiesInHyps,
+    # NumEvarsInGoal,
+    BestHypScore,
     # ConstFeature,
 ]
 
 word_feature_constructors = [
     PrevTactic,
     TopLevelTokenInGoal,
+    TopLevelTokenInBestHyp,
     # ConstFeatureW,
 ]
 
