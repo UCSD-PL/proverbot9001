@@ -41,7 +41,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from util import *
+from typing import TypeVar, Generic
 import argparse
+
+S = TypeVar("S")
+
 def add_nn_args(parser : argparse.ArgumentParser,
                 default_values : Dict[str, Any] = {}) -> None:
     parser.add_argument("--num-epochs", dest="num_epochs", type=int,
@@ -67,6 +71,23 @@ def add_nn_args(parser : argparse.ArgumentParser,
                         default=default_values.get("optimizer",
                                                    list(optimizers.keys())[0]))
 
+class StraightlineClassifierModel(Generic[S], metaclass=ABCMeta):
+    @staticmethod
+    def add_args_to_parser(parser : argparse.ArgumentParser,
+                           default_values : Dict[str, Any] = {}) \
+                           -> None:
+        pass
+    @abstractmethod
+    def __init__(self, args : argparse.Namespace,
+                 input_vocab_size : int, output_vocab_size : int) -> None:
+        pass
+    @abstractmethod
+    def checkpoints(self, inputs : List[List[float]], outputs : List[int]) \
+        -> Iterable[S]:
+        pass
+    @abstractmethod
+    def setState(self, state : S) -> None:
+        pass
 
 class DNNClassifier(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
@@ -122,9 +143,128 @@ class DecoderGRU(nn.Module):
         hidden = hidden.expand(self.num_layers, -1, -1).contiguous()
         output, hidden = self.gru(input, hidden)
         return self.softmax(input), hidden[0]
+
+import sys
+from sklearn import svm
+
+svm_kernels = [
+    "rbf",
+    "linear",
+]
+class SVMClassifierModel(StraightlineClassifierModel[svm.SVC]):
+    @staticmethod
+    def add_args_to_parser(parser : argparse.ArgumentParser,
+                           default_values : Dict[str, Any] = {}) \
+                           -> None:
+        parser.add_argument("--kernel", choices=svm_kernels, type=str,
+                            default=svm_kernels[0])
+        parser.add_argument("--gamma",type=float,
+                            default=svm_kernels[0])
+    def __init__(self, args : argparse.Namespace,
+                 input_vocab_size : int, output_vocab_size : int) -> None:
+        self._model = svm.SVC(gamma=args.gamma, kernel=args.kernel,
+                              probability=args.probability,
+                              verbose=args.verbose)
+    def checkpoints(self, inputs : List[List[float]], outputs : List[int]) \
+        -> Iterable[svm.SVC]:
+        curtime = time.time()
+        print("Training SVM...", end="")
+        sys.stdout.flush()
+        self._model.fit(inputs, outputs)
+        print(" {:.2f}s".format(time.time() - curtime))
+        loss = self._model.score(inputs, outputs)
+        print("Training loss: {}".format(loss))
+        yield self._model
+    def predict(self, inputs : List[List[float]]) -> List[List[float]]:
+        return self._model.predict_log_proba(inputs)
+    def setState(self, state : svm.SVC) -> None:
+        self._model = state
+
+import threading
+from torch import optim
+import torch.optim.lr_scheduler as scheduler
+import torch.utils.data as data
+from dataclasses import dataclass
+from typing import NamedTuple
+
+optimizers = {
+    "SGD": optim.SGD,
+    "Adam": optim.Adam,
+}
+
 @dataclass(init=True)
 class NeuralPredictorState:
     epoch : int
     loss : float
     weights : Dict[str, Any]
 
+class DNNClassifierModel(StraightlineClassifierModel[NeuralPredictorState]):
+    @staticmethod
+    def add_args_to_parser(parser : argparse.ArgumentParser,
+                           default_values : Dict[str, Any] = {}) \
+                           -> None:
+        add_nn_args(parser)
+    def __init__(self, args : argparse.Namespace,
+                 input_vocab_size : int, output_vocab_size : int) -> None:
+        self._model = maybe_cuda(DNNClassifier(input_vocab_size,
+                                               args.hidden_size, output_vocab_size,
+                                               args.num_layers))
+        self.num_epochs = args.num_epochs
+        self.batch_size = args.batch_size
+        self.learning_rate = args.learning_rate
+        self.gamma = args.gamma
+        self.epoch_step = args.epoch_step
+        self.print_every = args.print_every
+        self.optimizer_name = args.optimizer
+        self._optimizer = optimizers[args.optimizer](self._model.parameters(),
+                                                     lr=args.learning_rate)
+        self.adjuster = scheduler.StepLR(self._optimizer, args.epoch_step,
+                                         gamma=args.gamma)
+        self._criterion = maybe_cuda(nn.NLLLoss())
+        self._lock = threading.Lock()
+        pass
+    def checkpoints(self, inputs : List[List[float]], outputs : List[int]) \
+        -> Iterable[NeuralPredictorState]:
+        print("Building tensors")
+        dataloader = data.DataLoader(data.TensorDataset(torch.FloatTensor(inputs),
+                                                        torch.LongTensor(outputs)),
+                                     batch_size=self.batch_size, num_workers=0,
+                                     shuffle=True,pin_memory=True,drop_last=True)
+        num_batches = int(len(inputs) / self.batch_size)
+        dataset_size = num_batches * self.batch_size
+
+        print("Initializing model...")
+        training_start = time.time()
+        for epoch in range(1, self.num_epochs):
+            self.adjuster.step()
+            print("Epoch {} (learning rate {:.6f})"
+                  .format(epoch, self._optimizer.param_groups[0]['lr']))
+            epoch_loss = 0.
+            for batch_num, data_batch in enumerate(dataloader, start=1):
+                self._optimizer.zero_grad()
+                input_batch, output_batch = data_batch
+                with autograd.detect_anomaly():
+                    predictionDistribution = self._model(input_batch)
+                    output_var = maybe_cuda(Variable(output_batch))
+                    loss = self._criterion(predictionDistribution, output_var)
+                    loss.backward()
+                self._optimizer.step()
+
+                epoch_loss += loss.item()
+                if batch_num % self.print_every == 0:
+                    items_processed = batch_num * self.batch_size + \
+                        (epoch - 1) * dataset_size
+                    progress = items_processed / (dataset_size * self.num_epochs)
+                    print("{} ({:7} {:5.2f}%) {:.4f}"
+                          .format(timeSince(training_start, progress),
+                                  items_processed, progress * 100,
+                                  epoch_loss / batch_num))
+            state = self._model.state_dict()
+            loss = epoch_loss / num_batches
+            checkpoint = NeuralPredictorState(epoch, loss, state)
+            yield checkpoint
+    def predict(self, inputs : List[List[float]]) -> List[List[float]]:
+        with self._lock:
+            return self._model(FloatTensor(inputs)).data
+    def setState(self, state : NeuralPredictorState) -> None:
+        self._model.load_state_dict(state.weights)

@@ -2,7 +2,9 @@
 
 import torch
 from typing import Dict, List, Union, Callable
+import functools
 from models.tactic_predictor import TacticPredictor, TrainablePredictor
+from models.components import DNNClassifierModel
 
 from models import encdecrnn_predictor
 from models import try_common_predictor
@@ -21,6 +23,7 @@ from models import encfeatures_predictor
 from models import featuressvm_predictor
 from models import apply_predictor
 from models import apply_baselines
+from models import hypstem_predictor
 
 predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -38,6 +41,7 @@ predictors = {
     'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
     'apply' : apply_predictor.ApplyPredictor,
+    "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
     'apply_longest' : apply_baselines.ApplyLongestPredictor,
     'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
