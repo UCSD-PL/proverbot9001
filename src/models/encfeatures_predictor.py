@@ -143,8 +143,6 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         add_tokenizer_args(parser, default_values)
         parser.add_argument("--max-length", dest="max_length", type=int,
                             default=default_values.get("max-length", 100))
-        parser.add_argument("--hidden-size", dest="hidden_size", type=int,
-                            default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-encoder-layers", dest="num_encoder_layers", type=int,
                             default=default_values.get("num-encoder-layers", 3))
         # parser.add_argument("--num-decoder-layers", dest="num_decoder_layers", type=int,

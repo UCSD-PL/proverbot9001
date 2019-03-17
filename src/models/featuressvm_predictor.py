@@ -1,5 +1,5 @@
 from models.tactic_predictor import \
-    (TrainablePredictor, TacticContext, Prediction, save_checkpoints,
+    (TrainablePredictor, TacticContext, Prediction,
      optimize_checkpoints, embed_data, predictKTactics,
      predictKTacticsWithLoss, predictKTacticsWithLoss_batch, strip_scraped_output)
 from models.components import (Embedding)
@@ -17,7 +17,7 @@ import pickle
 import sys
 from argparse import Namespace
 
-from features import feature_constructors, Feature
+from features import vec_feature_constructors, VecFeature
 # Using sklearn for the actual learning
 from sklearn import svm
 
@@ -33,18 +33,18 @@ class FeaturesSample(NamedTuple):
 class FeaturesDataset(ListDataset[FeaturesSample]):
     pass
 class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
-                                              Tuple[Embedding, List[Feature]],
+                                              Tuple[Embedding, List[VecFeature]],
                                               svm.SVC]):
     def __init__(self) \
         -> None:
-        self._feature_functions : Optional[List[Feature]] = None
+        self._feature_functions : Optional[List[VecFeature]] = None
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
         assert self._feature_functions
         feature_vectors = [self._get_features(in_data) for in_data in in_datas]
         distribution = self._model.predict_log_proba(feature_vectors)
-        return distribution
+        return FloatTensor(distribution)
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
         super().add_args_to_parser(parser, default_values)
@@ -57,14 +57,15 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
                             default=default_values.get("num-tactic-keywords", 50))
     def _get_features(self, context : TacticContext) -> List[float]:
+        assert self._feature_functions
         return [feature_val for feature in self._feature_functions
                 for feature_val in feature(context)]
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Tuple[FeaturesDataset, Tuple[Embedding, List[Feature]]]:
+        -> Tuple[FeaturesDataset, Tuple[Embedding, List[VecFeature]]]:
         preprocessed_data = list(self._preprocess_data(data, arg_values))
         stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
         self._feature_functions = [feature_constructor(stripped_data, arg_values) for
-                                   feature_constructor in feature_constructors]
+                                   feature_constructor in vec_feature_constructors]
         embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
         return (FeaturesDataset([
             FeaturesSample(self._get_features(strip_scraped_output(scraped)),
@@ -73,14 +74,14 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
                 (embedding, self._feature_functions))
     def _optimize_model_to_disc(self,
                                 encoded_data : FeaturesDataset,
-                                metadata : Tuple[Embedding, List[Feature]],
+                                metadata : Tuple[Embedding, List[VecFeature]],
                                 arg_values : Namespace) \
         -> None:
         curtime = time.time()
         print("Training SVM...", end="")
         sys.stdout.flush()
         model = svm.SVC(gamma='scale', kernel=arg_values.kernel, probability=True)
-        inputs, outputs = zip(*encoded_data)
+        inputs, outputs = cast(Tuple[List[List[float]], List[int]], zip(*encoded_data))
         model.fit(inputs, outputs)
         print(" {:.2f}s".format(time.time() - curtime))
         loss = model.score(inputs, outputs)
@@ -91,7 +92,7 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
         return "An svm predictor using only hand-engineered features"
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : Tuple[Embedding, List[Feature]],
+                         metadata : Tuple[Embedding, List[VecFeature]],
                          state : svm.SVC) -> None:
         self._embedding, self._feature_functions = metadata
         self._model = state
