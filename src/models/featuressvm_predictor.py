@@ -87,7 +87,7 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
         loss = model.score(inputs, outputs)
         print("Training loss: {}".format(loss))
         with open(arg_values.save_file, 'wb') as f:
-            torch.save((arg_values, metadata, model), f)
+            torch.save(("featuressvm", (arg_values, metadata, model)), f)
     def _description(self) -> str:
         return "An svm predictor using only hand-engineered features"
     def load_saved_state(self,

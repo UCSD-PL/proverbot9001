@@ -189,7 +189,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                 arg_values : Namespace) \
         -> None:
         tokenizer, embedding, vec_features, word_features = metadata
-        save_checkpoints(metadata, arg_values,
+        save_checkpoints("encfeatures", metadata, arg_values,
                          self._optimize_checkpoints(encoded_data, arg_values,
                                                     tokenizer, embedding))
     def _optimize_checkpoints(self, encoded_data : EncFeaturesDataset,

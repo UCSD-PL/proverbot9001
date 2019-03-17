@@ -24,8 +24,9 @@ from models import featuressvm_predictor
 from models import apply_predictor
 from models import apply_baselines
 from models import hypstem_predictor
+from models import hypfeatures_predictor
 
-predictors = {
+loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
     'encclass' : encclass_predictor.EncClassPredictor,
     'dnnclass' : dnnclass_predictor.DNNClassPredictor,
@@ -42,6 +43,10 @@ predictors = {
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
     'apply' : apply_predictor.ApplyPredictor,
     "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
+    "hypfeatures" : hypfeatures_predictor.HypFeaturesPredictor,
+}
+
+static_predictors = {
     'apply_longest' : apply_baselines.ApplyLongestPredictor,
     'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
@@ -64,14 +69,23 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "featuressvm" : featuressvm_predictor.main,
     "encfeatures" : encfeatures_predictor.main,
     "relevance" : apply_predictor.train_relevance,
+    "hypstem" : hypstem_predictor.main,
+    "hypfeatures" : hypfeatures_predictor.main,
 }
 
-def loadPredictor(filename : str, predictor_type : str) -> TacticPredictor:
+def loadPredictorByName(predictor_type : str) -> TacticPredictor:
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic
     # predictor". But I don't know how to specify that.
-    predictor = predictors[predictor_type]() # type: ignore
-    if isinstance(predictor, TrainablePredictor):
-        predictor.load_saved_state(*torch.load(filename))
+    return static_predictors[predictor_type]() # type: ignore
+
+def loadPredictorByFile(filename : str) -> TrainablePredictor:
+    predictor_type, saved_state = torch.load(filename)
+    # Silencing the type checker on this line because the "real" type
+    # of the predictors dictionary is "string to classes constructors
+    # that derive from TacticPredictor, but are not tactic
+    # predictor". But I don't know how to specify that.
+    predictor = loadable_predictors[predictor_type]() # type: ignore
+    predictor.load_saved_state(*saved_state)
     return predictor

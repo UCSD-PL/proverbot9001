@@ -31,7 +31,7 @@ from context_filter import get_context_filter
 
 from syntax import syntax_highlight, strip_comments
 
-from predict_tactic import predictors, loadPredictor
+from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, TacticContext
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
@@ -48,7 +48,6 @@ max_tactic_length = 100
 
 baseline_tactic = "eauto"
 
-predictorName : str
 jobs : 'queue.Queue[str]'
 num_jobs : int
 net : TacticPredictor
@@ -146,8 +145,6 @@ class GlobalResult:
             for k, v in self.options:
                 with tag('li'):
                     text("{}: {}".format(k, v))
-            with tag('li'):
-                text("predictor: {}".format(predictorName))
             with tag('li'):
                 text("report type: dynamic")
         with tag('table'):
@@ -513,7 +510,6 @@ def main(arg_list : List[str]) -> None:
     global num_jobs
     global net
     global gresult
-    global predictorName
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
     parser.add_argument('-j', '--threads', default=1, type=int)
@@ -528,8 +524,9 @@ def main(arg_list : List[str]) -> None:
                         default=False, const=True, action='store_const')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
-    parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
+    parser.add_argument('--weightsfile', default=None)
+    parser.add_argument('--predictor', choices=list(static_predictors.keys()),
+                        default=None)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
@@ -556,8 +553,15 @@ def main(arg_list : List[str]) -> None:
 
     args.threads = min(args.threads, len(args.filenames))
 
-    net = loadPredictor(args.weightsfile, args.predictor)
-    predictorName = args.predictor
+    predictor : TacticPredictor
+    if args.weightsfile:
+        predictor = loadPredictorByFile(args.weightsfile)
+    elif args.predictor:
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        print("You must specify either --weightsfile or --predictor!")
+        parser.print_help()
+        return
     gresult = GlobalResult(net.getOptions())
     context_filter = args.context_filter or dict(net.getOptions())["context_filter"]
 

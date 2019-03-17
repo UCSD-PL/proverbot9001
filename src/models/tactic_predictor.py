@@ -439,12 +439,13 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
             return results, loss
         pass
 
-def save_checkpoints(metadata : MetadataType, arg_values : Namespace,
+def save_checkpoints(predictor_name : str,
+                     metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
     for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
         with open(arg_values.save_file, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
-            torch.save((arg_values, metadata, predictor_state), f)
+            torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 
 def optimize_checkpoints(data_tensors : List[torch.Tensor],
                          arg_values : Namespace,

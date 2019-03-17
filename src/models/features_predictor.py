@@ -136,7 +136,7 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
                                                  List[VecFeature], List[WordFeature]],
                                 arg_values : Namespace) \
         -> None:
-        save_checkpoints(metadata, arg_values,
+        save_checkpoints("features", metadata, arg_values,
                          self._optimize_checkpoints(encoded_data, arg_values, metadata))
     def _optimize_checkpoints(self, encoded_data : FeaturesDataset, arg_values : Namespace,
                               metadata : Tuple[Embedding, List[VecFeature], List[WordFeature]]) \

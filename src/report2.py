@@ -23,7 +23,7 @@ from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
 from serapi_instance import get_stem
-from predict_tactic import predictors, loadPredictor
+from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from yattag import Doc
 from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
@@ -97,8 +97,9 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default="data/pytorch-weights.tar")
-    parser.add_argument('--predictor', choices=list(predictors.keys()), default=list(predictors.keys())[0])
+    parser.add_argument('--weightsfile', default=None)
+    parser.add_argument('--predictor', choices=list(static_predictors.keys()),
+                        default=None)
     parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=3)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
@@ -108,7 +109,15 @@ def main(arg_list : List[str]) -> None:
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
-    predictor = loadPredictor(args.weightsfile, args.predictor)
+
+    if args.weightsfile:
+        predictor = loadPredictorByFile(args.weightsfile)
+    elif args.predictor:
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        print("You must specify either --weightsfile or --predictor!")
+        parser.print_help()
+        return
 
     if not os.path.exists(args.output):
         os.makedirs(args.output)
