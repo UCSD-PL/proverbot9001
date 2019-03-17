@@ -41,6 +41,7 @@ from data import Dataset, RawDataset, ScrapedTactic, get_text_data, TokenizedDat
     DatasetMetadata, stemmify_data, tactic_substitutions
 from typing import TypeVar, Generic, Sized
 import argparse
+import sys
 from argparse import Namespace
 from serapi_instance import get_stem
 
@@ -85,7 +86,9 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
     def _preprocess_data(self, text_dataset : RawDataset, arg_values : Namespace) \
         -> Iterable[ScrapedTactic]:
         if arg_values.use_substitutions:
-            print("Preprocessing...")
+            start = time.time()
+            print("Preprocessing...", end="")
+            sys.stdout.flush()
             substitutions = {"auto": "eauto.",
                              "intros until": "intros.",
                              "intro": "intros.",
@@ -95,6 +98,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                     functools.partial(tactic_substitutions, substitutions),
                     text_dataset)
                 yield from iterator
+            print("{:.2f}s".format(time.time() - start))
         else:
             yield from text_dataset
     @abstractmethod
@@ -495,10 +499,15 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
 
 def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
     embedding = SimpleEmbedding()
-    return embedding, StrictEmbeddedDataset([EmbeddedSample(
+    start = time.time()
+    print("Embedding data...", end="")
+    sys.stdout.flush()
+    dataset = StrictEmbeddedDataset([EmbeddedSample(
         prev_tactics, hypotheses, goal, embedding.encode_token(get_stem(tactic)))
-                                             for prev_tactics, hypotheses, goal, tactic
-                                             in data])
+                                     for prev_tactics, hypotheses, goal, tactic
+                                     in data])
+    print("{:.2f}s".format(time.time() - start))
+    return embedding, dataset
 
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
     -> Tuple[Tokenizer, List[Sentence]]:
@@ -527,8 +536,11 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
             pickle.dump(tokenizer, f)
     if args.print_keywords:
         print("Keywords are {}".format(tokenizer.listTokens()))
-    print("Tokenizing...")
+    start = time.time()
+    print("Tokenizing...", end="")
+    sys.stdout.flush()
     tokenized_data = tokenize_data(tokenizer, data, args.num_threads)
+    print("{:.2f}s".format(time.time() - start))
     return tokenizer, [goal for prev_tactics, hypotheses, goal, tactic in tokenized_data]
 
 def tokenize_hyps(data : RawDataset, args : Namespace, tokenizer : Tokenizer) \

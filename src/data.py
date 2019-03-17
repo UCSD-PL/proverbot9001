@@ -180,9 +180,13 @@ def get_text_data(data_path : str, context_filter_name : str,
     def _print(*args, **kwargs):
         if verbose:
             print(*args, **kwargs)
-    _print("Reading dataset...")
+
+    start = time.time()
+    _print("Reading dataset...", end="")
+    sys.stdout.flush()
     raw_data = read_text_data(data_path)
     filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples)))
+    print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
