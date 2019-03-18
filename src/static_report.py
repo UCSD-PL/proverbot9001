@@ -30,7 +30,7 @@ from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
     ScrapedTactic, ScrapedCommand
 from helper import try_load_lin, load_commands_preserve
 from syntax import syntax_highlight, strip_comments
-from util import multipartition, chunks
+from util import multipartition, chunks, stringified_percent, escape_filename
 
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
@@ -62,15 +62,6 @@ def read_text_data_singlethreaded(data_path : str,
 
 def to_list_string(l : List[Any]) -> str:
     return "% ".join([str(item) for item in l])
-
-def stringified_percent(total : float, outof : float) -> str:
-    if outof == 0:
-        return "NaN"
-    else:
-        return "{:10.2f}".format(total * 100 / outof)
-
-def escape_filename(filename : str) -> str:
-    return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
 class PredictionResult(NamedTuple):
     prediction : str

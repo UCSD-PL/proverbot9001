@@ -40,6 +40,12 @@ def asMinutes(s : float) -> str:
     s -= m * 60
     return "{:3}m {:5.2f}s".format(m, s)
 
+def stringified_percent(total : float, outof : float) -> str:
+    if outof == 0:
+        return "NaN"
+    else:
+        return "{:10.2f}".format(total * 100 / outof)
+
 def timeSince(since : float, percent : float) -> str:
     now = time.time()
     s = now - since
@@ -112,3 +118,6 @@ def multipartition(xs : List[T], f : Callable[[T], int]) -> List[List[T]]:
             result += [[]]
         result[i] += [x]
     return result
+
+def escape_filename(filename : str) -> str:
+    return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
