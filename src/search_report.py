@@ -75,10 +75,11 @@ def report_file(args : argparse.Namespace,
                 filename : str) -> Optional[ReportStats]:
     num_proofs = 0
     num_proofs_completed = 0
-    commands_in = get_commands(filename)
+    commands_in = get_commands(filename, args.verbose or args.debug)
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
     commands_out = []
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+        coq.debug = args.debug
         while len(commands_in) > 0:
             while not coq.proof_context:
                 next_in_command = commands_in.pop(0)
@@ -96,9 +97,9 @@ def report_file(args : argparse.Namespace,
     write_html(commands_out)
     return ReportStats(num_proofs, num_proofs_completed)
 
-def get_commands(filename : str) -> List[str]:
+def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
-    loaded_commands = helper.try_load_lin(local_filename)
+    loaded_commands = helper.try_load_lin(local_filename, verbose=verbose)
     if loaded_commands is None:
         fresh_commands = helper.lift_and_linearize(
             helper.load_commands_preserve(prelude + "/" + filename),
@@ -118,6 +119,10 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--output", "-o", help="output data folder name",
                         default="search-report")
+    parser.add_argument("--debug", "-vv", help="debug output",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
     parser.add_argument('--weightsfile', default=None)
