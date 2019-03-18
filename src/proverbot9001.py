@@ -92,7 +92,7 @@ def get_data(args : List[str]) -> None:
 
 modules = {
     "train" : train,
-    "report":  dynamic_report.main,
+    "dynamic-report":dynamic_report.main,
     "static-report":static_report.main,
     "data": get_data,
 }
