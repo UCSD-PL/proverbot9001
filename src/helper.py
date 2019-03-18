@@ -102,9 +102,10 @@ def hash_file(filename : str) -> str:
             buf = f.read(BLOCKSIZE)
     return hasher.hexdigest()
 
-def try_load_lin(filename : str) -> Optional[List[str]]:
-    print("Attempting to load cached linearized version from {}"
-          .format(filename + '.lin'))
+def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
+    if verbose:
+        print("Attempting to load cached linearized version from {}"
+              .format(filename + '.lin'))
     if not os.path.exists(filename + '.lin'):
         return None
     file_hash = hash_file(filename)
