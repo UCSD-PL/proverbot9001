@@ -213,6 +213,8 @@ class SerapiInstance(threading.Thread):
         # Go back to the previous state.
         assert self.prev_state != -1, "Can't cancel twice in a row!"
         self.prev_state = -1
+        # Get a new proof context, if it exists
+        self.get_proof_context()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
