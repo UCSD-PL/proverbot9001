@@ -714,8 +714,16 @@ def normalizeMessage(sexp):
                  _, lambda sexp: sexp)
 
 def tacticTakesHypArgs(stem : str) -> bool:
-    return (stem == "apply" or stem == "exploit"
-            or stem == "rewrite" or stem == "rewrite <-")
+    return (
+        stem == "apply" or
+        stem == "eapply" or
+        stem == "eexploit" or
+        stem == "exploit" or
+        stem == "erewrite" or
+        stem == "rewrite" or
+        stem == "erewrite <-" or
+        stem == "rewrite <-"
+    )
 
 def progn(*args):
     return args[-1]
