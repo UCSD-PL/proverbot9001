@@ -3,8 +3,8 @@ import pdb
 import signal
 import sys
 from tokenizer import tokenizers
-import report
-import report2
+import dynamic_report
+import static_report
 import argparse
 import data
 import itertools
@@ -92,8 +92,8 @@ def get_data(args : List[str]) -> None:
 
 modules = {
     "train" : train,
-    "report":  report.main,
-    "static-report":report2.main,
+    "report":  dynamic_report.main,
+    "static-report":static_report.main,
     "data": get_data,
 }
 
