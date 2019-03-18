@@ -81,7 +81,6 @@ class SerapiInstance(threading.Thread):
         # the other process for to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
         self.proof_context = None # type: Optional[str]
-        self.prev_state = -1
         self.cur_state = 0
         self.prev_tactics = [] # type: List[str]
 
@@ -207,12 +206,6 @@ class SerapiInstance(threading.Thread):
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
-        assert self.cur_state == self.prev_state, \
-            "cur_state is {}, but prev_state was {}" \
-            .format(self.cur_state, self.prev_state)
-        # Go back to the previous state.
-        assert self.prev_state != -1, "Can't cancel twice in a row!"
-        self.prev_state = -1
         # Get a new proof context, if it exists
         self.get_proof_context()
 
@@ -279,7 +272,6 @@ class SerapiInstance(threading.Thread):
             self.add_lib("./" + match.group(1), match.group(2))
 
     def update_state(self) -> None:
-        self.prev_state = self.cur_state
         self.cur_state = self.get_next_state()
 
     def unset_printing_notations(self) -> None:
