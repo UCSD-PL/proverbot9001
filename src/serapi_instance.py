@@ -159,6 +159,7 @@ class SerapiInstance(threading.Thread):
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
+            self.prev_tactics.append(stmt)
             self.handle_exception(e, stmt)
 
     def handle_exception(self, e : Exception, stmt : str):
@@ -205,6 +206,8 @@ class SerapiInstance(threading.Thread):
             self.get_message()
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
+        if len(self.prev_tactics) > 0:
+            self.prev_tactics.pop()
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
         # Get a new proof context, if it exists
