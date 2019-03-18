@@ -11,7 +11,7 @@ import time
 import functools
 import shutil
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
@@ -99,7 +99,7 @@ def report_file(args : argparse.Namespace,
                 break
             num_proofs += 1
             lemma_statement = next_in_command
-            tactic_solution = attempt_search(lemma_statement, coq)
+            tactic_solution = attempt_search(args, lemma_statement, coq)
             if tactic_solution:
                 num_proofs_completed += 1
                 commands_out += tactic_solution
@@ -110,9 +110,9 @@ def report_file(args : argparse.Namespace,
                 coq.run_stmt("Admitted.")
 
             coq.cancel_last()
-            while coq.full_context:
+            while coq.full_context != None:
                 coq.cancel_last()
-            assert not coq.full_context, coq.full_context
+            assert coq.full_context == None, coq.full_context
             coq.run_stmt(lemma_statement)
             assert coq.full_context
             while coq.full_context != None:
@@ -284,6 +284,40 @@ def combine_file_results(stats : List[ReportStats]) -> ReportStats:
 # The core of the search report
 
 # This method attempts to complete proofs using search.
-def attempt_search(lemma_statement : str, coq : serapi_instance.SerapiInstance) \
+def attempt_search(args : argparse.Namespace,
+                   lemma_statement : str,
+                   coq : serapi_instance.SerapiInstance) \
     -> Optional[List[str]]:
+    ProofState = List[str]
+    states_to_explore = [[lemma_statement]]
+    coq.cancel_last()
+
+    while len(states_to_explore) > 0:
+        next_state_to_explore = states_to_explore.pop(0)
+        try:
+            coq.quiet = True
+            for tactic in next_state_to_explore:
+                coq.run_stmt(tactic)
+        except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+            while coq.full_context:
+                coq.cancel_last()
+            continue
+        finally:
+            coq.quiet = False
+        if completed_proof(coq):
+            return next_state_to_explore[:-1]
+        state_context = TacticContext(coq.prev_tactics,
+                                      coq.get_hypothesis(),
+                                      coq.get_goals())
+        if len(next_state_to_explore) < args.search_depth:
+            predictions = predictor.predictKTactics(state_context, args.search_width)
+            for prediction in predictions:
+                states_to_explore.append(next_state_to_explore + [prediction.prediction])
+        while coq.full_context:
+            coq.cancel_last()
+    coq.run_stmt(lemma_statement)
     return None
+
+def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
+    coq.run_stmt("Unshelve.")
+    return coq.full_context == ""
