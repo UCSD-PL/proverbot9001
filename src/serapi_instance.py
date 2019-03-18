@@ -624,8 +624,9 @@ def parse_hyps(hyps_str : str) -> List[str]:
     funs_killed = kill_nested("\Wfun\s", "=>", lets_killed)
     foralls_killed = kill_nested("\Wforall\s", ",", funs_killed)
     fixs_killed = kill_nested("\Wfix\s", ":=", foralls_killed)
-    hyps_replaced = re.sub(":=.*?:", ":", fixs_killed, flags=re.DOTALL)
-    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?:\s.*?",
+    structs_killed = kill_nested("\W\{\|\s", "\|\}", fixs_killed)
+    hyps_replaced = re.sub(":=.*?:(?!=)", ":", structs_killed, flags=re.DOTALL)
+    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?:(?!=)\s.*?",
                            hyps_replaced, flags=re.DOTALL)
     if len(var_terms) == 0:
         return []
@@ -640,7 +641,7 @@ def parse_hyps(hyps_str : str) -> List[str]:
         hyps_list.append(hyp)
     hyps_list.append(rest_hyps_str)
     for hyp in hyps_list:
-        assert re.match(":(?!=)", hyp) != None, \
+        assert re.search(":(?!=)", hyp) != None, \
             "hyp: {}, hyps_str: {}\nhyps_list: {}\nvar_terms: {}"\
             .format(hyp, hyps_str, hyps_list, var_terms)
     return hyps_list
