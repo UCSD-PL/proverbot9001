@@ -81,6 +81,7 @@ class SerapiInstance(threading.Thread):
         # the other process for to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
         self.proof_context = None # type: Optional[str]
+        self.full_context = None # type: Optional[str]
         self.cur_state = 0
         self.prev_tactics = [] # type: List[str]
 
@@ -146,7 +147,7 @@ class SerapiInstance(threading.Thread):
                 # If we saw a new proof context, we're still in a
                 # proof so append the command to our prev_tactics
                 # list.
-                if self.proof_context:
+                if self.full_context:
                     self.prev_tactics.append(stm)
                 else:
                     # If we didn't see a new context, we're not in a
@@ -422,7 +423,8 @@ class SerapiInstance(threading.Thread):
         return parse_hyps(re.split("\n======+\n", self.proof_context)[0])
 
     def get_proof_context(self) -> None:
-        self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
+        self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
+                        .format(self.cur_state))
         self.get_ack()
 
         proof_context_message = self.get_message()
