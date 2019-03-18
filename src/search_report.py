@@ -44,18 +44,29 @@ def main(arg_list : List[str]) -> None:
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
 
+    files_done = 0
+
+    def print_done(stats : ReportStats):
+        nonlocal files_done
+        files_done += 1
+        print("Finished output for file {} ({} of {})"
+              .format(stats.filename, files_done, len(args.filenames)))
+        return stats
+
     with multiprocessing.pool.ThreadPool(args.threads) as pool:
-        file_results = [stats for stats in
+        file_results = [print_done(stats) for stats in
                         pool.imap_unordered(
                             functools.partial(report_file, args, context_filter),
                             args.filenames)
                         if stats]
 
+    print("Writing summary with {} file outputs.".format(len(file_results)))
     write_summary(args, predictor.getOptions() +
                   [("report type", "static"), ("predictor", args.predictor)],
                   commit, date, file_results)
 
 class ReportStats(NamedTuple):
+    filename : str
     num_proofs : int
     num_proofs_completed : int
 
@@ -65,6 +76,7 @@ def report_file(args : argparse.Namespace,
     num_proofs = 0
     num_proofs_completed = 0
     commands_in = get_commands(filename)
+    print("Loaded {} commands for file {}".format(len(commands_in), filename))
     commands_out = []
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
         while len(commands_in) > 0:
