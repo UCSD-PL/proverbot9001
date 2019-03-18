@@ -9,19 +9,28 @@ import re
 import datetime
 import time
 import functools
+import shutil
 
 from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
 import helper
+import syntax
+from util import *
 
-from typing import List, Tuple, NamedTuple, Optional
+from typing import List, Tuple, NamedTuple, Optional, Sequence
 
 predictor : TacticPredictor
 coqargs : List[str]
 includes : str
 prelude : str
+
+details_css = ["details.css"]
+details_javascript : List[str] = []
+report_css = ["report.css"]
+report_js = ["report.js"]
+extra_files = details_css + details_javascript + report_css + report_js + ["logo.png"]
 
 def main(arg_list : List[str]) -> None:
     global predictor
@@ -81,21 +90,37 @@ def report_file(args : argparse.Namespace,
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
         coq.debug = args.debug
         while len(commands_in) > 0:
-            while not coq.proof_context:
+            assert not coq.full_context, coq.full_context
+            while not coq.full_context and len(commands_in) > 0:
                 next_in_command = commands_in.pop(0)
                 coq.run_stmt(next_in_command)
                 commands_out.append(next_in_command)
+            if len(commands_in) == 0:
+                break
+            num_proofs += 1
             lemma_statement = next_in_command
             tactic_solution = attempt_search(lemma_statement, coq)
             if tactic_solution:
+                num_proofs_completed += 1
                 commands_out += tactic_solution
                 commands_out.append("Qed.")
                 coq.run_stmt("Qed.")
             else:
                 commands_out.append("Admitted.")
                 coq.run_stmt("Admitted.")
-    write_html(commands_out)
-    return ReportStats(num_proofs, num_proofs_completed)
+
+            coq.cancel_last()
+            while coq.full_context:
+                coq.cancel_last()
+            assert not coq.full_context, coq.full_context
+            coq.run_stmt(lemma_statement)
+            assert coq.full_context
+            while coq.full_context != None:
+                next_in_command = commands_in.pop(0)
+                coq.run_stmt(next_in_command)
+            assert not coq.full_context, coq.full_context
+    write_html(args.output, filename, commands_out)
+    return ReportStats(filename, num_proofs, num_proofs_completed)
 
 def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
@@ -133,10 +158,10 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(args_list), parser
 
-def get_metadata() -> Tuple[str, str]:
+def get_metadata() -> Tuple[str, datetime.datetime]:
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                          shell=True).decode('utf-8').strip()
-    cur_date = str(datetime.datetime.now())
+    cur_date = datetime.datetime.now()
     return cur_commit, cur_date
 
 def get_predictor(parser : argparse.ArgumentParser,
@@ -151,3 +176,114 @@ def get_predictor(parser : argparse.ArgumentParser,
         parser.print_help()
         sys.exit(1)
     return predictor
+
+from yattag import Doc
+Tag = Callable[..., Doc.Tag]
+Text = Callable[..., None]
+Line = Callable[..., None]
+
+def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
+                javascript : List[str], title : str) -> None:
+    with tag('head'):
+        for filename in css:
+            doc.stag('link', href=filename, rel='stylesheet')
+        for filename in javascript:
+            with tag('script', type='text/javascript',
+                     src=filename):
+                pass
+        with tag('title'):
+            text(title)
+
+def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
+                  cur_commit : str, cur_date : datetime.datetime,
+                  individual_stats : List[ReportStats]) -> None:
+    def report_header(tag : Any, doc : Doc, text : Text) -> None:
+        html_header(tag, doc, text,report_css, report_js,
+                    "Proverbot Report")
+    combined_stats = combine_file_results(individual_stats)
+    doc, tag, text, line = Doc().ttl()
+    with tag('html'):
+        report_header(tag, doc, text)
+        with tag('body'):
+            with tag('h4'):
+                text("{} files processed".format(len(args.filenames)))
+            with tag('h5'):
+                text("Commit: {}".format(cur_commit))
+            with tag('h5'):
+                text("Run on {}".format(cur_date.strftime("%Y-%m-%d %H:%M:%S.%f")))
+            with tag('img',
+                     ('src', 'logo.png'),
+                     ('id', 'logo')):
+                pass
+            with tag('h2'):
+                text("Proofs Completed: {}% ({}/{})"
+                     .format(stringified_percent(combined_stats.num_proofs_completed,
+                                                 combined_stats.num_proofs),
+                             combined_stats.num_proofs_completed,
+                             combined_stats.num_proofs))
+            with tag('ul'):
+                for k, v in options:
+                    if k == 'filenames':
+                        continue
+                    elif not v:
+                        continue
+                    with tag('li'):
+                        text("{}: {}".format(k, v))
+
+            with tag('table'):
+                with tag('tr', klass="header"):
+                    line('th', 'Filename')
+                    line('th', 'Number of Proofs in File')
+                    line('th', '% Proofs Completed')
+                    line('th', 'Details')
+                sorted_rows = sorted(individual_stats,
+                                     key=lambda fresult:fresult.num_proofs,
+                                     reverse=True)
+                for fresult in sorted_rows:
+                    # if fresult.num_proofs == 0:
+                    #     continue
+                    with tag('tr'):
+                        line('td', fresult.filename)
+                        line('td', str(fresult.num_proofs))
+                        line('td', stringified_percent(fresult.num_proofs_completed,
+                                                       fresult.num_proofs))
+                        with tag('td'):
+                            with tag('a',
+                                     href=escape_filename(fresult.filename) + ".html"):
+                                text("Details")
+                with tag('tr'):
+                    line('td', "Total");
+                    line('td', str(combined_stats.num_proofs))
+                    line('td', stringified_percent(combined_stats.num_proofs_completed,
+                                                   combined_stats.num_proofs))
+    for filename in extra_files:
+        shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
+                    args.output + "/" + filename)
+    with open("{}/report.html".format(args.output), "w") as fout:
+        fout.write(doc.getvalue())
+
+def write_html(output_dir : str, filename : str, commands_out : List[str]) -> None:
+    def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
+        html_header(tag, doc, text, details_css, details_javascript,
+                    "Proverbot Detailed Report for {}".format(filename))
+    doc, tag, text, line = Doc().ttl()
+    with tag('html'):
+        details_header(tag, doc, text, filename)
+        with tag('body'), tag('pre'):
+            for command in commands_out:
+                doc.stag("br")
+                text(command.strip("\n"))
+    with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
+        fout.write(syntax.syntax_highlight(doc.getvalue()))
+
+def combine_file_results(stats : List[ReportStats]) -> ReportStats:
+    return ReportStats("",
+                       sum([s.num_proofs for s in stats]),
+                       sum([s.num_proofs_completed for s in stats]))
+
+# The core of the search report
+
+# This method attempts to complete proofs using search.
+def attempt_search(lemma_statement : str, coq : serapi_instance.SerapiInstance) \
+    -> Optional[List[str]]:
+    return None
