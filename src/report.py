@@ -512,7 +512,7 @@ def main(arg_list : List[str]) -> None:
     global gresult
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
-    parser.add_argument('-j', '--threads', default=1, type=int)
+    parser.add_argument('-j', '--threads', default=16, type=int)
     parser.add_argument('--prelude', default=".")
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument('-o', '--output', help="output data folder name",

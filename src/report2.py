@@ -89,7 +89,7 @@ def main(arg_list : List[str]) -> None:
     global predictor
     parser = argparse.ArgumentParser(description=
                                      "Produce an html report from the scrape file.")
-    parser.add_argument("-j", "--threads", default=1, type=int)
+    parser.add_argument("-j", "--threads", default=16, type=int)
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
