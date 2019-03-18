@@ -553,11 +553,10 @@ def main(arg_list : List[str]) -> None:
 
     args.threads = min(args.threads, len(args.filenames))
 
-    predictor : TacticPredictor
     if args.weightsfile:
-        predictor = loadPredictorByFile(args.weightsfile)
+        net = loadPredictorByFile(args.weightsfile)
     elif args.predictor:
-        predictor = loadPredictorByName(args.predictor)
+        net = loadPredictorByName(args.predictor)
     else:
         print("You must specify either --weightsfile or --predictor!")
         parser.print_help()
