@@ -249,8 +249,8 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                                      key=lambda fresult:fresult.num_proofs,
                                      reverse=True)
                 for fresult in sorted_rows:
-                    # if fresult.num_proofs == 0:
-                    #     continue
+                    if fresult.num_proofs == 0:
+                        continue
                     with tag('tr'):
                         line('td', fresult.filename)
                         line('td', str(fresult.num_proofs))
