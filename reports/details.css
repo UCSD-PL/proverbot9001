@@ -78,6 +78,11 @@ code {
   border: none;
   text-align: left;
   background-color: white;
+.collapsible.good {
+    background-color: lightgreen;
+}
+.collapsible.bad{
+    background-color: pink;
 }
 
 .collapsible:hover {

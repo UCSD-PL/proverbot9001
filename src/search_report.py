@@ -27,7 +27,7 @@ includes : str
 prelude : str
 
 details_css = ["details.css"]
-details_javascript : List[str] = []
+details_javascript = ["search-details.js"]
 report_css = ["report.css"]
 report_js = ["report.js"]
 extra_files = details_css + details_javascript + report_css + report_js + ["logo.png"]
@@ -98,16 +98,25 @@ def report_file(args : argparse.Namespace,
             if len(commands_in) == 0:
                 break
             num_proofs += 1
-            lemma_statement = next_in_command
+            lemma_statement = commands_out.pop()
             tactic_solution = attempt_search(args, lemma_statement, coq)
             if tactic_solution:
+                commands_out.append("PROOF_START_GOOD")
+                commands_out.append(lemma_statement)
+
                 num_proofs_completed += 1
+                commands_out.append("Proof.")
                 commands_out += tactic_solution
                 commands_out.append("Qed.")
                 coq.run_stmt("Qed.")
             else:
+                commands_out.append("PROOF_START_BAD")
+                commands_out.append(lemma_statement)
+
+                commands_out.append("Proof.")
                 commands_out.append("Admitted.")
                 coq.run_stmt("Admitted.")
+            commands_out.append("PROOF_END")
 
             coq.cancel_last()
             while coq.full_context != None:
@@ -267,12 +276,32 @@ def write_html(output_dir : str, filename : str, commands_out : List[str]) -> No
         html_header(tag, doc, text, details_css, details_javascript,
                     "Proverbot Detailed Report for {}".format(filename))
     doc, tag, text, line = Doc().ttl()
+    region_idx = 0
     with tag('html'):
         details_header(tag, doc, text, filename)
-        with tag('body'), tag('pre'):
-            for command in commands_out:
-                doc.stag("br")
-                text(command.strip("\n"))
+        with tag('body', onload='init()'), tag('pre'):
+            while len(commands_out) > 0:
+                command = commands_out.pop(0)
+                if command == "PROOF_START_GOOD" or command == "PROOF_START_BAD":
+                    if command == "PROOF_START_GOOD":
+                        k = 'good'
+                    else:
+                        k = 'bad'
+                    doc.stag('br')
+                    with tag('button', klass='collapsible ' + k,
+                             id='collapsible-{}'.format(region_idx)):
+                        with tag('code', klass='buttontext'):
+                            text(commands_out.pop(0))
+                    with tag('div', klass='region'):
+                        command = commands_out.pop(0)
+                        while(command != "PROOF_END"):
+                            with tag('code', 'plaincommand'):
+                                text(command)
+                            doc.stag('br')
+                            command = commands_out.pop(0)
+                else:
+                    with tag('code', klass='plaincommand'):
+                        text(command)
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
         fout.write(syntax.syntax_highlight(doc.getvalue()))
 
