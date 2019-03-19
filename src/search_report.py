@@ -334,7 +334,7 @@ def attempt_search(args : argparse.Namespace,
         finally:
             coq.quiet = False
         if completed_proof(coq):
-            return next_state_to_explore[:-1]
+            return next_state_to_explore[1:]
         state_context = TacticContext(coq.prev_tactics,
                                       coq.get_hypothesis(),
                                       coq.get_goals())
