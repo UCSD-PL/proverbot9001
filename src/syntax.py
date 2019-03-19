@@ -7,6 +7,7 @@ vernacular_binder = [
     "Inductive",
     "Fixpoint",
     "Theorem",
+    "Function",
     "Remark",
     "Hypothesis",
     "Lemma",
@@ -32,6 +33,11 @@ vernacular_words = vernacular_binder + [
     "Local",
     "Open",
     "Scope",
+    "Admitted",
+    "Notation",
+    "Set",
+    "Unset",
+    "Implicit",
 ]
 
 local_binder = [
