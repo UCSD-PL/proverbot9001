@@ -78,6 +78,9 @@ code {
   border: none;
   text-align: left;
   background-color: white;
+  border-radius: 1.5em;
+}
+
 .collapsible.good {
     background-color: lightgreen;
 }
