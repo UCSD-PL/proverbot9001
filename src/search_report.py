@@ -71,7 +71,7 @@ def main(arg_list : List[str]) -> None:
 
     print("Writing summary with {} file outputs.".format(len(file_results)))
     write_summary(args, predictor.getOptions() +
-                  [("report type", "static"), ("predictor", args.predictor)],
+                  [("report type", "search"), ("predictor", args.predictor)],
                   commit, date, file_results)
 
 class ReportStats(NamedTuple):
@@ -90,7 +90,6 @@ def report_file(args : argparse.Namespace,
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
         coq.debug = args.debug
         while len(commands_in) > 0:
-            assert not coq.full_context, coq.full_context
             while not coq.full_context and len(commands_in) > 0:
                 next_in_command = commands_in.pop(0)
                 coq.run_stmt(next_in_command)
@@ -121,13 +120,10 @@ def report_file(args : argparse.Namespace,
             coq.cancel_last()
             while coq.full_context != None:
                 coq.cancel_last()
-            assert coq.full_context == None, coq.full_context
             coq.run_stmt(lemma_statement)
-            assert coq.full_context
             while coq.full_context != None:
                 next_in_command = commands_in.pop(0)
                 coq.run_stmt(next_in_command)
-            assert not coq.full_context, coq.full_context
     write_html(args.output, filename, commands_out)
     return ReportStats(filename, num_proofs, num_proofs_completed)
 
