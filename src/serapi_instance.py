@@ -707,11 +707,15 @@ def get_vars_in_hyps(hyps : List[str]) -> List[str]:
 def get_first_var_in_hyp(hyp : str) -> str:
     return get_var_term_in_hyp(hyp).split(",")[0].strip()
 
-def normalizeMessage(sexp):
-    return match(sexp,
-                 list, lambda sexp: [normalizeMessage(item) for item in sexp],
-                 Symbol, lambda sym: dumps(sym),
-                 _, lambda sexp: sexp)
+def normalizeMessage(sexp, depth : int=5):
+    if depth <= 0:
+        return sexp
+    if isinstance(sexp, list):
+        return [normalizeMessage(item, depth=depth-1) for item in sexp]
+    if isinstance(sexp, Symbol):
+        return dumps(sexp)
+    else:
+        return sexp
 
 def tacticTakesHypArgs(stem : str) -> bool:
     return (
