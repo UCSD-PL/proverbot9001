@@ -320,6 +320,48 @@ def attempt_search(args : argparse.Namespace,
     commands = dfs_proof_search_with_graph(lemma_statement, coq, args)
     return commands
 
+class TimedCommand(NamedTuple):
+    command : str
+    seconds_taken : float
+
+time_per_command = 2.
+def tfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
+                     args : argparse.Namespace) -> Optional[List[str]]:
+    max_time = args.search_depth * time_per_command
+    def predictions() -> List[str]:
+        return [pred.prediction for pred in
+                predictor.predictKTactics(TacticContext(coq.prev_tactics,
+                                                        coq.get_hypothesis(),
+                                                        coq.get_goals()),
+                                          args.search_width)]
+    def total_time(commands : List[TimedCommand]) -> float:
+        return sum([c.seconds_taken for c in commands])
+    def get_commands(commands : List[TimedCommand]) -> List[str]:
+        return [c.command for c in commands]
+    def search(current_path : List[TimedCommand]) -> Optional[List[str]]:
+        for prediction in predictions():
+            try:
+                start = time.time()
+                coq.quiet = True
+                old_timeout = coq.timeout
+                coq.timeout = int(max_time - total_time(current_path))
+                coq.run_stmt(prediction)
+                coq.timeout = old_timeout
+                time_taken = time.time() - start
+                if completed_proof(coq):
+                    return get_commands(current_path) + [prediction]
+                elif total_time(current_path) + time_taken < max_time and \
+                     len(current_path) < args.search_depth * 2:
+                    sub_search_result = search(current_path +
+                                               [TimedCommand(prediction, time_taken)])
+                    if sub_search_result:
+                        return sub_search_result
+                coq.cancel_last()
+            except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+                continue
+        return None
+    return search([])
+
 def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
                      args : argparse.Namespace) -> Optional[List[str]]:
     def get_context() -> TacticContext:
