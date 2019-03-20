@@ -21,7 +21,11 @@ def get_file_percent(filename : str) -> float:
         if overallPercentString:
             return float(overallPercentString.group(1))
         else:
-            return float(re.search(r"Searched:\s+(\d+\.\d+)%", contents).group(1))
+            proofsCompletedString = re.search(r"Proofs Completed:\s+(\d+\.\d+)%", contents)
+            if proofsCompletedString:
+                return float(proofsCompletedString.group(1))
+            else:
+                return float(re.search(r"Searched:\s+(\d+\.\d+)%", contents).group(1))
 
 def get_file_predictor(filename : str) -> str:
     with open(filename+"/report.html") as f:
