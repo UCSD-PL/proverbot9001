@@ -313,16 +313,17 @@ def attempt_search(args : argparse.Namespace,
                    lemma_statement : str,
                    coq : serapi_instance.SerapiInstance) \
     -> Optional[List[str]]:
-    return dfs_proof_search(lemma_statement, coq, args.search_depth, args.search_width)
+    commands = dfs_proof_search_with_graph(lemma_statement, coq, args)
+    return commands
 
 def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-                     max_depth : int, branching_factor : int) -> Optional[List[str]]:
+                     args : argparse.Namespace) -> Optional[List[str]]:
     def get_context() -> TacticContext:
         return TacticContext(coq.prev_tactics, coq.get_hypothesis(),
                              coq.get_goals())
     def predictions() -> List[str]:
         return [pred.prediction for pred in
-                predictor.predictKTactics(get_context(), branching_factor)]
+                predictor.predictKTactics(get_context(), args.search_width)]
     def search(current_path : List[str]) -> Optional[List[str]]:
         for prediction in predictions():
             try:
@@ -330,7 +331,7 @@ def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
                 coq.run_stmt(prediction)
                 if completed_proof(coq):
                     return current_path + [prediction]
-                elif len(current_path) + 1 < max_depth:
+                elif len(current_path) + 1 < args.search_depth:
                     sub_search_result = search(current_path + [prediction])
                     if sub_search_result:
                         return sub_search_result
@@ -341,7 +342,7 @@ def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
     return search([])
 
 def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-                     max_depth : int, branching_factor : int) -> Optional[List[str]]:
+                     args : argparse.Namespace) -> Optional[List[str]]:
     states_to_explore = [[lemma_statement]]
     coq.cancel_last()
 
@@ -362,8 +363,8 @@ def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
         state_context = TacticContext(coq.prev_tactics,
                                       coq.get_hypothesis(),
                                       coq.get_goals())
-        if len(next_state_to_explore) < max_depth:
-            predictions = predictor.predictKTactics(state_context, branching_factor)
+        if len(next_state_to_explore) < args.search_depth:
+            predictions = predictor.predictKTactics(state_context, args.search_width)
             for prediction in predictions:
                 states_to_explore.append(next_state_to_explore + [prediction.prediction])
         while coq.full_context:
