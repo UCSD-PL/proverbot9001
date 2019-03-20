@@ -30,6 +30,15 @@ code {
     font-weight: bold;
 }
 
+.search-graph {
+    display:block;
+    margin: 0 auto;
+}
+
+#overlay.graph {
+    min-height:0%;
+}
+
 #overlay {
     position: fixed;
     display: none;

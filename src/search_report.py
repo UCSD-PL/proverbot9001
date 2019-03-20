@@ -284,10 +284,14 @@ def write_html(output_dir : str, filename : str, commands_out : List[str]) -> No
                     else:
                         k = 'bad'
                     doc.stag('br')
+                    lemma_stmt = commands_out.pop(0)
+                    lemma_name = serapi_instance.lemma_name_from_statement(lemma_stmt)
                     with tag('button', klass='collapsible ' + k,
-                             id='collapsible-{}'.format(region_idx)):
+                             id='collapsible-{}'.format(region_idx),
+                             onmouseover="hoverLemma(\"{}\")".format(lemma_name),
+                             onmouseout="unhoverLemma(\"{}\")".format(lemma_name)):
                         with tag('code', klass='buttontext'):
-                            text(commands_out.pop(0))
+                            text(lemma_stmt)
                     with tag('div', klass='region'):
                         command = commands_out.pop(0)
                         while(command != "PROOF_END"):
@@ -340,6 +344,70 @@ def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
                 continue
         return None
     return search([])
+
+import pygraphviz as pgv
+# from graphviz import Digraph
+
+class LabeledNode(NamedTuple):
+    prediction : str
+    node_id : int
+
+def dfs_proof_search_with_graph(lemma_statement : str,
+                                coq : serapi_instance.SerapiInstance,
+                                args : argparse.Namespace) \
+                                -> Optional[List[str]]:
+    search_graph = pgv.AGraph(directed=True)
+    next_node_id = 0
+    def mkNode(prediction : str, **kwargs) -> LabeledNode:
+        nonlocal next_node_id
+        search_graph.add_node(next_node_id, label=prediction, **kwargs)
+        node_obj = LabeledNode(prediction, next_node_id)
+        next_node_id += 1
+        return node_obj
+    def mkEdge(src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
+        search_graph.add_edge(src.node_id, dest.node_id, **kwargs)
+
+    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement))
+    def edgeToPrev(prediction : LabeledNode, current_path : List[LabeledNode]) -> None:
+        if len(current_path) == 0:
+            mkEdge(start_node, prediction)
+        else:
+            mkEdge(current_path[-1], prediction)
+    def get_context() -> TacticContext:
+        return TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                             coq.get_goals())
+    def predictions() -> List[str]:
+        return [pred.prediction for pred in
+                predictor.predictKTactics(get_context(), args.search_width)]
+    def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
+        for prediction in predictions():
+            predictionNode = mkNode(prediction)
+            edgeToPrev(predictionNode, current_path)
+            try:
+                coq.quiet = True
+                coq.run_stmt(prediction)
+                if completed_proof(coq):
+                    mkEdge(predictionNode, mkNode("QED", fillcolor="green", style="filled"))
+                    for node in [start_node] + current_path + [predictionNode]:
+                        node_handle = search_graph.get_node(node.node_id)
+                        node_handle.attr["fillcolor"] = "green"
+                        node_handle.attr["style"] = "filled"
+                    return [n.prediction for n in current_path + [predictionNode]]
+                elif len(current_path) + 1 < args.search_depth:
+                    sub_search_result = search(current_path + [predictionNode])
+                    if sub_search_result:
+                        return sub_search_result
+                coq.cancel_last()
+            except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+                mkEdge(predictionNode, mkNode("Crash", fillcolor="red", style="filled"))
+                continue
+        return None
+    command_list = search([])
+    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
+                      prog="dot")
+    return command_list
+
 
 def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
                      args : argparse.Namespace) -> Optional[List[str]]:

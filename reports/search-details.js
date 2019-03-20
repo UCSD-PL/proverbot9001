@@ -19,3 +19,21 @@ function initRegions(){
 function init() {
     initRegions()
 }
+
+function hoverLemma(lemma_name){
+    overlay = document.createElement('div')
+    overlay.setAttribute("id", "overlay")
+    overlay.classList.add("graph")
+    overlay.style.display = "block"
+    document.body.appendChild(overlay)
+    image = document.createElement("img")
+    image.classList.add("search-graph")
+    image.src = lemma_name + ".png"
+    overlay.appendChild(image)
+}
+function unhoverLemma(lemma_name) {
+    existing_overlay = document.getElementById("overlay")
+    if (existing_overlay != null){
+        document.body.removeChild(existing_overlay)
+    }
+}
