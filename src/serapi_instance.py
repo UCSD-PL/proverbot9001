@@ -727,3 +727,10 @@ def tacticTakesHypArgs(stem : str) -> bool:
 
 def progn(*args):
     return args[-1]
+
+def lemma_name_from_statement(stmt : str) -> str:
+    lemma_match = re.match("\s*\S+\s+(\w+)", stmt)
+    assert lemma_match, stmt
+    lemma_name = lemma_match.group(1)
+    assert ":" not in lemma_name, stmt
+    return lemma_name
