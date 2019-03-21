@@ -408,6 +408,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         return node_obj
     def mkEdge(src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
         search_graph.add_edge(src.node_id, dest.node_id, **kwargs)
+    def setNodeColor(node : LabeledNode, color : str) -> None:
+        node_handle = search_graph.get_node(node.node_id)
+        node_handle.attr["fillcolor"] = color
+        node_handle.attr["style"] = "filled"
 
     start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement))
     def edgeToPrev(prediction : LabeledNode, current_path : List[LabeledNode]) -> None:
@@ -429,21 +433,24 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         for prediction, predictionNode in zip(predictions, predictionNodes):
             try:
                 coq.quiet = True
+                context_before = coq.full_context
                 coq.run_stmt(prediction)
+                context_after = coq.full_context
                 if completed_proof(coq):
                     mkEdge(predictionNode, mkNode("QED", fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
-                        node_handle = search_graph.get_node(node.node_id)
-                        node_handle.attr["fillcolor"] = "green"
-                        node_handle.attr["style"] = "filled"
+                        setNodeColor(node, "green")
                     return [n.prediction for n in current_path + [predictionNode]]
                 elif len(current_path) + 1 < args.search_depth:
-                    sub_search_result = search(current_path + [predictionNode])
-                    if sub_search_result:
-                        return sub_search_result
+                    if context_before == context_after:
+                        setNodeColor(predictionNode, "orange")
+                    else:
+                        sub_search_result = search(current_path + [predictionNode])
+                        if sub_search_result:
+                            return sub_search_result
                 coq.cancel_last()
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
-                mkEdge(predictionNode, mkNode("Crash", fillcolor="red", style="filled"))
+                setNodeColor(predictionNode, "red")
                 continue
         return None
     command_list = search([])
