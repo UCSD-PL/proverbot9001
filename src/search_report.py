@@ -103,6 +103,7 @@ def report_file(args : argparse.Namespace,
             search_status, tactic_solution = attempt_search(args, lemma_statement, coq)
             commands_out.append("PROOF_START")
             if search_status == SearchStatus.SUCCESS:
+                assert tactic_solution
                 commands_out.append("STATUS_GOOD")
                 commands_out.append(lemma_statement)
 
