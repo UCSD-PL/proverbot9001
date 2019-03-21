@@ -432,6 +432,7 @@ import pygraphviz as pgv
 class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
+    full_context_before : str
 
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
@@ -439,10 +440,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 -> SearchResult:
     search_graph = pgv.AGraph(directed=True)
     next_node_id = 0
-    def mkNode(prediction : str, **kwargs) -> LabeledNode:
+    def mkNode(prediction : str, full_context_before : str, **kwargs) -> LabeledNode:
         nonlocal next_node_id
         search_graph.add_node(next_node_id, label=prediction, **kwargs)
-        node_obj = LabeledNode(prediction, next_node_id)
+        node_obj = LabeledNode(prediction, next_node_id, full_context_before)
         next_node_id += 1
         return node_obj
     def mkEdge(src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
@@ -464,31 +465,35 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_context(), args.search_width)]
+    def contextInPath(full_context : str, path : List[LabeledNode]):
+        return full_context in [n.full_context_before for n in path]
     hasUnexploredNode = False
     def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
-        predictionNodes = [mkNode(prediction) for prediction in predictions]
+        assert coq.full_context
+        predictionNodes = [mkNode(prediction, coq.full_context)
+                           for prediction in predictions]
+        context_before = coq.full_context
         for predictionNode in predictionNodes:
             edgeToPrev(predictionNode, current_path)
         for prediction, predictionNode in zip(predictions, predictionNodes):
             try:
                 coq.quiet = True
-                context_before = coq.full_context
                 coq.run_stmt(prediction)
                 context_after = coq.full_context
                 if completed_proof(coq):
-                    mkEdge(predictionNode, mkNode("QED", fillcolor="green", style="filled"))
+                    mkEdge(predictionNode, mkNode("QED", context_after,
+                                                  fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
                         setNodeColor(node, "green")
                     return [n.prediction for n in current_path + [predictionNode]]
+                elif contextInPath(context_after, current_path + [predictionNode]):
+                    setNodeColor(predictionNode, "orange")
                 elif len(current_path) + 1 < args.search_depth:
-                    if context_before == context_after:
-                        setNodeColor(predictionNode, "orange")
-                    else:
-                        sub_search_result = search(current_path + [predictionNode])
-                        if sub_search_result:
-                            return sub_search_result
+                    sub_search_result = search(current_path + [predictionNode])
+                    if sub_search_result:
+                        return sub_search_result
                 else:
                     hasUnexploredNode = True
                 coq.cancel_last()
