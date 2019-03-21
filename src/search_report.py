@@ -452,7 +452,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
 
-    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement))
+    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement), "")
     def edgeToPrev(prediction : LabeledNode, current_path : List[LabeledNode]) -> None:
         if len(current_path) == 0:
             mkEdge(start_node, prediction)
@@ -541,4 +541,6 @@ def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
 
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
     coq.run_stmt("Unshelve.")
-    return coq.full_context == ""
+    completed = coq.full_context == ""
+    coq.cancel_last()
+    return completed
