@@ -418,13 +418,15 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def get_context() -> TacticContext:
         return TacticContext(coq.prev_tactics, coq.get_hypothesis(),
                              coq.get_goals())
-    def predictions() -> List[str]:
+    def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_context(), args.search_width)]
     def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
-        for prediction in predictions():
-            predictionNode = mkNode(prediction)
+        predictions = make_predictions()
+        predictionNodes = [mkNode(prediction) for prediction in predictions]
+        for predictionNode in predictionNodes:
             edgeToPrev(predictionNode, current_path)
+        for prediction, predictionNode in zip(predictions, predictionNodes):
             try:
                 coq.quiet = True
                 coq.run_stmt(prediction)
