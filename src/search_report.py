@@ -77,12 +77,14 @@ def main(arg_list : List[str]) -> None:
 class ReportStats(NamedTuple):
     filename : str
     num_proofs : int
+    num_proofs_failed : int
     num_proofs_completed : int
 
 def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 filename : str) -> Optional[ReportStats]:
     num_proofs = 0
+    num_proofs_failed = 0
     num_proofs_completed = 0
     commands_in = get_commands(filename, args.verbose or args.debug)
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
@@ -117,6 +119,7 @@ def report_file(args : argparse.Namespace,
                 commands_out.append("Admitted.")
                 coq.run_stmt("Admitted.")
             else:
+                num_proofs_failed += 1
                 commands_out.append("STATUS_BAD")
                 commands_out.append(lemma_statement)
 
@@ -133,7 +136,7 @@ def report_file(args : argparse.Namespace,
                 next_in_command = commands_in.pop(0)
                 coq.run_stmt(next_in_command)
     write_html(args.output, filename, commands_out)
-    return ReportStats(filename, num_proofs, num_proofs_completed)
+    return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
@@ -248,6 +251,8 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                     line('th', 'Filename')
                     line('th', 'Number of Proofs in File')
                     line('th', '% Proofs Completed')
+                    line('th', '% Proofs Incomplete')
+                    line('th', '% Proofs Failed')
                     line('th', 'Details')
                 sorted_rows = sorted(individual_stats,
                                      key=lambda fresult:fresult.num_proofs,
@@ -260,6 +265,12 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                         line('td', str(fresult.num_proofs))
                         line('td', stringified_percent(fresult.num_proofs_completed,
                                                        fresult.num_proofs))
+                        line('td', stringified_percent(fresult.num_proofs -
+                                                       (fresult.num_proofs_completed +
+                                                        fresult.num_proofs_failed),
+                                                       fresult.num_proofs))
+                        line('td', stringified_percent(fresult.num_proofs_failed,
+                                                       fresult.num_proofs))
                         with tag('td'):
                             with tag('a',
                                      href=escape_filename(fresult.filename) + ".html"):
@@ -268,6 +279,12 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                     line('td', "Total");
                     line('td', str(combined_stats.num_proofs))
                     line('td', stringified_percent(combined_stats.num_proofs_completed,
+                                                   combined_stats.num_proofs))
+                    line('td', stringified_percent(combined_stats.num_proofs -
+                                                   (combined_stats.num_proofs_completed +
+                                                    combined_stats.num_proofs_failed),
+                                                   combined_stats.num_proofs))
+                    line('td', stringified_percent(combined_stats.num_proofs_failed,
                                                    combined_stats.num_proofs))
     for filename in extra_files:
         shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
@@ -319,6 +336,7 @@ def write_html(output_dir : str, filename : str, commands_out : List[str]) -> No
 def combine_file_results(stats : List[ReportStats]) -> ReportStats:
     return ReportStats("",
                        sum([s.num_proofs for s in stats]),
+                       sum([s.num_proofs_failed for s in stats]),
                        sum([s.num_proofs_completed for s in stats]))
 
 # The core of the search report
