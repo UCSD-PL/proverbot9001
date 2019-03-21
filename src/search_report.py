@@ -98,9 +98,10 @@ def report_file(args : argparse.Namespace,
                 break
             num_proofs += 1
             lemma_statement = commands_out.pop()
-            tactic_solution = attempt_search(args, lemma_statement, coq)
-            if tactic_solution:
-                commands_out.append("PROOF_START_GOOD")
+            search_status, tactic_solution = attempt_search(args, lemma_statement, coq)
+            commands_out.append("PROOF_START")
+            if search_status == SearchStatus.SUCCESS:
+                commands_out.append("STATUS_GOOD")
                 commands_out.append(lemma_statement)
 
                 num_proofs_completed += 1
@@ -108,8 +109,15 @@ def report_file(args : argparse.Namespace,
                 commands_out += tactic_solution
                 commands_out.append("Qed.")
                 coq.run_stmt("Qed.")
+            elif search_status == SearchStatus.INCOMPLETE:
+                commands_out.append("STATUS_INCOMPLETE")
+                commands_out.append(lemma_statement)
+
+                commands_out.append("Proof.")
+                commands_out.append("Admitted.")
+                coq.run_stmt("Admitted.")
             else:
-                commands_out.append("PROOF_START_BAD")
+                commands_out.append("STATUS_BAD")
                 commands_out.append(lemma_statement)
 
                 commands_out.append("Proof.")
@@ -278,9 +286,12 @@ def write_html(output_dir : str, filename : str, commands_out : List[str]) -> No
         with tag('body', onload='init()'), tag('pre'):
             while len(commands_out) > 0:
                 command = commands_out.pop(0)
-                if command == "PROOF_START_GOOD" or command == "PROOF_START_BAD":
-                    if command == "PROOF_START_GOOD":
+                if command == "PROOF_START":
+                    status = commands_out.pop(0)
+                    if status == "STATUS_GOOD":
                         k = 'good'
+                    elif status == "STATUS_INCOMPLETE":
+                        k = 'okay'
                     else:
                         k = 'bad'
                     doc.stag('br')
@@ -312,13 +323,23 @@ def combine_file_results(stats : List[ReportStats]) -> ReportStats:
 
 # The core of the search report
 
+from enum import Enum, auto
+class SearchStatus(Enum):
+    SUCCESS = auto()
+    INCOMPLETE = auto()
+    FAILURE = auto()
+
+class SearchResult(NamedTuple):
+    status : SearchStatus
+    commands : Optional[List[str]]
+
 # This method attempts to complete proofs using search.
 def attempt_search(args : argparse.Namespace,
                    lemma_statement : str,
                    coq : serapi_instance.SerapiInstance) \
-    -> Optional[List[str]]:
-    commands = dfs_proof_search_with_graph(lemma_statement, coq, args)
-    return commands
+    -> SearchResult:
+    result = dfs_proof_search_with_graph(lemma_statement, coq, args)
+    return result
 
 class TimedCommand(NamedTuple):
     command : str
@@ -397,7 +418,7 @@ class LabeledNode(NamedTuple):
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
                                 args : argparse.Namespace) \
-                                -> Optional[List[str]]:
+                                -> SearchResult:
     search_graph = pgv.AGraph(directed=True)
     next_node_id = 0
     def mkNode(prediction : str, **kwargs) -> LabeledNode:
@@ -425,7 +446,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_context(), args.search_width)]
+    hasUnexploredNode = False
     def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
+        nonlocal hasUnexploredNode
         predictions = make_predictions()
         predictionNodes = [mkNode(prediction) for prediction in predictions]
         for predictionNode in predictionNodes:
@@ -448,6 +471,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         sub_search_result = search(current_path + [predictionNode])
                         if sub_search_result:
                             return sub_search_result
+                else:
+                    hasUnexploredNode = True
                 coq.cancel_last()
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
                 setNodeColor(predictionNode, "red")
@@ -457,7 +482,12 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
                       prog="dot")
-    return command_list
+    if command_list:
+        return SearchResult(SearchStatus.SUCCESS, command_list)
+    elif hasUnexploredNode:
+        return SearchResult(SearchStatus.INCOMPLETE, None)
+    else:
+        return SearchResult(SearchStatus.FAILURE, None)
 
 
 def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,

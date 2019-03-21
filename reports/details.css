@@ -98,6 +98,9 @@ code {
 .collapsible.good {
     background-color: lightgreen;
 }
+.collapsible.okay{
+    background-color: peachpuff;
+}
 .collapsible.bad{
     background-color: pink;
 }
