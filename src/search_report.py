@@ -461,8 +461,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         else:
             mkEdge(current_path[-1], prediction)
     def get_context() -> TacticContext:
-        return TacticContext(coq.prev_tactics, coq.get_hypothesis(),
-                             coq.get_goals())
+        coq.run_stmt("Unshelve.")
+        context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                                coq.get_goals())
+        coq.cancel_last()
+        return context
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_context(), args.search_width)]
