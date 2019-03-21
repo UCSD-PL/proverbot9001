@@ -328,10 +328,20 @@ class SerapiInstance(threading.Thread):
                     "interrupt_response[1]: {}".format(interrupt_response[1])
                 assert len(interrupt_response[1]) > 2
                 assert isinstance(interrupt_response[1][1], list)
-                assert interrupt_response[1][1][0] == "contents"
-                assert isinstance(interrupt_response[1][1][1], list), interrupt_response
-                assert interrupt_response[1][1][1][0] == "Message"
-                assert interrupt_response[1][1][1][1] == "Error"
+                interrupt_response = normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                if isinstance(interrupt_response[1], list):
+                    assert interrupt_response[1][1][0] == "contents"
+                    assert interrupt_response[1][1][1][0] == "Message"
+                    assert interrupt_response[1][1][1][1] == "Error"
+                elif isinstance(interrupt_response[2], list):
+                    assert interrupt_response[0] == "Answer"
+                    assert interrupt_response[2][0] == "CoqExn", interrupt_response
+                    assert interrupt_response[2][3] == "Sys\.Break", interrupt_response
+                    raise TimeoutError("")
+                else:
+                    assert interrupt_response[0] == "Answer"
+                    assert interrupt_response[2] == "Completed", interrupt_response
+                    return interrupt_response
 
             interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout))
 
