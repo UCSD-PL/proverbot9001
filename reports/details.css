@@ -87,7 +87,7 @@ code {
 }
 .collapsible {
   cursor: pointer;
-  padding: 3px;
+  padding: .6em;
   width: 100%;
   border: none;
   text-align: left;

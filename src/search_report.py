@@ -302,7 +302,7 @@ def write_html(output_dir : str, filename : str, commands_out : List[str]) -> No
                              onmouseover="hoverLemma(\"{}\")".format(lemma_name),
                              onmouseout="unhoverLemma(\"{}\")".format(lemma_name)):
                         with tag('code', klass='buttontext'):
-                            text(lemma_stmt)
+                            text(lemma_stmt.strip())
                     with tag('div', klass='region'):
                         command = commands_out.pop(0)
                         while(command != "PROOF_END"):
