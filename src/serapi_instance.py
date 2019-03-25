@@ -728,6 +728,12 @@ def normalizeMessage(sexp, depth : int=5):
         return sexp
 
 def tacticTakesHypArgs(stem : str) -> bool:
+    now_match = re.match("\s*now\s+(.*)", stem)
+    if now_match:
+        return tacticTakesHypArgs(now_match.group(1))
+    try_match = re.match("\s*try\s+(.*)", stem)
+    if try_match:
+        return tacticTakesHypArgs(try_match.group(1))
     return (
         stem == "apply"
         or stem == "eapply"
@@ -741,12 +747,18 @@ def tacticTakesHypArgs(stem : str) -> bool:
         or stem == "rewrite <-"
         or stem == "destruct"
         or stem == "elim"
+        or stem == "eelim"
         or stem == "inversion"
         or stem == "monadInv"
         or stem == "pattern"
         or stem == "revert"
         or stem == "exact"
+        or stem == "eexact"
         or stem == "simpl in"
+        or stem == "fold"
+        or stem == "generalize"
+        or stem == "exists"
+        or stem == "case"
     )
 
 def tacticTakesBinderArgs(stem : str) -> bool:
