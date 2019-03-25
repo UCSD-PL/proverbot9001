@@ -73,8 +73,9 @@ def scrape_file(coqargs : List[str], skip_nochange_tac : bool, debug : bool, inc
             except serapi_instance.TimeoutError:
                 print("Command in {} timed out.".format(filename))
             return result_file
-    except:
-        print("In file {}:".format(filename))        
+    except Exception as e:
+        print("FAILED: In file {}:".format(filename))
+        print(e)
 
 def process_statement(coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
