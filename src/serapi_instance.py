@@ -729,15 +729,31 @@ def normalizeMessage(sexp, depth : int=5):
 
 def tacticTakesHypArgs(stem : str) -> bool:
     return (
-        stem == "apply" or
-        stem == "eapply" or
-        stem == "eexploit" or
-        stem == "exploit" or
-        stem == "erewrite" or
-        stem == "rewrite" or
-        stem == "erewrite <-" or
-        stem == "rewrite <-"
+        stem == "apply"
+        or stem == "eapply"
+        or stem == "eexploit"
+        or stem == "exploit"
+        or stem == "erewrite"
+        or stem == "rewrite"
+        or stem == "erewrite !"
+        or stem == "rewrite !"
+        or stem == "erewrite <-"
+        or stem == "rewrite <-"
+        or stem == "destruct"
+        or stem == "elim"
+        or stem == "inversion"
+        or stem == "monadInv"
+        or stem == "pattern"
+        or stem == "revert"
+        or stem == "exact"
+        or stem == "simpl in"
     )
+
+def tacticTakesBinderArgs(stem : str) -> bool:
+    return stem == "induction"
+
+def tacticTakesIdentifierArg(stem : str) -> bool:
+    return stem == "unfold"
 
 def progn(*args):
     return args[-1]
