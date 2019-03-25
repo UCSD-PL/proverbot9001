@@ -644,7 +644,7 @@ def parse_hyps(hyps_str : str) -> List[str]:
     # Assumes hypothesis are printed in reverse order, because for
     # whatever reason they seem to be.
     for next_term in reversed(var_terms[1:]):
-        next_match = rest_hyps_str.rfind(next_term + " :")
+        next_match = rest_hyps_str.rfind(" " + next_term + " :")
         hyp = rest_hyps_str[next_match:].strip()
         rest_hyps_str = rest_hyps_str[:next_match].strip()
         hyps_list.append(hyp)
