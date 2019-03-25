@@ -35,6 +35,9 @@ def no_compound_or_bullets(in_data : ContextData, tactic : str,
 def not_proof_keyword(in_data : ContextData, tactic : str,
                       next_in_data : ContextData) -> bool:
     return not re.match("Proof", tactic)
+def not_background_subgoal(in_data : ContextData, tactic : str,
+                           next_in_data : ContextData) -> bool:
+    return not re.match("\d*:.*", tactic)
 
 def goal_changed(in_data : ContextData, tactic : str,
                  next_in_data : ContextData) -> bool:
@@ -143,7 +146,9 @@ special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData]
     ]
 
 context_filters : Dict[str, ContextFilter] = {
-    "default": filter_and(no_compound_or_bullets, not_proof_keyword),
+    "default": filter_and(no_compound_or_bullets,
+                          not_proof_keyword,
+                          not_background_subgoal),
     "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
