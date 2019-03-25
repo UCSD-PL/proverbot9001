@@ -53,7 +53,7 @@ class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
                                t : Tokenizer, e : Embedding)\
                                -> TryCommonDataset:
         return TryCommonDataset([TryCommonSample(tactic)
-                                 for prev_tactics, goal, tactic in
+                                 for prev_tactics, hyps, goal, tactic in
                                  data])
     def _optimize_model_to_disc(self,
                                 encoded_data : TryCommonDataset,
@@ -68,7 +68,7 @@ class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
         stem_probs = [count / total_count for count in stem_counts]
 
         with open(arg_values.save_file, 'wb') as f:
-            torch.save((arg_values, encdec_state, stem_probs), f)
+            torch.save(("trycommon", (arg_values, encdec_state, stem_probs)), f)
     def load_saved_state(self,
                          args : Namespace,
                          metadata : TokenizerEmbeddingState,
