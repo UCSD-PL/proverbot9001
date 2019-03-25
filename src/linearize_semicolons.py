@@ -403,41 +403,33 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
             yield command
         else:
             stem = get_stem(command)
-            if stem == "rewrite" or stem == "rewrite <-":
-                multi_in_match = re.match("\s*(rewrite\s+.*?\s+in\s+)(\S+)\s*,\s*(.*\.)",
+            if stem == "rewrite" or stem == "rewrite <-" or stem == "unfold":
+                multi_in_match = re.match("\s*({}\s+.*?\s+in\b\s+)(\S+)\s*,\s*(.*\.)"
+                                          .format(stem.split()[0]),
                                           command)
                 if multi_in_match:
                     command, first_context, rest_context = multi_in_match.group(1, 2, 3)
                     yield from split_commas_command(command + first_context)
                     yield from split_commas_command(command + rest_context)
                     return
-                in_match = re.match("\s*(rewrite\s+\S*\s*),\s*(.*)\s+in(.*\.)", command)
+                in_match = re.match("\s*({}\s+\S*\s*),\s*(.*)\s+in\b(.*\.)"\
+                                    .format(stem.split()[0]),
+                                    command)
                 if in_match:
                     first_command, rest, context = in_match.group(1, 2, 3)
-                    # print("Splitting {} into {} and {}"
-                    #       .format(command, first_command + " in" + context,
-                    #               "rewrite " + rest + " in" + context))
                     yield first_command + " in" + context
-                    yield from split_commas_command("rewrite " + rest + " in" + context)
-                else:
-                    parts_match = re.match("\s*(rewrite\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)",
-                                           command)
-                    if not parts_match:
-                        yield command
-                        return
+                    yield from split_commas_command("{} ".format(stem) + rest + " in" + context)
+                    return
+                parts_match = re.match("\s*({}\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)"
+                                       .format(stem.split()[0]),
+                                       command)
+                if parts_match:
                     first_command, rest = parts_match.group(1, 3)
-                    # print("Splitting {} into {} and {}"
-                    #       .format(command, first_command + ". ", "rewrite " + rest))
                     yield first_command + ". "
-                    yield from split_commas_command("rewrite " + rest)
-            elif stem == "unfold":
-                parts_match = re.match("\s*(unfold\s+.*?),\s*(.*\.)", command)
-                assert parts_match, "Couldn't match \"{}\"".format(command)
-                first_command, rest = parts_match.group(1, 2)
-                #print("Splitting {} into {} and {}"
-                #      .format(command, first_command + ". ", "unfold " + rest))
-                yield first_command + ". "
-                yield from split_commas_command("unfold " + rest)
+                    yield from split_commas_command("{} ".format(stem.split()[0]) + rest)
+                    return
+
+                yield command
             else:
                 yield command
     new_commands : List[str] = []
