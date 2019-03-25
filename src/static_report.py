@@ -438,10 +438,6 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                                 assert isinstance(command_result[0], str)
                                 with tag('code', klass='plaincommand'):
                                     text("\n" + command_result[0].strip('\n'))
-                            # elif len(command_result[3]) == 0:
-                            #     assert isinstance(command_result[0], str)
-                            #     with tag('code', klass='plaincommand'):
-                            #         text("\n" + command_result[0].strip('\n'))
                             else:
                                 command, hyps, goal, prediction_results = \
                                     cast(TacticResult, command_result)
