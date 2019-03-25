@@ -17,6 +17,7 @@ from predict_tactic import (static_predictors, loadPredictorByFile,
 import serapi_instance
 import helper
 import syntax
+from format import format_goal
 from util import *
 
 from typing import List, Tuple, NamedTuple, Optional, Sequence
@@ -80,6 +81,28 @@ class ReportStats(NamedTuple):
     num_proofs_failed : int
     num_proofs_completed : int
 
+from enum import Enum, auto
+from typing import Union
+class SearchStatus(Enum):
+    SUCCESS = auto()
+    INCOMPLETE = auto()
+    FAILURE = auto()
+
+class VernacBlock(NamedTuple):
+    commands : List[str]
+
+class TacticInteraction(NamedTuple):
+    tactic : str
+    context_before : TacticContext
+
+class ProofBlock(NamedTuple):
+    lemma_statement : str
+    status : SearchStatus
+    predicted_tactics : List[TacticInteraction]
+    original_tactics : List[TacticInteraction]
+
+DocumentBlock = Union[VernacBlock, ProofBlock]
+
 def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 filename : str) -> Optional[ReportStats]:
@@ -88,55 +111,62 @@ def report_file(args : argparse.Namespace,
     num_proofs_completed = 0
     commands_in = get_commands(filename, args.verbose or args.debug)
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
-    commands_out = []
+    blocks_out : List[DocumentBlock] = []
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
         coq.debug = args.debug
         while len(commands_in) > 0:
+            # Get vernacular until the next proof (or end of file)
+            vernacs : List[str] = []
             while not coq.full_context and len(commands_in) > 0:
                 next_in_command = commands_in.pop(0)
                 coq.run_stmt(next_in_command)
-                commands_out.append(next_in_command)
+                if not coq.full_context:
+                    vernacs.append(next_in_command)
+            if len(vernacs) > 0:
+                blocks_out.append(VernacBlock(vernacs))
             if len(commands_in) == 0:
                 break
+
+            # Get beginning of next proof
             num_proofs += 1
-            lemma_statement = commands_out.pop()
+            lemma_statement = next_in_command
+            initial_context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                                            coq.get_goals())
+
+            # Try to search
             search_status, tactic_solution = attempt_search(args, lemma_statement, coq)
-            commands_out.append("PROOF_START")
-            if search_status == SearchStatus.SUCCESS:
-                assert tactic_solution
-                commands_out.append("STATUS_GOOD")
-                commands_out.append(lemma_statement)
 
-                num_proofs_completed += 1
-                commands_out.append("Proof.")
-                commands_out += tactic_solution
-                commands_out.append("Qed.")
-                coq.run_stmt("Qed.")
-            elif search_status == SearchStatus.INCOMPLETE:
-                commands_out.append("STATUS_INCOMPLETE")
-                commands_out.append(lemma_statement)
-
-                commands_out.append("Proof.")
-                commands_out.append("Admitted.")
-                coq.run_stmt("Admitted.")
-            else:
-                num_proofs_failed += 1
-                commands_out.append("STATUS_BAD")
-                commands_out.append(lemma_statement)
-
-                commands_out.append("Proof.")
-                commands_out.append("Admitted.")
-                coq.run_stmt("Admitted.")
-            commands_out.append("PROOF_END")
-
-            coq.cancel_last()
+            # Cancel until before the proof
             while coq.full_context != None:
                 coq.cancel_last()
+            # Run the original proof
             coq.run_stmt(lemma_statement)
+            original_tactics : List[TacticInteraction] = []
             while coq.full_context != None:
                 next_in_command = commands_in.pop(0)
+                context_before = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                                               coq.get_goals())
                 coq.run_stmt(next_in_command)
-    write_html(args.output, filename, commands_out)
+                original_tactics.append(TacticInteraction(next_in_command, context_before))
+
+            empty_context = TacticContext([], [], "")
+            # Append the proof data
+            if not tactic_solution:
+                if search_status == SearchStatus.FAILURE:
+                    num_proofs_failed += 1
+                blocks_out.append(ProofBlock(lemma_statement, search_status,
+                                             [TacticInteraction("Proof.", initial_context),
+                                              TacticInteraction("Admitted.",
+                                                                initial_context)],
+                                             original_tactics))
+            else:
+                num_proofs_completed += 1
+                blocks_out.append(ProofBlock(lemma_statement, search_status,
+                                             [TacticInteraction("Proof", initial_context)] +
+                                             tactic_solution +
+                                             [TacticInteraction("Qed.", empty_context)],
+                                             original_tactics))
+    write_html(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def get_commands(filename : str, verbose : bool) -> List[str]:
@@ -293,44 +323,27 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
     with open("{}/report.html".format(args.output), "w") as fout:
         fout.write(doc.getvalue())
 
-def write_html(output_dir : str, filename : str, commands_out : List[str]) -> None:
-    def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
+def write_html(output_dir : str, filename : str,
+               doc_blocks : List[DocumentBlock]) -> None:
+    doc, tag, text, line = Doc().ttl()
+    with tag('html'):
         html_header(tag, doc, text, details_css, details_javascript,
                     "Proverbot Detailed Report for {}".format(filename))
-    doc, tag, text, line = Doc().ttl()
-    region_idx = 0
-    with tag('html'):
-        details_header(tag, doc, text, filename)
         with tag('body', onload='init()'), tag('pre'):
-            while len(commands_out) > 0:
-                command = commands_out.pop(0)
-                if command == "PROOF_START":
-                    status = commands_out.pop(0)
-                    if status == "STATUS_GOOD":
-                        k = 'good'
-                    elif status == "STATUS_INCOMPLETE":
-                        k = 'okay'
-                    else:
-                        k = 'bad'
-                    doc.stag('br')
-                    lemma_stmt = commands_out.pop(0)
-                    lemma_name = serapi_instance.lemma_name_from_statement(lemma_stmt)
-                    with tag('button', klass='collapsible ' + k,
-                             id='collapsible-{}'.format(region_idx),
-                             onmouseover="hoverLemma(\"{}\")".format(lemma_name),
-                             onmouseout="unhoverLemma(\"{}\")".format(lemma_name)):
-                        with tag('code', klass='buttontext'):
-                            text(lemma_stmt.strip())
-                    with tag('div', klass='region'):
-                        command = commands_out.pop(0)
-                        while(command != "PROOF_END"):
-                            with tag('code', 'plaincommand'):
-                                text(command)
-                            doc.stag('br')
-                            command = commands_out.pop(0)
+            for block_idx, block in enumerate(doc_blocks):
+                if isinstance(block, VernacBlock):
+                    write_commands(block.commands, tag, text, doc)
                 else:
-                    with tag('code', klass='plaincommand'):
-                        text(command)
+                    assert isinstance(block, ProofBlock)
+                    status_klass = classFromSearchStatus(block.status)
+                    write_lemma_button(block.lemma_statement, status_klass, tag, text)
+                    with tag('div', klass='region'):
+                        with tag('div', klass='predicted'):
+                            write_tactics(block.predicted_tactics, block_idx,
+                                          tag, text, doc)
+                        with tag('div', klass='original'):
+                            write_tactics(block.original_tactics, block_idx,
+                                          tag, text, doc)
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
         fout.write(syntax.syntax_highlight(doc.getvalue()))
 
@@ -340,17 +353,48 @@ def combine_file_results(stats : List[ReportStats]) -> ReportStats:
                        sum([s.num_proofs_failed for s in stats]),
                        sum([s.num_proofs_completed for s in stats]))
 
-# The core of the search report
+def write_lemma_button(lemma_statement : str, status_klass : str, tag : Tag, text : Text):
+    lemma_name = \
+        serapi_instance.lemma_name_from_statement(lemma_statement)
+    with tag('button', klass='collapsible {}'.format(status_klass),
+             onmouseover="hoverLemma(\"{}\")".format(lemma_name),
+             onmouseout="unhoverLemma(\"{}\")".format(lemma_name)):
+        with tag('code', klass='buttontext'):
+            text(lemma_statement.strip())
+def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
+    for cmd in commands:
+        with tag('code', klass='plaincommand'):
+            text(cmd.strip("\n"))
+        doc.stag('br')
+def write_tactics(tactics : List[TacticInteraction],
+                  region_idx : int,
+                  tag : Tag, text : Text, doc : Doc):
+    for t_idx, t in enumerate(tactics):
+        idStr = '{}-{}'.format(region_idx, t_idx)
+        with tag('span',
+                 ('data-hyps', "\n".join(t.context_before.hypotheses)),
+                 ('data-goal', format_goal(t.context_before.goal)),
+                 id='command-{}'.format(idStr),
+                 onmouseover='hoverTactic("{}")'.format(idStr),
+                 onmouseout='unhoverTactic()'):
+            with tag('code', klass='plaincommand'):
+                text(t.tactic.strip())
+            doc.stag('br')
 
-from enum import Enum, auto
-class SearchStatus(Enum):
-    SUCCESS = auto()
-    INCOMPLETE = auto()
-    FAILURE = auto()
+def classFromSearchStatus(status : SearchStatus) -> str:
+    if status == SearchStatus.SUCCESS:
+        return 'good'
+    elif status == SearchStatus.INCOMPLETE:
+        return 'okay'
+    else:
+        return 'bad'
+
+
+# The core of the search report
 
 class SearchResult(NamedTuple):
     status : SearchStatus
-    commands : Optional[List[str]]
+    commands : Optional[List[TacticInteraction]]
 
 # This method attempts to complete proofs using search.
 def attempt_search(args : argparse.Namespace,
@@ -433,7 +477,8 @@ import pygraphviz as pgv
 class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
-    full_context_before : str
+    full_context_before : Optional[str]
+    context_before : TacticContext
 
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
@@ -441,10 +486,12 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 -> SearchResult:
     search_graph = pgv.AGraph(directed=True)
     next_node_id = 0
-    def mkNode(prediction : str, full_context_before : str, **kwargs) -> LabeledNode:
+    def mkNode(prediction : str, full_context_before : Optional[str],
+               context_before : TacticContext, **kwargs) -> LabeledNode:
         nonlocal next_node_id
         search_graph.add_node(next_node_id, label=prediction, **kwargs)
-        node_obj = LabeledNode(prediction, next_node_id, full_context_before)
+        node_obj = LabeledNode(prediction, next_node_id,
+                               full_context_before, context_before)
         next_node_id += 1
         return node_obj
     def mkEdge(src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
@@ -454,7 +501,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
 
-    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement), "")
+    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement), "",
+                        TacticContext([], [], ""))
     def edgeToPrev(prediction : LabeledNode, current_path : List[LabeledNode]) -> None:
         if len(current_path) == 0:
             mkEdge(start_node, prediction)
@@ -466,7 +514,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq.get_goals())
         coq.cancel_last()
         return context
-    def get_fullcontext() -> str:
+    def get_fullcontext() -> Optional[str]:
         coq.run_stmt("Unshelve.")
         fullcontext = coq.full_context
         coq.cancel_last()
@@ -477,12 +525,13 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def contextInPath(full_context : str, path : List[LabeledNode]):
         return full_context in [n.full_context_before for n in path]
     hasUnexploredNode = False
-    def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
+    def search(current_path : List[LabeledNode]) -> Optional[List[TacticInteraction]]:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
-        predictionNodes = [mkNode(prediction, get_fullcontext())
+        context_before = get_context()
+        predictionNodes = [mkNode(prediction, get_fullcontext(), context_before)
                            for prediction in predictions]
-        context_before = coq.full_context
+
         for predictionNode in predictionNodes:
             edgeToPrev(predictionNode, current_path)
         for prediction, predictionNode in zip(predictions, predictionNodes):
@@ -492,10 +541,12 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 context_after = get_fullcontext()
                 if completed_proof(coq):
                     mkEdge(predictionNode, mkNode("QED", context_after,
+                                                  TacticContext([], [], ""),
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
                         setNodeColor(node, "green")
-                    return [n.prediction for n in current_path + [predictionNode]]
+                    return [TacticInteraction(n.prediction, n.context_before)
+                            for n in current_path + [predictionNode]]
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
                 elif len(current_path) + 1 < args.search_depth:

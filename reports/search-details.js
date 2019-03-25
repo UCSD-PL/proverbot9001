@@ -22,7 +22,7 @@ function init() {
 
 function hoverLemma(lemma_name){
     overlay = document.createElement('div')
-    overlay.setAttribute("id", "overlay")
+    overlay.setAttribute("id", "lemma_overlay")
     overlay.classList.add("graph")
     overlay.style.display = "block"
     document.body.appendChild(overlay)
@@ -32,7 +32,37 @@ function hoverLemma(lemma_name){
     overlay.appendChild(image)
 }
 function unhoverLemma(lemma_name) {
-    existing_overlay = document.getElementById("overlay")
+    existing_overlay = document.getElementById("lemma_overlay")
+    if (existing_overlay != null){
+        document.body.removeChild(existing_overlay)
+    }
+}
+function hoverTactic(idx_str){
+    overlay = document.createElement('div')
+    overlay.setAttribute("id", "tactic_overlay")
+    overlay.classList.add("context")
+    overlay.style.display = "block"
+    document.body.appendChild(overlay)
+
+    tacSpan = document.getElementById("command-" + idx_str)
+    hyps = tacSpan.dataset.hyps
+    goal = tacSpan.dataset.goal
+
+    hypsPre = document.createElement('pre')
+    hypsPre.setAttribute("id", "hyps")
+    hypsPre.innerText = hyps
+    overlay.appendChild(hypsPre)
+
+    rule = document.createElement('hr')
+    overlay.appendChild(rule)
+
+    goalPre = document.createElement('pre')
+    goalPre.setAttribute('id', 'goal')
+    goalPre.innerText = goal
+    overlay.appendChild(goalPre)
+}
+function unhoverTactic() {
+    existing_overlay = document.getElementById("tactic_overlay")
     if (existing_overlay != null){
         document.body.removeChild(existing_overlay)
     }
