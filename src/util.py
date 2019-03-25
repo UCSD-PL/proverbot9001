@@ -109,6 +109,19 @@ def list_topk(lst : List[T], k : int, f : Optional[Callable[[T], float]] = None)
     lk = l[:k]
     return tuple(zip(*lk)) # type: ignore
 
+def topk_with_filter(t : torch.FloatTensor, k : int, f : Callable[[float, int], bool]) \
+    -> Tuple[torch.FloatTensor, torch.LongTensor]:
+    all_certainties, all_idxs = t.topk(t.size()[0])
+    certainties = []
+    idxs = []
+    for certainty, idx in zip(all_certainties, all_idxs):
+        if f(certainty.item(), idx.item()):
+            certainties.append(certainty)
+            idxs.append(idx)
+            if len(certainties) == k:
+                break
+    return FloatTensor(certainties), LongTensor(idxs)
+
 def multipartition(xs : List[T], f : Callable[[T], int]) -> List[List[T]]:
     result : List[List[T]] = []
     for x in xs:

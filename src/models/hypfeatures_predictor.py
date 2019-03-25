@@ -250,11 +250,18 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             prediction_distribution = self._predictDistributions([in_data])[0]
         if k > self._embedding.num_tokens():
             k = self._embedding.num_tokens()
-        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+        if len(in_data.hypotheses) == 0:
+            certainties, idxs = topk_with_filter(
+                prediction_distribution.view(-1), k,
+                lambda certainty, idx:
+                not serapi_instance.tacticTakesHypArgs(
+                    cast(Embedding, self._embedding).decode_token(idx)))
+        else:
+            certainties, idxs = prediction_distribution.view(-1).topk(k)
         results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
                                            in_data.goal, in_data.hypotheses),
                               math.exp(certainty.item()))
-                   for certainty, stem_idx in zip(*certainties_and_idxs)]
+                   for certainty, stem_idx in zip(certainties, idxs)]
         return results
 
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
@@ -271,11 +278,18 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             loss = self._criterion(prediction_distribution.view(1, -1), output_var).item()
         else:
             loss = 0
-        certainties_and_idxs = prediction_distribution.view(-1).topk(k)
+        if len(in_data.hypotheses) == 0:
+            certainties, idxs = topk_with_filter(
+                prediction_distribution.view(-1), k,
+                lambda certainty, idx:
+                not serapi_instance.tacticTakesHypArgs(
+                    cast(Embedding, self._embedding).decode_token(idx)))
+        else:
+            certainties, idxs = prediction_distribution.view(-1).topk(k)
         results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
                                            in_data.goal, in_data.hypotheses),
                               math.exp(certainty.item()))
-                   for certainty, stem_idx in zip(*certainties_and_idxs)]
+                   for certainty, stem_idx in zip(certainties, idxs)]
         return results, loss
     def predictKTacticsWithLoss_batch(self,
                                       in_data : List[TacticContext],
@@ -293,9 +307,14 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         loss = self._criterion(prediction_distributions, output_var).item()
         if k > self._embedding.num_tokens():
             k = self._embedding.num_tokens()
-        certainties_and_idxs_list = [single_distribution.view(-1).topk(k)
-                                     for single_distribution in
-                                     list(prediction_distributions)]
+        certainties_and_idxs_list = \
+            [single_distribution.view(-1).topk(k) if len(context.hypotheses) > 0 else
+             topk_with_filter(single_distribution.view(-1), k,
+                              lambda certainty, idx:
+                              not serapi_instance.tacticTakesHypArgs(
+                                  cast(Embedding, self._embedding).decode_token(idx)))
+             for single_distribution, context in
+             zip(prediction_distributions, in_data)]
         results = [[Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
                                             in_datum.goal, in_datum.hypotheses),
                                math.exp(certainty.item()))
