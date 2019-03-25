@@ -101,11 +101,12 @@ class Worker(threading.Thread):
             # easier to work with, so it's the right thing to learn.
             commands = try_load_lin(filename)
             if not commands:
-                commands = lift_and_linearize(load_commands(filename),
-                                              self.coqargs, self.includes, self.prelude,
-                                              filename,
-                                              options["skip-nochange-tac"],
-                                              debug=options["debug"])
+                commands = preprocess_file_commands(load_commands(filename),
+                                                    self.coqargs, self.includes,
+                                                    self.prelude,
+                                                    filename,
+                                                    options["skip-nochange-tac"],
+                                                    debug=options["debug"])
                 save_lin(commands, filename)
 
             # Get a coq instance

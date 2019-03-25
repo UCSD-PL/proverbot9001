@@ -58,8 +58,9 @@ def scrape_file(coqargs : List[str], skip_nochange_tac : bool, debug : bool, inc
         full_filename = prelude + "/" + filename
         commands = try_load_lin(full_filename)
         if not commands:
-            commands = lift_and_linearize(load_commands(full_filename),
-                                        coqargs, includes, prelude, full_filename, skip_nochange_tac)
+            commands = preprocess_file_commands(load_commands(full_filename),
+                                                coqargs, includes, prelude,
+                                                full_filename, skip_nochange_tac)
             save_lin(commands, full_filename)
 
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:

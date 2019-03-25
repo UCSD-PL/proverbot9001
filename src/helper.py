@@ -6,7 +6,7 @@ import linearize_semicolons
 import re
 import os
 
-from typing import List, Match, Any, Optional, Iterator
+from typing import List, Match, Any, Optional, Iterator, Iterable
 
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
@@ -57,14 +57,15 @@ def read_commands_preserve(contents : str) -> List[str]:
 def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
-def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str,
-                       prelude : str, filename : str, skip_nochange_tac : bool, debug=False) -> List[str]:
+def preprocess_file_commands(commands : List[str], coqargs : List[str], includes : str,
+                             prelude : str, filename : str, skip_nochange_tac : bool,
+                             debug=False) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             coq.debug = debug
-            result = list(linearize_semicolons.linearize_commands(generate_lifted(commands,
-                                                                                  coq),
-                                                                  coq, filename, skip_nochange_tac))
+            result = list(linearize_semicolons.linearize_commands(
+                desugar_tacs(generate_lifted(commands, coq)),
+                coq, filename, skip_nochange_tac))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
         print("In file {}".format(filename))
@@ -72,6 +73,32 @@ def lift_and_linearize(commands : List[str], coqargs : List[str], includes : str
     except serapi_instance.TimeoutError:
         print("Timed out while lifting commands! Skipping linearization...")
         return commands
+
+def desugar_tacs(commands : Iterable[str]) -> Iterable[str]:
+    for command in commands:
+        now_match = re.search(r"\bnow\s+", command)
+        if now_match:
+            paren_depth = 0
+            arg_end = -1
+            for idx, (c, next_c) in enumerate(
+                    zip(command[now_match.end():],
+                        command[now_match.end()+1:])):
+                if c == "(" or c == "[":
+                    paren_depth += 1
+                elif (c == ")" or c == "]" or
+                      (c == "." and re.match("\W", next_c))
+                      or c == "|") \
+                      and paren_depth == 0:
+                    arg_end = idx + now_match.end()
+                    break
+                elif c == ")" or c == "]":
+                    paren_depth -= 1
+            result = command[:now_match.start()] + \
+                "(" + command[now_match.end():arg_end] + "; easy)" \
+                + command[arg_end:]
+            yield result
+        else:
+            yield command
 
 def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) \
     -> Iterator[str]:

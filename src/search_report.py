@@ -173,7 +173,7 @@ def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
     loaded_commands = helper.try_load_lin(local_filename, verbose=verbose)
     if loaded_commands is None:
-        fresh_commands = helper.lift_and_linearize(
+        fresh_commands = helper.preprocess_file_commands(
             helper.load_commands_preserve(prelude + "/" + filename),
             coqargs, includes, prelude,
             filename, False)

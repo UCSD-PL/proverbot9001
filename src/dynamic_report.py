@@ -308,7 +308,7 @@ class Worker(threading.Thread):
         local_filename = self.prelude + "/" + filename
         loaded_commands = try_load_lin(local_filename)
         if loaded_commands is None:
-            fresh_commands = lift_and_linearize(
+            fresh_commands = preprocess_file_commands(
                 load_commands_preserve(self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
                 filename, self.skip_nochange_tac, debug=self.debug)
