@@ -466,6 +466,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq.get_goals())
         coq.cancel_last()
         return context
+    def get_fullcontext() -> str:
+        coq.run_stmt("Unshelve.")
+        fullcontext = coq.full_context
+        coq.cancel_last()
+        return fullcontext
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_context(), args.search_width)]
@@ -475,8 +480,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def search(current_path : List[LabeledNode]) -> Optional[List[str]]:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
-        assert coq.full_context
-        predictionNodes = [mkNode(prediction, coq.full_context)
+        predictionNodes = [mkNode(prediction, get_fullcontext())
                            for prediction in predictions]
         context_before = coq.full_context
         for predictionNode in predictionNodes:
@@ -485,7 +489,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             try:
                 coq.quiet = True
                 coq.run_stmt(prediction)
-                context_after = coq.full_context
+                context_after = get_fullcontext()
                 if completed_proof(coq):
                     mkEdge(predictionNode, mkNode("QED", context_after,
                                                   fillcolor="green", style="filled"))
