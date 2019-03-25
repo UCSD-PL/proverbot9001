@@ -469,7 +469,11 @@ class SerapiInstance(threading.Thread):
         while(True):
             line = self._fout.readline().decode('utf-8')
             if line == '': break
-            response = loads(line)
+            try:
+                response = loads(line)
+            except:
+                print("Couldn't parse Sexp:\n{}".format(line))
+                raise
             # print("Got message {}".format(response))
             self.messages.put(response)
 
