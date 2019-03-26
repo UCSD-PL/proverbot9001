@@ -72,7 +72,7 @@ def main(arg_list : List[str]) -> None:
 
     print("Writing summary with {} file outputs.".format(len(file_results)))
     write_summary(args, predictor.getOptions() +
-                  [("report type", "search"), ("predictor", args.predictor)],
+                  [("report type", "search"), ("search width", args.search_width)],
                   commit, date, file_results)
 
 class ReportStats(NamedTuple):

@@ -43,7 +43,7 @@ class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
         # Try common doesn't calculate a meaningful loss
         return self.predictKTactics(in_data, k), 0
     def getOptions(self) -> List[Tuple[str, str]]:
-        return list(vars(self.training_args).items())
+        return list(vars(self.training_args).items()) + [("predictor", "trycommon")]
     def predictKTacticsWithLoss_batch(self,
                                       in_data : List[TacticContext],
                                       k : int, correct : List[str]) -> \
