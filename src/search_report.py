@@ -241,19 +241,20 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
-                  cur_commit : str, cur_date : datetime.datetime,
-                  individual_stats : List[ReportStats]) -> None:
+def write_summary_html(filename : str,
+                       options : Sequence[Tuple[str, str]],
+                       cur_commit : str, cur_date : datetime.datetime,
+                       individual_stats : List[ReportStats],
+                       combined_stats : ReportStats) -> None:
     def report_header(tag : Any, doc : Doc, text : Text) -> None:
         html_header(tag, doc, text,report_css, report_js,
                     "Proverbot Report")
-    combined_stats = combine_file_results(individual_stats)
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
         report_header(tag, doc, text)
         with tag('body'):
             with tag('h4'):
-                text("{} files processed".format(len(args.filenames)))
+                text("{} files processed".format(len(individual_stats)))
             with tag('h5'):
                 text("Commit: {}".format(cur_commit))
             with tag('h5'):
@@ -317,11 +318,30 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                                                    combined_stats.num_proofs))
                     line('td', stringified_percent(combined_stats.num_proofs_failed,
                                                    combined_stats.num_proofs))
+    with open(filename, "w") as fout:
+        fout.write(doc.getvalue())
+
+import csv
+def write_summary_csv(filename : str, combined_stats : ReportStats,
+                      options : Sequence[Tuple[str, str]]):
+    with open(filename, 'w', newline='') as csvfile:
+        for k, v in options:
+            csvfile.write("# {}: {}\n".format(k, v))
+        rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
+        rowwriter.writerow([combined_stats.num_proofs,
+                            combined_stats.num_proofs_failed,
+                            combined_stats.num_proofs_completed])
+
+def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
+                  cur_commit : str, cur_date : datetime.datetime,
+                  individual_stats : List[ReportStats]) -> None:
+    combined_stats = combine_file_results(individual_stats)
+    write_summary_html("{}/report.html".format(args.output),
+                       options, cur_commit, cur_date, individual_stats, combined_stats)
+    write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
     for filename in extra_files:
         shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
                     args.output + "/" + filename)
-    with open("{}/report.html".format(args.output), "w") as fout:
-        fout.write(doc.getvalue())
 
 def write_html(output_dir : str, filename : str,
                doc_blocks : List[DocumentBlock]) -> None:
