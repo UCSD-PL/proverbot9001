@@ -1,5 +1,5 @@
 from models.tactic_predictor import TacticContext
-from tokenizer import get_symbols
+from tokenizer import get_symbols, limitNumTokens
 import serapi_instance
 
 import typing
@@ -96,6 +96,7 @@ class TopLevelTokenInGoal(WordFeature):
 class TopLevelTokenInBestHyp(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
+        self.max_length = args.max_length
         headTokenCounts : typing.Counter[str] = Counter()
         for prev_tactics, hyps, goal in init_dataset:
             for hyp in hyps:
@@ -108,10 +109,13 @@ class TopLevelTokenInBestHyp(WordFeature):
     def __call__(self, context : TacticContext) -> int:
         if len(context.hypotheses) == 0:
             return 0
-        hyp_types = [serapi_instance.get_hyp_type(hyp) for hyp in context.hypotheses]
+        hyp_types = [limitNumTokens(serapi_instance.get_hyp_type(hyp),
+                                    self.max_length)
+                     for hyp in context.hypotheses]
+        goal = limitNumTokens(context.goal, self.max_length)
         closest_hyp_type = max(hyp_types,
                                key=lambda x:
-                               SequenceMatcher(None, context.goal, x).ratio() * len(x))
+                               SequenceMatcher(None, goal, x).ratio() * len(get_symbols(x)))
         headToken = get_symbols(closest_hyp_type)[0]
         if headToken in self.headKeywords:
             return self.headKeywords.index(headToken) + 1
