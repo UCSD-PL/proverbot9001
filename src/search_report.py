@@ -594,7 +594,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 else:
                     hasUnexploredNode = True
                 coq.cancel_last()
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+            except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
+                    serapi_instance.OverflowError):
                 setNodeColor(predictionNode, "red")
                 continue
         return None

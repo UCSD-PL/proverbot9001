@@ -48,6 +48,9 @@ class LexError(Exception):
 @dataclass
 class TimeoutError(Exception):
     msg : str
+@dataclass
+class OverflowError(Exception):
+    msg : str
 
 def raise_(ex):
     raise ex
@@ -193,8 +196,9 @@ class SerapiInstance(threading.Thread):
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
 
                     ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
-                    lambda *args: raise_(ParseError("Invalid argument{}".format(stmt)))))#,
-                    # _, lambda *args: progn(self.cancel_last(), raise_(e))))
+                    lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
+                    ['Stack overflow'],
+                    lambda *args: raise_(OverflowError("Overflowed"))))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
@@ -319,8 +323,14 @@ class SerapiInstance(threading.Thread):
             if self.debug:
                 print("Command timed out! Cancelling")
             self._proc.send_signal(signal.SIGINT)
-            interrupt_response = \
-                normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+            try:
+                interrupt_response = \
+                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+            except:
+                self._proc.send_signal(signal.SIGINT)
+                interrupt_response = \
+                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+
             if interrupt_response != "Sys\.Break":
                 assert isinstance(interrupt_response, list), interrupt_response
                 assert interrupt_response[0] == "Feedback", interrupt_response
@@ -345,7 +355,7 @@ class SerapiInstance(threading.Thread):
                     assert interrupt_response[2] == "Completed", interrupt_response
                     return interrupt_response
 
-            interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout))
+            interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout * 10))
 
             assert isinstance(interrupt_response2, list), interrupt_response2
             assert len(interrupt_response2) > 2
@@ -408,6 +418,13 @@ class SerapiInstance(threading.Thread):
             match(feedback,
                   ["Feedback", [['id', ['State', int]], TAIL]],
                   lambda statenum, *rest: statenum,
+                  ["Answer", int, list],
+                  lambda state_num, contents:
+                  match(contents,
+                        ["CoqExn", _, _, list],
+                        lambda loc1, loc2, inner:
+                        progn(print("Overflowing!"),
+                              raise_(CoqExn(inner)))),
                   _, lambda *args: raise_(BadResponse(feedback)))
 
         cancelled_answer = self.get_message()

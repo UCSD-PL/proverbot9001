@@ -261,7 +261,8 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
         results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
-                                           in_data.goal, in_data.hypotheses),
+                                           in_data.goal, in_data.hypotheses,
+                                           self.training_args.max_length),
                               math.exp(certainty.item()))
                    for certainty, stem_idx in zip(certainties, idxs)]
         return results
