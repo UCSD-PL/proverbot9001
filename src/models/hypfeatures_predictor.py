@@ -246,6 +246,23 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                 + "."
         else:
             return tactic_stem + "."
+    def add_args(self, stem_predictions : List[Prediction],
+                 goal : str, hyps : List[str], max_length : int):
+        possibilities : List[Prediction] = []
+        for stem, stem_score in stem_predictions:
+            if serapi_instance.tacticTakesHypArgs(stem):
+                for hyp, hyp_score in get_closest_hyps(hyps, goal,
+                                                       len(stem_predictions),
+                                                       max_length):
+                    possibilities.append(
+                        Prediction(stem + " " +
+                                   serapi_instance.get_first_var_in_hyp(hyp) + ".",
+                                   hyp_score * stem_score))
+            else:
+                possibilities.append(Prediction(stem + ".", stem_score * 0.5))
+        return list(sorted(possibilities, key=lambda pred: pred.certainty,
+                           reverse=True)[:len(stem_predictions)])
+
     def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
         assert self._embedding
@@ -261,11 +278,11 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                     cast(Embedding, self._embedding).decode_token(idx)))
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
-                                           in_data.goal, in_data.hypotheses,
-                                           self.training_args.max_length),
-                              math.exp(certainty.item()))
-                   for certainty, stem_idx in zip(certainties, idxs)]
+        results = self.add_args([Prediction(self._embedding.decode_token(stem_idx.item()),
+                                            math.exp(certainty.item()))
+                                 for certainty, stem_idx in zip(certainties, idxs)],
+                                in_data.goal, in_data.hypotheses,
+                                self.training_args.max_length)
         return results
 
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
@@ -354,6 +371,17 @@ def get_closest_hyp(hyps : List[str], goal : str, max_length : int):
 def get_closest_hyp_type(tokenizer : Tokenizer, max_length : int, context : TacticContext):
     return tokenizer.toTokenList(serapi_instance.get_hyp_type(
         get_closest_hyp(context.hypotheses, context.goal, max_length)))
+def get_closest_hyps(hyps : List[str], goal : str, num_hyps : int, max_length : int)\
+                        -> List[Tuple[str, float]]:
+    if len(hyps) == 0:
+        return [Prediction(":", 0)] * num_hyps
+    else:
+        return list(sorted([(hyp, score_hyp_type(limitNumTokens(goal, max_length),
+                                                 limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
+                                                 max_length))
+                            for hyp in hyps],
+                           reverse=True,
+                           key=lambda hyp_and_score: hyp_and_score[0]))
 def mkHFSample(max_length : int,
                word_feature_functions : List[WordFeature],
                vec_feature_functions : List[VecFeature],
