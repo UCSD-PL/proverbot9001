@@ -112,10 +112,22 @@ def report_file(args : argparse.Namespace,
     num_proofs_failed = 0
     num_proofs_completed = 0
     commands_in = get_commands(filename, args.verbose or args.debug)
+    num_commands_total = len(commands_in)
+    def show_progress(tag:str=""):
+        if args.verbose and args.num_threads == 1:
+            print("\r{:.2f}% done ({} of {} commands processed) {}".format(
+                100 * (1 - (len(commands_in) / num_commands_total)),
+                num_commands_total - len(commands_in), num_commands_total,
+                tag),
+                  end="")
+            sys.stdout.flush()
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
     with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
         coq.debug = args.debug
+        if args.verbose and args.num_threads == 1:
+            print("0.00% done (0 of {} commands processed)".format(num_commands_total),
+                  end="")
         while len(commands_in) > 0:
             # Get vernacular until the next proof (or end of file)
             vernacs : List[str] = []
@@ -124,6 +136,7 @@ def report_file(args : argparse.Namespace,
                 coq.run_stmt(next_in_command)
                 if not coq.full_context:
                     vernacs.append(next_in_command)
+                show_progress()
             if len(vernacs) > 0:
                 blocks_out.append(VernacBlock(vernacs))
             if len(commands_in) == 0:
@@ -136,6 +149,7 @@ def report_file(args : argparse.Namespace,
                                             coq.get_goals())
 
             # Try to search
+            show_progress()
             search_status, tactic_solution = attempt_search(args, lemma_statement, coq)
 
             # Cancel until before the proof
@@ -150,6 +164,7 @@ def report_file(args : argparse.Namespace,
                                                coq.get_goals())
                 coq.run_stmt(next_in_command)
                 original_tactics.append(TacticInteraction(next_in_command, context_before))
+                show_progress()
 
             empty_context = TacticContext([], [], "")
             # Append the proof data
@@ -168,6 +183,8 @@ def report_file(args : argparse.Namespace,
                                              tactic_solution +
                                              [TacticInteraction("Qed.", empty_context)],
                                              original_tactics))
+        if args.verbose:
+            print("\r")
     write_html(args.output, filename, blocks_out)
     write_csv(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)

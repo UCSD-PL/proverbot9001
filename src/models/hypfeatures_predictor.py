@@ -143,7 +143,8 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             print("Getting closest hyps...", end="")
             sys.stdout.flush()
             tokenized_hyps = list(pool.imap(functools.partial(get_closest_hyp_type,
-                                                              tokenizer),
+                                                              tokenizer,
+                                                              arg_values.max_length),
                                             preprocessed_data))
             print("{:.2f}s".format(time.time() - start))
             start = time.time()
@@ -350,7 +351,7 @@ def get_closest_hyp(hyps : List[str], goal : str, max_length : int):
                                 limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
                                 max_length))
     return result
-def get_closest_hyp_type(tokenizer : Tokenizer, context : TacticContext, max_length : int):
+def get_closest_hyp_type(tokenizer : Tokenizer, max_length : int, context : TacticContext):
     return tokenizer.toTokenList(serapi_instance.get_hyp_type(
         get_closest_hyp(context.hypotheses, context.goal, max_length)))
 def mkHFSample(max_length : int,
