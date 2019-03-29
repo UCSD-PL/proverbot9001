@@ -11,12 +11,12 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
-    opam switch 4.03.0
-    # For Coq:
-    opam install menhir
-    # For SerAPI:
-    opam install ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
+    opam init -a --compiler=4.03.0
     eval `opam config env`
+    # For Coq:
+    opam install -y menhir
+    # For SerAPI:
+    opam install -y ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
     pip3 install --user -r requirements.txt
 fi
 
