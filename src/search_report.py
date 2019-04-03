@@ -167,6 +167,7 @@ def report_file(args : argparse.Namespace,
                                              [TacticInteraction("Qed.", empty_context)],
                                              original_tactics))
     write_html(args.output, filename, blocks_out)
+    write_csv(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def get_commands(filename : str, verbose : bool) -> List[str]:
@@ -339,10 +340,27 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
     write_summary_html("{}/report.html".format(args.output),
                        options, cur_commit, cur_date, individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
+    write_proof_csv(args.output, [s.filename for s in individual_stats])
     for filename in extra_files:
         shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
                     args.output + "/" + filename)
+def write_proof_csv(output_dir : str, filenames : List[str]):
+    with open('proofs.csv', 'w') as fout:
+        fout.write("lemma, status, prooflength\n")
+        for filename in filenames:
+            with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'r') \
+                 as fin:
+                fout.writelines(fin)
 
+def write_csv(output_dir : str, filename : str, doc_blocks : List[DocumentBlock]):
+    with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'w', newline='') \
+              as csvfile:
+        rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
+        for block in doc_blocks:
+            if isinstance(block, ProofBlock):
+                rowwriter.writerow([block.lemma_statement.strip(),
+                                    block.status,
+                                    len(block.original_tactics)])
 def write_html(output_dir : str, filename : str,
                doc_blocks : List[DocumentBlock]) -> None:
     doc, tag, text, line = Doc().ttl()

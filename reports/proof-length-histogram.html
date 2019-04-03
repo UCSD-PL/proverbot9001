@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <title>Proof length histogram</title>
+  <style>
+
+    .axis {
+	font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+    }
+    .bar-failed {
+        fill: pink;
+    }
+    .bar-success{
+        fill: lightgreen;
+    }
+    .bar-incomplete {
+        fill: peachpuff;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<script src="http://d3js.org/d3.v4.min.js"></script>
+
+<script>
+
+  var margin = {top: 20, right: 20, bottom: 70, left: 40},
+      width = 600 - margin.left - margin.right,
+      height = 300 - margin.top - margin.bottom;
+
+  var x = d3.scaleLog().range([0, width]);
+
+  var y = d3.scaleLinear().range([height, 0]);
+
+  var z = d3.scaleOrdinal()
+      .range(["cornflowerblue", "orangered", "green"]);
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+  // Prep the tooltip bits, initial display is hidden
+  // set the parameters for the histogram
+
+  d3.csv("proofs.csv", function(error, data) {
+      if (error) throw error;
+      data.forEach(function(d) {
+          d.prooflength = +d.prooflength
+      });
+      succ_data = data.filter(function(d) {
+          return d.status == "SearchStatus.SUCCESS";})
+      fail_data = data.filter(function(d) {
+          return d.status == "SearchStatus.FAILURE";})
+      inc_data = data.filter(function(d) {
+          return d.status == "SearchStatus.INCOMPLETE";})
+      x.domain([1, d3.max(data, function(d) { return d.prooflength; })]);
+      var histogram = d3.histogram()
+          .value(function(d) { return d.prooflength; })
+          .domain(x.domain())
+          .thresholds(x.ticks(5));
+
+      var bins = histogram(data)
+      var succ_bins = histogram(succ_data)
+      var fail_bins = histogram(fail_data)
+      var inc_bins = histogram(inc_data)
+      var bin_tuples = succ_bins.map(function(e, i) {
+          return [e, inc_bins[i], fail_bins[i]]
+      });
+
+      y.domain([0, d3.max(bins, function(d) { return d.length; })]);
+      // append the bar rectangles to the svg element
+      svg.selectAll(null)
+          .data(bin_tuples)
+          .enter().append("rect")
+          .attr("class", "bar-success")
+          .attr("x", 1)
+          .attr("transform", function(d) {
+              return "translate(" + x(d[0].x0) + "," +
+                  (y(d[0].length + d[1].length + d[2].length)) + ")"; })
+          .attr("width", function(d) { return x(d[0].x1) - x(d[0].x0) -1 ; })
+          .attr("height", function(d) {
+              return height - y(d[0].length + d[1].length + d[2].length);
+           })
+          .on("mouseover", function () { tooltip.style("display", null); })
+          .on("mouseout", function () { tooltip.style("display", "none"); })
+          .on("mousemove", function(d) {
+              var xPosition = d3.mouse(this)[0] + x(d[0].x0) - 15;
+              var yPosition = d3.mouse(this)[1] +
+                  y(d[0].length + d[1].length + d[2].length) - 60;
+              tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+              tooltip.select("text").text(d[0].length);
+          });
+      svg.selectAll(null)
+          .data(bin_tuples)
+          .enter().append("rect")
+          .attr("class", "bar-incomplete")
+          .attr("x", 1)
+          .attr("transform", function(d) {
+	      return "translate(" + x(d[1].x0) + ","
+                  + y(d[1].length + d[2].length) + ")"; })
+          .attr("width", function(d) { return x(d[1].x1) - x(d[1].x0) -1 ; })
+          .attr("height", function(d) {
+              return height - y(d[1].length + d[2].length);
+          })
+          .on("mouseover", function () { tooltip.style("display", null); })
+          .on("mouseout", function () { tooltip.style("display", "none"); })
+          .on("mousemove", function(d) {
+              var xPosition = d3.mouse(this)[0] + x(d[1].x0) - 15;
+              var yPosition = d3.mouse(this)[1] +
+                  y(d[1].length + d[2].length) - 60;
+              tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+              tooltip.select("text").text(d[1].length);
+          });
+      svg.selectAll(null)
+           .data(bin_tuples)
+           .enter().append("rect")
+           .attr("class", "bar-failed")
+           .attr("x", 1)
+           .attr("transform", function(d) {
+               return "translate(" + x(d[0].x0) + "," +
+                   (y(d[2].length)) + ")"; })
+           .attr("width", function(d) { return x(d[0].x1) - x(d[0].x0) -1 ; })
+           .attr("height", function(d) {
+               return height - y(d[2].length);
+           })
+          .on("mouseover", function () { tooltip.style("display", null); })
+          .on("mouseout", function () { tooltip.style("display", "none"); })
+          .on("mousemove", function(d) {
+              var xPosition = d3.mouse(this)[0] + x(d[1].x0) - 15;
+              var yPosition = d3.mouse(this)[1] +
+                  y(d[2].length) - 60;
+              tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+              tooltip.select("text").text(d[2].length);
+          });
+
+      // add the x Axis
+      svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x).tickFormat(function (d) {
+              if (d < 100){
+                  return d + '';
+              } else {
+                  return d.toExponential();
+              }
+          }))
+          .selectAll("text")
+          .attr("transform", "translate(0, 5) rotate(50)");
+
+      // add the y Axis
+      svg.append("g")
+          .call(d3.axisLeft(y));
+
+ });
+  var tooltip = svg.append("g")
+      .attr("class", "tooltip")
+      .style("display", "none")
+      .style("z-index", 10)
+
+  tooltip.append("rect")
+    .attr("width", 60)
+    .attr("height", 20)
+    .attr("fill", "white")
+    .style("opacity", 0.5)
+    .style("z-index", -1);
+
+  tooltip.append("text")
+    .attr("x", 30)
+    .attr("dy", "1.2em")
+    .style("text-anchor", "middle")
+    .attr("font-size", "12px")
+    .attr("font-weight", "bold")
+    .style("z-index", 10);
+
+</script>
+
+</body>
