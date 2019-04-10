@@ -23,6 +23,7 @@ from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
 from serapi_instance import get_stem
+import serapi_instance
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from yattag import Doc
@@ -232,11 +233,11 @@ def report_file(args : argparse.Namespace,
     for inter in interactions_with_predictions:
         if isinstance(inter, tuple) and not isinstance(inter, ScrapedTactic):
             assert len(inter) == 2, inter
-            (prev_tactics, hyps, goal, correct_tactic), \
-                predictions_and_certainties \
+            scraped, predictions_and_certainties \
                 = inter #cast(Tuple[ScrapedTactic, List[Prediction]], inter)
+            (prev_tactics, hyps, goal, correct_tactic) = scraped
             prediction_results = [PredictionResult(prediction,
-                                                   grade_prediction(correct_tactic,
+                                                   grade_prediction(scraped,
                                                                     prediction),
                                                    certainty)
                                   for prediction, certainty in
@@ -261,8 +262,12 @@ def report_file(args : argparse.Namespace,
 
 proper_subs = {"auto.": "eauto."}
 
-def grade_prediction(correct_tactic : str, prediction : str):
-    if correct_tactic.strip() == prediction.strip():
+def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
+    correct_tactic = correct_inter.tactic
+    correct_tactic_normalized = \
+        serapi_instance.normalizeInductionArgs(correct_inter).tactic
+    if correct_tactic.strip() == prediction.strip() or\
+       correct_tactic_normalized.strip() == prediction.strip():
         return "goodcommand"
     elif get_stem(correct_tactic) == get_stem(prediction):
         return "okaycommand"
