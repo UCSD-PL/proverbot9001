@@ -17,6 +17,7 @@ from pampy import match, _, TAIL
 
 from sexpdata import *
 from traceback import *
+import tokenizer
 
 # Some Exceptions to throw when various responses come back from coq
 @dataclass
@@ -780,3 +781,27 @@ def lemma_name_from_statement(stmt : str) -> str:
     lemma_name = lemma_match.group(1)
     assert ":" not in lemma_name, stmt
     return lemma_name
+
+def get_binder_var(goal : str, binder_idx : int) -> str:
+    paren_depth = 0
+    binders_passed = 0
+    skip = False
+    forall_match = re.match("forall\s+", goal.strip())
+    assert forall_match
+    rest_goal = goal[forall_match.end():]
+    for w in tokenizer.get_words(rest_goal):
+        if w == "(":
+            paren_depth += 1
+        elif w == ")":
+            paren_depth -= 1
+            if paren_depth == 1 or paren_depth == 0:
+                skip = False
+        elif (paren_depth == 1 or paren_depth == 0) and not skip:
+            if w == ":":
+                skip = True
+            else:
+                binders_passed += 1
+                if binders_passed == binder_idx:
+                    return w
+    assert False, "Couldn't find enough binders!"
+
