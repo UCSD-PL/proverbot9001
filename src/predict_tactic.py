@@ -25,6 +25,7 @@ from models import apply_predictor
 from models import apply_baselines
 from models import hypstem_predictor
 from models import hypfeatures_predictor
+from models import copyarg_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -44,6 +45,7 @@ loadable_predictors = {
     'apply' : apply_predictor.ApplyPredictor,
     "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
     "hypfeatures" : hypfeatures_predictor.HypFeaturesPredictor,
+    "copyarg" : copyarg_predictor.CopyArgPredictor,
 }
 
 static_predictors = {
@@ -71,6 +73,7 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "relevance" : apply_predictor.train_relevance,
     "hypstem" : hypstem_predictor.main,
     "hypfeatures" : hypfeatures_predictor.main,
+    "copyarg" : copyarg_predictor.main,
 }
 
 def loadPredictorByName(predictor_type : str) -> TacticPredictor:
