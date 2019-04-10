@@ -3,7 +3,7 @@
 import re
 import functools
 
-from typing import Dict, Callable, Union, List, cast, Tuple
+from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 
 from tokenizer import get_symbols
 import serapi_instance
@@ -70,16 +70,50 @@ def tactic_eliteral(tactic_to_match : str,
                    new_in_data : ContextData) -> bool:
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 
-def args_in_goal(in_data : ContextData, tactic : str,
+def numeric_args(in_data : ContextData, tactic : str,
                  next_in_data : ContextData) -> bool:
     goal = in_data["goal"]
     goal_words = get_symbols(cast(str, goal))
     stem, rest = serapi_instance.split_tactic(tactic)
-    args = get_symbols(rest)
+    args = get_subexprs(rest.strip("."))
+    for arg in args:
+        if not re.match("\d+", arg):
+            return False
+    return True
+
+def args_token_in_goal(in_data : ContextData, tactic : str,
+                 next_in_data : ContextData) -> bool:
+    goal = in_data["goal"]
+    goal_words = get_symbols(cast(str, goal))
+    stem, rest = serapi_instance.split_tactic(tactic)
+    args = get_subexprs(rest.strip("."))
+    if re.match("induction n0", tactic):
+        assert len(args) > 0
     for arg in args:
         if not arg in goal_words:
             return False
     return True
+
+def get_subexprs(text : str) -> List[str]:
+    def inner() -> Iterable[str]:
+        cur_expr = ""
+        paren_depth = 0
+        for c in text:
+            if c == "(":
+                paren_depth += 1
+            cur_expr += c
+            if c == ")":
+                paren_depth -= 1
+                if paren_depth == 0:
+                    yield cur_expr.strip()
+                    cur_expr = ""
+            if c == " " and paren_depth == 0:
+                if cur_expr != "":
+                    yield cur_expr.strip()
+                cur_expr = ""
+        if cur_expr != "":
+            yield cur_expr.strip()
+    return list(inner())
 
 def split_toplevel(specstr : str) -> List[str]:
     paren_depth = 0
@@ -157,5 +191,6 @@ context_filters : Dict[str, ContextFilter] = {
                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
     "hyp-args":filter_and(args_vars_in_context, no_compound_or_bullets),
-    "goal-args" : args_in_goal,
+    "goal-args" : args_token_in_goal,
+    "numeric-args" : numeric_args,
 }
