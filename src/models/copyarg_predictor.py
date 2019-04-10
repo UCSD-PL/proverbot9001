@@ -12,7 +12,8 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
 from util import *
 from format import ScrapedTactic
 import serapi_instance
-from models.components import (WordFeaturesEncoder, Embedding, add_nn_args)
+from models.components import (WordFeaturesEncoder, Embedding,
+                               DNNClassifier, add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
                                      NeuralPredictorState,
                                      TacticContext, Prediction,
@@ -74,11 +75,11 @@ class FindArgModel(nn.Module):
 class CopyArgModel(nn.Module):
     def __init__(self, find_arg_rnn : FindArgModel,
                  word_features_encoder : WordFeaturesEncoder,
-                 features_decoder : nn.Linear) -> None:
+                 features_classifier : nn.Linear) -> None:
         super().__init__()
         self.find_arg_rnn = maybe_cuda(find_arg_rnn)
         self.word_features_encoder = maybe_cuda(word_features_encoder)
-        self.features_decoder = maybe_cuda(features_decoder)
+        self.features_classifier = maybe_cuda(features_classifier)
 
 class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                           Tuple[Tokenizer, Embedding,
@@ -110,7 +111,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                           for in_data in in_datas])
         encoded_word_features = self._model.word_features_encoder(word_features_batch)
         stem_distribution = \
-            self._softmax(self._model.features_decoder(torch.cat((
+            self._softmax(self._model.features_classifier(torch.cat((
                 encoded_word_features, vec_features_batch), dim=1)))
         return stem_distribution
 
@@ -136,13 +137,12 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         encoded_word_features = model.word_features_encoder(
             maybe_cuda(Variable(word_features_batch)))
         catted_data = torch.cat((encoded_word_features, maybe_cuda(Variable(vec_features_batch))), dim=1)
-        stemDistributions = model.features_decoder(catted_data)
+        stemDistributions = model.features_classifier(catted_data)
         stem_var = maybe_cuda(Variable(stems_batch)).view(batch_size)
         argTokenIdxDistributions = model.find_arg_rnn(goals_batch)
         argToken_var = maybe_cuda(Variable(arg_idxs_batch)).view(batch_size)
         loss = 0.
-        if (stemDistributions.size()[1] > 1):
-            loss += self._criterion(stemDistributions, stem_var)
+        loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(argTokenIdxDistributions, argToken_var)
         return loss
 
@@ -333,8 +333,9 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                             WordFeaturesEncoder(word_feature_vocab_sizes,
                                                 arg_values.hidden_size, 1,
                                                 arg_values.hidden_size),
-                            nn.Linear(arg_values.hidden_size + feature_vec_size,
-                                      tactic_vocab_size))
+                            DNNClassifier(arg_values.hidden_size + feature_vec_size,
+                                          arg_values.hidden_size, tactic_vocab_size,
+                                          3))
 
 def mkCopySample(max_length : int,
                  word_feature_functions : List[WordFeature],
