@@ -17,6 +17,7 @@ from pampy import match, _, TAIL
 
 from sexpdata import *
 from traceback import *
+from format import ScrapedTactic
 import tokenizer
 
 # Some Exceptions to throw when various responses come back from coq
@@ -805,3 +806,13 @@ def get_binder_var(goal : str, binder_idx : int) -> str:
                     return w
     assert False, "Couldn't find enough binders!"
 
+def normalizeInductionArgs(datum : ScrapedTactic) -> ScrapedTactic:
+    numerical_induction_match = re.match("induction\s+(\d+)\.", datum.tactic.strip())
+    if numerical_induction_match:
+        binder_idx = int(numerical_induction_match.group(1))
+        binder_var = get_binder_var(datum.goal, binder_idx)
+        newtac = "induction " + binder_var + "."
+        return ScrapedTactic(datum.prev_tactics, datum.hypotheses,
+                             datum.goal, newtac)
+    else:
+        return datum
