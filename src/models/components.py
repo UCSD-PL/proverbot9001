@@ -173,16 +173,17 @@ class EncoderDNN(nn.Module):
         self.num_layers = num_layers
         self.batch_size = batch_size
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        self.layers = [maybe_cuda(nn.Linear(hidden_size, hidden_size))
-                       for _ in range(num_layers)]
+        for i in range(num_layers - 1):
+            self.add_module("_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
         self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
         layer_values = self.in_layer(input)
-        for i in range(self.num_layers):
+        for i in range(self.num_layers - 1):
             layer_values = F.relu(layer_values)
-            layer_values = self.layers[i](layer_values)
-        return self.out_layer(layer_values)
+            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+        return self.out_layer(F.relu(layer_values))
 
 class DecoderGRU(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
