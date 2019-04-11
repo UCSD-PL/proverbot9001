@@ -13,7 +13,7 @@ from util import *
 from format import ScrapedTactic
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
-                               DNNClassifier, add_nn_args)
+                               DNNClassifier, EncoderDNN, add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
                                      NeuralPredictorState,
                                      TacticContext, Prediction,
@@ -48,7 +48,8 @@ class FindArgModel(nn.Module):
         self.hidden_size = hidden_size
         self._word_embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
         self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._likelyhood_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+        self._likelyhood_layer = maybe_cuda(EncoderDNN(hidden_size, hidden_size, 1, 2))
+        # self._likelyhood_layer = maybe_cuda(nn.Linear(hidden_size, 1))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
     def forward(self, goal_batch : torch.LongTensor) -> torch.FloatTensor:
         goal_var = maybe_cuda(Variable(goal_batch))
