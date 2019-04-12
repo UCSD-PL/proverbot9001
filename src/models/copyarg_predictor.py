@@ -141,10 +141,12 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                  .expand(-1, stem_width, -1).contiguous()\
                                  .view(batch_size * stem_width,
                                        self.training_args.max_length)
-        conditional_distributions = self._model.find_arg_rnn(goals_batch, stems_batch)
+        conditional_distributions = \
+            self._model.find_arg_rnn(goals_batch, stems_batch)[:,1:]
         num_probs = conditional_distributions.size()[1]
-        all_prob_batches = (conditional_distributions.t() + probs_batch.view(-1))\
-            .t().contiguous().view(batch_size, stem_width * num_probs)
+        all_batch_probs = (conditional_distributions.t() + probs_batch.view(-1)).t()
+        all_prob_batches = all_batch_probs\
+            .contiguous().view(batch_size, stem_width * num_probs)
         return all_prob_batches, indices
 
     def _predictFromStemDistributionWithLoss(
@@ -159,9 +161,8 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         all_prob_batches, index_mapping = \
             self._predictCompositeDistributionFromStemDistribution(
                 beam_width, stem_distribution, in_datas)
-        correct_idxs = LongTensor([[arg_idx +
-                                    (stem_idx *
-                                     (self.training_args.max_length + 1))
+        correct_idxs = LongTensor([[max(0, arg_idx - 1) +
+                                    (stem_idx * self.training_args.max_length)
                                     for stem_idx, arg_idx
                                     in [get_stem_and_arg_idx(
                                         self.training_args.max_length,
@@ -178,14 +179,14 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         loss = self._criterion(all_prob_batches, correct_idxs)
 
         final_probs, final_idxs = all_prob_batches.topk(beam_width)
-        row_length = self.training_args.max_length + 1
+        row_length = self.training_args.max_length
         indices = final_idxs / row_length
         stem_idxs = [index_map.index_select(0, indices1)
                      for index_map, indices1
                      in zip(index_mapping, indices)]
         arg_idxs = final_idxs % row_length
         return [[Prediction(self._embedding.decode_token(stem_idx.item()) + " " +
-                            get_arg_from_token_idx(in_data.goal, arg_idx.item()) + ".",
+                            get_arg_from_token_idx(in_data.goal, arg_idx.item() + 1) + ".",
                             math.exp(final_prob))
                  for stem_idx, arg_idx, final_prob
                  in islice(zip(stem_list, arg_list, final_list),k)]
