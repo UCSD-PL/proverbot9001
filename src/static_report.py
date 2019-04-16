@@ -266,9 +266,13 @@ proper_subs = {"auto.": "eauto."}
 def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
     correct_tactic = correct_inter.tactic
     correct_tactic_normalized = \
-        serapi_instance.normalizeInductionArgs(correct_inter).tactic
+        serapi_instance.normalizeNumericArgs(correct_inter).tactic
+    prediction_normalized = \
+        serapi_instance.normalizeNumericArgs(ScrapedTactic(
+            correct_inter.prev_tactics, correct_inter.hypotheses, correct_inter.goal,
+            prediction)).tactic
     if correct_tactic.strip() == prediction.strip() or\
-       correct_tactic_normalized.strip() == prediction.strip():
+       correct_tactic_normalized.strip() == prediction_normalized.strip():
         return "goodcommand"
     elif get_stem(correct_tactic) == get_stem(prediction):
         return "okaycommand"

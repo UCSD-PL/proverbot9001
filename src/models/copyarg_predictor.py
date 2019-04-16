@@ -167,7 +167,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                     in [get_stem_and_arg_idx(
                                         self.training_args.max_length,
                                         self._embedding,
-                                        serapi_instance.normalizeInductionArgs(
+                                        serapi_instance.normalizeNumericArgs(
                                             ScrapedTactic(
                                                 in_data.prev_tactics,
                                                 in_data.hypotheses,
@@ -186,7 +186,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                      in zip(index_mapping, indices)]
         arg_idxs = final_idxs % row_length
         return [[Prediction(self._embedding.decode_token(stem_idx.item()) + " " +
-                            get_arg_from_token_idx(in_data.goal, arg_idx.item() + 1) + ".",
+                            get_arg_from_token_idx(in_data.goal, arg_idx.item()) + ".",
                             math.exp(final_prob))
                  for stem_idx, arg_idx, final_prob
                  in islice(zip(stem_list, arg_list, final_list),k)]
@@ -283,7 +283,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
     def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
         -> Iterable[ScrapedTactic]:
         data_iter = super()._preprocess_data(data, arg_values)
-        yield from map(serapi_instance.normalizeInductionArgs, data_iter)
+        yield from map(serapi_instance.normalizeNumericArgs, data_iter)
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[CopyArgDataset, Tuple[Tokenizer, Embedding,
@@ -426,8 +426,8 @@ def get_arg_idx(max_length : int, inter : ScrapedTactic) -> int:
 
 def get_arg_from_token_idx(goal : str, idx : int) -> str:
     goal_symbols = tokenizer.get_symbols(goal.strip("."))
-    if idx > 0 and idx <= len(goal_symbols):
-        return goal_symbols[idx - 1]
+    if idx < len(goal_symbols):
+        return goal_symbols[idx]
     else:
         return ""
 

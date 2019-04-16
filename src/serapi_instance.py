@@ -800,12 +800,13 @@ def lemma_name_from_statement(stmt : str) -> str:
     assert ":" not in lemma_name, stmt
     return lemma_name
 
-def get_binder_var(goal : str, binder_idx : int) -> str:
+def get_binder_var(goal : str, binder_idx : int) -> Optional[str]:
     paren_depth = 0
     binders_passed = 0
     skip = False
     forall_match = re.match("forall\s+", goal.strip())
-    assert forall_match
+    if not forall_match:
+        return None
     rest_goal = goal[forall_match.end():]
     for w in tokenizer.get_words(rest_goal):
         if w == "(":
@@ -821,15 +822,19 @@ def get_binder_var(goal : str, binder_idx : int) -> str:
                 binders_passed += 1
                 if binders_passed == binder_idx:
                     return w
-    assert False, "Couldn't find enough binders!"
+    return None
 
-def normalizeInductionArgs(datum : ScrapedTactic) -> ScrapedTactic:
-    numerical_induction_match = re.match("induction\s+(\d+)\.", datum.tactic.strip())
+def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
+    numerical_induction_match = re.match("(induction|destruct)\s+(\d+)\.", datum.tactic.strip())
     if numerical_induction_match:
-        binder_idx = int(numerical_induction_match.group(1))
+        stem = numerical_induction_match.group(1)
+        binder_idx = int(numerical_induction_match.group(2))
         binder_var = get_binder_var(datum.goal, binder_idx)
-        newtac = "induction " + binder_var + "."
-        return ScrapedTactic(datum.prev_tactics, datum.hypotheses,
-                             datum.goal, newtac)
+        if binder_var:
+            newtac = stem + " " + binder_var + "."
+            return ScrapedTactic(datum.prev_tactics, datum.hypotheses,
+                                 datum.goal, newtac)
+        else:
+            return datum
     else:
         return datum

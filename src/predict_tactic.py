@@ -26,6 +26,7 @@ from models import apply_baselines
 from models import hypstem_predictor
 from models import hypfeatures_predictor
 from models import copyarg_predictor
+from models import numeric_induction
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -53,6 +54,7 @@ static_predictors = {
     'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
     'apply_wordsim' : apply_baselines.ApplyWordSimlarPredictor,
+    'numeric_induction' : numeric_induction.NumericInductionPredictor,
 }
 
 trainable_modules : Dict[str, Callable[[List[str]], None]] = {
