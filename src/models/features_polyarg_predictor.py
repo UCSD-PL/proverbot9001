@@ -43,15 +43,16 @@ class HypIdArg(NamedTuple):
 class GoalTokenArg(NamedTuple):
     token_idx : int
 
-TacticArg = Union[HypIdArg, GoalTokenArg]
+TacticArg = Optional[Union[HypIdArg, GoalTokenArg]]
 
 class FeaturesPolyArgSample(NamedTuple):
-    tokenized_hyps : List[List[int]]
+    tokenized_hyp_types : List[List[int]]
     hyp_features : List[List[float]]
     tokenized_goal : List[int]
     word_features : List[int]
     vec_features : List[float]
     tactic_stem : int
+    arg_type : ArgType
     arg : TacticArg
 
 class FeaturesPolyArgDataset(ListDataset[FeaturesPolyArgSample]):
@@ -166,6 +167,8 @@ class FeaturesPolyargPredictor(
         self._criterion = maybe_cuda(nn.NLLLoss())
         self._lock = threading.Lock()
         self.training_args : Optional[argparse.Namespace] = None
+        self.training_loss : Optional[float] = None
+        self.num_epochs : Optional[int] = None
         self._word_feature_functions: Optional[List[WordFeature]] = None
         self._vec_feature_functions: Optional[List[VecFeature]] = None
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
@@ -206,7 +209,7 @@ class FeaturesPolyargPredictor(
             self.training_args.max_length)
                                        for hyp in inter.hypotheses])
         hypfeatures_batch = torch.FloatTensor([
-            [SequenceMatcher(None, inter.goal, serapi_instance.get_hyp_type(hyp)),
+            [SequenceMatcher(None, inter.goal, serapi_instance.get_hyp_type(hyp)).ratio(),
              len(hyp)]
             for hyp in inter.hypotheses])
         goal_arg_values = self._goal_args_model(stem_idxs, goals_batch)
@@ -234,3 +237,104 @@ class FeaturesPolyargPredictor(
                 serapi_instance.get_var_term_in_hyp(
                     inter.hypotheses[total_arg_idx - goal_arg_values.size()[1]]) + \
                     "."
+    def getOptions(self) -> List[Tuple[str, str]]:
+        assert self.training_args
+        assert self.training_loss
+        assert self.num_epochs
+        return list(vars(self.training_args).items()) + \
+            [("training loss", self.training_loss),
+             ("# epochs", self.num_epochs),
+             ("predictor", "features_polyarg")]
+    def _description(self) -> str:
+        return "A predictor combining the goal token args and hypothesis args models."
+    def add_args_to_parser(self, parser : argparse.ArgumentParser,
+                           default_values : Dict[str, Any] = {}) -> None:
+        super().add_args_to_parser(parser, {"learning-rate": 0.4,
+                                            **default_values})
+        add_nn_args(parser, default_values)
+        add_tokenizer_args(parser, default_values)
+        parser.add_argument("--max-length", dest="max_length", type=int,
+                            default=default_values.get("max-length", 30))
+        parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
+                            default=default_values.get("num-head-keywords", 100))
+        parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
+                            default=default_values.get("num-tactic-keywords", 50))
+    def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
+        -> Iterable[ScrapedTactic]:
+        data_iter = super()._preprocess_data(data, arg_values)
+        yield from map(serapi_instance.normalizeNumericArgs, data_iter)
+
+    def _encode_data(self, data : RawDataset, arg_values : Namespace) \
+        -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
+                                               List[WordFeature], List[VecFeature]]]:
+        preprocessed_data = list(self._preprocess_data(data, arg_values))
+        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        self._word_feature_functions  = [feature_constructor(stripped_data, arg_values) for # type: ignore
+                                       feature_constructor in
+                                        word_feature_constructors]
+        self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
+                                       feature_constructor in vec_feature_constructors]
+        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
+        with multiprocessing.Pool(arg_values.num_threads) as pool:
+            start = time.time()
+            print("Creating dataset...", end="")
+            result_data = FeaturesPolyArgDataset(list(pool.imap(
+                functools.partial(mkFPASample, embedding,
+                                  arg_values.max_length,
+                                  self._word_feature_functions,
+                                  self._vec_feature_functions),
+                zip(preprocessed_data, tokenized_goals))))
+            print("{:.2f}s".format(time.time() - start))
+        return result_data, (tokenizer, embedding, self._word_feature_functions,
+                             self._vec_feature_functions)
+
+def mkFPASample(max_length : int,
+                embedding : Embedding,
+                mytokenizer : Tokenizer,
+                word_feature_functions : List[WordFeature],
+                vec_feature_functions : List[VecFeature],
+                zipped : Tuple[ScrapedTactic, List[int]]) \
+                -> FeaturesPolyArgSample:
+    inter, tokenized_goal = zipped
+    prev_tactics, hypotheses, goal_str, tactic = inter
+    context = strip_scraped_output(inter)
+    word_features = [feature(context) for feature in word_feature_functions]
+    vec_features = [feature_val for feature in vec_feature_functions
+                    for feature_val in feature(context)]
+    tokenized_hyp_types = [mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp))
+                           for hyp in hypotheses]
+    hypfeatures = [[SequenceMatcher(None, goal_str,
+                                    serapi_instance.get_hyp_type(hyp)).ratio(),
+                    len(hyp)] for hyp in hypotheses]
+    tactic_stem, tactic_argstr = serapi_instance.split_tactic(tactic)
+    stem_idx = embedding.encode_token(tactic_stem)
+    argstr_tokens = tactic_argstr.strip().split()
+    assert len(argstr_tokens) < 2, \
+        "Tactic {} doesn't fit our argument model! Too many tokens" .format(tactic)
+    arg : TacticArg
+    if len(argstr_tokens) == 0:
+        arg_type = ArgType.NO_ARG
+        arg = None
+    else:
+        goal_symbols = tokenizer.get_symbols(goal_str)
+        arg_token = argstr_tokens[0]
+        if arg_token in goal_symbols:
+            arg_type = ArgType.GOAL_TOKEN
+            arg = GoalTokenArg(goal_symbols.index(arg_token))
+        else:
+            hyp_vars = [serapi_instance.get_var_term_in_hyp(hyp)
+                        for hyp in hypotheses]
+            assert arg_token in hyp_vars, "Tactic {} doesn't fit our argument model! "\
+                "Token {} is not a hyp far or goal token.".format(tactic, arg_token)
+            arg_type = ArgType.HYP_ID
+            arg = HypIdArg(hyp_vars.index(arg_token))
+    return FeaturesPolyArgSample(
+        tokenized_hyp_types,
+        hypfeatures,
+        tokenized_goal,
+        word_features,
+        vec_features,
+        stem_idx,
+        arg_type,
+        arg)
