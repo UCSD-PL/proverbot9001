@@ -383,7 +383,8 @@ class Worker(threading.Thread):
                                     command,
                                     {"goal": format_goal(actual_result_goal),
                                      "hyps":
-                                     format_hypothesis(actual_result_hypothesis)}):
+                                     format_hypothesis(actual_result_hypothesis)},
+                                    net.training_args):
                         fresult.add_command_result(
                             [pred for pred, ctxt, ex in prediction_runs],
                             [grade for pred, grade, certainty in prediction_results],

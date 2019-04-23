@@ -120,7 +120,9 @@ def main(arg_list : List[str]) -> None:
     with multiprocessing.pool.ThreadPool(args.threads) as pool:
         file_results = \
             list((stats for stats in
-                  pool.imap_unordered(functools.partial(report_file, args, context_filter),
+                  pool.imap_unordered(functools.partial(report_file, args,
+                                                        predictor.training_args,
+                                                        context_filter),
                                       args.filenames)
                   if stats))
 
@@ -132,6 +134,7 @@ T1 = TypeVar('T1')
 T2 = TypeVar('T2')
 
 def report_file(args : argparse.Namespace,
+                training_args : argparse.Namespace,
                 context_filter_str : str,
                 filename : str) -> Optional['ResultStats']:
 
@@ -182,13 +185,15 @@ def report_file(args : argparse.Namespace,
                                                      "hyps":point.hypotheses},
                                                     point.tactic,
                                                     {"goal":format_goal(nextpoint.goal),
-                                                     "hyps":nextpoint.hypotheses}))
+                                                     "hyps":nextpoint.hypotheses},
+                                                    training_args))
                 else:
                     yield(point, not context_filter({"goal":format_goal(point.goal),
                                                      "hyps":point.hypotheses},
                                                     point.tactic,
                                                     {"goal":"",
-                                                     "hyps":""}))
+                                                     "hyps":""},
+                                                    training_args))
             else:
                 yield (point, True)
     try:

@@ -2,6 +2,7 @@
 
 import re
 import functools
+import argparse
 
 from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 
@@ -9,50 +10,59 @@ from tokenizer import get_symbols
 import serapi_instance
 
 ContextData = Dict[str, Union[str, List[str]]]
-ContextFilter = Callable[[ContextData, str, ContextData], bool]
+ContextFilter = Callable[[ContextData, str, ContextData, argparse.Namespace], bool]
 
 def filter_and(*args : ContextFilter) -> ContextFilter:
     def filter_and2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
-        return lambda in_data, tactic, next_in_data: (f1(in_data, tactic, next_in_data) and
-                                                      f2(in_data, tactic, next_in_data))
+        return lambda in_data, tactic, next_in_data, args: \
+            (f1(in_data, tactic, next_in_data, args) and
+             f2(in_data, tactic, next_in_data, args))
     if len(args) == 1:
         return args[0]
     else:
         return filter_and2(args[0], filter_and(*args[1:]))
 def filter_or(*args : ContextFilter) -> ContextFilter:
     def filter_or2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
-        return lambda in_data, tactic, next_in_data: (f1(in_data, tactic, next_in_data) or
-                                                      f2(in_data, tactic, next_in_data))
+        return lambda in_data, tactic, next_in_data, args:\
+            (f1(in_data, tactic, next_in_data, args) or
+             f2(in_data, tactic, next_in_data, args))
     if len(args) == 1:
         return args[0]
     else:
         return filter_or2(args[0], filter_or(*args[1:]))
 
 def no_compound_or_bullets(in_data : ContextData, tactic : str,
-                           next_in_data : ContextData) -> bool:
+                           next_in_data : ContextData,
+                           arg_values : argparse.Namespace) -> bool:
     return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
             not re.match(".*;.*", tactic, flags=re.DOTALL))
 def not_proof_keyword(in_data : ContextData, tactic : str,
-                      next_in_data : ContextData) -> bool:
+                      next_in_data : ContextData,
+                      arg_values : argparse.Namespace) -> bool:
     return not re.match("Proof", tactic)
 def not_background_subgoal(in_data : ContextData, tactic : str,
-                           next_in_data : ContextData) -> bool:
+                           next_in_data : ContextData,
+                           arg_values : argparse.Namespace) -> bool:
     return not re.match("\d*:.*", tactic)
 
 def goal_changed(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData) -> bool:
+                 next_in_data : ContextData,
+                 arg_values : argparse.Namespace) -> bool:
     return in_data["goal"] != next_in_data["goal"]
 
 def hyps_changed(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData) -> bool:
+                 next_in_data : ContextData,
+                 arg_values : argparse.Namespace) -> bool:
     return in_data["hyps"] != next_in_data["hyps"]
 
 def no_args(in_data : ContextData, tactic : str,
-            next_in_data : ContextData) -> bool:
+            next_in_data : ContextData,
+            arg_values : argparse.Namespace) -> bool:
     return re.match("\s*\S*\.", tactic) != None
 
 def args_vars_in_context(in_data : ContextData, tactic : str,
-                         next_in_data : ContextData) -> bool:
+                         next_in_data : ContextData,
+                         arg_values : argparse.Namespace) -> bool:
     stem, args_string  = serapi_instance.split_tactic(tactic)
     args = args_string[:-1].split()
     if not serapi_instance.tacticTakesHypArgs(stem) and len(args) > 0:
@@ -65,15 +75,18 @@ def args_vars_in_context(in_data : ContextData, tactic : str,
 
 def tactic_literal(tactic_to_match : str,
                    in_data: ContextData, tactic : str,
-                   new_in_data : ContextData) -> bool:
+                   new_in_data : ContextData,
+                   arg_values : argparse.Namespace) -> bool:
     return re.match("\s*{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 def tactic_eliteral(tactic_to_match : str,
-                   in_data: ContextData, tactic : str,
-                   new_in_data : ContextData) -> bool:
+                    in_data: ContextData, tactic : str,
+                    new_in_data : ContextData,
+                    arg_values : argparse.Namespace) -> bool:
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 
 def numeric_args(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData) -> bool:
+                 next_in_data : ContextData,
+                 arg_values : argparse.Namespace) -> bool:
     goal = in_data["goal"]
     goal_words = get_symbols(cast(str, goal))
     stem, rest = serapi_instance.split_tactic(tactic)
@@ -84,9 +97,10 @@ def numeric_args(in_data : ContextData, tactic : str,
     return True
 
 def args_token_in_goal(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData) -> bool:
+                       next_in_data : ContextData,
+                       arg_values : argparse.Namespace) -> bool:
     goal = in_data["goal"]
-    goal_words = get_symbols(cast(str, goal))
+    goal_words = get_symbols(cast(str, goal)[:arg_values.max_length])
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     if re.match("induction n0", tactic):
@@ -173,7 +187,8 @@ def get_context_filter(specstr : str) -> ContextFilter:
             assert all([operator == "+" for operator in pieces[1::2]])
             return filter_or(*[get_context_filter(substr) for substr in pieces[::2]])
 
-special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData], bool]]] \
+special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData,
+                                             argparse.Namespace], bool]]] \
     = [
         ("tactic:", tactic_literal),
         ("etactic:", tactic_eliteral),

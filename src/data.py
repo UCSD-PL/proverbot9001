@@ -176,6 +176,7 @@ def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
         result = itertools.chain.from_iterable(data_chunks)
         yield from result
 def get_text_data(data_path : str, context_filter_name : str,
+                  arg_values : Namespace,
                   max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
     def _print(*args, **kwargs):
         if verbose:
@@ -185,19 +186,21 @@ def get_text_data(data_path : str, context_filter_name : str,
     _print("Reading dataset...", end="")
     sys.stdout.flush()
     raw_data = read_text_data(data_path)
-    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples)))
+    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name), arg_values), max_tuples)))
     print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
-def filter_data(data : RawDataset, pair_filter : ContextFilter) -> Iterable[ScrapedTactic]:
+def filter_data(data : RawDataset, pair_filter : ContextFilter,
+                arg_values : Namespace) -> Iterable[ScrapedTactic]:
     return (ScrapedTactic(prev_tactics, hyps, goal, tactic)
             for ((prev_tactics, hyps, goal, tactic),
                  (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
                                       [(None, None, None, None)]))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
-                           {"goal": next_goal, "hyps" : next_hyps}))
+                           {"goal": next_goal, "hyps" : next_hyps},
+                           arg_values))
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
