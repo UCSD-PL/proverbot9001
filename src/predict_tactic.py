@@ -27,6 +27,7 @@ from models import hypstem_predictor
 from models import hypfeatures_predictor
 from models import copyarg_predictor
 from models import numeric_induction
+from models import features_polyarg_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -47,6 +48,7 @@ loadable_predictors = {
     "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
     "hypfeatures" : hypfeatures_predictor.HypFeaturesPredictor,
     "copyarg" : copyarg_predictor.CopyArgPredictor,
+    "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
 }
 
 static_predictors = {
@@ -76,6 +78,7 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "hypstem" : hypstem_predictor.main,
     "hypfeatures" : hypfeatures_predictor.main,
     "copyarg" : copyarg_predictor.main,
+    "polyarg" : features_polyarg_predictor.main,
 }
 
 def loadPredictorByName(predictor_type : str) -> TacticPredictor:
