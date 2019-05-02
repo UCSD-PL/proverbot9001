@@ -204,9 +204,12 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                 beam_width, stem_distribution, in_datas)
 
         final_probs, final_idxs = all_prob_batches.topk(beam_width)
-        num_probs = conditional_distributions.size()[1]
-        stem_idxs = final_idxs / num_probs
-        arg_idxs = final_idxs % num_probs
+        row_length = self.training_args.max_length
+        indices = final_idxs / row_length
+        stem_idxs = [index_map.index_select(0, indices1)
+                     for index_map, indices1
+                     in zip(index_mapping, indices)]
+        arg_idxs = final_idxs % row_length
         return [[Prediction(self.embedding.decode_token(stem_idx.item()) + " " +
                             get_arg_from_token_idx(in_data.goal, arg_idx.item()),
                             math.exp(final_prob))
