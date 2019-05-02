@@ -793,6 +793,8 @@ def tacticTakesHypArgs(stem : str) -> bool:
         or stem == "generalize"
         or stem == "exists"
         or stem == "case"
+        or stem == "inv"
+        or stem == "subst"
     )
 
 def tacticTakesBinderArgs(stem : str) -> bool:
