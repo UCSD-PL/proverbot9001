@@ -498,7 +498,8 @@ def tfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance
                     if sub_search_result:
                         return sub_search_result
                 coq.cancel_last()
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+            except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
+                    serapi_instance.ParseError):
                 continue
         return None
     return search([])
@@ -614,7 +615,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     hasUnexploredNode = True
                 coq.cancel_last()
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
-                    serapi_instance.OverflowError):
+                    serapi_instance.OverflowError, serapi_instance.ParseError,
+                    serapi_instance.UnrecognizedError):
                 setNodeColor(predictionNode, "red")
                 continue
         return None

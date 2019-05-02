@@ -51,6 +51,9 @@ class TimeoutError(Exception):
 @dataclass
 class OverflowError(Exception):
     msg : str
+@dataclass
+class UnrecognizedError(Exception):
+    msg : str
 
 def raise_(ex):
     raise ex
@@ -198,7 +201,8 @@ class SerapiInstance(threading.Thread):
                     ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
                     ['Stack overflow'],
-                    lambda *args: raise_(OverflowError("Overflowed"))))
+                    lambda *args: raise_(OverflowError("Overflowed")),
+                    _, lambda *args: raise_(UnrecognizedError(args))))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
