@@ -651,14 +651,14 @@ def mkFPASample(embedding : Embedding,
                 "Goal: {}".format(tactic, arg_token, hypotheses, goal_str)
             arg = GoalTokenArg(goal_symbols.index(arg_token))
         else:
-            hyp_vars = [serapi_instance.get_var_term_in_hyp(hyp)
-                        for hyp in hypotheses]
+            indexed_hyp_vars = serapi_instance.get_indexed_vars_in_hyps(hypotheses)
+            hyp_vars = [hyp_var for hyp_var, idx in indexed_hyp_vars]
             assert arg_token in hyp_vars, "Tactic {} doesn't fit our argument model! "\
                 "Token {} is not a hyp var or goal token.\n"\
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, hypotheses, goal_str)
             arg_type = ArgType.HYP_ID
-            arg = HypIdArg(hyp_vars.index(arg_token))
+            arg = HypIdArg(dict(indexed_hyp_vars)[arg_token])
     return FeaturesPolyArgSample(
         tokenized_hyp_types,
         hypfeatures,
