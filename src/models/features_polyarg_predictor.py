@@ -645,7 +645,10 @@ def mkFPASample(embedding : Embedding,
         if arg_token in goal_symbols:
             arg_type = ArgType.GOAL_TOKEN
             arg_idx = goal_symbols.index(arg_token)
-            assert arg_idx < max_length
+            assert arg_idx < max_length, "Tactic {} doesn't fit our argument model! "\
+                "Token {} is not a hyp var or goal token.\n"\
+                "Hyps: {}\n"\
+                "Goal: {}".format(tactic, arg_token, hypotheses, goal_str)
             arg = GoalTokenArg(goal_symbols.index(arg_token))
         else:
             hyp_vars = [serapi_instance.get_var_term_in_hyp(hyp)
