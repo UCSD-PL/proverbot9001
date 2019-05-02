@@ -640,7 +640,7 @@ def mkFPASample(embedding : Embedding,
         arg_type = ArgType.NO_ARG
         arg = None
     else:
-        goal_symbols = tokenizer.get_symbols(goal_str)
+        goal_symbols = tokenizer.get_symbols(goal_str)[:max_length]
         arg_token = argstr_tokens[0]
         if arg_token in goal_symbols:
             arg_type = ArgType.GOAL_TOKEN
