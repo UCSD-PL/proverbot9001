@@ -83,6 +83,13 @@ def tactic_eliteral(tactic_to_match : str,
                     new_in_data : ContextData,
                     arg_values : argparse.Namespace) -> bool:
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
+def max_args(num_str : str,
+             in_data: ContextData, tactic : str,
+             new_in_data : ContextData,
+             arg_values : argparse.Namespace) -> bool:
+    stem, args_string  = serapi_instance.split_tactic(tactic)
+    args = args_string.strip()[:-1].split()
+    return len(args) <= int(num_str)
 
 def numeric_args(in_data : ContextData, tactic : str,
                  next_in_data : ContextData,
@@ -193,7 +200,8 @@ special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData,
         ("tactic:", tactic_literal),
         ("etactic:", tactic_eliteral),
         ("~tactic:", lambda *args: not tactic_literal(*args)),
-        ("~etactic:", lambda *args: not tactic_eliteral(*args))
+        ("~etactic:", lambda *args: not tactic_eliteral(*args)),
+        ("maxargs:", max_args),
     ]
 
 context_filters : Dict[str, ContextFilter] = {
