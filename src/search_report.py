@@ -63,7 +63,7 @@ def main(arg_list : List[str]) -> None:
               .format(stats.filename, files_done, len(args.filenames)))
         return stats
 
-    with multiprocessing.pool.ThreadPool(args.threads) as pool:
+    with multiprocessing.pool.ThreadPool(args.num_threads) as pool:
         file_results = [print_done(stats) for stats in
                         pool.imap_unordered(
                             functools.partial(report_file, args, context_filter),
@@ -103,6 +103,11 @@ class ProofBlock(NamedTuple):
     predicted_tactics : List[TacticInteraction]
     original_tactics : List[TacticInteraction]
 
+from dataclasses import dataclass
+@dataclass
+class CoqAnomaly(Exception):
+    msg : str
+
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
 def report_file(args : argparse.Namespace,
@@ -112,6 +117,7 @@ def report_file(args : argparse.Namespace,
     num_proofs_failed = 0
     num_proofs_completed = 0
     commands_in = get_commands(filename, args.verbose or args.debug)
+    commands_run = []
     num_commands_total = len(commands_in)
     def show_progress(tag:str=""):
         if args.verbose and args.num_threads == 1:
@@ -121,70 +127,99 @@ def report_file(args : argparse.Namespace,
                 tag),
                   end="")
             sys.stdout.flush()
+    # Run vernacular until the next proof (or end of file)
+    def run_to_next_proof(coq : serapi_instance.SerapiInstance) -> str:
+        nonlocal commands_run
+        nonlocal commands_in
+        nonlocal blocks_out
+        vernacs : List[str] = []
+        assert not coq.full_context
+        while not coq.full_context and len(commands_in) > 0:
+            next_in_command = commands_in.pop(0)
+            coq.run_stmt(next_in_command)
+            if not coq.full_context:
+                vernacs.append(next_in_command)
+            show_progress()
+        if len(vernacs) > 0:
+            blocks_out.append(VernacBlock(vernacs))
+            commands_run += vernacs
+        return next_in_command
+
+    def run_to_next_vernac(coq : serapi_instance.SerapiInstance, lemma_statement : str):
+        nonlocal commands_run
+        nonlocal commands_in
+        nonlocal num_proofs_failed
+        nonlocal num_proofs_completed
+        nonlocal blocks_out
+        coq.run_stmt(lemma_statement)
+        commands_run.append(lemma_statement)
+        original_tactics : List[TacticInteraction] = []
+        while coq.full_context != None:
+            next_in_command = commands_in.pop(0)
+            context_before = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                                           coq.get_goals())
+            coq.run_stmt(next_in_command)
+            commands_run.append(next_in_command)
+            original_tactics.append(TacticInteraction(next_in_command, context_before))
+            show_progress()
+        empty_context = TacticContext([], [], "")
+        # Append the proof data
+        if not tactic_solution:
+            if search_status == SearchStatus.FAILURE:
+                num_proofs_failed += 1
+            blocks_out.append(ProofBlock(lemma_statement, search_status,
+                                         [TacticInteraction("Proof.", initial_context),
+                                          TacticInteraction("Admitted.",
+                                                            initial_context)],
+                                         original_tactics))
+        else:
+            num_proofs_completed += 1
+            blocks_out.append(ProofBlock(lemma_statement, search_status,
+                                         [TacticInteraction("Proof", initial_context)] +
+                                         tactic_solution +
+                                         [TacticInteraction("Qed.", empty_context)],
+                                         original_tactics))
+
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
-    with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-        coq.debug = args.debug
-        if args.verbose and args.num_threads == 1:
-            print("0.00% done (0 of {} commands processed)".format(num_commands_total),
-                  end="")
-        while len(commands_in) > 0:
-            # Get vernacular until the next proof (or end of file)
-            vernacs : List[str] = []
-            while not coq.full_context and len(commands_in) > 0:
-                next_in_command = commands_in.pop(0)
-                coq.run_stmt(next_in_command)
-                if not coq.full_context:
-                    vernacs.append(next_in_command)
-                show_progress()
-            if len(vernacs) > 0:
-                blocks_out.append(VernacBlock(vernacs))
-            if len(commands_in) == 0:
-                break
-
-            # Get beginning of next proof
-            num_proofs += 1
-            lemma_statement = next_in_command
-            initial_context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
-                                            coq.get_goals())
-
-            # Try to search
-            show_progress()
-            search_status, tactic_solution = attempt_search(args, lemma_statement, coq)
-
-            # Cancel until before the proof
-            while coq.full_context != None:
-                coq.cancel_last()
-            # Run the original proof
-            coq.run_stmt(lemma_statement)
-            original_tactics : List[TacticInteraction] = []
-            while coq.full_context != None:
-                next_in_command = commands_in.pop(0)
-                context_before = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
-                                               coq.get_goals())
-                coq.run_stmt(next_in_command)
-                original_tactics.append(TacticInteraction(next_in_command, context_before))
-                show_progress()
-
-            empty_context = TacticContext([], [], "")
-            # Append the proof data
-            if not tactic_solution:
-                if search_status == SearchStatus.FAILURE:
-                    num_proofs_failed += 1
-                blocks_out.append(ProofBlock(lemma_statement, search_status,
-                                             [TacticInteraction("Proof.", initial_context),
-                                              TacticInteraction("Admitted.",
-                                                                initial_context)],
-                                             original_tactics))
-            else:
-                num_proofs_completed += 1
-                blocks_out.append(ProofBlock(lemma_statement, search_status,
-                                             [TacticInteraction("Proof", initial_context)] +
-                                             tactic_solution +
-                                             [TacticInteraction("Qed.", empty_context)],
-                                             original_tactics))
-        if args.verbose:
-            print("\r")
+    if args.verbose and args.num_threads == 1:
+        print("0.00% done (0 of {} commands processed)".format(num_commands_total),
+              end="")
+    while len(commands_in) > 0:
+        try:
+            # print("Starting a coq instance...")
+            with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+                for command in commands_run:
+                    coq.run_stmt(command)
+                if len(commands_run) > 0 and args.verbose and args.num_threads == 1:
+                    print("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
+                coq.debug = args.debug
+                while len(commands_in) > 0:
+                    lemma_statement = run_to_next_proof(coq)
+                    if len(commands_in) == 0:
+                        break
+                    # Get beginning of next proof
+                    num_proofs += 1
+                    initial_context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                                                    coq.get_goals())
+                    # Try to search
+                    show_progress()
+                    search_status, tactic_solution = \
+                        attempt_search(args, lemma_statement, coq)
+                    # Cancel until before the proof
+                    try:
+                        while coq.full_context != None:
+                            coq.cancel_last()
+                    except serapi_instance.CoqExn:
+                        commands_in.insert(0, lemma_statement)
+                        raise CoqAnomaly("While cancelling")
+                    # Run the original proof
+                    run_to_next_vernac(coq, lemma_statement)
+                if args.verbose:
+                    print("\r")
+        except CoqAnomaly:
+            if args.verbose and args.num_threads == 1:
+                print("Hit a coq anomaly! Restarting coq instance.")
     write_html(args.output, filename, blocks_out)
     write_csv(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
@@ -207,7 +242,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser = argparse.ArgumentParser(
         description=
         "Produce an html report from attempting to complete proofs using Proverbot9001.")
-    parser.add_argument("-j", "--threads", default=16, type=int)
+    parser.add_argument("-j", "--threads", dest="num_threads", default=16, type=int)
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--output", "-o", help="output data folder name",
                         default="search-report")
