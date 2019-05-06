@@ -231,6 +231,7 @@ class FeaturesPolyargPredictor(
                 "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
                                                                     stem_width)
 
+            num_probs = 1 + len(context.hypotheses) + self.training_args.max_length
             if len(context.hypotheses) > 0:
                 encoded_goals = self._model.goal_encoder(goals_batch)\
                                            .view(1, 1, self.training_args.hidden_size)
@@ -256,20 +257,15 @@ class FeaturesPolyargPredictor(
                                                   hypfeatures_batch)
                 assert hyp_arg_values.size() == \
                     torch.Size([1, stem_width, len(context.hypotheses)])
-                conditional_distributions = self._softmax2(torch.cat((goal_arg_values,
-                                                                      hyp_arg_values),
-                                                                     dim=2))
-                assert conditional_distributions.size() == \
-                    torch.Size([1, stem_width, 1 + self.training_args.max_length +
-                                len(context.hypotheses)])
+                total_values = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
             else:
-                conditional_distributions = self._softmax2(goal_arg_values
-                .view(1, stem_width, 1 + self.training_args.max_length))
-            num_probs = conditional_distributions.size()[2]
-            all_batch_probs = (conditional_distributions +
-                               stem_certainties.view(1, stem_width, 1)
-                               .expand(-1, stem_width, num_probs))
-            all_prob_batches = all_batch_probs.contiguous().view(stem_width * num_probs)
+                total_values = goal_arg_values
+            all_prob_batches = self._softmax((total_values +
+                                              stem_certainties.view(1, stem_width, 1)
+                                              .expand(-1, -1, num_probs))
+                                             .contiguous()
+                                             .view(1, stem_width * num_probs))\
+                                   .view(stem_width * num_probs)
 
             final_probs, final_idxs = all_prob_batches.topk(BEAM_WIDTH)
             assert not torch.isnan(final_probs).any()
@@ -449,6 +445,7 @@ class FeaturesPolyargPredictor(
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
             print("Creating dataset...", end="")
+            sys.stdout.flush()
             result_data = FeaturesPolyArgDataset(list(pool.imap(
                 functools.partial(mkFPASample, embedding,
                                   tokenizer,
@@ -556,6 +553,7 @@ class FeaturesPolyargPredictor(
                         2, arg_values.hidden_size))
     def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
+        BEAM_WIDTH = 5
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
             tokenized_goals_batch, \
             word_features_batch, vec_features_batch, \
@@ -566,12 +564,33 @@ class FeaturesPolyargPredictor(
                            torch.LongTensor, torch.LongTensor],
                      data_batch)
         batch_size = tokenized_goals_batch.size()[0]
+        goal_size = tokenized_goals_batch.size()[1]
         stemDistributions = model.stem_classifier(word_features_batch, vec_features_batch)
+        num_stem_poss = stemDistributions.size()[1]
+        stem_width = min(BEAM_WIDTH, num_stem_poss)
         stem_var = maybe_cuda(Variable(stem_idxs_batch))
+        predictedProbs, predictedStemIdxs = stemDistributions.topk(stem_width)
+        # print(stem_idxs_batch.device)
+        # print(predictedStemIdxs.device)
+        mergedStemIdxs = []
+        for stem_idx, predictedStemIdxList in zip(stem_idxs_batch, predictedStemIdxs):
+            if stem_idx.item() in predictedStemIdxList:
+                mergedStemIdxs.append(predictedStemIdxList)
+            else:
+                mergedStemIdxs.append(
+                    torch.cat((stem_idx.view(1).cuda(),
+                               predictedStemIdxList[:stem_width-1])))
+        mergedStemIdxs = torch.stack(mergedStemIdxs)
+        correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
+                                                  idxList, stem_idx
+                                                  in zip(mergedStemIdxs, stem_var)])
         tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
         hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
-        goal_arg_values = model.goal_args_model(stem_idxs_batch,
-                                                tokenized_goals_batch)
+        goal_arg_values = model.goal_args_model(
+            mergedStemIdxs.view(batch_size * stem_width),
+            tokenized_goals_batch.view(batch_size, 1, goal_size).expand(-1, stem_width, -1)
+            .contiguous().view(batch_size * stem_width, goal_size))\
+            .view(batch_size, stem_width, goal_size + 1)
         encoded_goals = model.goal_encoder(tokenized_goals_batch)
 
         hyp_lists_length = tokenized_hyp_types_batch.size()[1]
@@ -580,31 +599,37 @@ class FeaturesPolyargPredictor(
         encoded_goal_size = encoded_goals.size()[1]
 
         encoded_goals_expanded = \
-            encoded_goals.view(batch_size, 1, encoded_goal_size)\
-            .expand(-1, hyp_lists_length, -1).contiguous()\
-            .view(batch_size * hyp_lists_length, encoded_goal_size)
+            encoded_goals.view(batch_size, 1, 1, encoded_goal_size)\
+            .expand(-1, stem_width, hyp_lists_length, -1).contiguous()\
+            .view(batch_size * stem_width * hyp_lists_length, encoded_goal_size)
         stems_expanded = \
-            stem_var.view(batch_size, 1)\
-            .expand(-1, hyp_lists_length).contiguous()\
-            .view(batch_size * hyp_lists_length)
+            mergedStemIdxs.view(batch_size, stem_width, 1)\
+            .expand(-1, -1, hyp_lists_length).contiguous()\
+            .view(batch_size * stem_width * hyp_lists_length)
         hyp_arg_values_concatted = \
             model.hyp_model(stems_expanded,
                             encoded_goals_expanded,
                             tokenized_hyps_var
-                            .view(batch_size * hyp_lists_length, hyp_length),
+                            .view(batch_size, 1, hyp_lists_length, hyp_length)
+                            .expand(-1, stem_width, -1, -1).contiguous()
+                            .view(batch_size * stem_width * hyp_lists_length,
+                                  hyp_length),
                             hyp_features_var
-                            .view(batch_size * hyp_lists_length, hyp_features_size))
-        hyp_arg_values = pad_sequence([concatted[:num_hyps]
-                                       for concatted, num_hyps in
-                                       zip(hyp_arg_values_concatted
-                                           .view(batch_size, hyp_lists_length),
-                                           num_hyps_batch)],
-                                      padding_value=float('-Inf'),
-                                      batch_first=True)
+                            .view(batch_size, 1, hyp_lists_length, hyp_features_size)
+                            .expand(-1, stem_width, -1, -1).contiguous()
+                            .view(batch_size * stem_width * hyp_lists_length,
+                                  hyp_features_size))
+        assert hyp_arg_values_concatted.size() == torch.Size([batch_size * stem_width * hyp_lists_length, 1]), hyp_arg_values_concatted.size()
+        hyp_arg_values = hyp_arg_values_concatted.view(batch_size, stem_width,
+                                                       hyp_lists_length)
         total_arg_values = torch.cat((goal_arg_values, hyp_arg_values),
-                                     dim=1)
-        total_arg_distribution = self._softmax(total_arg_values)
-        total_arg_var = maybe_cuda(Variable(arg_total_idxs_batch)).view(batch_size)
+                                     dim=2)
+        num_probs = hyp_lists_length + goal_size + 1
+        total_arg_distribution = \
+            self._softmax(total_arg_values.view(batch_size, stem_width * num_probs))
+        total_arg_var = maybe_cuda(Variable(arg_total_idxs_batch +
+                                            (correctPredictionIdxs * num_probs)))\
+                                            .view(batch_size)
         loss = FloatTensor([0.])
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
