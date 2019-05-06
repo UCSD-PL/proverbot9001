@@ -10,8 +10,6 @@ import torch
 import torch.cuda
 import torch.autograd as autograd
 
-from serapi_instance import kill_comments
-
 from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable, Optional
 
 use_cuda = torch.cuda.is_available()
