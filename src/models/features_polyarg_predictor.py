@@ -203,7 +203,7 @@ class FeaturesPolyargPredictor(
         assert self._embedding
         assert self.training_args
         assert self._model
-        BEAM_WIDTH=5
+        BEAM_WIDTH=self.training_args.beam_width
         num_hyps = len(context.hypotheses)
 
         num_stem_poss = self._embedding.num_tokens()
@@ -425,6 +425,8 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("num-head-keywords", 100))
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
                             default=default_values.get("num-tactic-keywords", 50))
+        parser.add_argument("--beam-width", dest="beam_width", type=int,
+                            default=default_values.get("beam-width", 5))
     def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
         -> Iterable[ScrapedTactic]:
         data_iter = super()._preprocess_data(data, arg_values)
@@ -477,7 +479,9 @@ class FeaturesPolyargPredictor(
                                     self._get_model(arg_values, embedding.num_tokens(),
                                                     tokenizer.numTokens()),
                                     lambda batch_tensors, model:
-                                    self._getBatchPredictionLoss(batch_tensors, model))
+                                    self._getBatchPredictionLoss(arg_values,
+                                                                 batch_tensors,
+                                                                 model))
     def load_saved_state(self,
                          args : Namespace,
                          metadata : Tuple[Tokenizer, Embedding,
@@ -551,9 +555,10 @@ class FeaturesPolyargPredictor(
             EncoderRNN(goal_vocab_size, arg_values.hidden_size, arg_values.hidden_size),
             HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
                         2, arg_values.hidden_size))
-    def _getBatchPredictionLoss(self, data_batch : Sequence[torch.Tensor],
+    def _getBatchPredictionLoss(self, arg_values : Namespace,
+                                data_batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
-        BEAM_WIDTH = 5
+        BEAM_WIDTH = arg_values.beam_width
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
             tokenized_goals_batch, \
             word_features_batch, vec_features_batch, \
