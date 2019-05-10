@@ -7,19 +7,21 @@ import math
 import threading
 import itertools
 import statistics
-from queue import PriorityQueue
 
 import torch
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import (TacticPredictor, Prediction,
+                                     TacticContext, TrainablePredictor,
+                                     add_tokenizer_args)
 from models.args import take_std_args
 
-from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast
+from typing import Tuple, Dict, TypeVar, Generic, Optional, Callable, Union, cast, NamedTuple
 
-from tokenizer import tokenizers
+from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, filter_data, \
-    encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic, RawDataset
+    encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic, RawDataset, ClassifyBagDataset
 from context_filter import get_context_filter
 from serapi_instance import get_stem
+from models.components import Embedding
 
 from util import *
 
@@ -173,34 +175,54 @@ class NearnessTree(Generic[T]):
         return answer
 
 
-class KNNPredictor(TacticPredictor):
-    def load_saved_state(self, filename : str) -> None:
-        checkpoint = torch.load(filename)
-        assert checkpoint["embedding"]
-        self.embedding = checkpoint["embedding"]
-        assert checkpoint["tokenizer"]
-        self.tokenizer = checkpoint["tokenizer"]
-        assert checkpoint["tokenizer-name"]
-        self.tokenizer_name = checkpoint["tokenizer-name"]
-        assert checkpoint["tree"]
-        self.bst = checkpoint["tree"]
-        assert checkpoint["num-samples"]
-        self.num_samples = checkpoint["num-samples"]
-        assert checkpoint["context-filter"]
-        self.context_filter = checkpoint["context-filter"]
-        pass
+class KNNMetadata(NamedTuple):
+    embedding : Embedding
+    tokenizer : Tokenizer
+    tokenizer_name : str
+    num_samples : int
+    context_filter : str
+class KNNPredictor(TrainablePredictor[ClassifyBagDataset, KNNMetadata, NearnessTree]):
+    def _encode_data(self, data : RawDataset, arg_values : argparse.Namespace) \
+        -> Tuple[ClassifyBagDataset, KNNMetadata]:
+        samples, tokenizer, embedding = \
+            encode_bag_classify_data(RawDataset(list(self._preprocess_data(data, arg_values))),
+                                     tokenizers[arg_values.tokenizer],
+                                     arg_values.num_keywords, 2)
+        return samples, KNNMetadata(embedding, tokenizer, arg_values.tokenizer,
+                                    len(samples), arg_values.context_filter)
+    def add_args_to_parser(self, parser : argparse.ArgumentParser,
+                           default_values : Dict[str, Any] = {}) -> None:
+        super().add_args_to_parser(parser, default_values)
+        add_tokenizer_args(parser, default_values)
+        parser.add_argument("--max-length", dest="max_length", type=int,
+                            default=default_values.get("max-length", 30))
+    def _optimize_model_to_disc(self,
+                                encoded_data : ClassifyBagDataset,
+                                encdec_state : KNNMetadata,
+                                arg_values : argparse.Namespace) \
+        -> None:
+        bst = NearnessTree(encoded_data)
+        with open(arg_values.save_file, 'wb') as f:
+            torch.save(("k-nearest", (arg_values, encdec_state, bst)), f)
+    def load_saved_state(self,
+                         args : argparse.Namespace,
+                         metadata : KNNMetadata,
+                         state : NearnessTree) -> None:
+        self.embedding, self.tokenizer, self.tokenizer_name, \
+            self.num_samples, self.context_filter = metadata
+        self.bst = state
+        self.training_args = args
 
     def getOptions(self) -> List[Tuple[str, str]]:
         return [("# tokens", str(self.tokenizer.numTokens())),
-                ("# tactics (stems)", self.embedding.num_tokens()),
-                ("# samples used", self.num_samples),
+                ("# tactics (stems)", str(self.embedding.num_tokens())),
+                ("# samples used", str(self.num_samples)),
                 ("tokenizer", self.tokenizer_name),
-                ("context filter", self.context_filter),
+                ("context_filter", self.context_filter),
         ]
 
-    def __init__(self, options : Dict[str, Any]) -> None:
-        assert options["filename"]
-        self.load_saved_state(options["filename"])
+    def _description(self) -> str:
+        return "A k-nearest neighbors predictor"
 
     def predictKTactics(self, in_data : TacticContext, k : int) -> \
         List[Prediction]:
@@ -233,38 +255,6 @@ def vectorDistanceSquared(vec1 : List[float], vec2 : List[float]):
 def floatVector(vec : List[int]) -> List[float]:
     return [float(dim) for dim in vec]
 
-def main(args_list : List[str]) -> None:
-    args = take_std_args(args_list, "A k-nearest neighbors predictor")
-
-    text_data = get_text_data(args.scrape_file, args.context_filter,
-                              max_tuples=args.max_tuples, verbose=True)
-    substitutions = {"auto": "eauto.",
-                     "intros until": "intros.",
-                     "intro": "intros.",
-                     "constructor": "econstructor."}
-    preprocessed_data = RawDataset([ScrapedTactic(prev_tactics, hyps, goal, tactic
-                                                  if get_stem(tactic) not in substitutions
-                                                  else substitutions[get_stem(tactic)])
-                                    for prev_tactics, hyps, goal, tactic in text_data])
-    start = time.time()
-    samples, tokenizer, embedding = encode_bag_classify_data(preprocessed_data,
-                                                             tokenizers[args.tokenizer],
-                                                             args.num_keywords,
-                                                             2)
-    timeTaken = time.time() - start
-    print("Encoded data in in {:.2f}".format(timeTaken))
-    print("Building BST...")
-    bst = NearnessTree(samples)
-    print("Loaded.")
-    with open(args.save_file, 'wb') as f:
-        torch.save({'embedding': embedding,
-                    'tokenizer': tokenizer,
-                    'tokenizer-name': args.tokenizer,
-                    'tree': bst,
-                    'num-samples': len(samples),
-                    'context-filter': args.context_filter}, f)
-    print("Saved.")
-
 def filterNones(lst : List[Optional[T]]) -> List[T]:
     return [item for item in lst if
             not item is None]
@@ -287,3 +277,7 @@ def assertKNearestCorrect(neighbors : List[Tuple[List[int], T]],
         assert correct[0] == found[0], "input:\n {} (len {})\ncorrect:\n{} (len {}),\nfound:\n{} (len {})"\
             .format(in_vec, len(in_vec), correct[0], len(correct[0]), found[0], len(found[0]))
     pass
+
+def main(args_list : List[str]) -> None:
+    predictor = KNNPredictor()
+    predictor.train(args_list)
