@@ -399,7 +399,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
         shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
                     args.output + "/" + filename)
 def write_proof_csv(output_dir : str, filenames : List[str]):
-    with open('proofs.csv', 'w') as fout:
+    with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma, status, prooflength\n")
         for filename in filenames:
             with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'r') \
