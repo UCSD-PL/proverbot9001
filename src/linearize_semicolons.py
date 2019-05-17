@@ -506,3 +506,31 @@ def preprocess_file_commands(commands : List[str], coqargs : List[str], includes
         print("Timed out while lifting commands! Skipping linearization...")
         return commands
 
+import helper
+def main():
+    parser = argparse.ArgumentParser(description=
+                                     "linearize a set of files")
+    parser.add_argument('--prelude', default=".")
+    parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                        dest='skip_nochange_tac')
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    arg_values = parser.parse_args()
+
+    base = os.path.dirname(os.path.abspath(__file__)) + "/.."
+    includes = subprocess.Popen(['make', '-C', arg_values.prelude, 'print-includes'],
+                                stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+    coqargs = ["{}/coq-serapi/sertop.native".format(base),
+               "--prelude={}/coq".format(base)]
+
+    for filename in arg_values.filenames:
+        local_filename = arg_values.prelude + "/" + filename
+        fresh_commands = preprocess_file_commands(
+            helper.load_commands_preserve(arg_values.prelude + "/" + filename),
+            coqargs, includes, arg_values.prelude,
+            local_filename, filename,
+            arg_values.skip_nochange_tac, debug=arg_values.debug)
+        helper.save_lin(fresh_commands, local_filename)
+
+if __name__ == "__main__":
+    main()
