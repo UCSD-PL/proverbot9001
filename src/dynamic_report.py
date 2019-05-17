@@ -21,7 +21,6 @@ Text = Callable[..., None]
 Line = Callable[..., None]
 
 import serapi_instance
-import linearize_semicolons
 from serapi_instance import ParseError, LexError, TimeoutError, get_stem
 import tokenizer
 
