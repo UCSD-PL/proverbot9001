@@ -510,9 +510,11 @@ def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
     print("{:.2f}s".format(time.time() - start))
     return embedding, dataset
 
+import os.path
+
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
     -> Tuple[Tokenizer, List[Sentence]]:
-    if args.load_tokens:
+    if args.load_tokens and os.path.exists(args.load_tokens):
         print("Loading tokens from {}".format(args.load_tokens))
         with open(args.load_tokens, 'rb') as f:
             tokenizer = pickle.load(f)
