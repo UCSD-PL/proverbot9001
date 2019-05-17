@@ -18,7 +18,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError, get_stem)
+                             BadResponse, TimeoutError, ParseError)
 
 from typing import Optional, List, Iterator, Iterable, Any, Match
 
@@ -174,7 +174,7 @@ def linearize_commands(commands_sequence, coq, filename, relative_filename, skip
             with_tactic = ""
 
         orig = command_batch[:]
-        command_batch = list(split_commas(command_batch))
+        command_batch = list(command_batch)
         try:
             linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch, skip_nochange_tac))
             leftover_commands = []
@@ -402,25 +402,26 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
         if not "," in command:
             yield command
         else:
-            stem = get_stem(command)
+            stem, args_str = serapi_instance.split_tactic(command)
             if stem == "rewrite" or stem == "rewrite <-" or stem == "unfold":
-                multi_in_match = re.match("\s*({}\s+.*?\s+in\b\s+)(\S+)\s*,\s*(.*\.)"
+                multi_in_match = re.match(r"\s*({}\s+.*?\s+in\b\s+)(\S+)\s*,\s*(.*\.)"
                                           .format(stem.split()[0]),
                                           command)
                 if multi_in_match:
                     command, first_context, rest_context = multi_in_match.group(1, 2, 3)
-                    yield from split_commas_command(command + first_context)
+                    yield from split_commas_command(command + first_context + ".")
                     yield from split_commas_command(command + rest_context)
                     return
-                in_match = re.match("\s*({}\s+\S*\s*),\s*(.*)\s+in\b(.*\.)"\
-                                    .format(stem.split()[0]),
-                                    command)
+                pattern = r"\s*({}\s+\S*\s*),\s*(.*)\s+in\b(.*\.)"\
+                    .format(stem.split()[0])
+                in_match = re.match(pattern, command)
                 if in_match:
                     first_command, rest, context = in_match.group(1, 2, 3)
-                    yield first_command + " in" + context
-                    yield from split_commas_command("{} ".format(stem) + rest + " in" + context)
+                    yield first_command + " in " + context
+                    yield from split_commas_command("{} {} in {}"
+                                                    .format(stem, rest, context))
                     return
-                parts_match = re.match("\s*({}\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)"
+                parts_match = re.match(r"\s*({}\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)"
                                        .format(stem.split()[0]),
                                        command)
                 if parts_match:
@@ -432,7 +433,6 @@ def split_commas(commands : Iterator[str]) -> Iterator[str]:
                 yield command
             else:
                 yield command
-    new_commands : List[str] = []
     for command in commands:
         split_commands = split_commas_command(command)
         # print("Split {} into {}".format(command, list(split_commands)))
