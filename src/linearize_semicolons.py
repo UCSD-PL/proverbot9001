@@ -127,7 +127,7 @@ def show_semiands(semiands):
 #     goals = coq.query_goals()
 #     return count_open_proofs(goals)
 
-def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
+def linearize_commands(commands_sequence, coq, filename, relative_filename, skip_nochange_tac):
     if show_debug:
         print("Linearizing commands")
     command = next(commands_sequence, None)
@@ -158,7 +158,7 @@ def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
-        if [filename, theorem_name] in compcert_failures:
+        if [relative_filename, theorem_name] in compcert_failures:
             print("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
