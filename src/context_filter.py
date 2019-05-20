@@ -44,6 +44,10 @@ def not_background_subgoal(in_data : ContextData, tactic : str,
                            next_in_data : ContextData,
                            arg_values : argparse.Namespace) -> bool:
     return not re.match("\d*:.*", tactic)
+def not_vernac(in_data : ContextData, tactic : str,
+               next_in_data : ContextData,
+               arg_values : argparse.Namespace) -> bool:
+    return not (re.match("\s*Opaque", tactic))
 
 def goal_changed(in_data : ContextData, tactic : str,
                  next_in_data : ContextData,
@@ -110,8 +114,6 @@ def args_token_in_goal(in_data : ContextData, tactic : str,
     goal_words = get_symbols(cast(str, goal)[:arg_values.max_length])
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
-    if re.match("induction n0", tactic):
-        assert len(args) > 0
     for arg in args:
         if not arg in goal_words:
             return False
@@ -213,7 +215,8 @@ def get_prefix_argstr(prefix_entry : PrefixEntry):
 context_filters : Dict[str, ContextFilter] = {
     "default": filter_and(no_compound_or_bullets,
                           not_proof_keyword,
-                          not_background_subgoal),
+                          not_background_subgoal,
+                          not_vernac),
     "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
