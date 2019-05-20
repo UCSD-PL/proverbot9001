@@ -175,12 +175,13 @@ def split_toplevel(specstr : str) -> List[str]:
 def get_context_filter(specstr : str) -> ContextFilter:
     pieces = split_toplevel(specstr)
     if not "+" in specstr and not "%" in specstr:
-        for prefix, func in special_prefixes:
+        for prefix, func, arg_str in special_prefixes:
             match = re.match("^{}(.*)".format(prefix), specstr)
             if match:
                 return functools.partial(func, match.group(1))
         assert specstr in context_filters, "Invalid atom {}! Valid atoms are {}"\
-            .format(specstr, context_filters.keys())
+            .format(specstr, list(context_filters.keys()) +
+                    [get_prefix_argstr(prefix_entry) for prefix_entry in special_prefixes])
         return context_filters[specstr]
     if len(pieces) == 1:
         return get_context_filter(pieces[0])
@@ -194,15 +195,20 @@ def get_context_filter(specstr : str) -> ContextFilter:
             assert all([operator == "+" for operator in pieces[1::2]])
             return filter_or(*[get_context_filter(substr) for substr in pieces[::2]])
 
-special_prefixes : List[Tuple[str, Callable[[str, ContextData, str, ContextData,
-                                             argparse.Namespace], bool]]] \
+ParamterizedFilterFunc = Callable[[str, ContextData, str, ContextData, argparse.Namespace], bool]
+PrefixEntry = Tuple[str, ParamterizedFilterFunc, str]
+special_prefixes : List[PrefixEntry] \
     = [
-        ("tactic:", tactic_literal),
-        ("etactic:", tactic_eliteral),
-        ("~tactic:", lambda *args: not tactic_literal(*args)),
-        ("~etactic:", lambda *args: not tactic_eliteral(*args)),
-        ("maxargs:", max_args),
+        ("tactic:", tactic_literal, "<tacticname>"),
+        ("etactic:", tactic_eliteral, "<tacticname>"),
+        ("~tactic:", lambda *args: not tactic_literal(*args), "<tacticname>"),
+        ("~etactic:", lambda *args: not tactic_eliteral(*args), "<tacticname>"),
+        ("maxargs:", max_args, "<number>"),
     ]
+
+def get_prefix_argstr(prefix_entry : PrefixEntry):
+    prefix, func, argstr = prefix_entry
+    return "{}{}".format(prefix, argstr)
 
 context_filters : Dict[str, ContextFilter] = {
     "default": filter_and(no_compound_or_bullets,
