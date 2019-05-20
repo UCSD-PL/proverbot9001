@@ -415,7 +415,7 @@ class FeaturesPolyargPredictor(
         return "A predictor combining the goal token args and hypothesis args models."
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
-        new_defaults = {"batch-size":64, "learning-rate":0.2,**default_values}
+        new_defaults = {"batch-size":64, "learning-rate":0.1,**default_values}
         super().add_args_to_parser(parser, new_defaults)
         add_nn_args(parser, new_defaults)
         add_tokenizer_args(parser, new_defaults)
