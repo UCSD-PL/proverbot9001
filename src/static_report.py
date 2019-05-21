@@ -416,6 +416,16 @@ def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult
         regions.append(curRegion)
     return regions
 
+def count_region_unfiltered(commands : List[CommandResult]):
+    num_unfiltered = 0
+    for command in commands:
+        if len(command) > 1:
+            command, hyps, goal, prediction_results = \
+                cast(TacticResult, command)
+            if len(prediction_results) > 1:
+                num_unfiltered += 1
+    return num_unfiltered
+
 def write_html(output_dir : str, filename : str, command_results : List[CommandResult],
                stats : 'ResultStats') -> None:
     def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
@@ -447,6 +457,10 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                         with tag('code', klass='buttontext'):
                             assert isinstance(region[0][0], str), region
                             text(region[0][0].strip("\n"))
+                        num_unfiltered = count_region_unfiltered(region)
+                        with tag('code', klass='numtacs ' +
+                                 ('nonempty' if num_unfiltered > 3 else 'empty')):
+                            text(num_unfiltered)
                     with tag('div', klass='region'):
                         for cmd_idx, command_result in enumerate(region[1:]):
                             if len(command_result) == 1:

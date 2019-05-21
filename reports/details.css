@@ -160,3 +160,13 @@ code {
 .buttontext {
   float: left;
 }
+
+.numtacs {
+    float: right;
+}
+.numtacs.empty {
+    background-color:grey;
+}
+.numtacs.nonempty {
+    background-color:lightblue;
+}
