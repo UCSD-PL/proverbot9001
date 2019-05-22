@@ -54,6 +54,9 @@ class OverflowError(Exception):
 @dataclass
 class UnrecognizedError(Exception):
     msg : str
+@dataclass
+class CoqAnomaly(Exception):
+    msg : str
 
 def raise_(ex):
     raise ex
@@ -201,7 +204,7 @@ class SerapiInstance(threading.Thread):
                     ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
                     ['Stack overflow'],
-                    lambda *args: raise_(OverflowError("Overflowed")),
+                    lambda *args: raise_(CoqAnomaly("Overflowed")),
                     _, lambda *args: raise_(UnrecognizedError(args))))
 
     # Cancel the last command which was sucessfully parsed by
@@ -332,8 +335,11 @@ class SerapiInstance(threading.Thread):
                     normalizeMessage(self.messages.get(timeout=self.timeout * 10))
             except:
                 self._proc.send_signal(signal.SIGINT)
-                interrupt_response = \
-                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                try:
+                    interrupt_response = \
+                        normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                except:
+                    raise CoqAnomaly("Timing Out")
 
             if interrupt_response != "Sys\.Break":
                 assert isinstance(interrupt_response, list), interrupt_response

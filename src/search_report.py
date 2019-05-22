@@ -103,11 +103,6 @@ class ProofBlock(NamedTuple):
     predicted_tactics : List[TacticInteraction]
     original_tactics : List[TacticInteraction]
 
-from dataclasses import dataclass
-@dataclass
-class CoqAnomaly(Exception):
-    msg : str
-
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
 def report_file(args : argparse.Namespace,
@@ -212,12 +207,12 @@ def report_file(args : argparse.Namespace,
                             coq.cancel_last()
                     except serapi_instance.CoqExn:
                         commands_in.insert(0, lemma_statement)
-                        raise CoqAnomaly("While cancelling")
+                        raise serapi_instance.CoqAnomaly("While cancelling")
                     # Run the original proof
                     run_to_next_vernac(coq, lemma_statement)
                 if args.verbose:
                     print("\r")
-        except CoqAnomaly:
+        except serapi_instance.CoqAnomaly:
             if args.verbose and args.num_threads == 1:
                 print("Hit a coq anomaly! Restarting coq instance.")
     write_html(args.output, filename, blocks_out)
