@@ -212,9 +212,9 @@ def report_file(args : argparse.Namespace,
                     run_to_next_vernac(coq, lemma_statement)
                 if args.verbose:
                     print("\r")
-        except serapi_instance.CoqAnomaly:
-            if args.verbose and args.num_threads == 1:
-                print("Hit a coq anomaly! Restarting coq instance.")
+        except serapi_instance.CoqAnomaly as e:
+            if args.verbose:
+                print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
     write_html(args.output, filename, blocks_out)
     write_csv(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
