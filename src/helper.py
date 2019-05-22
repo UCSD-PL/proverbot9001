@@ -84,4 +84,4 @@ def save_lin(commands : List[str], filename : str) -> None:
     with open(output_file, 'w') as f:
         print(hash_file(filename), file=f)
         for command in commands:
-            print(command.strip(), file=f)
+            print(command, file=f)
