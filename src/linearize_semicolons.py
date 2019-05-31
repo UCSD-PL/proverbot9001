@@ -267,7 +267,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                                                     "\s*;\s*", command)
         if semi_match:
             base_command, rest = semi_match
-            rest = rest.lstrip().lstrip(";").lstrip()
+            rest = rest.lstrip()[1:]
             coq.run_stmt(base_command + ".")
             indentation = "  " * (len(pending_commands_stack) + 1)
             yield indentation + base_command.strip() + "."
@@ -276,13 +276,16 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                split_by_char_outside_matching("\(", "\)", "\|\|", rest):
                 inside_parens, after_parens = split_to_next_matching('\(', '\)', rest)
                 rest = inside_parens[1:-1] + after_parens
-            bracket_match = re.match("\[", rest)
+            bracket_match = re.match("\[", rest.strip())
             if bracket_match:
                 bracket_command, rest_after_bracket = \
                     split_to_next_matching('\[', '\]', rest)
-                commands_list = [cmd.strip() if cmd.strip() != "" else "idtac" for cmd in
-                                 multisplit_matching("\[", "\]", "(?<!\|)\|(?!\|)",
-                                                     bracket_command.strip()[1:-1])]
+                rest_after_bracket = rest_after_bracket.lstrip()[1:]
+                clauses = multisplit_matching("\[", "\]", "(?<!\|)\|(?!\|)",
+                                              bracket_command.strip()[1:-1])
+                commands_list = [cmd.strip() if cmd.strip().strip(".") != ""
+                                 else "idtac" + cmd for cmd in
+                                 clauses]
                 dotdotpat = re.compile(r"(.*)\.\.($|\W)")
                 ending_dotdot_match = dotdotpat.match(commands_list[-1])
                 if ending_dotdot_match:
@@ -307,8 +310,11 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                                                       len(commands_list) + 1) + \
                                                       commands_list[idx+1:]
                                 break
-                command_remainders = [cmd + rest_after_bracket
-                                      for cmd in commands_list]
+                if rest_after_bracket:
+                    command_remainders = [cmd + ";" + rest_after_bracket
+                                          for cmd in commands_list]
+                else:
+                    command_remainders = [cmd + "." for cmd in commands_list]
                 command_batch.insert(0, command_remainders[0])
                 if coq.count_fg_goals() > 1:
                     pending_commands_stack.append(command_remainders[1:])
@@ -343,7 +349,7 @@ def handle_with(command_batch : Iterable[str],
             yield newcommand
 
 def split_commas(command : str) -> str:
-    rewrite_match = re.match("(.*)(rewrite\s+)([^;,]*?,\s*.*)", command,
+    rewrite_match = re.match("(.*)(?:\s|^)(rewrite\s+)([^;,]*?,\s*.*)", command,
                              flags=re.DOTALL)
     unfold_match = re.match("(.*)(unfold\s+)([^;,]*?),\s*(.*)", command,
                             flags=re.DOTALL)
