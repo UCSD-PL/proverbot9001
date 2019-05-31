@@ -331,14 +331,16 @@ class Worker(threading.Thread):
                                            self.prelude) as coq:
             coq.debug = self.debug
             nb_commands = len(commands)
-            prev_tactics = []
             for i in range(nb_commands):
                 command = commands[i]
                 # print("Processing command {}/{}".format(str(i+1), str(nb_commands)))
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
+                if re.match("[{}]", command):
+                    coq.run_stmt(command)
+                    continue
                 if in_proof:
-                    prev_tactics.append(command)
+                    prev_tactics = coq.prev_tactics()
                     initial_context = coq.proof_context
                     assert initial_context
                     hyps = coq.get_hypothesis()
@@ -394,7 +396,6 @@ class Worker(threading.Thread):
                     else:
                         command_results.append((command,))
                 else:
-                    prev_tactics = []
                     try:
                         coq.run_stmt(command)
                     except (AckError, CompletedError, CoqExn,

@@ -30,10 +30,10 @@ setup:
 	./src/setup.sh && $(MAKE) publish-depv
 
 scrape:
-	mv data/scrape.txt data/scrape.bkp 2>/dev/null || true
+	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3 scrape2.py $(FLAGS) -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape2.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../CompCert
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
@@ -85,5 +85,6 @@ clean:
 	rm -rf report-*
 	rm -f log*.txt
 
-clean-lin:
-	fd '.*\.v\.lin' CompCert | xargs rm
+clean-progress:
+	fd '.*\.v\.lin' CompCert | xargs rm -f
+	fd '.*\.scrape' CompCert | xargs rm -f

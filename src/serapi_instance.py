@@ -89,12 +89,12 @@ class SerapiInstance(threading.Thread):
 
         # Initialize some state that we'll use to keep track of the
         # coq state. This way we don't have to do expensive queries to
-        # the other process for to answer simple questions.
+        # the other process to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
         self.proof_context = None # type: Optional[str]
         self.full_context = None # type: Optional[str]
         self.cur_state = 0
-        self.prev_tactics = [] # type: List[str]
+        self.prev_tactics_stack = [[]] #type: List[List[str]]
 
 
         # Set up the message queue, which we'll populate with the
@@ -155,23 +155,30 @@ class SerapiInstance(threading.Thread):
                 # Get a new proof context, if it exists
                 self.get_proof_context()
 
-                # If we saw a new proof context, we're still in a
-                # proof so append the command to our prev_tactics
-                # list.
-                if self.full_context:
-                    self.prev_tactics.append(stm)
+                if re.match(r"\s*[{]\s*", stm):
+                    self.prev_tactics_stack.append([])
+                elif re.match(r"\s*[}]\s*", stm):
+                    self.prev_tactics_stack.pop()
+                elif self.full_context or len(self.prev_tactics_stack) > 1:
+                    # If we saw a new proof context, we're still in a
+                    # proof so append the command to our prev_tactics
+                    # list.
+                    self.prev_tactics_stack[-1].append(stm)
                 else:
                     # If we didn't see a new context, we're not in a
                     # proof anymore, so clear the prev_tactics state.
-                    self.prev_tactics = []
+                    self.prev_tactics_stack = [[]]
 
         # If we hit a problem let the user know what file it was in,
         # and then throw it again for other handlers. NOTE: We may
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
-            self.prev_tactics.append(stmt)
+            self.prev_tactics_stack[-1].append(stm)
             self.handle_exception(e, stmt)
+
+    def prev_tactics(self):
+        return [tactic for sublist in self.prev_tactics_stack for tactic in sublist]
 
     def handle_exception(self, e : Exception, stmt : str):
         if not self.quiet or self.debug:
@@ -219,8 +226,8 @@ class SerapiInstance(threading.Thread):
             self.get_message()
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
-        if len(self.prev_tactics) > 0:
-            self.prev_tactics.pop()
+        if len(self.prev_tactics_stack) > 0 and len(self.prev_tactics_stack[-1]) > 0:
+            self.prev_tactics_stack[-1].pop()
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
         # Get a new proof context, if it exists
@@ -857,3 +864,8 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
             return datum
     else:
         return datum
+
+def isValidCommand(command : str) -> bool:
+    command = kill_comments(command)
+    return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command)) \
+        and (command.count('(') == command.count(')'))

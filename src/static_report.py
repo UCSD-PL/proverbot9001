@@ -179,7 +179,8 @@ def report_file(args : argparse.Namespace,
         extended_list : List[Optional[ScrapedCommand]] = \
             cast(List[Optional[ScrapedCommand]], list_data[1:])  + [None]
         for point, nextpoint in zip(list_data, extended_list):
-            if isinstance(point, ScrapedTactic):
+            if isinstance(point, ScrapedTactic) \
+               and not re.match("\s*[{}]\s*", point.tactic):
                 if isinstance(nextpoint, ScrapedTactic):
                     yield(point, not context_filter({"goal":format_goal(point.goal),
                                                      "hyps":point.hypotheses},

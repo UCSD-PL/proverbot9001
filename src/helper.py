@@ -5,6 +5,7 @@ from serapi_instance import AckError, CompletedError, CoqExn, BadResponse
 import linearize_semicolons
 import re
 import os
+import sys
 
 from typing import List, Match, Any, Optional, Iterator, Iterable
 
@@ -36,16 +37,19 @@ def read_commands_preserve(contents : str) -> List[str]:
                 in_quote = True
             elif comment_depth == 0:
                 if (re.match("[\{\}]", contents[i]) and
-                      re.fullmatch("\s*", cur_command[:-1])):
+                      re.fullmatch("\s*", serapi_instance.kill_comments(cur_command)[:-1])):
+                    assert serapi_instance.isValidCommand(cur_command)
                     result.append(cur_command)
                     cur_command = ""
                 elif (re.fullmatch("\s*[\+\-\*]+",
                                    serapi_instance.kill_comments(cur_command)) and
                       (len(contents)==i+1 or contents[i] != contents[i+1])):
+                    assert serapi_instance.isValidCommand(cur_command)
                     result.append(cur_command)
                     cur_command = ""
                 elif (re.match("\.($|\s)", contents[i:i+2]) and
                       (not contents[i-1] == "." or contents[i-2] == ".")):
+                    assert serapi_instance.isValidCommand(cur_command)
                     result.append(cur_command)
                     cur_command = ""
             if contents[i:i+2] == '(*':
@@ -68,8 +72,8 @@ def hash_file(filename : str) -> str:
 
 def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
     if verbose:
-        print("Attempting to load cached linearized version from {}"
-              .format(filename + '.lin'))
+        eprint("Attempting to load cached linearized version from {}"
+               .format(filename + '.lin'))
     if not os.path.exists(filename + '.lin'):
         return None
     file_hash = hash_file(filename)
@@ -85,3 +89,5 @@ def save_lin(commands : List[str], filename : str) -> None:
         print(hash_file(filename), file=f)
         for command in commands:
             print(command, file=f)
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)

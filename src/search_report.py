@@ -151,7 +151,7 @@ def report_file(args : argparse.Namespace,
         original_tactics : List[TacticInteraction] = []
         while coq.full_context != None:
             next_in_command = commands_in.pop(0)
-            context_before = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+            context_before = TacticContext(coq.prev_tactics(), coq.get_hypothesis(),
                                            coq.get_goals())
             coq.run_stmt(next_in_command)
             commands_run.append(next_in_command)
@@ -195,7 +195,8 @@ def report_file(args : argparse.Namespace,
                         break
                     # Get beginning of next proof
                     num_proofs += 1
-                    initial_context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+                    initial_context = TacticContext(coq.prev_tactics(),
+                                                    coq.get_hypothesis(),
                                                     coq.get_goals())
                     # Try to search
                     show_progress()
@@ -491,73 +492,31 @@ def attempt_search(args : argparse.Namespace,
     result = dfs_proof_search_with_graph(lemma_statement, coq, args)
     return result
 
-class TimedCommand(NamedTuple):
-    command : str
-    seconds_taken : float
-
-time_per_command = 2.
-def tfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-                     args : argparse.Namespace) -> Optional[List[str]]:
-    max_time = args.search_depth * time_per_command
-    def predictions() -> List[str]:
-        return [pred.prediction for pred in
-                predictor.predictKTactics(TacticContext(coq.prev_tactics,
-                                                        coq.get_hypothesis(),
-                                                        coq.get_goals()),
-                                          args.search_width)]
-    def total_time(commands : List[TimedCommand]) -> float:
-        return sum([c.seconds_taken for c in commands])
-    def get_commands(commands : List[TimedCommand]) -> List[str]:
-        return [c.command for c in commands]
-    def search(current_path : List[TimedCommand]) -> Optional[List[str]]:
-        for prediction in predictions():
-            try:
-                start = time.time()
-                coq.quiet = True
-                old_timeout = coq.timeout
-                coq.timeout = int(max_time - total_time(current_path))
-                coq.run_stmt(prediction)
-                coq.timeout = old_timeout
-                time_taken = time.time() - start
-                if completed_proof(coq):
-                    return get_commands(current_path) + [prediction]
-                elif total_time(current_path) + time_taken < max_time and \
-                     len(current_path) < args.search_depth * 2:
-                    sub_search_result = search(current_path +
-                                               [TimedCommand(prediction, time_taken)])
-                    if sub_search_result:
-                        return sub_search_result
-                coq.cancel_last()
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
-                    serapi_instance.ParseError):
-                continue
-        return None
-    return search([])
-
-def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-                     args : argparse.Namespace) -> Optional[List[str]]:
-    def get_context() -> TacticContext:
-        return TacticContext(coq.prev_tactics, coq.get_hypothesis(),
-                             coq.get_goals())
-    def predictions() -> List[str]:
-        return [pred.prediction for pred in
-                predictor.predictKTactics(get_context(), args.search_width)]
-    def search(current_path : List[str]) -> Optional[List[str]]:
-        for prediction in predictions():
-            try:
-                coq.quiet = True
-                coq.run_stmt(prediction)
-                if completed_proof(coq):
-                    return current_path + [prediction]
-                elif len(current_path) + 1 < args.search_depth:
-                    sub_search_result = search(current_path + [prediction])
-                    if sub_search_result:
-                        return sub_search_result
-                coq.cancel_last()
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
-                continue
-        return None
-    return search([])
+# This implementation is here for reference/documentation
+# def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
+#                      args : argparse.Namespace) -> Optional[List[str]]:
+#     def get_context() -> TacticContext:
+#         return TacticContext(coq.prev_tactics(), coq.get_hypothesis(),
+#                              coq.get_goals())
+#     def predictions() -> List[str]:
+#         return [pred.prediction for pred in
+#                 predictor.predictKTactics(get_context(), args.search_width)]
+#     def search(current_path : List[str]) -> Optional[List[str]]:
+#         for prediction in predictions():
+#             try:
+#                 coq.quiet = True
+#                 coq.run_stmt(prediction)
+#                 if completed_proof(coq):
+#                     return current_path + [prediction]
+#                 elif len(current_path) + 1 < args.search_depth:
+#                     sub_search_result = search(current_path + [prediction])
+#                     if sub_search_result:
+#                         return sub_search_result
+#                 coq.cancel_last()
+#             except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
+#                 continue
+#         return None
+#     return search([])
 
 import pygraphviz as pgv
 # from graphviz import Digraph
@@ -598,7 +557,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             mkEdge(current_path[-1], prediction)
     def get_context() -> TacticContext:
         coq.run_stmt("Unshelve.")
-        context = TacticContext(coq.prev_tactics, coq.get_hypothesis(),
+        context = TacticContext(coq.prev_tactics(), coq.get_hypothesis(),
                                 coq.get_goals())
         coq.cancel_last()
         return context
@@ -626,6 +585,15 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             try:
                 coq.quiet = True
                 coq.run_stmt(prediction)
+                num_stmts = 1
+                while coq.count_fg_goals() == 0 and not completed_proof(coq):
+                    setNodeColor(predictionNode, "blue")
+                    coq.run_stmt("}")
+                    num_stmts += 1
+                if coq.count_fg_goals() > 1:
+                    opening = True
+                    coq.run_stmt("{")
+                    num_stmts += 1
                 context_after = get_fullcontext()
                 if completed_proof(coq):
                     mkEdge(predictionNode, mkNode("QED", context_after,
@@ -643,7 +611,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         return sub_search_result
                 else:
                     hasUnexploredNode = True
-                coq.cancel_last()
+                for _ in range(num_stmts):
+                    coq.cancel_last()
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
@@ -661,37 +630,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     else:
         return SearchResult(SearchStatus.FAILURE, None)
 
-
-def bfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-                     args : argparse.Namespace) -> Optional[List[str]]:
-    states_to_explore = [[lemma_statement]]
-    coq.cancel_last()
-
-    while len(states_to_explore) > 0:
-        next_state_to_explore = states_to_explore.pop(0)
-        try:
-            coq.quiet = True
-            for tactic in next_state_to_explore:
-                coq.run_stmt(tactic)
-        except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
-            while coq.full_context:
-                coq.cancel_last()
-            continue
-        finally:
-            coq.quiet = False
-        if completed_proof(coq):
-            return next_state_to_explore[1:]
-        state_context = TacticContext(coq.prev_tactics,
-                                      coq.get_hypothesis(),
-                                      coq.get_goals())
-        if len(next_state_to_explore) < args.search_depth:
-            predictions = predictor.predictKTactics(state_context, args.search_width)
-            for prediction in predictions:
-                states_to_explore.append(next_state_to_explore + [prediction.prediction])
-        while coq.full_context:
-            coq.cancel_last()
-    coq.run_stmt(lemma_statement)
-    return None
 
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
     coq.run_stmt("Unshelve.")
