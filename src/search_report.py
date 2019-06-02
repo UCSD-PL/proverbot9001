@@ -531,6 +531,9 @@ class LabeledNode(NamedTuple):
     node_id : int
     full_context_before : Optional[str]
     context_before : TacticContext
+class SubSearchResult (NamedTuple):
+    solution : Optional[List[TacticInteraction]]
+    solved_subgoals : int
 
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
@@ -577,7 +580,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def contextInPath(full_context : str, path : List[LabeledNode]):
         return full_context in [n.full_context_before for n in path]
     hasUnexploredNode = False
-    def search(current_path : List[LabeledNode]) -> Optional[List[TacticInteraction]]:
+    def search(current_path : List[LabeledNode]) -> SubSearchResult:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
         context_before = get_context()
@@ -587,6 +590,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         for predictionNode in predictionNodes:
             edgeToPrev(predictionNode, current_path)
         for prediction, predictionNode in zip(predictions, predictionNodes):
+            subgoals_closed = 0
             try:
                 coq.quiet = True
                 coq.run_stmt(prediction)
@@ -594,11 +598,15 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
                     setNodeColor(predictionNode, "blue")
                     coq.run_stmt("}")
+                    subgoals_closed += 1
                     num_stmts += 1
-                if coq.count_fg_goals() > 1:
-                    opening = True
+                if coq.count_fg_goals() > 1 or \
+                   (coq.count_fg_goals() > 0 and subgoals_closed > 0):
+                    subgoals_opened = 1
                     coq.run_stmt("{")
                     num_stmts += 1
+                else:
+                    subgoals_opened = 0
                 context_after = get_fullcontext()
                 if completed_proof(coq):
                     mkEdge(predictionNode, mkNode("QED", context_after,
@@ -606,14 +614,20 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
                         setNodeColor(node, "green")
-                    return [TacticInteraction(n.prediction, n.context_before)
-                            for n in current_path + [predictionNode]]
+                    return SubSearchResult([TacticInteraction(n.prediction,
+                                                              n.context_before)
+                                            for n in current_path + [predictionNode]],
+                                           subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
                 elif len(current_path) + 1 < args.search_depth:
                     sub_search_result = search(current_path + [predictionNode])
-                    if sub_search_result:
-                        return sub_search_result
+                    if sub_search_result.solution or \
+                       sub_search_result.solved_subgoals > subgoals_opened:
+                        return SubSearchResult(sub_search_result.solution,
+                                               subgoals_closed +
+                                               sub_search_result.solved_subgoals
+                                               - subgoals_opened)
                 else:
                     hasUnexploredNode = True
                 for _ in range(num_stmts):
@@ -623,8 +637,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     serapi_instance.UnrecognizedError):
                 setNodeColor(predictionNode, "red")
                 continue
-        return None
-    command_list = search([])
+            if subgoals_closed > 0:
+                return SubSearchResult(None, subgoals_closed)
+        return SubSearchResult(None, 0)
+    command_list, _ = search([])
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
                       prog="dot")
