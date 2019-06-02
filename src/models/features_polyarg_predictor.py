@@ -203,11 +203,11 @@ class FeaturesPolyargPredictor(
         assert self._embedding
         assert self.training_args
         assert self._model
-        BEAM_WIDTH=self.training_args.beam_width
+        beam_width=k ** 2
         num_hyps = len(context.hypotheses)
 
         num_stem_poss = self._embedding.num_tokens()
-        stem_width = min(BEAM_WIDTH, num_stem_poss)
+        stem_width = min(beam_width, num_stem_poss)
 
         with self._lock:
 
@@ -267,18 +267,18 @@ class FeaturesPolyargPredictor(
                                              .view(1, stem_width * num_probs))\
                                    .view(stem_width * num_probs)
 
-            final_probs, final_idxs = all_prob_batches.topk(BEAM_WIDTH)
+            final_probs, final_idxs = all_prob_batches.topk(beam_width)
             assert not torch.isnan(final_probs).any()
-            assert final_probs.size() == torch.Size([BEAM_WIDTH])
+            assert final_probs.size() == torch.Size([beam_width])
             row_length = self.training_args.max_length + len(context.hypotheses) + 1
             stem_keys = final_idxs / row_length
-            assert stem_keys.size() == torch.Size([BEAM_WIDTH])
+            assert stem_keys.size() == torch.Size([beam_width])
             assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
             prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
-            assert prediction_stem_idxs.size() == torch.Size([BEAM_WIDTH]), \
+            assert prediction_stem_idxs.size() == torch.Size([beam_width]), \
                 prediction_stem_idxs.size()
             arg_idxs = final_idxs % row_length
-            assert arg_idxs.size() == torch.Size([BEAM_WIDTH])
+            assert arg_idxs.size() == torch.Size([beam_width])
             return [Prediction(self.decodePrediction(context.goal,
                                                      context.hypotheses,
                                                      stem_idx.item(),
@@ -558,7 +558,6 @@ class FeaturesPolyargPredictor(
     def _getBatchPredictionLoss(self, arg_values : Namespace,
                                 data_batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
-        BEAM_WIDTH = arg_values.beam_width
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
             tokenized_goals_batch, \
             word_features_batch, vec_features_batch, \
@@ -572,11 +571,9 @@ class FeaturesPolyargPredictor(
         goal_size = tokenized_goals_batch.size()[1]
         stemDistributions = model.stem_classifier(word_features_batch, vec_features_batch)
         num_stem_poss = stemDistributions.size()[1]
-        stem_width = min(BEAM_WIDTH, num_stem_poss)
+        stem_width = min(arg_values.beam_width, num_stem_poss)
         stem_var = maybe_cuda(Variable(stem_idxs_batch))
         predictedProbs, predictedStemIdxs = stemDistributions.topk(stem_width)
-        # print(stem_idxs_batch.device)
-        # print(predictedStemIdxs.device)
         mergedStemIdxs = []
         for stem_idx, predictedStemIdxList in zip(stem_idxs_batch, predictedStemIdxs):
             if stem_idx.item() in predictedStemIdxList:
