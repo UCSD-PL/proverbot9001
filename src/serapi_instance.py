@@ -449,6 +449,8 @@ class SerapiInstance(threading.Thread):
             match(cancelled_answer,
                   ["Answer", int, ["StmCanceled", [int]]],
                   lambda _, new_statenum: new_statenum,
+                  ["Answer", int, ["CoqExn", _]],
+                  lambda *args: raise_(CoqExn(cancelled_answer)),
                   _, lambda *args: raise_(BadResponse(cancelled_answer)))
 
         self.get_completed()
