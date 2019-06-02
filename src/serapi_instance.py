@@ -602,7 +602,7 @@ def kill_comments(string: str) -> str:
                 depth += 1
             if depth == 0:
                 result += string[i]
-            if string[i-1:i+1] == '*)':
+            if string[i-1:i+1] == '*)' and depth > 0:
                 depth -= 1
             if string[i] == '"' and string[i-1] != '\\':
                in_quote = True
