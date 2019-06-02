@@ -24,6 +24,7 @@ def main():
     parser.add_argument('-o', '--output', help="output data file name", default=None)
     parser.add_argument('-j', '--threads', default=1, type=int)
     parser.add_argument('-c', '--continue', dest='cont', default=False, const=True, action='store_const')
+    parser.add_argument('--hardfail', default=False, const=True, action='store_const')
     parser.add_argument('--prelude', default=".")
     parser.add_argument('-v', '--verbose', default=False, const=True, action='store_const')
     parser.add_argument('--debug', default=False, const=True, action='store_const')
@@ -89,7 +90,8 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     except Exception as e:
         eprint("FAILED: In file {}:".format(filename))
         eprint(e)
-        raise e
+        if args.hardfail:
+            raise e
 
 def process_statement(coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
