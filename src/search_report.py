@@ -15,6 +15,7 @@ from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
+import linearize_semicolons
 import helper
 import syntax
 from format import format_goal
@@ -228,10 +229,10 @@ def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
     loaded_commands = helper.try_load_lin(local_filename, verbose=verbose)
     if loaded_commands is None:
-        fresh_commands = helper.preprocess_file_commands(
+        fresh_commands = linearize_semicolons.preprocess_file_commands(
             helper.load_commands_preserve(prelude + "/" + filename),
             coqargs, includes, prelude,
-            filename, False)
+            local_filename, filename, False)
         helper.save_lin(fresh_commands, local_filename)
         return fresh_commands
     else:
