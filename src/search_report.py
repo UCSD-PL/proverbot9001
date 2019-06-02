@@ -46,8 +46,12 @@ def main(arg_list : List[str]) -> None:
     coqargs = ["{}/coq-serapi/sertop.native".format(base),
                "--prelude={}/coq".format(base)]
     prelude = args.prelude
-    with open(prelude + "/_CoqProject", 'r') as includesfile:
-        includes = includesfile.read()
+    try:
+        with open(prelude + "/_CoqProject", 'r') as includesfile:
+            includes = includesfile.read()
+    except FileNotFoundError:
+        print("Didn't find a _CoqProject file in prelude dir")
+        includes = ""
 
     if not os.path.exists(args.output):
         os.makedirs(args.output)
