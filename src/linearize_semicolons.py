@@ -488,7 +488,6 @@ def preprocess_file_commands(commands : List[str], coqargs : List[str], includes
         print("Timed out while lifting commands! Skipping linearization...")
         return commands
 
-import helper
 def main():
     parser = argparse.ArgumentParser(description=
                                      "linearize a set of files")
@@ -512,13 +511,13 @@ def main():
             print("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
         fresh_commands = preprocess_file_commands(
-            helper.load_commands_preserve(arg_values.prelude + "/" + filename),
+            serapi_instance.load_commands_preserve(arg_values.prelude + "/" + filename),
             coqargs, includes, arg_values.prelude,
             local_filename, filename,
             arg_values.skip_nochange_tac,
             debug=arg_values.debug,
             hardfail=arg_values.hardfail)
-        helper.save_lin(fresh_commands, local_filename)
+        serapi_instance.save_lin(fresh_commands, local_filename)
 
 if __name__ == "__main__":
     main()

@@ -17,6 +17,7 @@ from pampy import match, _, TAIL
 
 from sexpdata import *
 from traceback import *
+from util import *
 from format import ScrapedTactic
 import tokenizer
 
@@ -128,8 +129,8 @@ class SerapiInstance(threading.Thread):
     # instance. Returns nothing: if you want a response, call one of
     # the other methods to get it.
     def run_stmt(self, stmt : str):
-        if self.debug:
-            print("Running statement: " + stmt.lstrip('\n')) # lstrip makes output shorter
+        eprint("Running statement: " + stmt.lstrip('\n'),
+               guard=self.debug) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
         # too early.
         stmt = stmt.replace("\\", "\\\\")
@@ -871,3 +872,71 @@ def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command)) \
         and (command.count('(') == command.count(')'))
+def load_commands(filename : str) -> List[str]:
+    with open(filename, 'r') as fin:
+        contents = kill_comments(fin.read())
+        commands_orig = split_commands(contents)
+        commands_preprocessed = [newcmd for cmd in commands_orig
+                                 for newcmd in preprocess_command(cmd)]
+        return commands_preprocessed
+
+def load_commands_preserve(filename : str) -> List[str]:
+    with open(filename, 'r') as fin:
+        contents = fin.read()
+    return read_commands_preserve(contents)
+
+def read_commands_preserve(contents : str) -> List[str]:
+    result = []
+    cur_command = ""
+    comment_depth = 0
+    in_quote = False
+    for i in range(len(contents)):
+        cur_command += contents[i]
+        if in_quote:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = False
+        else:
+            if contents[i] == '"' and contents[i-1] != '\\':
+                in_quote = True
+            elif comment_depth == 0:
+                if (re.match("[\{\}]", contents[i]) and
+                      re.fullmatch("\s*", kill_comments(cur_command)[:-1])):
+                    assert isValidCommand(cur_command)
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.fullmatch("\s*[\+\-\*]+",
+                                   kill_comments(cur_command)) and
+                      (len(contents)==i+1 or contents[i] != contents[i+1])):
+                    assert isValidCommand(cur_command)
+                    result.append(cur_command)
+                    cur_command = ""
+                elif (re.match("\.($|\s)", contents[i:i+2]) and
+                      (not contents[i-1] == "." or contents[i-2] == ".")):
+                    assert isValidCommand(cur_command)
+                    result.append(cur_command)
+                    cur_command = ""
+            if contents[i:i+2] == '(*':
+                comment_depth += 1
+            elif contents[i-1:i+1] == '*)':
+                comment_depth -= 1
+    return result
+
+def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
+    if verbose:
+        eprint("Attempting to load cached linearized version from {}"
+               .format(filename + '.lin'))
+    if not os.path.exists(filename + '.lin'):
+        return None
+    file_hash = hash_file(filename)
+    with open(filename + '.lin', 'r') as f:
+        if file_hash == f.readline().strip():
+            return read_commands_preserve(f.read())
+        else:
+            return None
+
+def save_lin(commands : List[str], filename : str) -> None:
+    output_file = filename + '.lin'
+    with open(output_file, 'w') as f:
+        print(hash_file(filename), file=f)
+        for command in commands:
+            print(command, file=f)

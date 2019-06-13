@@ -139,3 +139,20 @@ def escape_lemma_name(lemma_name : str) -> str:
     for k, v in subs:
         lemma_name = re.sub(k, v, lemma_name)
     return lemma_name
+
+import hashlib
+BLOCKSIZE = 65536
+
+def hash_file(filename : str) -> str:
+    hasher = hashlib.md5()
+    with open(filename, 'rb') as f:
+        buf = f.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+import sys
+def eprint(*args, **kwargs):
+    if "guard" not in kwargs or kwargs["guard"]:
+        print(*args, file=sys.stderr, **{i:kwargs[i] for i in kwargs if i!='guard'})

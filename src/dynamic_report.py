@@ -24,7 +24,6 @@ import serapi_instance
 from serapi_instance import ParseError, LexError, TimeoutError, get_stem
 import tokenizer
 
-from helper import *
 from util import *
 from context_filter import get_context_filter
 
@@ -308,10 +307,10 @@ class Worker(threading.Thread):
         loaded_commands = try_load_lin(local_filename)
         if loaded_commands is None:
             fresh_commands = preprocess_file_commands(
-                load_commands_preserve(self.prelude + "/" + filename),
+                serapi_instance.load_commands_preserve(self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
                 filename, self.skip_nochange_tac, debug=self.debug)
-            save_lin(fresh_commands, local_filename)
+            serapi_instance.save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:
             return loaded_commands
