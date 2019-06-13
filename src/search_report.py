@@ -212,9 +212,9 @@ def report_file(args : argparse.Namespace,
                     try:
                         while coq.full_context != None:
                             coq.cancel_last()
-                    except serapi_instance.CoqExn:
+                    except serapi_instance.CoqExn as e:
                         commands_in.insert(0, lemma_statement)
-                        raise serapi_instance.CoqAnomaly("While cancelling")
+                        raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
                     # Run the original proof
                     run_to_next_vernac(coq, initial_context, lemma_statement)
                 if args.verbose:
@@ -222,6 +222,9 @@ def report_file(args : argparse.Namespace,
         except serapi_instance.CoqAnomaly as e:
             if args.verbose:
                 print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
+        except:
+            print(f"FAILED: in file {filename}")
+            raise
     write_html(args.output, filename, blocks_out)
     write_csv(args.output, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
