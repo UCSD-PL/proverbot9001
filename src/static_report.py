@@ -279,7 +279,7 @@ def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
     if correct_tactic.strip() == prediction.strip() or\
        correct_tactic_normalized.strip() == prediction_normalized.strip():
         return "goodcommand"
-    elif get_stem(correct_tactic) == get_stem(prediction):
+    elif get_stem(correct_tactic).strip() == get_stem(prediction).strip():
         return "okaycommand"
     elif correct_tactic.strip() in proper_subs and \
          proper_subs[correct_tactic.strip()] == prediction.strip():
