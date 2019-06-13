@@ -222,6 +222,8 @@ def report_file(args : argparse.Namespace,
         except serapi_instance.CoqAnomaly as e:
             if args.verbose:
                 print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
+            if args.hardfail:
+                raise e
         except:
             print(f"FAILED: in file {filename}")
             raise
@@ -254,6 +256,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--debug", "-vv", help="debug output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--hardfail", "-f", help="fail when hitting a coq anomaly",
                         action='store_const', const=True, default=False)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
