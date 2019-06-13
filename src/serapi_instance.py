@@ -61,6 +61,7 @@ class CoqAnomaly(Exception):
 
 def raise_(ex):
     raise ex
+
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -93,10 +94,9 @@ class SerapiInstance(threading.Thread):
         # the other process to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
         self.proof_context = None # type: Optional[str]
-        self.full_context = None # type: Optional[str]
+        self.full_context = ""# type: str
         self.cur_state = 0
-        self.prev_tactics_stack = [[]] #type: List[List[str]]
-
+        self.prev_tactics_stack = [] #type: List[List[str]]
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -156,7 +156,11 @@ class SerapiInstance(threading.Thread):
                 # Get a new proof context, if it exists
                 self.get_proof_context()
 
-                if re.match(r"\s*[{]\s*", stm):
+                if possibly_starting_proof(stm) and self.full_context:
+                    if not self.prev_tactics_stack == []:
+                        breakpoint()
+                    self.prev_tactics_stack = [[stm]]
+                elif re.match(r"\s*[{]\s*", stm):
                     self.prev_tactics_stack.append([])
                 elif re.match(r"\s*[}]\s*", stm):
                     self.prev_tactics_stack.pop()
@@ -168,14 +172,15 @@ class SerapiInstance(threading.Thread):
                 else:
                     # If we didn't see a new context, we're not in a
                     # proof anymore, so clear the prev_tactics state.
-                    self.prev_tactics_stack = [[]]
+                    self.prev_tactics_stack = []
+                eprint(f"self.prev_tactics_stack is {self.prev_tactics_stack}",
+                       guard=self.debug)
 
         # If we hit a problem let the user know what file it was in,
         # and then throw it again for other handlers. NOTE: We may
         # want to make this printing togglable (at this level), since
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
-            self.prev_tactics_stack[-1].append(stm)
             self.handle_exception(e, stmt)
 
     def prev_tactics(self):
@@ -200,11 +205,14 @@ class SerapiInstance(threading.Thread):
                                         raise_(ParseError("Couldn't parse command {}"
                                                           .format(stmt)))),
                     ['CErrors\.UserError', _],
-                    lambda inner: progn(self.cancel_last(), raise_(e)),
+                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
+                                        self.cancel_last(), raise_(e)),
                     ['ExplainErr\.EvaluatedError', TAIL],
-                    lambda inner: progn(self.cancel_last(), raise_(e)),
+                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
+                                        self.cancel_last(), raise_(e)),
                     ['Proofview.NoSuchGoals(1)'],
-                    lambda inner: progn(self.cancel_last(), raise_(e)),
+                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
+                                        self.cancel_last(), raise_(e)),
 
                     ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
@@ -220,19 +228,26 @@ class SerapiInstance(threading.Thread):
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> Any:
-        if self.debug:
-            print("Cancelling last statement from state {}".format(self.cur_state))
+        eprint("Cancelling last statement from state {}".format(self.cur_state),
+               guard=self.debug)
         # Flush any leftover messages in the queue
         while not self.messages.empty():
             self.get_message()
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
-        if len(self.prev_tactics_stack) > 0 and len(self.prev_tactics_stack[-1]) > 0:
-            self.prev_tactics_stack[-1].pop()
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
         # Get a new proof context, if it exists
         self.get_proof_context()
+
+        # Fix up the previous tactics
+        if not self.full_context:
+            self.prev_tactics_stack = []
+        elif len(self.prev_tactics_stack) > 0:
+            if len(self.prev_tactics_stack[-1]) > 0:
+                self.prev_tactics_stack[-1].pop()
+            else:
+                self.prev_tactics_stack.pop()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -423,9 +438,9 @@ class SerapiInstance(threading.Thread):
             finished = match(supposed_ack,
                              ['Answer', int, 'Ack'],
                              lambda state_num: True,
-
                              ["Answer", TAIL], lambda *args: False,
-
+                             ['Stack Overflow'],
+                             lambda *args: raise_(CoqExn(supposed_ack)),
                              _, lambda *args: raise_(AckError(["Symbol is not an ack! {}"
                                                                .format(supposed_ack)])))
 
@@ -450,7 +465,9 @@ class SerapiInstance(threading.Thread):
             match(cancelled_answer,
                   ["Answer", int, ["StmCanceled", [int]]],
                   lambda _, new_statenum: new_statenum,
-                  ["Answer", int, ["CoqExn", _]],
+                  ["Answer", int, ["StmCanceled", []]],
+                  lambda old_statenum: old_statenum,
+                  ["Answer", int, ["CoqExn", _, _, _]],
                   lambda *args: raise_(CoqExn(cancelled_answer)),
                   _, lambda *args: raise_(BadResponse(cancelled_answer)))
 
@@ -488,12 +505,35 @@ class SerapiInstance(threading.Thread):
             if (ol_msg[0] != "ObjList"):
                 raise BadResponse(proof_context_message)
             if len(ol_msg[1]) != 0:
+                # If we're in a proof, then let's run Unshelve to get
+                # the real goals. Note this would fail if we were not
+                # in a proof, so we have to check that first.
+                self.send_flush("(Control (StmAdd () \"Unshelve.\"))\n")
+                self.update_state()
+                self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+                feedbacks = self.get_feedbacks()
+
+                # Now actually get the goals
+                self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
+                                .format(self.cur_state))
+                self.get_ack()
+                proof_context_message = self.get_message()
+                ol_msg = proof_context_message[2]
+
+                # Cancel the Unshelve, to keep things clean.
+                self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
+                self.cur_state = self.get_cancelled()
+
+                # Do some basic parsing on the context
                 newcontext = self.extract_proof_context(ol_msg[1])
                 self.proof_context = newcontext.split("\n\n")[0]
-                self.full_context : Optional[str] = newcontext
+                if newcontext == "":
+                    self.full_context = "none"
+                else:
+                    self.full_context  = newcontext
             else:
                 self.proof_context = None
-                self.full_context : Optional[str] = None
+                self.full_context = ""
 
     def get_lemmas_about_head(self) -> str:
         goal_head = self.get_goals().split()[0]
@@ -870,8 +910,32 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
-    return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command)) \
+    return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
         and (command.count('(') == command.count(')'))
+
+from typing import NamedTuple
+
+class Subgoal(NamedTuple):
+    hypotheses : List[str]
+    goal : str
+
+class FullContext(NamedTuple):
+    subgoals : List[Subgoal]
+
+def parseSubgoal(substr : str) -> Subgoal:
+    split = re.split("\n====+\n", substr)
+    assert len(split) == 2, substr
+    hypsstr, goal = split
+    return Subgoal(parse_hyps(hypsstr), goal)
+
+def parseFullContext(full_context : str) -> FullContext:
+    if full_context == "none":
+        return FullContext([])
+    else:
+        return FullContext([parseSubgoal(substr) for substr in
+                            re.split("\n\n|(?=\nnone)", full_context)
+                            if substr.strip()])
+
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = kill_comments(fin.read())
