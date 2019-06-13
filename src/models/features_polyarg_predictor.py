@@ -203,7 +203,7 @@ class FeaturesPolyargPredictor(
         assert self._embedding
         assert self.training_args
         assert self._model
-        beam_width=k ** 2
+        beam_width=min(self.training_args.max_beam_width, k ** 2)
         num_hyps = len(context.hypotheses)
 
         num_stem_poss = self._embedding.num_tokens()
@@ -425,8 +425,8 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("num-head-keywords", 100))
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
                             default=default_values.get("num-tactic-keywords", 50))
-        parser.add_argument("--beam-width", dest="beam_width", type=int,
-                            default=default_values.get("beam-width", 5))
+        parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
+                            default=default_values.get("max-beam-width", 10))
     def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
         -> Iterable[ScrapedTactic]:
         data_iter = super()._preprocess_data(data, arg_values)
@@ -571,7 +571,7 @@ class FeaturesPolyargPredictor(
         goal_size = tokenized_goals_batch.size()[1]
         stemDistributions = model.stem_classifier(word_features_batch, vec_features_batch)
         num_stem_poss = stemDistributions.size()[1]
-        stem_width = min(arg_values.beam_width, num_stem_poss)
+        stem_width = min(arg_values.max_beam_width, num_stem_poss)
         stem_var = maybe_cuda(Variable(stem_idxs_batch))
         predictedProbs, predictedStemIdxs = stemDistributions.topk(stem_width)
         mergedStemIdxs = []
@@ -582,14 +582,14 @@ class FeaturesPolyargPredictor(
                 mergedStemIdxs.append(
                     torch.cat((stem_idx.view(1).cuda(),
                                predictedStemIdxList[:stem_width-1])))
-        mergedStemIdxs = torch.stack(mergedStemIdxs)
+        mergedStemIdxsT = torch.stack(mergedStemIdxs)
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
         tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
         hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
         goal_arg_values = model.goal_args_model(
-            mergedStemIdxs.view(batch_size * stem_width),
+            mergedStemIdxsT.view(batch_size * stem_width),
             tokenized_goals_batch.view(batch_size, 1, goal_size).expand(-1, stem_width, -1)
             .contiguous().view(batch_size * stem_width, goal_size))\
             .view(batch_size, stem_width, goal_size + 1)
@@ -605,7 +605,7 @@ class FeaturesPolyargPredictor(
             .expand(-1, stem_width, hyp_lists_length, -1).contiguous()\
             .view(batch_size * stem_width * hyp_lists_length, encoded_goal_size)
         stems_expanded = \
-            mergedStemIdxs.view(batch_size, stem_width, 1)\
+            mergedStemIdxsT.view(batch_size, stem_width, 1)\
             .expand(-1, -1, hyp_lists_length).contiguous()\
             .view(batch_size * stem_width * hyp_lists_length)
         hyp_arg_values_concatted = \

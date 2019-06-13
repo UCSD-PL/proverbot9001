@@ -82,7 +82,7 @@ class FindArgModel(nn.Module):
 class CopyArgModel(nn.Module):
     def __init__(self, find_arg_rnn : FindArgModel,
                  word_features_encoder : WordFeaturesEncoder,
-                 features_classifier : nn.Linear) -> None:
+                 features_classifier : DNNClassifier) -> None:
         super().__init__()
         self.find_arg_rnn = maybe_cuda(find_arg_rnn)
         self.word_features_encoder = maybe_cuda(word_features_encoder)
@@ -155,6 +155,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
             in_datas : List[TacticContext],
             corrects : List[str],
             k : int) -> Tuple[List[List[Prediction]], float]:
+        assert self._embedding
         stem_probs, likely_correct_stems = stem_distribution.topk(min(beam_width,
                                                                       stem_distribution.size()[1]))
 
@@ -199,6 +200,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                      in_datas : List[TacticContext],
                                      k : int) -> \
                                      List[List[Prediction]]:
+        assert self._embedding
         all_prob_batches, stem_mapping = \
             self._predictCompositeDistributionFromStemDistribution(
                 beam_width, stem_distribution, in_datas)
@@ -208,9 +210,9 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         indices = final_idxs / row_length
         stem_idxs = [index_map.index_select(0, indices1)
                      for index_map, indices1
-                     in zip(index_mapping, indices)]
+                     in zip(stem_mapping, indices)]
         arg_idxs = final_idxs % row_length
-        return [[Prediction(self.embedding.decode_token(stem_idx.item()) + " " +
+        return [[Prediction(self._embedding.decode_token(stem_idx.item()) + " " +
                             get_arg_from_token_idx(in_data.goal, arg_idx.item()),
                             math.exp(final_prob))
                  for stem_idx, arg_idx, final_prob
@@ -234,7 +236,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         stem_var = maybe_cuda(Variable(stems_batch)).view(batch_size)
         argTokenIdxDistributions = model.find_arg_rnn(goals_batch, stems_batch)
         argToken_var = maybe_cuda(Variable(arg_idxs_batch)).view(batch_size)
-        loss = 0.
+        loss = FloatTensor([0.])
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(argTokenIdxDistributions, argToken_var)
         return loss
@@ -245,7 +247,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         with self._lock:
             stem_distribution = self._predictStemDistributions([in_data])[0]
             predictions = self._predictFromStemDistribution(5, stem_distribution,
-                                                            [in_data], k)
+                                                            [in_data], k)[0]
         return predictions
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:

@@ -174,8 +174,8 @@ def main(arg_list : List[str]) -> None:
     args = take_std_args(arg_list, "non-recurrent neural network "
                                      "model for Proverbot9001")
 
-    raw_dataset = get_text_data(args.scrape_file, args.context_filter,
-                            max_tuples=args.max_tuples, verbose=True)
+    raw_dataset = get_text_data(args.scrape_file, args.context_filter, args,
+                                max_tuples=args.max_tuples, verbose=True)
     dataset, tokenizer, embedding = encode_bag_classify_data(raw_dataset,
                                                              tokenizers[args.tokenizer],
                                                              args.num_keywords, 2)
