@@ -117,7 +117,7 @@ def report_file(args : argparse.Namespace,
     num_proofs_failed = 0
     num_proofs_completed = 0
     commands_in = get_commands(filename, args.verbose or args.debug)
-    commands_run = []
+    commands_run : List[str] = []
     num_commands_total = len(commands_in)
     def show_progress(tag:str=""):
         if args.progress and args.num_threads == 1:
