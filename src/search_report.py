@@ -120,7 +120,7 @@ def report_file(args : argparse.Namespace,
     commands_run = []
     num_commands_total = len(commands_in)
     def show_progress(tag:str=""):
-        if args.verbose and args.num_threads == 1:
+        if args.progress and args.num_threads == 1:
             print("\r{:.2f}% done ({} of {} commands processed) {}".format(
                 100 * (1 - (len(commands_in) / num_commands_total)),
                 num_commands_total - len(commands_in), num_commands_total,
@@ -256,6 +256,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--debug", "-vv", help="debug output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument("--hardfail", "-f", help="fail when hitting a coq anomaly",
                         action='store_const', const=True, default=False)
