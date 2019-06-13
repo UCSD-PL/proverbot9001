@@ -37,7 +37,8 @@ def linearize_commands(commands_sequence: Iterable[str],
                        coq : serapi_instance.SerapiInstance,
                        filename : str, relative_filename : str,
                        skip_nochange_tac:bool, debug:bool, hardfail:bool):
-    command = next(commands_sequence, None)
+    commands_iter = iter(commands_sequence)
+    command = next(commands_iter, None)
     assert command, "Got an empty sequence!"
     while command:
         # Run up to the next proof
@@ -45,7 +46,7 @@ def linearize_commands(commands_sequence: Iterable[str],
             coq.run_stmt(command)
             if coq.count_fg_goals() == 0:
                 yield command
-                command = next(commands_sequence, None)
+                command = next(commands_iter, None)
                 if not command:
                     return
 
@@ -56,9 +57,10 @@ def linearize_commands(commands_sequence: Iterable[str],
         command_batch = []
         while command and not serapi_instance.ending_proof(command):
             command_batch.append(command)
-            command = next(commands_sequence, None)
+            command = next(commands_iter, None)
         # Get the QED on there too.
-        command_batch.append(command)
+        if command:
+            command_batch.append(command)
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
@@ -71,7 +73,7 @@ def linearize_commands(commands_sequence: Iterable[str],
             for command in command_batch:
                 coq.run_stmt(command)
                 yield command
-            command = next(commands_sequence, None)
+            command = next(commands_iter, None)
             continue
 
         # This might not be super robust?
@@ -101,7 +103,7 @@ def linearize_commands(commands_sequence: Iterable[str],
                     coq.run_stmt(command)
                     yield command
 
-        command = next(commands_sequence, None)
+        command = next(commands_iter, None)
 
 def split_to_next_matching(openpat : str, closepat : str, target : str) \
     -> Tuple[str, str]:
@@ -284,7 +286,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 clauses = multisplit_matching("\[", "\]", "(?<!\|)\|(?!\|)",
                                               bracket_command.strip()[1:-1])
                 commands_list = [cmd.strip() if cmd.strip().strip(".") != ""
-                                 else "idtac" + cmd for cmd in
+                                 else "idtac" + cmd.strip() for cmd in
                                  clauses]
                 dotdotpat = re.compile(r"(.*)\.\.($|\W)")
                 ending_dotdot_match = dotdotpat.match(commands_list[-1])
@@ -361,8 +363,9 @@ def split_commas(command : str) -> str:
             return command
         first_id, rest = split
         rest = rest[1:]
-        rewrite_rest, command_rest = split_by_char_outside_matching("\(", "\)", ";|\.",
-                                                                    rest)
+        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        assert split
+        rewrite_rest, command_rest = split
         by_match = re.match("(.*)(\sby\s.*)", rewrite_rest)
         in_match = re.match("(.*)(\sin\s.*)", rewrite_rest)
         postfix = ""
@@ -379,8 +382,9 @@ def split_commas(command : str) -> str:
         prefix, unfold_command, first_id, rest = unfold_match.group(1, 2, 3, 4)
         if re.search("\sin\s", unfold_command + first_id):
             return command
-        unfold_rest, command_rest = split_by_char_outside_matching("\(", "\)", ";|\.",
-                                                                   rest)
+        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        assert split
+        unfold_rest, command_rest = split
         in_match = re.match("(.*)(\sin\s.*)", unfold_rest)
         postfix = ""
         if in_match:
