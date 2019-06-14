@@ -48,6 +48,7 @@ function fromList(list_str) {
     in_quotes = 0
     paren_depth = 0
     items = [""]
+    var i;
     for(i = 0; i < body.length; ++i){
         c = body[i]
         if (c == "\""){
@@ -69,6 +70,7 @@ function fromList(list_str) {
 function parseSubgoals(subgoals_str) {
     subgoal_strs = fromList(subgoals_str)
     subgoals = []
+    var i;
     for (i = 0; i < subgoal_strs.length; i++) {
         subgoal = {}
         parts = fromList(subgoal_strs[i])
@@ -88,6 +90,7 @@ function hoverTactic(idx_str){
     tacSpan = document.getElementById("command-" + idx_str)
     subgoals = parseSubgoals(tacSpan.dataset.subgoals)
 
+    var i;
     for (i = 0; i < subgoals.length; i++) {
         subgoal = subgoals[i]
         hypsPre = document.createElement('pre')
