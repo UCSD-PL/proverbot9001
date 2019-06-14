@@ -210,7 +210,7 @@ def report_file(args : argparse.Namespace,
                         attempt_search(args, lemma_statement, coq)
                     # Cancel until before the proof
                     try:
-                        while coq.full_context != None:
+                        while coq.full_context != "":
                             coq.cancel_last()
                     except serapi_instance.CoqExn as e:
                         commands_in.insert(0, lemma_statement)
@@ -469,14 +469,19 @@ def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
         with tag('code', klass='plaincommand'):
             text(cmd.strip("\n"))
         doc.stag('br')
+
+def subgoal_to_string(sg : Subgoal) -> str:
+    return "(\"" + sg.goal + "\", (\"" + "\",\"".join(sg.hypotheses) + "\"))"
+
 def write_tactics(tactics : List[TacticInteraction],
                   region_idx : int,
                   tag : Tag, text : Text, doc : Doc):
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
         with tag('span',
-                 ('data-hyps', "\n".join(t.context_before.hypotheses)),
-                 ('data-goal', format_goal(t.context_before.goal)),
+                 ('data-subgoals',
+                  "(" + ",".join([subgoal_to_string(subgoal)
+                                  for subgoal in t.context_before.subgoals]) + ")"),
                  id='command-{}'.format(idStr),
                  onmouseover='hoverTactic("{}")'.format(idStr),
                  onmouseout='unhoverTactic()'):
