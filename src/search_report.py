@@ -707,6 +707,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                            subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
                 elif len(current_path) + 1 < args.search_depth:
                     sub_search_result = search(current_path + [predictionNode])
                     if sub_search_result.solution or \
@@ -718,8 +720,12 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
                     for _ in range(stmts_to_cancel):
                         coq.cancel_last()
+                    subgoals_closed = 0
                 else:
                     hasUnexploredNode = True
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
+                    subgoals_closed = 0
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
