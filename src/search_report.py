@@ -64,15 +64,16 @@ def main(arg_list : List[str]) -> None:
     def print_done(stats : ReportStats):
         nonlocal files_done
         files_done += 1
-        print("Finished output for file {} ({} of {})"
-              .format(stats.filename, files_done, len(args.filenames)))
+        if not args.progress:
+            print("Finished output for file {} ({} of {})"
+                  .format(stats.filename, files_done, len(args.filenames)))
         return stats
 
     with multiprocessing.pool.ThreadPool(args.num_threads) as pool:
         file_results = [print_done(stats) for stats in
                         pool.imap_unordered(
                             functools.partial(report_file, args, context_filter),
-                            args.filenames)
+                            enumerate(args.filenames))
                         if stats]
 
     print("Writing summary with {} file outputs.".format(len(file_results)))
@@ -115,29 +116,34 @@ class ArgsMismatchException(Exception):
 
 from tqdm import tqdm
 
-class FakeBar:
-    def update(self, n : int) -> None:
-        pass
-
 def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
-                filename : str) -> Optional[ReportStats]:
+                file_tuple : Tuple[int, str]) -> Optional[ReportStats]:
+    file_idx, filename = file_tuple
+    commands_in = get_commands(filename, args.verbose or args.debug)
+    num_commands_total = len(commands_in)
     if args.resume:
         try:
             stats = read_stats_from_csv(args, filename)
-            print(f"Resumed {filename} from existing state")
+            with tqdm(total=num_commands_total, unit="cmd",
+                      desc=os.path.basename(filename) + " (Resumed)",
+                      disable=(not args.progress),
+                      leave=True,
+                      position=(file_idx * 3)) as pbar:
+                pbar.update(num_commands_total)
+            if not args.progress:
+                print(f"Resumed {filename} from existing state")
             return stats
         except FileNotFoundError:
             pass
         except ArgsMismatchException as e:
-            print(f"Arguments in report for {filename} didn't match current arguments! {e} Overwriting (interrupt to cancel).")
+            if not args.progress:
+                print(f"Arguments in report for {filename} didn't match current arguments! {e} Overwriting (interrupt to cancel).")
 
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
-    commands_in = get_commands(filename, args.verbose or args.debug)
     commands_run : List[str] = []
-    num_commands_total = len(commands_in)
     # Run vernacular until the next proof (or end of file)
     def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
         nonlocal commands_run
@@ -195,14 +201,18 @@ def report_file(args : argparse.Namespace,
                                          [TacticInteraction("Qed.", empty_context)],
                                          original_tactics))
 
-    print("Loaded {} commands for file {}".format(len(commands_in), filename))
+    if not args.progress:
+        print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
     while len(commands_in) > 0:
         try:
             # print("Starting a coq instance...")
             with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-                with tqdm(total=num_commands_total, unit="cmd", desc="File",
-                          disable=(not (args.progress and args.num_threads ==1))) as pbar:
+                with tqdm(total=num_commands_total, unit="cmd",
+                          desc=os.path.basename(filename),
+                          disable=(not args.progress),
+                          leave=True,
+                          position=(file_idx * 3)) as pbar:
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
@@ -218,7 +228,7 @@ def report_file(args : argparse.Namespace,
                         initial_context = coq.getAllGoals()
                         # Try to search
                         search_status, tactic_solution = \
-                            attempt_search(args, lemma_statement, coq)
+                            attempt_search(args, lemma_statement, coq, file_idx)
                         # Cancel until before the proof
                         try:
                             while coq.full_context != "":
@@ -568,9 +578,10 @@ class SearchResult(NamedTuple):
 # This method attempts to complete proofs using search.
 def attempt_search(args : argparse.Namespace,
                    lemma_statement : str,
-                   coq : serapi_instance.SerapiInstance) \
+                   coq : serapi_instance.SerapiInstance,
+                   file_idx : int) \
     -> SearchResult:
-    result = dfs_proof_search_with_graph(lemma_statement, coq, args)
+    result = dfs_proof_search_with_graph(lemma_statement, coq, args, file_idx)
     return result
 
 # This implementation is here for reference/documentation
@@ -612,7 +623,8 @@ class SubSearchResult (NamedTuple):
 
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
-                                args : argparse.Namespace) \
+                                args : argparse.Namespace,
+                                file_idx : int) \
                                 -> SearchResult:
     search_graph = pgv.AGraph(directed=True)
     next_node_id = 0
@@ -693,8 +705,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     subgoals_opened = 0
                 context_after = get_fullcontext()
                 if completed_proof(coq):
-                    pbar.update(((args.search_depth - len(current_path)+1)
-                                 ** args.search_width)-1)
+                    nodes_done = ((args.search_width **
+                                   (args.search_depth - len(current_path))
+                                   - 1) / \
+                                  (args.search_width - 1)) - 1
+                    pbar.update(nodes_done)
                     mkEdge(predictionNode, mkNode("QED", FullContext([]),
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
@@ -705,12 +720,14 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                            subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
-                    pbar.update(((args.search_depth - len(current_path)+1)
-                                 ** args.search_width)-1)
+                    nodes_done = ((args.search_width **
+                                  (args.search_depth - len(current_path))
+                                  - 1) / \
+                                  (args.search_width - 1)) - 1
+                    pbar.update(nodes_done)
                     for _ in range(num_stmts):
                         coq.cancel_last()
                 elif len(current_path) + 1 < args.search_depth:
-                    # print(f"Recursing at depth {len(current_path) + 1}")
                     sub_search_result = search(pbar, current_path + [predictionNode])
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -718,11 +735,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                             subgoals_closed + \
                             sub_search_result.solved_subgoals - \
                             subgoals_opened
-                        # print(f"Closed {new_subgoals_closed} subgoals")
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
-                    # print(f"Cancelling {stmts_to_cancel} stmts")
                     for _ in range(stmts_to_cancel):
                         coq.cancel_last()
                     subgoals_closed = 0
@@ -734,19 +749,25 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
+                nodes_done = ((args.search_width **
+                               (args.search_depth - len(current_path))
+                               - 1) / \
+                              (args.search_width - 1)) - 1
                 setNodeColor(predictionNode, "red")
-                pbar.update((args.search_depth - (len(current_path) + 1))
-                            ** args.search_width)
+                pbar.update(nodes_done)
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
             if subgoals_closed > 0:
-                # print(f"Closed {subgoals_closed} subgoals")
                 return SubSearchResult(None, subgoals_closed)
-        # print("Ran through all of our predictions")
         return SubSearchResult(None, 0)
-    with tqdm(total=(args.search_width ** args.search_depth), unit="pred",
-              desc="Proof", disable=(not (args.progress and args.num_threads==1))) as pbar:
+    total_nodes = ((args.search_width **
+                    (args.search_depth+1)) - 1) / \
+                        (args.search_width - 1)
+    with tqdm(total=total_nodes, unit="pred",
+              desc="Proof", disable=(not args.progress),
+              leave=True,
+              position=((file_idx*3)+1)) as pbar:
         command_list, _ = search(pbar, [])
     with silent():
         search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
