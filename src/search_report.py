@@ -185,7 +185,7 @@ def report_file(args : argparse.Namespace,
 
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
-    if args.verbose and args.num_threads == 1:
+    if args.progress and args.num_threads == 1:
         print("0.00% done (0 of {} commands processed)".format(num_commands_total),
               end="")
     while len(commands_in) > 0:
@@ -217,7 +217,7 @@ def report_file(args : argparse.Namespace,
                         raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
                     # Run the original proof
                     run_to_next_vernac(coq, initial_context, lemma_statement)
-                if args.verbose:
+                if args.progress:
                     print("\r")
         except serapi_instance.CoqAnomaly as e:
             if args.verbose:
