@@ -71,6 +71,99 @@ class Subgoal(NamedTuple):
 class FullContext(NamedTuple):
     subgoals : List[Subgoal]
 
+@dataclass
+class TacticTree:
+    children : List[Union['TacticTree', str]]
+    def __repr__(self) -> str:
+        result = "["
+        for child in self.children:
+            result += repr(child)
+            result += ","
+        result += "]"
+        return result
+
+class TacticHistory:
+    __tree : TacticTree
+    __cur_subgoal_depth : int
+    def __init__(self) -> None:
+        self.__tree = TacticTree([])
+        self.__cur_subgoal_depth = 0
+    def openSubgoal(self) -> None:
+        curTree = self.__tree
+        for _ in range(self.__cur_subgoal_depth):
+            assert isinstance(curTree.children[-1], TacticTree)
+            curTree = curTree.children[-1]
+        curTree.children.append(TacticTree([]))
+        self.__cur_subgoal_depth += 1
+        pass
+
+    def closeSubgoal(self) -> None:
+        assert self.__cur_subgoal_depth > 0
+        self.__cur_subgoal_depth -= 1
+        pass
+
+    def curDepth(self) -> int:
+        return self.__cur_subgoal_depth
+
+    def addTactic(self, tactic : str) -> None:
+        curTree = self.__tree
+        for _ in range(self.__cur_subgoal_depth):
+            assert isinstance(curTree.children[-1], TacticTree)
+            curTree = curTree.children[-1]
+        curTree.children.append(tactic)
+        pass
+
+    def removeLast(self) -> None:
+        assert len(self.__tree.children) > 0, "Tried to remove from an empty tactic history!"
+        curTree = self.__tree
+        for _ in range(self.__cur_subgoal_depth):
+            assert isinstance(curTree.children[-1], TacticTree)
+            curTree = curTree.children[-1]
+        if len(curTree.children) == 0:
+            parent = self.__tree
+            for _ in range(self.__cur_subgoal_depth-1):
+                assert isinstance(parent.children[-1], TacticTree)
+                parent = parent.children[-1]
+            parent.children.pop()
+            self.__cur_subgoal_depth -= 1
+        else:
+            lastChild = curTree.children[-1]
+            if isinstance(lastChild, str):
+                curTree.children.pop()
+            else:
+                assert isinstance(lastChild, TacticTree)
+                self.__cur_subgoal_depth += 1
+        pass
+
+    def getCurrentHistory(self) -> List[str]:
+        def generate() -> Iterable[str]:
+            curTree = self.__tree
+            for i in range(self.__cur_subgoal_depth+1):
+                yield from (child for child in curTree.children if isinstance(child, str))
+                if i < self.__cur_subgoal_depth:
+                    assert isinstance(curTree.children[-1], TacticTree)
+                    curTree = curTree.children[-1]
+            pass
+        return list(generate())
+        pass
+
+    def getNextCancelled(self) -> str:
+        curTree = self.__tree
+        for i in range(self.__cur_subgoal_depth):
+            assert isinstance(curTree.children[-1], TacticTree)
+            curTree = curTree.children[-1]
+
+        if len(curTree.children) == 0:
+            return "{"
+        elif isinstance(curTree.children[-1], TacticTree):
+            return "}"
+        else:
+            assert isinstance(curTree.children[-1], str), curTree.children[-1]
+            return curTree.children[-1]
+
+    def __str__(self) -> str:
+        return f"depth {self.__cur_subgoal_depth}, {repr(self.__tree)}"
+
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -105,7 +198,8 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None # type: Optional[str]
         self.full_context = ""# type: str
         self.cur_state = 0
-        self.prev_tactics_stack = [] #type: List[List[str]]
+        self.tactic_history = TacticHistory()
+        self.pending_subgoals = [] # type: List[Subgoal]
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -151,6 +245,8 @@ class SerapiInstance(threading.Thread):
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
+                # Get initial context
+                context_before = parseFullContext(self.full_context)
                 # Send the command
                 self.send_flush("(Control (StmAdd () \"{}\"))\n".format(stm))
                 # Get the response, which indicates what state we put
@@ -166,24 +262,25 @@ class SerapiInstance(threading.Thread):
                 self.get_proof_context()
 
                 if possibly_starting_proof(stm) and self.full_context:
-                    if not self.prev_tactics_stack == []:
-                        breakpoint()
-                    self.prev_tactics_stack = [[stm]]
+                    self.tactic_history = TacticHistory()
+                    self.tactic_history.addTactic(stm)
                 elif re.match(r"\s*[{]\s*", stm):
-                    self.prev_tactics_stack.append([])
+                    self.pending_subgoals = context_before.subgoals[1:] \
+                        + self.pending_subgoals
+                    self.tactic_history.openSubgoal()
                 elif re.match(r"\s*[}]\s*", stm):
-                    self.prev_tactics_stack.pop()
-                elif self.full_context or len(self.prev_tactics_stack) > 1:
+                    if self.pending_subgoals:
+                        self.pending_subgoals.pop(0)
+                    self.tactic_history.closeSubgoal()
+                elif self.full_context:
                     # If we saw a new proof context, we're still in a
                     # proof so append the command to our prev_tactics
                     # list.
-                    self.prev_tactics_stack[-1].append(stm)
+                    self.tactic_history.addTactic(stm)
                 else:
                     # If we didn't see a new context, we're not in a
                     # proof anymore, so clear the prev_tactics state.
-                    self.prev_tactics_stack = []
-                eprint(f"self.prev_tactics_stack is {self.prev_tactics_stack}",
-                       guard=self.debug)
+                    self.pending_subgoals = []
 
         # If we hit a problem let the user know what file it was in,
         # and then throw it again for other handlers. NOTE: We may
@@ -193,7 +290,7 @@ class SerapiInstance(threading.Thread):
             self.handle_exception(e, stmt)
 
     def prev_tactics(self):
-        return [tactic for sublist in self.prev_tactics_stack for tactic in sublist]
+        return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
         if not self.quiet or self.debug:
@@ -214,14 +311,14 @@ class SerapiInstance(threading.Thread):
                                         raise_(ParseError("Couldn't parse command {}"
                                                           .format(stmt)))),
                     ['CErrors\.UserError', _],
-                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
+                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.cancel_last(), raise_(e)),
                     ['ExplainErr\.EvaluatedError', TAIL],
-                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
+                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.cancel_last(), raise_(e)),
                     ['Proofview.NoSuchGoals(1)'],
-                    lambda inner: progn(self.prev_tactics_stack[-1].append(stmt),
-                                        self.cancel_last(), raise_(e)),
+                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
+                                        self.cancel_last(), raise_(NoSuchGoalError())),
 
                     ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
@@ -237,7 +334,8 @@ class SerapiInstance(threading.Thread):
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> Any:
-        eprint("Cancelling last statement from state {}".format(self.cur_state),
+        eprint(f"Cancelling {self.tactic_history.getNextCancelled()} "
+               f"from state {self.cur_state}",
                guard=self.debug)
         # Flush any leftover messages in the queue
         while not self.messages.empty():
@@ -251,12 +349,9 @@ class SerapiInstance(threading.Thread):
 
         # Fix up the previous tactics
         if not self.full_context:
-            self.prev_tactics_stack = []
-        elif len(self.prev_tactics_stack) > 0:
-            if len(self.prev_tactics_stack[-1]) > 0:
-                self.prev_tactics_stack[-1].pop()
-            else:
-                self.prev_tactics_stack.pop()
+            self.tactic_history = TacticHistory()
+        else:
+            self.tactic_history.removeLast()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack

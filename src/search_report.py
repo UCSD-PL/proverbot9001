@@ -676,5 +676,5 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 
 
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
-    completed = coq.full_context == "none" and len(coq.prev_tactics_stack) == 1
+    completed = coq.full_context == "none" and coq.tactic_history.curDepth() == 0
     return completed
