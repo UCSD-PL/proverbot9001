@@ -598,6 +598,10 @@ class SerapiInstance(threading.Thread):
             return []
         return parse_hyps(re.split("\n======+\n", self.proof_context)[0])
 
+    def getAllGoals(self) -> FullContext:
+        fg_goals = parseFullContext(self.full_context).subgoals
+        return FullContext(fg_goals + self.pending_subgoals)
+
     def get_proof_context(self) -> None:
         self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
                         .format(self.cur_state))

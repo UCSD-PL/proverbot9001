@@ -158,7 +158,7 @@ def report_file(args : argparse.Namespace,
         original_tactics : List[TacticInteraction] = []
         while coq.full_context != "":
             next_in_command = commands_in.pop(0)
-            context_before = serapi_instance.parseFullContext(coq.full_context)
+            context_before = coq.getAllGoals()
             coq.run_stmt(next_in_command)
             commands_run.append(next_in_command)
             original_tactics.append(TacticInteraction(next_in_command, context_before))
@@ -203,7 +203,7 @@ def report_file(args : argparse.Namespace,
                         break
                     # Get beginning of next proof
                     num_proofs += 1
-                    initial_context = serapi_instance.parseFullContext(coq.full_context)
+                    initial_context = coq.getAllGoals()
                     # Try to search
                     show_progress()
                     search_status, tactic_solution = \
@@ -581,8 +581,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq.goals)
         return context
     def get_fullcontext() -> FullContext:
-        fullcontext = serapi_instance.parseFullContext(coq.full_context)
-        return fullcontext
+        return coq.getAllGoals()
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
                 predictor.predictKTactics(get_prediction_context(), args.search_width)]
