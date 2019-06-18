@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
+from typing import (Dict, List, Union, Tuple, Iterable, NamedTuple,
+                    Sequence, Any, Optional)
 from format import ScrapedTactic
 from abc import ABCMeta, abstractmethod
 import argparse
@@ -20,7 +21,7 @@ def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
     return TacticContext(prev_tactic, hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
-    training_args : argparse.Namespace
+    training_args : Optional[argparse.Namespace]
     def __init__(self) -> None:
         pass
 

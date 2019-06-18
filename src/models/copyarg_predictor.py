@@ -126,6 +126,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
             self, beam_width : int, stem_distribution : torch.FloatTensor,
             in_datas : List[TacticContext]) \
         -> Tuple[torch.FloatTensor, torch.LongTensor]:
+        assert self.training_args
         assert self._tokenizer
         goals_batch = torch.LongTensor([normalizeSentenceLength(
             self._tokenizer.toTokenList(goal),
@@ -155,6 +156,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
             in_datas : List[TacticContext],
             corrects : List[str],
             k : int) -> Tuple[List[List[Prediction]], float]:
+        assert self.training_args
         assert self._embedding
         stem_probs, likely_correct_stems = stem_distribution.topk(min(beam_width,
                                                                       stem_distribution.size()[1]))
@@ -200,6 +202,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                      in_datas : List[TacticContext],
                                      k : int) -> \
                                      List[List[Prediction]]:
+        assert self.training_args
         assert self._embedding
         all_prob_batches, stem_mapping = \
             self._predictCompositeDistributionFromStemDistribution(

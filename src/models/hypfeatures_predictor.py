@@ -92,6 +92,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
         assert self._tokenizer
         assert self._embedding
+        assert self.training_args
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
                                                self.training_args.max_length)
                        for _, _, goal in in_datas]
@@ -265,6 +266,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
 
     def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
+        assert self.training_args
         assert self._embedding
         with self._lock:
             prediction_distribution = self._predictDistributions([in_data])[0]
@@ -287,6 +289,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
 
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
+        assert self.training_args
         assert self._embedding
         with self._lock:
             prediction_distribution = self._predictDistributions([in_data])[0]
@@ -318,6 +321,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                                       k : int, corrects : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         assert self._embedding
+        assert self.training_args
         with self._lock:
             prediction_distributions = self._predictDistributions(in_data)
         correct_stems = [serapi_instance.get_stem(correct) for correct in corrects]
@@ -346,6 +350,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                    zip(certainties_and_idxs_list, in_data)]
         return results, loss
     def getOptions(self) -> List[Tuple[str, str]]:
+        assert self.training_args
         return list(vars(self.training_args).items()) + \
             [("training loss", self.training_loss),
              ("# epochs", self.num_epochs),

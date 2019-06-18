@@ -44,6 +44,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         self._lock = threading.Lock()
 
     def _encode_term(self, term : str) -> List[int]:
+        assert self.training_args
         return getNGramTokenbagVector(self.training_args.num_grams,
                                       self._tokenizer.numTokens(),
                                       self._tokenizer.toTokenList(term))

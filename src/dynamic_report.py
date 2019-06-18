@@ -381,6 +381,7 @@ class Worker(threading.Thread):
                                           for prediction_run, (prediction, certainty) in
                                           zip(prediction_runs,
                                               predictions_and_certainties)]
+                    assert net.training_args
                     if self.cfilter({"goal": format_goal(goals),
                                      "hyps": format_hypothesis(hyps)},
                                     command,

@@ -128,6 +128,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         self._lock = threading.Lock()
 
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
+        assert self.training_args
         vec_features_batch = [self._get_vec_features(in_data) for in_data in in_datas]
         word_features_batch = [self._get_word_features(in_data) for in_data in in_datas]
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
