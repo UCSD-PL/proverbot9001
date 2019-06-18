@@ -175,19 +175,17 @@ def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
         data_chunks = pool.imap(read_text_data_worker__, line_chunks)
         result = itertools.chain.from_iterable(data_chunks)
         yield from result
-def get_text_data(data_path : str, context_filter_name : str,
-                  arg_values : Namespace,
-                  max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
+def get_text_data(arg_values : Namespace) -> RawDataset:
     def _print(*args, **kwargs):
-        if verbose:
+        if arg_values.verbose:
             print(*args, **kwargs)
 
     start = time.time()
     _print("Reading dataset...", end="")
     sys.stdout.flush()
-    raw_data = read_text_data(data_path)
-    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name), arg_values), max_tuples)))
-    print("{:.2f}s".format(time.time() - start))
+    raw_data = RawDataset(list(read_text_data(arg_values.datafile_path)))
+    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(arg_values.context_filter), arg_values), arg_values.max_tuples)))
+    _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 

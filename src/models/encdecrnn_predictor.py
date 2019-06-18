@@ -272,7 +272,7 @@ def main(args_list : List[str]) -> None:
     signal.signal(signal.SIGINT, exit_early)
     args = take_args(args_list)
     print("Reading dataset...")
-    raw_dataset = get_text_data(args.scrape_file, args.context_filter, args)
+    raw_dataset = get_text_data(args)
     dataset, context_tokenizer, tactic_tokenizer = \
                 encode_seq_seq_data(raw_dataset,
                                     lambda keywords, num_reserved:

@@ -98,7 +98,7 @@ def main(args_list : List[str]) -> None:
     args = parser.parse_args(args_list)
     print("Loading dataset...")
 
-    text_dataset = get_text_data(args.scrape_file, args.context_filter, args)
+    text_dataset = get_text_data(args)
     samples, tokenizer, embedding = encode_bag_classify_data(text_dataset,
                                                              tokenizers["char-fallback"],
                                                              100, 2)

@@ -306,8 +306,7 @@ def main(args_list : List[str]):
                             default=1000, type=int)
     args = arg_parser.parse_args(args_list)
 
-    dataset = get_text_data(args.scrape_file, args.context_filter, args,
-                            max_tuples=args.max_tuples, verbose=True)
+    dataset = get_text_data(args)
     curtime = time.time()
 
     print("Encoding data...", end="")

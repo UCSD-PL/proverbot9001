@@ -56,9 +56,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
-        text_data = get_text_data(arg_values.scrape_file, arg_values.context_filter,
-                                  arg_values,
-                                  max_tuples=arg_values.max_tuples, verbose=True)
+        text_data = get_text_data(arg_values)
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
         gc.collect()

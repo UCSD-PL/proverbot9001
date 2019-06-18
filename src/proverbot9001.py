@@ -62,27 +62,18 @@ def get_data(args : List[str]) -> None:
                 list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
                   end="\\n\n" if arg_values.lineend else "\n")
     elif arg_values.format == "goals":
-        dataset = data.get_text_data(arg_values.datafile_path,
-                                     arg_values.context_filter,
-                                     max_tuples=arg_values.max_tuples,
-                                     verbose=True)
+        dataset = data.get_text_data(arg_values)
         for prev_tactics, hyps, goal, tactic in dataset:
             print(goal)
     elif arg_values.format =="hyps+goal":
-        dataset = data.get_text_data(arg_values.datafile_path,
-                                     arg_values.context_filter,
-                                     max_tuples=arg_values.max_tuples,
-                                     verbose=True)
+        dataset = data.get_text_data(arg_values)
         for prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
                 print(hyp)
             print("================================")
             print(goal)
     elif arg_values.format =="hyps+goal+tactic":
-        dataset = data.get_text_data(arg_values.datafile_path,
-                                     arg_values.context_filter,
-                                     max_tuples=arg_values.max_tuples,
-                                     verbose=True)
+        dataset = data.get_text_data(arg_values)
         for prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
                 print(hyp)
