@@ -55,6 +55,8 @@ class OverflowError(Exception):
 @dataclass
 class UnrecognizedError(Exception):
     msg : str
+class NoSuchGoalError(Exception):
+    pass
 @dataclass
 class CoqAnomaly(Exception):
     msg : str

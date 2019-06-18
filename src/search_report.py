@@ -660,6 +660,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     serapi_instance.UnrecognizedError):
                 setNodeColor(predictionNode, "red")
                 continue
+            except serapi_instance.NoSuchGoalError:
+                raise
             if subgoals_closed > 0:
                 return SubSearchResult(None, subgoals_closed)
         return SubSearchResult(None, 0)
