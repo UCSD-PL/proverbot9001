@@ -228,7 +228,7 @@ def report_file(args : argparse.Namespace,
             print(f"FAILED: in file {filename}")
             raise
     write_html(args.output, filename, blocks_out)
-    write_csv(args.output, filename, blocks_out)
+    write_csv(args, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def get_commands(filename : str, verbose : bool) -> List[str]:
@@ -417,9 +417,12 @@ def write_proof_csv(output_dir : str, filenames : List[str]):
                  as fin:
                 fout.writelines(fin)
 
-def write_csv(output_dir : str, filename : str, doc_blocks : List[DocumentBlock]):
-    with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'w', newline='') \
-              as csvfile:
+def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[DocumentBlock]):
+    with open("{}/{}.csv".format(args.output, escape_filename(filename)),
+              'w', newline='') as csvfile:
+        for k, v in vars(args).items():
+            csvfile.write("# {}: {}\n".format(k, v))
+
         rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
         for block in doc_blocks:
             if isinstance(block, ProofBlock):
