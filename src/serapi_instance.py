@@ -62,6 +62,15 @@ class CoqAnomaly(Exception):
 def raise_(ex):
     raise ex
 
+from typing import NamedTuple
+
+class Subgoal(NamedTuple):
+    hypotheses : List[str]
+    goal : str
+
+class FullContext(NamedTuple):
+    subgoals : List[Subgoal]
+
 # This is the class which represents a running Coq process with Serapi
 # frontend. It runs its own thread to do the actual passing of
 # characters back and forth from the process, so all communication is
@@ -912,15 +921,6 @@ def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
         and (command.count('(') == command.count(')'))
-
-from typing import NamedTuple
-
-class Subgoal(NamedTuple):
-    hypotheses : List[str]
-    goal : str
-
-class FullContext(NamedTuple):
-    subgoals : List[Subgoal]
 
 def parseSubgoal(substr : str) -> Subgoal:
     split = re.split("\n====+\n", substr)
