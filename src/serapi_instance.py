@@ -1028,7 +1028,7 @@ def parseFullContext(full_context : str) -> FullContext:
         return FullContext([])
     else:
         return FullContext([parseSubgoal(substr) for substr in
-                            re.split("\n\n|(?=\nnone)", full_context)
+                            re.split("\n\n|(?=\snone)", full_context)
                             if substr.strip()])
 
 def load_commands(filename : str) -> List[str]:
