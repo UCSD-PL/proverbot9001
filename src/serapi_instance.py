@@ -289,6 +289,7 @@ class SerapiInstance(threading.Thread):
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
             self.handle_exception(e, stmt)
 
+    @property
     def prev_tactics(self):
         return self.tactic_history.getCurrentHistory()
 
@@ -582,14 +583,16 @@ class SerapiInstance(threading.Thread):
     def extract_proof_context(self, raw_proof_context : 'Sexp') -> str:
         return cast(List[List[str]], raw_proof_context)[0][1]
 
-    def get_goals(self) -> str:
+    @property
+    def goals(self) -> str:
         assert isinstance(self.proof_context, str)
         if self.proof_context == "":
             return ""
         split = re.split("\n======+\n", self.proof_context)
         return split[1]
 
-    def get_hypothesis(self) -> List[str]:
+    @property
+    def hypothesis(self) -> List[str]:
         assert isinstance(self.proof_context, str)
         if self.proof_context == "":
             return []
@@ -640,7 +643,7 @@ class SerapiInstance(threading.Thread):
                 self.full_context = ""
 
     def get_lemmas_about_head(self) -> str:
-        goal_head = self.get_goals().split()[0]
+        goal_head = self.goals.split()[0]
         if (goal_head == "forall"):
             return ""
         try:

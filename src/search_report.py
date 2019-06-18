@@ -577,8 +577,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         else:
             mkEdge(current_path[-1], prediction)
     def get_prediction_context() -> TacticContext:
-        context = TacticContext(coq.prev_tactics(), coq.get_hypothesis(),
-                                coq.get_goals())
+        context = TacticContext(coq.prev_tactics, coq.hypothesis,
+                                coq.goals)
         return context
     def get_fullcontext() -> FullContext:
         fullcontext = serapi_instance.parseFullContext(coq.full_context)
