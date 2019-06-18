@@ -420,7 +420,7 @@ def count_region_unfiltered(commands : List[CommandResult]):
     num_unfiltered = 0
     for command in commands:
         if len(command) > 1:
-            command, hyps, goal, prediction_results = \
+            command_str, hyps, goal, prediction_results = \
                 cast(TacticResult, command)
             if len(prediction_results) > 1:
                 num_unfiltered += 1

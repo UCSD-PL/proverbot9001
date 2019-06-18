@@ -21,7 +21,7 @@ import syntax
 from format import format_goal
 from util import *
 
-from typing import List, Tuple, NamedTuple, Optional, Sequence
+from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict
 
 predictor : TacticPredictor
 coqargs : List[str]

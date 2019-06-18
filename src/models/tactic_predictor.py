@@ -19,6 +19,7 @@ def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
     return TacticContext(prev_tactic, hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
+    training_args : argparse.Namespace
     def __init__(self) -> None:
         pass
 

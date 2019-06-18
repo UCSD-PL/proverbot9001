@@ -11,7 +11,7 @@ import sys
 import signal
 from dataclasses import dataclass
 
-from typing import List, Any, Optional, cast, Tuple
+from typing import List, Any, Optional, cast, Tuple, Union
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
