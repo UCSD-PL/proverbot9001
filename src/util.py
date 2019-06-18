@@ -156,3 +156,31 @@ import sys
 def eprint(*args, **kwargs):
     if "guard" not in kwargs or kwargs["guard"]:
         print(*args, file=sys.stderr, **{i:kwargs[i] for i in kwargs if i!='guard'})
+
+import contextlib
+
+class DummyFile:
+    def write(self, x): pass
+
+@contextlib.contextmanager
+def nostdout():
+    save_stdout = sys.stdout
+    sys.stdout = DummyFile()
+    yield
+    sys.stdout = save_stdout
+@contextlib.contextmanager
+def nostderr():
+    save_stderr = sys.stderr
+    sys.stderr = DummyFile()
+    yield
+    sys.stderr = save_stderr
+
+@contextlib.contextmanager
+def silent():
+    save_stderr = sys.stderr
+    save_stdout = sys.stdout
+    sys.stderr = DummyFile()
+    sys.stdout = DummyFile()
+    yield
+    sys.stderr = save_stderr
+    sys.stdout = save_stdout

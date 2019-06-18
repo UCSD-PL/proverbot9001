@@ -113,6 +113,12 @@ DocumentBlock = Union[VernacBlock, ProofBlock]
 class ArgsMismatchException(Exception):
     pass
 
+from tqdm import tqdm
+
+class FakeBar:
+    def update(self, n : int) -> None:
+        pass
+
 def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 filename : str) -> Optional[ReportStats]:
@@ -132,16 +138,8 @@ def report_file(args : argparse.Namespace,
     commands_in = get_commands(filename, args.verbose or args.debug)
     commands_run : List[str] = []
     num_commands_total = len(commands_in)
-    def show_progress(tag:str=""):
-        if args.progress and args.num_threads == 1:
-            print("\r{:.2f}% done ({} of {} commands processed) {}".format(
-                100 * (1 - (len(commands_in) / num_commands_total)),
-                num_commands_total - len(commands_in), num_commands_total,
-                tag),
-                  end="")
-            sys.stdout.flush()
     # Run vernacular until the next proof (or end of file)
-    def run_to_next_proof(coq : serapi_instance.SerapiInstance) -> str:
+    def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
         nonlocal commands_run
         nonlocal commands_in
         nonlocal blocks_out
@@ -152,13 +150,14 @@ def report_file(args : argparse.Namespace,
             coq.run_stmt(next_in_command)
             if not coq.full_context:
                 vernacs.append(next_in_command)
-            show_progress()
+            pbar.update(1)
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
             commands_run += vernacs
         return next_in_command
 
     def run_to_next_vernac(coq : serapi_instance.SerapiInstance,
+                           pbar : tqdm,
                            initial_full_context : FullContext,
                            lemma_statement : str):
         nonlocal commands_run
@@ -175,7 +174,7 @@ def report_file(args : argparse.Namespace,
             coq.run_stmt(next_in_command)
             commands_run.append(next_in_command)
             original_tactics.append(TacticInteraction(next_in_command, context_before))
-            show_progress()
+            pbar.update(1)
         empty_context = FullContext([])
         # Append the proof data
         if not tactic_solution:
@@ -198,40 +197,37 @@ def report_file(args : argparse.Namespace,
 
     print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
-    if args.progress and args.num_threads == 1:
-        print("0.00% done (0 of {} commands processed)".format(num_commands_total),
-              end="")
     while len(commands_in) > 0:
         try:
             # print("Starting a coq instance...")
             with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-                for command in commands_run:
-                    coq.run_stmt(command)
-                if len(commands_run) > 0 and args.verbose and args.num_threads == 1:
-                    print("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
-                coq.debug = args.debug
-                while len(commands_in) > 0:
-                    lemma_statement = run_to_next_proof(coq)
-                    if len(commands_in) == 0:
-                        break
-                    # Get beginning of next proof
-                    num_proofs += 1
-                    initial_context = coq.getAllGoals()
-                    # Try to search
-                    show_progress()
-                    search_status, tactic_solution = \
-                        attempt_search(args, lemma_statement, coq)
-                    # Cancel until before the proof
-                    try:
-                        while coq.full_context != "":
-                            coq.cancel_last()
-                    except serapi_instance.CoqExn as e:
-                        commands_in.insert(0, lemma_statement)
-                        raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
-                    # Run the original proof
-                    run_to_next_vernac(coq, initial_context, lemma_statement)
-                if args.progress:
-                    print("\r")
+                with tqdm(total=num_commands_total, unit="cmd", desc="File",
+                          disable=(not (args.progress and args.num_threads ==1))) as pbar:
+                    for command in commands_run:
+                        pbar.update(1)
+                        coq.run_stmt(command)
+                    if len(commands_run) > 0 and args.verbose and args.num_threads == 1:
+                        print("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
+                    coq.debug = args.debug
+                    while len(commands_in) > 0:
+                        lemma_statement = run_to_next_proof(coq, pbar)
+                        if len(commands_in) == 0:
+                            break
+                        # Get beginning of next proof
+                        num_proofs += 1
+                        initial_context = coq.getAllGoals()
+                        # Try to search
+                        search_status, tactic_solution = \
+                            attempt_search(args, lemma_statement, coq)
+                        # Cancel until before the proof
+                        try:
+                            while coq.full_context != "":
+                                coq.cancel_last()
+                        except serapi_instance.CoqExn as e:
+                            commands_in.insert(0, lemma_statement)
+                            raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
+                        # Run the original proof
+                        run_to_next_vernac(coq, pbar, initial_context, lemma_statement)
         except serapi_instance.CoqAnomaly as e:
             if args.verbose:
                 print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
@@ -543,10 +539,10 @@ def write_tactics(tactics : List[TacticInteraction],
                   tag : Tag, text : Text, doc : Doc):
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
+        subgoals_str = "(" + ",".join([subgoal_to_string(subgoal)
+                                       for subgoal in t.context_before.subgoals]) + ")"
         with tag('span',
-                 ('data-subgoals',
-                  "(" + ",".join([subgoal_to_string(subgoal)
-                                  for subgoal in t.context_before.subgoals]) + ")"),
+                 ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
                  onmouseover='hoverTactic("{}")'.format(idStr),
                  onmouseout='unhoverTactic()'):
@@ -642,8 +638,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         else:
             mkEdge(current_path[-1], prediction)
     def get_prediction_context() -> TacticContext:
-        context = TacticContext(coq.prev_tactics, coq.hypothesis,
-                                coq.goals)
+        context = TacticContext(coq.prev_tactics, coq.hypothesis, coq.goals)
         return context
     def get_fullcontext() -> FullContext:
         return coq.getAllGoals()
@@ -668,7 +663,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         return any([contextSurjective(full_context, n.context_before)
                     for n in path])
     hasUnexploredNode = False
-    def search(current_path : List[LabeledNode]) -> SubSearchResult:
+    def search(pbar : tqdm, current_path : List[LabeledNode]) -> SubSearchResult:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
         context_before = get_fullcontext()
@@ -682,6 +677,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             try:
                 coq.quiet = True
                 coq.run_stmt(prediction)
+                pbar.update(1)
                 num_stmts = 1
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
                     setNodeColor(predictionNode, "blue")
@@ -697,6 +693,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     subgoals_opened = 0
                 context_after = get_fullcontext()
                 if completed_proof(coq):
+                    pbar.update(((args.search_depth - len(current_path)+1)
+                                 ** args.search_width)-1)
                     mkEdge(predictionNode, mkNode("QED", FullContext([]),
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
@@ -707,17 +705,24 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                            subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
+                    pbar.update(((args.search_depth - len(current_path)+1)
+                                 ** args.search_width)-1)
                     for _ in range(num_stmts):
                         coq.cancel_last()
                 elif len(current_path) + 1 < args.search_depth:
-                    sub_search_result = search(current_path + [predictionNode])
+                    # print(f"Recursing at depth {len(current_path) + 1}")
+                    sub_search_result = search(pbar, current_path + [predictionNode])
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
+                        new_subgoals_closed = \
+                            subgoals_closed + \
+                            sub_search_result.solved_subgoals - \
+                            subgoals_opened
+                        # print(f"Closed {new_subgoals_closed} subgoals")
                         return SubSearchResult(sub_search_result.solution,
-                                               subgoals_closed +
-                                               sub_search_result.solved_subgoals
-                                               - subgoals_opened)
+                                               new_subgoals_closed)
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
+                    # print(f"Cancelling {stmts_to_cancel} stmts")
                     for _ in range(stmts_to_cancel):
                         coq.cancel_last()
                     subgoals_closed = 0
@@ -730,15 +735,22 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
                 setNodeColor(predictionNode, "red")
+                pbar.update((args.search_depth - (len(current_path) + 1))
+                            ** args.search_width)
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
             if subgoals_closed > 0:
+                # print(f"Closed {subgoals_closed} subgoals")
                 return SubSearchResult(None, subgoals_closed)
+        # print("Ran through all of our predictions")
         return SubSearchResult(None, 0)
-    command_list, _ = search([])
-    search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
-                      prog="dot")
+    with tqdm(total=(args.search_width ** args.search_depth), unit="pred",
+              desc="Proof", disable=(not (args.progress and args.num_threads==1))) as pbar:
+        command_list, _ = search(pbar, [])
+    with silent():
+        search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
+                          prog="dot")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
