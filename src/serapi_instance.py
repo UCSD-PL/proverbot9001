@@ -560,7 +560,7 @@ class SerapiInstance(threading.Thread):
                   match(contents,
                         ["CoqExn", _, _, list],
                         lambda loc1, loc2, inner:
-                        progn(print("Overflowing!"),
+                        progn(print("Overflowing!"), # type: ignore
                               raise_(CoqExn(inner)))),
                   _, lambda *args: raise_(BadResponse(feedback)))
 

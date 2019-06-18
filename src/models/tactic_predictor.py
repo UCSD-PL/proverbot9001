@@ -3,6 +3,7 @@
 from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
 from format import ScrapedTactic
 from abc import ABCMeta, abstractmethod
+import argparse
 
 class Prediction(NamedTuple):
     prediction : str

@@ -21,7 +21,10 @@ Text = Callable[..., None]
 Line = Callable[..., None]
 
 import serapi_instance
-from serapi_instance import ParseError, LexError, TimeoutError, get_stem
+from serapi_instance import (ParseError, LexError, TimeoutError,
+                             BadResponse, CoqExn, CompletedError,
+                             AckError, get_stem)
+import linearize_semicolons
 import tokenizer
 
 from util import *
@@ -304,12 +307,12 @@ class Worker(threading.Thread):
 
     def get_commands(self, filename : str) -> List[str]:
         local_filename = self.prelude + "/" + filename
-        loaded_commands = try_load_lin(local_filename)
+        loaded_commands = serapi_instance.try_load_lin(local_filename)
         if loaded_commands is None:
-            fresh_commands = preprocess_file_commands(
+            fresh_commands = linearize_semicolons.preprocess_file_commands(
                 serapi_instance.load_commands_preserve(self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
-                filename, self.skip_nochange_tac, debug=self.debug)
+                filename, local_filename, self.skip_nochange_tac, debug=self.debug)
             serapi_instance.save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:
