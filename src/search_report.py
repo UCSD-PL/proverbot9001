@@ -110,9 +110,22 @@ class ProofBlock(NamedTuple):
 
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
+class ArgsMismatchException(Exception):
+    pass
+
 def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 filename : str) -> Optional[ReportStats]:
+    if args.resume:
+        try:
+            stats = read_stats_from_csv(args, filename)
+            print(f"Resumed {filename} from existing state")
+            return stats
+        except FileNotFoundError:
+            pass
+        except ArgsMismatchException as e:
+            print(f"Arguments in report for {filename} didn't match current arguments! {e} Overwriting (interrupt to cancel).")
+
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
@@ -268,6 +281,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         default=None)
     parser.add_argument("--search-width", dest="search_width", type=int, default=3)
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=10)
+    parser.add_argument("--no-resume", dest="resume",
+                        const=False, default=True, action='store_const')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(args_list), parser
 
@@ -429,6 +444,53 @@ def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[Docum
                 rowwriter.writerow([block.lemma_statement.strip(),
                                     block.status,
                                     len(block.original_tactics)])
+def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[str]]:
+    params : Dict[str, str] = {}
+    f_iter = iter(f)
+    final_line = ""
+    for line in f_iter:
+        param_match = re.match("# (.*): (.*)", line)
+        if param_match:
+            params[param_match.group(1)] = param_match.group(2)
+        else:
+            final_line = line
+            break
+    rest_iter : Iterable[str]
+    if final_line == "":
+        rest_iter = iter([])
+    else:
+        rest_iter = itertools.chain([final_line], f_iter)
+    return argparse.Namespace(**params), rest_iter
+
+important_args = ["prelude", "context_filter", "weightsfile", "predictor", "search_width", "search_depth"]
+
+def read_stats_from_csv(args : argparse.Namespace, vfilename : str) -> ReportStats:
+    num_proofs = 0
+    num_proofs_failed = 0
+    num_proofs_completed = 0
+    with open("{}/{}.csv".format(args.output, escape_filename(vfilename)),
+              'r', newline='') as csvfile:
+        saved_args, rest_iter = read_csv_options(csvfile)
+        for arg in important_args:
+            try:
+                oldval = str(vars(saved_args)[arg])
+                newval = str(vars(args)[arg])
+                if oldval != newval:
+                    raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
+                                                f"new value is {newval}")
+            except KeyError:
+                raise ArgsMismatchException(f"No old value for arg {arg} found.")
+        rowreader = csv.reader(rest_iter, lineterminator=os.linesep)
+        for row in rowreader:
+            num_proofs += 1
+            if row[1] == "SearchStatus.SUCCESS":
+                num_proofs_completed += 1
+            elif row[1] == "SearchStatus.FAILURE":
+                num_proofs_failed += 1
+            else:
+                assert row[1] == "SearchStatus.INCOMPLETE"
+    return ReportStats(vfilename, num_proofs, num_proofs_failed, num_proofs_completed)
+
 def write_html(output_dir : str, filename : str,
                doc_blocks : List[DocumentBlock]) -> None:
     doc, tag, text, line = Doc().ttl()
