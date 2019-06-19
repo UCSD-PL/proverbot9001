@@ -697,9 +697,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             subgoals_closed = 0
             try:
                 coq.quiet = True
-                pbar.set_postfix({"cmd" : prediction})
                 coq.run_stmt(prediction)
-                pbar.set_postfix()
                 pbar.update(1)
                 num_stmts = 1
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
