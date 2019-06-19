@@ -551,7 +551,7 @@ def write_tactics(tactics : List[TacticInteraction],
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
         subgoals_str = "(" + ",".join([subgoal_to_string(subgoal)
-                                       for subgoal in t.context_before.subgoals]) + ")"
+                                       for subgoal in t.context_before.subgoals[:3]]) + ")"
         with tag('span',
                  ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
