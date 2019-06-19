@@ -229,7 +229,6 @@ def report_file(args : argparse.Namespace,
                         # Try to search
                         search_status, tactic_solution = \
                             attempt_search(args, lemma_statement, coq, file_idx)
-                        pbar.unpause()
                         # Cancel until before the proof
                         try:
                             while coq.full_context != "":
@@ -247,7 +246,7 @@ def report_file(args : argparse.Namespace,
         except:
             print(f"FAILED: in file {filename}")
             raise
-    write_html(args.output, filename, blocks_out)
+    write_html(args, args.output, filename, blocks_out)
     write_csv(args, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
@@ -671,7 +670,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             if not any([subgoalSurjective(newsub, oldsub)
                         for newsub in newcontext.subgoals]):
                 return False
-        return True
+        return len(newcontext.subgoals) >= len(oldcontext.subgoals)
     def contextInPath(full_context : FullContext, path : List[LabeledNode]):
         return any([contextSurjective(full_context, n.context_before)
                     for n in path])
@@ -689,7 +688,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             subgoals_closed = 0
             try:
                 coq.quiet = True
+                pbar.set_postfix({"cmd" : prediction})
                 coq.run_stmt(prediction)
+                pbar.set_postfix()
                 pbar.update(1)
                 num_stmts = 1
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
@@ -706,10 +707,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     subgoals_opened = 0
                 context_after = get_fullcontext()
                 if completed_proof(coq):
-                    nodes_done = ((args.search_width **
-                                   (args.search_depth - len(current_path))
-                                   - 1) / \
-                                  (args.search_width - 1)) - 1
                     mkEdge(predictionNode, mkNode("QED", FullContext([]),
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
@@ -720,11 +717,13 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                            subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
                     setNodeColor(predictionNode, "orange")
-                    nodes_done = ((args.search_width **
-                                  (args.search_depth - len(current_path))
-                                  - 1) / \
-                                  (args.search_width - 1)) - 1
+                    nodes_done = int(((args.search_width **
+                                       (args.search_depth - len(current_path))
+                                       - 1) / \
+                                      (args.search_width - 1)) - 1)
                     pbar.update(nodes_done)
+                    if args.debug:
+                        print(f"Cancelling {num_stmts} statements because resulting context is in current path.")
                     for _ in range(num_stmts):
                         coq.cancel_last()
                 elif len(current_path) + 1 < args.search_depth:
@@ -738,21 +737,25 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
+                    if args.debug:
+                        print(f"Cancelling {num_stmts} statements because we finished subsearch.")
                     for _ in range(stmts_to_cancel):
                         coq.cancel_last()
                     subgoals_closed = 0
                 else:
                     hasUnexploredNode = True
+                    if args.debug:
+                        print(f"Cancelling {num_stmts} statements because we hit the depth limit.")
                     for _ in range(num_stmts):
                         coq.cancel_last()
                     subgoals_closed = 0
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
-                nodes_done = ((args.search_width **
-                               (args.search_depth - len(current_path))
-                               - 1) / \
-                              (args.search_width - 1)) - 1
+                nodes_done = int(((args.search_width **
+                                   (args.search_depth - len(current_path))
+                                   - 1) / \
+                                  (args.search_width - 1)) - 1)
                 setNodeColor(predictionNode, "red")
                 pbar.update(nodes_done)
                 continue
@@ -761,12 +764,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             if subgoals_closed > 0:
                 return SubSearchResult(None, subgoals_closed)
         return SubSearchResult(None, 0)
-    total_nodes = (((args.search_width **
-                     (args.search_depth+1)) - 1) / \
-                   (args.search_width - 1)) - 1
+    total_nodes = int((((args.search_width **
+                         (args.search_depth+1)) - 1) / \
+                       (args.search_width - 1)) - 1)
     with tqdm(total=total_nodes, unit="pred",
               desc="Proof", disable=(not args.progress),
-              leave=True,
               position=((file_idx*3)+1)) as pbar:
         command_list, _ = search(pbar, [])
         pbar.clear()

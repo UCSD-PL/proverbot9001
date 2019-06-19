@@ -87,21 +87,26 @@ class TacticTree:
 class TacticHistory:
     __tree : TacticTree
     __cur_subgoal_depth : int
+    __subgoal_tree : List[List[Subgoal]]
     def __init__(self) -> None:
         self.__tree = TacticTree([])
         self.__cur_subgoal_depth = 0
-    def openSubgoal(self) -> None:
+        self.__subgoal_tree = []
+    def openSubgoal(self, background_subgoals : List[Subgoal]) -> None:
         curTree = self.__tree
         for _ in range(self.__cur_subgoal_depth):
             assert isinstance(curTree.children[-1], TacticTree)
             curTree = curTree.children[-1]
         curTree.children.append(TacticTree([]))
         self.__cur_subgoal_depth += 1
+
+        self.__subgoal_tree.append(background_subgoals)
         pass
 
     def closeSubgoal(self) -> None:
         assert self.__cur_subgoal_depth > 0
         self.__cur_subgoal_depth -= 1
+        self.__subgoal_tree.pop()
         pass
 
     def curDepth(self) -> int:
@@ -115,7 +120,7 @@ class TacticHistory:
         curTree.children.append(tactic)
         pass
 
-    def removeLast(self) -> None:
+    def removeLast(self, all_subgoals : List[Subgoal]) -> None:
         assert len(self.__tree.children) > 0, "Tried to remove from an empty tactic history!"
         curTree = self.__tree
         for _ in range(self.__cur_subgoal_depth):
@@ -128,6 +133,7 @@ class TacticHistory:
                 parent = parent.children[-1]
             parent.children.pop()
             self.__cur_subgoal_depth -= 1
+            self.__subgoal_tree.pop()
         else:
             lastChild = curTree.children[-1]
             if isinstance(lastChild, str):
@@ -135,6 +141,7 @@ class TacticHistory:
             else:
                 assert isinstance(lastChild, TacticTree)
                 self.__cur_subgoal_depth += 1
+                self.__subgoal_tree.append(all_subgoals)
         pass
 
     def getCurrentHistory(self) -> List[str]:
@@ -147,7 +154,9 @@ class TacticHistory:
                     curTree = curTree.children[-1]
             pass
         return list(generate())
-        pass
+
+    def getAllBackgroundSubgoals(self) -> List[str]:
+        return [item for lst in self.__subgoal_tree for item in reversed(lst)]
 
     def getNextCancelled(self) -> str:
         curTree = self.__tree
@@ -269,7 +278,7 @@ class SerapiInstance(threading.Thread):
                 elif re.match(r"\s*[{]\s*", stm):
                     self.pending_subgoals = context_before.subgoals[1:] \
                         + self.pending_subgoals
-                    self.tactic_history.openSubgoal()
+                    self.tactic_history.openSubgoal(context_before.subgoals[1:])
                 elif re.match(r"\s*[}]\s*", stm):
                     if self.pending_subgoals:
                         self.pending_subgoals.pop(0)
@@ -354,7 +363,7 @@ class SerapiInstance(threading.Thread):
         if not self.full_context:
             self.tactic_history = TacticHistory()
         else:
-            self.tactic_history.removeLast()
+            self.tactic_history.removeLast(parseFullContext(self.full_context).subgoals)
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -602,7 +611,7 @@ class SerapiInstance(threading.Thread):
 
     def getAllGoals(self) -> FullContext:
         fg_goals = parseFullContext(self.full_context).subgoals
-        return FullContext(fg_goals + self.pending_subgoals)
+        return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 
     def get_proof_context(self) -> None:
         self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
