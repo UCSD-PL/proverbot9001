@@ -229,6 +229,7 @@ def report_file(args : argparse.Namespace,
                         # Try to search
                         search_status, tactic_solution = \
                             attempt_search(args, lemma_statement, coq, file_idx)
+                        pbar.unpause()
                         # Cancel until before the proof
                         try:
                             while coq.full_context != "":
@@ -709,7 +710,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                    (args.search_depth - len(current_path))
                                    - 1) / \
                                   (args.search_width - 1)) - 1
-                    pbar.update(nodes_done)
                     mkEdge(predictionNode, mkNode("QED", FullContext([]),
                                                   fillcolor="green", style="filled"))
                     for node in [start_node] + current_path + [predictionNode]:
@@ -761,14 +761,15 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             if subgoals_closed > 0:
                 return SubSearchResult(None, subgoals_closed)
         return SubSearchResult(None, 0)
-    total_nodes = ((args.search_width **
-                    (args.search_depth+1)) - 1) / \
-                        (args.search_width - 1)
+    total_nodes = (((args.search_width **
+                     (args.search_depth+1)) - 1) / \
+                   (args.search_width - 1)) - 1
     with tqdm(total=total_nodes, unit="pred",
               desc="Proof", disable=(not args.progress),
               leave=True,
               position=((file_idx*3)+1)) as pbar:
         command_list, _ = search(pbar, [])
+        pbar.clear()
     with silent():
         search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
                           prog="dot")
