@@ -289,6 +289,10 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=10)
     parser.add_argument("--no-resume", dest="resume",
                         const=False, default=True, action='store_const')
+    parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=150)
+    parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=10)
+    parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
+                        type=int, default=2)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(args_list), parser
 
@@ -497,7 +501,8 @@ def read_stats_from_csv(args : argparse.Namespace, vfilename : str) -> ReportSta
                 assert row[1] == "SearchStatus.INCOMPLETE"
     return ReportStats(vfilename, num_proofs, num_proofs_failed, num_proofs_completed)
 
-def write_html(output_dir : str, filename : str,
+def write_html(args : argparse.Namespace,
+               output_dir : str, filename : str,
                doc_blocks : List[DocumentBlock]) -> None:
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
@@ -541,16 +546,20 @@ def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
             text(cmd.strip("\n"))
         doc.stag('br')
 
-def subgoal_to_string(sg : Subgoal) -> str:
-    return "(\"" + sg.goal + "\", (\"" + "\",\"".join(sg.hypotheses) + "\"))"
+def subgoal_to_string(args : argparse.Namespace, sg : Subgoal) -> str:
+    return "(\"" + sg.goal[:args.max_print_term] + "\", (\"" + \
+        "\",\"".join([hyp[:args.max_print_term] for hyp in
+                      sg.hypotheses[:args.max_print_hyps]]) + "\"))"
 
-def write_tactics(tactics : List[TacticInteraction],
+def write_tactics(args : argparse.Namespace,
+                  tactics : List[TacticInteraction],
                   region_idx : int,
                   tag : Tag, text : Text, doc : Doc):
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
-        subgoals_str = "(" + ",".join([subgoal_to_string(subgoal)
-                                       for subgoal in t.context_before.subgoals[:3]]) + ")"
+        subgoals_str = "(" + ",".join([subgoal_to_string(args, subgoal)
+                                       for subgoal in
+                                       t.context_before.subgoals[:args.max_print_subgoals]]) + ")"
         with tag('span',
                  ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
