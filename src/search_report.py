@@ -701,7 +701,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                            for prediction in predictions]
 
         for predictionNode in predictionNodes:
-            g.mkEdge(predictionNode, current_path[-1])
+            g.mkEdge(current_path[-1], predictionNode)
         for prediction, predictionNode in zip(predictions, predictionNodes):
             subgoals_closed = 0
             try:
