@@ -322,6 +322,9 @@ class SerapiInstance(threading.Thread):
                     lambda *args: progn(self.get_completed(),
                                         raise_(ParseError("Couldn't parse command {}"
                                                           .format(stmt)))),
+                    'Not_found',
+                    lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
+                                        self.cancel_last(), raise_(e)),
                     ['CErrors\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.cancel_last(), raise_(e)),
