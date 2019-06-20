@@ -289,8 +289,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=10)
     parser.add_argument("--no-resume", dest="resume",
                         const=False, default=True, action='store_const')
-    parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=150)
-    parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=10)
+    parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=None)
+    parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
     parser.add_argument("--print-tried", dest="print_tried",
