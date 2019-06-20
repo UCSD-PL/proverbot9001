@@ -735,7 +735,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                                               n.context_before)
                                             for n in current_path + [predictionNode]],
                                            subgoals_closed)
-                elif contextInPath(context_after, current_path + [predictionNode]):
+                elif contextInPath(context_after, current_path[1:] + [predictionNode]):
                     g.setNodeColor(predictionNode, "orange")
                     nodes_done = int(((args.search_width **
                                        (args.search_depth - len(current_path))
