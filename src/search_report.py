@@ -527,7 +527,8 @@ def write_html(args : argparse.Namespace,
                             write_tactics(args, block.original_tactics, block_idx,
                                           tag, text, doc)
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
-        fout.write(syntax.syntax_highlight(doc.getvalue()))
+        # fout.write(syntax.syntax_highlight(doc.getvalue()))
+        fout.write(doc.getvalue())
 
 def combine_file_results(stats : List[ReportStats]) -> ReportStats:
     return ReportStats("",
