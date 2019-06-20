@@ -654,7 +654,7 @@ class SearchGraph:
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
     def draw(self, filename : str) -> None:
-        with silent():
+        with nostderr():
             self.__graph.draw(filename, prog="dot")
 class SubSearchResult (NamedTuple):
     solution : Optional[List[TacticInteraction]]

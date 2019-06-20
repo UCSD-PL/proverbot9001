@@ -161,6 +161,7 @@ import contextlib
 
 class DummyFile:
     def write(self, x): pass
+    def flush(self): pass
 
 @contextlib.contextmanager
 def nostdout():
