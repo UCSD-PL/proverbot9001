@@ -549,9 +549,12 @@ def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
             text(cmd.strip("\n"))
         doc.stag('br')
 
+def escape_quotes(term : str):
+    return re.sub("\"", "\\\"", term)
+
 def subgoal_to_string(args : argparse.Namespace, sg : Subgoal) -> str:
-    return "(\"" + sg.goal[:args.max_print_term] + "\", (\"" + \
-        "\",\"".join([hyp[:args.max_print_term] for hyp in
+    return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
+        "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
 
 def write_tactics(args : argparse.Namespace,

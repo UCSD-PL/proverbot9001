@@ -51,11 +51,11 @@ function fromList(list_str) {
     var i;
     for(i = 0; i < body.length; ++i){
         c = body[i]
-        if (c == "\""){
+        if (c == "\"" && body[i-1] != "\\"){
             in_quotes = !in_quotes
-        } else if (c == "("){
+        } else if (c == "(" && !in_quotes){
             paren_depth += 1
-        } else if (c == ")"){
+        } else if (c == ")" && !in_quotes){
             paren_depth -= 1
         }
         if (c == "," && !in_quotes && paren_depth == 0){
