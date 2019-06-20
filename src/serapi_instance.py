@@ -470,7 +470,7 @@ class SerapiInstance(threading.Thread):
             return normalizeMessage(self.messages.get(timeout=self.timeout))
         except queue.Empty:
             if self.debug:
-                print("Command timed out! Cancelling")
+                print("Command timed out! Interrupting")
             self._proc.send_signal(signal.SIGINT)
             try:
                 interrupt_response = \
@@ -500,7 +500,6 @@ class SerapiInstance(threading.Thread):
                 elif isinstance(interrupt_response[2], list):
                     assert interrupt_response[0] == "Answer"
                     assert interrupt_response[2][0] == "CoqExn", interrupt_response
-                    assert interrupt_response[2][3] == "Sys\.Break", interrupt_response
                     raise TimeoutError("")
                 else:
                     assert interrupt_response[0] == "Answer"
