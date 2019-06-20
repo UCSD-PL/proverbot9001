@@ -155,7 +155,7 @@ class TacticHistory:
             pass
         return list(generate())
 
-    def getAllBackgroundSubgoals(self) -> List[str]:
+    def getAllBackgroundSubgoals(self) -> List[Subgoal]:
         return [item for lst in self.__subgoal_tree for item in reversed(lst)]
 
     def getNextCancelled(self) -> str:
