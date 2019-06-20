@@ -293,6 +293,9 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=10)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
+    parser.add_argument("--print-tried", dest="print_tried",
+                        help="Print tactics being run during search in progress bar",
+                        action='store_const', const=True, default=False)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(args_list), parser
 
@@ -697,7 +700,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             subgoals_closed = 0
             try:
                 coq.quiet = True
+                if args.print_tried:
+                    pbar.display(msg="Running " + prediction, pos=((file_idx * 3) + 2))
                 coq.run_stmt(prediction)
+                if args.print_tried:
+                    pbar.display(msg="", pos=((file_idx * 3) + 2))
                 pbar.update(1)
                 num_stmts = 1
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
