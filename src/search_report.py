@@ -521,10 +521,10 @@ def write_html(args : argparse.Namespace,
                     write_lemma_button(block.lemma_statement, status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):
-                            write_tactics(block.predicted_tactics, block_idx,
+                            write_tactics(args, block.predicted_tactics, block_idx,
                                           tag, text, doc)
                         with tag('div', klass='original'):
-                            write_tactics(block.original_tactics, block_idx,
+                            write_tactics(args, block.original_tactics, block_idx,
                                           tag, text, doc)
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
         fout.write(syntax.syntax_highlight(doc.getvalue()))
