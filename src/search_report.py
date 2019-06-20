@@ -629,6 +629,29 @@ class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
     context_before : FullContext
+class SearchGraph:
+    __graph : pgv.AGraph
+    __next_node_id : int
+    start_node : LabeledNode
+    def __init__(self, lemma_name : str) -> None:
+        self.__graph = pgv.AGraph(directed=True)
+        self.__next_node_id = 0
+        self.start_node = self.mkNode(lemma_name, FullContext([]))
+        pass
+    def mkEdge(self, src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
+        self.__graph.add_edge(src.node_id, dest.node_id, **kwargs)
+    def mkNode(self, prediction : str, context_before : FullContext,
+               **kwargs) -> LabeledNode:
+        self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
+        self.__next_node_id += 1
+        return LabeledNode(prediction, self.__next_node_id-1, context_before)
+    def setNodeColor(self, node : LabeledNode, color : str) -> None:
+        node_handle = self.__graph.get_node(node.node_id)
+        node_handle.attr["fillcolor"] = color
+        node_handle.attr["style"] = "filled"
+    def draw(self, filename : str) -> None:
+        with silent():
+            self.__graph.draw(filename, prog="dot")
 class SubSearchResult (NamedTuple):
     solution : Optional[List[TacticInteraction]]
     solved_subgoals : int
@@ -638,29 +661,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 args : argparse.Namespace,
                                 file_idx : int) \
                                 -> SearchResult:
-    search_graph = pgv.AGraph(directed=True)
-    next_node_id = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-    def mkNode(prediction : str, context_before : FullContext, **kwargs) -> LabeledNode:
-        nonlocal next_node_id
-        search_graph.add_node(next_node_id, label=prediction, **kwargs)
-        node_obj = LabeledNode(prediction, next_node_id, context_before)
-        next_node_id += 1
-        return node_obj
-    def mkEdge(src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
-        search_graph.add_edge(src.node_id, dest.node_id, **kwargs)
-    def setNodeColor(node : LabeledNode, color : str) -> None:
-        node_handle = search_graph.get_node(node.node_id)
-        node_handle.attr["fillcolor"] = color
-        node_handle.attr["style"] = "filled"
-
-    start_node = mkNode(serapi_instance.lemma_name_from_statement(lemma_statement),
-                        FullContext([]))
-    def edgeToPrev(prediction : LabeledNode, current_path : List[LabeledNode]) -> None:
-        if len(current_path) == 0:
-            mkEdge(start_node, prediction)
-        else:
-            mkEdge(current_path[-1], prediction)
+    g = SearchGraph(lemma_name)
     def get_prediction_context() -> TacticContext:
         context = TacticContext(coq.prev_tactics, coq.hypothesis, coq.goals)
         return context
@@ -691,11 +693,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         nonlocal hasUnexploredNode
         predictions = make_predictions()
         context_before = get_fullcontext()
-        predictionNodes = [mkNode(prediction, context_before)
+        predictionNodes = [g.mkNode(prediction, context_before)
                            for prediction in predictions]
 
         for predictionNode in predictionNodes:
-            edgeToPrev(predictionNode, current_path)
+            g.mkEdge(predictionNode, current_path[-1])
         for prediction, predictionNode in zip(predictions, predictionNodes):
             subgoals_closed = 0
             try:
@@ -708,7 +710,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 pbar.update(1)
                 num_stmts = 1
                 while coq.count_fg_goals() == 0 and not completed_proof(coq):
-                    setNodeColor(predictionNode, "blue")
+                    g.setNodeColor(predictionNode, "blue")
                     coq.run_stmt("}")
                     subgoals_closed += 1
                     num_stmts += 1
@@ -721,16 +723,16 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     subgoals_opened = 0
                 context_after = get_fullcontext()
                 if completed_proof(coq):
-                    mkEdge(predictionNode, mkNode("QED", FullContext([]),
-                                                  fillcolor="green", style="filled"))
-                    for node in [start_node] + current_path + [predictionNode]:
-                        setNodeColor(node, "green")
+                    g.mkEdge(predictionNode, g.mkNode("QED", FullContext([]),
+                                                    fillcolor="green", style="filled"))
+                    for node in current_path + [predictionNode]:
+                        g.setNodeColor(node, "green")
                     return SubSearchResult([TacticInteraction(n.prediction,
                                                               n.context_before)
                                             for n in current_path + [predictionNode]],
                                            subgoals_closed)
                 elif contextInPath(context_after, current_path + [predictionNode]):
-                    setNodeColor(predictionNode, "orange")
+                    g.setNodeColor(predictionNode, "orange")
                     nodes_done = int(((args.search_width **
                                        (args.search_depth - len(current_path))
                                        - 1) / \
@@ -766,11 +768,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
+                g.setNodeColor(predictionNode, "red")
                 nodes_done = int(((args.search_width **
                                    (args.search_depth - len(current_path))
                                    - 1) / \
                                   (args.search_width - 1)) - 1)
-                setNodeColor(predictionNode, "red")
                 pbar.update(nodes_done)
                 continue
             except serapi_instance.NoSuchGoalError:
@@ -784,11 +786,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     with tqdm(total=total_nodes, unit="pred",
               desc="Proof", disable=(not args.progress),
               position=((file_idx*3)+1)) as pbar:
-        command_list, _ = search(pbar, [])
+        command_list, _ = search(pbar, [g.start_node])
         pbar.clear()
-    with silent():
-        search_graph.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png",
-                          prog="dot")
+    g.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
