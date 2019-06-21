@@ -293,9 +293,9 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
-    parser.add_argument("--print-tried", dest="print_tried",
-                        help="Print tactics being run during search in progress bar",
-                        action='store_const', const=True, default=False)
+    # parser.add_argument("--print-tried", dest="print_tried",
+    #                     help="Print tactics being run during search in progress bar",
+    #                     action='store_const', const=True, default=False)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(args_list), parser
 
