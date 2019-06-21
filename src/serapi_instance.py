@@ -308,7 +308,8 @@ class SerapiInstance(threading.Thread):
         eprint("Problem running statement: {}\n{}".format(stmt, e),
                guard=(not self.quiet or self.debug))
         match(e,
-              TimeoutError, lambda *args: progn(self.cancel_last(),
+              TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt),
+                                                self.cancel_last(),
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
                                                                     .format(stmt)))),
               _, lambda e:
