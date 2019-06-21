@@ -633,7 +633,7 @@ class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
     context_before : FullContext
-    previous : Optional[LabeledNode]
+    previous : Optional["LabeledNode"]
 class SearchGraph:
     __graph : pgv.AGraph
     __next_node_id : int
@@ -696,6 +696,9 @@ def contextSurjective(newcontext : FullContext, oldcontext : FullContext):
 def contextInPath(full_context : FullContext, path : List[LabeledNode]):
     return any([contextSurjective(full_context, n.context_before)
                 for n in path])
+def numNodesInTree(branching_factor : int, depth : int):
+    return int((branching_factor ** depth - 1) / \
+               (branching_factor - 1))
 def tryPrediction(args : argparse.Namespace,
                   coq : serapi_instance.SerapiInstance,
                   g : SearchGraph,
@@ -731,6 +734,12 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 predictor.predictKTactics(
                     TacticContext(coq.prev_tactics, coq.hypothesis, coq.goals),
                     args.search_width)]
+    def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
+        if msg:
+            eprint(f"Cancelling {num_stmts} statements "
+                   f"because {msg}.", guard=args.debug)
+        for _ in range(num_stmts):
+            coq.cancel_last()
     hasUnexploredNode = False
     def search(pbar : tqdm, current_path : List[LabeledNode]) -> SubSearchResult:
         nonlocal hasUnexploredNode
@@ -748,16 +757,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     return SubSearchResult(solution, subgoals_closed)
                 elif contextInPath(context_after, current_path[1:] + [predictionNode]):
                     g.setNodeColor(predictionNode, "orange")
-                    nodes_done = int(((args.search_width **
-                                       (args.search_depth - len(current_path))
-                                       - 1) / \
-                                      (args.search_width - 1)) - 1)
-                    pbar.update(nodes_done)
-                    eprint(f"Cancelling {num_stmts} statements "
-                           f"because resulting context is in current path.",
-                           guard=args.debug)
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
+                    nodes_skipped = numNodesInTree(args.search_width,
+                                                   args.search_depth -
+                                                   len(current_path)) - 1
+                    pbar.update(nodes_skipped)
+                    cleanupSearch(num_stmts, "resulting context is in current path")
                 elif len(current_path) + 1 < args.search_depth:
                     sub_search_result = search(pbar, current_path + [predictionNode])
                     if sub_search_result.solution or \
@@ -769,38 +773,27 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
-                    eprint(f"Cancelling {num_stmts} statements "
-                           f"because we finished subsearch.",
-                           guard=args.debug)
-                    for _ in range(stmts_to_cancel):
-                        coq.cancel_last()
+                    cleanupSearch(stmts_to_cancel, "we finished subsearch")
                     subgoals_closed = 0
                 else:
                     hasUnexploredNode = True
-                    eprint(f"Cancelling {num_stmts} statements because "
-                           f"we hit the depth limit.",
-                           guard=args.debug)
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
+                    cleanupSearch(num_stmts, "we hit the depth limit")
                     subgoals_closed = 0
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
                 g.setNodeColor(predictionNode, "red")
-                nodes_done = int(((args.search_width **
-                                   (args.search_depth - len(current_path))
-                                   - 1) / \
-                                  (args.search_width - 1)) - 1)
-                pbar.update(nodes_done)
+                nodes_skipped = numNodesInTree(args.search_width,
+                                               args.search_depth - len(current_path)) - 1
+                pbar.update(nodes_skipped)
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
             if subgoals_closed > 0:
                 return SubSearchResult(None, subgoals_closed)
         return SubSearchResult(None, 0)
-    total_nodes = int((((args.search_width **
-                         (args.search_depth+1)) - 1) / \
-                       (args.search_width - 1)) - 1)
+    total_nodes = numNodesInTree(args.search_width,
+                                 args.search_depth + 1) - 1
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
               position=((file_idx*3)+1)) as pbar:
