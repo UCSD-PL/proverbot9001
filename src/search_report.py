@@ -204,6 +204,7 @@ def report_file(args : argparse.Namespace,
     if not args.progress:
         print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
+    commands_caught_up = 0
     while len(commands_in) > 0:
         try:
             # print("Starting a coq instance...")
@@ -218,6 +219,7 @@ def report_file(args : argparse.Namespace,
                         coq.run_stmt(command)
                     if len(commands_run) > 0 and args.verbose and args.num_threads == 1:
                         print("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
+                        commands_caught_up = commands_run
                     coq.debug = args.debug
                     while len(commands_in) > 0:
                         lemma_statement = run_to_next_proof(coq, pbar)
@@ -241,7 +243,7 @@ def report_file(args : argparse.Namespace,
         except serapi_instance.CoqAnomaly as e:
             if args.verbose:
                 print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
-            if args.hardfail:
+            if args.hardfail or len(commands_caught_up) == len(commands_run):
                 raise e
         except:
             print(f"FAILED: in file {filename}")
