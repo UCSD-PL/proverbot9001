@@ -633,6 +633,7 @@ class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
     context_before : FullContext
+    previous : Optional[LabeledNode]
 class SearchGraph:
     __graph : pgv.AGraph
     __next_node_id : int
@@ -640,15 +641,34 @@ class SearchGraph:
     def __init__(self, lemma_name : str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, FullContext([]))
+        self.start_node = self.mkNode(lemma_name, FullContext([]), None)
         pass
-    def mkEdge(self, src : LabeledNode, dest : LabeledNode, **kwargs) -> None:
-        self.__graph.add_edge(src.node_id, dest.node_id, **kwargs)
+    def addPredictions(self, src : LabeledNode, context_before : FullContext,
+                       predictions : List[str]) -> List[LabeledNode]:
+        return [self.mkNode(pred, context_before, src) for pred in predictions]
     def mkNode(self, prediction : str, context_before : FullContext,
+               previous_node : Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
         self.__next_node_id += 1
-        return LabeledNode(prediction, self.__next_node_id-1, context_before)
+        newNode = LabeledNode(prediction, self.__next_node_id-1,
+                              context_before, previous_node)
+        if previous_node:
+            self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
+        return newNode
+    def mkQED(self, predictionNode : LabeledNode):
+        qedNode = g.mkNode("QED", FullContext([]),
+                           predictionNode,
+                           fillcolor="green", style="filled")
+        cur_node = predictionNode
+        cur_path = []
+        while cur_node != self.start_node:
+            g.setNodeColor(cur_node, "palegreen1")
+            cur_path.append(cur_node)
+            cur_node = cur_node.previous
+        return [TacticInteraction(n.prediction, n.context_before)
+                for n in cur_path]
+        pass
     def setNodeColor(self, node : LabeledNode, color : str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
@@ -659,6 +679,45 @@ class SearchGraph:
 class SubSearchResult (NamedTuple):
     solution : Optional[List[TacticInteraction]]
     solved_subgoals : int
+def subgoalSurjective(newsub : serapi_instance.Subgoal,
+                      oldsub : serapi_instance.Subgoal) -> bool:
+    oldhyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in oldsub.hypotheses]
+    for newhyp_term in [serapi_instance.get_hyp_type(hyp)
+                        for hyp in newsub.hypotheses]:
+        if newhyp_term not in oldhyp_terms:
+            return False
+    return newsub.goal == oldsub.goal
+def contextSurjective(newcontext : FullContext, oldcontext : FullContext):
+    for oldsub in oldcontext.subgoals:
+        if not any([subgoalSurjective(newsub, oldsub)
+                    for newsub in newcontext.subgoals]):
+            return False
+    return len(newcontext.subgoals) >= len(oldcontext.subgoals)
+def contextInPath(full_context : FullContext, path : List[LabeledNode]):
+    return any([contextSurjective(full_context, n.context_before)
+                for n in path])
+def tryPrediction(args : argparse.Namespace,
+                  coq : serapi_instance.SerapiInstance,
+                  g : SearchGraph,
+                  predictionNode : LabeledNode) -> Tuple[FullContext, int, int, int]:
+    coq.quiet = True
+    coq.run_stmt(predictionNode.prediction)
+    num_stmts = 1
+    subgoals_closed = 0
+    while coq.count_fg_goals() == 0 and not completed_proof(coq):
+        g.setNodeColor(predictionNode, "blue")
+        coq.run_stmt("}")
+        subgoals_closed += 1
+        num_stmts += 1
+    if coq.count_fg_goals() > 1 or \
+       (coq.count_fg_goals() > 0 and subgoals_closed > 0):
+        subgoals_opened = 1
+        coq.run_stmt("{")
+        num_stmts += 1
+    else:
+        subgoals_opened = 0
+    context_after = coq.getAllGoals()
+    return context_after, num_stmts, subgoals_closed, subgoals_opened
 
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 coq : serapi_instance.SerapiInstance,
@@ -667,74 +726,26 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 -> SearchResult:
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
-    def get_prediction_context() -> TacticContext:
-        context = TacticContext(coq.prev_tactics, coq.hypothesis, coq.goals)
-        return context
-    def get_fullcontext() -> FullContext:
-        return coq.getAllGoals()
     def make_predictions() -> List[str]:
         return [pred.prediction for pred in
-                predictor.predictKTactics(get_prediction_context(), args.search_width)]
-    def subgoalSurjective(newsub : serapi_instance.Subgoal,
-                          oldsub : serapi_instance.Subgoal) -> bool:
-        oldhyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in oldsub.hypotheses]
-        for newhyp_term in [serapi_instance.get_hyp_type(hyp)
-                            for hyp in newsub.hypotheses]:
-            if newhyp_term not in oldhyp_terms:
-                return False
-        return newsub.goal == oldsub.goal
-    def contextSurjective(newcontext : FullContext, oldcontext : FullContext):
-        for oldsub in oldcontext.subgoals:
-            if not any([subgoalSurjective(newsub, oldsub)
-                        for newsub in newcontext.subgoals]):
-                return False
-        return len(newcontext.subgoals) >= len(oldcontext.subgoals)
-    def contextInPath(full_context : FullContext, path : List[LabeledNode]):
-        return any([contextSurjective(full_context, n.context_before)
-                    for n in path])
+                predictor.predictKTactics(
+                    TacticContext(coq.prev_tactics, coq.hypothesis, coq.goals),
+                    args.search_width)]
     hasUnexploredNode = False
     def search(pbar : tqdm, current_path : List[LabeledNode]) -> SubSearchResult:
         nonlocal hasUnexploredNode
         predictions = make_predictions()
-        context_before = get_fullcontext()
-        predictionNodes = [g.mkNode(prediction, context_before)
-                           for prediction in predictions]
-
-        for predictionNode in predictionNodes:
-            g.mkEdge(current_path[-1], predictionNode)
+        context_before = coq.getAllGoals()
+        predictionNodes = g.addPredictions(current_path[-1], context_before, predictions)
         for prediction, predictionNode in zip(predictions, predictionNodes):
-            subgoals_closed = 0
             try:
-                coq.quiet = True
-                if args.print_tried:
-                    pbar.display(msg="Running " + prediction, pos=((file_idx * 3) + 2))
-                coq.run_stmt(prediction)
-                if args.print_tried:
-                    pbar.display(msg="", pos=((file_idx * 3) + 2))
+                context_after, num_stmts, subgoals_closed, subgoals_opened = \
+                    tryPrediction(args, coq, g, predictionNode)
                 pbar.update(1)
-                num_stmts = 1
-                while coq.count_fg_goals() == 0 and not completed_proof(coq):
-                    g.setNodeColor(predictionNode, "blue")
-                    coq.run_stmt("}")
-                    subgoals_closed += 1
-                    num_stmts += 1
-                if coq.count_fg_goals() > 1 or \
-                   (coq.count_fg_goals() > 0 and subgoals_closed > 0):
-                    subgoals_opened = 1
-                    coq.run_stmt("{")
-                    num_stmts += 1
-                else:
-                    subgoals_opened = 0
-                context_after = get_fullcontext()
+
                 if completed_proof(coq):
-                    g.mkEdge(predictionNode, g.mkNode("QED", FullContext([]),
-                                                    fillcolor="green", style="filled"))
-                    for node in current_path + [predictionNode]:
-                        g.setNodeColor(node, "green")
-                    return SubSearchResult([TacticInteraction(n.prediction,
-                                                              n.context_before)
-                                            for n in current_path + [predictionNode]],
-                                           subgoals_closed)
+                    solution = g.mkQED(predictionNode)
+                    return SubSearchResult(solution, subgoals_closed)
                 elif contextInPath(context_after, current_path[1:] + [predictionNode]):
                     g.setNodeColor(predictionNode, "orange")
                     nodes_done = int(((args.search_width **
