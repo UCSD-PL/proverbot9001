@@ -305,8 +305,8 @@ class SerapiInstance(threading.Thread):
         return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
-        if not self.quiet or self.debug:
-            print("Problem running statement: {}\n{}".format(stmt, e))
+        eprint("Problem running statement: {}\n{}".format(stmt, e),
+               guard=(not self.quiet or self.debug))
         match(e,
               TimeoutError, lambda *args: progn(self.cancel_last(),
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
@@ -469,8 +469,7 @@ class SerapiInstance(threading.Thread):
         try:
             return normalizeMessage(self.messages.get(timeout=self.timeout))
         except queue.Empty:
-            if self.debug:
-                print("Command timed out! Interrupting")
+            eprint("Command timed out! Interrupting", guard=self.debug)
             self._proc.send_signal(signal.SIGINT)
             try:
                 interrupt_response = \
@@ -574,7 +573,7 @@ class SerapiInstance(threading.Thread):
                   match(contents,
                         ["CoqExn", _, _, list],
                         lambda loc1, loc2, inner:
-                        progn(print("Overflowing!"), # type: ignore
+                        progn(eprint("Overflowing!"), # type: ignore
                               raise_(CoqExn(inner)))),
                   _, lambda *args: raise_(BadResponse(feedback)))
 

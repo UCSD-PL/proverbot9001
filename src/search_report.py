@@ -125,7 +125,7 @@ def report_file(args : argparse.Namespace,
     if args.resume:
         try:
             stats = read_stats_from_csv(args, filename)
-            with tqdm(total=num_commands_total, unit="cmd",
+            with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
                       desc=os.path.basename(filename) + " (Resumed)",
                       disable=(not args.progress),
                       leave=True,
@@ -208,7 +208,7 @@ def report_file(args : argparse.Namespace,
         try:
             # print("Starting a coq instance...")
             with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-                with tqdm(total=num_commands_total, unit="cmd",
+                with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
                           desc=os.path.basename(filename),
                           disable=(not args.progress),
                           leave=True,
@@ -742,8 +742,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                        - 1) / \
                                       (args.search_width - 1)) - 1)
                     pbar.update(nodes_done)
-                    if args.debug:
-                        print(f"Cancelling {num_stmts} statements because resulting context is in current path.")
+                    eprint(f"Cancelling {num_stmts} statements "
+                           f"because resulting context is in current path.",
+                           guard=args.debug)
                     for _ in range(num_stmts):
                         coq.cancel_last()
                 elif len(current_path) + 1 < args.search_depth:
@@ -757,15 +758,17 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
                     stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
-                    if args.debug:
-                        print(f"Cancelling {num_stmts} statements because we finished subsearch.")
+                    eprint(f"Cancelling {num_stmts} statements "
+                           f"because we finished subsearch.",
+                           guard=args.debug)
                     for _ in range(stmts_to_cancel):
                         coq.cancel_last()
                     subgoals_closed = 0
                 else:
                     hasUnexploredNode = True
-                    if args.debug:
-                        print(f"Cancelling {num_stmts} statements because we hit the depth limit.")
+                    eprint(f"Cancelling {num_stmts} statements because "
+                           f"we hit the depth limit.",
+                           guard=args.debug)
                     for _ in range(num_stmts):
                         coq.cancel_last()
                     subgoals_closed = 0
@@ -787,7 +790,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     total_nodes = int((((args.search_width **
                          (args.search_depth+1)) - 1) / \
                        (args.search_width - 1)) - 1)
-    with tqdm(total=total_nodes, unit="pred",
+    with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
               position=((file_idx*3)+1)) as pbar:
         command_list, _ = search(pbar, [g.start_node])
