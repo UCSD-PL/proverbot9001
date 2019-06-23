@@ -97,9 +97,9 @@ def process_statement(coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
     if not re.match("\s*[{}]\s*", command):
         if coq.proof_context:
-            prev_tactics = coq.prev_tactics()
-            prev_hyps = coq.get_hypothesis()
-            prev_goal = coq.get_goals()
+            prev_tactics = coq.prev_tactics
+            prev_hyps = coq.hypotheses
+            prev_goal = coq.goals
             result_file.write(format_context(prev_tactics, prev_hyps, prev_goal, ""))
             result_file.write(format_tactic(command))
         else:
