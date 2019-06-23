@@ -129,7 +129,7 @@ def report_file(args : argparse.Namespace,
                       desc=os.path.basename(filename) + " (Resumed)",
                       disable=(not args.progress),
                       leave=True,
-                      position=(file_idx * 3)) as pbar:
+                      position=(file_idx * 2)) as pbar:
                 pbar.update(num_commands_total)
             if not args.progress:
                 print(f"Resumed {filename} from existing state")
@@ -213,7 +213,7 @@ def report_file(args : argparse.Namespace,
                           desc=os.path.basename(filename),
                           disable=(not args.progress),
                           leave=True,
-                          position=(file_idx * 3)) as pbar:
+              position=(file_idx * 2)) as pbar:
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
@@ -798,7 +798,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                  args.search_depth + 1) - 1
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
-              position=((file_idx*3)+1)) as pbar:
+              position=((file_idx*2)+1)) as pbar:
         command_list, _ = search(pbar, [g.start_node])
         pbar.clear()
     g.draw(args.output + "/" + escape_lemma_name(lemma_name) + ".png")
