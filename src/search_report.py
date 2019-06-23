@@ -165,41 +165,53 @@ def report_file(args : argparse.Namespace,
     def run_to_next_vernac(coq : serapi_instance.SerapiInstance,
                            pbar : tqdm,
                            initial_full_context : FullContext,
-                           lemma_statement : str):
+                           lemma_statement : str) -> List[TacticInteraction]:
         nonlocal commands_run
         nonlocal commands_in
+        coq.run_stmt(lemma_statement)
+        original_tactics : List[TacticInteraction] = []
+        try:
+            while coq.full_context != "":
+                next_in_command = commands_in.pop(0)
+                context_before = coq.getAllGoals()
+                original_tactics.append(TacticInteraction(next_in_command, context_before))
+                coq.run_stmt(next_in_command)
+                pbar.update(1)
+            commands_run.append(lemma_statement)
+            commands_run += [t.tactic for t in original_tactics]
+        except:
+            commands_in = [lemma_statement] + \
+                [t.tactic for t in original_tactics] \
+                + commands_in
+            raise
+        return original_tactics
+    def add_proof_block(status : SearchStatus, solution : SearchResult,
+                        initial_full_context : FullContext,
+                        original_tactics : List[TacticInteraction]) -> None:
         nonlocal num_proofs_failed
         nonlocal num_proofs_completed
         nonlocal blocks_out
-        coq.run_stmt(lemma_statement)
-        commands_run.append(lemma_statement)
-        original_tactics : List[TacticInteraction] = []
-        while coq.full_context != "":
-            next_in_command = commands_in.pop(0)
-            context_before = coq.getAllGoals()
-            coq.run_stmt(next_in_command)
-            commands_run.append(next_in_command)
-            original_tactics.append(TacticInteraction(next_in_command, context_before))
-            pbar.update(1)
         empty_context = FullContext([])
         # Append the proof data
-        if not tactic_solution:
-            if search_status == SearchStatus.FAILURE:
+        if not solution:
+            if status == SearchStatus.FAILURE:
                 num_proofs_failed += 1
-            blocks_out.append(ProofBlock(lemma_statement, search_status,
-                                         [TacticInteraction("Proof.",
-                                                            initial_full_context),
-                                          TacticInteraction("Admitted.",
-                                                            initial_full_context)],
-                                         original_tactics))
+            blocks_out.append(ProofBlock(
+                lemma_statement, status,
+                [TacticInteraction("Proof.",
+                                   initial_full_context),
+                 TacticInteraction("Admitted.",
+                                   initial_full_context)],
+                original_tactics))
         else:
             num_proofs_completed += 1
-            blocks_out.append(ProofBlock(lemma_statement, search_status,
-                                         [TacticInteraction("Proof",
-                                                            initial_full_context)] +
-                                         tactic_solution +
-                                         [TacticInteraction("Qed.", empty_context)],
-                                         original_tactics))
+            blocks_out.append(ProofBlock(
+                lemma_statement, status,
+                [TacticInteraction("Proof",
+                                   initial_full_context)] +
+                solution +
+                [TacticInteraction("Qed.", empty_context)],
+                original_tactics))
 
     if not args.progress:
         print("Loaded {} commands for file {}".format(len(commands_in), filename))
@@ -218,8 +230,9 @@ def report_file(args : argparse.Namespace,
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
-                    if len(commands_run) > 0 and args.verbose and args.num_threads == 1:
-                        print("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
+                    if len(commands_run) > 0 and (args.verbose or args.debug) \
+                       and args.num_threads == 1:
+                        eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
                         commands_caught_up = commands_run
                     coq.debug = args.debug
                     while len(commands_in) > 0:
@@ -240,7 +253,10 @@ def report_file(args : argparse.Namespace,
                             commands_in.insert(0, lemma_statement)
                             raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
                         # Run the original proof
-                        run_to_next_vernac(coq, pbar, initial_context, lemma_statement)
+                        original_tactics = run_to_next_vernac(coq, pbar, initial_context,
+                                                              lemma_statement)
+                        add_proof_block(search_status, tactic_solution,
+                                        initial_context, original_tactics)
             except serapi_instance.CoqAnomaly as e:
                 if commands_caught_up == len(commands_run):
                     eprint(f"Hit the same anomaly twice! {len(commands_run)} commands.")
