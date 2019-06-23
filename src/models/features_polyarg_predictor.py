@@ -426,7 +426,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
                             default=default_values.get("num-tactic-keywords", 50))
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
-                            default=default_values.get("max-beam-width", 10))
+                            default=default_values.get("max-beam-width", 5))
     def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
         -> Iterable[ScrapedTactic]:
         data_iter = super()._preprocess_data(data, arg_values)
