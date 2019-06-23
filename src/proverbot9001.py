@@ -37,7 +37,7 @@ def get_data(args : List[str]) -> None:
                                      "Parse datafiles into multiple formats")
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
                                            "hyps+goal+tactic"])
-    parser.add_argument("datafile_path", type=str)
+    parser.add_argument("scrape_file", type=str)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
@@ -50,7 +50,7 @@ def get_data(args : List[str]) -> None:
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(
-            data.RawDataset(list(itertools.islice(data.read_text_data(arg_values.datafile_path),
+            data.RawDataset(list(itertools.islice(data.read_text_data(arg_values.scrape_file),
                                              arg_values.max_tuples))),
             tokenizers[arg_values.tokenizer],
             arg_values.num_keywords, 2)

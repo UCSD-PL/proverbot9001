@@ -183,7 +183,7 @@ def get_text_data(arg_values : Namespace) -> RawDataset:
     start = time.time()
     _print("Reading dataset...", end="")
     sys.stdout.flush()
-    raw_data = RawDataset(list(read_text_data(arg_values.datafile_path)))
+    raw_data = RawDataset(list(read_text_data(arg_values.scrape_file)))
     filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(arg_values.context_filter), arg_values), arg_values.max_tuples)))
     _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
