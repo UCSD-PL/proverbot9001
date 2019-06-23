@@ -605,7 +605,7 @@ class SerapiInstance(threading.Thread):
         return split[1]
 
     @property
-    def hypothesis(self) -> List[str]:
+    def hypotheses(self) -> List[str]:
         assert isinstance(self.proof_context, str)
         if self.proof_context == "":
             return []

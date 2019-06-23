@@ -606,8 +606,8 @@ def attempt_search(args : argparse.Namespace,
 # def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
 #                      args : argparse.Namespace) -> Optional[List[str]]:
 #     def get_context() -> TacticContext:
-#         return TacticContext(coq.prev_tactics(), coq.get_hypothesis(),
-#                              coq.get_goals())
+#         return TacticContext(coq.prev_tactics, coq.hypotheses,
+#                              coq.goals)
 #     def predictions() -> List[str]:
 #         return [pred.prediction for pred in
 #                 predictor.predictKTactics(get_context(), args.search_width)]

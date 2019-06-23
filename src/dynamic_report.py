@@ -345,7 +345,7 @@ class Worker(threading.Thread):
                     prev_tactics = coq.prev_tactics()
                     initial_context = coq.proof_context
                     assert initial_context
-                    hyps = coq.hypothesis
+                    hyps = coq.hypotheses
                     goals = coq.goals
                     if self.baseline:
                         predictions_and_certanties = [baseline_tactic + ".", 1] \
@@ -364,7 +364,7 @@ class Worker(threading.Thread):
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
                         actual_result_goal = coq.goals
-                        actual_result_hypothesis = coq.hypothesis
+                        actual_result_hypothesis = coq.hypotheses
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError, TimeoutError):
