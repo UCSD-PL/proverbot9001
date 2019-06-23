@@ -659,13 +659,13 @@ class SearchGraph:
             self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
         return newNode
     def mkQED(self, predictionNode : LabeledNode):
-        qedNode = g.mkNode("QED", FullContext([]),
-                           predictionNode,
-                           fillcolor="green", style="filled")
+        qedNode = self.mkNode("QED", FullContext([]),
+                              predictionNode,
+                              fillcolor="green", style="filled")
         cur_node = predictionNode
         cur_path = []
         while cur_node != self.start_node:
-            g.setNodeColor(cur_node, "palegreen1")
+            self.setNodeColor(cur_node, "palegreen1")
             cur_path.append(cur_node)
             cur_node = cur_node.previous
         return [TacticInteraction(n.prediction, n.context_before)
