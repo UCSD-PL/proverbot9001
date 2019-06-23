@@ -341,8 +341,9 @@ class SerapiInstance(threading.Thread):
 
                     ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-                    ['Stack overflow'],
-                    lambda *args: raise_(CoqAnomaly("Overflowed")),
+                    [str],
+                    lambda s: raise_(CoqAnomaly("Overflowed")) if
+                    re.search("Stack overflow", s) else raise_(UnrecognizedError(s)),
                     _, lambda *args: raise_(UnrecognizedError(args))))
 
     # Cancel the last command which was sucessfully parsed by
@@ -557,7 +558,7 @@ class SerapiInstance(threading.Thread):
                              ['Answer', int, 'Ack'],
                              lambda state_num: True,
                              ["Answer", TAIL], lambda *args: False,
-                             ['Stack Overflow'],
+                             ['Stack overflow'],
                              lambda *args: raise_(CoqExn(supposed_ack)),
                              _, lambda *args: raise_(AckError(["Symbol is not an ack! {}"
                                                                .format(supposed_ack)])))
