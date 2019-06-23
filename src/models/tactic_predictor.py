@@ -80,6 +80,8 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                                                        "goal-changes%no-args"))
         parser.add_argument("--use-substitutions", dest="use_substitutions", type=bool,
                             default=default_values.get("use_substitutions", True))
+        parser.add_argument("--verbose", "-v", help="verbose output",
+                            action='store_const', const=True, default=False)
         pass
 
     @abstractmethod
