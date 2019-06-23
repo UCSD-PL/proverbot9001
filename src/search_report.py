@@ -205,15 +205,16 @@ def report_file(args : argparse.Namespace,
         print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
     commands_caught_up = 0
-    while len(commands_in) > 0:
-        try:
-            # print("Starting a coq instance...")
-            with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-                with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
-                          desc=os.path.basename(filename),
-                          disable=(not args.progress),
-                          leave=True,
+    with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
+              desc=os.path.basename(filename),
+              disable=(not args.progress),
+              leave=True,
               position=(file_idx * 2)) as pbar:
+        while len(commands_in) > 0:
+            try:
+                # print("Starting a coq instance...")
+                with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+                    pbar.reset()
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
@@ -240,14 +241,17 @@ def report_file(args : argparse.Namespace,
                             raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
                         # Run the original proof
                         run_to_next_vernac(coq, pbar, initial_context, lemma_statement)
-        except serapi_instance.CoqAnomaly as e:
-            if args.verbose:
-                print(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
-            if args.hardfail or len(commands_caught_up) == len(commands_run):
-                raise e
-        except:
-            print(f"FAILED: in file {filename}")
-            raise
+            except serapi_instance.CoqAnomaly as e:
+                if commands_caught_up == len(commands_run):
+                    eprint(f"Hit the same anomaly twice! {len(commands_run)} commands.")
+                    raise e
+                if args.hardfail:
+                    raise je
+                if args.verbose or args.debug:
+                    eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
+            except:
+                print(f"FAILED: in file {filename}")
+                raise
     write_html(args, args.output, filename, blocks_out)
     write_csv(args, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
