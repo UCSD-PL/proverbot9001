@@ -319,8 +319,8 @@ class SerapiInstance(threading.Thread):
         eprint("Problem running statement: {}\n{}".format(stmt, e),
                guard=(not self.quiet or self.debug))
         match(e,
-              TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt),
-                                                self.cancel_last(),
+              TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
+                                                self.cancel_last(), # type: ignore
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
                                                                     .format(stmt)))),
               _, lambda e:
@@ -336,16 +336,16 @@ class SerapiInstance(threading.Thread):
                                                           .format(stmt)))),
                     'Not_found',
                     lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(e)),
+                                        self.cancel_last(), raise_(e)), # type: ignore
                     ['CErrors\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(e)),
+                                        self.cancel_last(), raise_(e)), # type: ignore
                     ['ExplainErr\.EvaluatedError', TAIL],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(e)),
+                                        self.cancel_last(), raise_(e)), # type: ignore
                     ['Proofview.NoSuchGoals(1)'],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(NoSuchGoalError())),
+                                        self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
 
                     ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
@@ -361,7 +361,7 @@ class SerapiInstance(threading.Thread):
     # serapi. Even if the command failed after parsing, this will
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
-    def cancel_last(self) -> Any:
+    def cancel_last(self) -> None:
         eprint(f"Cancelling {self.tactic_history.getNextCancelled()} "
                f"from state {self.cur_state}",
                guard=self.debug)
@@ -698,9 +698,10 @@ class SerapiInstance(threading.Thread):
     pass
 
 import contextlib
+from typing import Iterator
 
 @contextlib.contextmanager
-def SerapiContext(coq_commands : List[str], includes : str, prelude : str) -> None:
+def SerapiContext(coq_commands : List[str], includes : str, prelude : str) -> Iterator[Any]:
     coq = SerapiInstance(coq_commands, includes, prelude)
     yield coq
     coq.kill()
