@@ -226,7 +226,8 @@ def report_file(args : argparse.Namespace,
             try:
                 # print("Starting a coq instance...")
                 with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-                    pbar.reset()
+                    if args.progress:
+                        pbar.reset()
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
