@@ -324,7 +324,7 @@ class SerapiInstance(threading.Thread):
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
                                                                     .format(stmt)))),
               _, lambda e:
-              match(e.msg,
+              match(normalizeMessage(e.msg),
                     ['Stream\.Error', str],
                     lambda *args: progn(self.get_completed(),
                                         raise_(ParseError("Couldn't parse command {}"
@@ -391,7 +391,7 @@ class SerapiInstance(threading.Thread):
     # an Ack
     def get_ack(self) -> None:
         ack = self.get_message()
-        match(ack,
+        match(normalizeMessage(ack),
               ["Answer", int, "Ack"], lambda state: None,
               _, lambda msg: raise_(AckError(dumps(ack))))
 
@@ -399,7 +399,7 @@ class SerapiInstance(threading.Thread):
     # a Completed.
     def get_completed(self) -> Any:
         completed = self.get_message()
-        match(completed,
+        match(normalizeMessage(completed),
               ["Answer", int, "Completed"], lambda state: None,
               _, lambda msg: raise_(CompletedError(completed)))
 
@@ -458,12 +458,12 @@ class SerapiInstance(threading.Thread):
 
     def get_next_state(self) -> int:
         msg = self.get_message()
-        while match(msg,
+        while match(normalizeMessage(msg),
                     ["Feedback", TAIL], lambda tail: True,
                     _, lambda x: False):
             msg = self.get_message()
 
-        return match(msg,
+        return match(normalizeMessage(msg),
                      ["Answer", int, list],
                      lambda state_num, contents:
                      match(contents,
@@ -477,9 +477,9 @@ class SerapiInstance(threading.Thread):
     def discard_initial_feedback(self) -> None:
         feedback1 = self.get_message()
         feedback2 = self.get_message()
-        match(feedback1, ["Feedback", TAIL], lambda *args: None,
+        match(normalizeMessage(feedback1), ["Feedback", TAIL], lambda *args: None,
               _, lambda *args: raise_(BadResponse(feedback1)))
-        match(feedback2, ["Feedback", TAIL], lambda *args: None,
+        match(normalizeMessage(feedback2), ["Feedback", TAIL], lambda *args: None,
               _, lambda *args: raise_(BadResponse(feedback2)))
     def interrupt(self) -> None:
         self._proc.send_signal(signal.SIGINT)
@@ -487,18 +487,18 @@ class SerapiInstance(threading.Thread):
 
     def get_message(self) -> Any:
         try:
-            return normalizeMessage(self.message_queue.get(timeout=self.timeout))
+            return self.message_queue.get(timeout=self.timeout)
         except queue.Empty:
             eprint("Command timed out! Interrupting", guard=self.debug)
             self._proc.send_signal(signal.SIGINT)
             try:
                 interrupt_response = \
-                    normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
+                    self.message_queue.get(timeout=self.timeout * 10)
             except:
                 self._proc.send_signal(signal.SIGINT)
                 try:
                     interrupt_response = \
-                        normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
+                        self.message_queue.get(timeout=self.timeout * 10)
                 except:
                     raise CoqAnomaly("Timing Out")
 
@@ -511,7 +511,7 @@ class SerapiInstance(threading.Thread):
                     "interrupt_response[1]: {}".format(interrupt_response[1])
                 assert len(interrupt_response[1]) > 2
                 assert isinstance(interrupt_response[1][1], list)
-                interrupt_response = normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
+                interrupt_response = self.message_queue.get(timeout=self.timeout * 10)
                 if isinstance(interrupt_response[1], list):
                     assert interrupt_response[1][1][0] == "contents"
                     assert interrupt_response[1][1][1][0] == "Message"
@@ -525,7 +525,7 @@ class SerapiInstance(threading.Thread):
                     assert interrupt_response[2] == "Completed", interrupt_response
                     return interrupt_response
 
-            interrupt_response2 = normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
+            interrupt_response2 = self.message_queue.get(timeout=self.timeout * 10)
 
             assert isinstance(interrupt_response2, list), interrupt_response2
             assert len(interrupt_response2) > 2
@@ -539,11 +539,11 @@ class SerapiInstance(threading.Thread):
         feedbacks = [] #type: List[Sexp]
         next_message = self.get_message()
         while(isinstance(next_message, list) and
-              next_message[0] == "Feedback"):
+              next_message[0] == Symbol("Feedback")):
             feedbacks.append(next_message)
             next_message = self.get_message()
         fin = next_message
-        match(fin,
+        match(normalizeMessage(fin),
               ["Answer", _, "Completed", TAIL], lambda *args: None,
               ['Answer', _, ["CoqExn", _, _, _]],
               lambda statenum, loc1, loc2, inner: raise_(CoqExn(inner)),
@@ -583,7 +583,7 @@ class SerapiInstance(threading.Thread):
         feedback = self.get_message()
 
         new_statenum = \
-            match(feedback,
+            match(normalizeMessage(feedback),
                   ["Feedback", [['id', ['State', int]], TAIL]],
                   lambda statenum, *rest: statenum,
                   ["Answer", int, list],
@@ -597,7 +597,7 @@ class SerapiInstance(threading.Thread):
 
         cancelled_answer = self.get_message()
         old_statenum = \
-            match(cancelled_answer,
+            match(normalizeMessage(cancelled_answer),
                   ["Answer", int, ["StmCanceled", [int]]],
                   lambda _, new_statenum: new_statenum,
                   ["Answer", int, ["StmCanceled", []]],
@@ -639,11 +639,11 @@ class SerapiInstance(threading.Thread):
 
         proof_context_message = self.get_message()
         if (not isinstance(proof_context_message, list) or
-            proof_context_message[0] != "Answer"):
+            proof_context_message[0] != Symbol("Answer")):
             raise BadResponse(proof_context_message)
         else:
             ol_msg = proof_context_message[2]
-            if (ol_msg[0] != "ObjList"):
+            if (ol_msg[0] != Symbol("ObjList")):
                 raise BadResponse(proof_context_message)
             if len(ol_msg[1]) != 0:
                 # If we're in a proof, then let's run Unshelve to get
