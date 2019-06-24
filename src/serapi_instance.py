@@ -363,7 +363,12 @@ class SerapiInstance(threading.Thread):
         while not self.message_queue.empty():
             self.get_message()
     def sexpToTermStr(self, sexp) -> str:
-        return self.ask(f"(Print () (CoqConstr {dumps(sexp)}))")[2][1][0][1]
+        answer = self.ask(f"(Print () (CoqConstr {dumps(sexp)}))")
+        str_obj = answer[2][1][0][1]
+        if isinstance(str_obj, Symbol):
+            return dumps(str_obj)
+        else:
+            return str_obj
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
