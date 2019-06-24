@@ -207,7 +207,7 @@ def report_file(args : argparse.Namespace,
             num_proofs_completed += 1
             blocks_out.append(ProofBlock(
                 lemma_statement, status,
-                [TacticInteraction("Proof",
+                [TacticInteraction("Proof.",
                                    initial_full_context)] +
                 solution +
                 [TacticInteraction("Qed.", empty_context)],
