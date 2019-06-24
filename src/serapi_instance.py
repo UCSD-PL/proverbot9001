@@ -1066,12 +1066,6 @@ def isValidCommand(command : str) -> bool:
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
         and (command.count('(') == command.count(')'))
 
-def parseSubgoal(substr : str) -> Subgoal:
-    split = re.split("\n====+\n", substr)
-    assert len(split) == 2, substr
-    hypsstr, goal = split
-    return Subgoal(parse_hyps(hypsstr), goal)
-
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = kill_comments(fin.read())
