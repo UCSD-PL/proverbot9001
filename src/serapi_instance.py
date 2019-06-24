@@ -641,8 +641,7 @@ class SerapiInstance(threading.Thread):
         return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 
     def get_proof_context(self) -> None:
-        self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
-                        .format(self.cur_state))
+        self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)" .format(self.cur_state))
 
         proof_context_message = self.get_message()
         if (not isinstance(proof_context_message, list) or
@@ -1146,8 +1145,7 @@ def main() -> None:
         "Module for interacting with a coq-serapi instance from Python (3).")
     parser.add_argument("--prelude", default=".", type=str,
                         help=
-                        "The `home` directory in which to run the wrapper. All other "
-                        "paths will be prefixed by this.")
+                        "The `home` directory in which to look for the _CoqProject file.")
     parser.add_argument("--includes", default=None, type=str,
                         help=
                         "The include options to pass to coq, as a single string. "
@@ -1176,12 +1174,12 @@ def main() -> None:
         includes = args.includes
     else:
         with contextlib.suppress(FileNotFoundError):
-            with open(args.prelude + "/_CoqProject", 'r') as includesfile:
+            with open(f"{args.prelude}/_CoqProject", 'r') as includesfile:
                 includes = includesfile.read()
-    with SerapiContext([f"{args.prelude}/{args.sertopbin}",
-                        f"--prelude={args.prelude}/{args.coqdir}"],
-                       includes,
-                       args.prelude) as coq:
+    thispath = os.path.dirname(os.path.abspath(__file__))
+    with SerapiContext([f"{thispath}/../{args.sertopbin}",
+                        f"--prelude={thispath}/../{args.coqdir}"],
+                       includes, args.prelude) as coq:
         def handle_interrupt(*args):
             nonlocal coq
             print("Running coq interrupt")
@@ -1189,11 +1187,10 @@ def main() -> None:
 
         with sighandler_context(signal.SIGINT, handle_interrupt):
             for srcpath in args.srcfiles:
-                with open(f"{args.prelude}/{srcpath}", 'r') as srcfile:
-                    for line in srcfile:
-                        safeline = line.replace('\n', ' ').strip()
-                        print(f"Running: \"{safeline}\"")
-                        coq.run_stmt(safeline)
+                commands = load_commands_preserve(f"{srcpath}")
+                for cmd in commands:
+                    print(f"Running: \"{cmd}\"")
+                    coq.run_stmt(cmd)
             if args.interactive:
                 breakpoint()
                 x = 50
