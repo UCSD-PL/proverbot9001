@@ -361,6 +361,9 @@ class SerapiInstance(threading.Thread):
     def flush_queue(self) -> None:
         while not self.message_queue.empty():
             self.get_message()
+    def sexpToTermStr(self, sexp) -> str:
+        return self.ask(f"(Print () (CoqConstr {dumps(sexp)}))")[2][1][0][1]
+
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
     # still cancel it. You need to call this after a command that
