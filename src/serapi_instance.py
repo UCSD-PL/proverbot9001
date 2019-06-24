@@ -470,6 +470,9 @@ class SerapiInstance(threading.Thread):
               _, lambda *args: raise_(BadResponse(feedback1)))
         match(feedback2, ["Feedback", TAIL], lambda *args: None,
               _, lambda *args: raise_(BadResponse(feedback2)))
+    def interrupt(self) -> None:
+        self._proc.send_signal(signal.SIGINT)
+        self.flush_queue()
 
     def get_message(self) -> Any:
         try:
@@ -1168,15 +1171,21 @@ def main() -> None:
                         f"--prelude={args.prelude}/{args.coqdir}"],
                        includes,
                        args.prelude) as coq:
-        for srcpath in args.srcfiles:
-            with open(f"{args.prelude}/{srcpath}", 'r') as srcfile:
-                for line in srcfile:
-                    safeline = line.replace('\n', ' ').strip()
-                    print(f"Running: \"{safeline}\"")
-                    coq.run_stmt(safeline)
-        if args.interactive:
-            breakpoint()
-            x = 50
+        def handle_interrupt(*args):
+            nonlocal coq
+            print("Running coq interrupt")
+            coq.interrupt()
+
+        with sighandler_context(signal.SIGINT, handle_interrupt):
+            for srcpath in args.srcfiles:
+                with open(f"{args.prelude}/{srcpath}", 'r') as srcfile:
+                    for line in srcfile:
+                        safeline = line.replace('\n', ' ').strip()
+                        print(f"Running: \"{safeline}\"")
+                        coq.run_stmt(safeline)
+            if args.interactive:
+                breakpoint()
+                x = 50
 
 if __name__ == "__main__":
     main()

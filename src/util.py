@@ -185,3 +185,10 @@ def silent():
     yield
     sys.stderr = save_stderr
     sys.stdout = save_stdout
+
+import signal as sig
+@contextlib.contextmanager
+def sighandler_context(signal, f):
+    old_handler = sig.signal(signal, f)
+    yield
+    sig.signal(signal, old_handler)
