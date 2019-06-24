@@ -357,6 +357,10 @@ class SerapiInstance(threading.Thread):
                     re.search("Stack overflow", s) else raise_(UnrecognizedError(s)),
                     _, lambda *args: raise_(UnrecognizedError(args))))
 
+    # Flush all messages in the message queue
+    def flush_queue(self) -> None:
+        while not self.message_queue.empty():
+            self.get_message()
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
     # still cancel it. You need to call this after a command that
@@ -366,8 +370,7 @@ class SerapiInstance(threading.Thread):
                f"from state {self.cur_state}",
                guard=self.debug)
         # Flush any leftover messages in the queue
-        while not self.message_queue.empty():
-            self.get_message()
+        self.flush_queue()
         # Run the cancel
         self.send_acked("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
