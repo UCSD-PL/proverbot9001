@@ -206,7 +206,7 @@ class SerapiInstance(threading.Thread):
         # the other process to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
         self.proof_context = None # type: Optional[str]
-        self.full_context = ""# type: str
+        self.full_context = None # type: Optional[FullContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
         self.pending_subgoals = [] # type: List[Subgoal]
@@ -268,7 +268,7 @@ class SerapiInstance(threading.Thread):
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
                 # Get initial context
-                context_before = parseFullContext(self.full_context)
+                context_before = self.full_context
                 # Send the command
                 self.send_acked("(Control (StmAdd () \"{}\"))\n".format(stm))
                 # Get the response, which indicates what state we put
@@ -287,6 +287,7 @@ class SerapiInstance(threading.Thread):
                     self.tactic_history = TacticHistory()
                     self.tactic_history.addTactic(stm)
                 elif re.match(r"\s*[{]\s*", stm):
+                    assert context_before
                     self.pending_subgoals = context_before.subgoals[1:] \
                         + self.pending_subgoals
                     self.tactic_history.openSubgoal(context_before.subgoals[1:])
@@ -385,7 +386,7 @@ class SerapiInstance(threading.Thread):
         if not self.full_context:
             self.tactic_history = TacticHistory()
         else:
-            self.tactic_history.removeLast(parseFullContext(self.full_context).subgoals)
+            self.tactic_history.removeLast(self.full_context.subgoals)
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -630,7 +631,8 @@ class SerapiInstance(threading.Thread):
 
     @property
     def fullContext(self) -> FullContext:
-        fg_goals = parseFullContext(self.full_context).subgoals
+        assert self.full_context
+        fg_goals = self.full_context.subgoals
         return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 
     def get_proof_context(self) -> None:
@@ -668,12 +670,25 @@ class SerapiInstance(threading.Thread):
                 newcontext = self.extract_proof_context(ol_msg[1])
                 self.proof_context = newcontext.split("\n\n")[0]
                 if newcontext == "":
-                    self.full_context = "none"
+                    self.full_context = FullContext([])
                 else:
-                    self.full_context  = newcontext
+                    response = self.ask("(Query () Goals)")
+                    subgoal_sexps = response[2][1][0][1][0][1]
+                    subgoals = []
+                    for goal_sexp in subgoal_sexps:
+                        goal_term = self.sexpToTermStr(goal_sexp[0])
+
+                        hyps = []
+                        for hyp_sexp in goal_sexp[1]:
+                            ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in hyp_sexp[0]])
+                            hyp_type = self.sexpToTermStr(hyp_sexp[2])
+
+                            hyps.append(f"{ids_str} : hyp_type")
+                        subgoals.append(Subgoal(hyps, goal_term))
+                    self.full_context = FullContext(subgoals)
             else:
                 self.proof_context = None
-                self.full_context = ""
+                self.full_context = None
 
     def get_lemmas_about_head(self) -> str:
         goal_head = self.goals.split()[0]
@@ -1056,17 +1071,6 @@ def parseSubgoal(substr : str) -> Subgoal:
     assert len(split) == 2, substr
     hypsstr, goal = split
     return Subgoal(parse_hyps(hypsstr), goal)
-
-def parseFullContext(full_context : str) -> Optional[FullContext]:
-    if full_context == "":
-        return None
-    elif full_context == "none":
-        return FullContext([])
-    else:
-        assert full_context
-        return FullContext([parseSubgoal(substr) for substr in
-                            re.split("\n\n|(?=\snone)", full_context)
-                            if substr.strip()])
 
 def load_commands(filename : str) -> List[str]:
     with open(filename, 'r') as fin:

@@ -171,7 +171,7 @@ def report_file(args : argparse.Namespace,
         coq.run_stmt(lemma_statement)
         original_tactics : List[TacticInteraction] = []
         try:
-            while coq.full_context != "":
+            while coq.full_context != None:
                 next_in_command = commands_in.pop(0)
                 context_before = coq.fullContext
                 original_tactics.append(TacticInteraction(next_in_command, context_before))
@@ -247,7 +247,7 @@ def report_file(args : argparse.Namespace,
                             attempt_search(args, lemma_statement, coq, file_idx)
                         # Cancel until before the proof
                         try:
-                            while coq.full_context != "":
+                            while coq.full_context != None:
                                 coq.cancel_last()
                         except serapi_instance.CoqExn as e:
                             commands_in.insert(0, lemma_statement)
@@ -831,5 +831,5 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 
 
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
-    completed = coq.full_context == "none" and coq.tactic_history.curDepth() == 0
+    completed = len(coq.fullContext.subgoals) == 0
     return completed
