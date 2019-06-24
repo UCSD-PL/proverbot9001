@@ -612,7 +612,8 @@ class SerapiInstance(threading.Thread):
             return []
         return parse_hyps(re.split("\n======+\n", self.proof_context)[0])
 
-    def getAllGoals(self) -> FullContext:
+    @property
+    def fullContext(self) -> FullContext:
         fg_goals = parseFullContext(self.full_context).subgoals
         return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 

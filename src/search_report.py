@@ -173,7 +173,7 @@ def report_file(args : argparse.Namespace,
         try:
             while coq.full_context != "":
                 next_in_command = commands_in.pop(0)
-                context_before = coq.getAllGoals()
+                context_before = coq.fullContext
                 original_tactics.append(TacticInteraction(next_in_command, context_before))
                 coq.run_stmt(next_in_command)
                 pbar.update(1)
@@ -241,7 +241,7 @@ def report_file(args : argparse.Namespace,
                             break
                         # Get beginning of next proof
                         num_proofs += 1
-                        initial_context = coq.getAllGoals()
+                        initial_context = coq.fullContext
                         # Try to search
                         search_status, tactic_solution = \
                             attempt_search(args, lemma_statement, coq, file_idx)
@@ -741,12 +741,12 @@ def tryPrediction(args : argparse.Namespace,
         num_stmts += 1
     else:
         subgoals_opened = 0
-    context_after = coq.getAllGoals()
+    context_after = coq.fullContext
     return context_after, num_stmts, subgoals_closed, subgoals_opened
 
 def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                     curNode : LabeledNode, k : int) -> List[LabeledNode]:
-    return g.addPredictions(curNode, coq.getAllGoals(),
+    return g.addPredictions(curNode, coq.fullContext,
                             [pred.prediction for pred in
                              predictor.predictKTactics(
                                  TacticContext(coq.prev_tactics, coq.hypotheses,
