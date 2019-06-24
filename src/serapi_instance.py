@@ -1046,10 +1046,13 @@ def parseSubgoal(substr : str) -> Subgoal:
     hypsstr, goal = split
     return Subgoal(parse_hyps(hypsstr), goal)
 
-def parseFullContext(full_context : str) -> FullContext:
-    if full_context == "none":
+def parseFullContext(full_context : str) -> Optional[FullContext]:
+    if full_context == "":
+        return None
+    elif full_context == "none":
         return FullContext([])
     else:
+        assert full_context
         return FullContext([parseSubgoal(substr) for substr in
                             re.split("\n\n|(?=\snone)", full_context)
                             if substr.strip()])
