@@ -231,10 +231,8 @@ def report_file(args : argparse.Namespace,
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
-                    if len(commands_run) > 0 and (args.verbose or args.debug) \
-                       and args.num_threads == 1:
+                    if len(commands_run) > 0 and (args.verbose or args.debug):
                         eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
-                        commands_caught_up = commands_run
                     coq.debug = args.debug
                     while len(commands_in) > 0:
                         lemma_statement = run_to_next_proof(coq, pbar)
@@ -262,8 +260,9 @@ def report_file(args : argparse.Namespace,
                 if commands_caught_up == len(commands_run):
                     eprint(f"Hit the same anomaly twice! {len(commands_run)} commands.")
                     raise e
+                commands_caught_up = len(commands_run)
                 if args.hardfail:
-                    raise je
+                    raise e
                 if args.verbose or args.debug:
                     eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
             except:
