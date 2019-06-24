@@ -22,9 +22,8 @@ from format import ScrapedTactic
 import tokenizer
 
 # Some Exceptions to throw when various responses come back from coq
-@dataclass
 class AckError(Exception):
-    msg : Optional['Sexp']
+    pass
 @dataclass
 class CompletedError(Exception):
     msg : 'Sexp'
@@ -238,6 +237,10 @@ class SerapiInstance(threading.Thread):
         self._fin.flush()
         self._current_fg_goal_count = None
 
+    def send_acked(self, cmd : str):
+        self.send_flush(cmd)
+        self.get_ack()
+
     @property
     def messages(self):
         return list(self.message_queue.queue)
@@ -263,13 +266,13 @@ class SerapiInstance(threading.Thread):
                 # Get initial context
                 context_before = parseFullContext(self.full_context)
                 # Send the command
-                self.send_flush("(Control (StmAdd () \"{}\"))\n".format(stm))
+                self.send_acked("(Control (StmAdd () \"{}\"))\n".format(stm))
                 # Get the response, which indicates what state we put
                 # serapi in.
                 self.update_state()
 
                 # Observe that state.
-                self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+                self.send_acked("(Control (StmObserve {}))\n".format(self.cur_state))
                 # Finally, get the result of the command
                 feedbacks = self.get_feedbacks()
 
@@ -362,7 +365,7 @@ class SerapiInstance(threading.Thread):
         while not self.message_queue.empty():
             self.get_message()
         # Run the cancel
-        self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
+        self.send_acked("(Control (StmCancel ({})))".format(self.cur_state))
         # Get the response from cancelling
         self.cur_state = self.get_cancelled()
         # Get a new proof context, if it exists
@@ -380,7 +383,7 @@ class SerapiInstance(threading.Thread):
         ack = self.get_message()
         match(ack,
               ["Answer", int, "Ack"], lambda state: None,
-              _, lambda msg: raise_(AckError(ack)))
+              _, lambda msg: raise_(AckError(dumps(ack))))
 
     # Get the next message from the message queue, and make sure it's
     # a Completed.
@@ -393,14 +396,14 @@ class SerapiInstance(threading.Thread):
     def add_lib(self, origpath : str, logicalpath : str) -> None:
         addStm = ("(Control (StmAdd () \"Add Rec LoadPath \\\"{}\\\" as {}.\"))\n"
                   .format(origpath, logicalpath))
-        self.send_flush(addStm.format(origpath, logicalpath))
+        self.send_acked(addStm.format(origpath, logicalpath))
         self.update_state()
 
     def search_about(self, symbol : str) -> List[str]:
         try:
-            self.send_flush("(Control (StmAdd () \"SearchAbout {}.\"))\n".format(symbol))
+            self.send_acked("(Control (StmAdd () \"SearchAbout {}.\"))\n".format(symbol))
             self.update_state()
-            self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+            self.send_acked("(Control (StmObserve {}))\n".format(self.cur_state))
             feedbacks = self.get_feedbacks()
             return [self.ppSexpContent(lemma) for lemma in feedbacks[4:-1]]
         except (CoqExn, BadResponse, AckError, CompletedError) as e:
@@ -440,12 +443,10 @@ class SerapiInstance(threading.Thread):
         self.cur_state = self.get_next_state()
 
     def unset_printing_notations(self) -> None:
-        self.send_flush("(Control (StmAdd () \"Unset Printing Notations.\"))\n")
+        self.send_acked("(Control (StmAdd () \"Unset Printing Notations.\"))\n")
         self.get_next_state()
 
     def get_next_state(self) -> int:
-        self.get_ack()
-
         msg = self.get_message()
         while match(msg,
                     ["Feedback", TAIL], lambda tail: True,
@@ -525,8 +526,6 @@ class SerapiInstance(threading.Thread):
             raise TimeoutError("")
 
     def get_feedbacks(self) -> List['Sexp']:
-        self.get_ack()
-
         feedbacks = [] #type: List[Sexp]
         next_message = self.get_message()
         while(isinstance(next_message, list) and
@@ -546,7 +545,7 @@ class SerapiInstance(threading.Thread):
         if self._current_fg_goal_count == None:
             # was:
             # self.send_flush("(Query ((pp ( (pp_format PpSer) (pp_depth 1) ))) Goals)\n")
-            self.send_flush("(Control (StmQuery () \"all: let n := numgoals in idtac n.\"))")
+            self.send_acked("(Control (StmQuery () \"all: let n := numgoals in idtac n.\"))")
             try:
                 fb = self.get_feedbacks()
                 # OMG this is horrible
@@ -558,17 +557,17 @@ class SerapiInstance(threading.Thread):
         return cast(int, self._current_fg_goal_count)
 
     def get_cancelled(self) -> int:
-        finished = False
-        while not finished:
-            supposed_ack = self.get_message()
-            finished = match(supposed_ack,
-                             ['Answer', int, 'Ack'],
-                             lambda state_num: True,
-                             ["Answer", TAIL], lambda *args: False,
-                             ['Stack overflow'],
-                             lambda *args: raise_(CoqExn(supposed_ack)),
-                             _, lambda *args: raise_(AckError(["Symbol is not an ack! {}"
-                                                               .format(supposed_ack)])))
+        # finished = False
+        # while not finished:
+        #     supposed_ack = self.get_message()
+        #     finished = match(supposed_ack,
+        #                      ['Answer', int, 'Ack'],
+        #                      lambda state_num: True,
+        #                      ["Answer", TAIL], lambda *args: False,
+        #                      ['Stack overflow'],
+        #                      lambda *args: raise_(CoqExn(supposed_ack)),
+        #                      _, lambda *args: raise_(AckError(["Symbol is not an ack! {}"
+        #                                                        .format(supposed_ack)])))
 
 
         feedback = self.get_message()
@@ -625,9 +624,8 @@ class SerapiInstance(threading.Thread):
         return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 
     def get_proof_context(self) -> None:
-        self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
+        self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
                         .format(self.cur_state))
-        self.get_ack()
 
         proof_context_message = self.get_message()
         if (not isinstance(proof_context_message, list) or
@@ -641,20 +639,19 @@ class SerapiInstance(threading.Thread):
                 # If we're in a proof, then let's run Unshelve to get
                 # the real goals. Note this would fail if we were not
                 # in a proof, so we have to check that first.
-                self.send_flush("(Control (StmAdd () \"Unshelve.\"))\n")
+                self.send_acked("(Control (StmAdd () \"Unshelve.\"))\n")
                 self.update_state()
-                self.send_flush("(Control (StmObserve {}))\n".format(self.cur_state))
+                self.send_acked("(Control (StmObserve {}))\n".format(self.cur_state))
                 feedbacks = self.get_feedbacks()
 
                 # Now actually get the goals
-                self.send_flush("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
+                self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
                                 .format(self.cur_state))
-                self.get_ack()
                 proof_context_message = self.get_message()
                 ol_msg = proof_context_message[2]
 
                 # Cancel the Unshelve, to keep things clean.
-                self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
+                self.send_acked("(Control (StmCancel ({})))".format(self.cur_state))
                 self.cur_state = self.get_cancelled()
 
                 # Do some basic parsing on the context
