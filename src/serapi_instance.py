@@ -214,7 +214,7 @@ class SerapiInstance(threading.Thread):
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
-        self.messages = queue.Queue() # type: queue.Queue[Sexp]
+        self.message_queue = queue.Queue() # type: queue.Queue[Sexp]
         # Set the debug flag to default to false.
         self.debug = False
         # Set the "extra quiet" flag (don't print on failures) to false
@@ -237,6 +237,10 @@ class SerapiInstance(threading.Thread):
         self._fin.write(cmd.encode('utf-8'))
         self._fin.flush()
         self._current_fg_goal_count = None
+
+    @property
+    def messages(self):
+        return list(self.message_queue.queue)
 
     # Run a command. This is the main api function for this
     # class. Sends a single command to the running serapi
@@ -355,7 +359,7 @@ class SerapiInstance(threading.Thread):
                f"from state {self.cur_state}",
                guard=self.debug)
         # Flush any leftover messages in the queue
-        while not self.messages.empty():
+        while not self.message_queue.empty():
             self.get_message()
         # Run the cancel
         self.send_flush("(Control (StmCancel ({})))".format(self.cur_state))
@@ -469,18 +473,18 @@ class SerapiInstance(threading.Thread):
 
     def get_message(self) -> Any:
         try:
-            return normalizeMessage(self.messages.get(timeout=self.timeout))
+            return normalizeMessage(self.message_queue.get(timeout=self.timeout))
         except queue.Empty:
             eprint("Command timed out! Interrupting", guard=self.debug)
             self._proc.send_signal(signal.SIGINT)
             try:
                 interrupt_response = \
-                    normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                    normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
             except:
                 self._proc.send_signal(signal.SIGINT)
                 try:
                     interrupt_response = \
-                        normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                        normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
                 except:
                     raise CoqAnomaly("Timing Out")
 
@@ -493,7 +497,7 @@ class SerapiInstance(threading.Thread):
                     "interrupt_response[1]: {}".format(interrupt_response[1])
                 assert len(interrupt_response[1]) > 2
                 assert isinstance(interrupt_response[1][1], list)
-                interrupt_response = normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+                interrupt_response = normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
                 if isinstance(interrupt_response[1], list):
                     assert interrupt_response[1][1][0] == "contents"
                     assert interrupt_response[1][1][1][0] == "Message"
@@ -507,7 +511,7 @@ class SerapiInstance(threading.Thread):
                     assert interrupt_response[2] == "Completed", interrupt_response
                     return interrupt_response
 
-            interrupt_response2 = normalizeMessage(self.messages.get(timeout=self.timeout * 10))
+            interrupt_response2 = normalizeMessage(self.message_queue.get(timeout=self.timeout * 10))
 
             assert isinstance(interrupt_response2, list), interrupt_response2
             assert len(interrupt_response2) > 2
@@ -680,7 +684,7 @@ class SerapiInstance(threading.Thread):
                 print("Couldn't parse Sexp:\n{}".format(line))
                 raise
             # print("Got message {}".format(response))
-            self.messages.put(response)
+            self.message_queue.put(response)
 
     def kill(self) -> None:
         self._proc.terminate()
