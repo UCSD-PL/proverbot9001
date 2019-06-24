@@ -243,7 +243,7 @@ class SerapiInstance(threading.Thread):
 
     @property
     def messages(self):
-        return list(self.message_queue.queue)
+        return [dumps(msg) for msg in list(self.message_queue.queue)]
 
     # Run a command. This is the main api function for this
     # class. Sends a single command to the running serapi
