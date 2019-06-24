@@ -693,16 +693,13 @@ class SerapiInstance(threading.Thread):
 
     pass
 
-class SerapiContext:
-    def __init__(self, coq_commands : List[str], includes : str, prelude : str) -> None:
-        self.coq_commands = coq_commands
-        self.includes = includes
-        self.prelude = prelude
-    def __enter__(self) -> SerapiInstance:
-        self.coq = SerapiInstance(self.coq_commands, self.includes, self.prelude)
-        return self.coq
-    def __exit__(self, type, value, traceback):
-        self.coq.kill()
+import contextlib
+
+@contextlib.contextmanager
+def SerapiContext(coq_commands : List[str], includes : str, prelude : str) -> None:
+    coq = SerapiInstance(coq_commands, includes, prelude)
+    yield coq
+    coq.kill()
 
 def possibly_starting_proof(command : str) -> bool:
     stripped_command = kill_comments(command).strip()
