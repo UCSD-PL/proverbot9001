@@ -243,7 +243,9 @@ class SerapiInstance(threading.Thread):
 
     def ask(self, cmd : str):
         self.send_acked(cmd)
-        return self.get_message()
+        msg = self.get_message()
+        self.flush_queue()
+        return msg
 
     @property
     def messages(self):
