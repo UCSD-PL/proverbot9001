@@ -1125,3 +1125,58 @@ def save_lin(commands : List[str], filename : str) -> None:
         print(hash_file(filename), file=f)
         for command in commands:
             print(command, file=f)
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description=
+        "Module for interacting with a coq-serapi instance from Python (3).")
+    parser.add_argument("--prelude", default=".", type=str,
+                        help=
+                        "The `home` directory in which to run the wrapper. All other "
+                        "paths will be prefixed by this.")
+    parser.add_argument("--includes", default=None, type=str,
+                        help=
+                        "The include options to pass to coq, as a single string. "
+                        "If none are provided, we'll attempt to read a _CoqProject "
+                        "located in the prelude directory, and fall back to no arguments "
+                        "if none exists.")
+    parser.add_argument("--sertop", default="coq-serapi/sertop.native",
+                        dest="sertopbin", type=str,
+                        help=
+                        "The location of the serapi (sertop) binary to use.")
+    parser.add_argument("--coqdir", default="coq", type=str,
+                        help=
+                        "The coq prelude directory to use.")
+    parser.add_argument("--srcfile", "-f", nargs='*', dest='srcfiles', default=[], type=str,
+                        help=
+                        "Coq source file(s) to execute.")
+    parser.add_argument("--interactive", "-i",
+                        action='store_const', const=True, default=False,
+                        help=
+                        "Drop into a pdb prompt after executing source file(s). "
+                        "A `coq` object will be in scope as an instance of SerapiInstance, "
+                        "and will kill the process when you leave.")
+    args = parser.parse_args()
+    includes = ""
+    if args.includes:
+        includes = args.includes
+    else:
+        with contextlib.suppress(FileNotFoundError):
+            with open(args.prelude + "/_CoqProject", 'r') as includesfile:
+                includes = includesfile.read()
+    with SerapiContext([f"{args.prelude}/{args.sertopbin}",
+                        f"--prelude={args.prelude}/{args.coqdir}"],
+                       includes,
+                       args.prelude) as coq:
+        for srcpath in args.srcfiles:
+            with open(f"{args.prelude}/{srcpath}", 'r') as srcfile:
+                for line in srcfile:
+                    safeline = line.replace('\n', ' ').strip()
+                    print(f"Running: \"{safeline}\"")
+                    coq.run_stmt(safeline)
+        if args.interactive:
+            breakpoint()
+            x = 50
+
+if __name__ == "__main__":
+    main()
