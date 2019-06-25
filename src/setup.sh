@@ -11,12 +11,13 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
-    opam init -a --compiler=4.03.0
+    opam init -a --compiler=4.07.1
     eval `opam config env`
     # For Coq:
+    opam pin add menhir 20181113
     opam install -y menhir
     # For SerAPI:
-    opam install -y ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5
+    opam install -y coq-serapi
     pip3 install --user -r requirements.txt
 fi
 
@@ -27,35 +28,35 @@ function check-and-clone {
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
 
-function setup-coq {
-    check-and-clone\
-        "coq" "https://github.com/coq/coq.git"\
-        "9d423562a5f83563198f3141500af4c97103c2bf"
-    (
-        set -euv
-        cd coq
-        if [ ! -f config/coq_config.ml ]; then
-            ./configure -local
-        fi
-        make -j `nproc`
-    ) || exit 1
-}
+# function setup-coq {
+#     check-and-clone\
+#         "coq" "https://github.com/coq/coq.git"\
+#         "cdfbae93094594dac72eb9464fadd652836e7e0d"
+#     (
+#         set -euv
+#         cd coq
+#         if [ ! -f config/coq_config.ml ]; then
+#             ./configure -local
+#         fi
+#         make -j `nproc`
+#     ) || exit 1
+# }
 
-function setup-coq-serapi {
-    check-and-clone\
-        "coq-serapi" "https://github.com/Ptival/coq-serapi.git"\
-        "601ad4f8baee98d025b8157c344d6b6155280930"
-    (
-        set -euv
-        cd coq-serapi
-        SERAPI_COQ_HOME="$PWD/../coq/" make
-    ) || exit 1
-}
+# function setup-coq-serapi {
+#     check-and-clone\
+#         "coq-serapi" "https://github.com/ejgallego/coq-serapi.git"\
+#         "58ff1622c1472b828eaa22b1d477cb67d4ae6b05"
+#     (
+#         set -euv
+#         cd coq-serapi
+#         SERAPI_COQ_HOME="$PWD/../coq/" make
+#     ) || exit 1
+# }
 
 function setup-coq-menhir {
     check-and-clone\
         "coq-menhirlib" "https://gitlab.inria.fr/fpottier/coq-menhirlib.git"\
-        "b3a8229fa967a0185560f4741110f71f3b414de7"
+        "ca0655b2f96057a271fb5c9a254a38d195b4a7f9"
     (
         set -euv
         cd coq-menhirlib
@@ -67,7 +68,7 @@ function setup-coq-menhir {
 function setup-compcert {
     check-and-clone\
         "CompCert" "https://github.com/AbsInt/CompCert.git"\
-        "47f63df0a43209570de224f28cf53da6a758df16"
+        "f047fcb7852ff58c0c62f10d41f91f3f88552780"
     (
         set -euv
         cd CompCert
@@ -78,7 +79,7 @@ function setup-compcert {
     ) || exit 1
 }
 
-setup-coq
-setup-coq-serapi
+# setup-coq
+# setup-coq-serapi
 setup-coq-menhir
 setup-compcert
