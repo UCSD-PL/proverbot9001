@@ -44,8 +44,7 @@ def main(arg_list : List[str]) -> None:
     commit, date = get_metadata()
     predictor = get_predictor(parser, args)
     base = os.path.dirname(os.path.abspath(__file__)) + "/.."
-    coqargs = ["{}/coq-serapi/sertop.native".format(base),
-               "--prelude={}/coq".format(base)]
+    coqargs = ["sertop"]
     prelude = args.prelude
     try:
         with open(prelude + "/_CoqProject", 'r') as includesfile:
@@ -266,7 +265,7 @@ def report_file(args : argparse.Namespace,
                 if args.verbose or args.debug:
                     eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
             except:
-                print(f"FAILED: in file {filename}")
+                eprint(f"FAILED: in file {filename}")
                 raise
     write_html(args, args.output, filename, blocks_out)
     write_csv(args, filename, blocks_out)

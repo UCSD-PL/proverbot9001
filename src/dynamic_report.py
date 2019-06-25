@@ -536,8 +536,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(arg_list)
 
-    coqargs = ["{}/coq-serapi/sertop.native".format(base),
-               "--prelude={}/coq".format(base)]
+    coqargs = ["sertop"]
     includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                                 stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 

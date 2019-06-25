@@ -507,8 +507,7 @@ def main():
     base = os.path.dirname(os.path.abspath(__file__)) + "/.."
     includes = subprocess.Popen(['make', '-C', arg_values.prelude, 'print-includes'],
                                 stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
-    coqargs = ["{}/coq-serapi/sertop.native".format(base),
-               "--prelude={}/coq".format(base)]
+    coqargs = ["sertop"]
 
     for filename in arg_values.filenames:
         if arg_values.verbose:
