@@ -375,8 +375,8 @@ class SerapiInstance(threading.Thread):
     def sexpToTermStr(self, sexp) -> str:
         answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {dumps(sexp)}))")
         return match(normalizeMessage(answer),
-                     ["Answer", int, ["ObjList", [["CoqString", str]]]],
-                     lambda statenum, s: s,
+                     ["Answer", int, ["ObjList", [["CoqString", _]]]],
+                     lambda statenum, s: str(s),
                      ["Answer", int, ["CoqExn", list, list, list, _]],
                      lambda statenum, a, b, c, msg:
                      raise_(CoqExn(msg)))
