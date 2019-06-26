@@ -313,7 +313,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                                                       len(commands_list) + 1) + \
                                                       commands_list[idx+1:]
                                 break
-                if rest_after_bracket:
+                if rest_after_bracket.strip():
                     command_remainders = [cmd + ";" + rest_after_bracket
                                           for cmd in commands_list]
                 else:
