@@ -822,6 +822,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                  args.search_depth + 1) - 1
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
+              leave=False,
               position=((file_idx*2)+1)) as pbar:
         command_list, _ = search(pbar, [g.start_node])
         pbar.clear()
