@@ -1086,43 +1086,65 @@ def load_commands_preserve(filename : str) -> List[str]:
 
 from tqdm import tqdm
 def read_commands_preserve(contents : str) -> List[str]:
+from typing import Pattern, Match
     result = []
     cur_command = ""
     comment_depth = 0
     in_quote = False
-    for i in tqdm(range(len(contents)), desc="Reading file", file=sys.stdout):
-        cur_command += contents[i]
-        if in_quote:
-            if contents[i] == '"' and contents[i-1] != '\\':
-                in_quote = False
-        else:
-            if contents[i] == '"' and contents[i-1] != '\\':
-                in_quote = True
-            elif comment_depth == 0:
-                if (re.match("[\{\}]", contents[i]) and
-                      re.fullmatch("\s*", kill_comments(cur_command)[:-1])):
-                    assert isValidCommand(cur_command)
-                    result.append(cur_command)
-                    cur_command = ""
-                elif (re.fullmatch("\s*[\+\-\*]+",
-                                   kill_comments(cur_command)) and
-                      (len(contents)==i+1 or contents[i] != contents[i+1])):
-                    assert isValidCommand(cur_command)
-                    result.append(cur_command)
-                    cur_command = ""
-                elif (re.match("\.($|\s)", contents[i:i+2]) and
-                      (not contents[i-1] == "." or contents[i-2] == ".")):
-                    assert isValidCommand(cur_command)
-                    result.append(cur_command)
-                    cur_command = ""
-            if contents[i:i+2] == '(*':
-                comment_depth += 1
-            elif contents[i-1:i+1] == '*)':
-                comment_depth -= 1
-    return result
-
 def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
     if verbose:
+    curPos = 0
+    def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
+        match = pat.search(contents, curPos)
+        return match, match.end() if match else len(contents) + 1
+    with tqdm(total=len(contents)+1, file=sys.stdout,
+              disable=(not args.progress),
+              position = (file_idx * 2),
+              desc="Reading file", leave=False) as pbar:
+      while curPos < len(contents):
+          _, next_quote = search_pat(re.compile(r"(?<!\\)\""))
+          _, next_open_comment = search_pat(re.compile(r"\(\*"))
+          _, next_close_comment = search_pat(re.compile(r"\*\)"))
+          _, next_bracket = search_pat(re.compile(r"[\{\}]"))
+          next_bullet_match, next_bullet = search_pat(re.compile(r"[\+\-\*]+(?![\)\+\-\*])"))
+          _, next_period = search_pat(re.compile(r"(?<!\.)\.($|\s)|\.\.\.($|\s)"))
+          nextPos = min(next_quote,
+                        next_open_comment, next_close_comment,
+                        next_bracket,
+                        next_bullet, next_period)
+          assert curPos < nextPos
+          next_chunk = contents[curPos:nextPos]
+          cur_command += next_chunk
+          pbar.update(nextPos - curPos)
+          if nextPos == next_quote:
+              if comment_depth == 0:
+                  in_quote = not in_quote
+          elif nextPos == next_open_comment:
+              if not in_quote:
+                  comment_depth += 1
+          elif nextPos == next_close_comment:
+              if not in_quote:
+                  comment_depth -= 1
+          elif nextPos == next_bracket:
+              if not in_quote and comment_depth == 0 and \
+                 re.match("\s*$", kill_comments(cur_command[:-1])):
+                  result.append(cur_command)
+                  cur_command = ""
+          elif nextPos == next_bullet:
+              assert next_bullet_match
+              match_length = next_bullet_match.end() - next_bullet_match.start()
+              if not in_quote and comment_depth == 0 and \
+                 re.match("\s*$", kill_comments(cur_command[:-match_length])):
+                  result.append(cur_command)
+                  cur_command = ""
+              assert next_bullet_match.end() >= nextPos
+          elif nextPos == next_period:
+              if not in_quote and comment_depth == 0:
+                  result.append(cur_command)
+                  cur_command = ""
+          curPos = nextPos
+      return result
+
         eprint("Attempting to load cached linearized version from {}"
                .format(filename + '.lin'))
     if not os.path.exists(filename + '.lin'):
