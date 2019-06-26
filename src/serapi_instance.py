@@ -24,7 +24,7 @@ import tokenizer
 # Some Exceptions to throw when various responses come back from coq
 @dataclass
 class AckError(Exception):
-    msg : 'Sexp'
+    msg : Union['Sexp', str]
 @dataclass
 class CompletedError(Exception):
     msg : 'Sexp'

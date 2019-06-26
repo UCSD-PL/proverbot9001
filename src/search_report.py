@@ -184,7 +184,8 @@ def report_file(args : argparse.Namespace,
                 + commands_in
             raise
         return original_tactics
-    def add_proof_block(status : SearchStatus, solution : SearchResult,
+    def add_proof_block(status : SearchStatus,
+                        solution : Optional[List[TacticInteraction]],
                         initial_full_context : FullContext,
                         original_tactics : List[TacticInteraction]) -> None:
         nonlocal num_proofs_failed
@@ -689,6 +690,7 @@ class SearchGraph:
         while cur_node != self.start_node:
             self.setNodeColor(cur_node, "palegreen1")
             cur_path.append(cur_node)
+            assert cur_node.previous
             cur_node = cur_node.previous
         return [TacticInteraction(n.prediction, n.context_before)
                 for n in cur_path]
