@@ -529,9 +529,9 @@ class SerapiInstance(threading.Thread):
                 except:
                     raise CoqAnomaly("Timing Out")
 
-            if interrupt_response != "Sys\.Break":
+            if interrupt_response != Symbol("Sys\.Break"):
                 assert isinstance(interrupt_response, list), interrupt_response
-                assert interrupt_response[0] == "Feedback", interrupt_response
+                assert interrupt_response[0] == Symbol("Feedback"), interrupt_response
                 assert len(interrupt_response) > 1, \
                     "too short! interrupt_reponse: {}".format(interrupt_response)
                 assert isinstance(interrupt_response[1], list), \
@@ -540,25 +540,28 @@ class SerapiInstance(threading.Thread):
                 assert isinstance(interrupt_response[1][1], list)
                 interrupt_response = self.message_queue.get(timeout=self.timeout * 10)
                 if isinstance(interrupt_response[1], list):
-                    assert interrupt_response[1][1][0] == "contents"
-                    assert interrupt_response[1][1][1][0] == "Message"
-                    assert interrupt_response[1][1][1][1] == "Error"
+                    assert interrupt_response[1][1][0] == Symbol("contents")
+                    assert interrupt_response[1][1][1][0] == Symbol("Message")
+                    assert interrupt_response[1][1][1][1] == Symbol("Error")
                 elif isinstance(interrupt_response[2], list):
-                    assert interrupt_response[0] == "Answer"
-                    assert interrupt_response[2][0] == "CoqExn", interrupt_response
+                    assert interrupt_response[0] == Symbol("Answer")
+                    assert interrupt_response[2][0] == Symbol("CoqExn"), interrupt_response
+                    self.get_completed()
                     raise TimeoutError("")
                 else:
-                    assert interrupt_response[0] == "Answer"
-                    assert interrupt_response[2] == "Completed", interrupt_response
+                    assert interrupt_response[0] == Symbol("Answer")
+                    assert interrupt_response[2] == Symbol("Completed"), interrupt_response
                     return interrupt_response
 
             interrupt_response2 = self.message_queue.get(timeout=self.timeout * 10)
 
             assert isinstance(interrupt_response2, list), interrupt_response2
             assert len(interrupt_response2) > 2
-            assert interrupt_response2[0] == "Answer"
-            assert interrupt_response2[2][0] == "CoqExn"
-            assert interrupt_response2[2][3] == "Sys\.Break", interrupt_response2
+            assert interrupt_response2[0] == Symbol("Answer")
+            assert interrupt_response2[2][0] == Symbol("CoqExn")
+            assert interrupt_response2[2][3] == Symbol("Sys\.Break"), interrupt_response2
+
+            self.get_completed()
 
             raise TimeoutError("")
 
