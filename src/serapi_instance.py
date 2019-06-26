@@ -711,7 +711,7 @@ class SerapiInstance(threading.Thread):
             try:
                 response = loads(line)
             except:
-                print("Couldn't parse Sexp:\n{}".format(line))
+                eprint("Couldn't parse Sexp:\n{}".format(line))
                 raise
             # print("Got message {}".format(response))
             self.message_queue.put(response)
@@ -1216,7 +1216,7 @@ def main() -> None:
             for srcpath in args.srcfiles:
                 commands = load_commands_preserve(args, 0, f"{srcpath}")
                 for cmd in commands:
-                    print(f"Running: \"{cmd}\"")
+                    eprint(f"Running: \"{cmd}\"")
                     coq.run_stmt(cmd)
             if args.interactive:
                 breakpoint()

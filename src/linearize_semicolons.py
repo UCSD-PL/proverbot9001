@@ -14,6 +14,7 @@ import threading
 from sexpdata import *
 from timer import TimerBucket
 from traceback import *
+from util import *
 from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
@@ -69,7 +70,7 @@ def linearize_commands(commands_sequence: Iterable[str],
         coq.run_stmt(theorem_statement)
         yield theorem_statement
         if [relative_filename, theorem_name] in compcert_failures:
-            print("Skipping {}".format(theorem_name))
+            eprint("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
                 yield command
@@ -91,9 +92,9 @@ def linearize_commands(commands_sequence: Iterable[str],
                                                        debug, skip_nochange_tac))
             yield from linearized_commands
         except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
-            print("Aborting current proof linearization!")
-            print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
-            print()
+            eprint("Aborting current proof linearization!")
+            eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
+            eprint()
             if hardfail:
                 raise e
             coq.run_stmt("Abort.")
@@ -237,7 +238,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
 
         command = command_proper
         if debug:
-            print(f"Linearizing command \"{command}\"")
+            eprint(f"Linearizing command \"{command}\"")
 
         goal_selector_match = re.match(r"\s*(\d*)\s*:\s*(.*)\.\s*", command)
         if goal_selector_match:
@@ -486,10 +487,10 @@ def preprocess_file_commands(commands : List[str], coqargs : List[str], includes
                         skip_nochange_tac, debug, hardfail)))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
-        print("In file {}".format(filename))
+        eprint("In file {}".format(filename))
         raise
     except serapi_instance.TimeoutError:
-        print("Timed out while lifting commands! Skipping linearization...")
+        eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
 
 def main():
@@ -511,7 +512,7 @@ def main():
 
     for filename in arg_values.filenames:
         if arg_values.verbose:
-            print("Linearizing {}".format(filename))
+            eprint("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
         fresh_commands = preprocess_file_commands(
             serapi_instance.load_commands_preserve(arg_values.prelude + "/" + filename),
