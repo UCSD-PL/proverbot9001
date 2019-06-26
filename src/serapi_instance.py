@@ -374,11 +374,12 @@ class SerapiInstance(threading.Thread):
             print(f"Flushing: {self.get_message()}")
     def sexpToTermStr(self, sexp) -> str:
         answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {dumps(sexp)}))")
-        str_obj = answer[2][1][0][1]
-        if isinstance(str_obj, Symbol):
-            return dumps(str_obj)
-        else:
-            return str_obj
+        return match(normalizeMessage(answer),
+                     ["Answer", int, ["ObjList", [["CoqString", str]]]],
+                     lambda statenum, s: s,
+                     ["Answer", int, ["CoqExn", list, list, list, _]],
+                     lambda statenum, a, b, c, msg:
+                     raise_(CoqExn(msg)))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
@@ -489,8 +490,8 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, list],
                      lambda state_num, contents:
                      match(contents,
-                           ["CoqExn", _, _, list],
-                           lambda loc1, loc2, inner:
+                           ["CoqExn", _, _, _, list],
+                           lambda loc1, loc2, loc3, inner:
                            raise_(CoqExn(inner)),
                            ["Added", int, TAIL],
                            lambda state_num, tail: state_num),
@@ -594,10 +595,8 @@ class SerapiInstance(threading.Thread):
         cancelled_answer = self.get_message()
         old_statenum = \
             match(normalizeMessage(cancelled_answer),
-                  ["Answer", int, ["Canceled", [int]]],
-                  lambda _, new_statenum: new_statenum,
-                  ["Answer", int, ["Canceled", []]],
-                  lambda old_statenum: old_statenum,
+                  ["Answer", int, ["Canceled", list]],
+                  lambda _, statenums: min(statenums),
                   ["Answer", int, ["CoqExn", _, _, _]],
                   lambda *args: raise_(CoqExn(cancelled_answer)),
                   _, lambda *args: raise_(BadResponse(cancelled_answer)))
@@ -828,7 +827,7 @@ def preprocess_command(cmd : str) -> List[str]:
                   "Psatz", "ExtrOcamlBasic", "ExtrOcamlString",
                   "Ascii"]
     for lib in needPrefix:
-        match = re.fullmatch("\s*Require(\s+(?:(?:Import)|(?:Export)))?((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.".format(lib), cmd)
+        match = re.fullmatch("\s*Require(\s+(?:(?:Import)|(?:Export)))?((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.\s*".format(lib), cmd)
         if match:
             if match.group(1):
                 impG= match.group(1)

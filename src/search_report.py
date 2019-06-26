@@ -275,8 +275,10 @@ def get_commands(filename : str, verbose : bool) -> List[str]:
     local_filename = prelude + "/" + filename
     loaded_commands = serapi_instance.try_load_lin(local_filename, verbose=verbose)
     if loaded_commands is None:
+        original_commands = \
+            serapi_instance.load_commands_preserve(prelude + "/" + filename)
         fresh_commands = linearize_semicolons.preprocess_file_commands(
-            serapi_instance.load_commands_preserve(prelude + "/" + filename),
+            original_commands,
             coqargs, includes, prelude,
             local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
