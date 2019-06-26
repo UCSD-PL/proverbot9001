@@ -223,7 +223,8 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                     elif isinstance(pending_commands_stack[-1], list):
                         pending_commands_stack[-1] = popped + pending_commands_stack[-1]
         command = command_batch.pop(0)
-        assert serapi_instance.isValidCommand(command), f"command is \"{command}\", command_batch is {command_batch}"
+        assert serapi_instance.isValidCommand(command), \
+            f"command is \"{command}\", command_batch is {command_batch}"
         comment_before_command = ""
         command_proper = command
         while "(*" in command_proper:
@@ -449,7 +450,8 @@ def prelinear_desugar_tacs(commands : Iterable[str]) -> Iterable[str]:
             newcommand = f(command_proper)
             assert serapi_instance.isValidCommand(newcommand), (command_proper, newcommand)
             command_proper = newcommand
-        yield comment_before_command + command_proper
+        full_command = comment_before_command + command_proper
+        yield full_command
 
 def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())

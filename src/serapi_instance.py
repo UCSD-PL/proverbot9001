@@ -371,7 +371,7 @@ class SerapiInstance(threading.Thread):
     # Flush all messages in the message queue
     def flush_queue(self) -> None:
         while not self.message_queue.empty():
-            print(f"Flushing: {self.get_message()}")
+            self.get_message()
     def sexpToTermStr(self, sexp) -> str:
         answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {dumps(sexp)}))")
         return match(normalizeMessage(answer),
