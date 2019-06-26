@@ -677,23 +677,33 @@ class SerapiInstance(threading.Thread):
                 if newcontext == "":
                     self.full_context = FullContext([])
                 else:
-                    response = self.ask("(Query () Goals)")
-                    subgoal_sexps = response[2][1][0][1][0][1]
-                    subgoals = []
-                    for goal_sexp in subgoal_sexps:
-                        assert self.message_queue.empty()
-                        goal_term = self.sexpToTermStr(goal_sexp[1][1])
-                        assert self.message_queue.empty()
+                    # Try to do this the right way, fall back to the
+                    # wrong way if we run into this bug:
+                    # https://github.com/ejgallego/coq-serapi/issues/150
+                    try:
+                        response = self.ask("(Query () Goals)")
+                        subgoal_sexps = response[2][1][0][1][0][1]
+                        subgoals = []
+                        for goal_sexp in subgoal_sexps:
+                            goal_term = self.sexpToTermStr(goal_sexp[1][1])
 
-                        hyps = []
-                        for hyp_sexp in goal_sexp[2][1]:
-                            ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in hyp_sexp[0]])
-                            assert self.message_queue.empty()
-                            hyp_type = self.sexpToTermStr(hyp_sexp[2])
+                            hyps = []
+                            for hyp_sexp in goal_sexp[2][1]:
+                                ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in hyp_sexp[0]])
+                                hyp_type = self.sexpToTermStr(hyp_sexp[2])
 
-                            hyps.append(f"{ids_str} : {hyp_type}")
-                        subgoals.append(Subgoal(hyps, goal_term))
-                    self.full_context = FullContext(subgoals)
+                                hyps.append(f"{ids_str} : {hyp_type}")
+                            subgoals.append(Subgoal(hyps, goal_term))
+                        self.full_context = FullContext(subgoals)
+                    except CoqExn:
+                        if newcontext == "none":
+                            return FullContext([])
+                        else:
+                            self.full_context = \
+                                FullContext([parsePPSubgoal(substr) for substr
+                                             in re.split("\n\n|(?=\snone)", newcontext)
+                                             if substr.strip()])
+                        pass
             else:
                 self.proof_context = None
                 self.full_context = None
@@ -1068,6 +1078,12 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
             return datum
     else:
         return datum
+
+def parsePPSubgoal(substr : str) -> Subgoal:
+    split = re.split("\n====+\n", substr)
+    assert len(split) == 2, substr
+    hypsstr, goal = split
+    return Subgoal(parse_hyps(hypsstr), goal)
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
