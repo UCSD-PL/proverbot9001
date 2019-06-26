@@ -119,7 +119,7 @@ def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 file_tuple : Tuple[int, str]) -> Optional[ReportStats]:
     file_idx, filename = file_tuple
-    commands_in = get_commands(filename, args.verbose or args.debug)
+    commands_in = get_commands(args, file_idx, filename)
     num_commands_total = len(commands_in)
     if args.resume:
         try:
@@ -271,12 +271,13 @@ def report_file(args : argparse.Namespace,
     write_csv(args, filename, blocks_out)
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
-def get_commands(filename : str, verbose : bool) -> List[str]:
+def get_commands(args : argparse.Namespace, file_idx : int, filename : str) -> List[str]:
     local_filename = prelude + "/" + filename
-    loaded_commands = serapi_instance.try_load_lin(local_filename, verbose=verbose)
+    loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
     if loaded_commands is None:
         original_commands = \
-            serapi_instance.load_commands_preserve(prelude + "/" + filename)
+            serapi_instance.load_commands_preserve(args, file_idx,
+                                                   prelude + "/" + filename)
         fresh_commands = linearize_semicolons.preprocess_file_commands(
             original_commands,
             coqargs, includes, prelude,

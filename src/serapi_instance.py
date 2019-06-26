@@ -1079,20 +1079,20 @@ def load_commands(filename : str) -> List[str]:
                                  for newcmd in preprocess_command(cmd)]
         return commands_preprocessed
 
-def load_commands_preserve(filename : str) -> List[str]:
+def load_commands_preserve(args : argparse.Namespace, file_idx : int,
+                           filename : str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = fin.read()
-    return read_commands_preserve(contents)
+    return read_commands_preserve(args, file_idx, contents)
 
 from tqdm import tqdm
-def read_commands_preserve(contents : str) -> List[str]:
 from typing import Pattern, Match
+def read_commands_preserve(args : argparse.Namespace, file_idx : int,
+                           contents : str) -> List[str]:
     result = []
     cur_command = ""
     comment_depth = 0
     in_quote = False
-def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
-    if verbose:
     curPos = 0
     def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
         match = pat.search(contents, curPos)
@@ -1145,6 +1145,9 @@ def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
           curPos = nextPos
       return result
 
+def try_load_lin(args : argparse.Namespace, file_idx : int, filename : str) \
+    -> Optional[List[str]]:
+    if args.verbose:
         eprint("Attempting to load cached linearized version from {}"
                .format(filename + '.lin'))
     if not os.path.exists(filename + '.lin'):
@@ -1152,7 +1155,7 @@ def try_load_lin(filename : str, verbose:bool=True) -> Optional[List[str]]:
     file_hash = hash_file(filename)
     with open(filename + '.lin', 'r') as f:
         if file_hash == f.readline().strip():
-            return read_commands_preserve(f.read())
+            return read_commands_preserve(args, file_idx, f.read())
         else:
             return None
 
@@ -1189,6 +1192,10 @@ def main() -> None:
                         "Drop into a pdb prompt after executing source file(s). "
                         "A `coq` object will be in scope as an instance of SerapiInstance, "
                         "and will kill the process when you leave.")
+    parser.add_argument("--verbose", "-v",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--progress",
+                        action='store_const', const=True, default=False)
     args = parser.parse_args()
     includes = ""
     if args.includes:
@@ -1207,7 +1214,7 @@ def main() -> None:
 
         with sighandler_context(signal.SIGINT, handle_interrupt):
             for srcpath in args.srcfiles:
-                commands = load_commands_preserve(f"{srcpath}")
+                commands = load_commands_preserve(args, 0, f"{srcpath}")
                 for cmd in commands:
                     print(f"Running: \"{cmd}\"")
                     coq.run_stmt(cmd)

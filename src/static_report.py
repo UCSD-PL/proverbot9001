@@ -549,13 +549,14 @@ def write_csv(output_dir : str, filename : str, args : argparse.Namespace,
                                      for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])
 
-def get_file_commands(prelude : str, filename : str) -> List[str]:
-    local_filename = prelude + "/" + filename
-    loaded_commands = try_load_lin(local_filename)
+def get_file_commands(args : argparse.Namespace, file_idx : int,
+                      filename : str) -> List[str]:
+    local_filename = args.prelude + "/" + filename
+    loaded_commands = try_load_lin(args, file_idx, local_filename)
     if loaded_commands is None:
         print("Warning: this version of the reports can't linearize files! "
               "Using original commands.")
-        return load_commands_preserve(local_filename)
+        return load_commands_preserve(args, file_idx, local_filename)
     else:
         return loaded_commands
 

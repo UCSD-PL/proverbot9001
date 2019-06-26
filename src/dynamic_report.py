@@ -291,7 +291,8 @@ class FileResult:
 class Worker(threading.Thread):
     def __init__(self, workerid : int, coqargs : List[str], includes : str,
                  output_dir : str, prelude : str, debug : bool, num_jobs : int,
-                 baseline : bool, skip_nochange_tac : bool, context_filter : str) -> None:
+                 baseline : bool, skip_nochange_tac : bool, context_filter : str,
+                 full_args : argparse.Namespace) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -303,14 +304,17 @@ class Worker(threading.Thread):
         self.baseline = baseline
         self.cfilter = get_context_filter(context_filter)
         self.skip_nochange_tac = skip_nochange_tac
+        self.full_args = full_args
         pass
 
-    def get_commands(self, filename : str) -> List[str]:
+    def get_commands(self, args : argparse.Namespace, file_idx : int,
+                     filename : str) -> List[str]:
         local_filename = self.prelude + "/" + filename
-        loaded_commands = serapi_instance.try_load_lin(local_filename)
+        loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
         if loaded_commands is None:
             fresh_commands = linearize_semicolons.preprocess_file_commands(
-                serapi_instance.load_commands_preserve(self.prelude + "/" + filename),
+                serapi_instance.load_commands_preserve(args, file_idx,
+                                                       self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
                 filename, local_filename, self.skip_nochange_tac, debug=self.debug)
             serapi_instance.save_lin(fresh_commands, local_filename)
@@ -318,13 +322,14 @@ class Worker(threading.Thread):
         else:
             return loaded_commands
 
-    def process_file(self, filename : str) -> None:
+    def process_file(self, args : argparse.Namespace, file_idx : int, filename : str) \
+        -> None:
         global gresult
         fresult = FileResult(filename)
 
         if self.debug:
             print("Preprocessing...")
-        commands = self.get_commands(filename)
+        commands = self.get_commands(args, file_idx, filename)
 
         command_results : List[CommandResult] = []
 
@@ -497,7 +502,7 @@ class Worker(threading.Thread):
                 print("Processing file {} ({} of {})".format(job,
                                                              jobnum,
                                                              num_jobs))
-                self.process_file(job)
+                self.process_file(self.full_args, 0, job)
                 print("Finished file {} ({} of {})".format(job,
                                                            jobnum,
                                                            num_jobs))
@@ -571,7 +576,7 @@ def main(arg_list : List[str]) -> None:
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
                         args.baseline, args.skip_nochange_tac,
-                        context_filter)
+                        context_filter, args)
         worker.start()
         workers.append(worker)
 
