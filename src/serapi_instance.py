@@ -358,10 +358,10 @@ class SerapiInstance(threading.Thread):
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
 
-                    ['Answer', int, ['CoqExn', _, _, 'Stream\\.Error']],
+                    ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
 
-                    ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
+                    ['Answer', int, ['CoqExn', _, _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
                     ['Answer', int, ['CoqExn', _, _, _, [str]]],
                     lambda sentence, loc1, loc2, trace, inner:
@@ -583,7 +583,7 @@ class SerapiInstance(threading.Thread):
             match(normalizeMessage(cancelled_answer),
                   ["Answer", int, ["Canceled", list]],
                   lambda _, statenums: min(statenums),
-                  ["Answer", int, ["CoqExn", _, _, _]],
+                  ["Answer", int, ["CoqExn", _, _, _, _]],
                   lambda *args: raise_(CoqExn(cancelled_answer)),
                   _, lambda *args: raise_(BadResponse(cancelled_answer)))
 
