@@ -249,7 +249,6 @@ def report_file(args : argparse.Namespace,
                             while coq.full_context != None:
                                 coq.cancel_last()
                         except serapi_instance.CoqExn as e:
-                            commands_in.insert(0, lemma_statement)
                             raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
                         # Run the original proof
                         original_tactics = run_to_next_vernac(coq, pbar, initial_context,
@@ -257,6 +256,7 @@ def report_file(args : argparse.Namespace,
                         add_proof_block(search_status, tactic_solution,
                                         initial_context, original_tactics)
             except serapi_instance.CoqAnomaly as e:
+                commands_in.insert(0, lemma_statement)
                 if commands_caught_up == len(commands_run):
                     eprint(f"Hit the same anomaly twice! {len(commands_run)} commands.")
                     raise e
