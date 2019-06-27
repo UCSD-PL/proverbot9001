@@ -363,8 +363,9 @@ class SerapiInstance(threading.Thread):
 
                     ['Answer', int, ['CoqExn', _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-                    [str],
-                    lambda s: raise_(CoqAnomaly("Overflowed")) if
+                    ['Answer', int, ['CoqExn', _, _, _, [str]]],
+                    lambda sentence, loc1, loc2, trace, inner:
+                    lambda s: progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))) if
                     re.search("Stack overflow", s) else raise_(UnrecognizedError(s)),
                     _, lambda *args: raise_(UnrecognizedError(args))))
 
