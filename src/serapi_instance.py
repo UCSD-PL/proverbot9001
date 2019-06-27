@@ -838,7 +838,7 @@ def preprocess_command(cmd : str) -> List[str]:
                   "RelationClasses", "OrderedTypeAlt", "FMapAVL",
                   "BinPos", "BinNat", "DecidableClass", "Reals",
                   "Psatz", "ExtrOcamlBasic", "ExtrOcamlString",
-                  "Ascii"]
+                  "Ascii", "FunInd"]
     for lib in needPrefix:
         match = re.fullmatch("\s*Require(\s+(?:(?:Import)|(?:Export)))?((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.\s*".format(lib), cmd)
         if match:
