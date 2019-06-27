@@ -405,7 +405,7 @@ def desugar_rewrite_by(cmd : str) -> str:
     if rewrite_by_match:
         prefix = cmd[:rewrite_by_match.start()]
         after_match = cmd[rewrite_by_match.end():]
-        split = split_by_char_outside_matching("[[(]", "[\])]",
+        split = split_by_char_outside_matching("[\[(]", "[\])]",
                                                r"\.\W|\.$|[|]|\)|;", after_match)
         assert split
         body, postfix = split
