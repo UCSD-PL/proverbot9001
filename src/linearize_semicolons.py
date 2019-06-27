@@ -40,10 +40,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
                        coq : serapi_instance.SerapiInstance,
                        filename : str, relative_filename : str,
                        skip_nochange_tac:bool):
-    commands_iter = tqdm(iter(commands_sequence), file=sys.stdout,
-                         disable=not args.progress,
-                         position=(file_idx * 2),
-                         desc="Linearizing", leave=False)
+    commands_iter = iter(commands_sequence)
     command = next(commands_iter, None)
     assert command, "Got an empty sequence!"
     while command:
@@ -461,7 +458,8 @@ def prelinear_desugar_tacs(commands : Iterable[str]) -> Iterable[str]:
 def lifted_vernac(command : str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
-def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) \
+def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
+                    pbar : tqdm) \
     -> Iterator[str]:
     lemma_stack = [] # type: List[List[str]]
     for command in commands:
@@ -473,9 +471,12 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) 
         if len(lemma_stack) > 0 and not lifted_vernac(command):
             lemma_stack[-1].append(command)
         else:
+            pbar.update(1)
             yield command
         if serapi_instance.ending_proof(command):
-            yield from lemma_stack.pop()
+            pending_commands = lemma_stack.pop()
+            pbar.update(len(pending_commands))
+            yield from pending_commands
     assert(len(lemma_stack) == 0)
 
 def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
@@ -484,13 +485,18 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              skip_nochange_tac : bool) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.debug = args.debug
-            result = list(
-                postlinear_desugar_tacs(
-                    linearize_commands(
-                        args, file_idx,
-                        generate_lifted(commands, coq),
-                        coq, filename, relative_filename,
+            coq.debug = True
+            with tqdm(file=sys.stdout,
+                      disable=not args.progress,
+                      position=(file_idx * 2),
+                      desc="Linearizing", leave=False,
+                      total=len(commands)) as pbar:
+                result = list(
+                    postlinear_desugar_tacs(
+                        linearize_commands(
+                            args, file_idx,
+                            generate_lifted(commands, coq, pbar),
+                            coq, filename, relative_filename,
                         skip_nochange_tac)))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
@@ -521,9 +527,11 @@ def main():
         if arg_values.verbose:
             eprint("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
+        original_commands = serapi_instance.load_commands_preserve(
+            arg_values.prelude + "/" + filename)
         fresh_commands = preprocess_file_commands(arg_values,
-            serapi_instance.load_commands_preserve(arg_values.prelude + "/" + filename),
-            coqargs, includes,
+                                                  original_commands,
+                                                  coqargs, includes,
                                                   local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
 
