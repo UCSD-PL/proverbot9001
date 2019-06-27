@@ -28,43 +28,6 @@ function check-and-clone {
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
 
-# function setup-coq {
-#     check-and-clone\
-#         "coq" "https://github.com/coq/coq.git"\
-#         "cdfbae93094594dac72eb9464fadd652836e7e0d"
-#     (
-#         set -euv
-#         cd coq
-#         if [ ! -f config/coq_config.ml ]; then
-#             ./configure -local
-#         fi
-#         make -j `nproc`
-#     ) || exit 1
-# }
-
-# function setup-coq-serapi {
-#     check-and-clone\
-#         "coq-serapi" "https://github.com/ejgallego/coq-serapi.git"\
-#         "58ff1622c1472b828eaa22b1d477cb67d4ae6b05"
-#     (
-#         set -euv
-#         cd coq-serapi
-#         SERAPI_COQ_HOME="$PWD/../coq/" make
-#     ) || exit 1
-# }
-
-function setup-coq-menhir {
-    check-and-clone\
-        "coq-menhirlib" "https://gitlab.inria.fr/fpottier/coq-menhirlib.git"\
-        "ca0655b2f96057a271fb5c9a254a38d195b4a7f9"
-    (
-        set -euv
-        cd coq-menhirlib
-        export PATH="$PWD/../coq/bin:$PATH"
-        make && make install
-    )
-}
-
 function setup-compcert {
     check-and-clone\
         "CompCert" "https://github.com/AbsInt/CompCert.git"\
@@ -79,7 +42,4 @@ function setup-compcert {
     ) || exit 1
 }
 
-# setup-coq
-# setup-coq-serapi
-setup-coq-menhir
 setup-compcert
