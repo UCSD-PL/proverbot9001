@@ -186,7 +186,7 @@ class SerapiInstance(threading.Thread):
     # ".debug" field after you've created it to get more verbose
     # logging.
     def __init__(self, coq_command : List[str], includes : str, prelude : str,
-                 timeout : int = 30) -> None:
+                 timeout : int = 5) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
@@ -518,52 +518,34 @@ class SerapiInstance(threading.Thread):
         except queue.Empty:
             eprint("Command timed out! Interrupting", guard=self.debug)
             self._proc.send_signal(signal.SIGINT)
+            num_breaks = 1
             try:
                 interrupt_response = \
-                    self.message_queue.get(timeout=self.timeout * 10)
+                    self.message_queue.get(timeout=self.timeout)
             except:
                 self._proc.send_signal(signal.SIGINT)
+                num_breaks += 1
                 try:
                     interrupt_response = \
-                        self.message_queue.get(timeout=self.timeout * 10)
+                        self.message_queue.get(timeout=self.timeout)
                 except:
                     raise CoqAnomaly("Timing Out")
 
-            if interrupt_response != Symbol("Sys\.Break"):
-                assert isinstance(interrupt_response, list), interrupt_response
-                assert interrupt_response[0] == Symbol("Feedback"), interrupt_response
-                assert len(interrupt_response) > 1, \
-                    "too short! interrupt_reponse: {}".format(interrupt_response)
-                assert isinstance(interrupt_response[1], list), \
-                    "interrupt_response[1]: {}".format(interrupt_response[1])
-                assert len(interrupt_response[1]) > 2
-                assert isinstance(interrupt_response[1][1], list)
-                interrupt_response = self.message_queue.get(timeout=self.timeout * 10)
-                if isinstance(interrupt_response[1], list):
-                    assert interrupt_response[1][1][0] == Symbol("contents")
-                    assert interrupt_response[1][1][1][0] == Symbol("Message")
-                    assert interrupt_response[1][1][1][1] == Symbol("Error")
-                elif isinstance(interrupt_response[2], list):
-                    assert interrupt_response[0] == Symbol("Answer")
-                    assert interrupt_response[2][0] == Symbol("CoqExn"), interrupt_response
-                    self.get_completed()
-                    raise TimeoutError("")
-                else:
-                    assert interrupt_response[0] == Symbol("Answer")
-                    assert interrupt_response[2] == Symbol("Completed"), interrupt_response
-                    return interrupt_response
-
-            interrupt_response2 = self.message_queue.get(timeout=self.timeout * 10)
-
-            assert isinstance(interrupt_response2, list), interrupt_response2
-            assert len(interrupt_response2) > 2
-            assert interrupt_response2[0] == Symbol("Answer")
-            assert interrupt_response2[2][0] == Symbol("CoqExn")
-            assert interrupt_response2[2][3] == Symbol("Sys\.Break"), interrupt_response2
-
-            self.get_completed()
-
-            raise TimeoutError("")
+            got_answer_after_interrupt = match(normalizeMessage(interrupt_response),
+                                               ["Answer", TAIL],
+                                               lambda *args: True,
+                                               _, False)
+            if got_answer_after_interrupt:
+                eprint(self.messages)
+                self.get_completed()
+                for i in range(num_breaks):
+                    msg = self.get_message()
+                    assert msg == Symbol("Sys.Break"), msg
+                assert self.message_queue.empty()
+                return interrupt_response
+            else:
+                assert interrupt_response == Symbol("Sys.Break"), interrupt_response
+                raise TimeoutError("")
 
     def get_feedbacks(self) -> List['Sexp']:
         feedbacks = [] #type: List[Sexp]
