@@ -217,6 +217,7 @@ def report_file(args : argparse.Namespace,
         print("Loaded {} commands for file {}".format(len(commands_in), filename))
     blocks_out : List[DocumentBlock] = []
     commands_caught_up = 0
+    lemmas_to_skip : List[str] = []
     with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
               desc=os.path.basename(filename),
               disable=(not args.progress),
@@ -242,8 +243,12 @@ def report_file(args : argparse.Namespace,
                         num_proofs += 1
                         initial_context = coq.fullContext
                         # Try to search
-                        search_status, tactic_solution = \
-                            attempt_search(args, lemma_statement, coq, file_idx)
+                        if lemma_statement in lemmas_to_skip:
+                            search_status = SearchStatus.SUCCESS
+                            tactic_solution = []
+                        else:
+                            search_status, tactic_solution = \
+                                attempt_search(args, lemma_statement, coq, file_idx)
                         # Cancel until before the proof
                         try:
                             while coq.full_context != None:
@@ -258,8 +263,11 @@ def report_file(args : argparse.Namespace,
             except serapi_instance.CoqAnomaly as e:
                 commands_in.insert(0, lemma_statement)
                 if commands_caught_up == len(commands_run):
-                    eprint(f"Hit the same anomaly twice! {len(commands_run)} commands.")
-                    raise e
+                    eprint(f"Hit the same anomaly twice!")
+                    if lemma_statement in lemmas_to_skip:
+                        raise e
+                    else:
+                        lemmas_to_skip.append(lemma_statement)
                 commands_caught_up = len(commands_run)
                 if args.hardfail:
                     raise e
