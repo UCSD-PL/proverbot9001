@@ -697,7 +697,7 @@ class SerapiInstance(threading.Thread):
                         self.full_context = FullContext(subgoals)
                     except CoqExn:
                         if newcontext == "none":
-                            return FullContext([])
+                            self.full_context =  FullContext([])
                         else:
                             self.full_context = \
                                 FullContext([parsePPSubgoal(substr) for substr
