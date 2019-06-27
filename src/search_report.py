@@ -273,15 +273,16 @@ def report_file(args : argparse.Namespace,
     return ReportStats(filename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def get_commands(args : argparse.Namespace, file_idx : int, filename : str) -> List[str]:
-    local_filename = prelude + "/" + filename
+    local_filename = args.prelude + "/" + filename
     loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
     if loaded_commands is None:
         original_commands = \
             serapi_instance.load_commands_preserve(args, file_idx,
                                                    prelude + "/" + filename)
         fresh_commands = linearize_semicolons.preprocess_file_commands(
+            args, file_idx,
             original_commands,
-            coqargs, includes, prelude,
+            coqargs, includes,
             local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
         return fresh_commands

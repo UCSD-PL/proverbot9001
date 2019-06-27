@@ -313,10 +313,11 @@ class Worker(threading.Thread):
         loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
         if loaded_commands is None:
             fresh_commands = linearize_semicolons.preprocess_file_commands(
+                args, file_idx,
                 serapi_instance.load_commands_preserve(args, file_idx,
                                                        self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
-                filename, local_filename, self.skip_nochange_tac, debug=self.debug)
+                filename, local_filename, self.skip_nochange_tac)
             serapi_instance.save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:

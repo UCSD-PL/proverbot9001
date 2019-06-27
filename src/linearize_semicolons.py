@@ -34,11 +34,16 @@ class LinearizerCouldNotLinearize(Exception):
 class LinearizerThisShouldNotHappen(Exception):
     pass
 
-def linearize_commands(commands_sequence: Iterable[str],
+from tqdm import tqdm
+def linearize_commands(args : argparse.Namespace, file_idx : int,
+                       commands_sequence: Iterable[str],
                        coq : serapi_instance.SerapiInstance,
                        filename : str, relative_filename : str,
-                       skip_nochange_tac:bool, debug:bool, hardfail:bool):
-    commands_iter = iter(commands_sequence)
+                       skip_nochange_tac:bool):
+    commands_iter = tqdm(iter(commands_sequence), file=sys.stdout,
+                         disable=not args.progress,
+                         position=(file_idx * 2),
+                         desc="Linearizing", leave=False)
     command = next(commands_iter, None)
     assert command, "Got an empty sequence!"
     while command:
@@ -89,13 +94,13 @@ def linearize_commands(commands_sequence: Iterable[str],
         try:
             batch_handled = list(handle_with(command_batch, with_tactic))
             linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
-                                                       debug, skip_nochange_tac))
+                                                       args.debug, skip_nochange_tac))
             yield from linearized_commands
         except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
             eprint("Aborting current proof linearization!")
             eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             eprint()
-            if hardfail:
+            if args.hardfail:
                 raise e
             coq.run_stmt("Abort.")
             coq.run_stmt(theorem_statement)
@@ -473,20 +478,20 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance) 
             yield from lemma_stack.pop()
     assert(len(lemma_stack) == 0)
 
-def preprocess_file_commands(commands : List[str], coqargs : List[str], includes : str,
-                             prelude : str, filename : str, relative_filename : str,
-                             skip_nochange_tac : bool,
-                             debug:bool=False,
-                             hardfail:bool=False) -> List[str]:
+def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
+                             commands : List[str], coqargs : List[str], includes : str,
+                             filename : str, relative_filename : str,
+                             skip_nochange_tac : bool) -> List[str]:
     try:
-        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-            coq.debug = debug
+        with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
+            coq.debug = args.debug
             result = list(
                 postlinear_desugar_tacs(
                     linearize_commands(
+                        args, file_idx,
                         generate_lifted(commands, coq),
                         coq, filename, relative_filename,
-                        skip_nochange_tac, debug, hardfail)))
+                        skip_nochange_tac)))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
@@ -516,13 +521,10 @@ def main():
         if arg_values.verbose:
             eprint("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
-        fresh_commands = preprocess_file_commands(
+        fresh_commands = preprocess_file_commands(arg_values,
             serapi_instance.load_commands_preserve(arg_values.prelude + "/" + filename),
-            coqargs, includes, arg_values.prelude,
-            local_filename, filename,
-            arg_values.skip_nochange_tac,
-            debug=arg_values.debug,
-            hardfail=arg_values.hardfail)
+            coqargs, includes,
+                                                  local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
 
 if __name__ == "__main__":
