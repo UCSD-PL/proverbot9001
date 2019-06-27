@@ -28,6 +28,17 @@ function check-and-clone {
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
 
+function setup-coq-menhir {
+    check-and-clone\
+        "coq-menhirlib" "https://gitlab.inria.fr/fpottier/coq-menhirlib.git"\
+        "ca0655b2f96057a271fb5c9a254a38d195b4a7f9"
+    (
+        set -euv
+        cd coq-menhirlib
+        make && make install
+    )
+}
+
 function setup-compcert {
     check-and-clone\
         "CompCert" "https://github.com/AbsInt/CompCert.git"\
@@ -42,4 +53,5 @@ function setup-compcert {
     ) || exit 1
 }
 
+setup-coq-menhir
 setup-compcert
