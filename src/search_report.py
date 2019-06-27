@@ -119,17 +119,15 @@ def report_file(args : argparse.Namespace,
                 context_filter_spec : str,
                 file_tuple : Tuple[int, str]) -> Optional[ReportStats]:
     file_idx, filename = file_tuple
-    commands_in = get_commands(args, file_idx, filename)
-    num_commands_total = len(commands_in)
     if args.resume:
         try:
             stats = read_stats_from_csv(args, filename)
-            with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
+            with tqdm(total=1, unit="cmd", file=sys.stdout,
                       desc=os.path.basename(filename) + " (Resumed)",
                       disable=(not args.progress),
                       leave=True,
                       position=(file_idx * 2)) as pbar:
-                pbar.update(num_commands_total)
+                pbar.update(1)
             if not args.progress:
                 print(f"Resumed {filename} from existing state")
             return stats
@@ -138,6 +136,9 @@ def report_file(args : argparse.Namespace,
         except ArgsMismatchException as e:
             if not args.progress:
                 print(f"Arguments in report for {filename} didn't match current arguments! {e} Overwriting (interrupt to cancel).")
+
+    commands_in = get_commands(args, file_idx, filename)
+    num_commands_total = len(commands_in)
 
     num_proofs = 0
     num_proofs_failed = 0
