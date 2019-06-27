@@ -75,7 +75,7 @@ def main(arg_list : List[str]) -> None:
                             enumerate(args.filenames))
                         if stats]
 
-    print("Writing summary with {} file outputs.".format(len(file_results)))
+    tqdm.write("Writing summary with {} file outputs.".format(len(file_results)))
     write_summary(args, predictor.getOptions() +
                   [("report type", "search"),
                    ("search width", args.search_width),
