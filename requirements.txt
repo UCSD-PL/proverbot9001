@@ -1,6 +1,6 @@
 scikit-learn
 sexpdata
-torch 0.4.1
+torch==0.4.1
 torchvision
 yattag
 pampy
