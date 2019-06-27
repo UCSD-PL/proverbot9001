@@ -485,7 +485,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              skip_nochange_tac : bool) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.debug = True
+            coq.debug = args.debug
             with tqdm(file=sys.stdout,
                       disable=not args.progress,
                       position=(file_idx * 2),
