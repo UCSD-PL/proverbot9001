@@ -854,7 +854,7 @@ def preprocess_command(cmd : str) -> List[str]:
                 return ["From Coq Require" + impG + " " + match.group(3) + "."]
             else:
                 return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
-    return [cmd]
+    return [cmd] if cmd.strip() else []
 
 def get_stem(tactic : str) -> str:
     return split_tactic(tactic)[0]
