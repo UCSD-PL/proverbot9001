@@ -596,7 +596,7 @@ class SerapiInstance(threading.Thread):
         new_statenum = \
             match(normalizeMessage(feedback),
                   ["Answer", int, ["CoqExn", _, _, _, _]],
-                  lambda *args: raise_(CoqExn(cancelled_answer)),
+                  lambda *args: raise_(CoqExn(feedback)),
                   ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
                   lambda docnum, statenum, *rest: statenum,
                   _, lambda *args: raise_(BadResponse(feedback)))
