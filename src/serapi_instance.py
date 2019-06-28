@@ -391,6 +391,7 @@ class SerapiInstance(threading.Thread):
                f"from state {self.cur_state}",
                guard=self.debug)
         assert self.message_queue.empty(), self.messages
+        old_subgoals = self.full_context.subgoals
         # Run the cancel
         self.send_acked("(Cancel ({}))".format(self.cur_state))
         # Get the response from cancelling
@@ -402,7 +403,7 @@ class SerapiInstance(threading.Thread):
         if not self.full_context:
             self.tactic_history = TacticHistory()
         else:
-            self.tactic_history.removeLast(self.full_context.subgoals)
+            self.tactic_history.removeLast(old_subgoals)
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
