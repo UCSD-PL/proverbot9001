@@ -740,7 +740,7 @@ def tryPrediction(args : argparse.Namespace,
                   g : SearchGraph,
                   predictionNode : LabeledNode) -> Tuple[FullContext, int, int, int]:
     coq.quiet = True
-    coq.run_stmt(predictionNode.prediction)
+    coq.run_stmt(predictionNode.prediction, timeout=5)
     num_stmts = 1
     subgoals_closed = 0
     while coq.count_fg_goals() == 0 and not completed_proof(coq):

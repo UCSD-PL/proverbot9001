@@ -186,7 +186,7 @@ class SerapiInstance(threading.Thread):
     # ".debug" field after you've created it to get more verbose
     # logging.
     def __init__(self, coq_command : List[str], includes : str, prelude : str,
-                 timeout : int = 15) -> None:
+                 timeout : int = 30) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
@@ -257,7 +257,10 @@ class SerapiInstance(threading.Thread):
     # class. Sends a single command to the running serapi
     # instance. Returns nothing: if you want a response, call one of
     # the other methods to get it.
-    def run_stmt(self, stmt : str):
+    def run_stmt(self, stmt : str, timeout : Optional[int]=None):
+        if timeout:
+            old_timeout = self.timeout
+            self.timeout = timeout
         assert self.message_queue.empty()
         eprint("Running statement: " + stmt.lstrip('\n'),
                guard=self.debug) # lstrip makes output shorter
@@ -318,7 +321,9 @@ class SerapiInstance(threading.Thread):
         # sometimes errors are expected.
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
             self.handle_exception(e, stmt)
-        assert self.message_queue.empty()
+        finally:
+            if timeout:
+                self.timeout=old_timeout
 
     @property
     def prev_tactics(self):
@@ -540,7 +545,6 @@ class SerapiInstance(threading.Thread):
                                                lambda *args: True,
                                                _, False)
             if got_answer_after_interrupt:
-                eprint(self.messages)
                 self.get_completed()
                 for i in range(num_breaks):
                     msg = self.get_message()
@@ -591,6 +595,8 @@ class SerapiInstance(threading.Thread):
 
         new_statenum = \
             match(normalizeMessage(feedback),
+                  ["Answer", int, ["CoqExn", _, _, _, _]],
+                  lambda *args: raise_(CoqExn(cancelled_answer)),
                   ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
                   lambda docnum, statenum, *rest: statenum,
                   _, lambda *args: raise_(BadResponse(feedback)))
