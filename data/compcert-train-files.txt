@@ -47,7 +47,6 @@
 ./backend/Stackingproof.v
 ./backend/SplitLong.v
 ./backend/Deadcode.v
-./backend/script.v
 ./backend/RTL.v
 ./backend/LTL.v
 ./backend/CleanupLabels.v
@@ -84,7 +83,6 @@
 ./common/AST.v
 ./common/Memory.v
 ./common/Behaviors.v
-./common/Subtyping.v
 ./common/Globalenvs.v
 ./common/Unityping.v
 ./common/Determinism.v
