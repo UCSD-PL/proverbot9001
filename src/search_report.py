@@ -703,7 +703,7 @@ class SearchGraph:
             assert cur_node.previous
             cur_node = cur_node.previous
         return [TacticInteraction(n.prediction, n.context_before)
-                for n in cur_path]
+                for n in reversed(cur_path)]
         pass
     def setNodeColor(self, node : LabeledNode, color : str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
@@ -800,10 +800,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                                    len(current_path)) - 1
                     pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context is in current path")
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed)
                 elif len(current_path) + 1 < args.search_depth:
                     sub_search_result = search(pbar, current_path + [predictionNode])
+                    cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
                         new_subgoals_closed = \
@@ -812,11 +811,13 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                             subgoals_opened
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
-                    stmts_to_cancel = num_stmts - sub_search_result.solved_subgoals
-                    cleanupSearch(stmts_to_cancel, "we finished subsearch")
+                    if subgoals_closed > 0:
+                        return SubSearchResult(None, subgoals_closed)
                 else:
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
+                    if subgoals_closed > 0:
+                        return SubSearchResult(None, subgoals_closed)
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
