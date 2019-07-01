@@ -515,6 +515,8 @@ def main():
     parser.add_argument('--verbose', default=False, const=True, action='store_const')
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
+    parser.add_argument("--progress",
+                        action='store_const', const=True, default=False)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
@@ -528,8 +530,8 @@ def main():
             eprint("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
         original_commands = serapi_instance.load_commands_preserve(
-            arg_values.prelude + "/" + filename)
-        fresh_commands = preprocess_file_commands(arg_values,
+            arg_values, 0, arg_values.prelude + "/" + filename)
+        fresh_commands = preprocess_file_commands(arg_values, 0,
                                                   original_commands,
                                                   coqargs, includes,
                                                   local_filename, filename, False)
