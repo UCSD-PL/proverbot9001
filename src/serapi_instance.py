@@ -837,6 +837,14 @@ def kill_comments(string: str) -> str:
                in_quote = True
     return result
 
+def next_proof(cmds : Iterator[str]) -> Iterable[str]:
+    next_cmd = next(cmds)
+    assert possibly_starting_proof(next_cmd)
+    while not ending_proof(next_cmd):
+        yield next_cmd
+        next_cmd = next(cmds)
+    yield next_cmd
+
 def preprocess_command(cmd : str) -> List[str]:
     needPrefix = ["String", "Classical", "ClassicalFacts",
                   "ClassicalDescription", "ClassicalEpsilon",

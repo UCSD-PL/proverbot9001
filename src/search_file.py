@@ -9,7 +9,7 @@ import time
 import functools
 import shutil
 import csv
-from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict, Union
+from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict, Union, Iterator
 
 from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -57,6 +57,8 @@ class ProofBlock(NamedTuple):
     original_tactics : List[TacticInteraction]
 
 class ArgsMismatchException(Exception):
+    pass
+class SourceChangedException(Exception):
     pass
 
 DocumentBlock = Union[VernacBlock, ProofBlock]
@@ -139,6 +141,14 @@ def get_predictor(parser : argparse.ArgumentParser,
 def search_file(args : argparse.Namespace, coqargs : List[str],
                 includes : str, predictor : TacticPredictor,
                 bar_idx : int) -> None:
+    num_proofs = 0
+    num_proofs_failed = 0
+    num_proofs_completed = 0
+    commands_run : List[str] = []
+    blocks_out : List[DocumentBlock] = []
+    commands_caught_up = 0
+    lemmas_to_skip : List[str] = []
+
     if args.resume:
         try:
             check_csv_args(args, args.filename)
@@ -155,15 +165,13 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             pass
         except ArgsMismatchException as e:
             if not args.progress:
-                print(f"Arguments in report for {args.filename} didn't match current arguments! {e} Overwriting (interrupt to cancel).")
+                eprint(f"Arguments in csv for {args.filename} "
+                       f"didn't match current arguments! {e} "
+                       f"Overwriting (interrupt to cancel).")
 
     commands_in = get_commands(args, coqargs, includes, bar_idx, args.filename)
     num_commands_total = len(commands_in)
 
-    num_proofs = 0
-    num_proofs_failed = 0
-    num_proofs_completed = 0
-    commands_run : List[str] = []
     # Run vernacular until the next proof (or end of file)
     def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
         nonlocal commands_run
@@ -180,6 +188,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
             commands_run += vernacs
+            append_to_solution_vfile(args.output_dir, args.filename, vernacs)
         return next_in_command
 
     def run_to_next_vernac(coq : serapi_instance.SerapiInstance,
@@ -214,17 +223,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         nonlocal blocks_out
         empty_context = FullContext([])
         # Append the proof data
-        if not solution:
-            if status == SearchStatus.FAILURE:
-                num_proofs_failed += 1
-            blocks_out.append(ProofBlock(
-                lemma_statement, status,
-                [TacticInteraction("Proof.",
-                                   initial_full_context),
-                 TacticInteraction("Admitted.",
-                                   initial_full_context)],
-                original_tactics))
-        else:
+        if solution:
             num_proofs_completed += 1
             blocks_out.append(ProofBlock(
                 lemma_statement, status,
@@ -233,12 +232,28 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 solution +
                 [TacticInteraction("Qed.", empty_context)],
                 original_tactics))
+            append_to_solution_vfile(args.output_dir, args.filename,
+                                     ["Proof."] +
+                                     [tac.tactic for tac in solution]
+                                     + ["Qed."])
+        else:
+            if status == SearchStatus.FAILURE:
+                num_proofs_failed += 1
+                admitted = "Admitted (*FAILURE*)."
+            else:
+                admitted = "Admitted (*INCOMPLETE*)."
+            blocks_out.append(ProofBlock(
+                lemma_statement, status,
+                [TacticInteraction("Proof.",
+                                   initial_full_context),
+                 TacticInteraction("Admitted.",
+                                   initial_full_context)],
+                original_tactics))
+            append_to_solution_vfile(args.output_dir, args.filename,
+                                     [lemma_statement, "Proof.\n", admitted])
 
     if not args.progress:
         print("Loaded {} commands for file {}".format(len(commands_in), args.filename))
-    blocks_out : List[DocumentBlock] = []
-    commands_caught_up = 0
-    lemmas_to_skip : List[str] = []
     with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
               desc=os.path.basename(args.filename),
               disable=(not args.progress),
@@ -253,9 +268,28 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
+                    coq.debug = args.debug
+                    if args.resume and len(commands_run) == 0:
+                        model_name = dict(predictor.getOptions())["predictor"]
+                        try:
+                           commands_run, commands_in, blocks_out, \
+                               num_proofs, num_proofs_failed, num_proofs_completed = \
+                                   replay_solution_vfile(args, coq, model_name,
+                                                         args.filename,
+                                                         commands_in, bar_idx)
+                        except FileNotFoundError:
+                            make_new_solution_vfile(args, model_name, args.filename)
+                            pass
+                        except (ArgsMismatchException, SourceChangedException) as e:
+                            eprint(f"Arguments in solution vfile for {args.filename} "
+                                   f"didn't match current arguments, or sources mismatch! "
+                                   f"{e} "
+                                   f"Overwriting.")
+                            make_new_solution_vfile(args, model_name, args.filename)
+                            raise serapi_instance.CoqAnomaly("Replaying")
+
                     if len(commands_run) > 0 and (args.verbose or args.debug):
                         eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
-                    coq.debug = args.debug
                     while len(commands_in) > 0:
                         lemma_statement = run_to_next_proof(coq, pbar)
                         if len(commands_in) == 0:
@@ -295,8 +329,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     raise e
                 if args.verbose or args.debug:
                     eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
-            except:
-                eprint(f"FAILED: in file {args.filename}")
+            except Exception as e:
+                eprint(f"FAILED: in file {args.filename}, {repr(e)}")
                 raise
     write_html(args, args.output_dir, args.filename, blocks_out)
     write_csv(args, args.filename, blocks_out)
@@ -455,6 +489,112 @@ def classFromSearchStatus(status : SearchStatus) -> str:
         return 'okay'
     else:
         return 'bad'
+
+def make_new_solution_vfile(args : argparse.Namespace, model_name : str,
+                            filename : str) -> None:
+    with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'w') as f:
+        for k, v in [("search-width", args.search_width),
+                     ("search-depth", args.search_depth),
+                     ("model", model_name)]:
+            print(f"(* {k}: {v} *)", file=f)
+
+def append_to_solution_vfile(outdir : str, filename : str,
+                             lines : List[str]) -> None:
+    with open(f"{outdir}/{escape_filename(filename)}.v", 'a') as f:
+        for line in lines:
+            print(line, file=f, flush=True, end="")
+
+def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
+                              f_iter : Iterator[str]) -> Iterable[str]:
+    next_line = next(f_iter)
+    argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
+    checked_args = {"search-width":args.search_width,
+                    "search-depth":args.search_depth,
+                    "model": model_name}
+    while argline_match:
+        k, v = argline_match.group(1,2)
+        if not str(checked_args[k]) == v:
+            raise ArgsMismatchException(f"Arg mistmatch: {k} is {checked_args[k]} "
+                                        f"in cur report, {v} in file")
+        try:
+            next_line = next(f_iter)
+        except:
+            return f_iter
+        argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
+    return itertools.chain([next_line], f_iter)
+
+def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.SerapiInstance,
+                          model_name : str, filename : str, commands_in : List[str],
+                          bar_idx : int) \
+                          -> Tuple[List[str], List[str], List[DocumentBlock],
+                                   int, int, int]:
+    blocks_out : List[DocumentBlock] = []
+    num_proofs = 0
+    num_proofs_failed = 0
+    num_proofs_completed = 0
+    in_proof = False
+    curLemma = ""
+    curProofInters : List[TacticInteraction] = []
+    curVernacCmds : List[str] = []
+    with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'r') as f:
+        f_iter = check_solution_vfile_args(args, model_name,
+                                           iter(f))
+        svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
+                                                                 "".join(f_iter))
+        commands_in_iter = iter(commands_in)
+        for saved_command in tqdm(svfile_commands, unit="cmd", file=sys.stdout,
+                                  desc="Replaying", disable=(not args.progress),
+                                  leave=False,position=(bar_idx*2)):
+            context_before = coq.fullContext if coq.full_context else FullContext([])
+            coq.run_stmt(saved_command)
+            if coq.full_context == None:
+                if in_proof:
+                    in_proof = False
+                    num_proofs += 1
+                    if re.match("Qed\.", saved_command):
+                        search_status = SearchStatus.SUCCESS
+                        num_proofs_completed += 1
+                    elif re.match("Admitted \(\*FAILURE\*\)\.", saved_command):
+                        search_status = SearchStatus.FAILURE
+                        num_proofs_failed += 1
+                    else:
+                        search_status = SearchStatus.INCOMPLETE
+                    coq.cancel_last()
+                    coq.run_stmt("Abort.")
+
+                    origProofInters = []
+                    proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
+                    coq.run_stmt(proof_cmds[0])
+                    for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
+                                          desc="Running original proof",
+                                          disable=(not args.progress),
+                                          leave=False, position=(bar_idx * 2) + 1):
+                        context_before_orig = coq.fullContext
+                        coq.run_stmt(proof_cmd)
+                        origProofInters.append(
+                            TacticInteraction(proof_cmd, context_before_orig))
+                    blocks_out.append(ProofBlock(curLemma, search_status,
+                                                 curProofInters, origProofInters))
+                    curVernacCmds = []
+
+                else:
+                    loaded_command = next(commands_in_iter)
+                    if not loaded_command.strip() == saved_command.strip():
+                        raise SourceChangedException(
+                            f"Command {loaded_command} doesn't match {saved_command}")
+                    curVernacCmds.append(loaded_command)
+            else:
+                if not in_proof:
+                    in_proof = True
+                    curLemma = saved_command
+                    blocks_out.append(VernacBlock(curVernacCmds))
+                    curProofInters = []
+                curProofInters.append(TacticInteraction(saved_command, context_before))
+        assert not in_proof
+        if curVernacCmds:
+            blocks_out.append(VernacBlock(curVernacCmds))
+        return svfile_commands, list(commands_in_iter), blocks_out,\
+            num_proofs, num_proofs_failed, num_proofs_completed
 
 # The core of the search report
 
