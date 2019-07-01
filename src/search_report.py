@@ -279,3 +279,6 @@ def get_predictor(parser : argparse.ArgumentParser,
         parser.print_help()
         sys.exit(1)
     return predictor
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -685,3 +685,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
     completed = len(coq.fullContext.subgoals) == 0
     return completed
+
+if __name__ == "__main__":
+    main(sys.argv[1:], 0)
