@@ -53,15 +53,15 @@ def main(arg_list : List[str]) -> None:
         pool.starmap(functools.partial(run_search, unknown_args, args.output,
                                        args.predictor, args.weightsfile),
                      enumerate(args.filenames))
-    file_results = [read_stats_from_csv(args.output, filename)
-                    for filename in args.filenames]
+    file_args, file_results = zip(*[read_stats_from_csv(args.output, filename)
+                               for filename in args.filenames])
 
     tqdm.write("Writing summary with {} file outputs.".format(len(file_results)))
     predictorOptions = get_predictor(parser, args).getOptions()
     write_summary(args, predictorOptions +
                   [("report type", "search"),
-                   ("search width", args.search_width),
-                   ("search depth", args.search_depth)],
+                   ("search width", file_args[0].search_width),
+                   ("search depth", file_args[0].search_depth)],
                   commit, date, file_results)
 def run_search(argslist : List[str],
                outdir : str,
@@ -241,7 +241,8 @@ def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[st
         rest_iter = itertools.chain([final_line], f_iter)
     return argparse.Namespace(**params), rest_iter
 
-def read_stats_from_csv(output_dir : str, vfilename : str) -> ReportStats:
+def read_stats_from_csv(output_dir : str, vfilename : str) -> \
+    Tuple[argparse.Namespace, ReportStats]:
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
@@ -257,7 +258,7 @@ def read_stats_from_csv(output_dir : str, vfilename : str) -> ReportStats:
                 num_proofs_failed += 1
             else:
                 assert row[1] == "SearchStatus.INCOMPLETE"
-    return ReportStats(vfilename, num_proofs, num_proofs_failed, num_proofs_completed)
+    return saved_args, ReportStats(vfilename, num_proofs, num_proofs_failed, num_proofs_completed)
 
 def combine_file_results(stats : List[ReportStats]) -> ReportStats:
     return ReportStats("",
