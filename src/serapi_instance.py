@@ -368,11 +368,15 @@ class SerapiInstance(threading.Thread):
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-                    ['Answer', int, ['CoqExn', _, _, _, [str]]],
-                    lambda sentence, loc1, loc2, trace, inner:
-                    progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))) if
-                    re.search("Stack overflow", sentence) else raise_(UnrecognizedError(sentence)),
-                    _, lambda *args: raise_(UnrecognizedError(args))))
+                    ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str]]],
+                    lambda sentence, loc1, loc2, inner:
+                    progn(self.get_completed(), raise_(CoqAnomaly("Overflowed")))
+                    if re.search("Stack overflow", inner) else
+                    progn(self.get_completed(), raise_(UnrecognizedError(inner))),
+                    ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str, str]]],
+                    lambda sentence, loc1, loc2, inner1, inner2:
+                    progn(self.get_completed(), raise_(CoqExn(inner1 + inner2))),
+                    _, lambda *args: progn(raise_(UnrecognizedError(args)))))
 
     # Flush all messages in the message queue
     def flush_queue(self) -> None:
@@ -551,27 +555,37 @@ class SerapiInstance(threading.Thread):
             if got_answer_after_interrupt:
                 self.get_completed()
                 for i in range(num_breaks):
-                    msg = self.get_message()
-                    assert msg == Symbol("Sys.Break"), msg
-                assert self.message_queue.empty()
-                return interrupt_response
-            else:
-                if interrupt_response != Symbol("Sys.Break"):
-                    assert interrupt_response[1][3][0] == Symbol("contents")
-                    assert interrupt_response[1][3][1][3][2][1][1][1] == "User interrupt."
                     try:
-                        interrupt_response = self.message_queue.get(timeout=self.timeout)
+                        msg = self.message_queue.get(timeout=self.timeout)
                     except:
                         raise CoqAnomaly("Timing out")
-
-                    assert isBreakMessage(interrupt_response), \
-                        (interrupt_response, self.messages)
-                    self.get_completed()
-                    raise TimeoutError("")
-
-                assert interrupt_response == Symbol("Sys.Break"), \
-                    (interrupt_response, self.messages)
+                    assert isBreakMessage(msg), msg
+                assert self.message_queue.empty()
+                return interrupt_response
+            elif isBreakMessage(interrupt_response):
                 raise TimeoutError("")
+            elif match(normalizeMessage(interrupt_response, depth=10),
+                       ["Feedback", [["doc_id", int], ["span_id", int], ["route", int],
+                                     ["contents", ["Message", "Error", [],
+                                                   ["Pp_box", ["Pp_hovbox", int],
+                                                    ["Pp_glue", ["Pp_force_newline", ["Pp_string", "User interrupt."]]]]]]]],
+                       lambda *args: True,
+                       _, lambda *args: False):
+                for i in range(num_breaks):
+                    try:
+                        msg = self.message_queue.get(timeout=self.timeout)
+                    except:
+                        raise CoqAnomaly("Timing out")
+                    assert isBreakMessage(msg), msg
+                self.get_completed()
+                assert self.message_queue.empty(), self.messages
+                raise TimeoutError("")
+            elif interrupt_response[0] == Symbol("Feedback"):
+                eprint(interrupt_response)
+                self.get_completed()
+                assert self.message_queue.empty()
+                return interrupt_response
+            assert False, (interrupt_response, self.messages)
 
     def get_feedbacks(self) -> List['Sexp']:
         feedbacks = [] #type: List[Sexp]
@@ -748,7 +762,7 @@ class SerapiInstance(threading.Thread):
 
 def isBreakMessage(msg : 'Sexp') -> bool:
     return match(normalizeMessage(msg),
-                 "Sys.Break", lambda: True,
+                 "Sys\\.Break", lambda *args: True,
                  ["Answer", int, ["CoqExn", [], [[int, int]],
                                   ["Backtrace", []],
                                   "Sys\\.Break"]],
