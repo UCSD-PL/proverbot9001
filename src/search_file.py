@@ -847,7 +847,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         command_list, _ = search(pbar, [g.start_node])
         pbar.clear()
     module_prefix = f"{module_name}Zd" if module_name else ""
-    g.draw(f"{args.output_dir}/{module_prefix}{escape_lemma_name(lemma_name)}.png")
+    g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.png")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
