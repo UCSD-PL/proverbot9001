@@ -155,6 +155,17 @@ class TacticHistory:
             pass
         return list(generate())
 
+    def getFullHistory(self) -> List[str]:
+        def generate(tree : TacticTree) -> Iterable[str]:
+            for child in tree.children:
+                if isinstance(child, TacticTree):
+                    yield "{"
+                    yield from generate(child)
+                    yield "}"
+                else:
+                    yield child
+        return list(generate(self.__tree))
+
     def getAllBackgroundSubgoals(self) -> List[Subgoal]:
         return [item for lst in self.__subgoal_tree for item in reversed(lst)]
 
@@ -1117,6 +1128,12 @@ def parsePPSubgoal(substr : str) -> Subgoal:
     assert len(split) == 2, substr
     hypsstr, goal = split
     return Subgoal(parse_hyps(hypsstr), goal)
+
+def summarizeContext(context : FullContext) -> None:
+    eprint("Context:")
+    for i, subgoal in enumerate(context.subgoals):
+        hyps_str = ",".join(get_first_var_in_hyp(hyp) for hyp in subgoal.hypotheses)
+        eprint(f"S{i}: {hyps_str} -> {subgoal.goal}")
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
