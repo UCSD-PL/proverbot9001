@@ -82,6 +82,8 @@ def main(arg_list : List[str]) -> None:
                                      "Produce an html report from the scrape file.")
     parser.add_argument("-j", "--threads", default=16, type=int)
     parser.add_argument("--prelude", default=".")
+    parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
                         default="static-report")
