@@ -1,8 +1,6 @@
 ./backend/Locations.v
 ./backend/RTL.v
-./backend/Unusedglob.v
 ./backend/Selectionproof.v
-./cfrontend/SimplLocals.v
 ./cfrontend/Cop.v
 ./exportclight/Clightdefs.v
 ./cparser/MenhirLib/Validator_complete.v
