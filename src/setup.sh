@@ -50,6 +50,7 @@ function setup-compcert {
             ./configure x86_64-linux
         fi
         make -j `nproc`
+        ../src/patch_compcert.sh
     ) || exit 1
 }
 
