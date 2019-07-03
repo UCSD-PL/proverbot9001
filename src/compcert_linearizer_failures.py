@@ -11,6 +11,8 @@ compcert_failures = (
       ["./backend/Unusedglobproof.v", "Lemma initial_workset_incl"],
       ["./backend/Unusedglobproof.v", "Theorem used_globals_sound"],
       ["./backend/Unusedglobproof.v", "Theorem used_globals_incl"],
+      ["./backend/Unusedglobproof.v", "Lemma match_stacks_incr"],
+      ["./backend/Unusedglobproof.v", "Remark link_def_either"],
 
       ["./lib/Maps.v", "Remark xelements_empty"],
   ]

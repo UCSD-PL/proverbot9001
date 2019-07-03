@@ -7,16 +7,17 @@ import tempfile
 import functools
 import sys
 import contextlib
+import os
 
-from helper import *
 import linearize_semicolons
 import serapi_instance
 
 from sexpdata import *
 from traceback import *
+from util import *
 from format import format_context, format_tactic
 
-from typing import Dict, Any, TextIO
+from typing import Dict, Any, TextIO, List
 
 def main():
     # Parse the command line arguments.
@@ -28,6 +29,8 @@ def main():
     parser.add_argument('--prelude', default=".")
     parser.add_argument('-v', '--verbose', default=False, const=True, action='store_const')
     parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument("--progress", "-P", help="show progress of files",
+                        action='store_const', const=True, default=False)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                     dest='skip_nochange_tac')
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
@@ -40,13 +43,12 @@ def main():
 
     thispath = os.path.dirname(os.path.abspath(__file__))
     # Set up the command which runs sertop.
-    coqargs = ["{}/../coq-serapi/sertop.native".format(thispath),
-               "--prelude={}/../coq".format(thispath)]
+    coqargs = ["sertop"]
 
     with multiprocessing.Pool(args.threads) as pool:
         scrape_result_files = pool.imap_unordered(
             functools.partial(scrape_file, coqargs, args, includes),
-            args.inputs)
+            enumerate(args.inputs))
         with (open(args.output, 'w') if args.output
               else contextlib.nullcontext(sys.stdout)) as out:
             for idx, scrape_result_file in enumerate(scrape_result_files, start=1):
@@ -59,8 +61,10 @@ def main():
                         for line in f:
                             out.write(line)
 
+from tqdm import tqdm
 def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
-                filename : str) -> str:
+                file_tuple : Tuple[int, str]) -> str:
+    file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
     result_file = full_filename + ".scrape"
     if args.cont:
@@ -70,19 +74,22 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                     eprint(f"Found existing scrape at {result_file}! Using it")
                 return result_file
     try:
-        commands = try_load_lin(full_filename)
+        commands = serapi_instance.try_load_lin(args, file_idx, full_filename)
         if not commands:
             commands = linearize_semicolons.preprocess_file_commands(
-                load_commands(full_filename),
-                coqargs, includes, args.prelude,
-                full_filename, filename, args.skip_nochange_tac, debug=args.debug)
-            save_lin(commands, full_filename)
+                args, file_idx,
+                serapi_instance.load_commands(full_filename),
+                coqargs, includes, full_filename, filename, args.skip_nochange_tac)
+            serapi_instance.save_lin(commands, full_filename)
 
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
             coq.debug = args.debug
             try:
                 with open(result_file, 'w') as f:
-                    for command in commands:
+                    for command in tqdm(commands, file=sys.stdout,
+                                        disable=(not args.progress),
+                                        position=file_idx * 2,
+                                        desc="Scraping file", leave=False):
                         process_statement(coq, command, f)
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
