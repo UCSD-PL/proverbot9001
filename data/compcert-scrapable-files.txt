@@ -86,7 +86,6 @@
 ./x86/SelectOpproof.v
 ./x86/ValueAOp.v
 ./x86/Asmgen.v
-./x86/Asmgenproof1.v
 ./x86/ConstpropOp.v
 ./exportclight/Clightdefs.v
 ./common/Linking.v
