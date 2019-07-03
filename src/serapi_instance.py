@@ -1134,7 +1134,8 @@ def summarizeContext(context : FullContext) -> None:
     eprint("Context:")
     for i, subgoal in enumerate(context.subgoals):
         hyps_str = ",".join(get_first_var_in_hyp(hyp) for hyp in subgoal.hypotheses)
-        eprint(f"S{i}: {hyps_str} -> {subgoal.goal}")
+        goal_str = re.sub("\n", "\\n", subgoal.goal)[:100]
+        eprint(f"S{i}: {hyps_str} -> {goal_str}")
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
