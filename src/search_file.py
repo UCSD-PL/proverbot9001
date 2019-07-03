@@ -273,10 +273,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
                            commands_run, commands_in, blocks_out, \
-                               num_proofs, num_proofs_failed, num_proofs_completed = \
+                               num_proofs, num_proofs_failed, num_proofs_completed, \
+                               num_original_commands_run = \
                                    replay_solution_vfile(args, coq, model_name,
                                                          args.filename,
                                                          commands_in, bar_idx)
+                           pbar.update(num_original_commands_run)
                         except FileNotFoundError:
                             make_new_solution_vfile(args, model_name, args.filename)
                             pass
@@ -527,11 +529,12 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                           model_name : str, filename : str, commands_in : List[str],
                           bar_idx : int) \
                           -> Tuple[List[str], List[str], List[DocumentBlock],
-                                   int, int, int]:
+                                   int, int, int, int]:
     blocks_out : List[DocumentBlock] = []
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
+    num_original_commands_run = 0
     in_proof = False
     curLemma = ""
     curProofInters : List[TacticInteraction] = []
@@ -565,6 +568,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                     origProofInters = []
                     proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
                     coq.run_stmt(proof_cmds[0])
+                    num_original_commands_run += len(proof_cmds)
                     for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                           desc="Running original proof",
                                           disable=(not args.progress),
@@ -594,7 +598,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         if curVernacCmds:
             blocks_out.append(VernacBlock(curVernacCmds))
         return svfile_commands, list(commands_in_iter), blocks_out,\
-            num_proofs, num_proofs_failed, num_proofs_completed
+            num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
 
 # The core of the search report
 
