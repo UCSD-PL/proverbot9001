@@ -52,6 +52,7 @@ class TacticInteraction(NamedTuple):
 
 class ProofBlock(NamedTuple):
     lemma_statement : str
+    module : str
     status : SearchStatus
     predicted_tactics : List[TacticInteraction]
     original_tactics : List[TacticInteraction]
@@ -171,6 +172,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     commands_in = get_commands(args, coqargs, includes, bar_idx, args.filename)
     num_commands_total = len(commands_in)
+    lemma_statement = ""
+    module_name = None
 
     # Run vernacular until the next proof (or end of file)
     def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
@@ -184,6 +187,13 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             coq.run_stmt(next_in_command)
             if not coq.full_context:
                 vernacs.append(next_in_command)
+            module_start_match = re.match("Module (.*)\.", next_in_command)
+            module_end_match = re.match("End (.*)\.", next_in_command)
+            if module_start_match:
+                module_name = module_start_match.group(1)
+            elif module_end_match:
+                assert module_name == module_end_match.group(1)
+                module_name = None
             pbar.update(1)
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
@@ -226,7 +236,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         if solution:
             num_proofs_completed += 1
             blocks_out.append(ProofBlock(
-                lemma_statement, status,
+                lemma_statement, module_name, status,
                 [TacticInteraction("Proof.",
                                    initial_full_context)] +
                 solution +
@@ -243,7 +253,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             else:
                 admitted = "Admitted (*INCOMPLETE*)."
             blocks_out.append(ProofBlock(
-                lemma_statement, status,
+                lemma_statement, status, module_name,
                 [TacticInteraction("Proof.",
                                    initial_full_context),
                  TacticInteraction("Admitted.",
@@ -301,11 +311,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         initial_context = coq.fullContext
                         # Try to search
                         if lemma_statement in lemmas_to_skip:
-                            search_status = SearchStatus.SUCCESS
+                            search_status = SearchStatus.FAILURE
                             tactic_solution : Optional[List[TacticInteraction]] = []
                         else:
                             search_status, tactic_solution = \
-                                attempt_search(args, lemma_statement, coq, bar_idx)
+                                attempt_search(args, lemma_statement, module_name,
+                                               coq, bar_idx)
                         # assert False
                         # Cancel until before the proof
                         try:
@@ -433,7 +444,8 @@ def write_html(args : argparse.Namespace,
                 else:
                     assert isinstance(block, ProofBlock)
                     status_klass = classFromSearchStatus(block.status)
-                    write_lemma_button(block.lemma_statement, status_klass, tag, text)
+                    write_lemma_button(block.lemma_statement, block.module,
+                                       status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):
                             write_tactics(args, block.predicted_tactics, block_idx,
@@ -445,12 +457,14 @@ def write_html(args : argparse.Namespace,
         # fout.write(syntax.syntax_highlight(doc.getvalue()))
         fout.write(doc.getvalue())
 
-def write_lemma_button(lemma_statement : str, status_klass : str, tag : Tag, text : Text):
+def write_lemma_button(lemma_statement : str, module : str,
+                       status_klass : str, tag : Tag, text : Text):
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
+    module_prefix = f"{module_name}Zd" if module_name else ""
     with tag('button', klass='collapsible {}'.format(status_klass),
-             onmouseover="hoverLemma(\"{}\")".format(lemma_name),
-             onmouseout="unhoverLemma(\"{}\")".format(lemma_name)):
+             onmouseover="hoverLemma(\"{}\")".format(module_prefix + lemma_name),
+             onmouseout="unhoverLemma(\"{}\")".format(module_prefix + lemma_name)):
         with tag('code', klass='buttontext'):
             text(lemma_statement.strip())
 def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
@@ -538,6 +552,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     num_original_commands_run = 0
     in_proof = False
     curLemma = ""
+    module_name = None
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
     with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'r') as f:
@@ -582,12 +597,19 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         coq.run_stmt(proof_cmd)
                         origProofInters.append(
                             TacticInteraction(proof_cmd, context_before_orig))
-                    blocks_out.append(ProofBlock(curLemma, search_status,
+                    blocks_out.append(ProofBlock(curLemma, search_status, module_name,
                                                  curProofInters, origProofInters))
                     curVernacCmds = []
 
                 else:
                     loaded_command = next(commands_in_iter)
+                    module_start_match = re.match("Module (.*)\.", saved_command)
+                    module_end_match = re.match("End (.*)\.", saved_command)
+                    if module_start_match:
+                        module_name = module_start_match.group(1)
+                    elif module_end_match:
+                        assert module_name == module_end_match.group(1)
+                        module_name = None
                     if not loaded_command.strip() == saved_command.strip():
                         raise SourceChangedException(
                             f"Command {loaded_command} doesn't match {saved_command}")
@@ -614,10 +636,11 @@ class SearchResult(NamedTuple):
 # This method attempts to complete proofs using search.
 def attempt_search(args : argparse.Namespace,
                    lemma_statement : str,
+                   module_name : str,
                    coq : serapi_instance.SerapiInstance,
                    bar_idx : int) \
     -> SearchResult:
-    result = dfs_proof_search_with_graph(lemma_statement, coq, args, bar_idx)
+    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq, args, bar_idx)
     return result
 
 # This implementation is here for reference/documentation
@@ -753,6 +776,7 @@ def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                  k)])
 
 def dfs_proof_search_with_graph(lemma_statement : str,
+                                module_name : str,
                                 coq : serapi_instance.SerapiInstance,
                                 args : argparse.Namespace,
                                 bar_idx : int) \
@@ -822,7 +846,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
               position=((bar_idx*2)+1)) as pbar:
         command_list, _ = search(pbar, [g.start_node])
         pbar.clear()
-    g.draw(args.output_dir + "/" + escape_lemma_name(lemma_name) + ".png")
+    module_prefix = f"{module_name}Zd" if module_name else ""
+    g.draw(f"{args.output_dir}/{module_prefix}{escape_lemma_name(lemma_name)}.png")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
