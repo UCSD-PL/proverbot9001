@@ -243,7 +243,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 [TacticInteraction("Qed.", empty_context)],
                 original_tactics))
             append_to_solution_vfile(args.output_dir, args.filename,
-                                     ["Proof."] +
+                                     [lemma_statement, "Proof."] +
                                      [tac.tactic for tac in solution]
                                      + ["Qed."])
         else:
