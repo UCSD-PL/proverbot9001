@@ -590,6 +590,7 @@ class SerapiInstance(threading.Thread):
               ["Answer", _, "Completed", TAIL], lambda *args: None,
               ['Answer', _, ["CoqExn", _, _, _, _]],
               lambda statenum, loc1, loc2, loc3, inner: raise_(CoqExn(inner)),
+              _, lambda *args: progn(eprint(f"message is \"{repr(fin)}\""), raise_(UnrecognizedError(fin)))
         )
 
         return feedbacks
