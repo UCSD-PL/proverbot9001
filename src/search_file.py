@@ -319,7 +319,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         add_proof_block(search_status, tactic_solution,
                                         initial_context, original_tactics)
             except serapi_instance.CoqAnomaly as e:
-                commands_in.insert(0, lemma_statement)
+                if lemma_statement:
+                    commands_in.insert(0, lemma_statement)
                 if commands_caught_up == len(commands_run):
                     eprint(f"Hit the same anomaly twice!")
                     if lemma_statement in lemmas_to_skip:
@@ -504,7 +505,7 @@ def append_to_solution_vfile(outdir : str, filename : str,
                              lines : List[str]) -> None:
     with open(f"{outdir}/{escape_filename(filename)}.v", 'a') as f:
         for line in lines:
-            print(line, file=f, flush=True, end="")
+            print(line.strip(), file=f, flush=True)
 
 def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
                               f_iter : Iterator[str]) -> Iterable[str]:
