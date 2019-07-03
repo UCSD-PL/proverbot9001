@@ -61,6 +61,7 @@ def main():
                         for line in f:
                             out.write(line)
 
+from tqdm import tqdm
 def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                 file_tuple : Tuple[int, str]) -> str:
     file_idx, filename = file_tuple
@@ -85,7 +86,10 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             coq.debug = args.debug
             try:
                 with open(result_file, 'w') as f:
-                    for command in commands:
+                    for command in tqdm(commands, file=sys.stdout,
+                                        disable=(not args.progress),
+                                        position=file_idx * 2,
+                                        desc="Scraping file", leave=False):
                         process_statement(coq, command, f)
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
