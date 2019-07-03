@@ -564,7 +564,11 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                     else:
                         search_status = SearchStatus.INCOMPLETE
                     coq.cancel_last()
-                    coq.run_stmt("Abort.")
+                    try:
+                        while coq.full_context != None:
+                            coq.cancel_last()
+                    except serapi_instance.CoqExn as e:
+                        raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
 
                     origProofInters = []
                     proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
