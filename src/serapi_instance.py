@@ -210,7 +210,6 @@ class SerapiInstance(threading.Thread):
         self.full_context = None # type: Optional[FullContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
-        self.pending_subgoals = [] # type: List[Subgoal]
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -298,22 +297,14 @@ class SerapiInstance(threading.Thread):
                     self.tactic_history.addTactic(stm)
                 elif re.match(r"\s*[{]\s*", stm):
                     assert context_before
-                    self.pending_subgoals = context_before.subgoals[1:] \
-                        + self.pending_subgoals
                     self.tactic_history.openSubgoal(context_before.subgoals[1:])
                 elif re.match(r"\s*[}]\s*", stm):
-                    if self.pending_subgoals:
-                        self.pending_subgoals.pop(0)
                     self.tactic_history.closeSubgoal()
                 elif self.full_context:
                     # If we saw a new proof context, we're still in a
                     # proof so append the command to our prev_tactics
                     # list.
                     self.tactic_history.addTactic(stm)
-                else:
-                    # If we didn't see a new context, we're not in a
-                    # proof anymore, so clear the prev_tactics state.
-                    self.pending_subgoals = []
 
         # If we hit a problem let the user know what file it was in,
         # and then throw it again for other handlers. NOTE: We may
