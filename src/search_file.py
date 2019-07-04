@@ -185,7 +185,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         assert not coq.full_context
         while not coq.full_context and len(commands_in) > 0:
             next_in_command = commands_in.pop(0)
-            coq.run_stmt(next_in_command)
+            # Longer timeout for vernac stuff (especially requires)
+            coq.run_stmt(next_in_command, timeout=60)
             if not coq.full_context:
                 vernacs.append(next_in_command)
             module_start_match = re.match("Module (.*)\.", next_in_command)
