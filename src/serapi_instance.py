@@ -378,6 +378,11 @@ class SerapiInstance(threading.Thread):
                     ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str, str]]],
                     lambda sentence, loc1, loc2, inner1, inner2:
                     progn(self.get_completed(), raise_(CoqExn(inner1 + inner2))),
+                    [str],
+                    lambda contents:
+                    progn(self.get_completed(), raise_(CoqExn(contents)))
+                    if re.search("Anomaly", contents) else
+                    raise_(UnrecognizedError(contents)),
                     _, lambda *args: progn(raise_(UnrecognizedError(args)))))
 
     # Flush all messages in the message queue
