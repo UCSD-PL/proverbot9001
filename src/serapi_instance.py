@@ -620,26 +620,27 @@ class SerapiInstance(threading.Thread):
         return len(self.full_context.subgoals)
 
     def get_cancelled(self) -> int:
-        feedback = self.get_message()
+        try:
+            feedback = self.get_message()
 
-        new_statenum = \
-            match(normalizeMessage(feedback),
-                  ["Answer", int, ["CoqExn", _, _, _, _]],
-                  lambda *args: raise_(CoqExn(feedback)),
-                  ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
-                  lambda docnum, statenum, *rest: statenum,
-                  _, lambda *args: raise_(BadResponse(feedback)))
+            new_statenum = \
+                match(normalizeMessage(feedback),
+                      ["Answer", int, ["CoqExn", _, _, _, _]],
+                      lambda *args: raise_(CoqExn(feedback)),
+                      ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
+                      lambda docnum, statenum, *rest: statenum,
+                      _, lambda *args: raise_(BadResponse(feedback)))
 
-        cancelled_answer = self.get_message()
-        old_statenum = \
-            match(normalizeMessage(cancelled_answer),
-                  ["Answer", int, ["Canceled", list]],
-                  lambda _, statenums: min(statenums),
-                  ["Answer", int, ["CoqExn", _, _, _, _]],
-                  lambda *args: raise_(CoqExn(cancelled_answer)),
-                  _, lambda *args: raise_(BadResponse(cancelled_answer)))
-
-        self.get_completed()
+            cancelled_answer = self.get_message()
+            old_statenum = \
+                match(normalizeMessage(cancelled_answer),
+                      ["Answer", int, ["Canceled", list]],
+                      lambda _, statenums: min(statenums),
+                      ["Answer", int, ["CoqExn", _, _, _, _]],
+                      lambda *args: raise_(CoqExn(cancelled_answer)),
+                      _, lambda *args: raise_(BadResponse(cancelled_answer)))
+        finally:
+            self.get_completed()
 
         return new_statenum
 
