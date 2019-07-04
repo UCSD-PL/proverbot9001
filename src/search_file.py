@@ -52,7 +52,7 @@ class TacticInteraction(NamedTuple):
 
 class ProofBlock(NamedTuple):
     lemma_statement : str
-    module : str
+    module : Optional[str]
     status : SearchStatus
     predicted_tactics : List[TacticInteraction]
     original_tactics : List[TacticInteraction]
@@ -174,13 +174,14 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
     commands_in = get_commands(args, coqargs, includes, bar_idx, args.filename)
     num_commands_total = len(commands_in)
     lemma_statement = ""
-    module_name = None
+    module_stack : List[str] = []
 
     # Run vernacular until the next proof (or end of file)
     def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
         nonlocal commands_run
         nonlocal commands_in
         nonlocal blocks_out
+        nonlocal module_stack
         vernacs : List[str] = []
         assert not coq.full_context
         while not coq.full_context and len(commands_in) > 0:
@@ -189,13 +190,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             coq.run_stmt(next_in_command, timeout=60)
             if not coq.full_context:
                 vernacs.append(next_in_command)
-            module_start_match = re.match("Module (.*)\.", next_in_command)
-            module_end_match = re.match("End (.*)\.", next_in_command)
-            if module_start_match:
-                module_name = module_start_match.group(1)
-            elif module_end_match:
-                assert module_name == module_end_match.group(1)
-                module_name = None
+            update_module_stack(next_in_command, module_stack)
             pbar.update(1)
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
@@ -238,7 +233,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         if solution:
             num_proofs_completed += 1
             blocks_out.append(ProofBlock(
-                lemma_statement, module_name, status,
+                lemma_statement, ".".join(module_stack), status,
                 [TacticInteraction("Proof.",
                                    initial_full_context)] +
                 solution +
@@ -255,7 +250,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             else:
                 admitted = "Admitted (*INCOMPLETE*)."
             blocks_out.append(ProofBlock(
-                lemma_statement, status, module_name,
+                lemma_statement, ".".join(module_stack), status,
                 [TacticInteraction("Proof.",
                                    initial_full_context),
                  TacticInteraction("Admitted.",
@@ -290,7 +285,9 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                num_original_commands_run = \
                                    replay_solution_vfile(args, coq, model_name,
                                                          args.filename,
-                                                         commands_in, bar_idx)
+                                                         commands_in,
+                                                         module_stack,
+                                                         bar_idx)
                            pbar.update(num_original_commands_run)
                         except FileNotFoundError:
                             make_new_solution_vfile(args, model_name, args.filename)
@@ -318,7 +315,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             tactic_solution : Optional[List[TacticInteraction]] = []
                         else:
                             search_status, tactic_solution = \
-                                attempt_search(args, lemma_statement, module_name,
+                                attempt_search(args, lemma_statement,
+                                               ".".join(module_stack),
                                                coq, bar_idx)
                         # assert False
                         # Cancel until before the proof
@@ -460,11 +458,11 @@ def write_html(args : argparse.Namespace,
         # fout.write(syntax.syntax_highlight(doc.getvalue()))
         fout.write(doc.getvalue())
 
-def write_lemma_button(lemma_statement : str, module : str,
+def write_lemma_button(lemma_statement : str, module : Optional[str],
                        status_klass : str, tag : Tag, text : Text):
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
-    module_prefix = f"{module_name}Zd" if module_name else ""
+    module_prefix = f"{module}Zd" if module else ""
     with tag('button', klass='collapsible {}'.format(status_klass),
              onmouseover="hoverLemma(\"{}\")".format(module_prefix + lemma_name),
              onmouseout="unhoverLemma(\"{}\")".format(module_prefix + lemma_name)):
@@ -545,6 +543,7 @@ def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
 
 def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.SerapiInstance,
                           model_name : str, filename : str, commands_in : List[str],
+                          module_stack : List[str],
                           bar_idx : int) \
                           -> Tuple[List[str], List[str], List[DocumentBlock],
                                    int, int, int, int]:
@@ -555,7 +554,6 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     num_original_commands_run = 0
     in_proof = False
     curLemma = ""
-    module_name = None
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
     with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'r') as f:
@@ -602,19 +600,15 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         coq.run_stmt(proof_cmd)
                         origProofInters.append(
                             TacticInteraction(proof_cmd, context_before_orig))
-                    blocks_out.append(ProofBlock(curLemma, search_status, module_name,
+                    blocks_out.append(ProofBlock(curLemma,
+                                                 ".".join(module_stack),
+                                                 search_status,
                                                  curProofInters, origProofInters))
                     curVernacCmds = []
 
                 else:
                     loaded_command = next(commands_in_iter)
-                    module_start_match = re.match("Module (.*)\.", saved_command)
-                    module_end_match = re.match("End (.*)\.", saved_command)
-                    if module_start_match:
-                        module_name = module_start_match.group(1)
-                    elif module_end_match:
-                        assert module_name == module_end_match.group(1)
-                        module_name = None
+                    update_module_stack(saved_command, module_stack)
                     if not loaded_command.strip() == saved_command.strip():
                         raise SourceChangedException(
                             f"Command {loaded_command} doesn't match {saved_command}")
@@ -641,7 +635,7 @@ class SearchResult(NamedTuple):
 # This method attempts to complete proofs using search.
 def attempt_search(args : argparse.Namespace,
                    lemma_statement : str,
-                   module_name : str,
+                   module_name : Optional[str],
                    coq : serapi_instance.SerapiInstance,
                    bar_idx : int) \
     -> SearchResult:
@@ -781,7 +775,7 @@ def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                  k)])
 
 def dfs_proof_search_with_graph(lemma_statement : str,
-                                module_name : str,
+                                module_name : Optional[str],
                                 coq : serapi_instance.SerapiInstance,
                                 args : argparse.Namespace,
                                 bar_idx : int) \
@@ -865,6 +859,19 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
     completed = len(coq.fullContext.subgoals) == 0
     return completed
+
+def update_module_stack(cmd : str, module_stack : List[str]) -> None:
+    stripped_cmd = serapi_instance.kill_comments(cmd).strip()
+    module_start_match = re.match(r"Module (\w*)\b(?!.*:=)", stripped_cmd)
+    module_end_match = re.match(r"End (\w*)\.", stripped_cmd)
+    if module_start_match:
+        module_stack.append(module_start_match.group(1))
+    elif module_end_match:
+        if module_stack:
+            if module_stack[-1] == module_end_match.group(1):
+                started_module_name = module_stack.pop()
+            else:
+                eprint(f"Unrecognized End \"{cmd}\"")
 
 if __name__ == "__main__":
     main(sys.argv[1:], 0)
