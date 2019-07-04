@@ -53,15 +53,26 @@ def main(arg_list : List[str]) -> None:
         pool.starmap(functools.partial(run_search, unknown_args, args.output,
                                        args.predictor, args.weightsfile),
                      enumerate(args.filenames))
-    file_args, file_results = zip(*[read_stats_from_csv(args.output, filename)
-                               for filename in args.filenames])
+    file_args : Optional[argparse.Namespace] = None
+    file_results : List[ReportStats] = []
+    for filename in args.filenames:
+        csv_args, result = read_stats_from_csv(args.output, filename)
+        csv_args.debug = False
+        if not file_args:
+            file_args = csv_args
+        else:
+            assert file_args == csv_args, \
+                f"File {filename} has different args than the others! "\
+                f"Others args are {csv_args}, file args are {file_args}"
+        file_results.append(result)
+    assert file_args
 
     tqdm.write("Writing summary with {} file outputs.".format(len(file_results)))
     predictorOptions = get_predictor(parser, args).getOptions()
     write_summary(args, predictorOptions +
                   [("report type", "search"),
-                   ("search width", file_args[0].search_width),
-                   ("search depth", file_args[0].search_depth)],
+                   ("search width", file_args.search_width),
+                   ("search depth", file_args.search_depth)],
                   commit, date, file_results)
 def run_search(argslist : List[str],
                outdir : str,
