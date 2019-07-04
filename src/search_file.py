@@ -157,7 +157,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                       desc=os.path.basename(args.filename) + " (Resumed)",
                       disable=(not args.progress),
                       leave=True,
-                      position=(bar_idx * 2)) as pbar:
+                      position=(bar_idx * 2),
+                      dynamic_ncols=True, bar_format=mybarfmt) as pbar:
                 pbar.update(1)
             if not args.progress:
                 print(f"Resumed {args.filename} from existing state")
@@ -268,7 +269,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
               desc=os.path.basename(args.filename),
               disable=(not args.progress),
               leave=True,
-              position=(bar_idx * 2)) as pbar:
+              position=(bar_idx * 2),
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         while len(commands_in) > 0:
             try:
                 # print("Starting a coq instance...")
@@ -563,7 +565,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         commands_in_iter = iter(commands_in)
         for saved_command in tqdm(svfile_commands, unit="cmd", file=sys.stdout,
                                   desc="Replaying", disable=(not args.progress),
-                                  leave=False,position=(bar_idx*2)):
+                                  leave=False,position=(bar_idx*2),
+                                  dynamic_ncols=True, bar_format=mybarfmt):
             context_before = coq.fullContext if coq.full_context else FullContext([])
             coq.run_stmt(saved_command)
             if coq.full_context == None:
@@ -592,7 +595,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                     for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                           desc="Running original proof",
                                           disable=(not args.progress),
-                                          leave=False, position=(bar_idx * 2) + 1):
+                                          leave=False, position=(bar_idx * 2) + 1,
+                                          dynamic_ncols=True, bar_format=mybarfmt):
                         context_before_orig = coq.fullContext
                         coq.run_stmt(proof_cmd)
                         origProofInters.append(
@@ -843,8 +847,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
               leave=False,
-              position=((bar_idx*2)+1)) as pbar:
         command_list, _ = search(pbar, [g.start_node])
+              position=((bar_idx*2)+1),
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         pbar.clear()
     module_prefix = f"{module_name}Zd" if module_name else ""
     g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.png")

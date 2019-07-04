@@ -89,7 +89,8 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                     for command in tqdm(commands, file=sys.stdout,
                                         disable=(not args.progress),
                                         position=file_idx * 2,
-                                        desc="Scraping file", leave=False):
+                                        desc="Scraping file", leave=False,
+                                        dynamic_ncols=True, bar_format=mybarfmt):
                         process_statement(coq, command, f)
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))

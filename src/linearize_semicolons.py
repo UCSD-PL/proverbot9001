@@ -490,7 +490,9 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                       disable=not args.progress,
                       position=(file_idx * 2),
                       desc="Linearizing", leave=False,
-                      total=len(commands)) as pbar:
+                      total=len(commands),
+                      dynamic_ncols=True,
+                      bar_format=mybarfmt) as pbar:
                 result = list(
                     postlinear_desugar_tacs(
                         linearize_commands(

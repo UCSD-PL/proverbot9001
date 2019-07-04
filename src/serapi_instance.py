@@ -1171,7 +1171,8 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
     with tqdm(total=len(contents)+1, file=sys.stdout,
               disable=(not args.progress),
               position = (file_idx * 2),
-              desc="Reading file", leave=False) as pbar:
+              desc="Reading file", leave=False,
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
       while curPos < len(contents):
           _, next_quote = search_pat(re.compile(r"(?<!\\)\""))
           _, next_open_comment = search_pat(re.compile(r"\(\*"))
