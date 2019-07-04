@@ -28,7 +28,7 @@ function hoverLemma(lemma_name){
     document.body.appendChild(overlay)
     image = document.createElement("img")
     image.classList.add("search-graph")
-    image.src = lemma_name + ".png"
+    image.src = lemma_name + ".svg"
     overlay.appendChild(image)
 }
 function unhoverLemma(lemma_name) {
