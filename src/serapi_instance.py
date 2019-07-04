@@ -571,6 +571,9 @@ class SerapiInstance(threading.Thread):
                 return interrupt_response
             elif isBreakMessage(interrupt_response):
                 raise TimeoutError("")
+            elif isBreakAnswer(interrupt_response):
+                self.get_completed()
+                raise TimeoutError("")
             elif match(normalizeMessage(interrupt_response, depth=10),
                        ["Feedback", [["doc_id", int], ["span_id", int], ["route", int],
                                      ["contents", ["Message", "Error", [],
@@ -583,7 +586,7 @@ class SerapiInstance(threading.Thread):
                         msg = self.message_queue.get(timeout=self.timeout)
                     except:
                         raise CoqAnomaly("Timing out")
-                    assert isBreakMessage(msg), msg
+                    assert isBreakAnswer(msg), msg
                 self.get_completed()
                 assert self.message_queue.empty(), self.messages
                 raise TimeoutError("")
@@ -771,7 +774,10 @@ class SerapiInstance(threading.Thread):
 def isBreakMessage(msg : 'Sexp') -> bool:
     return match(normalizeMessage(msg),
                  "Sys\\.Break", lambda *args: True,
-                 ["Answer", int, ["CoqExn", [], [[int, int]],
+                 _, lambda *args: False)
+def isBreakAnswer(msg : 'Sexp') -> bool:
+    return match(normalizeMessage(msg),
+                 ["Answer", int, ["CoqExn", [], list,
                                   ["Backtrace", []],
                                   "Sys\\.Break"]],
                  lambda *args: True,
