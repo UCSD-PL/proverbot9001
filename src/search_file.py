@@ -789,7 +789,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         for _ in range(num_stmts):
             coq.cancel_last()
     hasUnexploredNode = False
-    def search(pbar : tqdm, current_path : List[LabeledNode]) -> SubSearchResult:
+    def search(pbar : tqdm, current_path : List[LabeledNode],
+               subgoal_distance_stack : List[int],
+               extra_depth : int) -> SubSearchResult:
         nonlocal hasUnexploredNode
         predictionNodes = makePredictions(g, coq, current_path[-1], args.search_width)
         for predictionNode in predictionNodes:
@@ -798,6 +800,28 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     tryPrediction(args, coq, g, predictionNode)
                 pbar.update(1)
 
+                #### 1.
+                if subgoal_distance_stack:
+                    new_distance_stack = (subgoal_distance_stack[:-1] +
+                                          [subgoal_distance_stack[-1]+1])
+                else:
+                    new_distance_stack = []
+
+                #### 2.
+                new_extra_depth = extra_depth
+                for _ in range(subgoals_closed):
+                    closed_goal_distance = new_distance_stack.pop()
+                    new_extra_depth += closed_goal_distance
+
+                #### 3.
+                new_distance_stack += [0] * subgoals_opened
+                # if subgoals_opened > 0:
+                #     eprint(f"Opened {subgoals_opened} subgoals with "
+                #            f"{predictionNode.prediction}")
+
+                #### 4.
+
+                #############
                 if completed_proof(coq):
                     solution = g.mkQED(predictionNode)
                     return SubSearchResult(solution, subgoals_closed)
@@ -808,8 +832,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                                    len(current_path)) - 1
                     pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context is in current path")
-                elif len(current_path) + 1 < args.search_depth:
-                    sub_search_result = search(pbar, current_path + [predictionNode])
+                elif len(current_path) + 1 < args.search_depth + new_extra_depth:
+                    sub_search_result = search(pbar, current_path + [predictionNode],
+                                               new_distance_stack, new_extra_depth)
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -842,9 +867,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
               leave=False,
-        command_list, _ = search(pbar, [g.start_node])
               position=((bar_idx*2)+1),
               dynamic_ncols=True, bar_format=mybarfmt) as pbar:
+        command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
     module_prefix = f"{module_name}Zd" if module_name else ""
     g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.png")
