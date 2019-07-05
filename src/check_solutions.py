@@ -20,6 +20,9 @@ def main() -> None:
     parser.add_argument("--skip-incomplete", dest="skip_incomplete",
                         help="Skip checking files that aren't finished running yet",
                         action='store_const', const=True, default=False)
+    parser.add_argument("--print-stdout", dest="print_stdout",
+                        help="Print the stdout of each checked file",
+                        action='store_const', const=True, default=False)
     parser.add_argument("--verbose", "-v",
                         action='store_const', const=True, default=False)
     args = parser.parse_args()
@@ -62,6 +65,8 @@ def check_vfile(vfile : str, includes : str, args : argparse.Namespace) -> None:
         f"Returned a non zero errorcode {result.returncode}! \n"\
         f"{result.stderr}"
     print(f"Checked {src_filename}")
+    if args.print_stdout:
+        print(f"Output:\n{result.stdout}", end="")
 
 if __name__ == "__main__":
     main()
