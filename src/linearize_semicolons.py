@@ -507,6 +507,24 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
     except serapi_instance.TimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
+def get_linearized(args : argparse.Namespace, coqargs : List[str], includes : str,
+                   bar_idx : int, filename : str) -> List[str]:
+    local_filename = args.prelude + "/" + filename
+    loaded_commands = serapi_instance.try_load_lin(args, bar_idx, local_filename)
+    if loaded_commands is None:
+        original_commands = \
+            serapi_instance.load_commands_preserve(args, bar_idx,
+                                                   args.prelude + "/" + filename)
+        fresh_commands = preprocess_file_commands(
+            args, bar_idx,
+            original_commands,
+            coqargs, includes,
+            local_filename, filename, False)
+        serapi_instance.save_lin(fresh_commands, local_filename)
+        return fresh_commands
+    else:
+        return loaded_commands
+
 
 def main():
     parser = argparse.ArgumentParser(description=

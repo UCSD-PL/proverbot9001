@@ -171,7 +171,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                        f"didn't match current arguments! {e} "
                        f"Overwriting (interrupt to cancel).")
 
-    commands_in = get_commands(args, coqargs, includes, bar_idx, args.filename)
+    commands_in = linearize_semicolons.get_linearized(args, coqargs, includes,
+                                                      bar_idx, args.filename)
     num_commands_total = len(commands_in)
     lemma_statement = ""
     module_stack : List[str] = []
@@ -356,25 +357,6 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 raise
     write_html(args, args.output_dir, args.filename, blocks_out)
     write_csv(args, args.filename, blocks_out)
-
-def get_commands(args : argparse.Namespace, coqargs : List[str], includes : str,
-                 bar_idx : int, filename : str) -> List[str]:
-    # print(f"filename: {filename}")
-    local_filename = args.prelude + "/" + filename
-    loaded_commands = serapi_instance.try_load_lin(args, bar_idx, local_filename)
-    if loaded_commands is None:
-        original_commands = \
-            serapi_instance.load_commands_preserve(args, bar_idx,
-                                                   args.prelude + "/" + filename)
-        fresh_commands = linearize_semicolons.preprocess_file_commands(
-            args, bar_idx,
-            original_commands,
-            coqargs, includes,
-            local_filename, filename, False)
-        serapi_instance.save_lin(fresh_commands, local_filename)
-        return fresh_commands
-    else:
-        return loaded_commands
 
 def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
                 javascript : List[str], title : str) -> None:
