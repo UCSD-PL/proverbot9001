@@ -607,7 +607,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         continue
                     loaded_command = next(commands_in_iter)
                     update_module_stack(saved_command, module_stack)
-                    if not loaded_command.strip() == saved_command.strip():
+                    if not re.sub("\s*", " ", loaded_command.strip()) == \
+                       re.sub("\s*", " ", saved_command.strip()):
                         raise SourceChangedException(
                             f"Command {loaded_command} doesn't match {saved_command}")
                     curVernacCmds.append(loaded_command)
