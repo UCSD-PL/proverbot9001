@@ -78,7 +78,7 @@ def main(arg_list : List[str], bar_idx : int) -> None:
         with open(args.prelude + "/_CoqProject", 'r') as includesfile:
             includes = includesfile.read()
     except FileNotFoundError:
-        print("Didn't find a _CoqProject file in prelude dir")
+        eprint("Didn't find a _CoqProject file in prelude dir")
         includes = ""
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
