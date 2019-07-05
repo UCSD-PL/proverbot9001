@@ -206,6 +206,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         nonlocal commands_in
         coq.run_stmt(lemma_statement)
         original_tactics : List[TacticInteraction] = []
+        lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
         try:
             while coq.full_context != None:
                 next_in_command = commands_in.pop(0)
@@ -213,8 +214,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 original_tactics.append(TacticInteraction(next_in_command, context_before))
                 coq.run_stmt(next_in_command)
                 pbar.update(1)
+            body_tactics = [t.tactic for t in original_tactics]
+            if next_in_command.strip() == "Defined.":
+                append_to_solution_vfile(args.output_dir, args.filename,
+                                         [f"Reset {lemma_name}.", lemma_statement] + body_tactics)
             commands_run.append(lemma_statement)
-            commands_run += [t.tactic for t in original_tactics]
+            commands_run += body_tactics
         except:
             commands_in = [lemma_statement] + \
                 [t.tactic for t in original_tactics] \
@@ -239,16 +244,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 solution +
                 [TacticInteraction("Qed.", empty_context)],
                 original_tactics))
-            append_to_solution_vfile(args.output_dir, args.filename,
-                                     [lemma_statement, "Proof."] +
-                                     [tac.tactic for tac in solution]
-                                     + ["Qed."])
         else:
-            if status == SearchStatus.FAILURE:
-                num_proofs_failed += 1
-                admitted = "Admitted (*FAILURE*)."
-            else:
-                admitted = "Admitted (*INCOMPLETE*)."
             blocks_out.append(ProofBlock(
                 lemma_statement, ".".join(module_stack), status,
                 [TacticInteraction("Proof.",
@@ -256,8 +252,6 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                  TacticInteraction("Admitted.",
                                    initial_full_context)],
                 original_tactics))
-            append_to_solution_vfile(args.output_dir, args.filename,
-                                     [lemma_statement, "Proof.\n", admitted])
 
     if not args.progress:
         print("Loaded {} commands for file {}".format(len(commands_in), args.filename))
@@ -325,6 +319,19 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                 coq.cancel_last()
                         except serapi_instance.CoqExn as e:
                             raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
+                        if tactic_solution:
+                            append_to_solution_vfile(args.output_dir, args.filename,
+                                                     [lemma_statement, "Proof."] +
+                                                     [tac.tactic for tac in solution]
+                                                     + ["Qed."])
+                        else:
+                            if search_status == SearchStatus.FAILURE:
+                                num_proofs_failed += 1
+                                admitted = "Admitted (*FAILURE*)."
+                            else:
+                                admitted = "Admitted (*INCOMPLETE*)."
+                            append_to_solution_vfile(args.output_dir, args.filename,
+                                                     [lemma_statement, "Proof.\n", admitted])
                         # Run the original proof
                         original_tactics = run_to_next_vernac(coq, pbar, initial_context,
                                                               lemma_statement)
@@ -553,6 +560,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     num_proofs_completed = 0
     num_original_commands_run = 0
     in_proof = False
+    skip_sync_next_lemma = False
     curLemma = ""
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
@@ -588,25 +596,33 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
 
                     origProofInters = []
-                    proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
-                    coq.run_stmt(proof_cmds[0])
-                    num_original_commands_run += len(proof_cmds)
-                    for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
-                                          desc="Running original proof",
-                                          disable=(not args.progress),
-                                          leave=False, position=(bar_idx * 2) + 1,
-                                          dynamic_ncols=True, bar_format=mybarfmt):
-                        context_before_orig = coq.fullContext
-                        coq.run_stmt(proof_cmd)
-                        origProofInters.append(
-                            TacticInteraction(proof_cmd, context_before_orig))
-                    blocks_out.append(ProofBlock(curLemma,
-                                                 ".".join(module_stack),
-                                                 search_status,
-                                                 curProofInters, origProofInters))
-                    curVernacCmds = []
+                    if not skip_sync_next_lemma:
+                        proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
+                        coq.run_stmt(proof_cmds[0])
+                        num_original_commands_run += len(proof_cmds)
+                        for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
+                                              desc="Running original proof",
+                                              disable=(not args.progress),
+                                              leave=False, position=(bar_idx * 2) + 1,
+                                              dynamic_ncols=True, bar_format=mybarfmt):
+                            context_before_orig = coq.fullContext
+                            coq.run_stmt(proof_cmd)
+                            origProofInters.append(
+                                TacticInteraction(proof_cmd, context_before_orig))
+                        blocks_out.append(ProofBlock(curLemma,
+                                                     ".".join(module_stack),
+                                                     search_status,
+                                                     curProofInters, origProofInters))
+                        curVernacCmds = []
+                    else:
+                        for proof_cmd in proof_cmds:
+                            coq.run_stmt(proof_cmd)
+                        skip_sync_next_lemma = False
 
                 else:
+                    if re.match("Reset .*\.", saved_command):
+                        skip_sync_next_lemma = True
+                        continue
                     loaded_command = next(commands_in_iter)
                     update_module_stack(saved_command, module_stack)
                     if not loaded_command.strip() == saved_command.strip():
