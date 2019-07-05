@@ -527,6 +527,8 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action='store_const', const=True, default=False)
+    parser.add_argument("--progress", "-P", help="show progress of files",
+                        action='store_const', const=True, default=False)
     parser.add_argument('-o', '--output', help="output data folder name",
                         default="report")
     parser.add_argument('-m', '--message', default=None)
