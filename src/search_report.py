@@ -58,6 +58,7 @@ def main(arg_list : List[str]) -> None:
     for filename in args.filenames:
         csv_args, result = read_stats_from_csv(args.output, filename)
         csv_args.debug = False
+        csv_args.filename = ""
         if not file_args:
             file_args = csv_args
         else:
