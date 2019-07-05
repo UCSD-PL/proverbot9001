@@ -118,6 +118,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=10)
     parser.add_argument("--no-resume", dest="resume",
                         const=False, default=True, action='store_const')
+    parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch", action='store_true')
     parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=None)
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
@@ -290,10 +291,13 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         except (ArgsMismatchException, SourceChangedException) as e:
                             eprint(f"Arguments in solution vfile for {args.filename} "
                                    f"didn't match current arguments, or sources mismatch! "
-                                   f"{e} "
-                                   f"Overwriting.")
-                            make_new_solution_vfile(args, model_name, args.filename)
-                            raise serapi_instance.CoqAnomaly("Replaying")
+                                   f"{e}")
+                            if args.overwrite_mismatch:
+                                eprint("Overwriting.")
+                                make_new_solution_vfile(args, model_name, args.filename)
+                                raise serapi_instance.CoqAnomaly("Replaying")
+                            else:
+                                raise SourceChangedException
 
                     if len(commands_run) > 0 and (args.verbose or args.debug):
                         eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
