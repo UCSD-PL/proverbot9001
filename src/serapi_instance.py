@@ -1181,7 +1181,8 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
         binder_var = get_binder_var(datum.goal, binder_idx)
         if binder_var:
             newtac = stem + " " + binder_var + "."
-            return ScrapedTactic(datum.prev_tactics, datum.hypotheses,
+            return ScrapedTactic(datum.relevant_lemmas,
+                                 datum.prev_tactics, datum.hypotheses,
                                  datum.goal, newtac)
         else:
             return datum

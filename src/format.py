@@ -24,6 +24,7 @@ import re
 from typing import List, Tuple, TextIO, Optional, NamedTuple, Union
 
 class ScrapedTactic(NamedTuple):
+    relevant_lemmas : List[str]
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : str
@@ -35,10 +36,10 @@ def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
 
 def format_context(prev_tactics : List[str], prev_hyps : List[str], prev_goal : str,
-                   rel_lemmas : str) -> str:
+                   rel_lemmas : List[str]) -> str:
     return (format_tactics(prev_tactics) + "\n*****\n" +
             format_hypothesis(prev_hyps) + "\n*****\n" +
-            # format_lemmas(rel_lemmas) + "*****\n" +
+            format_hypothesis(rel_lemmas) + "*****\n" +
             format_goal(prev_goal) + "\n+++++\n")
 
 def format_tactics(tactics : List[str]) -> str:
@@ -49,9 +50,6 @@ def format_hypothesis(prev_hyps : List[str]) -> str:
 
 def format_goal(prev_goal : str) -> str:
     return minimize_whitespace(prev_goal)
-
-def format_lemmas(rel_lemmas : str) -> str:
-    return re.sub("[ \t]+", " ", rel_lemmas).strip()
 
 def format_tactic(tactic : str):
     return minimize_whitespace(tactic) + "\n-----\n"
@@ -84,11 +82,20 @@ def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
                 continue
             else:
                 hyps.append(line.strip())
+        lemmas : List[str] = []
+        for line in lines_it:
+            if line == "*****\n":
+                break
+            elif line.strip() == "":
+                continue
+            else:
+                lemmas.append(line.strip())
         try:
             goal = next(lines_it)
             assert next(lines_it) == "+++++\n"
             tactic = next(lines_it)
-            return ScrapedTactic(prev_tactics=prev_tactics, hypotheses=hyps,
+            return ScrapedTactic(relevant_lemmas=lemmas,
+                                 prev_tactics=prev_tactics, hypotheses=hyps,
                                  goal=goal, tactic=tactic)
         except StopIteration:
             return None
