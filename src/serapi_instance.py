@@ -668,6 +668,17 @@ class SerapiInstance(threading.Thread):
         fg_goals = self.full_context.subgoals
         return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
 
+    def unshelve(self) -> None:
+        self.send_acked("(Add () \"Unshelve.\")\n")
+        self.update_state()
+        self.get_completed()
+        assert self.message_queue.empty()
+        self.send_acked("(Exec {})\n".format(self.cur_state))
+        self.discard_feedback()
+        self.discard_feedback()
+        self.get_completed()
+        assert self.message_queue.empty()
+
     def get_proof_context(self) -> None:
         self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
 
@@ -684,15 +695,7 @@ class SerapiInstance(threading.Thread):
                 # If we're in a proof, then let's run Unshelve to get
                 # the real goals. Note this would fail if we were not
                 # in a proof, so we have to check that first.
-                self.send_acked("(Add () \"Unshelve.\")\n")
-                self.update_state()
-                self.get_completed()
-                assert self.message_queue.empty()
-                self.send_acked("(Exec {})\n".format(self.cur_state))
-                self.discard_feedback()
-                self.discard_feedback()
-                self.get_completed()
-                assert self.message_queue.empty()
+                self.unshelve()
 
                 # Now actually get the goals
                 self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
