@@ -326,7 +326,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         if tactic_solution:
                             append_to_solution_vfile(args.output_dir, args.filename,
                                                      [lemma_statement, "Proof."] +
-                                                     [tac.tactic for tac in solution]
+                                                     [tac.tactic for tac in tactic_solution]
                                                      + ["Qed."])
                         else:
                             if search_status == SearchStatus.FAILURE:
