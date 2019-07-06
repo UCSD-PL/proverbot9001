@@ -31,8 +31,9 @@ def main() -> None:
 
     sub_count = sum(sub_counts)
     sub_total = sum(sub_totals)
-    print(f"Total: {sub_count}/{sub_total} "
-          f"({stringified_percent(sub_count, sub_total)}%)")
+    if not args.only_print:
+        print(f"Total: {sub_count}/{sub_total} "
+              f"({stringified_percent(sub_count, sub_total)}%)")
 
 def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
@@ -43,6 +44,9 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument("--verbose", "-v", help="verbose output", action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
+    parser.add_argument('--only-print', dest="only_print",
+                        help="Don't print counts just print the names of matching files",
+                        action='store_true')
     parser.add_argument("--max-length", dest="max_length", type=int,
                         default=120)
 
@@ -109,13 +113,16 @@ def count_proofs(args : argparse.Namespace, includes : str, filename : str) \
 
         if exiting_proof:
             if cur_proof_counts:
+                if args.only_print:
+                    print(cur_lemma_name)
                 eprint(f"Proof of {cur_lemma_name} counts",
                        guard=args.debug)
                 count += 1
             total_count += 1
             cur_lemma_name = ""
-    print(f"{filename}: {count}/{total_count} "
-          f"({stringified_percent(count, total_count)}%)")
+    if not args.only_print:
+        print(f"{filename}: {count}/{total_count} "
+              f"({stringified_percent(count, total_count)}%)")
     return count, total_count
 
 def stringified_percent(total : float, outof : float) -> str:
