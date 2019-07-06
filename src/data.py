@@ -14,7 +14,7 @@ from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
-from format import read_tactic_tuple, ScrapedTactic
+from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple
 from models.components import SimpleEmbedding
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
@@ -160,6 +160,22 @@ def file_chunks(filepath : str, chunk_size : int):
                 return
             yield chunk
 
+MixedDataset = Iterable[ScrapedCommand]
+
+def read_all_text_data_worker__(lines : List[str]) -> MixedDataset:
+    def worker_generator():
+        with io.StringIO("".join(lines)) as f:
+            t = read_tuple(f)
+            while t:
+                yield t
+                t = read_tuple(f)
+    return list(worker_generator())
+def read_all_text_data(data_path : str) -> MixedDataset:
+    with multiprocessing.Pool(None) as pool:
+        line_chunks = file_chunks(data_path, 32768)
+        data_chunks = pool.imap(read_all_text_data_worker__, line_chunks)
+        result = itertools.chain.from_iterable(data_chunks)
+        yield from result
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
     def worker_generator() -> Iterable[ScrapedTactic]:
         with io.StringIO("".join(lines)) as f:
