@@ -935,7 +935,7 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
         return stripped[:-1], stripped[-1]
     if re.match(".*;.*", tactic):
         return tactic, ""
-    for prefix in ["try", "now", "repeat"]:
+    for prefix in ["try", "now", "repeat", "decide"]:
         prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
         if prefix_match:
             rest_stem, rest_rest = split_tactic(prefix_match.group(1))
