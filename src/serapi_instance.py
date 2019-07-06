@@ -282,6 +282,8 @@ class SerapiInstance(threading.Thread):
         # report which command the error came from at this
         # level. Other higher level code might re-catch it.
         try:
+            if re.match(r"\s*[{]\s*", stmt):
+                self.run_stmt("Unshelve.")
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
@@ -403,14 +405,18 @@ class SerapiInstance(threading.Thread):
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> None:
-        eprint(f"Cancelling {self.tactic_history.getNextCancelled()} "
-               f"from state {self.cur_state}",
-               guard=self.debug)
+        cancelled = self.tactic_history.getNextCancelled()
         assert self.message_queue.empty(), self.messages
-        if self.full_context:
+        context_before = self.full_context
+        if context_before:
             old_subgoals = self.full_context.subgoals
+            eprint(f"Cancelling {cancelled} "
+                   f"from state {self.cur_state}",
+                   guard=self.debug)
         else:
             old_subgoals = []
+            eprint(f"Cancelling vernac "
+                   f"from state {self.cur_state}")
         # Run the cancel
         self.send_acked("(Cancel ({}))".format(self.cur_state))
         # Get the response from cancelling
@@ -419,11 +425,13 @@ class SerapiInstance(threading.Thread):
         self.get_proof_context()
 
         # Fix up the previous tactics
-        if self.full_context:
+        if context_before:
             self.tactic_history.removeLast(old_subgoals)
-        else:
+        if not self.full_context:
             self.tactic_history = TacticHistory()
         assert self.message_queue.empty(), self.messages
+        if re.match(r"\s*[{]\s*", cancelled):
+            self.cancel_last()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -698,16 +706,12 @@ class SerapiInstance(threading.Thread):
                 self.unshelve()
 
                 # Now actually get the goals
+                # Now actually get the real goals
                 self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
                                 .format(self.cur_state))
                 proof_context_message = self.get_message()
                 ol_msg = proof_context_message[2]
                 self.get_completed()
-                assert self.message_queue.empty()
-
-                # Cancel the Unshelve, to keep things clean.
-                self.send_acked("(Cancel ({}))".format(self.cur_state))
-                self.cur_state = self.get_cancelled()
                 assert self.message_queue.empty()
 
                 # Do some basic parsing on the context
@@ -743,6 +747,11 @@ class SerapiInstance(threading.Thread):
                                              in re.split("\n\n|(?=\snone)", newcontext)
                                              if substr.strip()])
                         pass
+                # Cancel the Unshelve, to keep things clean.
+                self.send_acked("(Cancel ({}))".format(self.cur_state))
+                self.cur_state = self.get_cancelled()
+                assert self.message_queue.empty()
+
             else:
                 self.proof_context = None
                 self.full_context = None
