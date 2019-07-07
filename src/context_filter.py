@@ -216,7 +216,10 @@ context_filters : Dict[str, ContextFilter] = {
     "default": filter_and(no_compound_or_bullets,
                           not_proof_keyword,
                           not_background_subgoal,
-                          not_vernac),
+                          not_vernac
+    ),
+    "count-default": filter_and(no_compound_or_bullets,
+                                not_background_subgoal),
     "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),

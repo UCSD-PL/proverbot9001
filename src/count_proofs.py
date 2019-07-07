@@ -43,7 +43,7 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--verbose", "-v", help="verbose output", action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
-                        default=None)
+                        default="count-default")
     parser.add_argument('--only-print', dest="only_print",
                         help="Don't print counts just print the names of matching files",
                         action='store_true')
