@@ -32,7 +32,6 @@ extra_files = index_css + index_js + ["logo.png"]
 from tqdm import tqdm
 
 def main(arg_list : List[str]) -> None:
-    sys.setrecursionlimit(1500)
     parser = argparse.ArgumentParser(
         description=
         "Produce an index file from attempting to complete proofs using Proverbot9001.")

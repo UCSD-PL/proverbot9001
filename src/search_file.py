@@ -67,6 +67,7 @@ DocumentBlock = Union[VernacBlock, ProofBlock]
 predictor : TacticPredictor
 
 def main(arg_list : List[str], bar_idx : int) -> None:
+    sys.setrecursionlimit(1500)
     global predictor
 
     args, parser = parse_arguments(arg_list)
