@@ -171,6 +171,8 @@ class TacticHistory:
 
     def getNextCancelled(self) -> str:
         curTree = self.__tree
+        assert len(curTree.children) > 0, \
+            "Tried to cancel from an empty history"
         for i in range(self.__cur_subgoal_depth):
             assert isinstance(curTree.children[-1], TacticTree)
             curTree = curTree.children[-1]
@@ -271,7 +273,7 @@ class SerapiInstance(threading.Thread):
         if timeout:
             old_timeout = self.timeout
             self.timeout = timeout
-        assert self.message_queue.empty()
+        assert self.message_queue.empty(), self.messages
         eprint("Running statement: " + stmt.lstrip('\n'),
                guard=self.debug) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
@@ -885,7 +887,7 @@ def kill_comments(string: str) -> str:
 
 def next_proof(cmds : Iterator[str]) -> Iterable[str]:
     next_cmd = next(cmds)
-    assert possibly_starting_proof(next_cmd)
+    assert possibly_starting_proof(next_cmd), next_cmd
     while not ending_proof(next_cmd):
         yield next_cmd
         next_cmd = next(cmds)
