@@ -111,7 +111,7 @@ def args_token_in_goal(in_data : ContextData, tactic : str,
                        next_in_data : ContextData,
                        arg_values : argparse.Namespace) -> bool:
     goal = in_data["goal"]
-    goal_words = get_symbols(cast(str, goal)[:arg_values.max_length])
+    goal_words = get_symbols(cast(str, goal))[:arg_values.max_length]
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
