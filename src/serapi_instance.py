@@ -257,8 +257,7 @@ class SerapiInstance(threading.Thread):
     def ask(self, cmd : str):
         assert self.message_queue.empty()
         self.send_acked(cmd)
-        msg = self.get_message()
-        self.get_completed()
+        msg = self.get_message(complete=True)
         return msg
 
     @property
@@ -544,9 +543,12 @@ class SerapiInstance(threading.Thread):
         self._proc.send_signal(signal.SIGINT)
         self.flush_queue()
 
-    def get_message(self) -> Any:
+    def get_message(self, complete=False) -> Any:
         try:
-            return self.message_queue.get(timeout=self.timeout)
+            msg = self.message_queue.get(timeout=self.timeout)
+            if complete:
+                self.get_completed()
+            return msg
         except queue.Empty:
             eprint("Command timed out! Interrupting", guard=self.debug)
             self._proc.send_signal(signal.SIGINT)
