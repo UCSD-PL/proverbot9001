@@ -411,7 +411,7 @@ class SerapiInstance(threading.Thread):
         assert self.message_queue.empty(), self.messages
         context_before = self.full_context
         if context_before:
-            old_subgoals = self.full_context.subgoals
+            old_subgoals = context_before.subgoals
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
                    guard=self.debug)
