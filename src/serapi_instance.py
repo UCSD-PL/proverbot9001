@@ -255,7 +255,7 @@ class SerapiInstance(threading.Thread):
         self.get_ack()
 
     def ask(self, cmd : str):
-        assert self.message_queue.empty()
+        assert self.message_queue.empty(), self.messages
         self.send_acked(cmd)
         msg = self.get_message(complete=True)
         return msg
@@ -570,7 +570,7 @@ class SerapiInstance(threading.Thread):
                                                lambda *args: False,
                                                ["Answer", TAIL],
                                                lambda *args: True,
-                                               _, False)
+                                               _, lambda *args: False)
             if got_answer_after_interrupt:
                 self.get_completed()
                 for i in range(num_breaks):
