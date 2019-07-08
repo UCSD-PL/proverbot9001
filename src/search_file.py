@@ -65,6 +65,7 @@ class SourceChangedException(Exception):
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
 predictor : TacticPredictor
+obligation_number : int
 
 def main(arg_list : List[str], bar_idx : int) -> None:
     sys.setrecursionlimit(4500)
@@ -143,6 +144,8 @@ def get_predictor(parser : argparse.ArgumentParser,
 def search_file(args : argparse.Namespace, coqargs : List[str],
                 includes : str, predictor : TacticPredictor,
                 bar_idx : int) -> None:
+    global obligation_number
+    obligation_number = 0
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
@@ -427,6 +430,8 @@ def check_csv_args(args : argparse.Namespace, vfilename : str) -> None:
 def write_html(args : argparse.Namespace,
                output_dir : str, filename : str,
                doc_blocks : List[DocumentBlock]) -> None:
+    global obligation_number
+    obligation_number = 0
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
         html_header(tag, doc, text, [details_css], [details_javascript],
@@ -456,9 +461,14 @@ def write_lemma_button(lemma_statement : str, module : Optional[str],
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
     module_prefix = f"{module}Zd" if module else ""
+    if lemma_name == "Obligation":
+        obligation_number += 1
+        fullname = module_prefix + lemma_name + str(obligation_number)
+    else:
+        fullname = module_prefix + lemma_name
     with tag('button', klass='collapsible {}'.format(status_klass),
-             onmouseover="hoverLemma(\"{}\")".format(module_prefix + lemma_name),
-             onmouseout="unhoverLemma(\"{}\")".format(module_prefix + lemma_name)):
+             onmouseover="hoverLemma(\"{}\")".format(fullname),
+             onmouseout="unhoverLemma(\"{}\")".format(fullname)):
         with tag('code', klass='buttontext'):
             text(lemma_statement.strip())
 def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
@@ -875,7 +885,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
     module_prefix = f"{module_name}Zd" if module_name else ""
-    g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.svg")
+    if lemma_name == "Obligation":
+        obligation_number += 1
+        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}{obligation_number}.svg")
+    else:
+        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.svg")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
