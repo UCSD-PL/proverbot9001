@@ -406,18 +406,20 @@ class SerapiInstance(threading.Thread):
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> None:
-        cancelled = self.tactic_history.getNextCancelled()
         assert self.message_queue.empty(), self.messages
         context_before = self.full_context
         if context_before:
+            cancelled = self.tactic_history.getNextCancelled()
             old_subgoals = context_before.subgoals
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
                    guard=self.debug)
         else:
+            cancelled = ""
             old_subgoals = []
             eprint(f"Cancelling vernac "
-                   f"from state {self.cur_state}")
+                   f"from state {self.cur_state}",
+                   guard=self.debug)
         # Run the cancel
         self.send_acked("(Cancel ({}))".format(self.cur_state))
         # Get the response from cancelling
