@@ -274,6 +274,8 @@ class SerapiInstance(threading.Thread):
             old_timeout = self.timeout
             self.timeout = timeout
         assert self.message_queue.empty(), self.messages
+        if re.match(r"\s*[{]\s*", stmt):
+            self.run_stmt("Unshelve.")
         eprint("Running statement: " + stmt.lstrip('\n'),
                guard=self.debug) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
@@ -284,8 +286,6 @@ class SerapiInstance(threading.Thread):
         # report which command the error came from at this
         # level. Other higher level code might re-catch it.
         try:
-            if re.match(r"\s*[{]\s*", stmt):
-                self.run_stmt("Unshelve.")
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
