@@ -491,7 +491,7 @@ class Worker(threading.Thread):
                                         doc.asis(" &#11044;")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
-            fout.write(syntax_highlight(doc.getvalue()))
+            fout.write(doc.getvalue())
 
         gresult.add_file_result(fresult)
         rows.put(fresult)

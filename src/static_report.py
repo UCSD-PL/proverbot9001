@@ -527,7 +527,7 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                                             with tag('span', klass=grade):
                                                 doc.asis(" &#11044;")
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), "w") as fout:
-        fout.write(syntax_highlight(doc.getvalue()))
+        fout.write(doc.getvalue())
 
     pass
 def write_csv(output_dir : str, filename : str, args : argparse.Namespace,
