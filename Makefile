@@ -37,10 +37,10 @@ scrape:
 				        		 --prelude ../CompCert
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
-	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/hypfeatures-weights.dat --prelude ./CompCert $(FLAGS))
+	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
 train:
-	./src/proverbot9001.py train hypfeatures data/scrape.txt data/hypfeatures-weights.dat $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 
 test:
 	./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert ./lib/Parmov.v --predictor=ngramclass
