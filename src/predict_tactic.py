@@ -89,7 +89,7 @@ def loadPredictorByName(predictor_type : str) -> TacticPredictor:
     return static_predictors[predictor_type]() # type: ignore
 
 def loadPredictorByFile(filename : str) -> TrainablePredictor:
-    predictor_type, saved_state = torch.load(filename)
+    predictor_type, saved_state = torch.load(filename, map_location='cpu')
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic
