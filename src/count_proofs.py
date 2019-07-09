@@ -1,6 +1,5 @@
 import argparse
 import sys
-from tqdm import tqdm
 
 import serapi_instance
 from context_filter import get_context_filter
@@ -14,20 +13,12 @@ def main() -> None:
     args, parser = parse_arguments()
 
     # Set up --all and --some flags
-    assert not (args.all and args.some)
     if (not args.all) and (not args.some):
         args.all = True
 
-    # Load the includes from a _CoqProject file in prelude
-    try:
-        with open(args.prelude + "/_CoqProject", 'r') as includesfile:
-            includes = includesfile.read()
-    except FileNotFoundError:
-        eprint("Didn't find a _CoqProject file in prelude dir")
-        includes = ""
-
     # Do the counting
-    sub_counts, sub_totals = zip(*[count_proofs(args, includes, filename) for filename in args.filenames])
+    sub_counts, sub_totals = zip(*[count_proofs(args, filename)
+                                   for filename in args.filenames])
 
     sub_count = sum(sub_counts)
     sub_total = sum(sub_totals)
@@ -57,7 +48,7 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(), parser
 
-def count_proofs(args : argparse.Namespace, includes : str, filename : str) \
+def count_proofs(args : argparse.Namespace, filename : str) \
     -> Tuple[int, int]:
     eprint(f"Counting {filename}", guard=args.debug)
     scrapefile= args.prelude + "/" + filename + ".scrape"
