@@ -22,7 +22,7 @@ FLAGS+=-m "$(MESSAGE)"
 endif
 REPORT="report"
 
-.PHONY: scrape report setup
+.PHONY: scrape report setup static-report dynamic-report search-report
 
 all: scrape report
 
@@ -33,17 +33,35 @@ scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape-test.txt \
 				        		 --prelude ../CompCert
 report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
 train:
-	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --context-filter ""(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 
-test:
-	./src/proverbot9001.py report -j $(NTHREADS) --prelude ./CompCert ./lib/Parmov.v --predictor=ngramclass
+static-report:
+	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
+	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --context-filter="goal-changes" --prelude=./CompCert $(FLAGS))
+
+dynamic-report:
+	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
+	xargs ./src/proverbot9001.py dynamic-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --context-filter="goal-changes" --prelude=./CompCert $(FLAGS))
+
+search-report:
+	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
+	xargs ./src/proverbot9001.py search-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude=./CompCert --search-depth=5 --search-width=5 -P $(FLAGS))
+
+search-test:
+	./src/proverbot9001.py search-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude=./CompCert --search-depth=5 --search-width=5 -P --use-hammer -o=test-report --debug ./backend/Locations.v $(FLAGS)
+
+scrape-test:
+	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
+	cat data/coqgym-demo-files.txt | $(HEAD_CMD) | \
+	xargs python3 src/scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output data/scrape-test.txt \
+				        		 --prelude=./coq-projects/zfc
 
 INDEX_FILES=index.js index.css build-index.py
 

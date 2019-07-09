@@ -199,7 +199,7 @@ class SerapiInstance(threading.Thread):
     # ".debug" field after you've created it to get more verbose
     # logging.
     def __init__(self, coq_command : List[str], includes : str, prelude : str,
-                 timeout : int = 30) -> None:
+                 timeout : int = 30, use_hammer : bool = False) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
@@ -240,6 +240,29 @@ class SerapiInstance(threading.Thread):
         self.exec_includes(includes, prelude)
         # Unset Printing Notations (to get more learnable goals?)
         self.unset_printing_notations()
+
+        # Set up CoqHammer
+        self.use_hammer = use_hammer
+        if self.use_hammer:
+            self.init_hammer()
+
+    # Hammer prints a lot of stuff when it gets imported. Discard all of it.
+    def init_hammer(self):
+        self.hammer_timeout = 100
+        atp_limit = 29 * self.hammer_timeout // 60
+        reconstr_limit = 28 * self.hammer_timeout // 60
+        crush_limit = 3 * self.hammer_timeout // 60
+        # hammer_cmd = "(Add () \"From Hammer Require Import Hammer. Set Hammer ATPLimit %d. Set Hammer ReconstrLimit %d. Set Hammer CrushLimit %d.\")" % (atp_limit, reconstr_limit, crush_limit)
+        hammer_cmd = "(Add () \"From Hammer Require Import Hammer.\")"
+        # print(hammer_cmd)
+        self.send_acked(hammer_cmd)
+        self.discard_feedback()
+        self.discard_feedback()
+        self.update_state()
+        # self.update_state()
+        # self.update_state()
+        # self.update_state()
+        self.get_completed()
 
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
@@ -806,8 +829,8 @@ import contextlib
 from typing import Iterator
 
 @contextlib.contextmanager
-def SerapiContext(coq_commands : List[str], includes : str, prelude : str) -> Iterator[Any]:
-    coq = SerapiInstance(coq_commands, includes, prelude)
+def SerapiContext(coq_commands : List[str], includes : str, prelude : str, use_hammer : bool = False) -> Iterator[Any]:
+    coq = SerapiInstance(coq_commands, includes, prelude, use_hammer=use_hammer)
     yield coq
     coq.kill()
 
@@ -1173,6 +1196,7 @@ def isValidCommand(command : str) -> bool:
         and (command.count('(') == command.count(')'))
 
 def load_commands(filename : str) -> List[str]:
+    print("filename: " + filename)
     with open(filename, 'r') as fin:
         contents = kill_comments(fin.read())
         commands_orig = split_commands(contents)

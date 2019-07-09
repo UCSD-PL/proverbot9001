@@ -44,7 +44,6 @@ def main():
     thispath = os.path.dirname(os.path.abspath(__file__))
     # Set up the command which runs sertop.
     coqargs = ["sertop"]
-
     with multiprocessing.Pool(args.threads) as pool:
         scrape_result_files = pool.imap_unordered(
             functools.partial(scrape_file, coqargs, args, includes),

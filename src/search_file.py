@@ -125,6 +125,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
     parser.add_argument('filename', help="proof file name (*.v)")
+    parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
+                        action='store_const', const=True, default=False)
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -269,7 +271,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         while len(commands_in) > 0:
             try:
                 # print("Starting a coq instance...")
-                with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
+                with serapi_instance.SerapiContext(coqargs, includes, args.prelude, use_hammer=args.use_hammer) as coq:
                     if args.progress:
                         pbar.reset()
                     for command in commands_run:
@@ -761,7 +763,10 @@ def tryPrediction(args : argparse.Namespace,
                   g : SearchGraph,
                   predictionNode : LabeledNode) -> Tuple[FullContext, int, int, int]:
     coq.quiet = True
-    coq.run_stmt(predictionNode.prediction, timeout=5)
+    if coq.use_hammer:
+        coq.run_stmt(predictionNode.prediction, timeout=30)
+    else:
+        coq.run_stmt(predictionNode.prediction, timeout=5)
     num_stmts = 1
     subgoals_closed = 0
     while coq.count_fg_goals() == 0 and not completed_proof(coq):
@@ -788,6 +793,16 @@ def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                                coq.goals),
                                  k)])
 
+def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
+                    curNode : LabeledNode, k : int) -> List[LabeledNode]:
+    return g.addPredictions(curNode, coq.fullContext,
+                            [pred.prediction[:-1] + ";try hammer." for pred in
+                            # ["try hammer;" + pred.prediction for pred in
+                             predictor.predictKTactics(
+                                 TacticContext(coq.prev_tactics, coq.hypotheses,
+                                               coq.goals),
+                                 k)])
+
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 module_name : Optional[str],
                                 coq : serapi_instance.SerapiInstance,
@@ -808,7 +823,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                subgoal_distance_stack : List[int],
                extra_depth : int) -> SubSearchResult:
         nonlocal hasUnexploredNode
-        predictionNodes = makePredictions(g, coq, current_path[-1], args.search_width)
+        # print(coq.use_hammer)
+        if coq.use_hammer:
+            predictionNodes = makeHammerPredictions(g, coq, current_path[-1], args.search_width)
+        else:
+            predictionNodes = makePredictions(g, coq, current_path[-1], args.search_width)
         for predictionNode in predictionNodes:
             try:
                 context_after, num_stmts, subgoals_closed, subgoals_opened = \
