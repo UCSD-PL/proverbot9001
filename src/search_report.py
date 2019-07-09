@@ -229,7 +229,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                     args.output + "/" + filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
-        fout.write("lemma, status, prooflength\n")
+        fout.write("lemma,status,prooflength\n")
         for filename in filenames:
             with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'r') \
                  as fin:
