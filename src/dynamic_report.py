@@ -348,7 +348,7 @@ class Worker(threading.Thread):
                     coq.run_stmt(command)
                     continue
                 if in_proof:
-                    prev_tactics = coq.prev_tactics()
+                    prev_tactics = coq.prev_tactics
                     initial_context = coq.proof_context
                     assert initial_context
                     hyps = coq.hypotheses
