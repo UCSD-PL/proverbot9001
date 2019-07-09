@@ -458,6 +458,7 @@ def write_html(args : argparse.Namespace,
 
 def write_lemma_button(lemma_statement : str, module : Optional[str],
                        status_klass : str, tag : Tag, text : Text):
+    global obligation_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
     module_prefix = f"{module}Zd" if module else ""
@@ -793,6 +794,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 args : argparse.Namespace,
                                 bar_idx : int) \
                                 -> SearchResult:
+    global obligation_number
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
     def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
