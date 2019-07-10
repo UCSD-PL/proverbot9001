@@ -116,8 +116,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
-    parser.add_argument("--search-width", dest="search_width", type=int, default=3)
-    parser.add_argument("--search-depth", dest="search_depth", type=int, default=10)
+    parser.add_argument("--search-width", dest="search_width", type=int, default=5)
+    parser.add_argument("--search-depth", dest="search_depth", type=int, default=6)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch", action='store_true')
     parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=None)
@@ -862,11 +862,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 elif contextInPath(context_after, current_path[1:] + [predictionNode]):
                     g.setNodeColor(predictionNode, "orange")
                     nodes_skipped = numNodesInTree(args.search_width,
-                                                   args.search_depth -
+                                                   (args.search_depth + 1) -
                                                    len(current_path)) - 1
                     pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context is in current path")
-                elif len(current_path) + 1 < args.search_depth + new_extra_depth:
+                elif len(current_path) < args.search_depth + new_extra_depth:
                     sub_search_result = search(pbar, current_path + [predictionNode],
                                                new_distance_stack, new_extra_depth)
                     cleanupSearch(num_stmts, "we finished subsearch")
@@ -890,14 +890,14 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     serapi_instance.UnrecognizedError):
                 g.setNodeColor(predictionNode, "red")
                 nodes_skipped = numNodesInTree(args.search_width,
-                                               args.search_depth - len(current_path)) - 1
+                                               (args.search_depth + 1)- len(current_path)) - 1
                 pbar.update(nodes_skipped)
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
         return SubSearchResult(None, 0)
     total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 1) - 1
+                                 args.search_depth + 2) - 1
     with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
               desc="Proof", disable=(not args.progress),
               leave=False,
