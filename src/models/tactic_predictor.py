@@ -293,11 +293,14 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
 
         print("Initializing model...")
         if arg_values.start_from:
+            print("Starting from file")
             with open(arg_values.start_from, 'rb') as f:
                 state = torch.load(f)
                 self.load_saved_state(*state) # type: ignore
             model = self._model
+            epoch_start = state[2].epoch
         else:
+            epoch_start = 1
             model = maybe_cuda(self._get_model(arg_values, tactic_vocab_size,
                                                term_vocab_size))
         optimizer = optimizers[arg_values.optimizer](model.parameters(),
@@ -308,7 +311,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
         training_start=time.time()
 
         print("Training...")
-        for epoch in range(1, arg_values.num_epochs + 1):
+        for epoch in range(epoch_start, arg_values.num_epochs + 1):
             adjuster.step()
             print("Epoch {} (learning rate {:.6f})".format(epoch, optimizer.param_groups[0]['lr']))
 
@@ -447,11 +450,14 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
             return results, loss
         pass
 
+from os import path
 def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
     for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
-        with open(arg_values.save_file, 'wb') as f:
+        save_base, save_ext = path.splitext(arg_values.save_file)
+        epoch_filename = f"{save_base}-{epoch}{save_ext}"
+        with open(epoch_filename, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 
@@ -470,6 +476,14 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     num_batches = int(dataset_size / arg_values.batch_size)
     dataset_size = num_batches * arg_values.batch_size
     print("Initializing model...")
+    if arg_values.start_from:
+        print("Starting from file")
+        with open(arg_values.start_from, 'rb') as f:
+            state = torch.load(f)
+            model.load_state_dict(state[1][2].weights) # type: ignore
+        epoch_start = state[1][2].epoch
+    else:
+        epoch_start = 1
     model = maybe_cuda(model)
     optimizer = optimizers[arg_values.optimizer](model.parameters(),
                                                  lr=arg_values.learning_rate)
@@ -477,7 +491,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                 gamma=arg_values.gamma)
     training_start=time.time()
     print("Training...")
-    for epoch in range(1, arg_values.num_epochs + 1):
+    for epoch in range(epoch_start, arg_values.num_epochs + 1):
         adjuster.step()
         print("Epoch {} (learning rate {:.6f})"
               .format(epoch, optimizer.param_groups[0]['lr']))
