@@ -389,6 +389,7 @@ class SerapiInstance(threading.Thread):
                                         self.cancel_last(), raise_(e)), # type: ignore
                     ['Proofview.NoSuchGoals(1)'],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
+                                        self.get_completed(),
                                         self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
