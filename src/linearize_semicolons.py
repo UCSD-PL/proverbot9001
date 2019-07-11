@@ -19,7 +19,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError)
+                             BadResponse, TimeoutError, ParseError, NoSuchGoalError)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
                     Tuple, Pattern, Union)
@@ -93,7 +93,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
             linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
                                                        args.debug, skip_nochange_tac))
             yield from linearized_commands
-        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
+        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
             eprint("Aborting current proof linearization!")
             eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
             eprint()
@@ -333,7 +333,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                     pending_commands_stack.append(rest)
                     coq.run_stmt("{")
                     yield indentation + "{"
-        else:
+        elif coq.count_fg_goals() > 0:
             coq.run_stmt(command)
             indentation = "  " * (len(pending_commands_stack) + 1) if command.strip() != "Proof." else ""
             yield indentation + command.strip()
