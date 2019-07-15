@@ -1197,7 +1197,6 @@ def isValidCommand(command : str) -> bool:
         and (command.count('(') == command.count(')'))
 
 def load_commands(filename : str) -> List[str]:
-    print("filename: " + filename)
     with open(filename, 'r') as fin:
         contents = kill_comments(fin.read())
         commands_orig = split_commands(contents)
