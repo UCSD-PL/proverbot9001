@@ -13,7 +13,7 @@ from models.tactic_predictor import (TrainablePredictor,
                                      save_checkpoints, tokenize_goals,
                                      embed_data, add_tokenizer_args,
                                      strip_scraped_output)
-from tokenizer import Tokenizer
+from tokenizer import Tokenizer, limitNumTokens, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample)
 from util import *
@@ -92,15 +92,17 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
     def _predictDistributions(self, in_datas : List[TacticContext]) -> torch.FloatTensor:
         assert self._tokenizer
         assert self._embedding
+        assert self.training_args
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
                                                self.training_args.max_length)
                        for _, _, goal in in_datas]
+        hyps = [get_closest_hyp(hyps, goal, self.training_args.max_length)
+                for _, hyps, goal in in_datas]
+        hyp_types = [serapi_instance.get_hyp_type(hyp) for hyp in hyps]
         hyps_batch = [normalizeSentenceLength(
-            self._tokenizer.toTokenList(
-                serapi_instance.get_hyp_type(
-                    get_closest_hyp(hyps, goal))),
-                                              self.training_args.max_length)
-                       for _, hyps, goal in in_datas]
+            self._tokenizer.toTokenList(hyp_type),
+                      self.training_args.max_length)
+                      for hyp_type in hyp_types]
         word_features_batch = [self._get_word_features(in_data) for in_data in in_datas]
         vec_features_batch = [self._get_vec_features(in_data) for in_data in in_datas]
         stem_distribution = self._model(LongTensor(goals_batch),
@@ -142,7 +144,8 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             print("Getting closest hyps...", end="")
             sys.stdout.flush()
             tokenized_hyps = list(pool.imap(functools.partial(get_closest_hyp_type,
-                                                              tokenizer),
+                                                              tokenizer,
+                                                              arg_values.max_length),
                                             preprocessed_data))
             print("{:.2f}s".format(time.time() - start))
             start = time.time()
@@ -236,15 +239,34 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                                        vec_features_batch, word_features_batch)
         output_var = maybe_cuda(Variable(outputs_batch))
         return self._criterion(predictionDistribution, output_var)
-    def add_arg(self, tactic_stem : str, goal : str, hyps : List[str]):
+    def add_arg(self, tactic_stem : str, goal : str, hyps : List[str], max_length : int):
         if serapi_instance.tacticTakesHypArgs(tactic_stem):
             return tactic_stem + " " + \
-                serapi_instance.get_first_var_in_hyp(get_closest_hyp(hyps, goal)) \
+                serapi_instance.get_first_var_in_hyp(get_closest_hyp(hyps, goal,
+                                                                     max_length)) \
                 + "."
         else:
             return tactic_stem + "."
+    def add_args(self, stem_predictions : List[Prediction],
+                 goal : str, hyps : List[str], max_length : int):
+        possibilities : List[Prediction] = []
+        for stem, stem_score in stem_predictions:
+            if serapi_instance.tacticTakesHypArgs(stem):
+                for hyp, hyp_score in get_closest_hyps(hyps, goal,
+                                                       len(stem_predictions),
+                                                       max_length):
+                    possibilities.append(
+                        Prediction(stem + " " +
+                                   serapi_instance.get_first_var_in_hyp(hyp) + ".",
+                                   hyp_score * stem_score))
+            else:
+                possibilities.append(Prediction(stem + ".", stem_score * 0.5))
+        return list(sorted(possibilities, key=lambda pred: pred.certainty,
+                           reverse=True)[:len(stem_predictions)])
+
     def predictKTactics(self, in_data : TacticContext, k : int) \
         -> List[Prediction]:
+        assert self.training_args
         assert self._embedding
         with self._lock:
             prediction_distribution = self._predictDistributions([in_data])[0]
@@ -258,14 +280,16 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                     cast(Embedding, self._embedding).decode_token(idx)))
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
-        results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
-                                           in_data.goal, in_data.hypotheses),
-                              math.exp(certainty.item()))
-                   for certainty, stem_idx in zip(certainties, idxs)]
+        results = self.add_args([Prediction(self._embedding.decode_token(stem_idx.item()),
+                                            math.exp(certainty.item()))
+                                 for certainty, stem_idx in zip(certainties, idxs)],
+                                in_data.goal, in_data.hypotheses,
+                                self.training_args.max_length)
         return results
 
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
+        assert self.training_args
         assert self._embedding
         with self._lock:
             prediction_distribution = self._predictDistributions([in_data])[0]
@@ -287,7 +311,8 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
         results = [Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
-                                           in_data.goal, in_data.hypotheses),
+                                           in_data.goal, in_data.hypotheses,
+                                           self.training_args.max_length),
                               math.exp(certainty.item()))
                    for certainty, stem_idx in zip(certainties, idxs)]
         return results, loss
@@ -296,6 +321,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                                       k : int, corrects : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         assert self._embedding
+        assert self.training_args
         with self._lock:
             prediction_distributions = self._predictDistributions(in_data)
         correct_stems = [serapi_instance.get_stem(correct) for correct in corrects]
@@ -316,13 +342,15 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
              for single_distribution, context in
              zip(prediction_distributions, in_data)]
         results = [[Prediction(self.add_arg(self._embedding.decode_token(stem_idx.item()),
-                                            in_datum.goal, in_datum.hypotheses),
+                                            in_datum.goal, in_datum.hypotheses,
+                                            self.training_args.max_length),
                                math.exp(certainty.item()))
                     for certainty, stem_idx in zip(*certainties_and_idxs)]
                    for certainties_and_idxs, in_datum in
                    zip(certainties_and_idxs_list, in_data)]
         return results, loss
     def getOptions(self) -> List[Tuple[str, str]]:
+        assert self.training_args
         return list(vars(self.training_args).items()) + \
             [("training loss", self.training_loss),
              ("# epochs", self.num_epochs),
@@ -332,16 +360,33 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         return "A predictor using an RNN on the tokenized goal and "\
             "hand-engineered features."
 
-def get_closest_hyp(hyps : List[str], goal : str):
-    def score_hyp_type(goal : str, hyp_type : str):
-        return SequenceMatcher(None, goal, hyp_type).ratio() * len(hyp_type)
+def score_hyp_type(goal : str, hyp_type : str, max_length : int):
+    ratio = SequenceMatcher(None, goal, hyp_type).ratio()
+    score = ratio * (len(get_symbols(hyp_type)) / max_length)
+    return score
+def get_closest_hyp(hyps : List[str], goal : str, max_length : int):
     if len(hyps) == 0:
         return ":"
-    return max(hyps, key=lambda hyp:
-               score_hyp_type(goal, serapi_instance.get_hyp_type(hyp)))
-def get_closest_hyp_type(tokenizer : Tokenizer, context : TacticContext):
+
+    result = max(hyps, key=lambda hyp:
+                 score_hyp_type(limitNumTokens(goal, max_length),
+                                limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
+                                max_length))
+    return result
+def get_closest_hyp_type(tokenizer : Tokenizer, max_length : int, context : TacticContext):
     return tokenizer.toTokenList(serapi_instance.get_hyp_type(
-        get_closest_hyp(context.hypotheses, context.goal)))
+        get_closest_hyp(context.hypotheses, context.goal, max_length)))
+def get_closest_hyps(hyps : List[str], goal : str, num_hyps : int, max_length : int)\
+                        -> List[Tuple[str, float]]:
+    if len(hyps) == 0:
+        return [Prediction(":", 0)] * num_hyps
+    else:
+        return list(sorted([(hyp, score_hyp_type(limitNumTokens(goal, max_length),
+                                                 limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
+                                                 max_length))
+                            for hyp in hyps],
+                           reverse=True,
+                           key=lambda hyp_and_score: hyp_and_score[0]))
 def mkHFSample(max_length : int,
                word_feature_functions : List[WordFeature],
                vec_feature_functions : List[VecFeature],

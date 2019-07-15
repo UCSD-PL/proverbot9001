@@ -87,8 +87,7 @@ def main(args_list : List[str]) -> None:
     parser.add_argument("scrape_file")
     parser.add_argument("save_file")
     args = parser.parse_args(args_list)
-    dataset = get_text_data(args.scrape_file, args.context_filter,
-                            max_tuples=args.max_tuples, verbose=True)
+    dataset = get_text_data(args)
     samples, tokenizer, embedding = encode_bag_classify_data(dataset,
                                                              tokenizers["no-fallback"],
                                                              args.num_keywords, 2)

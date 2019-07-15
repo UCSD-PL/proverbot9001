@@ -51,6 +51,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
         self._modelclassobject = modelclassObject
 
     def _encode_term(self, term : str) -> List[float]:
+        assert self.training_args
         return cast(List[float],
                     getNGramTokenbagVector(self.training_args.num_grams,
                                            self._tokenizer.numTokens(),

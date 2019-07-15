@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Union, Tuple, Iterable, NamedTuple, Sequence, Any
+from typing import (Dict, List, Union, Tuple, Iterable, NamedTuple,
+                    Sequence, Any, Optional)
 from format import ScrapedTactic
 from abc import ABCMeta, abstractmethod
+import argparse
 
 class Prediction(NamedTuple):
     prediction : str
@@ -19,6 +21,7 @@ def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
     return TacticContext(prev_tactic, hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
+    training_args : Optional[argparse.Namespace]
     def __init__(self) -> None:
         pass
 
@@ -56,8 +59,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
-        text_data = get_text_data(arg_values.scrape_file, arg_values.context_filter,
-                                  max_tuples=arg_values.max_tuples, verbose=True)
+        text_data = get_text_data(arg_values)
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
         gc.collect()
@@ -78,6 +80,8 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                                                        "goal-changes%no-args"))
         parser.add_argument("--use-substitutions", dest="use_substitutions", type=bool,
                             default=default_values.get("use_substitutions", True))
+        parser.add_argument("--verbose", "-v", help="verbose output",
+                            action='store_const', const=True, default=False)
         pass
 
     @abstractmethod
@@ -289,11 +293,14 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
 
         print("Initializing model...")
         if arg_values.start_from:
+            print("Starting from file")
             with open(arg_values.start_from, 'rb') as f:
                 state = torch.load(f)
                 self.load_saved_state(*state) # type: ignore
             model = self._model
+            epoch_start = state[2].epoch
         else:
+            epoch_start = 1
             model = maybe_cuda(self._get_model(arg_values, tactic_vocab_size,
                                                term_vocab_size))
         optimizer = optimizers[arg_values.optimizer](model.parameters(),
@@ -304,7 +311,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
         training_start=time.time()
 
         print("Training...")
-        for epoch in range(1, arg_values.num_epochs + 1):
+        for epoch in range(epoch_start, arg_values.num_epochs + 1):
             adjuster.step()
             print("Epoch {} (learning rate {:.6f})".format(epoch, optimizer.param_groups[0]['lr']))
 
@@ -443,11 +450,14 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
             return results, loss
         pass
 
+from os import path
 def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
     for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
-        with open(arg_values.save_file, 'wb') as f:
+        save_base, save_ext = path.splitext(arg_values.save_file)
+        epoch_filename = f"{save_base}-{epoch}{save_ext}"
+        with open(epoch_filename, 'wb') as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 
@@ -466,6 +476,14 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     num_batches = int(dataset_size / arg_values.batch_size)
     dataset_size = num_batches * arg_values.batch_size
     print("Initializing model...")
+    if arg_values.start_from:
+        print("Starting from file")
+        with open(arg_values.start_from, 'rb') as f:
+            state = torch.load(f)
+            model.load_state_dict(state[1][2].weights) # type: ignore
+        epoch_start = state[1][2].epoch
+    else:
+        epoch_start = 1
     model = maybe_cuda(model)
     optimizer = optimizers[arg_values.optimizer](model.parameters(),
                                                  lr=arg_values.learning_rate)
@@ -473,7 +491,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                 gamma=arg_values.gamma)
     training_start=time.time()
     print("Training...")
-    for epoch in range(1, arg_values.num_epochs + 1):
+    for epoch in range(epoch_start, arg_values.num_epochs + 1):
         adjuster.step()
         print("Epoch {} (learning rate {:.6f})"
               .format(epoch, optimizer.param_groups[0]['lr']))
@@ -509,9 +527,11 @@ def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
     print("{:.2f}s".format(time.time() - start))
     return embedding, dataset
 
+import os.path
+
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
     -> Tuple[Tokenizer, List[Sentence]]:
-    if args.load_tokens:
+    if args.load_tokens and os.path.exists(args.load_tokens):
         print("Loading tokens from {}".format(args.load_tokens))
         with open(args.load_tokens, 'rb') as f:
             tokenizer = pickle.load(f)

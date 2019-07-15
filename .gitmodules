@@ -1,6 +1,6 @@
 [submodule "pytorch-types"]
 	path = stubs/pytorch-types
-	url = https://github.com/HazardousPeach/pytorch-types.git
+	url = git@github.com:HazardousPeach/pytorch-types.git
 [submodule "mypy-data"]
 	path = stubs/mypy-data
 	url = https://github.com/machinalis/mypy-data.git

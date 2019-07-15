@@ -88,6 +88,7 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
             return self._embedding.encode_token("eauto")
     def _predictDistributions(self, in_datas : List[TacticContext]) \
         -> torch.FloatTensor:
+        assert self.training_args
         tokenized_goals = [self._tokenizer.toTokenList(in_data.goal) for
                            in_data in in_datas]
         goal_list = [normalizeSentenceLength(tokenized_goal, self.training_args.max_length)
@@ -101,6 +102,7 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
                                       in_data : List[TacticContext],
                                       k : int, corrects : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
+        assert self.training_args
         if len(in_data) == 0:
             return [], 0
         with self._lock:

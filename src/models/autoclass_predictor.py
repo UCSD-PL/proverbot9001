@@ -267,8 +267,7 @@ def main(arg_list : List[str]) -> None:
     autoenc_state = torch.load(args.autoencoder_weights)
     cfilter = autoenc_state['context-filter']
 
-    text_data = get_text_data(args.scrape_file, cfilter, verbose=True,
-                                  max_tuples=args.max_tuples)
+    text_data = get_text_data(args)
     print("Encoding data...")
     start = time.time()
     tokenizer = autoenc_state['tokenizer']

@@ -21,11 +21,12 @@ Text = Callable[..., None]
 Line = Callable[..., None]
 
 import serapi_instance
+from serapi_instance import (ParseError, LexError, TimeoutError,
+                             BadResponse, CoqExn, CompletedError,
+                             AckError, get_stem)
 import linearize_semicolons
-from serapi_instance import ParseError, LexError, TimeoutError, get_stem
 import tokenizer
 
-from helper import *
 from util import *
 from context_filter import get_context_filter
 
@@ -290,7 +291,8 @@ class FileResult:
 class Worker(threading.Thread):
     def __init__(self, workerid : int, coqargs : List[str], includes : str,
                  output_dir : str, prelude : str, debug : bool, num_jobs : int,
-                 baseline : bool, skip_nochange_tac : bool, context_filter : str) -> None:
+                 baseline : bool, skip_nochange_tac : bool, context_filter : str,
+                 full_args : argparse.Namespace) -> None:
         threading.Thread.__init__(self, daemon=True)
         self.coqargs = coqargs
         self.includes = includes
@@ -302,28 +304,33 @@ class Worker(threading.Thread):
         self.baseline = baseline
         self.cfilter = get_context_filter(context_filter)
         self.skip_nochange_tac = skip_nochange_tac
+        self.full_args = full_args
         pass
 
-    def get_commands(self, filename : str) -> List[str]:
+    def get_commands(self, args : argparse.Namespace, file_idx : int,
+                     filename : str) -> List[str]:
         local_filename = self.prelude + "/" + filename
-        loaded_commands = try_load_lin(local_filename)
+        loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
         if loaded_commands is None:
-            fresh_commands = preprocess_file_commands(
-                load_commands_preserve(self.prelude + "/" + filename),
+            fresh_commands = linearize_semicolons.preprocess_file_commands(
+                args, file_idx,
+                serapi_instance.load_commands_preserve(args, file_idx,
+                                                       self.prelude + "/" + filename),
                 self.coqargs, self.includes, self.prelude,
-                filename, self.skip_nochange_tac, debug=self.debug)
-            save_lin(fresh_commands, local_filename)
+                filename, local_filename, self.skip_nochange_tac)
+            serapi_instance.save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:
             return loaded_commands
 
-    def process_file(self, filename : str) -> None:
+    def process_file(self, args : argparse.Namespace, file_idx : int, filename : str) \
+        -> None:
         global gresult
         fresult = FileResult(filename)
 
         if self.debug:
             print("Preprocessing...")
-        commands = self.get_commands(filename)
+        commands = self.get_commands(args, file_idx, filename)
 
         command_results : List[CommandResult] = []
 
@@ -332,18 +339,20 @@ class Worker(threading.Thread):
                                            self.prelude) as coq:
             coq.debug = self.debug
             nb_commands = len(commands)
-            prev_tactics = []
             for i in range(nb_commands):
                 command = commands[i]
                 # print("Processing command {}/{}".format(str(i+1), str(nb_commands)))
                 in_proof = (coq.proof_context and
                             not re.match(".*Proof.*", command.strip()))
+                if re.match("[{}]", command):
+                    coq.run_stmt(command)
+                    continue
                 if in_proof:
-                    prev_tactics.append(command)
+                    prev_tactics = coq.prev_tactics
                     initial_context = coq.proof_context
                     assert initial_context
-                    hyps = coq.get_hypothesis()
-                    goals = coq.get_goals()
+                    hyps = coq.hypotheses
+                    goals = coq.goals
                     if self.baseline:
                         predictions_and_certanties = [baseline_tactic + ".", 1] \
                                                      * num_predictions
@@ -360,8 +369,8 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
-                        actual_result_goal = coq.get_goals()
-                        actual_result_hypothesis = coq.get_hypothesis()
+                        actual_result_goal = coq.goals
+                        actual_result_hypothesis = coq.hypotheses
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError, TimeoutError):
@@ -378,12 +387,14 @@ class Worker(threading.Thread):
                                           for prediction_run, (prediction, certainty) in
                                           zip(prediction_runs,
                                               predictions_and_certainties)]
+                    assert net.training_args
                     if self.cfilter({"goal": format_goal(goals),
                                      "hyps": format_hypothesis(hyps)},
                                     command,
                                     {"goal": format_goal(actual_result_goal),
                                      "hyps":
-                                     format_hypothesis(actual_result_hypothesis)}):
+                                     format_hypothesis(actual_result_hypothesis)},
+                                    net.training_args):
                         fresult.add_command_result(
                             [pred for pred, ctxt, ex in prediction_runs],
                             [grade for pred, grade, certainty in prediction_results],
@@ -394,7 +405,6 @@ class Worker(threading.Thread):
                     else:
                         command_results.append((command,))
                 else:
-                    prev_tactics = []
                     try:
                         coq.run_stmt(command)
                     except (AckError, CompletedError, CoqExn,
@@ -481,7 +491,7 @@ class Worker(threading.Thread):
                                         doc.asis(" &#11044;")
 
         with open("{}/{}.html".format(self.output_dir, fresult.details_filename()), "w") as fout:
-            fout.write(syntax_highlight(doc.getvalue()))
+            fout.write(doc.getvalue())
 
         gresult.add_file_result(fresult)
         rows.put(fresult)
@@ -493,7 +503,7 @@ class Worker(threading.Thread):
                 print("Processing file {} ({} of {})".format(job,
                                                              jobnum,
                                                              num_jobs))
-                self.process_file(job)
+                self.process_file(self.full_args, 0, job)
                 print("Finished file {} ({} of {})".format(job,
                                                            jobnum,
                                                            num_jobs))
@@ -515,6 +525,10 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('-j', '--threads', default=16, type=int)
     parser.add_argument('--prelude', default=".")
     parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--progress", "-P", help="show progress of files",
+                        action='store_const', const=True, default=False)
     parser.add_argument('-o', '--output', help="output data folder name",
                         default="report")
     parser.add_argument('-m', '--message', default=None)
@@ -532,8 +546,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args(arg_list)
 
-    coqargs = ["{}/coq-serapi/sertop.native".format(base),
-               "--prelude={}/coq".format(base)]
+    coqargs = ["sertop"]
     includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                                 stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
@@ -568,7 +581,7 @@ def main(arg_list : List[str]) -> None:
         worker = Worker(idx, coqargs, includes, args.output,
                         args.prelude, args.debug, num_jobs,
                         args.baseline, args.skip_nochange_tac,
-                        context_filter)
+                        context_filter, args)
         worker.start()
         workers.append(worker)
 

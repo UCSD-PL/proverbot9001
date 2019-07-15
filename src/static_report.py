@@ -22,14 +22,13 @@ from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
 
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
-from serapi_instance import get_stem
+from serapi_instance import get_stem, try_load_lin, load_commands_preserve
 import serapi_instance
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
 from yattag import Doc
 from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
     ScrapedTactic, ScrapedCommand
-from helper import try_load_lin, load_commands_preserve
 from syntax import syntax_highlight, strip_comments
 from util import multipartition, chunks, stringified_percent, escape_filename
 
@@ -83,12 +82,17 @@ def main(arg_list : List[str]) -> None:
                                      "Produce an html report from the scrape file.")
     parser.add_argument("-j", "--threads", default=16, type=int)
     parser.add_argument("--prelude", default=".")
+    parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='store_const', const=True, default=False)
+    parser.add_argument("--progress", "-P", help="show progress of files",
+                        action='store_const', const=True, default=False)
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
                         default="static-report")
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
+    parser.add_argument('--chunk-size', dest="chunk_size", type=int, default=4096)
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
@@ -119,7 +123,9 @@ def main(arg_list : List[str]) -> None:
     with multiprocessing.pool.ThreadPool(args.threads) as pool:
         file_results = \
             list((stats for stats in
-                  pool.imap_unordered(functools.partial(report_file, args, context_filter),
+                  pool.imap_unordered(functools.partial(report_file, args,
+                                                        predictor.training_args,
+                                                        context_filter),
                                       args.filenames)
                   if stats))
 
@@ -131,6 +137,7 @@ T1 = TypeVar('T1')
 T2 = TypeVar('T2')
 
 def report_file(args : argparse.Namespace,
+                training_args : argparse.Namespace,
                 context_filter_str : str,
                 filename : str) -> Optional['ResultStats']:
 
@@ -139,7 +146,7 @@ def report_file(args : argparse.Namespace,
         Tuple[Iterable[Tuple[ScrapedTactic, List[Prediction]]], float]:
         if len(tactic_interactions) == 0:
             return [], 0
-        chunk_size = 4096
+        chunk_size = args.chunk_size
         total_loss = 0.
         for tactic_interaction in tactic_interactions:
             assert isinstance(tactic_interaction.goal, str)
@@ -175,19 +182,22 @@ def report_file(args : argparse.Namespace,
         extended_list : List[Optional[ScrapedCommand]] = \
             cast(List[Optional[ScrapedCommand]], list_data[1:])  + [None]
         for point, nextpoint in zip(list_data, extended_list):
-            if isinstance(point, ScrapedTactic):
+            if isinstance(point, ScrapedTactic) \
+               and not re.match("\s*[{}]\s*", point.tactic):
                 if isinstance(nextpoint, ScrapedTactic):
                     yield(point, not context_filter({"goal":format_goal(point.goal),
                                                      "hyps":point.hypotheses},
                                                     point.tactic,
                                                     {"goal":format_goal(nextpoint.goal),
-                                                     "hyps":nextpoint.hypotheses}))
+                                                     "hyps":nextpoint.hypotheses},
+                                                    training_args))
                 else:
                     yield(point, not context_filter({"goal":format_goal(point.goal),
                                                      "hyps":point.hypotheses},
                                                     point.tactic,
                                                     {"goal":"",
-                                                     "hyps":""}))
+                                                     "hyps":""},
+                                                    training_args))
             else:
                 yield (point, True)
     try:
@@ -265,11 +275,15 @@ proper_subs = {"auto.": "eauto."}
 def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
     correct_tactic = correct_inter.tactic
     correct_tactic_normalized = \
-        serapi_instance.normalizeInductionArgs(correct_inter).tactic
+        serapi_instance.normalizeNumericArgs(correct_inter).tactic
+    prediction_normalized = \
+        serapi_instance.normalizeNumericArgs(ScrapedTactic(
+            correct_inter.prev_tactics, correct_inter.hypotheses, correct_inter.goal,
+            prediction)).tactic
     if correct_tactic.strip() == prediction.strip() or\
-       correct_tactic_normalized.strip() == prediction.strip():
+       correct_tactic_normalized.strip() == prediction_normalized.strip():
         return "goodcommand"
-    elif get_stem(correct_tactic) == get_stem(prediction):
+    elif get_stem(correct_tactic).strip() == get_stem(prediction).strip():
         return "okaycommand"
     elif correct_tactic.strip() in proper_subs and \
          proper_subs[correct_tactic.strip()] == prediction.strip():
@@ -406,6 +420,16 @@ def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult
         regions.append(curRegion)
     return regions
 
+def count_region_unfiltered(commands : List[CommandResult]):
+    num_unfiltered = 0
+    for command in commands:
+        if len(command) > 1:
+            command_str, hyps, goal, prediction_results = \
+                cast(TacticResult, command)
+            if len(prediction_results) > 1:
+                num_unfiltered += 1
+    return num_unfiltered
+
 def write_html(output_dir : str, filename : str, command_results : List[CommandResult],
                stats : 'ResultStats') -> None:
     def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
@@ -437,6 +461,10 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                         with tag('code', klass='buttontext'):
                             assert isinstance(region[0][0], str), region
                             text(region[0][0].strip("\n"))
+                        num_unfiltered = count_region_unfiltered(region)
+                        with tag('code', klass='numtacs ' +
+                                 ('nonempty' if num_unfiltered > 3 else 'empty')):
+                            text(num_unfiltered)
                     with tag('div', klass='region'):
                         for cmd_idx, command_result in enumerate(region[1:]):
                             if len(command_result) == 1:
@@ -499,7 +527,7 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                                             with tag('span', klass=grade):
                                                 doc.asis(" &#11044;")
     with open("{}/{}.html".format(output_dir, escape_filename(filename)), "w") as fout:
-        fout.write(syntax_highlight(doc.getvalue()))
+        fout.write(doc.getvalue())
 
     pass
 def write_csv(output_dir : str, filename : str, args : argparse.Namespace,
@@ -525,13 +553,14 @@ def write_csv(output_dir : str, filename : str, args : argparse.Namespace,
                                      for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])
 
-def get_file_commands(prelude : str, filename : str) -> List[str]:
-    local_filename = prelude + "/" + filename
-    loaded_commands = try_load_lin(local_filename)
+def get_file_commands(args : argparse.Namespace, file_idx : int,
+                      filename : str) -> List[str]:
+    local_filename = args.prelude + "/" + filename
+    loaded_commands = try_load_lin(args, file_idx, local_filename)
     if loaded_commands is None:
         print("Warning: this version of the reports can't linearize files! "
               "Using original commands.")
-        return load_commands_preserve(local_filename)
+        return load_commands_preserve(args, file_idx, local_filename)
     else:
         return loaded_commands
 

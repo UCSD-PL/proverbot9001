@@ -1,7 +1,8 @@
 scikit-learn
 sexpdata
-torch
+torch==0.4.1
 torchvision
 yattag
 pampy
 pygraphviz
+tqdm

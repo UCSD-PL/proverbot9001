@@ -14,7 +14,7 @@ from sparse_list import SparseList # type: ignore
 import random
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
-from format import read_tactic_tuple, ScrapedTactic
+from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple
 from models.components import SimpleEmbedding
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
@@ -160,6 +160,22 @@ def file_chunks(filepath : str, chunk_size : int):
                 return
             yield chunk
 
+MixedDataset = Iterable[ScrapedCommand]
+
+def read_all_text_data_worker__(lines : List[str]) -> MixedDataset:
+    def worker_generator():
+        with io.StringIO("".join(lines)) as f:
+            t = read_tuple(f)
+            while t:
+                yield t
+                t = read_tuple(f)
+    return list(worker_generator())
+def read_all_text_data(data_path : str) -> MixedDataset:
+    with multiprocessing.Pool(None) as pool:
+        line_chunks = file_chunks(data_path, 32768)
+        data_chunks = pool.imap(read_all_text_data_worker__, line_chunks)
+        result = itertools.chain.from_iterable(data_chunks)
+        yield from result
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
     def worker_generator() -> Iterable[ScrapedTactic]:
         with io.StringIO("".join(lines)) as f:
@@ -175,29 +191,30 @@ def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
         data_chunks = pool.imap(read_text_data_worker__, line_chunks)
         result = itertools.chain.from_iterable(data_chunks)
         yield from result
-def get_text_data(data_path : str, context_filter_name : str,
-                  max_tuples : Optional[int]=None, verbose : bool = False) -> RawDataset:
+def get_text_data(arg_values : Namespace) -> RawDataset:
     def _print(*args, **kwargs):
-        if verbose:
+        if arg_values.verbose:
             print(*args, **kwargs)
 
     start = time.time()
     _print("Reading dataset...", end="")
     sys.stdout.flush()
-    raw_data = read_text_data(data_path)
-    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(context_filter_name)), max_tuples)))
-    print("{:.2f}s".format(time.time() - start))
+    raw_data = RawDataset(list(read_text_data(arg_values.scrape_file)))
+    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(arg_values.context_filter), arg_values), arg_values.max_tuples)))
+    _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
-def filter_data(data : RawDataset, pair_filter : ContextFilter) -> Iterable[ScrapedTactic]:
+def filter_data(data : RawDataset, pair_filter : ContextFilter,
+                arg_values : Namespace) -> Iterable[ScrapedTactic]:
     return (ScrapedTactic(prev_tactics, hyps, goal, tactic)
             for ((prev_tactics, hyps, goal, tactic),
                  (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
                                       [(None, None, None, None)]))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
-                           {"goal": next_goal, "hyps" : next_hyps}))
+                           {"goal": next_goal, "hyps" : next_hyps},
+                           arg_values))
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],

@@ -14,13 +14,17 @@ import threading
 from sexpdata import *
 from timer import TimerBucket
 from traceback import *
+from util import *
 from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError, get_stem)
+                             BadResponse, TimeoutError, ParseError, NoSuchGoalError)
 
-from typing import Optional, List, Iterator
+from typing import (Optional, List, Iterator, Iterable, Any, Match,
+                    Tuple, Pattern, Union)
+
+from itertools import islice
 
 # exception for when things go bad, but not necessarily because of the linearizer
 class LinearizerCouldNotLinearize(Exception):
@@ -30,114 +34,22 @@ class LinearizerCouldNotLinearize(Exception):
 class LinearizerThisShouldNotHappen(Exception):
     pass
 
-measure_time = False
-
-# stop_on_error: whether the program will stop when a linearization fails
-# show_trace:    whether the program will show all the Coq commands it outputs
-# show_debug:    whether the program will explain everything it's doing
-stop_on_error = False
-show_trace    = False
-show_debug    = False
-
-def scope_aware_split(string, separator, opens, closes):
-    stack = 0
-    item = []
-    for char in string:
-        if char == separator and stack == 0:
-            yield ''.join(item)
-            item = []
-            continue
-        item.append(char)
-        # if we are entering a block
-        pos = opens.find(char)
-        if pos >= 0:
-            stack += 1
-            continue
-        pos = closes.find(char)
-        if pos >= 0:
-            stack -= 1
-    if stack != 0:
-        raise ValueError("unclosed parentheses: %s" % ''.join(item))
-    if item:
-        yield ''.join(item)
-
-def rreplace(s, old, new, occurrence):
-    li = s.rsplit(old, occurrence)
-    return new.join(li)
-
-# "a ; [b | c | d]; e"
-# becomes
-# [ a , [ b , c , d ], e ]
-# Note that b, c, d may still be of the shape "foo ; [ bar | baz ]"
-# If the input ends with `...`, it is replaced with `; with_tactic`
-def split_semis_brackets(s, with_tactic):
-    if s.endswith('...'):
-        if with_tactic == '':
-            s = s.replace('...', ".")
-        else:
-            #print("Replacing ... with '; {}'".format(with_tactic))
-            s = s.replace('...', "; {}".format(with_tactic))
-    s = s.rstrip(' .')
-    #print('SPLITTING: ' + str(s))
-    semiUnits = list(scope_aware_split(s, ';', '{[(', '}])'))
-    #print("semiUnits :" + str(semiUnits))
-    def unbracket(s):
-        s = s.strip(' ')
-        if s.startswith('['):
-            s = s.replace('[', '', 1)
-            s = rreplace(s, ']', '', 1) # careful with `[ ... | intros [ | ] ]`
-            s = s.strip(' ')
-            return scope_aware_split(s, '|', '{[(', '}])')
-        else:
-            return [s]
-    res = list(map(unbracket, semiUnits))
-    res = list(map(lambda l: list(map(lambda s: s.strip(' '), l)), res))
-    #print("SPLIT: {}".format(str(res)))
-    return res
-
-split1_obtained = split_semis_brackets("a; [ b | c ]...", "d; [ e | f ]")
-split1_expected = [ ['a'] , ['b', 'c'] , ['d'] , ['e' , 'f'] ]
-
-split2_obtained = split_semis_brackets("a ; [ b | c ; [ d ; e | f ] ; g | h ; i ]; j", "")
-split2_expected = [ ['a'] , ['b', 'c ; [ d ; e | f ] ; g', 'h ; i'] , ['j'] ]
-
-split_tests = [ (split1_expected, split1_obtained)
-              , (split2_expected, split2_obtained)
-              ]
-
-for (e, o) in split_tests:
-    if (e != o):
-        print("Error in split_semi_brackets")
-        print("Expected: {}".format(str(e)))
-        print("Obtained: {}".format(str(o)))
-        raise LinearizerThisShouldNotHappen("FIXME")
-
-# a semiand is just some pipeands
-def show_semiand(pipeands):
-    if len(pipeands) == 1:
-        return pipeands[0]
-    else:
-        #print(str(pipeands))
-        return '[ {} ]'.format(' | '.join(pipeands))
-
-def show_semiands(semiands):
-    return ' ; '.join(map(show_semiand, semiands))
-
-# def recount_open_proofs(coq):
-#     goals = coq.query_goals()
-#     return count_open_proofs(goals)
-
-def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
-    if show_debug:
-        print("Linearizing commands")
-    command = next(commands_sequence, None)
+from tqdm import tqdm
+def linearize_commands(args : argparse.Namespace, file_idx : int,
+                       commands_sequence: Iterable[str],
+                       coq : serapi_instance.SerapiInstance,
+                       filename : str, relative_filename : str,
+                       skip_nochange_tac:bool):
+    commands_iter = iter(commands_sequence)
+    command = next(commands_iter, None)
+    assert command, "Got an empty sequence!"
     while command:
         # Run up to the next proof
         while coq.count_fg_goals() == 0:
             coq.run_stmt(command)
             if coq.count_fg_goals() == 0:
                 yield command
-                command = next(commands_sequence, None)
+                command = next(commands_iter, None)
                 if not command:
                     return
 
@@ -148,9 +60,10 @@ def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
         command_batch = []
         while command and not serapi_instance.ending_proof(command):
             command_batch.append(command)
-            command = next(commands_sequence, None)
+            command = next(commands_iter, None)
         # Get the QED on there too.
-        command_batch.append(command)
+        if command:
+            command_batch.append(command)
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
@@ -158,12 +71,12 @@ def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
-        if [filename, theorem_name] in compcert_failures:
-            print("Skipping {}".format(theorem_name))
+        if [relative_filename, theorem_name] in compcert_failures:
+            eprint("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
                 yield command
-            command = next(commands_sequence, None)
+            command = next(commands_iter, None)
             continue
 
         # This might not be super robust?
@@ -174,27 +87,17 @@ def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
             with_tactic = ""
 
         orig = command_batch[:]
-        command_batch = list(split_commas(command_batch))
+        command_batch = list(prelinear_desugar_tacs(command_batch))
         try:
-            linearized_commands = list(linearize_proof(coq, theorem_name, with_tactic, command_batch, skip_nochange_tac))
-            leftover_commands = []
-
-            for command in command_batch:
-                # goals = coq.query_goals()
-                if command and (coq.count_fg_goals() != 0 or
-                                serapi_instance.ending_proof(command) or
-                                "Transparent" in command):
-                    coq.run_stmt(command)
-                    leftover_commands.append(command)
-
+            batch_handled = list(handle_with(command_batch, with_tactic))
+            linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
+                                                       args.debug, skip_nochange_tac))
             yield from linearized_commands
-            for command in leftover_commands:
-                yield command
-        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError) as e:
-            print("Aborting current proof linearization!")
-            print("Proof of:\n{}\nin file {}".format(theorem_name, filename))
-            print()
-            if stop_on_error:
+        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
+            eprint("Aborting current proof linearization!")
+            eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
+            eprint()
+            if args.hardfail:
                 raise e
             coq.run_stmt("Abort.")
             coq.run_stmt(theorem_statement)
@@ -203,237 +106,456 @@ def linearize_commands(commands_sequence, coq, filename, skip_nochange_tac):
                     coq.run_stmt(command)
                     yield command
 
-        command = next(commands_sequence, None)
+        command = next(commands_iter, None)
 
-# semiands   : [[String]]
-# ksemiands  : [[[String]]]
-# periodands : [String]
-# done       : Int
+def split_to_next_matching(openpat : str, closepat : str, target : str) \
+    -> Tuple[str, str]:
+    counter = 1
+    openp = re.compile(openpat)
+    closep = re.compile(closepat)
+    firstmatch = openp.search(target)
+    assert firstmatch, "Coudn't find an opening pattern!"
+    curpos = firstmatch.end()
+    while counter > 0:
+        nextopenmatch = openp.search(target, curpos)
+        nextopen = nextopenmatch.end() if nextopenmatch else len(target)
 
-def branch_done(done, nb_subgoals, branch_index):
-    return done + nb_subgoals - 1 - branch_index
-
-if measure_time:
-    linearizing_timer_bucket = TimerBucket("linearizing", True)
-
-def linearize_proof(coq, theorem_name, with_tactic, commands, skip_nochange_tac):
-
-    theorem_name = theorem_name.split(" ")[1]
-    if measure_time:
-        count_goals_before_timer_bucket = TimerBucket("{} / counting goals before".format(theorem_name), False)
-        run_statement_timer_bucket = TimerBucket("{} / running statement".format(theorem_name), False)
-        count_goals_after_timer_bucket = TimerBucket("{} / counting goals after".format(theorem_name), False)
-
-    #print("linearize_proof(coq, '{}', {})".format(
-    #    with_tactic, str(commands)
-    #))
-
-    def linearize_periodands(periodands, done):
-        if show_debug:
-            print("Linearizing next periodands, done when: {}".format(str(done)))
-        if len(periodands) == 0:
-            raise LinearizerCouldNotLinearize("Error: ran out of tactic w/o finishing the proof")
-        next_tactic = periodands.pop(0)
-        if next_tactic == None:
-            return
-        while next_tactic and re.match("\s*[+\-*]+|\s*{|\s*}",
-                                       serapi_instance.kill_comments(next_tactic)):
-            if len(periodands) == 0:
-                raise LinearizerCouldNotLinearize("Error: ran out of tactics w/o finishing the proof")
-            else:
-                if show_debug:
-                    print("Skipping bullet: {}".format(next_tactic))
-                maybe_next_tactic = periodands.pop(0)
-                if maybe_next_tactic:
-                    next_tactic = maybe_next_tactic
-                else:
-                    break
-        if show_debug:
-            print("Popping periodand: {}".format(next_tactic))
-        next_semiands = list(split_semis_brackets(next_tactic, with_tactic))
-        yield from lin(next_semiands, periodands, done)
-        if show_debug:
-            print("Done working on periodand")
-        #yield from linearize_periodands(periodands, done - 1)
-        return
-
-    # IMPORTANT:
-    # - all semiands should work on their own copy of semiands (not shared)
-    # - all semiands should work on the same copy of periodands (shared)
-    def lin(semiands, periodands, done):
-
-        if show_debug:
-            print("Linearizing {}".format(show_semiands(semiands)))
-            print("Done when {} subgoals left".format(str(done)))
-
-        if measure_time: stop_timer = count_goals_before_timer_bucket.start_timer("")
-        nb_goals_before = coq.count_fg_goals()
-        if measure_time: stop_timer()
-        if show_debug:
-            print("Goals before: {}".format(str(nb_goals_before)))
-
-        if measure_time: stop_timer = run_statement_timer_bucket.start_timer("")
-        # This can happen when a semiand was empty for instance, pop a periodand instead
-        if len(semiands) == 0:
-            yield from linearize_periodands(periodands, done)
-            return
-        semiand = semiands.pop(0)
-        # dispatch is now preprocessed when we have the information on subgoals
-        # available, so popped semiands ought to be just one command
-        if len(semiand) != 1:
-            raise LinearizeThisShouldNotHappen("Error: popped a semiand that was not preprocessed")
-        tactic = '\n' + semiand[0].strip() + '.'
-        context_before = coq.full_context
-        coq.run_stmt(tactic)
-        context_after = coq.full_context
-        if show_trace:
-            print('    ' + tactic)
-
-        if re.match("^try", tactic.strip()):
-            if context_before == context_after:
-                coq.cancel_last()
-                pass
-            else:
-                new_tactic = " ".join(tactic.strip().split()[1:])
-                yield new_tactic
-        elif (not skip_nochange_tac) or context_before != context_after or \
-            re.match("^Proof", tactic.strip()):
-            yield tactic
+        nextclosematch = closep.search(target, curpos)
+        nextclose = nextclosematch.end() if nextclosematch else len(target)
+        if nextopen < nextclose:
+            counter += 1
+            assert nextopen + 1 > curpos, (target, curpos, nextopen)
+            curpos = nextopen
         else:
-            # print("Skipping {} because it didn't change the context.".format(tactic))
-            coq.cancel_last()
-            pass
-        if measure_time: stop_timer()
+            counter -= 1
+            assert nextclose + 1 > curpos
+            curpos = nextclose
+    return target[:curpos], target[curpos:]
 
-        if measure_time: stop_timer = count_goals_after_timer_bucket.start_timer("")
-        nb_goals_after = coq.count_fg_goals()
-        if measure_time: stop_timer()
-        if show_debug:
-            print("Goals after: {}".format(str(nb_goals_after)))
+def multisplit_matching(openpat : str, closepat : str,
+                        splitpat : str, target : str) \
+                        -> List[str]:
+    splits = []
+    nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, target)
+    while nextsplit:
+        before, rest = nextsplit
+        splits.append(before)
+        nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, rest[1:])
+    splits.append(rest[1:])
+    return splits
 
-        if nb_goals_after == done:
-            if show_debug:
-                print("Done with this path")
-            return
+def split_by_char_outside_matching(openpat : str, closepat : str,
+                                   splitpat : str, target : str) \
+    -> Optional[Tuple[str, str]]:
+    counter = 0
+    curpos = 0
+    openp = re.compile(openpat)
+    closep = re.compile(closepat)
+    splitp = re.compile(splitpat)
+    def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
+        match = pat.search(target, curpos)
+        return match, match.end() if match else len(target) + 1
 
-        nb_subgoals = 1 + nb_goals_after - nb_goals_before
-        if show_debug:
-            print("{} subgoal(s) generated".format(str(nb_subgoals)))
+    while curpos < len(target) + 1:
+        _, nextopenpos = search_pat(openp)
+        _, nextclosepos = search_pat(closep)
+        nextsplitchar, nextsplitpos = search_pat(splitp)
 
-        # here there are three cases:
-        # 1. if there is no semiand next, then we want to pop the next periodand
-        # 2. if the next semiand is a single tactic, we want to run it on all
-        #    subgoals
-        # 3. if the next semiand is a dispatch, we want to match each dispatched
-        #    tactic to its subgoal
+        if nextopenpos < nextclosepos and nextopenpos < nextsplitpos:
+            counter += 1
+            assert nextopenpos > curpos
+            curpos = nextopenpos
+        elif nextclosepos < nextopenpos and \
+             (nextclosepos < nextsplitpos or
+              (nextclosepos == nextsplitpos and counter > 0)):
+            counter -= 1
+            assert nextclosepos > curpos
+            curpos = nextclosepos
+        else:
+            if counter <= 0:
+                if nextsplitpos > len(target):
+                    return None
+                assert nextsplitchar
+                return target[:nextsplitchar.start()], target[nextsplitchar.start():]
+            else:
+                assert nextsplitpos > curpos
+                curpos = nextsplitpos
+    return None
 
-        if len(semiands) == 0: # 1.
-            if show_debug:
-                print("#1")
-            for i in range(nb_subgoals):
-                yield from linearize_periodands(periodands, branch_done(done, nb_subgoals, i))
-            return
+def linearize_proof(coq : serapi_instance.SerapiInstance,
+                    theorem_name : str,
+                    command_batch : List[str],
+                    debug:bool=False,
+                    skip_nochange_tac:bool=False) -> Iterable[str]:
+    pending_commands_stack : List[Union[str, List[str], None]] = []
+    while command_batch:
+        while coq.count_fg_goals() == 0:
+            indentation = "  " * (len(pending_commands_stack))
+            if len(pending_commands_stack) == 0:
+                while command_batch:
+                    command = command_batch.pop(0)
+                    if "Transparent" in command or \
+                       serapi_instance.ending_proof(command):
+                        coq.run_stmt(command)
+                        yield command
+                return
+            coq.run_stmt("}")
+            yield indentation + "}"
+            if coq.count_fg_goals() > 0:
+                coq.run_stmt("{")
+                yield indentation + "{"
+                pending_commands = pending_commands_stack[-1]
+                if isinstance(pending_commands, list):
+                    next_cmd, *rest_cmd = pending_commands
+                    dotdotmatch = re.match("(.*)<\.\.>", next_cmd)
+                    if (not rest_cmd) and dotdotmatch:
+                        pending_commands_stack[-1] = [next_cmd]
+                        command_batch.insert(0, dotdotmatch.group(1))
+                    else:
+                        command_batch.insert(0, next_cmd)
+                    pending_commands_stack[-1] = rest_cmd if rest_cmd else None
+                    pass
+                elif pending_commands:
+                    command_batch.insert(0, pending_commands)
+            else:
+                popped = pending_commands_stack.pop()
+                if isinstance(popped, list) and len(popped) > 0 and len(pending_commands_stack) > 1:
+                    if pending_commands_stack[-1] is None:
+                        pending_commands_stack[-1] = popped
+                    elif isinstance(pending_commands_stack[-1], list):
+                        pending_commands_stack[-1] = popped + pending_commands_stack[-1]
+        command = command_batch.pop(0)
+        assert serapi_instance.isValidCommand(command), \
+            f"command is \"{command}\", command_batch is {command_batch}"
+        comment_before_command = ""
+        command_proper = command
+        while "(*" in command_proper:
+            next_comment, command_proper = \
+                split_to_next_matching("\(\*", "\*\)", command_proper)
+            command_proper = command_proper[1:]
+            comment_before_command += next_comment
+        if comment_before_command:
+            yield comment_before_command
+        if re.match("\s*[*+-]+\s*|\s*[{}]\s*", command):
+            continue
 
-        peek_semiand = semiands[0]
+        command = command_proper
+        if debug:
+            eprint(f"Linearizing command \"{command}\"")
 
-        if len(peek_semiand) == 0:
-            raise LinearizerThisShouldNotHappen("Peeked an empty semiand, this should not happen")
-        if len(peek_semiand) == 1: # 2.
-            # each subgoal must have its own copy of semiands
-            for i in range(nb_subgoals):
-                if show_debug:
-                    print("Linearizing subgoal {}/{} with semiands {}".format(
-                    str(1+i), str(nb_subgoals), show_semiands(semiands)))
-                yield from lin(semiands[:], periodands, branch_done(done, nb_subgoals, i))
-            if show_debug:
-                print("Done solving {} subgoal(s)".format(str(nb_subgoals)))
-            # there might be more goals to be solved
-            if show_debug:
-                print("#2")
-            #yield from linearize_periodands(periodands, done - 1)
-            return
-        else: # 3.
-            next_semiand = semiands.pop(0) # same as peek_semiand, but need the side-effect
-            if show_debug:
-                print("Detected dispatch, length {}".format(str(len(peek_semiand))))
-            # peek_semiand is a dispatch, 3 cases:
-            # 1. [ a | b | c ] ; ...
-            # 2. [ a | b | .. ] ; ...
-            # 3. [ a | .. b .. | c ] ; ...
-            if len(next_semiand) == 0:
-                raise LinearizerThisShouldNotHappen("Error: empty next semiand")
-            if next_semiand[-1] == '..': # 2.
-                if show_debug:
-                    print('Found .. in: {}'.format(show_semiand(next_semiand)))
-                next_semiand = next_semiand[:-1]
-                delta = nb_subgoals - len(next_semiand)
-                # I don't want to do 'idtac' here but as a first approximation
-                next_semiand = next_semiand + ([ 'idtac' ] * delta)
-                if show_debug:
-                    print('Replaced with: {}'.format(show_semiand(next_semiand)))
-            # Haven't taken care of 3. yet
-            for i in range(len(next_semiand)):
-                # note that next_semiand may itself be `a ; [b | c] ; d`
-                new_semiands = list(split_semis_brackets(next_semiand[i], with_tactic))
-                if show_debug:
-                    print("Dispatching branch {}/{} with semiands {}".format(str(1+i), str(len(next_semiand)), show_semiands(new_semiands)))
-                yield from lin(new_semiands + semiands[:], periodands, branch_done(done, nb_subgoals, i))
-            if show_debug:
-                print("Done dispatching {} tactics".format(str(len(next_semiand))))
-            return
+        goal_selector_match = re.match(r"\s*(\d*)\s*:\s*(.*)\.\s*", command)
+        if goal_selector_match:
+            goal_num = int(goal_selector_match.group(1))
+            rest = goal_selector_match.group(2)
+            assert goal_num >= 2
+            if pending_commands_stack[-1] is None:
+                pending_commands_stack[-1] = ["idtac."]*(goal_num - 2) + [rest + "."]
+            elif isinstance(pending_commands_stack[-1], str):
+                pending_cmd = pending_commands_stack[-1]
+                pending_commands_stack[-1] = [pending_cmd] * (goal_num - 2) + \
+                    [rest + " ; " + pending_cmd] + [pending_cmd + "<..>"]
+            else:
+                assert isinstance(pending_commands_stack[-1], list)
+            continue
 
-        return
-
-    if measure_time: stop_timer = linearizing_timer_bucket.start_timer(theorem_name)
-    if len(commands) == 0:
-        raise LinearizerThisShouldNotHappen("Error: called linearize_proof with empty commands")
-    first_tactic = commands.pop(0)
-    semiands = list(split_semis_brackets(first_tactic, with_tactic))
-    yield from lin(semiands, commands, 0)
-    if measure_time: stop_timer()
-
-    if measure_time:
-        count_goals_before_timer_bucket.print_statistics()
-        run_statement_timer_bucket.print_statistics()
-        count_goals_after_timer_bucket.print_statistics()
-
-def split_commas(commands : Iterator[str]) -> Iterator[str]:
-    def split_commas_command(command : str) -> Iterator[str]:
-        if not "," in command:
+        if split_by_char_outside_matching("\(", "\)", "\|\||&&", command):
+            coq.run_stmt(command)
             yield command
-        else:
-            stem = get_stem(command)
-            if stem == "rewrite" or stem == "rewrite <-" or stem == "unfold":
-                multi_in_match = re.match("\s*({}\s+.*?\s+in\b\s+)(\S+)\s*,\s*(.*\.)"
-                                          .format(stem.split()[0]),
-                                          command)
-                if multi_in_match:
-                    command, first_context, rest_context = multi_in_match.group(1, 2, 3)
-                    yield from split_commas_command(command + first_context)
-                    yield from split_commas_command(command + rest_context)
-                    return
-                in_match = re.match("\s*({}\s+\S*\s*),\s*(.*)\s+in\b(.*\.)"\
-                                    .format(stem.split()[0]),
-                                    command)
-                if in_match:
-                    first_command, rest, context = in_match.group(1, 2, 3)
-                    yield first_command + " in" + context
-                    yield from split_commas_command("{} ".format(stem) + rest + " in" + context)
-                    return
-                parts_match = re.match("\s*({}\s+(!?\s*\S+|\(.*?\))\s*),\s*(.*)"
-                                       .format(stem.split()[0]),
-                                       command)
-                if parts_match:
-                    first_command, rest = parts_match.group(1, 3)
-                    yield first_command + ". "
-                    yield from split_commas_command("{} ".format(stem.split()[0]) + rest)
-                    return
+            continue
 
-                yield command
+        if re.match("\(", command.strip()):
+            inside_parens, after_parens = split_to_next_matching('\(', '\)', command)
+            command = inside_parens.strip()[1:-1] + after_parens
+
+        # Extend this to include "by \(" as an opener if you don't
+        # desugar all the "by"s
+        semi_match = split_by_char_outside_matching("try \(|\(|\{\|", "\)|\|\}",
+                                                    "\s*;\s*", command)
+        if semi_match:
+            base_command, rest = semi_match
+            rest = rest.lstrip()[1:]
+            coq.run_stmt(base_command + ".")
+            indentation = "  " * (len(pending_commands_stack) + 1)
+            yield indentation + base_command.strip() + "."
+
+            if re.match("\(", rest) and not \
+               split_by_char_outside_matching("\(", "\)", "\|\|", rest):
+                inside_parens, after_parens = split_to_next_matching('\(', '\)', rest)
+                rest = inside_parens[1:-1] + after_parens
+            bracket_match = re.match("\[", rest.strip())
+            if bracket_match:
+                bracket_command, rest_after_bracket = \
+                    split_to_next_matching('\[', '\]', rest)
+                rest_after_bracket = rest_after_bracket.lstrip()[1:]
+                clauses = multisplit_matching("\[", "\]", "(?<!\|)\|(?!\|)",
+                                              bracket_command.strip()[1:-1])
+                commands_list = [cmd.strip() if cmd.strip().strip(".") != ""
+                                 else "idtac" + cmd.strip() for cmd in
+                                 clauses]
+                dotdotpat = re.compile(r"(.*)\.\.($|\W)")
+                ending_dotdot_match = dotdotpat.match(commands_list[-1])
+                if ending_dotdot_match:
+                    commands_list = commands_list[:-1] + \
+                        ([ending_dotdot_match.group(1)] *
+                         (coq.count_fg_goals() -
+                          len(commands_list) + 1))
+                else:
+                    starting_dotdot_match = dotdotpat.match(commands_list[0])
+                    if starting_dotdot_match:
+                        starting_tac = starting_dotdot_match.group(1)
+                        commands_list = [starting_tac] * (coq.count_fg_goals() -
+                                                          len(commands_list) + 1)\
+                                                          + commands_list[1:]
+                    else:
+                        for idx, command_case in enumerate(commands_list[1:-1]):
+                            middle_dotdot_match = dotdotpat.match(command_case)
+                            if middle_dotdot_match:
+                                commands_list = \
+                                    commands_list[:idx] + \
+                                    [command_case] * (coq.count_fg_goals() -
+                                                      len(commands_list) + 1) + \
+                                                      commands_list[idx+1:]
+                                break
+                if rest_after_bracket.strip():
+                    command_remainders = [cmd + ";" + rest_after_bracket
+                                          for cmd in commands_list]
+                else:
+                    command_remainders = [cmd + "." for cmd in commands_list]
+                command_batch.insert(0, command_remainders[0])
+                if coq.count_fg_goals() > 1:
+                    pending_commands_stack.append(command_remainders[1:])
+                    coq.run_stmt("{")
+                    yield indentation + "{"
             else:
-                yield command
-    new_commands : List[str] = []
+                if coq.count_fg_goals() > 0:
+                    command_batch.insert(0, rest)
+                if coq.count_fg_goals() > 1:
+                    pending_commands_stack.append(rest)
+                    coq.run_stmt("{")
+                    yield indentation + "{"
+        elif coq.count_fg_goals() > 0:
+            coq.run_stmt(command)
+            indentation = "  " * (len(pending_commands_stack) + 1) if command.strip() != "Proof." else ""
+            yield indentation + command.strip()
+            if coq.count_fg_goals() > 1:
+                pending_commands_stack.append(None)
+                coq.run_stmt("{")
+                yield indentation + "{"
+    pass
+
+def handle_with(command_batch : Iterable[str],
+                with_tactic : str) -> Iterable[str]:
+    if not with_tactic:
+        for command in command_batch:
+            yield re.sub("(.*)\s*\.\.\.", r"\1.", command)
+    else:
+        yield "Proof."
+        for command in islice(command_batch, 1, None):
+            newcommand = re.sub("(.*)\s*\.\.\.", rf"\1 ; {with_tactic}.", command)
+            yield newcommand
+
+def split_commas(command : str) -> str:
+    rewrite_match = re.match("(.*)(?:\s|^)(rewrite\s+)([^;,]*?,\s*.*)", command,
+                             flags=re.DOTALL)
+    unfold_match = re.match("(.*)(unfold\s+)([^;,]*?),\s*(.*)", command,
+                            flags=re.DOTALL)
+    if rewrite_match:
+
+        prefix, rewrite_command, id_and_rest = rewrite_match.group(1, 2, 3)
+        split = split_by_char_outside_matching("\(", "\)", ",", id_and_rest)
+        if not split:
+            return command
+        first_id, rest = split
+        rest = rest[1:]
+        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        assert split
+        rewrite_rest, command_rest = split
+        by_match = re.match("(.*)(\sby\s.*)", rewrite_rest)
+        in_match = re.match("(.*)(\sin\s.*)", rewrite_rest)
+        postfix = ""
+        if by_match:
+            if " by " not in first_id:
+                postfix += by_match.group(2)
+        if in_match:
+            if " in " not in first_id:
+                postfix += in_match.group(2)
+        first_command = "(" + rewrite_command + first_id + " " + postfix + ")"
+        result = prefix + first_command + ";" + split_commas(rewrite_command + rest)
+        return result
+    elif unfold_match:
+        prefix, unfold_command, first_id, rest = unfold_match.group(1, 2, 3, 4)
+        if re.search("\sin\s", unfold_command + first_id):
+            return command
+        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        assert split
+        unfold_rest, command_rest = split
+        in_match = re.match("(.*)(\sin\s.*)", unfold_rest)
+        postfix = ""
+        if in_match:
+            if "in" not in first_id:
+                postfix += in_match.group(2)
+        first_command = unfold_command + first_id + " " + postfix
+        return prefix + first_command + ";" + split_commas(unfold_command + rest)
+    else:
+        return command
+def postlinear_desugar_tacs(commands :  Iterable[str]) -> Iterable[str]:
+    yield from commands
+def desugar_rewrite_by(cmd : str) -> str:
+    rewrite_by_match = re.search(r"\b(rewrite\s*(?:!|<-)?.*?\s+)by\s+", cmd)
+    if rewrite_by_match:
+        prefix = cmd[:rewrite_by_match.start()]
+        after_match = cmd[rewrite_by_match.end():]
+        split = split_by_char_outside_matching("[\[(]", "[\])]",
+                                               r"\.\W|\.$|[|]|\)|;", after_match)
+        assert split
+        body, postfix = split
+        postfix = desugar_rewrite_by(postfix)
+        return f"{prefix}{rewrite_by_match.group(1)} ; [|{body} ..] {postfix}"
+    else:
+        return cmd
+def desugar_assert_by(cmd : str) -> str:
+    assert_by_match = re.search(r"\b(assert.*)\s+by\s+", cmd)
+    if assert_by_match:
+        prefix = cmd[:assert_by_match.start()]
+        after_match = cmd[assert_by_match.end():]
+        split = split_by_char_outside_matching("[[(]", "[\])]",
+                                               r"\.\W|\.$|[|]",
+                                               after_match)
+        assert split
+        body, postfix = split
+        return f"{prefix}{assert_by_match.group(1)} ; [{body}..|] {postfix}"
+    else:
+        return cmd
+def desugar_now(command : str) -> str:
+    now_match = re.search(r"\bnow\s+", command)
+    while(now_match):
+        prefix = command[:now_match.start()]
+        after_match = command[now_match.end():]
+        split = split_by_char_outside_matching("[[(]", "[\])]",
+                                               r"\.\W|\.$|]|\||\)",
+                                               after_match)
+        assert split
+        body, postfix = split
+        command = f"{prefix}({body} ; easy){postfix}"
+        now_match = re.search(r"\bnow\s+", command)
+    return command
+desugar_passes = [split_commas, desugar_now, desugar_rewrite_by, desugar_assert_by]
+def prelinear_desugar_tacs(commands : Iterable[str]) -> Iterable[str]:
     for command in commands:
-        split_commands = split_commas_command(command)
-        # print("Split {} into {}".format(command, list(split_commands)))
-        yield from split_commands
+        comment_before_command = ""
+        command_proper = command
+        while "(*" in command_proper:
+            next_comment, command_proper = \
+                split_to_next_matching("\(\*", "\*\)", command_proper)
+            comment_before_command += next_comment
+        for f in desugar_passes:
+            newcommand = f(command_proper)
+            assert serapi_instance.isValidCommand(newcommand), (command_proper, newcommand)
+            command_proper = newcommand
+        full_command = comment_before_command + command_proper
+        yield full_command
+
+def lifted_vernac(command : str) -> Optional[Match[Any]]:
+    return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
+
+def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
+                    pbar : tqdm) \
+    -> Iterator[str]:
+    lemma_stack = [] # type: List[List[str]]
+    for command in commands:
+        if serapi_instance.possibly_starting_proof(command):
+            coq.run_stmt(command)
+            if coq.proof_context:
+                lemma_stack.append([])
+            coq.cancel_last()
+        if len(lemma_stack) > 0 and not lifted_vernac(command):
+            lemma_stack[-1].append(command)
+        else:
+            pbar.update(1)
+            yield command
+        if serapi_instance.ending_proof(command):
+            pending_commands = lemma_stack.pop()
+            pbar.update(len(pending_commands))
+            yield from pending_commands
+    assert(len(lemma_stack) == 0)
+
+def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
+                             commands : List[str], coqargs : List[str], includes : str,
+                             filename : str, relative_filename : str,
+                             skip_nochange_tac : bool) -> List[str]:
+    try:
+        with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
+            coq.debug = args.debug
+            with tqdm(file=sys.stdout,
+                      disable=not args.progress,
+                      position=(file_idx * 2),
+                      desc="Linearizing", leave=False,
+                      total=len(commands),
+                      dynamic_ncols=True,
+                      bar_format=mybarfmt) as pbar:
+                result = list(
+                    postlinear_desugar_tacs(
+                        linearize_commands(
+                            args, file_idx,
+                            generate_lifted(commands, coq, pbar),
+                            coq, filename, relative_filename,
+                        skip_nochange_tac)))
+        return result
+    except (CoqExn, BadResponse, AckError, CompletedError):
+        eprint("In file {}".format(filename))
+        raise
+    except serapi_instance.TimeoutError:
+        eprint("Timed out while lifting commands! Skipping linearization...")
+        return commands
+def get_linearized(args : argparse.Namespace, coqargs : List[str], includes : str,
+                   bar_idx : int, filename : str) -> List[str]:
+    local_filename = args.prelude + "/" + filename
+    loaded_commands = serapi_instance.try_load_lin(args, bar_idx, local_filename)
+    if loaded_commands is None:
+        original_commands = \
+            serapi_instance.load_commands_preserve(args, bar_idx,
+                                                   args.prelude + "/" + filename)
+        fresh_commands = preprocess_file_commands(
+            args, bar_idx,
+            original_commands,
+            coqargs, includes,
+            local_filename, filename, False)
+        serapi_instance.save_lin(fresh_commands, local_filename)
+        return fresh_commands
+    else:
+        return loaded_commands
+
+
+def main():
+    parser = argparse.ArgumentParser(description=
+                                     "linearize a set of files")
+    parser.add_argument('--prelude', default=".")
+    parser.add_argument('--debug', default=False, const=True, action='store_const')
+    parser.add_argument('--hardfail', default=False, const=True, action='store_const')
+    parser.add_argument('--verbose', default=False, const=True, action='store_const')
+    parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
+                        dest='skip_nochange_tac')
+    parser.add_argument("--progress",
+                        action='store_const', const=True, default=False)
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    arg_values = parser.parse_args()
+
+    base = os.path.dirname(os.path.abspath(__file__)) + "/.."
+    includes = subprocess.Popen(['make', '-C', arg_values.prelude, 'print-includes'],
+                                stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+    coqargs = ["sertop"]
+
+    for filename in arg_values.filenames:
+        if arg_values.verbose:
+            eprint("Linearizing {}".format(filename))
+        local_filename = arg_values.prelude + "/" + filename
+        original_commands = serapi_instance.load_commands_preserve(
+            arg_values, 0, arg_values.prelude + "/" + filename)
+        fresh_commands = preprocess_file_commands(arg_values, 0,
+                                                  original_commands,
+                                                  coqargs, includes,
+                                                  local_filename, filename, False)
+        serapi_instance.save_lin(fresh_commands, local_filename)
+
+if __name__ == "__main__":
+    main()

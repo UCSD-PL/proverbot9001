@@ -50,6 +50,12 @@ do this much like installing OPAM, through your local package manager. On Ubuntu
 sudo apt-get install python3 python3-pip
 ```
 
+### Graphviz
+The proof search graphs are produced using graphviz
+```
+sudo apt-get install graphviz
+```
+
 ## Getting Started
 
 The first thing you'll need to do is clone the repository (download the code).

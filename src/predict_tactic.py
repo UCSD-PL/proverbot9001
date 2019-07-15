@@ -26,6 +26,8 @@ from models import apply_baselines
 from models import hypstem_predictor
 from models import hypfeatures_predictor
 from models import copyarg_predictor
+from models import numeric_induction
+from models import features_polyarg_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -46,6 +48,7 @@ loadable_predictors = {
     "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
     "hypfeatures" : hypfeatures_predictor.HypFeaturesPredictor,
     "copyarg" : copyarg_predictor.CopyArgPredictor,
+    "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
 }
 
 static_predictors = {
@@ -53,6 +56,7 @@ static_predictors = {
     'apply_similar' : apply_baselines.ApplyStringSimilarPredictor,
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
     'apply_wordsim' : apply_baselines.ApplyWordSimlarPredictor,
+    'numeric_induction' : numeric_induction.NumericInductionPredictor,
 }
 
 trainable_modules : Dict[str, Callable[[List[str]], None]] = {
@@ -74,6 +78,7 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "hypstem" : hypstem_predictor.main,
     "hypfeatures" : hypfeatures_predictor.main,
     "copyarg" : copyarg_predictor.main,
+    "polyarg" : features_polyarg_predictor.main,
 }
 
 def loadPredictorByName(predictor_type : str) -> TacticPredictor:
@@ -84,7 +89,7 @@ def loadPredictorByName(predictor_type : str) -> TacticPredictor:
     return static_predictors[predictor_type]() # type: ignore
 
 def loadPredictorByFile(filename : str) -> TrainablePredictor:
-    predictor_type, saved_state = torch.load(filename)
+    predictor_type, saved_state = torch.load(filename, map_location='cpu')
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic

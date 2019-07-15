@@ -161,26 +161,23 @@
       svg.append("g")
           .call(d3.axisLeft(y));
 
+      var tooltip = svg.append("g")
+          .attr("class", "tooltip")
+          .style("display", "none");
+
+      tooltip.append("rect")
+          .attr("width", 60)
+          .attr("height", 20)
+          .attr("fill", "white")
+          .style("opacity", 0.5);
+
+      tooltip.append("text")
+          .attr("x", 30)
+          .attr("dy", "1.2em")
+          .style("text-anchor", "middle")
+          .attr("font-size", "12px")
+          .attr("font-weight", "bold");
  });
-  var tooltip = svg.append("g")
-      .attr("class", "tooltip")
-      .style("display", "none")
-      .style("z-index", 10)
-
-  tooltip.append("rect")
-    .attr("width", 60)
-    .attr("height", 20)
-    .attr("fill", "white")
-    .style("opacity", 0.5)
-    .style("z-index", -1);
-
-  tooltip.append("text")
-    .attr("x", 30)
-    .attr("dy", "1.2em")
-    .style("text-anchor", "middle")
-    .attr("font-size", "12px")
-    .attr("font-weight", "bold")
-    .style("z-index", 10);
 
 </script>
 

@@ -35,6 +35,7 @@ class NGramClassifyPredictor(NeuralPredictor[NGramDataset, 'nn.Linear']):
         self._lock = threading.Lock()
     def predictDistribution(self, in_data : TacticContext) \
         -> torch.FloatTensor:
+        assert self.training_args
         in_vec = Variable(FloatTensor(encode_ngram_classify_input(
             in_data.goal, self.training_args.num_grams, self._tokenizer)))\
                  .view(1, -1)
@@ -73,6 +74,7 @@ class NGramClassifyPredictor(NeuralPredictor[NGramDataset, 'nn.Linear']):
 
     def predictKTacticsWithLoss_batch(self, in_data : List[TacticContext],
                                       k : int, corrects : List[str]):
+        assert self.training_args
         with self._lock:
             input_tensor = Variable(FloatTensor([encode_ngram_classify_input(
                 in_data_point.goal, self.training_args.num_grams, self._tokenizer)

@@ -10,8 +10,6 @@ import torch
 import torch.cuda
 import torch.autograd as autograd
 
-from serapi_instance import kill_comments
-
 from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable, Optional
 
 use_cuda = torch.cuda.is_available()
@@ -141,3 +139,57 @@ def escape_lemma_name(lemma_name : str) -> str:
     for k, v in subs:
         lemma_name = re.sub(k, v, lemma_name)
     return lemma_name
+
+import hashlib
+BLOCKSIZE = 65536
+
+def hash_file(filename : str) -> str:
+    hasher = hashlib.md5()
+    with open(filename, 'rb') as f:
+        buf = f.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+import sys
+def eprint(*args, **kwargs):
+    if "guard" not in kwargs or kwargs["guard"]:
+        print(*args, file=sys.stderr, **{i:kwargs[i] for i in kwargs if i!='guard'})
+
+import contextlib
+
+class DummyFile:
+    def write(self, x): pass
+    def flush(self): pass
+
+@contextlib.contextmanager
+def nostdout():
+    save_stdout = sys.stdout
+    sys.stdout = DummyFile()
+    yield
+    sys.stdout = save_stdout
+@contextlib.contextmanager
+def nostderr():
+    save_stderr = sys.stderr
+    sys.stderr = DummyFile()
+    yield
+    sys.stderr = save_stderr
+
+@contextlib.contextmanager
+def silent():
+    save_stderr = sys.stderr
+    save_stdout = sys.stdout
+    sys.stderr = DummyFile()
+    sys.stdout = DummyFile()
+    yield
+    sys.stderr = save_stderr
+    sys.stdout = save_stdout
+
+import signal as sig
+@contextlib.contextmanager
+def sighandler_context(signal, f):
+    old_handler = sig.signal(signal, f)
+    yield
+    sig.signal(signal, old_handler)
+mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'

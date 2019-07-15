@@ -320,6 +320,9 @@ def make_keyword_tokenizer_topk(data : List[str],
     tokenizer = tokenizer_type(keywords, num_reserved_tokens)
     return tokenizer
 
+def limitNumTokens(term : str, num_tokens : int):
+    return ' '.join(get_symbols(term)[:num_tokens])
+
 context_keywords = [
     "forall",
     "eq",
