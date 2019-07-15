@@ -22,7 +22,7 @@ def main() -> None:
 
     sub_count = sum(sub_counts)
     sub_total = sum(sub_totals)
-    if not args.only_print:
+    if not args.print_name and not args.print_stmt:
         print(f"Total: {sub_count}/{sub_total} "
               f"({stringified_percent(sub_count, sub_total)}%)")
 
@@ -35,7 +35,11 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument("--verbose", "-v", help="verbose output", action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default="count-default")
-    parser.add_argument('--only-print', dest="only_print",
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument('--print-name', dest="print_name",
+                        help="Don't print counts just print the names of matching files",
+                        action='store_true')
+    g.add_argument('--print-stmt', dest="print_stmt",
                         help="Don't print counts just print the names of matching files",
                         action='store_true')
     parser.add_argument("--max-length", dest="max_length", type=int,
@@ -58,7 +62,7 @@ def count_proofs(args : argparse.Namespace, filename : str) \
     count = 0
     total_count = 0
     cur_proof_counts = False
-    cur_lemma_name = ""
+    cur_lemma_stmt = ""
     extended_interactions : List[Optional[ScrapedCommand]] = \
         cast(List[Optional[ScrapedCommand]], interactions[1:])  + [None]
     for inter, next_inter in zip(interactions, extended_interactions):
@@ -82,11 +86,11 @@ def count_proofs(args : argparse.Namespace, filename : str) \
         exiting_proof = bool(goal_before and not goal_after)
 
         if entering_proof:
-            cur_lemma_name = serapi_instance.lemma_name_from_statement(next_inter.prev_tactics[0])
+            cur_lemma_stmt = next_inter.prev_tactics[0]
             cur_proof_counts = False if args.some else True
             continue
 
-        if cur_lemma_name:
+        if cur_lemma_stmt:
             if filter_func({"goal":format_goal(goal_before),
                             "hyps":hyps_before},
                            command,
@@ -97,6 +101,7 @@ def count_proofs(args : argparse.Namespace, filename : str) \
                     cur_proof_counts = True
             else:
                 if args.all and cur_proof_counts:
+                    cur_lemma_name = serapi_instance.lemma_name_from_statement(cur_lemma_stmt)
                     eprint(f"Eliminating proof {cur_lemma_name} "
                            f"because tactic {command.strip()} doesn't match",
                            guard=args.debug)
@@ -104,14 +109,17 @@ def count_proofs(args : argparse.Namespace, filename : str) \
 
         if exiting_proof:
             if cur_proof_counts:
-                if args.only_print:
+                cur_lemma_name = serapi_instance.lemma_name_from_statement(cur_lemma_stmt)
+                if args.print_name:
                     print(cur_lemma_name)
+                if args.print_stmt:
+                    print(re.sub("\n", "\\n", cur_lemma_stmt))
                 eprint(f"Proof of {cur_lemma_name} counts",
                        guard=args.debug)
                 count += 1
             total_count += 1
-            cur_lemma_name = ""
-    if not args.only_print:
+            cur_lemma_stmt = ""
+    if not args.print_name and not args.print_stmt:
         print(f"{filename}: {count}/{total_count} "
               f"({stringified_percent(count, total_count)}%)")
     return count, total_count
