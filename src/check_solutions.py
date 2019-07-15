@@ -14,9 +14,6 @@ def main() -> None:
     parser.add_argument("--prelude", default=".", type=str,
                         help=
                         "The `home` directory in which to look for the _CoqProject file.")
-    parser.add_argument("--report-dir", "-r", dest="report_dir",
-                        help="output data folder name",
-                        default="search-report")
     parser.add_argument("--skip-incomplete", dest="skip_incomplete",
                         help="Skip checking files that aren't finished running yet",
                         action='store_const', const=True, default=False)
@@ -25,6 +22,9 @@ def main() -> None:
                         action='store_const', const=True, default=False)
     parser.add_argument("--verbose", "-v",
                         action='store_const', const=True, default=False)
+    parser.add_argument("report_dir",
+                        help="output data folder name",
+                        default="search-report")
     args = parser.parse_args()
     vfiles = glob.glob(f"{args.report_dir}/*.v")
 
@@ -32,7 +32,7 @@ def main() -> None:
         with open(args.prelude + "/_CoqProject", 'r') as includesfile:
             includes = re.sub("\n", " ", includesfile.read())
     except FileNotFoundError:
-        print("Didn't find a _CoqProject file in prelude dir")
+        print("Didn't find a _CoqProject file in prelude dir. Did you forget to pass --prelude?")
         includes = ""
 
     for vfile in vfiles:
