@@ -574,7 +574,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                   leave=False,position=(bar_idx*2),
                                   dynamic_ncols=True, bar_format=mybarfmt):
             context_before = coq.fullContext if coq.full_context else FullContext([])
-            coq.run_stmt(saved_command)
+            if not(coq.full_context != None and len(coq.fullContext.subgoals) == 0 and not ending_proof(saved_command)):
+                coq.run_stmt(saved_command)
             if coq.full_context == None:
                 if in_proof:
                     in_proof = False
