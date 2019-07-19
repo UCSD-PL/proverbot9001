@@ -64,8 +64,8 @@ class TopLevelTokenInGoalV(VecFeature):
             headTokenCounts[headToken] += 1
         self.headKeywords = [word for word, count in
                              headTokenCounts.most_common(args.num_head_keywords)]
-        if args.print_keywords:
-            print("Head keywords are {}".format(self.headKeywords))
+        eprint("Head keywords are {}".format(self.headKeywords),
+               guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> List[float]:
         headToken = get_symbols(context.goal)[0]
         oneHotHeads = [0.] * len(self.headKeywords)
@@ -149,8 +149,8 @@ class PrevTacticV(VecFeature):
         self.tacticKeywords = ["Proof"] + \
             [word for word, count in
              prevTacticsCounts.most_common(args.num_tactic_keywords)]
-        if args.print_keywords:
-            print("Tactic keywords are {}".format(self.tacticKeywords))
+        eprint("Tactic keywords are {}".format(self.tacticKeywords),
+               guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> List[float]:
         prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
                        len(context.prev_tactics) > 1 else "Proof")
@@ -170,8 +170,8 @@ class PrevTactic(WordFeature):
         self.tacticKeywords = ["Proof"] + \
             [word for word, count in
              prevTacticsCounts.most_common(args.num_tactic_keywords)]
-        if args.print_keywords:
-            print("Tactic keywords are {}".format(self.tacticKeywords))
+        eprint("Tactic keywords are {}".format(self.tacticKeywords),
+               guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> int:
         prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
                        len(context.prev_tactics) > 1 else "Proof")
