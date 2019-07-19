@@ -25,7 +25,7 @@ import threading
 import re
 import queue
 import os
-import os.path
+from pathlib_revised import Path2
 import argparse
 import sys
 import signal
@@ -1293,13 +1293,14 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
 
 def try_load_lin(args : argparse.Namespace, file_idx : int, filename : str) \
     -> Optional[List[str]]:
+    lin_path = Path2(filename + ".lin")
     if args.verbose:
         eprint("Attempting to load cached linearized version from {}"
-               .format(filename + '.lin'))
-    if not os.path.exists(filename + '.lin'):
+               .format(lin_path))
+    if not lin_path.exists():
         return None
     file_hash = hash_file(filename)
-    with open(filename + '.lin', 'r') as f:
+    with lin_path.open(mode='r') as f:
         if file_hash == f.readline().strip():
             return read_commands_preserve(args, file_idx, f.read())
         else:

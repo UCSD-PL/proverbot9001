@@ -45,6 +45,7 @@ from util import *
 
 from tqdm import tqdm
 from yattag import Doc
+from pathlib_revised import Path2
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
@@ -94,7 +95,7 @@ def main(arg_list : List[str], bar_idx : int) -> None:
 
     args, parser = parse_arguments(arg_list)
     predictor = get_predictor(parser, args)
-    base = os.path.dirname(os.path.abspath(__file__)) + "/.."
+    base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
     coqargs = ["sertop"]
 
     try:
@@ -103,15 +104,15 @@ def main(arg_list : List[str], bar_idx : int) -> None:
     except FileNotFoundError:
         eprint("Didn't find a _CoqProject file in prelude dir")
         includes = ""
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
+    if not args.output_dir.exists():
+       args.output_dir.makedirs()
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
     for filename in [details_css, details_javascript]:
-        destpath = args.output_dir + "/" + filename
-        if not os.path.exists(destpath):
-            shutil.copy(os.path.dirname(os.path.abspath(__file__))
-                        + "/../reports/" + filename, destpath)
+        destpath = args.output_dir / filename
+        if not destpath.exists():
+            srcpath = base.parent / 'reports' / filename
+            srcpath.copyfile(destpath)
 
     search_file(args, coqargs, includes, predictor, bar_idx)
 
@@ -123,7 +124,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
-                        default="search-report")
+                        default="search-report",
+                        type=Path2)
     parser.add_argument("--debug", "-vv", help="debug output",
                         action='store_true')
     parser.add_argument("--verbose", "-v", help="verbose output",
@@ -145,7 +147,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
-    parser.add_argument('filename', help="proof file name (*.v)")
+    parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
     known_args, unknown_args = parser.parse_known_args(args_list)
@@ -181,7 +183,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         try:
             check_csv_args(args, args.filename)
             with tqdm(total=1, unit="cmd", file=sys.stdout,
-                      desc=os.path.basename(args.filename) + " (Resumed)",
+                      desc=args.filename.name + " (Resumed)",
                       disable=(not args.progress),
                       leave=True,
                       position=(bar_idx * 2),
@@ -199,7 +201,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                        f"Overwriting (interrupt to cancel).")
 
     commands_in = linearize_semicolons.get_linearized(args, coqargs, includes,
-                                                      bar_idx, args.filename)
+                                                      bar_idx, str(args.filename))
     num_commands_total = len(commands_in)
     lemma_statement = ""
     module_stack : List[str] = []
@@ -284,7 +286,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
     if not args.progress:
         print("Loaded {} commands for file {}".format(len(commands_in), args.filename))
     with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
-              desc=os.path.basename(args.filename),
+              desc=args.filename.name,
               disable=(not args.progress),
               leave=True,
               position=(bar_idx * 2),
@@ -433,11 +435,11 @@ def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[st
 
 important_args = ["prelude", "context_filter", "weightsfile", "predictor", "search_width", "search_depth"]
 
-def check_csv_args(args : argparse.Namespace, vfilename : str) -> None:
+def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
-    with open("{}/{}.csv".format(args.output_dir, escape_filename(vfilename)),
+    with open(args.output_dir / escape_filename(str(vfilename)) / ".csv",
               'r', newline='') as csvfile:
         saved_args, rest_iter = read_csv_options(csvfile)
         for arg in important_args:
@@ -536,16 +538,19 @@ def classFromSearchStatus(status : SearchStatus) -> str:
         return 'bad'
 
 def make_new_solution_vfile(args : argparse.Namespace, model_name : str,
-                            filename : str) -> None:
-    with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'w') as f:
+                            filename : Path2) -> None:
+    solution_vfile_path = (args.output_dir / escape_filename(str(filename)))\
+        .with_suffix(".v")
+    with solution_vfile_path.open(mode='w') as f:
         for k, v in [("search-width", args.search_width),
                      ("search-depth", args.search_depth),
                      ("model", model_name)]:
             print(f"(* {k}: {v} *)", file=f)
 
-def append_to_solution_vfile(outdir : str, filename : str,
+def append_to_solution_vfile(outdir : Path2, filename : Path2,
                              lines : List[str]) -> None:
-    with open(f"{outdir}/{escape_filename(filename)}.v", 'a') as f:
+    solution_vfile_path = (outdir / escape_filename(str(filename))).with_suffix(".v")
+    with solution_vfile_path.open(mode='a') as f:
         for line in lines:
             print(line.strip(), file=f, flush=True)
 
@@ -595,7 +600,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                   leave=False,position=(bar_idx*2),
                                   dynamic_ncols=True, bar_format=mybarfmt):
             context_before = coq.fullContext if coq.full_context else FullContext([])
-            if not(coq.full_context != None and len(coq.fullContext.subgoals) == 0 and not ending_proof(saved_command)):
+            if not(coq.full_context != None and len(coq.fullContext.subgoals) == 0 and
+                   not serapi_instance.ending_proof(saved_command)):
                 coq.run_stmt(saved_command)
             if coq.full_context == None:
                 if in_proof:

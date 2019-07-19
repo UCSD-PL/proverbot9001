@@ -25,7 +25,7 @@ import shutil
 import glob
 import re
 import subprocess
-from os import path
+from pathlib_revised import Path2
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -44,9 +44,10 @@ def main() -> None:
                         action='store_const', const=True, default=False)
     parser.add_argument("report_dir",
                         help="output data folder name",
-                        default="search-report")
+                        default="search-report",
+                        type=Path2)
     args = parser.parse_args()
-    vfiles = glob.glob(f"{args.report_dir}/*.v")
+    vfiles = args.report_dir.glob('*.v')
 
     try:
         with open(args.prelude + "/_CoqProject", 'r') as includesfile:
@@ -61,30 +62,30 @@ def main() -> None:
 def unescape_filename(filename : str) -> str:
     return re.sub("Zs", "/", re.sub("Zd", ".", re.sub("ZZ", "Z", filename)))
 
-def check_vfile(vfile : str, includes : str, args : argparse.Namespace) -> None:
-    html_file = path.splitext(vfile)[0] + ".html"
-    src_filename = unescape_filename(path.splitext(path.basename(vfile))[0])
+def check_vfile(vfile_path : Path2, includes : str, args : argparse.Namespace) -> None:
+    html_path = vfile_path.with_suffix(".html")
+    src_path = Path2(unescape_filename(vfile_path.stem))
     if args.skip_incomplete:
-        if not path.exists(html_file):
-            print(f"Skipping {src_filename}")
+        if not html_path.exists():
+            print(f"Skipping {src_path}")
             return
     else:
-        assert path.exists(path.splitext(vfile)[0] + ".html"), \
-            f"Couldn't find HTML file for {src_filename}. "\
+        assert html_path.exists(), \
+            f"Couldn't find HTML file for {src_path}. "\
             f"Are you sure the report is completed?"
 
-    src_f, src_ext = path.splitext(src_filename)
-    new_filename = src_f + "_solution" + src_ext
+    src_f = src_path.with_suffix("")
+    src_ext = src_path.suffix
+    new_filename_path = Path2(str(src_f) + "_solution" + src_ext)
+    vfile_path.copyfile(args.prelude / new_filename_path)
 
-    shutil.copy(vfile, args.prelude + "/" + new_filename)
-
-    result = subprocess.run(["coqc"] + includes.split() + [new_filename],
+    result = subprocess.run(["coqc"] + includes.split() + [str(new_filename_path)],
                             cwd=args.prelude, capture_output=True,
                             encoding='utf8')
     assert result.returncode == 0, \
         f"Returned a non zero errorcode {result.returncode}! \n"\
         f"{result.stderr}"
-    print(f"Checked {src_filename}")
+    print(f"Checked {src_path}")
     if args.print_stdout:
         print(f"Output:\n{result.stdout}", end="")
 

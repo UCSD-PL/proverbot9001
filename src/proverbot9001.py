@@ -134,7 +134,8 @@ def get_data(args : List[str]) -> None:
                          for c in stripped_data]
         eprint("Done", guard=arg_values.verbose)
         for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
-            print(",".join(map(str, word_feat + vec_feat + [tactic])))
+            print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))
+                           + [tactic]))
 
 modules = {
     "train" : train,

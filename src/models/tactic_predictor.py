@@ -47,6 +47,7 @@ import argparse
 import sys
 from argparse import Namespace
 from serapi_instance import get_stem
+from pathlib_revised import Path2
 
 DatasetType = TypeVar('DatasetType')
 RestrictedDatasetType = TypeVar('RestrictedDatasetType', bound=Sized)
@@ -70,7 +71,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                            default_values : Dict[str, Any] = {}) \
         -> None:
         parser.add_argument("scrape_file")
-        parser.add_argument("save_file")
+        parser.add_argument("save_file", type=Path2)
         parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
                             default=default_values.get("num-threads", None))
         parser.add_argument("--max-tuples", dest="max_tuples", type=int,
@@ -157,9 +158,11 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
                             type=int, default=default_values.get("num_relevance_samples",
                                                                  1000))
         parser.add_argument("--save-tokens", dest="save_tokens",
-                            default=default_values.get("save-tokens", None))
+                            default=default_values.get("save-tokens", None),
+                            type=Path2)
         parser.add_argument("--load-tokens", dest="load_tokens",
-                            default=default_values.get("load-tokens", None))
+                            default=default_values.get("load-tokens", None),
+                            type=Path2)
         parser.add_argument("--print-keywords", dest="print_keywords",
                             default=False, action='store_const', const=True)
     @abstractmethod
@@ -456,8 +459,9 @@ def save_checkpoints(predictor_name : str,
                      checkpoints_stream : Iterable[StateType]):
     for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
         save_base, save_ext = path.splitext(arg_values.save_file)
-        epoch_filename = f"{save_base}-{epoch}{save_ext}"
-        with open(epoch_filename, 'wb') as f:
+        epoch_filename = arg_values.save_file.with_suffix(
+            f"-{epoch}"+arg_values.save_file.suffix)
+        with epoch_filename.open(mode='wb') as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 
@@ -531,7 +535,7 @@ import os.path
 
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
     -> Tuple[Tokenizer, List[Sentence]]:
-    if args.load_tokens and os.path.exists(args.load_tokens):
+    if args.load_tokens and Path2(args.load_tokens).exists():
         print("Loading tokens from {}".format(args.load_tokens))
         with open(args.load_tokens, 'rb') as f:
             tokenizer = pickle.load(f)

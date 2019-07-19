@@ -29,6 +29,7 @@ import queue
 import re
 import datetime
 import csv
+from pathlib_revised import Path2
 
 from typing import List, Any, Tuple, Dict, Union, cast, NewType, Callable
 
@@ -57,7 +58,7 @@ from models.tactic_predictor import TacticPredictor, TacticContext
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
-base = os.path.dirname(os.path.abspath(__file__)) + "/.."
+base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
@@ -336,7 +337,7 @@ class Worker(threading.Thread):
                 args, file_idx,
                 serapi_instance.load_commands_preserve(args, file_idx,
                                                        self.prelude + "/" + filename),
-                self.coqargs, self.includes, self.prelude,
+                self.coqargs, self.includes,
                 filename, local_filename, self.skip_nochange_tac)
             serapi_instance.save_lin(fresh_commands, local_filename)
             return fresh_commands
@@ -543,14 +544,14 @@ def main(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
     parser.add_argument('-j', '--threads', default=16, type=int)
-    parser.add_argument('--prelude', default=".")
+    parser.add_argument('--prelude', default=".", type=Path2)
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument('-o', '--output', help="output data folder name",
-                        default="report")
+                        default="report", type=Path2)
     parser.add_argument('-m', '--message', default=None)
     parser.add_argument('--baseline',
                         help="run in baseline mode, predicting {} every time"
@@ -563,11 +564,11 @@ def main(arg_list : List[str]) -> None:
                         default=None)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
-    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
     args = parser.parse_args(arg_list)
 
     coqargs = ["sertop"]
-    includes = subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
+    includes = subprocess.Popen(['make', '-C', str(args.prelude), 'print-includes'],
                                 stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 
     # Get some metadata
@@ -575,8 +576,8 @@ def main(arg_list : List[str]) -> None:
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    if not args.output.exists():
+        args.output.makedirs()
 
     jobs = queue.Queue()
     workers = []
@@ -639,7 +640,7 @@ def write_csv(base_filename : str, output_dir : str,
                                      for prediction, grade, certainty in prediction_results
                                      for item in [prediction, grade]]])
 
-def write_summary(output_dir : str, num_jobs : int, cur_commit : str,
+def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
                   message : str, baseline : bool, cur_date :
                   datetime.datetime, gresult : GlobalResult):
 
@@ -673,7 +674,7 @@ def write_summary(output_dir : str, num_jobs : int, cur_commit : str,
     extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
     for filename in extra_files:
-        copy(base + "/reports/" + filename, output_dir + "/" + filename)
+        (base / "reports" / filename).copyfile(output_dir / filename)
 
-    with open("{}/report.html".format(output_dir), "w") as fout:
+    with (output_dir / "report.html").open(mode="w") as fout:
         fout.write(doc.getvalue())

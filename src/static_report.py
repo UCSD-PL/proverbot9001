@@ -19,6 +19,7 @@ import math
 from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
     Callable, NamedTuple, TextIO, Iterable, \
     cast, TypeVar, NewType
+from pathlib_revised import Path2
 
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
@@ -55,7 +56,7 @@ def read_text_data2_worker__(lines : List[str]) -> MixedDataset:
                 t = read_tuple(f)
     return list(worker_generator())
 
-def read_text_data_singlethreaded(data_path : str,
+def read_text_data_singlethreaded(data_path : Path2,
                                   num_threads:Optional[int]=None) -> MixedDataset:
     line_chunks = file_chunks(data_path, 32768)
     yield from itertools.chain.from_iterable((read_text_data2_worker__(chunk) for chunk in line_chunks))
@@ -81,14 +82,14 @@ def main(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Produce an html report from the scrape file.")
     parser.add_argument("-j", "--threads", default=16, type=int)
-    parser.add_argument("--prelude", default=".")
+    parser.add_argument("--prelude", default=".", type=Path2)
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
-                        default="static-report")
+                        default="static-report", type=Path2)
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
@@ -99,7 +100,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=3)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
-    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
     args = parser.parse_args(arg_list)
 
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
@@ -115,8 +116,8 @@ def main(arg_list : List[str]) -> None:
         parser.print_help()
         return
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    if not args.output.exists():
+        args.output.makedirs()
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
 
@@ -139,7 +140,7 @@ T2 = TypeVar('T2')
 def report_file(args : argparse.Namespace,
                 training_args : argparse.Namespace,
                 context_filter_str : str,
-                filename : str) -> Optional['ResultStats']:
+                filename : Path2) -> Optional['ResultStats']:
 
     def make_predictions(num_predictions : int,
                          tactic_interactions : List[ScrapedTactic]) -> \
@@ -201,7 +202,7 @@ def report_file(args : argparse.Namespace,
             else:
                 yield (point, True)
     try:
-        scrape_path = args.prelude + "/" + filename + ".scrape"
+        scrape_path = args.prelude / filename.with_suffix(".v.scrape")
         interactions = list(read_text_data_singlethreaded(scrape_path))
         print("Loaded {} interactions for file {}".format(len(interactions), filename))
     except FileNotFoundError:
@@ -210,7 +211,7 @@ def report_file(args : argparse.Namespace,
     context_filter = get_context_filter(context_filter_str)
 
     command_results : List[CommandResult] = []
-    stats = ResultStats(filename)
+    stats = ResultStats(str(filename))
     indexed_filter_aware_interactions = list(enumerate(get_should_filter(interactions)))
     for idx, (interaction, should_filter) in indexed_filter_aware_interactions:
         assert isinstance(idx, int)
@@ -379,9 +380,9 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                     line('td', "{:10.2f}".format(combined_stats.total_loss /
                                                  combined_stats.num_tactics))
 
+    base = Path2(os.path.dirname(os.path.abspath(__file__)))
     for filename in extra_files:
-        shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
-                    args.output + "/" + filename)
+        (base.parent / "reports" / filename).copyfile(args.output / filename)
 
     with open("{}/report.html".format(args.output), "w") as fout:
         fout.write(doc.getvalue())
@@ -430,9 +431,9 @@ def count_region_unfiltered(commands : List[CommandResult]):
                 num_unfiltered += 1
     return num_unfiltered
 
-def write_html(output_dir : str, filename : str, command_results : List[CommandResult],
+def write_html(output_dir : Path2, filename : Path2, command_results : List[CommandResult],
                stats : 'ResultStats') -> None:
-    def details_header(tag : Any, doc : Doc, text : Text, filename : str) -> None:
+    def details_header(tag : Any, doc : Doc, text : Text, filename : Path2) -> None:
         header(tag, doc, text, details_css, details_javascript,
                "Proverbot Detailed Report for {}".format(filename))
     doc, tag, text, line = Doc().ttl()
@@ -526,14 +527,16 @@ def write_html(output_dir : str, filename : str, command_results : List[CommandR
                                         for grade in grades[1:]:
                                             with tag('span', klass=grade):
                                                 doc.asis(" &#11044;")
-    with open("{}/{}.html".format(output_dir, escape_filename(filename)), "w") as fout:
+    with (output_dir / escape_filename(str(filename))).with_suffix(".html")\
+                                                      .open(mode='w') as fout:
         fout.write(doc.getvalue())
 
     pass
-def write_csv(output_dir : str, filename : str, args : argparse.Namespace,
+def write_csv(output_dir : Path2, filename : Path2, args : argparse.Namespace,
               command_results : List[CommandResult], stats : 'ResultStats') -> None:
-    with open("{}/{}.csv".format(output_dir, escape_filename(filename)),
-              'w', newline='') as csvfile:
+    with (output_dir / escape_filename(str(filename))).with_suffix(".csv")\
+                                                      .open(mode='w', newline='') \
+                                                      as csvfile:
         for k, v in vars(args).items():
             csvfile.write("# {}: {}\n".format(k, v))
 

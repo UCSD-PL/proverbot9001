@@ -30,6 +30,7 @@ import datetime
 import time
 import functools
 import shutil
+from pathlib_revised import Path2
 
 from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -57,17 +58,18 @@ def main(arg_list : List[str]) -> None:
         "Produce an index file from attempting to complete proofs using Proverbot9001.")
     parser.add_argument("-j", "--threads", dest="num_threads", default=16, type=int)
     parser.add_argument("--output", "-o", help="output data folder name",
-                        default="search-report")
+                        default="search-report",
+                        type=Path2)
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args, unknown_args = parser.parse_known_args(arg_list)
     commit, date = get_metadata()
-    base = os.path.dirname(os.path.abspath(__file__)) + "/.."
+    base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    if not args.output.exists():
+        args.output.makedirs()
 
     with multiprocessing.pool.ThreadPool(args.num_threads) as pool:
         pool.starmap(functools.partial(run_search, unknown_args, args.output,
@@ -244,9 +246,9 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                        options, cur_commit, cur_date, individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
     write_proof_summary_csv(args.output, [s.filename for s in individual_stats])
+    base = Path2(os.path.abspath(__file__)).parent / "reports"
     for filename in extra_files:
-        shutil.copy(os.path.dirname(os.path.abspath(__file__)) + "/../reports/" + filename,
-                    args.output + "/" + filename)
+        (base / filename).copyfile(args.output / filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma,status,prooflength\n")

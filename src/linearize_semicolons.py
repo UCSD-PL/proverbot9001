@@ -32,7 +32,6 @@ import threading
 
 # This dependency is in pip, the python package manager
 from sexpdata import *
-from timer import TimerBucket
 from traceback import *
 from util import *
 from compcert_linearizer_failures import compcert_failures

@@ -6,3 +6,4 @@ yattag
 pampy
 pygraphviz
 tqdm
+pathlib_revised

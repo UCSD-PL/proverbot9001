@@ -44,6 +44,7 @@ from dataclasses import dataclass
 from util import *
 from context_filter import ContextFilter, get_context_filter
 from serapi_instance import get_stem
+from pathlib_revised import Path2
 
 TOKEN_START = 2
 SOS_token = 1
@@ -165,8 +166,8 @@ def extend(vector : List[int], length : int):
     assert len(vector) <= length
     return vector + [0] * (length - len(vector))
 
-def file_chunks(filepath : str, chunk_size : int):
-    with open(filepath, 'r') as f:
+def file_chunks(filepath : Path2, chunk_size : int):
+    with filepath.open(mode='r') as f:
         while True:
             chunk = list(itertools.islice(f, chunk_size))
             if len(chunk) == chunk_size:
@@ -190,7 +191,7 @@ def read_all_text_data_worker__(lines : List[str]) -> MixedDataset:
                 yield t
                 t = read_tuple(f)
     return list(worker_generator())
-def read_all_text_data(data_path : str) -> MixedDataset:
+def read_all_text_data(data_path : Path2) -> MixedDataset:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap(read_all_text_data_worker__, line_chunks)
@@ -205,7 +206,7 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
                 t = read_tactic_tuple(f)
     return RawDataset(list(worker_generator()))
 
-def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
+def read_text_data(data_path : Path2) -> Iterable[ScrapedTactic]:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap(read_text_data_worker__, line_chunks)
