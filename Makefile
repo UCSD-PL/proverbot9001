@@ -21,6 +21,8 @@ ifneq ($(MESSAGE),)
 FLAGS+=-m "$(MESSAGE)"
 endif
 REPORT="report"
+TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
+TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
@@ -33,16 +35,19 @@ scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape-test.txt \
+	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape-test.txt \
 				        		 --prelude ../CompCert
-report:
+CompCert/%.scrape: CompCert/%
+	python3.7 src/scrape.py $(FLAGS) -v -c -j 1 --prelude=./CompCert $* > /dev/null
+
+report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
 train:
 	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.pickle --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 
-static-report:
+static-report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --context-filter="goal-changes" --prelude=./CompCert $(FLAGS))
 
@@ -88,13 +93,13 @@ publish:
 	$(MAKE) update-index
 
 publish-weights:
-	gzip -k data/pytorch-weights.tar
+	tar czf data/pytorch-weights.tar.gz data/*.dat
 	rsync -avzP data/pytorch-weights.tar.gz goto:proverbot9001-site/downloads/weights-`date -I`.tar.gz
 	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.tar.gz proverbot9001-site/downloads/weights-latest.tar.gz
 
 download-weights:
 	curl -o data/pytorch-weights.tar.gz proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
-	gzip -d data/pytorch-weights.tar.gz
+	tar xzf data/pytorch-weights.tar.gz
 
 publish-depv:
 	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 | awk '{print; print ""}' > known-good-dependency-versions.md
