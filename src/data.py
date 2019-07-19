@@ -193,8 +193,7 @@ def read_text_data(data_path : str) -> Iterable[ScrapedTactic]:
         yield from result
 def get_text_data(arg_values : Namespace) -> RawDataset:
     def _print(*args, **kwargs):
-        if arg_values.verbose:
-            print(*args, **kwargs)
+        eprint(*args, **kwargs, guard=arg_values.verbose)
 
     start = time.time()
     _print("Reading dataset...", end="")
