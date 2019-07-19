@@ -88,7 +88,7 @@ publish:
 	$(MAKE) update-index
 
 publish-weights:
-	tar czf data/*.dat data/pytorch-weights.tar.gz
+	tar czf data/pytorch-weights.tar.gz data/*.dat
 	rsync -avzP data/pytorch-weights.tar.gz goto:proverbot9001-site/downloads/weights-`date -I`.tar.gz
 	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.tar.gz proverbot9001-site/downloads/weights-latest.tar.gz
 
