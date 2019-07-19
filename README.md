@@ -4,57 +4,27 @@ A bot for proving.
 
 ## Prerequisites
 
-### OPAM
-To build and run this project, you'll need to already have opam
-installed. If you're on a linux machine, this can be accomplished
-through your package manager with:
+You'll need to install `git`, `opam`, `graphviz`, `libgraphviz-dev`,
+`python3.7`, `python3.7-dev` and `python3-pip` to run Proverbot.
 
-(Ubuntu)
+If you're running Linux, all three can be generally found in your package repositories.
+If that Linux is ubuntu, you'll have to first run:
 ```
-sudo apt-get install opam
+sudo apt install software-common-properties
+sudo add-apt-repository ppa:avsm/ppa
+sudo apt update
 ```
+before you can install OPAM.
 
-(Fedora)
-```
-sudo yum install opam
-```
+If you're running OS X, you can find these packages in Homebrew.
 
-(Arch Linux)
-```
-sudo pacman -S opam
-```
+If you're on Windows, follow:
+https://gitforwindows.org/
+https://fdopen.github.io/opam-repository-mingw/installation/
+https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+https://www.python.org/downloads/windows/
 
-(Gentoo)
-```
-sudo emerge --ask opam
-```
-
-If you're on a Windows machine,
-follow
-[these](https://www.cs.umd.edu/class/spring2018/cmsc330/ocamlInstallationGuide.pdf) instructions.
-
-### Python
-You'll also need Python 3.5 or 3.6, and Pip 3. This is probably already installed
-on your machine, you can test by running
-
-```
-python3 --version
-pip3 --version
-```
-
-If either of those commands show a python version lower than 3.5, or
-they report "command not found", you'll need to install them. You can
-do this much like installing OPAM, through your local package manager. On Ubuntu:
-
-```
-sudo apt-get install python3 python3-pip
-```
-
-### Graphviz
-The proof search graphs are produced using graphviz
-```
-sudo apt-get install graphviz
-```
+or use Windows Subsystem for Linux
 
 ## Getting Started
 
@@ -106,5 +76,6 @@ Which will generate some html in the `reports` directory.
 You should be able to check out the results by opening a web browser
 and navigating to the `reports` directory in the project.
 
-Once you've done that, you might like to
-try [writing your own predictor](predictor.md).
+Once you've done that, you might like to try training from scratch
+with `make scrape` and `make train`, or [writing your own
+predictor](predictor.md).
