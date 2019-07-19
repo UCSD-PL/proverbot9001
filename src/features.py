@@ -101,7 +101,7 @@ class TopLevelTokenInBestHyp(WordFeature):
         headTokenCounts : typing.Counter[str] = Counter()
         for prev_tactics, hyps, goal in init_dataset:
             for hyp in hyps:
-                headToken = get_symbols(hyp)[0]
+                headToken = get_symbols(serapi_instance.get_hyp_type(hyp))[0]
                 headTokenCounts[headToken] += 1
         self.headKeywords = [word for word, count in
                              headTokenCounts.most_common(args.num_head_keywords)]
