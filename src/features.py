@@ -1,5 +1,6 @@
 from models.tactic_predictor import TacticContext
 from tokenizer import get_symbols, limitNumTokens
+from util import *
 import serapi_instance
 
 import typing
@@ -82,8 +83,8 @@ class TopLevelTokenInGoal(WordFeature):
             headTokenCounts[headToken] += 1
         self.headKeywords = [word for word, count in
                              headTokenCounts.most_common(args.num_head_keywords)]
-        if args.print_keywords:
-            print("Head keywords are {}".format(self.headKeywords))
+        eprint("Goal head keywords are {}".format(self.headKeywords),
+               guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> int:
         headToken = get_symbols(context.goal)[0]
         if headToken in self.headKeywords:
@@ -104,8 +105,8 @@ class TopLevelTokenInBestHyp(WordFeature):
                 headTokenCounts[headToken] += 1
         self.headKeywords = [word for word, count in
                              headTokenCounts.most_common(args.num_head_keywords)]
-        if args.print_keywords:
-            print("Hypothesis head keywords are {}".format(self.headKeywords))
+        eprint("Hypothesis head keywords are {}".format(self.headKeywords),
+               guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> int:
         if len(context.hypotheses) == 0:
             return 0
