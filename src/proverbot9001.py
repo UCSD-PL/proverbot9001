@@ -9,6 +9,11 @@ import static_report
 import argparse
 import data
 import itertools
+import serapi_instance
+import features
+from util import *
+from models.tactic_predictor import strip_scraped_output
+from models.components import SimpleEmbedding
 from predict_tactic import trainable_modules
 
 from typing import Dict, Callable, List
@@ -36,13 +41,18 @@ def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Parse datafiles into multiple formats")
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
-                                           "hyps+goal+tactic"])
+                                           "hyps+goal+tactic", "tacvector"])
     parser.add_argument("scrape_file", type=str)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
     parser.add_argument("--num-keywords", dest="num_keywords", default=100, type=int)
+    parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
+                        default=100)
+    parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
+                        default=50)
+    parser.add_argument("--print-keywords", dest="print_keywords", action='store_true')
     parser.add_argument("--max-length", dest="max_length", default=None, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
@@ -82,6 +92,28 @@ def get_data(args : List[str]) -> None:
             print(goal)
             print("====> {}".format(tactic))
         pass
+    elif arg_values.format == "tacvector":
+        dataset = data.get_text_data(arg_values)
+        embedding = SimpleEmbedding()
+        eprint("Encoding tactics...", guard=arg_values.verbose)
+        answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
+                   for datum in dataset]
+        stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
+        eprint("Constructing features...", guard=arg_values.verbose)
+        word_feature_functions = [word_feature_constructor(stripped_data, arg_values)
+                                  for word_feature_constructor in features.word_feature_constructors]
+        vec_features_functions = [vec_feature_constructor(stripped_data, arg_values)
+                                  for vec_feature_constructor in features.vec_feature_constructors]
+        eprint("Extracting features...", guard=arg_values.verbose)
+        word_features = [[feature(c) for feature in word_feature_functions]
+                         for c in stripped_data]
+        vec_features = [[feature_val for feature in
+                         vec_features_functions
+                         for feature_val in feature(c)]
+                         for c in stripped_data]
+        eprint("Done", guard=arg_values.verbose)
+        for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
+            print(",".join(map(str, word_feat + vec_feat + [tactic])))
 
 modules = {
     "train" : train,
