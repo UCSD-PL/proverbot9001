@@ -664,7 +664,7 @@ def mkFPASample(embedding : Embedding,
                 zipped : Tuple[ScrapedTactic, List[int]]) \
                 -> FeaturesPolyArgSample:
     inter, tokenized_goal = zipped
-    prev_tactics, hypotheses, goal_str, tactic = inter
+    relevant_lemmas, prev_tactics, hypotheses, goal_str, tactic = inter
     context = strip_scraped_output(inter)
     word_features = [feature(context) for feature in word_feature_functions]
     vec_features = [feature_val for feature in vec_feature_functions

@@ -85,6 +85,7 @@ class RawDataset(Dataset, Sequence[ScrapedTactic]):
         return self.data[i]
 
 class EmbeddedSample(NamedTuple):
+    relevant_lemmas : List[str]
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : str
@@ -112,6 +113,7 @@ class LazyEmbeddedDataset(EmbeddedDataset):
         return len(self.data)
 
 class TokenizedSample(NamedTuple):
+    relevant_lemmas : List[str]
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : Sentence
@@ -227,11 +229,12 @@ def get_text_data(arg_values : Namespace) -> RawDataset:
 
 def filter_data(data : RawDataset, pair_filter : ContextFilter,
                 arg_values : Namespace) -> Iterable[ScrapedTactic]:
-    return (ScrapedTactic(prev_tactics, hyps, goal, tactic)
-            for ((prev_tactics, hyps, goal, tactic),
-                 (next_prev_tactics, next_hyps, next_goal, next_tactic)) in
+    return (ScrapedTactic(relevant_lemmas, prev_tactics, hyps, goal, tactic)
+            for ((relevant_lemmas, prev_tactics, hyps, goal, tactic),
+                 (next_relevant_lemmas, next_prev_tactics, next_hyps,
+                  next_goal, next_tactic)) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [(None, None, None, None)]))
+                                      [(None, None, None, None, None)]))
             if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
                            {"goal": next_goal, "hyps" : next_hyps},
                            arg_values))
@@ -274,11 +277,13 @@ def tokenize_data(tokenizer : Tokenizer, data : EmbeddedDataset,
 
 def tokenize_worker__(tokenizer : Tokenizer,
                       chunk : EmbeddedDataset) -> TokenizedDataset:
-    return TokenizedDataset([TokenizedSample(prev_tactics,
+    return TokenizedDataset([TokenizedSample(relevant_lemmas,
+                                             prev_tactics,
                                              hypotheses,
                                              tokenizer.toTokenList(goal),
                                              tactic)
-                             for prev_tactics, hypotheses, goal, tactic in chunk])
+                             for relevant_lemmas, prev_tactics, hypotheses, goal, tactic
+                             in chunk])
 
 def encode_seq_classify_data(data : RawDataset,
                              tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -379,12 +384,12 @@ def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
     return sentence
 
 def stemmify_data(point : ScrapedTactic) -> ScrapedTactic:
-    prev_tactics, hypotheses, goal, tactic = point
-    return ScrapedTactic(prev_tactics, hypotheses, goal, get_stem(tactic))
+    relevant_lemmas, prev_tactics, hypotheses, goal, tactic = point
+    return ScrapedTactic(relevant_lemmas, prev_tactics, hypotheses, goal, get_stem(tactic))
 
 def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic) \
     -> ScrapedTactic:
-    prev_tactics, hyps, goal, tactic = sample
-    return ScrapedTactic(prev_tactics, hyps, goal,
+    relevant_lemmas, prev_tactics, hyps, goal, tactic = sample
+    return ScrapedTactic(relevant_lemmas, prev_tactics, hyps, goal,
                          tactic if get_stem(tactic) not in substitutions
                          else substitutions[get_stem(tactic)])

@@ -413,7 +413,7 @@ def mkHFSample(max_length : int,
                zipped : Tuple[EmbeddedSample, List[int], List[int]]) \
     -> HypFeaturesSample:
     context, goal, best_hyp = zipped
-    (prev_tactic_list, hypotheses, goal_str, tactic) = context
+    (relevant_lemmas, prev_tactic_list, hypotheses, goal_str, tactic) = context
     tac_context = TacticContext(prev_tactic_list, hypotheses, goal_str)
     return HypFeaturesSample([feature(tac_context)
                               for feature in word_feature_functions],

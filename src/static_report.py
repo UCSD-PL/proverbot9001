@@ -246,7 +246,7 @@ def report_file(args : argparse.Namespace,
             assert len(inter) == 2, inter
             scraped, predictions_and_certainties \
                 = inter #cast(Tuple[ScrapedTactic, List[Prediction]], inter)
-            (prev_tactics, hyps, goal, correct_tactic) = scraped
+            (relevant_lemmas, prev_tactics, hyps, goal, correct_tactic) = scraped
             prediction_results = [PredictionResult(prediction,
                                                    grade_prediction(scraped,
                                                                     prediction),
@@ -279,7 +279,8 @@ def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
         serapi_instance.normalizeNumericArgs(correct_inter).tactic
     prediction_normalized = \
         serapi_instance.normalizeNumericArgs(ScrapedTactic(
-            correct_inter.prev_tactics, correct_inter.hypotheses, correct_inter.goal,
+            correct_inter.relevant_lemmas, correct_inter.prev_tactics,
+            correct_inter.hypotheses, correct_inter.goal,
             prediction)).tactic
     if correct_tactic.strip() == prediction.strip() or\
        correct_tactic_normalized.strip() == prediction_normalized.strip():

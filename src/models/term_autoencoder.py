@@ -250,8 +250,8 @@ def main(args_list : List[str]) -> None:
     print("Extracting terms...", end="")
     sys.stdout.flush()
     term_strings = list(chain.from_iterable(
-        [[hyp.split(":")[1].strip() for hyp in hyps] + [goal]
-         for prev_tactics, hyps, goal, tactic in dataset]))
+        [[hyp.split(":")[1].strip() for hyp in datum.hypotheses] + [datum.goal]
+         for datum in dataset]))
     print(" {:.2f}s".format(time.time() - curtime))
 
     curtime = time.time()

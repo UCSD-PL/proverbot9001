@@ -198,7 +198,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
             self._get_word_features(TacticContext(prev_tactics, hypotheses, goal)),
             normalizeSentenceLength(tokenized_goal, arg_values.max_length),
             tactic)
-                                           for (prev_tactics, hypotheses, goal, tactic),
+                                           for (relevant_lemmas, prev_tactics, hypotheses, goal, tactic),
                                            tokenized_goal in
                                            zip(embedded_data, tokenized_goals)])
         return result_data, (tokenizer, embedding,

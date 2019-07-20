@@ -292,7 +292,7 @@ def encode_hyparg_data(data : RawDataset,
         subset = random.sample(data_list, entropy_data_size)
     tokenizer = make_keyword_tokenizer_relevance(
         [(context, stem_embedding.encode_token(serapi_instance.get_stem(tactic)))
-         for prev_tactics, hyps, context, tactic in subset],
+         for relevant_lemmas, prev_tactics, hyps, context, tactic in subset],
         tokenizer_type, num_keywords, num_reserved_tokens)
     termEncoder = functools.partial(getNGramTokenbagVector, 1, tokenizer.numTokens())
     with multiprocessing.Pool(num_threads) as pool:

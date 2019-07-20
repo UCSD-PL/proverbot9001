@@ -17,8 +17,8 @@ class TacticContext(NamedTuple):
     goal : str
 
 def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
-    prev_tactic, hypotheses, goal, output = scraped
-    return TacticContext(prev_tactic, hypotheses, goal)
+    relevant_lemmas, prev_tactic, hypotheses, goal, output = scraped
+    return TacticContext(prev_tactic, relevant_lemmas + hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
@@ -180,9 +180,9 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             stemmed_data = pool.imap(
                 stemmify_data, preprocessed_data, chunksize=10240)
             lazy_embedded_data = LazyEmbeddedDataset((
-                EmbeddedSample(prev_tactics, hypotheses, goal,
+                EmbeddedSample(relevant_lemmas, prev_tactics, hypotheses, goal,
                                embedding.encode_token(tactic))
-                for (prev_tactics, hypotheses, goal, tactic)
+                for (relevant_lemmas, prev_tactics, hypotheses, goal, tactic)
                 in stemmed_data))
             if args.load_tokens:
                 print("Loading tokens from {}".format(args.load_tokens))
@@ -526,8 +526,10 @@ def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
     print("Embedding data...", end="")
     sys.stdout.flush()
     dataset = StrictEmbeddedDataset([EmbeddedSample(
-        prev_tactics, hypotheses, goal, embedding.encode_token(get_stem(tactic)))
-                                     for prev_tactics, hypotheses, goal, tactic
+        relevant_lemmas, prev_tactics, hypotheses, goal,
+        embedding.encode_token(get_stem(tactic)))
+                                     for relevant_lemmas, prev_tactics,
+                                     hypotheses, goal, tactic
                                      in data])
     print("{:.2f}s".format(time.time() - start))
     return embedding, dataset

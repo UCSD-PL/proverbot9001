@@ -192,6 +192,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                         self._embedding,
                                         serapi_instance.normalizeNumericArgs(
                                             ScrapedTactic(
+                                                [],
                                                 in_data.prev_tactics,
                                                 in_data.hypotheses,
                                                 in_data.goal,
@@ -416,7 +417,7 @@ def mkCopySample(max_length : int,
                  zipped : Tuple[EmbeddedSample, List[int], int]) \
                  -> CopyArgSample:
     context, goal, arg_idx = zipped
-    (prev_tactic_list, hypotheses, goal_str, tactic_idx) = context
+    (relevant_lemmas, prev_tactic_list, hypotheses, goal_str, tactic_idx) = context
     tac_context = TacticContext(prev_tactic_list, hypotheses, goal_str)
     word_features = [feature(tac_context)
                      for feature in word_feature_functions]
