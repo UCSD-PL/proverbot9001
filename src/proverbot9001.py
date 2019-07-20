@@ -122,7 +122,7 @@ def get_data(args : List[str]) -> None:
                    for datum in dataset]
         stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
         eprint("Constructing features...", guard=arg_values.verbose)
-        word_feature_functions = [word_feature_constructor(stripped_data, arg_values)
+        word_feature_functions = [word_feature_constructor(stripped_data, arg_values) # type: ignore
                                   for word_feature_constructor in features.word_feature_constructors]
         vec_features_functions = [vec_feature_constructor(stripped_data, arg_values)
                                   for vec_feature_constructor in features.vec_feature_constructors]

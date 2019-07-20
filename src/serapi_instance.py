@@ -670,7 +670,7 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 assert self.message_queue.empty(), self.messages
                 raise TimeoutError("")
-            elif interrupt_response[0] == Symbol("Feedback"):
+            elif interrupt_response[0] == Symbol("Feedback"): # type: ignore
                 eprint(interrupt_response)
                 self.get_completed()
                 assert self.message_queue.empty()

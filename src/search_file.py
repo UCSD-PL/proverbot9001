@@ -789,7 +789,7 @@ def attempt_search(args : argparse.Namespace,
 import pygraphviz as pgv
 # from graphviz import Digraph
 
-class LabeledNode(NamedTuple):
+class LabeledNode(NamedTuple): # type: ignore
     prediction : str
     node_id : int
     context_before : ProofContext
