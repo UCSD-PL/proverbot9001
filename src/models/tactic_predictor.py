@@ -70,7 +70,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                            parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
         -> None:
-        parser.add_argument("scrape_file")
+        parser.add_argument("scrape_file", type=Path2)
         parser.add_argument("save_file", type=Path2)
         parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
                             default=default_values.get("num-threads", None))

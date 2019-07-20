@@ -36,6 +36,7 @@ from util import *
 from models.tactic_predictor import strip_scraped_output
 from models.components import SimpleEmbedding
 from predict_tactic import trainable_modules
+from pathlib_revised import Path2
 
 from typing import Dict, Callable, List
 
@@ -63,7 +64,7 @@ def get_data(args : List[str]) -> None:
                                      "Parse datafiles into multiple formats")
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
                                            "hyps+goal+tactic", "tacvector"])
-    parser.add_argument("scrape_file", type=str)
+    parser.add_argument("scrape_file", type=Path2)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
@@ -135,7 +136,7 @@ def get_data(args : List[str]) -> None:
         eprint("Done", guard=arg_values.verbose)
         for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
             print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))
-                           + [tactic]))
+                           + [str(tactic)]))
 
 modules = {
     "train" : train,
