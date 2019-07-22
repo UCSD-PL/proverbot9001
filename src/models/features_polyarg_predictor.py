@@ -420,7 +420,7 @@ class FeaturesPolyargPredictor(
         add_nn_args(parser, new_defaults)
         add_tokenizer_args(parser, new_defaults)
         parser.add_argument("--max-length", dest="max_length", type=int,
-                            default=default_values.get("max-length", 120))
+                            default=default_values.get("max-length", 30))
         parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
                             default=default_values.get("num-head-keywords", 100))
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
