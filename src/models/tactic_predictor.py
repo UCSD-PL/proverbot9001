@@ -458,7 +458,7 @@ def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
     for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
-        epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + "-{epoch}.dat")
+        epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + f"-{epoch}.dat")
         with epoch_filename.open(mode='wb') as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
