@@ -12,13 +12,14 @@ class Prediction(NamedTuple):
 
 ContextInfo = Dict[str, Union[str, List[str]]]
 class TacticContext(NamedTuple):
+    relevant_lemmas : List[str]
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : str
 
 def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
     relevant_lemmas, prev_tactic, hypotheses, goal, output = scraped
-    return TacticContext(prev_tactic, relevant_lemmas + hypotheses, goal)
+    return TacticContext(relevant_lemmas, prev_tactic, relevant_lemmas + hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
@@ -454,13 +455,14 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
         pass
 
 from os import path
+from typing import cast, BinaryIO
 def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
     for predictor_state in checkpoints_stream:
         epoch = predictor_state.epoch
         epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + f"-{epoch}.dat")
-        with epoch_filename.open(mode='wb') as f:
+        with cast(BinaryIO, epoch_filename.open(mode='wb')) as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 

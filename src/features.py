@@ -97,7 +97,7 @@ class TopLevelTokenInGoalV(VecFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         headTokenCounts : typing.Counter[str] = Counter()
-        for prev_tactics, hyps, goal in init_dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             headToken = get_symbols(goal)[0]
             headTokenCounts[headToken] += 1
         if args.load_head_keywords and Path2(args.load_head_keywords).exists():
@@ -134,7 +134,7 @@ class TopLevelTokenInGoal(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         headTokenCounts : typing.Counter[str] = Counter()
-        for prev_tactics, hyps, goal in init_dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             headToken = get_symbols(goal)[0]
             headTokenCounts[headToken] += 1
         if args.load_head_keywords and Path2(args.load_head_keywords).exists():
@@ -173,7 +173,7 @@ class TopLevelTokenInBestHyp(WordFeature):
                  args : argparse.Namespace) -> None:
         self.max_length = args.max_length
         headTokenCounts : typing.Counter[str] = Counter()
-        for prev_tactics, hyps, goal in init_dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             for hyp in hyps:
                 headToken = get_symbols(serapi_instance.get_hyp_type(hyp))[0]
                 headTokenCounts[headToken] += 1
@@ -233,7 +233,7 @@ class PrevTacticV(VecFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         prevTacticsCounts : typing.Counter[str] = Counter()
-        for prev_tactics, hyps, goal in init_dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             if len(prev_tactics) > 2:
                 prevTacticsCounts[serapi_instance.get_stem(prev_tactics[-1])] += 1
         if args.load_tactic_keywords and Path2(args.load_tactic_keywords).exists():
@@ -269,7 +269,7 @@ class PrevTactic(WordFeature):
     def __init__(self, init_dataset : List[TacticContext],
                  args : argparse.Namespace) -> None:
         prevTacticsCounts : typing.Counter[str] = Counter()
-        for prev_tactics, hyps, goal in init_dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             if len(prev_tactics) > 2:
                 prevTacticsCounts[serapi_instance.get_stem(prev_tactics[-1])] += 1
         if args.load_tactic_keywords and Path2(args.load_tactic_keywords).exists():

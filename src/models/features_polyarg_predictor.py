@@ -204,7 +204,8 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
         beam_width=min(self.training_args.max_beam_width, k ** 2)
-        num_hyps = len(context.hypotheses)
+        all_hyps = context.hypotheses + context.relevant_lemmas
+        num_hyps = len(all_hyps)
 
         num_stem_poss = self._embedding.num_tokens()
         stem_width = min(beam_width, num_stem_poss)
@@ -231,13 +232,13 @@ class FeaturesPolyargPredictor(
                 "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
                                                                     stem_width)
 
-            num_probs = 1 + len(context.hypotheses) + self.training_args.max_length
-            if len(context.hypotheses) > 0:
+            num_probs = 1 + len(all_hyps) + self.training_args.max_length
+            if len(all_hyps) > 0:
                 encoded_goals = self._model.goal_encoder(goals_batch)\
                                            .view(1, 1, self.training_args.hidden_size)
 
                 hyps_batch = LongTensor([[self.encodeStrTerm(hyp)
-                                          for hyp in context.hypotheses]])
+                                          for hyp in all_hyps]])
                 assert hyps_batch.size() == torch.Size([1, num_hyps,
                                                         self.training_args.max_length])
                 hyps_batch_expanded = hyps_batch.expand(stem_width, -1, -1)\
@@ -246,7 +247,7 @@ class FeaturesPolyargPredictor(
                                                       self.training_args.max_length)
 
                 hypfeatures_batch = self.encodeHypsFeatureVecs(context.goal,
-                                                               context.hypotheses)
+                                                               all_hyps)
                 assert hypfeatures_batch.size() == torch.Size([num_hyps, 2])
                 hypfeatures_batch_expanded = hypfeatures_batch.view(1, num_hyps, 2)\
                                                              .expand(stem_width, -1, 2)\
@@ -256,7 +257,7 @@ class FeaturesPolyargPredictor(
                                                   encoded_goals, hyps_batch,
                                                   hypfeatures_batch)
                 assert hyp_arg_values.size() == \
-                    torch.Size([1, stem_width, len(context.hypotheses)])
+                    torch.Size([1, stem_width, len(all_hyps)])
                 total_values = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
             else:
                 total_values = goal_arg_values
@@ -270,7 +271,7 @@ class FeaturesPolyargPredictor(
             final_probs, final_idxs = all_prob_batches.topk(beam_width)
             assert not torch.isnan(final_probs).any()
             assert final_probs.size() == torch.Size([beam_width])
-            row_length = self.training_args.max_length + len(context.hypotheses) + 1
+            row_length = self.training_args.max_length + len(all_hyps) + 1
             stem_keys = final_idxs / row_length
             assert stem_keys.size() == torch.Size([beam_width])
             assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
@@ -280,7 +281,7 @@ class FeaturesPolyargPredictor(
             arg_idxs = final_idxs % row_length
             assert arg_idxs.size() == torch.Size([beam_width])
             return [Prediction(self.decodePrediction(context.goal,
-                                                     context.hypotheses,
+                                                     all_hyps,
                                                      stem_idx.item(),
                                                      arg_idx.item()),
                                math.exp(prob))
@@ -313,14 +314,15 @@ class FeaturesPolyargPredictor(
         for i in range(len(goal_symbols) + 1, goal_arg_values.size()[1]):
             goal_arg_values[0, i] = -float("Inf")
         encoded_goals = self._model.goal_encoder(goals_batch)
-        if len(context.hypotheses) > 0:
+        all_hyps = context.hypotheses + context.relevant_lemmas
+        if len(all_hyps) > 0:
             hyps_batch = LongTensor([[self.encodeStrTerm(hyp)
-                                      for hyp in context.hypotheses]])
+                                      for hyp in all_hyps]])
             hypfeatures_batch = self.encodeHypsFeatureVecs(context.goal,
-                                                           context.hypotheses)
+                                                           all_hyps)
             hyp_arg_values = self.runHypModel(stem_idxs, encoded_goals, hyps_batch,
                                               hypfeatures_batch)\
-                                 .view(1, len(context.hypotheses))
+                                 .view(1, len(all_hyps))
             total_arg_values = torch.cat((goal_arg_values, hyp_arg_values),
                                          dim=1)
         else:
@@ -331,7 +333,7 @@ class FeaturesPolyargPredictor(
         probability = math.exp(stem_certainties[0] +
                                total_arg_certainties[0])
         return Prediction(self.decodePrediction(context.goal,
-                                                context.hypotheses,
+                                                all_hyps,
                                                 stem_idxs[0].item(),
                                                 total_arg_idxs[0].item()),
                           probability)
@@ -665,6 +667,7 @@ def mkFPASample(embedding : Embedding,
                 -> FeaturesPolyArgSample:
     inter, tokenized_goal = zipped
     relevant_lemmas, prev_tactics, hypotheses, goal_str, tactic = inter
+    all_hyps = hypotheses + relevant_lemmas
     context = strip_scraped_output(inter)
     word_features = [feature(context) for feature in word_feature_functions]
     vec_features = [feature_val for feature in vec_feature_functions
@@ -672,10 +675,10 @@ def mkFPASample(embedding : Embedding,
     tokenized_hyp_types = [normalizeSentenceLength(
         mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
         max_length)
-                           for hyp in hypotheses]
+                           for hyp in all_hyps]
     hypfeatures = [[SequenceMatcher(None, goal_str,
                                     serapi_instance.get_hyp_type(hyp)).ratio(),
-                    len(hyp)] for hyp in hypotheses]
+                    len(hyp)] for hyp in all_hyps]
     tactic_stem, tactic_argstr = serapi_instance.split_tactic(tactic)
     stem_idx = embedding.encode_token(tactic_stem)
     argstr_tokens = tactic_argstr.strip(".").split()
@@ -694,15 +697,15 @@ def mkFPASample(embedding : Embedding,
             assert arg_idx < max_length, "Tactic {} doesn't fit our argument model! "\
                 "Token {} is not a hyp var or goal token.\n"\
                 "Hyps: {}\n"\
-                "Goal: {}".format(tactic, arg_token, hypotheses, goal_str)
+                "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg = GoalTokenArg(goal_symbols.index(arg_token))
         else:
-            indexed_hyp_vars = serapi_instance.get_indexed_vars_in_hyps(hypotheses)
+            indexed_hyp_vars = serapi_instance.get_indexed_vars_in_hyps(all_hyps)
             hyp_vars = [hyp_var for hyp_var, idx in indexed_hyp_vars]
             assert arg_token in hyp_vars, "Tactic {} doesn't fit our argument model! "\
                 "Token {} is not a hyp var or goal token.\n"\
                 "Hyps: {}\n"\
-                "Goal: {}".format(tactic, arg_token, hypotheses, goal_str)
+                "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg_type = ArgType.HYP_ID
             arg = HypIdArg(dict(indexed_hyp_vars)[arg_token])
     return FeaturesPolyArgSample(
