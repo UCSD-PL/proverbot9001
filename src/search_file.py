@@ -897,7 +897,8 @@ def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
     return g.addPredictions(curNode, proof_context,
                             [pred.prediction for pred in
                              predictor.predictKTactics(
-                                 TacticContext(coq.prev_tactics, coq.hypotheses,
+                                 TacticContext(coq.local_lemmas,
+                                               coq.prev_tactics, coq.hypotheses,
                                                coq.goals),
                                  k)])
 
@@ -909,7 +910,8 @@ def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                             [pred.prediction[:-1] + ";try hammer." for pred in
                             # ["try hammer;" + pred.prediction for pred in
                              predictor.predictKTactics(
-                                 TacticContext(coq.prev_tactics, coq.hypotheses,
+                                 TacticContext(coq.local_lemmas,
+                                               coq.prev_tactics, coq.hypotheses,
                                                coq.goals),
                                  k)])
 
