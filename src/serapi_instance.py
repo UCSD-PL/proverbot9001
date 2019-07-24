@@ -375,7 +375,9 @@ class SerapiInstance(threading.Thread):
 
     @property
     def prev_tactics(self):
-        return self.tactic_history.getCurrentHistory()
+
+        return [tac for tac in self.tactic_history.getCurrentHistory()
+                if tac != "Unshelve."]
 
     def handle_exception(self, e : Exception, stmt : str):
         eprint("Problem running statement: {}\n{}".format(stmt, e),
