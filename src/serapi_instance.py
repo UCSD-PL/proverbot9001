@@ -248,6 +248,7 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None # type: Optional[ProofContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
+        self.local_lemmas : List[str] = []
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -270,6 +271,13 @@ class SerapiInstance(threading.Thread):
         self.use_hammer = use_hammer
         if self.use_hammer:
             self.init_hammer()
+
+    def handle_potential_local_lemma(self, cmd : str) -> None:
+        lemma_match = re.match(r"(Theorem|Lemma|Remark|Proposition)\s+(\w*\s*:\s*.*)$",
+                               cmd,
+                               flags=re.DOTALL)
+        if lemma_match:
+            self.local_lemmas.append(lemma_match.group(2))
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
     def init_hammer(self):
@@ -334,6 +342,7 @@ class SerapiInstance(threading.Thread):
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
+                self.handle_potential_local_lemma(stmt)
                 # Get initial context
                 context_before = self.proof_context
                 # Send the command

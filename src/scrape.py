@@ -105,16 +105,12 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             coq.debug = args.debug
             try:
                 with open(result_file, 'w') as f:
-                    local_lemmas : List[str] = []
-                    pending_lemma : Optional[str] = None
                     for command in tqdm(commands, file=sys.stdout,
                                         disable=(not args.progress),
                                         position=file_idx * 2,
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True, bar_format=mybarfmt):
-                        local_lemmas, pending_lemma = \
-                            update_local_lemmas(local_lemmas, pending_lemma, command)
-                        process_statement(coq, command, local_lemmas, f)
+                        process_statement(coq, command, f)
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
             return result_file
@@ -126,13 +122,13 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     return None
 
 def process_statement(coq : serapi_instance.SerapiInstance, command : str,
-                      local_lemmas : List[str],
                       result_file : TextIO) -> None:
     if not re.match("\s*[{}]\s*", command):
         if coq.proof_context:
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.hypotheses
             prev_goal = coq.goals
+            local_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
             result_file.write(format_context(prev_tactics, prev_hyps, prev_goal,
                                              local_lemmas))
             result_file.write(format_tactic(command))
@@ -140,11 +136,6 @@ def process_statement(coq : serapi_instance.SerapiInstance, command : str,
             subbed_command = re.sub(r"\n", r"\\n", command)
             result_file.write(subbed_command+"\n-----\n")
     coq.run_stmt(command)
-
-def update_local_lemmas(local_lemmas : List[str], pending_lemma : Optional[str],
-                        command : str) \
-    -> Tuple[List[str], Optional[str]]:
-    return local_lemmas, pending_lemma
 
 if __name__ == "__main__":
     main()
