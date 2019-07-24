@@ -39,7 +39,7 @@ def format_context(prev_tactics : List[str], prev_hyps : List[str], prev_goal : 
                    rel_lemmas : List[str]) -> str:
     return (format_tactics(prev_tactics) + "\n*****\n" +
             format_hypothesis(prev_hyps) + "\n*****\n" +
-            format_hypothesis(rel_lemmas) + "*****\n" +
+            format_hypothesis(rel_lemmas) + "\n*****\n" +
             format_goal(prev_goal) + "\n+++++\n")
 
 def format_tactics(tactics : List[str]) -> str:
