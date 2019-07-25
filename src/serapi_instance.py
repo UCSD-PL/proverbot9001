@@ -279,6 +279,14 @@ class SerapiInstance(threading.Thread):
         if lemma_match:
             self.local_lemmas.append(lemma_match.group(2))
 
+        proposition_match = re.match(r"Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
+                                     cmd, flags=re.DOTALL)
+        if proposition_match:
+            case_matches = re.finditer(r"\|\s*(\w+\s*:[^|]*)", proposition_match.group(1))
+            for case_match in case_matches:
+                self.local_lemmas.append(case_match.group(1))
+
+
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
     def init_hammer(self):
         self.hammer_timeout = 100
