@@ -419,12 +419,13 @@ class FeaturesPolyargPredictor(
         super().add_args_to_parser(parser, new_defaults)
         add_nn_args(parser, new_defaults)
         add_tokenizer_args(parser, new_defaults)
+        feature_set = set()
+        for feature_constructor in vec_feature_constructors + word_feature_constructors:
+            new_args = feature_constructor\
+                .add_feature_arguments(parser, feature_set, default_values)
+            feature_set = feature_set.union(new_args)
         parser.add_argument("--max-length", dest="max_length", type=int,
                             default=default_values.get("max-length", 30))
-        parser.add_argument("--num-head-keywords", dest="num_head_keywords", type=int,
-                            default=default_values.get("num-head-keywords", 100))
-        parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
-                            default=default_values.get("num-tactic-keywords", 50))
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 5))
     def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
@@ -436,14 +437,27 @@ class FeaturesPolyargPredictor(
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
         preprocessed_data = list(self._preprocess_data(data, arg_values))
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
-        self._word_feature_functions  = [feature_constructor(stripped_data, arg_values) for # type: ignore
-                                       feature_constructor in
-                                        word_feature_constructors]
-        self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
-                                       feature_constructor in vec_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
-        tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
+        if arg_values.start_from:
+            predictor_name, (loaded_args, metadata, predictor_state) = \
+                torch.load(arg_values.start_from)
+            assert predictor_name == "polyarg"
+            tokenizer, embedding, wfeats, vfeats = metadata
+            print(f"{embedding.num_tokens()} tokens in loaded embedding")
+            _, embedded_data = embed_data(RawDataset(preprocessed_data), embedding)
+            _, tokenized_goals = tokenize_goals(embedded_data, arg_values, tokenizer)
+            self._word_feature_functions = wfeats
+            self._vec_feature_functions = vfeats
+        else:
+            stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+            self._word_feature_functions  = \
+                [feature_constructor(stripped_data, arg_values) for # type: ignore
+                 feature_constructor in
+                 word_feature_constructors]
+            self._vec_feature_functions = \
+                [feature_constructor(stripped_data, arg_values) for # type: ignore
+                 feature_constructor in vec_feature_constructors]
+            embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+            tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
             print("Creating dataset...", end="")

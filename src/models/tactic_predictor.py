@@ -518,8 +518,10 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                    epoch_loss / num_batches,
         model.state_dict())
 
-def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
-    embedding = SimpleEmbedding()
+def embed_data(data : RawDataset, embedding : Optional[SimpleEmbedding] = None) \
+    -> Tuple[Embedding, StrictEmbeddedDataset]:
+    if not embedding:
+        embedding = SimpleEmbedding()
     start = time.time()
     print("Embedding data...", end="")
     sys.stdout.flush()
@@ -532,27 +534,29 @@ def embed_data(data : RawDataset) -> Tuple[Embedding, StrictEmbeddedDataset]:
 
 import os.path
 
-def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace) \
+def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace,
+                   tokenizer:Optional[Tokenizer]=None) \
     -> Tuple[Tokenizer, List[Sentence]]:
-    if args.load_tokens and Path2(args.load_tokens).exists():
-        print("Loading tokens from {}".format(args.load_tokens))
-        with open(args.load_tokens, 'rb') as f:
-            tokenizer = pickle.load(f)
-            assert isinstance(tokenizer, Tokenizer)
-    else:
-        start = time.time()
-        print("Picking tokens...", end="")
-        sys.stdout.flush()
-        subset : Sequence[EmbeddedSample]
-        if args.num_relevance_samples > len(data):
-            subset = data
+    if not tokenizer:
+        if args.load_tokens and Path2(args.load_tokens).exists():
+            print("Loading tokens from {}".format(args.load_tokens))
+            with open(args.load_tokens, 'rb') as f:
+                tokenizer = pickle.load(f)
+                assert isinstance(tokenizer, Tokenizer)
         else:
-            subset = random.sample(data, args.num_relevance_samples)
-        tokenizer = make_keyword_tokenizer_relevance(
-            [(goal, next_tactic) for
-             prev_tactics, hypotheses, goal, next_tactic in subset],
-            tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
-        print("{}s".format(time.time() - start))
+            start = time.time()
+            print("Picking tokens...", end="")
+            sys.stdout.flush()
+            subset : Sequence[EmbeddedSample]
+            if args.num_relevance_samples > len(data):
+                subset = data
+            else:
+                subset = random.sample(data, args.num_relevance_samples)
+            tokenizer = make_keyword_tokenizer_relevance(
+                [(goal, next_tactic) for
+                 prev_tactics, hypotheses, goal, next_tactic in subset],
+                tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
+            print("{}s".format(time.time() - start))
     if args.save_tokens:
         print("Saving tokens to {}".format(args.save_tokens))
         with open(args.save_tokens, 'wb') as f:
