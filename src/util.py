@@ -30,7 +30,8 @@ import torch
 import torch.cuda
 import torch.autograd as autograd
 
-from typing import List, Tuple, Iterable, Any, overload, TypeVar, Callable, Optional
+from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
+                    Callable, Optional, Pattern, Match)
 
 use_cuda = torch.cuda.is_available()
 assert use_cuda
@@ -213,3 +214,77 @@ def sighandler_context(signal, f):
     yield
     sig.signal(signal, old_handler)
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
+
+def split_to_next_matching(openpat : str, closepat : str, target : str) \
+    -> Tuple[str, str]:
+    counter = 1
+    openp = re.compile(openpat)
+    closep = re.compile(closepat)
+    firstmatch = openp.search(target)
+    assert firstmatch, "Coudn't find an opening pattern!"
+    curpos = firstmatch.end()
+    while counter > 0:
+        nextopenmatch = openp.search(target, curpos)
+        nextopen = nextopenmatch.end() if nextopenmatch else len(target)
+
+        nextclosematch = closep.search(target, curpos)
+        nextclose = nextclosematch.end() if nextclosematch else len(target)
+        if nextopen < nextclose:
+            counter += 1
+            assert nextopen + 1 > curpos, (target, curpos, nextopen)
+            curpos = nextopen
+        else:
+            counter -= 1
+            assert nextclose + 1 > curpos
+            curpos = nextclose
+    return target[:curpos], target[curpos:]
+
+def multisplit_matching(openpat : str, closepat : str,
+                        splitpat : str, target : str) \
+                        -> List[str]:
+    splits = []
+    nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, target)
+    while nextsplit:
+        before, rest = nextsplit
+        splits.append(before)
+        nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, rest[1:])
+    splits.append(rest[1:])
+    return splits
+
+def split_by_char_outside_matching(openpat : str, closepat : str,
+                                   splitpat : str, target : str) \
+    -> Optional[Tuple[str, str]]:
+    counter = 0
+    curpos = 0
+    openp = re.compile(openpat)
+    closep = re.compile(closepat)
+    splitp = re.compile(splitpat)
+    def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
+        match = pat.search(target, curpos)
+        return match, match.end() if match else len(target) + 1
+
+    while curpos < len(target) + 1:
+        _, nextopenpos = search_pat(openp)
+        _, nextclosepos = search_pat(closep)
+        nextsplitchar, nextsplitpos = search_pat(splitp)
+
+        if nextopenpos < nextclosepos and nextopenpos < nextsplitpos:
+            counter += 1
+            assert nextopenpos > curpos
+            curpos = nextopenpos
+        elif nextclosepos < nextopenpos and \
+             (nextclosepos < nextsplitpos or
+              (nextclosepos == nextsplitpos and counter > 0)):
+            counter -= 1
+            assert nextclosepos > curpos
+            curpos = nextclosepos
+        else:
+            if counter <= 0:
+                if nextsplitpos > len(target):
+                    return None
+                assert nextsplitchar
+                return target[:nextsplitchar.start()], target[nextsplitchar.start():]
+            else:
+                assert nextsplitpos > curpos
+                curpos = nextsplitpos
+    return None
