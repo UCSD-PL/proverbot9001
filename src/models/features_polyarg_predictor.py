@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn.utils.rnn import pack_sequence, pad_sequence
 
-from features import (WordFeature, VecFeature,
+from features import (WordFeature, VecFeature, Feature,
                       word_feature_constructors, vec_feature_constructors)
 import tokenizer
 from tokenizer import Tokenizer
@@ -12,7 +12,7 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
 from util import *
 from format import ScrapedTactic
 import serapi_instance
-from models.components import (WordFeaturesEncoder, Embedding,
+from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
                                add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
@@ -31,7 +31,7 @@ import functools
 from itertools import islice
 from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
-                    cast, Union)
+                    cast, Union, Set, Type)
 
 from enum import Enum, auto
 class ArgType(Enum):
@@ -419,8 +419,9 @@ class FeaturesPolyargPredictor(
         super().add_args_to_parser(parser, new_defaults)
         add_nn_args(parser, new_defaults)
         add_tokenizer_args(parser, new_defaults)
-        feature_set = set()
-        for feature_constructor in vec_feature_constructors + word_feature_constructors:
+        feature_set : Set[str] = set()
+        all_constructors : List[Type[Feature]] = vec_feature_constructors + word_feature_constructors # type: ignore
+        for feature_constructor in all_constructors:
             new_args = feature_constructor\
                 .add_feature_arguments(parser, feature_set, default_values)
             feature_set = feature_set.union(new_args)
@@ -436,6 +437,8 @@ class FeaturesPolyargPredictor(
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
+        embedding : Embedding
+        tokenizer : Tokenizer
         preprocessed_data = list(self._preprocess_data(data, arg_values))
         if arg_values.start_from:
             predictor_name, (loaded_args, metadata, predictor_state) = \
@@ -470,6 +473,8 @@ class FeaturesPolyargPredictor(
                                   self._vec_feature_functions),
                 zip(preprocessed_data, tokenized_goals))))
             print("{:.2f}s".format(time.time() - start))
+        assert self._word_feature_functions
+        assert self._vec_feature_functions
         return result_data, (tokenizer, embedding, self._word_feature_functions,
                              self._vec_feature_functions)
     def _optimize_model_to_disc(self,
