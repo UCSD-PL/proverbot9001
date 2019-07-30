@@ -190,13 +190,13 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                       dynamic_ncols=True, bar_format=mybarfmt) as pbar:
                 pbar.update(1)
             if not args.progress:
-                print(f"Resumed {args.filename} from existing state")
+                print(f"Resumed {str(args.filename)} from existing state")
             return
         except FileNotFoundError:
             pass
         except ArgsMismatchException as e:
             if not args.progress:
-                eprint(f"Arguments in csv for {args.filename} "
+                eprint(f"Arguments in csv for {str(args.filename)} "
                        f"didn't match current arguments! {e} "
                        f"Overwriting (interrupt to cancel).")
 
@@ -298,10 +298,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     if args.progress:
                         pbar.reset()
                     for command in commands_run:
+                        print("Resuming from crash")
                         pbar.update(1)
                         coq.run_stmt(command)
                     coq.debug = args.debug
                     if args.resume and len(commands_run) == 0:
+                        print(f"Resuming from file {args.filename}")
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
                            commands_run, commands_in, blocks_out, \
@@ -317,7 +319,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             make_new_solution_vfile(args, model_name, args.filename)
                             pass
                         except (ArgsMismatchException, SourceChangedException) as e:
-                            eprint(f"Arguments in solution vfile for {args.filename} "
+                            eprint(f"Arguments in solution vfile for {str(args.filename)} "
                                    f"didn't match current arguments, or sources mismatch! "
                                    f"{e}")
                             if args.overwrite_mismatch:
@@ -385,7 +387,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 if args.verbose or args.debug:
                     eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
             except Exception as e:
-                eprint(f"FAILED: in file {args.filename}, {repr(e)}")
+                eprint(f"FAILED: in file {str(args.filename)}, {repr(e)}")
                 raise
     write_html(args, args.output_dir, args.filename, blocks_out)
     write_csv(args, args.filename, blocks_out)
@@ -403,7 +405,7 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
             text(title)
 
 def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[DocumentBlock]):
-    with open("{}/{}.csv".format(args.output_dir, escape_filename(filename)),
+    with open("{}/{}.csv".format(args.output_dir, escape_filename(str(filename))),
               'w', newline='') as csvfile:
         for k, v in vars(args).items():
             csvfile.write("# {}: {}\n".format(k, v))
@@ -453,14 +455,14 @@ def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
                 raise ArgsMismatchException(f"No old value for arg {arg} found.")
 
 def write_html(args : argparse.Namespace,
-               output_dir : str, filename : str,
+               output_dir : str, filename : Path2,
                doc_blocks : List[DocumentBlock]) -> None:
     global obligation_number
     obligation_number = 0
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
         html_header(tag, doc, text, [details_css], [details_javascript],
-                    "Proverbot Detailed Report for {}".format(filename))
+                    "Proverbot Detailed Report for {}".format(str(filename)))
         with tag('body', onload='init()'), tag('pre'):
             for block_idx, block in enumerate(doc_blocks):
                 if isinstance(block, VernacBlock):
@@ -477,7 +479,7 @@ def write_html(args : argparse.Namespace,
                         with tag('div', klass='original'):
                             write_tactics(args, block.original_tactics, block_idx,
                                           tag, text, doc)
-    with open("{}/{}.html".format(output_dir, escape_filename(filename)), 'w') as fout:
+    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))), 'w') as fout:
         # fout.write(syntax.syntax_highlight(doc.getvalue()))
         fout.write(doc.getvalue())
 
@@ -574,7 +576,7 @@ def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
     return itertools.chain([next_line], f_iter)
 
 def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.SerapiInstance,
-                          model_name : str, filename : str, commands_in : List[str],
+                          model_name : str, filename : Path2, commands_in : List[str],
                           module_stack : List[str],
                           bar_idx : int) \
                           -> Tuple[List[str], List[str], List[DocumentBlock],
@@ -589,7 +591,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     curLemma = ""
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
-    with open(f"{args.output_dir}/{escape_filename(filename)}.v", 'r') as f:
+    with open(f"{args.output_dir}/{escape_filename(str(filename))}.v", 'r') as f:
         f_iter = check_solution_vfile_args(args, model_name,
                                            iter(f))
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
