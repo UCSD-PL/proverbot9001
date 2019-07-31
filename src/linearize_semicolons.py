@@ -202,6 +202,11 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                     [rest + " ; " + pending_cmd] + [pending_cmd + "<..>"]
             else:
                 assert isinstance(pending_commands_stack[-1], list)
+                pending_cmd_lst = pending_commands_stack[-1]
+                old_selected_cmd = pending_cmd_lst[goal_num - 2]
+                cmd_before_period = re.match("(.*)\.$", old_selected_cmd).group(1)
+                new_selected_cmd = f"{cmd_before_period} ; {rest}."
+                pending_cmd_lst[goal_num - 2] = new_selected_cmd
             continue
 
         if split_by_char_outside_matching("\(", "\)", "\|\||&&", command):
