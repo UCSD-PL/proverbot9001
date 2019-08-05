@@ -147,6 +147,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
+    parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -166,9 +167,20 @@ def get_predictor(parser : argparse.ArgumentParser,
         sys.exit(1)
     return predictor
 
+def reset_times(args : argparse.Namespace):
+    if args.proof_times:
+        with args.proof_times.open('w'):
+            pass
+
+def append_time(args : argparse.Namespace, action : str, seconds : float):
+    if args.proof_times:
+        with args.proof_times.open('a') as f:
+            f.write(f"{action}: {datetime.timedelta(seconds=seconds)}")
+
 def search_file(args : argparse.Namespace, coqargs : List[str],
                 includes : str, predictor : TacticPredictor,
                 bar_idx : int) -> None:
+    reset_times(args)
     global obligation_number
     obligation_number = 0
     num_proofs = 0
@@ -181,6 +193,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     if args.resume:
         try:
+            eprint(f"filename: {args.filename}")
             check_csv_args(args, args.filename)
             with tqdm(total=1, unit="cmd", file=sys.stdout,
                       desc=args.filename.name + " (Resumed)",
@@ -214,6 +227,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         nonlocal module_stack
         vernacs : List[str] = []
         assert not coq.proof_context
+        starttime = time.time()
         while not coq.proof_context and len(commands_in) > 0:
             next_in_command = commands_in.pop(0)
             # Longer timeout for vernac stuff (especially requires)
@@ -222,6 +236,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 vernacs.append(next_in_command)
             update_module_stack(next_in_command, module_stack)
             pbar.update(1)
+        append_time(args, "vernac", time.time() - starttime)
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
             commands_run += vernacs
@@ -238,6 +253,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         original_tactics : List[TacticInteraction] = []
         lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
         try:
+            starttime = time.time()
             while coq.proof_context != None:
                 next_in_command = commands_in.pop(0)
                 original_tactics.append(
@@ -251,6 +267,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                          [f"Reset {lemma_name}.", lemma_statement] + body_tactics)
             commands_run.append(lemma_statement)
             commands_run += body_tactics
+            append_time(args, lemma_statement, time.time() - starttime)
         except:
             commands_in = [lemma_statement] + \
                 [t.tactic for t in original_tactics] \
