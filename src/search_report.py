@@ -36,7 +36,6 @@ from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import FullContext, Subgoal
 import linearize_semicolons
 import syntax
 from format import format_goal

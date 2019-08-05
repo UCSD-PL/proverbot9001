@@ -36,7 +36,7 @@ from models.tactic_predictor import TacticPredictor, TacticContext
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import FullContext, Subgoal
+from serapi_instance import ProofContext, Obligation
 
 import linearize_semicolons
 import syntax
@@ -70,7 +70,7 @@ class VernacBlock(NamedTuple):
 
 class TacticInteraction(NamedTuple):
     tactic : str
-    context_before : FullContext
+    context_before : ProofContext
 
 class ProofBlock(NamedTuple):
     lemma_statement : str
@@ -213,12 +213,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         nonlocal blocks_out
         nonlocal module_stack
         vernacs : List[str] = []
-        assert not coq.full_context
-        while not coq.full_context and len(commands_in) > 0:
+        assert not coq.proof_context
+        while not coq.proof_context and len(commands_in) > 0:
             next_in_command = commands_in.pop(0)
             # Longer timeout for vernac stuff (especially requires)
             coq.run_stmt(next_in_command, timeout=60)
-            if not coq.full_context:
+            if not coq.proof_context:
                 vernacs.append(next_in_command)
             update_module_stack(next_in_command, module_stack)
             pbar.update(1)
@@ -230,7 +230,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     def run_to_next_vernac(coq : serapi_instance.SerapiInstance,
                            pbar : tqdm,
-                           initial_full_context : FullContext,
+                           initial_full_context : ProofContext,
                            lemma_statement : str) -> List[TacticInteraction]:
         nonlocal commands_run
         nonlocal commands_in
@@ -238,10 +238,11 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         original_tactics : List[TacticInteraction] = []
         lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
         try:
-            while coq.full_context != None:
+            while coq.proof_context != None:
                 next_in_command = commands_in.pop(0)
-                context_before = coq.fullContext
-                original_tactics.append(TacticInteraction(next_in_command, context_before))
+                original_tactics.append(
+                    TacticInteraction(next_in_command,
+                                      coq.proof_context or ProofContext([],[],[],[])))
                 coq.run_stmt(next_in_command)
                 pbar.update(1)
             body_tactics = [t.tactic for t in original_tactics]
@@ -258,12 +259,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         return original_tactics
     def add_proof_block(status : SearchStatus,
                         solution : Optional[List[TacticInteraction]],
-                        initial_full_context : FullContext,
+                        initial_full_context : ProofContext,
                         original_tactics : List[TacticInteraction]) -> None:
         nonlocal num_proofs_failed
         nonlocal num_proofs_completed
         nonlocal blocks_out
-        empty_context = FullContext([])
+        empty_context = ProofContext([],[],[],[])
         # Append the proof data
         if solution:
             num_proofs_completed += 1
@@ -337,7 +338,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             break
                         # Get beginning of next proof
                         num_proofs += 1
-                        initial_context = coq.fullContext
+                        initial_context = coq.proof_context
                         # Try to search
                         if lemma_statement in lemmas_to_skip:
                             search_status = SearchStatus.FAILURE
@@ -350,7 +351,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         # assert False
                         # Cancel until before the proof
                         try:
-                            while coq.full_context != None:
+                            while coq.proof_context != None:
                                 coq.cancel_last()
                         except serapi_instance.CoqExn as e:
                             raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
@@ -508,7 +509,7 @@ def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
 def escape_quotes(term : str):
     return re.sub("\"", "\\\"", term)
 
-def subgoal_to_string(args : argparse.Namespace, sg : Subgoal) -> str:
+def subgoal_to_string(args : argparse.Namespace, sg : Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
@@ -521,7 +522,7 @@ def write_tactics(args : argparse.Namespace,
         idStr = '{}-{}'.format(region_idx, t_idx)
         subgoals_str = "(" + ",".join([subgoal_to_string(args, subgoal)
                                        for subgoal in
-                                       t.context_before.subgoals[:args.max_print_subgoals]]) + ")"
+                                       t.context_before.all_goals[:args.max_print_subgoals]]) + ")"
         with tag('span',
                  ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
@@ -601,11 +602,12 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                   desc="Replaying", disable=(not args.progress),
                                   leave=False,position=(bar_idx*2),
                                   dynamic_ncols=True, bar_format=mybarfmt):
-            context_before = coq.fullContext if coq.full_context else FullContext([])
-            if not(coq.full_context != None and len(coq.fullContext.subgoals) == 0 and
-                   not serapi_instance.ending_proof(saved_command)):
+            context_before = coq.proof_context or ProofContext([],[],[],[])
+            if not(coq.proof_context != None and len(context_before.all_goals) == 0 and
+                   not (serapi_instance.ending_proof(saved_command) or
+                        re.match("[}]", saved_command))):
                 coq.run_stmt(saved_command)
-            if coq.full_context == None:
+            if coq.proof_context == None:
                 if in_proof:
                     in_proof = False
                     num_proofs += 1
@@ -619,7 +621,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         search_status = SearchStatus.INCOMPLETE
                     coq.cancel_last()
                     try:
-                        while coq.full_context != None:
+                        while coq.proof_context != None:
                             coq.cancel_last()
                     except serapi_instance.CoqExn as e:
                         raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
@@ -634,7 +636,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                               disable=(not args.progress),
                                               leave=False, position=(bar_idx * 2) + 1,
                                               dynamic_ncols=True, bar_format=mybarfmt):
-                            context_before_orig = coq.fullContext
+                            context_before_orig = coq.proof_context
                             coq.run_stmt(proof_cmd)
                             origProofInters.append(
                                 TacticInteraction(proof_cmd, context_before_orig))
@@ -720,7 +722,7 @@ import pygraphviz as pgv
 class LabeledNode(NamedTuple):
     prediction : str
     node_id : int
-    context_before : FullContext
+    context_before : ProofContext
     previous : Optional["LabeledNode"]
 class SearchGraph:
     __graph : pgv.AGraph
@@ -729,12 +731,12 @@ class SearchGraph:
     def __init__(self, lemma_name : str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, FullContext([]), None)
+        self.start_node = self.mkNode(lemma_name, ProofContext([],[],[],[]), None)
         pass
-    def addPredictions(self, src : LabeledNode, context_before : FullContext,
+    def addPredictions(self, src : LabeledNode, context_before : ProofContext,
                        predictions : List[str]) -> List[LabeledNode]:
         return [self.mkNode(pred, context_before, src) for pred in predictions]
-    def mkNode(self, prediction : str, context_before : FullContext,
+    def mkNode(self, prediction : str, context_before : ProofContext,
                previous_node : Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
@@ -745,7 +747,7 @@ class SearchGraph:
             self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
         return newNode
     def mkQED(self, predictionNode : LabeledNode):
-        qedNode = self.mkNode("QED", FullContext([]),
+        qedNode = self.mkNode("QED", ProofContext([],[],[],[]),
                               predictionNode,
                               fillcolor="green", style="filled")
         cur_node = predictionNode
@@ -768,21 +770,21 @@ class SearchGraph:
 class SubSearchResult (NamedTuple):
     solution : Optional[List[TacticInteraction]]
     solved_subgoals : int
-def subgoalSurjective(newsub : serapi_instance.Subgoal,
-                      oldsub : serapi_instance.Subgoal) -> bool:
+def subgoalSurjective(newsub : Obligation,
+                      oldsub : Obligation) -> bool:
     oldhyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in oldsub.hypotheses]
     for newhyp_term in [serapi_instance.get_hyp_type(hyp)
                         for hyp in newsub.hypotheses]:
         if newhyp_term not in oldhyp_terms:
             return False
     return newsub.goal == oldsub.goal
-def contextSurjective(newcontext : FullContext, oldcontext : FullContext):
-    for oldsub in oldcontext.subgoals:
+def contextSurjective(newcontext : ProofContext, oldcontext : ProofContext):
+    for oldsub in oldcontext.all_goals:
         if not any([subgoalSurjective(newsub, oldsub)
-                    for newsub in newcontext.subgoals]):
+                    for newsub in newcontext.all_goals]):
             return False
-    return len(newcontext.subgoals) >= len(oldcontext.subgoals)
-def contextInPath(full_context : FullContext, path : List[LabeledNode]):
+    return len(newcontext.all_goals) >= len(oldcontext.all_goals)
+def contextInPath(full_context : ProofContext, path : List[LabeledNode]):
     return any([contextSurjective(full_context, n.context_before)
                 for n in path])
 def numNodesInTree(branching_factor : int, depth : int):
@@ -791,7 +793,7 @@ def numNodesInTree(branching_factor : int, depth : int):
 def tryPrediction(args : argparse.Namespace,
                   coq : serapi_instance.SerapiInstance,
                   g : SearchGraph,
-                  predictionNode : LabeledNode) -> Tuple[FullContext, int, int, int]:
+                  predictionNode : LabeledNode) -> Tuple[ProofContext, int, int, int]:
     coq.quiet = True
     if coq.use_hammer:
         coq.run_stmt(predictionNode.prediction, timeout=30)
@@ -799,7 +801,10 @@ def tryPrediction(args : argparse.Namespace,
         coq.run_stmt(predictionNode.prediction, timeout=5)
     num_stmts = 1
     subgoals_closed = 0
-    while coq.count_fg_goals() == 0 and not completed_proof(coq):
+    if len(coq.proof_context.fg_goals) == 0 and len(coq.proof_context.shelved_goals) > 0:
+        coq.run_stmt("Unshelve.")
+        num_stmts += 1
+    while len(coq.proof_context.fg_goals) == 0 and not completed_proof(coq):
         g.setNodeColor(predictionNode, "blue")
         coq.run_stmt("}")
         subgoals_closed += 1
@@ -811,12 +816,15 @@ def tryPrediction(args : argparse.Namespace,
         num_stmts += 1
     else:
         subgoals_opened = 0
-    context_after = coq.fullContext
+    context_after = coq.proof_context
+    assert context_after
     return context_after, num_stmts, subgoals_closed, subgoals_opened
 
 def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                     curNode : LabeledNode, k : int) -> List[LabeledNode]:
-    return g.addPredictions(curNode, coq.fullContext,
+    proof_context = coq.proof_context
+    assert proof_context
+    return g.addPredictions(curNode, proof_context,
                             [pred.prediction for pred in
                              predictor.predictKTactics(
                                  TacticContext(coq.prev_tactics, coq.hypotheses,
@@ -825,7 +833,9 @@ def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
 
 def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                     curNode : LabeledNode, k : int) -> List[LabeledNode]:
-    return g.addPredictions(curNode, coq.fullContext,
+    proof_context = coq.proof_context
+    assert proof_context
+    return g.addPredictions(curNode, proof_context,
                             [pred.prediction[:-1] + ";try hammer." for pred in
                             # ["try hammer;" + pred.prediction for pred in
                              predictor.predictKTactics(
@@ -950,8 +960,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 
 
 def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
-    completed = len(coq.fullContext.subgoals) == 0
-    return completed
+    if coq.proof_context:
+        return len(coq.proof_context.all_goals) == 0 and \
+            coq.tactic_history.curDepth() == 0
+    else:
+        return False
 
 def update_module_stack(cmd : str, module_stack : List[str]) -> None:
     stripped_cmd = serapi_instance.kill_comments(cmd).strip()

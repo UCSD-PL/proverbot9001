@@ -86,12 +86,18 @@ def raise_(ex):
 
 from typing import NamedTuple
 
-class Subgoal(NamedTuple):
+class Obligation(NamedTuple):
     hypotheses : List[str]
     goal : str
 
-class FullContext(NamedTuple):
-    subgoals : List[Subgoal]
+class ProofContext(NamedTuple):
+    fg_goals : List[Obligation]
+    bg_goals : List[Obligation]
+    shelved_goals : List[Obligation]
+    given_up_goals : List[Obligation]
+    @property
+    def all_goals(self) -> List[Obligation]:
+        return self.fg_goals + self.bg_goals + self.shelved_goals + self.given_up_goals
 
 @dataclass
 class TacticTree:
@@ -107,12 +113,12 @@ class TacticTree:
 class TacticHistory:
     __tree : TacticTree
     __cur_subgoal_depth : int
-    __subgoal_tree : List[List[Subgoal]]
+    __subgoal_tree : List[List[Obligation]]
     def __init__(self) -> None:
         self.__tree = TacticTree([])
         self.__cur_subgoal_depth = 0
         self.__subgoal_tree = []
-    def openSubgoal(self, background_subgoals : List[Subgoal]) -> None:
+    def openSubgoal(self, background_subgoals : List[Obligation]) -> None:
         curTree = self.__tree
         for _ in range(self.__cur_subgoal_depth):
             assert isinstance(curTree.children[-1], TacticTree)
@@ -140,7 +146,7 @@ class TacticHistory:
         curTree.children.append(tactic)
         pass
 
-    def removeLast(self, all_subgoals : List[Subgoal]) -> None:
+    def removeLast(self, all_subgoals : List[Obligation]) -> None:
         assert len(self.__tree.children) > 0, "Tried to remove from an empty tactic history!"
         curTree = self.__tree
         for _ in range(self.__cur_subgoal_depth):
@@ -186,7 +192,7 @@ class TacticHistory:
                     yield child
         return list(generate(self.__tree))
 
-    def getAllBackgroundSubgoals(self) -> List[Subgoal]:
+    def getAllBackgroundObligations(self) -> List[Obligation]:
         return [item for lst in self.__subgoal_tree for item in reversed(lst)]
 
     def getNextCancelled(self) -> str:
@@ -239,8 +245,7 @@ class SerapiInstance(threading.Thread):
         # coq state. This way we don't have to do expensive queries to
         # the other process to answer simple questions.
         self._current_fg_goal_count = None # type: Optional[int]
-        self.proof_context = None # type: Optional[str]
-        self.full_context = None # type: Optional[FullContext]
+        self.proof_context = None # type: Optional[ProofContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
 
@@ -316,8 +321,6 @@ class SerapiInstance(threading.Thread):
             old_timeout = self.timeout
             self.timeout = timeout
         assert self.message_queue.empty(), self.messages
-        if re.match(r"\s*[{]\s*", stmt):
-            self.run_stmt("Unshelve.")
         eprint("Running statement: " + stmt.lstrip('\n'),
                guard=self.debug) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
@@ -332,7 +335,7 @@ class SerapiInstance(threading.Thread):
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
                 # Get initial context
-                context_before = self.full_context
+                context_before = self.proof_context
                 # Send the command
                 assert self.message_queue.empty()
                 self.send_acked("(Add () \"{}\")\n".format(stm))
@@ -349,15 +352,15 @@ class SerapiInstance(threading.Thread):
                 # Get a new proof context, if it exists
                 self.get_proof_context()
 
-                if possibly_starting_proof(stm) and self.full_context:
+                if possibly_starting_proof(stm) and self.proof_context:
                     self.tactic_history = TacticHistory()
                     self.tactic_history.addTactic(stm)
                 elif re.match(r"\s*[{]\s*", stm):
                     assert context_before
-                    self.tactic_history.openSubgoal(context_before.subgoals[1:])
+                    self.tactic_history.openSubgoal(context_before.fg_goals[1:])
                 elif re.match(r"\s*[}]\s*", stm):
                     self.tactic_history.closeSubgoal()
-                elif self.full_context:
+                elif self.proof_context:
                     # If we saw a new proof context, we're still in a
                     # proof so append the command to our prev_tactics
                     # list.
@@ -376,8 +379,7 @@ class SerapiInstance(threading.Thread):
     @property
     def prev_tactics(self):
 
-        return [tac for tac in self.tactic_history.getCurrentHistory()
-                if tac != "Unshelve."]
+        return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
         eprint("Problem running statement: {}\n{}".format(stmt, e),
@@ -446,6 +448,23 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, ["CoqExn", list, list, list, _]],
                      lambda statenum, a, b, c, msg:
                      raise_(CoqExn(msg)))
+    def parseSexpHyp(self, sexp) -> str:
+        var_sexps, _, term_sexp = sexp
+        ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in var_sexps])
+        term_str = self.sexpToTermStr(term_sexp)
+        return f"{ids_str} : {term_str}"
+    def parseSexpGoal(self, sexp) -> Obligation:
+        goal_num, goal_term, hyps_list = \
+            match(normalizeMessage(sexp),
+                  [["name", int], ["ty", _], ["hyp", list]],
+                  lambda *args: args)
+        goal_str = self.sexpToTermStr(goal_term)
+        hyps = [self.parseSexpHyp(hyp_sexp) for hyp_sexp in hyps_list]
+        return Obligation(hyps, goal_str)
+    def parseBgGoal(self, sexp) -> Obligation:
+        return match(normalizeMessage(sexp),
+                     [[], [_]],
+                     lambda inner_sexp: self.parseSexpGoal(inner_sexp))
 
     # Cancel the last command which was sucessfully parsed by
     # serapi. Even if the command failed after parsing, this will
@@ -453,10 +472,10 @@ class SerapiInstance(threading.Thread):
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> None:
         assert self.message_queue.empty(), self.messages
-        context_before = self.full_context
+        context_before = self.proof_context
         if context_before:
             cancelled = self.tactic_history.getNextCancelled()
-            old_subgoals = context_before.subgoals
+            old_subgoals = context_before.fg_goals
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
                    guard=self.debug)
@@ -476,11 +495,9 @@ class SerapiInstance(threading.Thread):
         # Fix up the previous tactics
         if context_before:
             self.tactic_history.removeLast(old_subgoals)
-        if not self.full_context:
+        if not self.proof_context:
             self.tactic_history = TacticHistory()
         assert self.message_queue.empty(), self.messages
-        if re.match(r"\s*[{]\s*", cancelled):
-            self.cancel_last()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
@@ -675,9 +692,9 @@ class SerapiInstance(threading.Thread):
         return feedbacks
 
     def count_fg_goals(self) -> int:
-        if not self.full_context:
+        if not self.proof_context:
             return 0
-        return len(self.full_context.subgoals)
+        return len(self.proof_context.fg_goals)
 
     def get_cancelled(self) -> int:
         try:
@@ -705,108 +722,71 @@ class SerapiInstance(threading.Thread):
         return new_statenum
 
     def extract_proof_context(self, raw_proof_context : 'Sexp') -> str:
+        assert isinstance(raw_proof_context, list), raw_proof_context
+        assert len(raw_proof_context) > 0, raw_proof_context
+        assert isinstance(raw_proof_context[0], list), raw_proof_context
         return cast(List[List[str]], raw_proof_context)[0][1]
 
     @property
     def goals(self) -> str:
-        assert isinstance(self.proof_context, str)
-        if self.proof_context == "":
+        if self.proof_context:
+            return self.proof_context.fg_goals[0].goal
+        else:
             return ""
-        split = re.split("\n======+\n", self.proof_context)
-        return split[1]
 
     @property
     def hypotheses(self) -> List[str]:
-        assert isinstance(self.proof_context, str)
-        if self.proof_context == "":
+        if self.proof_context:
+            return self.proof_context.fg_goals[0].hypotheses
+        else:
             return []
-        return parse_hyps(re.split("\n======+\n", self.proof_context)[0])
-
-    @property
-    def fullContext(self) -> FullContext:
-        assert self.full_context
-        fg_goals = self.full_context.subgoals
-        return FullContext(fg_goals + self.tactic_history.getAllBackgroundSubgoals())
-
-    def unshelve(self) -> None:
-        self.send_acked("(Add () \"Unshelve.\")\n")
-        self.update_state()
-        self.get_completed()
-        assert self.message_queue.empty()
-        self.send_acked("(Exec {})\n".format(self.cur_state))
-        self.discard_feedback()
-        self.discard_feedback()
-        self.get_completed()
-        assert self.message_queue.empty()
 
     def get_proof_context(self) -> None:
-        self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)".format(self.cur_state))
-
-        proof_context_message = self.get_message()
-        self.get_completed()
-        if (not isinstance(proof_context_message, list) or
-            proof_context_message[0] != Symbol("Answer")):
-            raise BadResponse(proof_context_message)
-        else:
-            ol_msg = proof_context_message[2]
-            if (ol_msg[0] != Symbol("ObjList")):
-                raise BadResponse(proof_context_message)
-            if len(ol_msg[1]) != 0:
-                # If we're in a proof, then let's run Unshelve to get
-                # the real goals. Note this would fail if we were not
-                # in a proof, so we have to check that first.
-                self.unshelve()
-
-                # Now actually get the goals
-                # Now actually get the real goals
-                self.send_acked("(Query ((sid {}) (pp ((pp_format PpStr)))) Goals)"
-                                .format(self.cur_state))
-                proof_context_message = self.get_message()
-                ol_msg = proof_context_message[2]
-                self.get_completed()
-                assert self.message_queue.empty()
-
-                # Do some basic parsing on the context
-                newcontext = self.extract_proof_context(ol_msg[1])
-                self.proof_context = newcontext.split("\n\n")[0]
-                if newcontext == "":
-                    self.full_context = FullContext([])
-                else:
-                    # Try to do this the right way, fall back to the
-                    # wrong way if we run into this bug:
-                    # https://github.com/ejgallego/coq-serapi/issues/150
-                    try:
-                        response = self.ask("(Query () Goals)")
-                        subgoal_sexps = response[2][1][0][1][0][1]
-                        subgoals = []
-                        for goal_sexp in subgoal_sexps:
-                            goal_term = self.sexpToTermStr(goal_sexp[1][1])
-
-                            hyps = []
-                            for hyp_sexp in goal_sexp[2][1]:
-                                ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in hyp_sexp[0]])
-                                hyp_type = self.sexpToTermStr(hyp_sexp[2])
-
-                                hyps.append(f"{ids_str} : {hyp_type}")
-                            subgoals.append(Subgoal(hyps, goal_term))
-                        self.full_context = FullContext(subgoals)
-                    except CoqExn:
-                        if newcontext == "none":
-                            self.full_context =  FullContext([])
-                        else:
-                            self.full_context = \
-                                FullContext([parsePPSubgoal(substr) for substr
-                                             in re.split("\n\n|(?=\snone)", newcontext)
-                                             if substr.strip()])
-                        pass
-                # Cancel the Unshelve, to keep things clean.
-                self.send_acked("(Cancel ({}))".format(self.cur_state))
-                self.cur_state = self.get_cancelled()
-                assert self.message_queue.empty()
-
-            else:
+        # Try to do this the right way, fall back to the
+        # wrong way if we run into this bug:
+        # https://github.com/ejgallego/coq-serapi/issues/150
+        try:
+            response = self.ask("(Query () Goals)")
+            contexts = match(normalizeMessage(response),
+                             ["Answer", int, ["ObjList", list]],
+                             lambda statenum, contexts: contexts,
+                             _, lambda *args: raise_(BadResponse(response)))
+            if not contexts:
                 self.proof_context = None
-                self.full_context = None
+            else:
+                fg_goals, bg_goals, shelved_goals, given_up_goals = \
+                    match(normalizeMessage(contexts),
+                          [["CoqGoal",
+                            [["fg_goals", list], ["bg_goals", list],
+                             ["shelved_goals", list], ["given_up_goals", list]]]],
+                          lambda *args: args,
+                          _, lambda *args: raise_(BadResponse(contexts)))
+                # if bg_goals:
+                #     breakpoint()
+                parsed_fg_goals = [self.parseSexpGoal(goal) for goal in fg_goals]
+                parsed_bg_goals = [self.parseSexpGoal(bg_goal)
+                                   for level in bg_goals for bg_goal in level[1]]
+                self.proof_context = ProofContext(
+                    parsed_fg_goals, parsed_bg_goals,
+                    [self.parseSexpGoal(goal) for goal in shelved_goals],
+                    [self.parseSexpGoal(goal) for goal in given_up_goals])
+        except CoqExn:
+            self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
+
+            proof_context_message = self.get_message()[2]
+            self.get_completed()
+            if len(proof_context_message) == 0:
+                self.proof_context = None
+            else:
+                newcontext = self.extract_proof_context(proof_context_message[1])
+                if newcontext == "none":
+                    self.proof_context = ProofContext([],[],[],[])
+                else:
+                    self.proof_context = \
+                        ProofContext([parsePPSubgoal(substr) for substr
+                                      in re.split("\n\n|(?=\snone)", newcontext)
+                                      if substr.strip()],
+                                     [],[],[])
 
     def get_lemmas_about_head(self) -> str:
         goal_head = self.goals.split()[0]
@@ -1200,15 +1180,15 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
     else:
         return datum
 
-def parsePPSubgoal(substr : str) -> Subgoal:
+def parsePPSubgoal(substr : str) -> Obligation:
     split = re.split("\n====+\n", substr)
     assert len(split) == 2, substr
     hypsstr, goal = split
-    return Subgoal(parse_hyps(hypsstr), goal)
+    return Obligation(parse_hyps(hypsstr), goal)
 
-def summarizeContext(context : FullContext) -> None:
-    eprint("Context:")
-    for i, subgoal in enumerate(context.subgoals):
+def summarizeContext(context : ProofContext) -> None:
+    eprint("Foreground:")
+    for i, subgoal in enumerate(context.fg_goals):
         hyps_str = ",".join(get_first_var_in_hyp(hyp) for hyp in subgoal.hypotheses)
         goal_str = re.sub("\n", "\\n", subgoal.goal)[:100]
         eprint(f"S{i}: {hyps_str} -> {goal_str}")
