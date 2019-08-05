@@ -95,7 +95,7 @@ def main(arg_list : List[str], bar_idx : int) -> None:
 
     args, parser = parse_arguments(arg_list)
     predictor = get_predictor(parser, args)
-    base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
+    base = Path2(os.path.dirname(os.path.abspath(__file__)))
     coqargs = ["sertop"]
 
     try:
@@ -299,12 +299,10 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     if args.progress:
                         pbar.reset()
                     for command in commands_run:
-                        print("Resuming from crash")
                         pbar.update(1)
                         coq.run_stmt(command)
                     coq.debug = args.debug
                     if args.resume and len(commands_run) == 0:
-                        print(f"Resuming from file {args.filename}")
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
                            commands_run, commands_in, blocks_out, \
@@ -316,6 +314,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                                          module_stack,
                                                          bar_idx)
                            pbar.update(num_original_commands_run)
+                           print(f"Resuming from file {args.filename}")
                         except FileNotFoundError:
                             make_new_solution_vfile(args, model_name, args.filename)
                             pass
@@ -361,13 +360,29 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                                      [tac.tactic for tac in tactic_solution]
                                                      + ["Qed."])
                         else:
-                            if search_status == SearchStatus.FAILURE:
-                                num_proofs_failed += 1
-                                admitted = "Admitted (*FAILURE*)."
+                            let_match = re.match("\s*Let\s*(.*)\.$",
+                                                 lemma_statement,
+                                                 flags=re.DOTALL)
+                            if let_match and not ":=" in lemma_statement:
+                                split = split_by_char_outside_matching("\(", "\)", ":=",
+                                                                       let_match.group(1))
+                                assert not split
+                                name_and_type = let_match.group(1)
+                                if search_status == SearchStatus.FAILURE:
+                                    postfix = "(*FAILURE*)"
+                                else:
+                                    postfix = "(*INCOMPLETE*)"
+                                admitted_defn = f"Hypothesis {name_and_type} {postfix}."
+                                admitted_cmds = [admitted_defn]
                             else:
-                                admitted = "Admitted (*INCOMPLETE*)."
+                                if search_status == SearchStatus.FAILURE:
+                                    num_proofs_failed += 1
+                                    admitted = "Admitted (*FAILURE*)."
+                                else:
+                                    admitted = "Admitted (*INCOMPLETE*)."
+                                admitted_cmds = [lemma_statement, "Proof.\n", admitted]
                             append_to_solution_vfile(args.output_dir, args.filename,
-                                                     [lemma_statement, "Proof.\n", admitted])
+                                                     admitted_cmds)
                         # Run the original proof
                         original_tactics = run_to_next_vernac(coq, pbar, initial_context,
                                                               lemma_statement)
@@ -442,7 +457,7 @@ def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
-    with open(args.output_dir / escape_filename(str(vfilename)) / ".csv",
+    with open(args.output_dir / (escape_filename(str(vfilename)) + ".csv"),
               'r', newline='') as csvfile:
         saved_args, rest_iter = read_csv_options(csvfile)
         for arg in important_args:
@@ -608,8 +623,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         re.match("[}]", saved_command))):
                 coq.run_stmt(saved_command)
             if coq.proof_context == None:
+                loaded_command = next(commands_in_iter)
                 if in_proof:
-                    in_proof = False
                     num_proofs += 1
                     if re.match("Qed\.", saved_command):
                         search_status = SearchStatus.SUCCESS
@@ -627,9 +642,27 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
 
                     origProofInters = []
+                else:
+                    if re.match("Reset .*\.", saved_command):
+                        skip_sync_next_lemma = True
+                        continue
+                    update_module_stack(saved_command, module_stack)
+                    def normalize_command(cmd : str) -> str:
+                        return re.sub("\s*\(\*(?:INCOMPLETE|FAILURE)\*\)", "",
+                                      re.sub("Let", "Hypothesis",
+                                             re.sub("\s+", " ", cmd.strip())))
+                    if not normalize_command(loaded_command) == \
+                       normalize_command(saved_command):
+                        raise SourceChangedException(
+                            f"Command {normalize_command(loaded_command)} doesn't match {normalize_command(saved_command)}")
+                    curVernacCmds.append(loaded_command)
+                if in_proof or (re.match("Let", loaded_command) and
+                                re.match("Hypothesis", saved_command)):
+                    in_proof = False
                     if not skip_sync_next_lemma:
-                        proof_cmds = list(serapi_instance.next_proof(commands_in_iter))
-                        coq.run_stmt(proof_cmds[0])
+                        proof_cmds = list(serapi_instance.next_proof(
+                            itertools.chain([loaded_command], commands_in_iter)))
+                        coq.run_stmt(loaded_command)
                         num_original_commands_run += len(proof_cmds)
                         for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                               desc="Running original proof",
@@ -650,17 +683,6 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                             coq.run_stmt(proof_cmd)
                         skip_sync_next_lemma = False
 
-                else:
-                    if re.match("Reset .*\.", saved_command):
-                        skip_sync_next_lemma = True
-                        continue
-                    loaded_command = next(commands_in_iter)
-                    update_module_stack(saved_command, module_stack)
-                    if not re.sub("\s*", " ", loaded_command.strip()) == \
-                       re.sub("\s*", " ", saved_command.strip()):
-                        raise SourceChangedException(
-                            f"Command {loaded_command} doesn't match {saved_command}")
-                    curVernacCmds.append(loaded_command)
             else:
                 if not in_proof:
                     in_proof = True

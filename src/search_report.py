@@ -59,10 +59,10 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--output", "-o", help="output data folder name",
                         default="search-report",
                         type=Path2)
-    parser.add_argument('--weightsfile', default=None)
+    parser.add_argument('--weightsfile', default=None, type=Path2)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
-    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
     args, unknown_args = parser.parse_known_args(arg_list)
     commit, date = get_metadata()
     base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
@@ -79,7 +79,9 @@ def main(arg_list : List[str]) -> None:
     for filename in args.filenames:
         csv_args, result = read_stats_from_csv(args.output, filename)
         csv_args.debug = False
+        csv_args.progress = False
         csv_args.filename = ""
+        csv_args.output_dir = ""
         if not file_args:
             file_args = csv_args
         else:
@@ -101,13 +103,13 @@ def run_search(argslist : List[str],
                predictor : Optional[str],
                weightsfile : Optional[str],
                file_idx : int,
-               filename : str) -> None:
-    augmented_argslist = argslist + ["-o", outdir]
+               filename : Path2) -> None:
+    augmented_argslist = argslist + ["-o", str(outdir)]
     if predictor:
         augmented_argslist += ["--predictor", predictor]
     if weightsfile:
-        augmented_argslist += ["--weightsfile", weightsfile]
-    augmented_argslist += [filename]
+        augmented_argslist += ["--weightsfile", str(weightsfile)]
+    augmented_argslist += [str(filename)]
     search_file.main(augmented_argslist , bar_idx = file_idx)
 
 class ReportStats(NamedTuple):
@@ -146,7 +148,7 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def write_summary_html(filename : str,
+def write_summary_html(filename : Path2,
                        options : Sequence[Tuple[str, str]],
                        cur_commit : str, cur_date : datetime.datetime,
                        individual_stats : List[ReportStats],
@@ -245,7 +247,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                        options, cur_commit, cur_date, individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
     write_proof_summary_csv(args.output, [s.filename for s in individual_stats])
-    base = Path2(os.path.abspath(__file__)).parent / "reports"
+    base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
         (base / filename).copyfile(args.output / filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
@@ -279,7 +281,7 @@ def read_stats_from_csv(output_dir : str, vfilename : str) -> \
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
-    with open("{}/{}.csv".format(output_dir, escape_filename(vfilename)),
+    with open("{}/{}.csv".format(output_dir, escape_filename(str(vfilename))),
               'r', newline='') as csvfile:
         saved_args, rest_iter = read_csv_options(csvfile)
         rowreader = csv.reader(rest_iter, lineterminator=os.linesep)
@@ -291,7 +293,8 @@ def read_stats_from_csv(output_dir : str, vfilename : str) -> \
                 num_proofs_failed += 1
             else:
                 assert row[1] == "SearchStatus.INCOMPLETE"
-    return saved_args, ReportStats(vfilename, num_proofs, num_proofs_failed, num_proofs_completed)
+    return saved_args, ReportStats(str(vfilename),
+                                   num_proofs, num_proofs_failed, num_proofs_completed)
 
 def combine_file_results(stats : List[ReportStats]) -> ReportStats:
     return ReportStats("",
