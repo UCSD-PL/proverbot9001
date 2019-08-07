@@ -630,83 +630,109 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
                                                                  "".join(f_iter))
         commands_in_iter = iter(commands_in)
-        for saved_command in tqdm(svfile_commands, unit="cmd", file=sys.stdout,
-                                  desc="Replaying", disable=(not args.progress),
-                                  leave=False,position=(bar_idx*2),
-                                  dynamic_ncols=True, bar_format=mybarfmt):
-            context_before = coq.proof_context or ProofContext([],[],[],[])
-            if not(coq.proof_context != None and len(context_before.all_goals) == 0 and
-                   not (serapi_instance.ending_proof(saved_command) or
-                        re.match("[}]", saved_command))):
-                coq.run_stmt(saved_command)
-            if coq.proof_context == None:
-                loaded_command = next(commands_in_iter)
-                if in_proof:
-                    num_proofs += 1
-                    if re.match("Qed\.", saved_command):
-                        search_status = SearchStatus.SUCCESS
-                        num_proofs_completed += 1
-                    elif re.match("Admitted \(\*FAILURE\*\)\.", saved_command):
-                        search_status = SearchStatus.FAILURE
-                        num_proofs_failed += 1
-                    else:
-                        search_status = SearchStatus.INCOMPLETE
-                    coq.cancel_last()
-                    try:
-                        while coq.proof_context != None:
-                            coq.cancel_last()
-                    except serapi_instance.CoqExn as e:
-                        raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
+        def peek_loaded():
+            nonlocal commands_in_iter
+            item = next(commands_in_iter)
+            commands_in_iter = itertools.chain([item], commands_in_iter)
+            return item
+        with tqdm(total=len(svfile_commands),
+                  unit="cmd", file=sys.stdout,
+                  desc="Replaying", disable=(not args.progress),
+                  leave=False,position=(bar_idx*2),
+                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
+            while svfile_commands:
+                saved_command = svfile_commands.pop(0)
+                pbar.update(1)
+                context_before = coq.proof_context or ProofContext([],[],[],[])
+                if re.match("\s*Hypothesis", saved_command) and \
+                   re.match("\s*Let", peek_loaded()):
+                    status_marker = re.search("(\(\*(?:INCOMPLETE|FAILURE)\*\))",
+                                              saved_command).group(1)
 
-                    origProofInters = []
+                    svfile_commands = [peek_loaded(), "Proof.",
+                                       f"Admitted {status_marker}."] + \
+                                       svfile_commands
+                    continue
+
+                if not(coq.proof_context != None and len(context_before.all_goals) == 0 and
+                       not (serapi_instance.ending_proof(saved_command) or
+                            re.match("\s*[}]", saved_command))):
+                    coq.run_stmt(saved_command)
                 else:
-                    if re.match("Reset .*\.", saved_command):
-                        skip_sync_next_lemma = True
-                        continue
-                    update_module_stack(saved_command, module_stack)
-                    def normalize_command(cmd : str) -> str:
-                        return re.sub("\s*\(\*(?:INCOMPLETE|FAILURE)\*\)", "",
-                                      re.sub("Let", "Hypothesis",
-                                             re.sub("\s+", " ", cmd.strip())))
-                    if not normalize_command(loaded_command) == \
-                       normalize_command(saved_command):
-                        raise SourceChangedException(
-                            f"Command {normalize_command(loaded_command)} doesn't match {normalize_command(saved_command)}")
-                    curVernacCmds.append(loaded_command)
-                if in_proof or (re.match("Let", loaded_command) and
-                                re.match("Hypothesis", saved_command)):
-                    in_proof = False
-                    if not skip_sync_next_lemma:
-                        proof_cmds = list(serapi_instance.next_proof(
-                            itertools.chain([loaded_command], commands_in_iter)))
-                        coq.run_stmt(loaded_command)
-                        num_original_commands_run += len(proof_cmds)
-                        for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
-                                              desc="Running original proof",
-                                              disable=(not args.progress),
-                                              leave=False, position=(bar_idx * 2) + 1,
-                                              dynamic_ncols=True, bar_format=mybarfmt):
-                            context_before_orig = coq.proof_context
-                            coq.run_stmt(proof_cmd)
-                            origProofInters.append(
-                                TacticInteraction(proof_cmd, context_before_orig))
-                        blocks_out.append(ProofBlock(curLemma,
-                                                     ".".join(module_stack),
-                                                     search_status,
-                                                     curProofInters, origProofInters))
-                        curVernacCmds = []
-                    else:
-                        for proof_cmd in proof_cmds:
-                            coq.run_stmt(proof_cmd)
-                        skip_sync_next_lemma = False
+                    eprint(f"Skipping {saved_command}")
+                if coq.proof_context == None:
+                    loaded_command = next(commands_in_iter)
+                    eprint(f"loaded command {loaded_command}")
+                    if in_proof:
+                        if not skip_sync_next_lemma:
+                            num_proofs += 1
+                            if re.match("Qed\.", saved_command):
+                                search_status = SearchStatus.SUCCESS
+                                num_proofs_completed += 1
+                            elif re.match("Admitted \(\*FAILURE\*\)\.", saved_command):
+                                search_status = SearchStatus.FAILURE
+                                num_proofs_failed += 1
+                            else:
+                                search_status = SearchStatus.INCOMPLETE
+                            coq.cancel_last()
+                            try:
+                                while coq.proof_context != None:
+                                    coq.cancel_last()
+                            except serapi_instance.CoqExn as e:
+                                raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
 
-            else:
-                if not in_proof:
-                    in_proof = True
-                    curLemma = saved_command
-                    blocks_out.append(VernacBlock(curVernacCmds))
-                    curProofInters = []
-                curProofInters.append(TacticInteraction(saved_command, context_before))
+                            origProofInters = []
+                    else:
+                        if re.match("Reset .*\.", saved_command):
+                            commands_in_iter = itertools.chain([loaded_command],
+                                                               commands_in_iter)
+                            skip_sync_next_lemma = True
+                            continue
+                        update_module_stack(saved_command, module_stack)
+                        def normalize_command(cmd : str) -> str:
+                            return re.sub("\s*\(\*(?:INCOMPLETE|FAILURE)\*\)", "",
+                                          re.sub("Let", "Hypothesis",
+                                                 re.sub("\s+", " ", cmd.strip())))
+                        if not normalize_command(loaded_command) == \
+                           normalize_command(saved_command):
+                            raise SourceChangedException(
+                                f"Loaded command {normalize_command(loaded_command)} doesn't match saved command {normalize_command(saved_command)}")
+                        curVernacCmds.append(loaded_command)
+                    if in_proof:
+                        in_proof = False
+                        if not skip_sync_next_lemma:
+                            proof_cmds = list(serapi_instance.next_proof(
+                                itertools.chain([loaded_command], commands_in_iter)))
+                            coq.run_stmt(loaded_command)
+                            num_original_commands_run += len(proof_cmds)
+                            eprint("Running original proof.")
+                            for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
+                                                  desc="Running original proof",
+                                                  disable=(not args.progress),
+                                                  leave=False, position=(bar_idx * 2) + 1,
+                                                  dynamic_ncols=True, bar_format=mybarfmt):
+                                context_before_orig = coq.proof_context
+                                coq.run_stmt(proof_cmd)
+                                origProofInters.append(
+                                    TacticInteraction(proof_cmd, context_before_orig))
+                            eprint("Done with original proof.")
+                            blocks_out.append(ProofBlock(curLemma,
+                                                         ".".join(module_stack),
+                                                         search_status,
+                                                         curProofInters, origProofInters))
+                            curVernacCmds = []
+                        else:
+                            commands_in_iter = itertools.chain([loaded_command],
+                                                               commands_in_iter)
+                            skip_sync_next_lemma = False
+
+                else:
+                    if not in_proof:
+                        in_proof = True
+                        curLemma = saved_command
+                        blocks_out.append(VernacBlock(curVernacCmds))
+                        curProofInters = []
+                    curProofInters.append(TacticInteraction(saved_command, context_before))
         assert not in_proof
         if curVernacCmds:
             blocks_out.append(VernacBlock(curVernacCmds))
@@ -928,11 +954,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 
                 #### 3.
                 new_distance_stack += [0] * subgoals_opened
-                # if subgoals_opened > 0:
-                #     eprint(f"Opened {subgoals_opened} subgoals with "
-                #            f"{predictionNode.prediction}")
-
-                #### 4.
 
                 #############
                 if completed_proof(coq):
