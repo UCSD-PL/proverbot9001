@@ -426,6 +426,9 @@ class SerapiInstance(threading.Thread):
                     progn(self.get_completed(), raise_(CoqAnomaly("Overflowed")))
                     if re.search("Stack overflow", inner) else
                     progn(self.get_completed(), raise_(UnrecognizedError(inner))),
+                    ['Stack overflow'],
+                    lambda *args:
+                    progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))),
                     ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str, str]]],
                     lambda sentence, loc1, loc2, inner1, inner2:
                     progn(self.get_completed(), raise_(CoqExn(inner1 + inner2))),
@@ -770,10 +773,15 @@ class SerapiInstance(threading.Thread):
                     parsed_fg_goals, parsed_bg_goals,
                     [self.parseSexpGoal(goal) for goal in shelved_goals],
                     [self.parseSexpGoal(goal) for goal in given_up_goals])
-        except CoqExn:
+        except (CoqExn, CoqAnomaly):
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
 
-            proof_context_message = self.get_message()[2]
+            msg = self.get_message()
+            match(normalizeMessage(msg),
+                  ["Answer", int, ["CoqExn", [], [], ["Backtrace", []], ['Stack overflow']]],
+                  lambda statenum: raise_(CoqExn("Stack overflow")),
+                  _, lambda *args: raise_(UnrecognizedError(dumps(msg))))
+            proof_context_message = msg[2]
             self.get_completed()
             if len(proof_context_message) == 0:
                 self.proof_context = None
