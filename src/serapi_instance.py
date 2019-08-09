@@ -773,7 +773,7 @@ class SerapiInstance(threading.Thread):
                     parsed_fg_goals, parsed_bg_goals,
                     [self.parseSexpGoal(goal) for goal in shelved_goals],
                     [self.parseSexpGoal(goal) for goal in given_up_goals])
-        except (CoqExn, CoqAnomaly):
+        except CoqExn:
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
 
             msg = self.get_message()
