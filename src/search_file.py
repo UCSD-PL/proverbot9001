@@ -331,7 +331,6 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                                          module_stack,
                                                          bar_idx)
                            pbar.update(num_original_commands_run)
-                           print(f"Resuming from file {args.filename}")
                         except FileNotFoundError:
                             make_new_solution_vfile(args, model_name, args.filename)
                             pass
@@ -629,6 +628,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
     with open(f"{args.output_dir}/{escape_filename(str(filename))}.v", 'r') as f:
+        print(f"Resuming from file {args.filename}")
         f_iter = check_solution_vfile_args(args, model_name,
                                            iter(f))
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
