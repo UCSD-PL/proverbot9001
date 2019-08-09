@@ -749,14 +749,14 @@ class SerapiInstance(threading.Thread):
 
     @property
     def goals(self) -> str:
-        if self.proof_context:
+        if self.proof_context.fg_goals:
             return self.proof_context.fg_goals[0].goal
         else:
             return ""
 
     @property
     def hypotheses(self) -> List[str]:
-        if self.proof_context:
+        if self.proof_context.fg_goals:
             return self.proof_context.fg_goals[0].hypotheses
         else:
             return []
@@ -781,8 +781,6 @@ class SerapiInstance(threading.Thread):
                              ["shelved_goals", list], ["given_up_goals", list]]]],
                           lambda *args: args,
                           _, lambda *args: raise_(BadResponse(contexts)))
-                # if bg_goals:
-                #     breakpoint()
                 parsed_fg_goals = [self.parseSexpGoal(goal) for goal in fg_goals]
                 parsed_bg_goals = [self.parseSexpGoal(bg_goal)
                                    for level in bg_goals for bg_goal in level[1]]
@@ -794,16 +792,17 @@ class SerapiInstance(threading.Thread):
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
 
             msg = self.get_message()
-            match(normalizeMessage(msg),
-                  ["Answer", int, ["CoqExn", [], [], ["Backtrace", []], ['Stack overflow']]],
-                  lambda statenum: raise_(CoqExn("Stack overflow")),
-                  _, lambda *args: raise_(UnrecognizedError(dumps(msg))))
-            proof_context_message = msg[2]
+            proof_context_msg = match(normalizeMessage(msg),
+                                      ["Answer", int, ["CoqExn", [], [], ["Backtrace", []], ['Stack overflow']]],
+                                      lambda statenum: raise_(CoqExn("Stack overflow")),
+                                      ["Answer", int, list],
+                                      lambda statenum, contents: contents,
+                                      _, lambda *args: raise_(UnrecognizedError(dumps(msg))))
             self.get_completed()
-            if len(proof_context_message) == 0:
+            if len(proof_context_msg) == 0:
                 self.proof_context = None
             else:
-                newcontext = self.extract_proof_context(proof_context_message[1])
+                newcontext = self.extract_proof_context(proof_context_msg[1])
                 if newcontext == "none":
                     self.proof_context = ProofContext([],[],[],[])
                 else:
