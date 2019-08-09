@@ -913,6 +913,16 @@ def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                                coq.goals),
                                  k)])
 
+goalBignessLimit = 1000
+def contextIsBig(context : ProofContext):
+    for obligation in context.all_goals:
+        for hypothesis in obligation.hypotheses:
+            if len(hypothesis) > goalBignessLimit:
+                return True
+        if len(obligation.goal) > goalBignessLimit:
+            return True
+    return False
+
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 module_name : Optional[str],
                                 coq : serapi_instance.SerapiInstance,
@@ -971,6 +981,13 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                                    len(current_path)) - 1
                     pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context is in current path")
+                elif contextIsBig(context_after):
+                    g.setNodeColor(predictionNode, "orange4")
+                    nodes_skipped = numNodesInTree(args.search_width,
+                                                   (args.search_depth + 1) -
+                                                   len(current_path)) - 1
+                    pbar.update(nodes_skipped)
+                    cleanupSearch(num_stmts, "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth:
                     sub_search_result = search(pbar, current_path + [predictionNode],
                                                new_distance_stack, new_extra_depth)
