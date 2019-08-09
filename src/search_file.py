@@ -175,12 +175,11 @@ def reset_times(args : argparse.Namespace):
 def append_time(args : argparse.Namespace, action : str, seconds : float):
     if args.proof_times:
         with args.proof_times.open('a') as f:
-            f.write(f"{action}: {datetime.timedelta(seconds=seconds)}")
+            f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
 
 def search_file(args : argparse.Namespace, coqargs : List[str],
                 includes : str, predictor : TacticPredictor,
                 bar_idx : int) -> None:
-    reset_times(args)
     global obligation_number
     obligation_number = 0
     num_proofs = 0
@@ -206,6 +205,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 print(f"Resumed {str(args.filename)} from existing state")
             return
         except FileNotFoundError:
+            reset_times(args)
             pass
         except ArgsMismatchException as e:
             if not args.progress:
@@ -267,7 +267,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                          [f"Reset {lemma_name}.", lemma_statement] + body_tactics)
             commands_run.append(lemma_statement)
             commands_run += body_tactics
-            append_time(args, lemma_statement, time.time() - starttime)
+            append_time(args, "Orig: " + lemma_name, time.time() - starttime)
         except:
             commands_in = [lemma_statement] + \
                 [t.tactic for t in original_tactics] \
@@ -360,11 +360,15 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             search_status = SearchStatus.FAILURE
                             tactic_solution : Optional[List[TacticInteraction]] = []
                         else:
+                            starttime = time.time()
                             search_status, tactic_solution = \
                                 attempt_search(args, lemma_statement,
                                                ".".join(module_stack),
                                                coq, bar_idx)
-                        # assert False
+                            append_time(args,
+                                        serapi_instance.
+                                        lemma_name_from_statement(lemma_statement),
+                                        time.time() - starttime)
                         # Cancel until before the proof
                         try:
                             while coq.proof_context != None:
