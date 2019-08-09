@@ -634,6 +634,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
                                                                  "".join(f_iter))
         commands_in_iter = iter(commands_in)
+        orig_svfile_commands = list(svfile_commands)
         def peek_loaded():
             nonlocal commands_in_iter
             item = next(commands_in_iter)
@@ -740,7 +741,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         assert not in_proof
         if curVernacCmds:
             blocks_out.append(VernacBlock(curVernacCmds))
-        return svfile_commands, list(commands_in_iter), blocks_out,\
+        return orig_svfile_commands, list(commands_in_iter), blocks_out,\
             num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
 
 # The core of the search report
