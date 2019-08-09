@@ -82,6 +82,7 @@ def main(arg_list : List[str]) -> None:
         csv_args.progress = False
         csv_args.filename = ""
         csv_args.output_dir = ""
+        csv_args.hardfail = False
         if not file_args:
             file_args = csv_args
         else:
