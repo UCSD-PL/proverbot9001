@@ -273,11 +273,19 @@ class SerapiInstance(threading.Thread):
             self.init_hammer()
 
     def handle_potential_local_lemma(self, cmd : str) -> None:
-        lemma_match = re.match(r"(Theorem|Lemma|Remark|Proposition)\s+(\w*\s*:\s*.*)$",
+        lemma_match = re.match(r"\s*(?:Theorem|Lemma|Remark|Proposition)\s+(\w*)(.*)",
                                cmd,
                                flags=re.DOTALL)
+
         if lemma_match:
-            self.local_lemmas.append(lemma_match.group(2))
+            lemma_name = lemma_match.group(1)
+            binders, body = split_by_char_outside_matching("\(", "\)", ":",
+                                                           lemma_match.group(2))
+            if binders.strip():
+                lemma_statement = lemma_name + " : forall " + binders + ", " + body[1:]
+            else:
+                lemma_statement = lemma_name + " " + body
+            self.local_lemmas.append(lemma_statement)
 
         proposition_match = re.match(r"Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
                                      cmd, flags=re.DOTALL)
@@ -295,14 +303,10 @@ class SerapiInstance(threading.Thread):
         crush_limit = 3 * self.hammer_timeout // 60
         # hammer_cmd = "(Add () \"From Hammer Require Import Hammer. Set Hammer ATPLimit %d. Set Hammer ReconstrLimit %d. Set Hammer CrushLimit %d.\")" % (atp_limit, reconstr_limit, crush_limit)
         hammer_cmd = "(Add () \"From Hammer Require Import Hammer.\")"
-        # print(hammer_cmd)
         self.send_acked(hammer_cmd)
         self.discard_feedback()
         self.discard_feedback()
         self.update_state()
-        # self.update_state()
-        # self.update_state()
-        # self.update_state()
         self.get_completed()
 
     # Send some text to serapi, and flush the stream to make sure they
