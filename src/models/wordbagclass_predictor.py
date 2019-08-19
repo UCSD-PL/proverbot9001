@@ -32,13 +32,14 @@ from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
 
 from tokenizer import tokenizers
 from data import (get_text_data, encode_bag_classify_data,
                   encode_bag_classify_input)
 from context_filter import get_context_filter
 from util import *
+from format import TacticContext
 from serapi_instance import get_stem
 
 class WordBagClassifyPredictor(TacticPredictor):

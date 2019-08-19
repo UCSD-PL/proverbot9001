@@ -30,7 +30,7 @@ import statistics
 
 import torch
 from models.tactic_predictor import (TacticPredictor, Prediction,
-                                     TacticContext, TrainablePredictor,
+                                     TrainablePredictor,
                                      add_tokenizer_args)
 from models.args import take_std_args
 
@@ -44,6 +44,7 @@ from serapi_instance import get_stem
 from models.components import Embedding
 
 from util import *
+from format import TacticContext
 
 T = TypeVar('T')
 V = TypeVar('V')

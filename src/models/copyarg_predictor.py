@@ -28,19 +28,17 @@ from features import (WordFeature, VecFeature,
 import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EmbeddedSample, EOS_token)
+                  EmbeddedSample, EOS_token, strip_scraped_output)
 from util import *
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
-                                     NeuralPredictorState,
-                                     TacticContext, Prediction,
+                                     NeuralPredictorState, Prediction,
                                      optimize_checkpoints,
                                      save_checkpoints, tokenize_goals,
-                                     embed_data, add_tokenizer_args,
-                                     strip_scraped_output)
+                                     embed_data, add_tokenizer_args)
 
 import threading
 import multiprocessing
@@ -151,7 +149,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         goals_batch = torch.LongTensor([normalizeSentenceLength(
             self._tokenizer.toTokenList(goal),
             self.training_args.max_length)
-                                        for _, _, goal in in_datas])
+                                        for _,_, _, goal in in_datas])
         batch_size = stem_distribution.size()[0]
         num_stem_poss = stem_distribution.size()[1]
         stem_width = min(beam_width, num_stem_poss)
@@ -418,7 +416,7 @@ def mkCopySample(max_length : int,
                  -> CopyArgSample:
     context, goal, arg_idx = zipped
     (relevant_lemmas, prev_tactic_list, hypotheses, goal_str, tactic_idx) = context
-    tac_context = TacticContext(prev_tactic_list, hypotheses, goal_str)
+    tac_context = TacticContext(relevant_lemmas, prev_tactic_list, hypotheses, goal_str)
     word_features = [feature(tac_context)
                      for feature in word_feature_functions]
     assert len(word_features) == 3

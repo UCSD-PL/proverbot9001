@@ -49,12 +49,13 @@ import linearize_semicolons
 import tokenizer
 
 from util import *
+from format import TacticContext
 from context_filter import get_context_filter
 
 from syntax import syntax_highlight, strip_comments
 
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
-from models.tactic_predictor import TacticPredictor, TacticContext
+from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]

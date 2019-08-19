@@ -23,7 +23,8 @@
 from typing import List, Tuple
 from difflib import SequenceMatcher
 
-from models.tactic_predictor import (TacticContext, TacticPredictor, Prediction)
+from models.tactic_predictor import (TacticPredictor, Prediction)
+from format import TacticContext
 import serapi_instance
 import tokenizer
 

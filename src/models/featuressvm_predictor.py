@@ -19,14 +19,15 @@
 #
 ##########################################################################
 from models.tactic_predictor import \
-    (TrainablePredictor, TacticContext, Prediction,
-     optimize_checkpoints, embed_data, predictKTactics,
-     predictKTacticsWithLoss, predictKTacticsWithLoss_batch, strip_scraped_output)
+    (TrainablePredictor, Prediction, optimize_checkpoints, embed_data,
+     predictKTactics, predictKTacticsWithLoss,
+     predictKTacticsWithLoss_batch)
 from models.components import (Embedding)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength)
+                  normalizeSentenceLength, strip_scraped_output)
 from serapi_instance import get_stem
 from util import *
+from format import TacticContext
 
 from typing import (List, Any, Tuple, NamedTuple, Dict, Sequence,
                     cast, Optional)

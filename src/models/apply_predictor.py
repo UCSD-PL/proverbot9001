@@ -19,17 +19,18 @@
 #
 ##########################################################################
 from models.tactic_predictor import \
-    (NeuralPredictorState, TrainablePredictor, TacticContext,
+    (NeuralPredictorState, TrainablePredictor,
      Prediction, save_checkpoints, optimize_checkpoints, embed_data,
      predictKTactics, predictKTacticsWithLoss,
      predictKTacticsWithLoss_batch, add_tokenizer_args,
-     strip_scraped_output, tokenize_goals, tokenize_hyps)
+     tokenize_goals, tokenize_hyps)
 from models.components import (Embedding, SimpleEmbedding, DNNClassifier, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength, getNGramTokenbagVector)
+                  normalizeSentenceLength, getNGramTokenbagVector,
+                  strip_scraped_output, TacticContext)
 from tokenizer import Tokenizer
 import serapi_instance
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 from util import *
 
 import torch

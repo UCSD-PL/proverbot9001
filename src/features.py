@@ -19,13 +19,13 @@
 #
 ##########################################################################
 
-from models.tactic_predictor import TacticContext
+from format import TacticContext
 from tokenizer import get_symbols, limitNumTokens
-from util import *
+from util import eprint
 import serapi_instance
 
 import typing
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Any
 from abc import ABCMeta, abstractmethod
 from collections import Counter
 from difflib import SequenceMatcher
@@ -33,6 +33,7 @@ from pathlib_revised import Path2
 import re
 import argparse
 import math
+import torch
 
 class Feature(metaclass=ABCMeta):
     def __init__(self, init_dataset : List[TacticContext],
@@ -45,11 +46,13 @@ class Feature(metaclass=ABCMeta):
                               default_values : Dict[str, Any] = {}) -> Set[str]:
         return set()
         pass
-def maybe_add_argument(parser : argparse.ArgumentParser,
-                       default_values : Dict[str, Any],
-                       name : str, t : type,
-                       default_value : Any,
-                       feature_args_set : Set[str]) -> None:
+
+
+def maybe_add_argument(parser: argparse.ArgumentParser,
+                       default_values: Dict[str, Any],
+                       name: str, t: type,
+                       default_value: Any,
+                       feature_args_set: Set[str]) -> None:
     if name not in feature_args_set:
         parser.add_argument(f"--{name}", type=t,
                             default=default_values.get(name, default_value))

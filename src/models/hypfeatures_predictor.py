@@ -27,17 +27,15 @@ from models.components import (EncoderRNN, WordFeaturesEncoder, Embedding, add_n
 from features import (WordFeature, VecFeature,
                       word_feature_constructors, vec_feature_constructors)
 from models.tactic_predictor import (TrainablePredictor,
-                                     NeuralPredictorState,
-                                     TacticContext, Prediction,
+                                     NeuralPredictorState, Prediction,
                                      optimize_checkpoints,
                                      save_checkpoints, tokenize_goals,
-                                     embed_data, add_tokenizer_args,
-                                     strip_scraped_output)
+                                     embed_data, add_tokenizer_args)
 from tokenizer import Tokenizer, limitNumTokens, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EmbeddedSample)
+                  EmbeddedSample, strip_scraped_output)
 from util import *
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 import serapi_instance
 
 import threading
@@ -115,9 +113,9 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         assert self.training_args
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
                                                self.training_args.max_length)
-                       for _, _, goal in in_datas]
+                       for _, _, _, goal in in_datas]
         hyps = [get_closest_hyp(hyps, goal, self.training_args.max_length)
-                for _, hyps, goal in in_datas]
+                for _, _, hyps, goal in in_datas]
         hyp_types = [serapi_instance.get_hyp_type(hyp) for hyp in hyps]
         hyps_batch = [normalizeSentenceLength(
             self._tokenizer.toTokenList(hyp_type),
@@ -414,7 +412,7 @@ def mkHFSample(max_length : int,
     -> HypFeaturesSample:
     context, goal, best_hyp = zipped
     (relevant_lemmas, prev_tactic_list, hypotheses, goal_str, tactic) = context
-    tac_context = TacticContext(prev_tactic_list, hypotheses, goal_str)
+    tac_context = TacticContext(relevant_lemmas, prev_tactic_list, hypotheses, goal_str)
     return HypFeaturesSample([feature(tac_context)
                               for feature in word_feature_functions],
                              [feature_val for feature in vec_feature_functions

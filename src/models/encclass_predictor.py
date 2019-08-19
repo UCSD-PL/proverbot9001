@@ -39,6 +39,7 @@ from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from data import get_text_data, filter_data, \
     encode_seq_classify_data, ScrapedTactic, Sentence, Dataset, TokenizedDataset
 from util import *
+from format import TacticContext
 from context_filter import get_context_filter
 from serapi_instance import get_stem
 from models.args import start_std_args, optimizers
@@ -53,7 +54,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from models.tactic_predictor import Prediction, NeuralClassifier, TacticContext
+from models.tactic_predictor import Prediction, NeuralClassifier
 from typing import Dict, List, Union, Any, Tuple, NamedTuple, Iterable, cast, Callable, Optional, Sequence
 
 class ECSample(NamedTuple):
@@ -90,7 +91,8 @@ class EncClassPredictor(NeuralClassifier[ECDataset, 'RNNClassifier']):
             return [], 0
         with self._lock:
             tokenized_goals = [self._tokenizer.toTokenList(goal)
-                               for prev_tactics, hypotheses, goal in in_data]
+                               for relevant_lemmas, prev_tactics, hypotheses, goal
+                               in in_data]
             input_tensor = LongTensor([inputFromSentence(tokenized_goal,
                                                          self.training_args.max_length)
                                       for tokenized_goal in tokenized_goals])

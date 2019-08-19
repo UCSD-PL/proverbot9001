@@ -35,7 +35,6 @@ from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
 from data import get_text_data, encode_seq_seq_data, Sentence, \
     SequenceSequenceDataset, EOS_token, SOS_token
 from util import *
-from util import _inflate
 
 import torch
 import torch.nn as nn
@@ -46,7 +45,8 @@ import torch.utils.data as data
 import torch.cuda
 
 from itertools import takewhile
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
+from format import TacticContext
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 

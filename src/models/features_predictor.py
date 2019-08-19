@@ -19,15 +19,16 @@
 #
 ##########################################################################
 from models.tactic_predictor import \
-    (NeuralPredictorState, TrainablePredictor, TacticContext,
+    (NeuralPredictorState, TrainablePredictor,
      Prediction, save_checkpoints, optimize_checkpoints, embed_data,
      predictKTactics, predictKTacticsWithLoss,
-     predictKTacticsWithLoss_batch, strip_scraped_output)
+     predictKTacticsWithLoss_batch)
 from models.components import (Embedding, SimpleEmbedding, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength)
+                  normalizeSentenceLength, strip_scraped_output)
 from serapi_instance import get_stem
 from util import *
+from format import TacticContext
 
 import torch
 import torch.nn as nn
