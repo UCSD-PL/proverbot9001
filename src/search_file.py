@@ -871,10 +871,11 @@ def tryPrediction(args : argparse.Namespace,
         coq.run_stmt(predictionNode.prediction, timeout=5)
     num_stmts = 1
     subgoals_closed = 0
-    if len(coq.proof_context.fg_goals) == 0 and len(coq.proof_context.shelved_goals) > 0:
+    if len(unwrap(coq.proof_context).fg_goals) == 0 and \
+       len(unwrap(coq.proof_context).shelved_goals) > 0:
         coq.run_stmt("Unshelve.")
         num_stmts += 1
-    while len(coq.proof_context.fg_goals) == 0 and not completed_proof(coq):
+    while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
         g.setNodeColor(predictionNode, "blue")
         coq.run_stmt("}")
         subgoals_closed += 1

@@ -289,3 +289,7 @@ def split_by_char_outside_matching(openpat : str, closepat : str,
                 assert nextsplitpos > curpos
                 curpos = nextsplitpos
     return None
+
+def unwrap(a : Optional[T]) -> T:
+    assert a
+    return a
