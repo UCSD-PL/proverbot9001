@@ -21,13 +21,18 @@
 ##########################################################################
 
 import re
-from typing import List, Tuple, TextIO, Optional, NamedTuple, Union
+from typing import List, TextIO, Optional, NamedTuple, Union
+
 
 class ScrapedTactic(NamedTuple):
     prev_tactics : List[str]
     hypotheses : List[str]
     goal : str
     tactic : str
+class TacticContext(NamedTuple):
+    prev_tactics: List[str]
+    hypotheses: List[str]
+    goal: str
 
 ScrapedCommand = Union[ScrapedTactic, str]
 

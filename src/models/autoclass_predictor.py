@@ -42,8 +42,9 @@ from context_filter import get_context_filter
 from tokenizer import tokenizers
 
 from util import *
+from format import TacticContext
 from models.components import SimpleEmbedding
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
 from models.term_autoencoder import EncoderRNN
 from serapi_instance import get_stem
 

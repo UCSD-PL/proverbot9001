@@ -32,7 +32,7 @@ import shutil
 import csv
 from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict, Union, Iterator
 
-from models.tactic_predictor import TacticPredictor, TacticContext
+from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
@@ -40,7 +40,7 @@ from serapi_instance import ProofContext, Obligation
 
 import linearize_semicolons
 import syntax
-from format import format_goal
+from format import format_goal, TacticContext
 from util import *
 
 from tqdm import tqdm

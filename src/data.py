@@ -38,7 +38,7 @@ import torch
 
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
-from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple
+from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple, TacticContext
 from models.components import SimpleEmbedding
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
@@ -59,10 +59,24 @@ SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
 TermDataset = List[Sentence]
 
+
+def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
+    relevant_lemmas, prev_tactics, hypotheses, goal, output = scraped
+    assert prev_tactics != None
+    assert relevant_lemmas != None
+    assert hypotheses != None
+    assert goal != None
+    assert output != None
+    return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
+
+
 class Dataset(Sized, metaclass=ABCMeta):
     pass
+
+
 class DatasetMetadata(metaclass=ABCMeta):
     pass
+
 
 SampleType = TypeVar('SampleType')
 

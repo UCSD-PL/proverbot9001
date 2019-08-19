@@ -8,20 +8,19 @@ from features import (WordFeature, VecFeature, Feature,
 import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EmbeddedSample, EOS_token)
+                  EmbeddedSample, EOS_token,
+                  strip_scraped_output)
 from util import *
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
                                add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
-                                     NeuralPredictorState,
-                                     TacticContext, Prediction,
+                                     NeuralPredictorState, Prediction,
                                      optimize_checkpoints,
                                      save_checkpoints, tokenize_goals,
-                                     embed_data, add_tokenizer_args,
-                                     strip_scraped_output)
+                                     embed_data, add_tokenizer_args)
 
 import threading
 import multiprocessing
@@ -451,10 +450,11 @@ class FeaturesPolyargPredictor(
             self._word_feature_functions = wfeats
             self._vec_feature_functions = vfeats
         else:
-            stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
-            self._word_feature_functions  = \
-                [feature_constructor(stripped_data, arg_values) for # type: ignore
-                 feature_constructor in
+            stripped_data = [strip_scraped_output(dat)
+                             for dat in preprocessed_data]
+            self._word_feature_functions = \
+                [feature_constructor(stripped_data, arg_values)  # type: ignore
+                 for feature_constructor in
                  word_feature_constructors]
             self._vec_feature_functions = \
                 [feature_constructor(stripped_data, arg_values) for # type: ignore

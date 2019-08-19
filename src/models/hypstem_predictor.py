@@ -36,7 +36,6 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 from models.tactic_predictor import (TrainablePredictor, Prediction,
-                                     TacticContext,
                                      NeuralPredictorState,
                                      add_tokenizer_args, embed_data,
                                      tokenize_goals, NeuralPredictorState)
@@ -45,7 +44,7 @@ from models.components import (Embedding, StraightlineClassifierModel,
 from tokenizer import tokenizers, Tokenizer
 
 from data import (getNGramTokenbagVector, ListDataset, RawDataset)
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 
 from util import *
 import serapi_instance

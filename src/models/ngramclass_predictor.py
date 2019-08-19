@@ -35,8 +35,9 @@ import torch.optim.lr_scheduler as scheduler
 import torch.utils.data as data
 
 from models.tactic_predictor import (NeuralPredictor,
-                                     NeuralPredictorState, Prediction, TacticContext)
+                                     NeuralPredictorState, Prediction)
 from models.components import Embedding
+from format import TacticContext
 
 from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, Sentence, getNGramTokenbagVector, ScrapedTactic, \

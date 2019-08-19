@@ -19,7 +19,8 @@
 #
 ##########################################################################
 from typing import List, Tuple
-from models.tactic_predictor import (TacticContext, TacticPredictor, Prediction)
+from models.tactic_predictor import (TacticPredictor, Prediction)
+from format import TacticContext
 
 class NumericInductionPredictor(TacticPredictor):
     def __init__(self) -> None:

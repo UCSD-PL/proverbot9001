@@ -37,13 +37,14 @@ from torch import nn
 from torch.autograd import Variable
 
 from models.tactic_predictor import (TokenizingPredictor, Prediction,
-                                     TacticContext, TokenizerEmbeddingState)
+                                     TokenizerEmbeddingState)
 from models.components import Embedding
 from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, getNGramTokenbagVector, encode_ngram_classify_data, \
     encode_ngram_classify_input, TokenizedDataset, Dataset, NGram, NGramSample, \
     NGramDataset
 from util import *
+from format import TacticContext
 from serapi_instance import get_stem
 
 class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):

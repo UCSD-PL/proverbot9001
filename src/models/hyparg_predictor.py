@@ -30,12 +30,13 @@ from argparse import Namespace
 from util import *
 from data import Sentence, SOS_token, EOS_token, TOKEN_START, get_text_data, RawDataset
 from data import getNGramTokenbagVector
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from models.args import start_std_args, optimizers
 from models.components import DNNClassifier, EncoderDNN, DecoderGRU
 import serapi_instance
+from format import TacticContext
 
 from typing import List, Dict, Tuple, NamedTuple, Union, Callable, \
     Optional, Iterator, Counter

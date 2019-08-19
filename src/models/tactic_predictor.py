@@ -5,20 +5,16 @@ from typing import (Dict, List, Union, Tuple, Iterable, NamedTuple,
 from format import ScrapedTactic, TacticContext
 from abc import ABCMeta, abstractmethod
 import argparse
+from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
+                  TokenizedDataset, DatasetMetadata, stemmify_data,
+                  tactic_substitutions, EmbeddedSample,
+                  EmbeddedDataset, StrictEmbeddedDataset,
+                  LazyEmbeddedDataset, DatasetMetadata, tokenize_data,
+                  TOKEN_START)
 
 class Prediction(NamedTuple):
     prediction : str
     certainty : float
-
-ContextInfo = Dict[str, Union[str, List[str]]]
-class TacticContext(NamedTuple):
-    prev_tactics : List[str]
-    hypotheses : List[str]
-    goal : str
-
-def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
-    prev_tactic, hypotheses, goal, output = scraped
-    return TacticContext(prev_tactic, hypotheses, goal)
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
@@ -40,8 +36,6 @@ class TacticPredictor(metaclass=ABCMeta):
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]: pass
 
-from data import Dataset, RawDataset, ScrapedTactic, get_text_data, TokenizedDataset, \
-    DatasetMetadata, stemmify_data, tactic_substitutions
 from typing import TypeVar, Generic, Sized
 import argparse
 import sys
@@ -123,9 +117,6 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
 
 from tokenizer import (make_keyword_tokenizer_relevance, tokenizers,
                        Tokenizer, get_words)
-from data import (EmbeddedSample, EmbeddedDataset,
-                  StrictEmbeddedDataset, LazyEmbeddedDataset, DatasetMetadata,
-                  tokenize_data, TOKEN_START, Sentence)
 from models.components import SimpleEmbedding, Embedding
 
 import pickle

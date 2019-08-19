@@ -19,17 +19,18 @@
 #
 ##########################################################################
 from models.tactic_predictor import \
-    (NeuralPredictorState, TrainablePredictor, TacticContext,
-     Prediction, save_checkpoints, optimize_checkpoints,
-     predictKTactics, predictKTacticsWithLoss,
-     predictKTacticsWithLoss_batch, add_tokenizer_args,
-     embed_data, tokenize_goals, strip_scraped_output)
+    (NeuralPredictorState, TrainablePredictor, Prediction,
+     save_checkpoints, optimize_checkpoints, predictKTactics,
+     predictKTacticsWithLoss, predictKTacticsWithLoss_batch,
+     add_tokenizer_args, embed_data, tokenize_goals)
 
 from models.components import (Embedding, SimpleEmbedding, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength)
+                  normalizeSentenceLength,
+                  strip_scraped_output)
 from serapi_instance import get_stem
 from util import *
+from format import TacticContext
 from tokenizer import Tokenizer
 from features import (vec_feature_constructors,
                       word_feature_constructors, VecFeature,
@@ -153,7 +154,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         word_features_batch = [self._get_word_features(in_data) for in_data in in_datas]
         goals_batch = [normalizeSentenceLength(self._tokenizer.toTokenList(goal),
                                                self.training_args.max_length)
-                       for _, _, goal in in_datas]
+                       for _, _, _, goal in in_datas]
         return self._model(torch.FloatTensor(vec_features_batch),
                            torch.LongTensor(word_features_batch),
                            torch.LongTensor(goals_batch))
@@ -194,8 +195,8 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         result_data = EncFeaturesDataset([EncFeaturesSample(
-            self._get_vec_features(TacticContext(prev_tactics, hypotheses, goal)),
-            self._get_word_features(TacticContext(prev_tactics, hypotheses, goal)),
+            self._get_vec_features(TacticContext([], prev_tactics, hypotheses, goal)),
+            self._get_word_features(TacticContext([], prev_tactics, hypotheses, goal)),
             normalizeSentenceLength(tokenized_goal, arg_values.max_length),
             tactic)
                                            for (prev_tactics, hypotheses, goal, tactic),

@@ -46,7 +46,8 @@ import torch.utils.data as data
 import torch.cuda
 
 from itertools import takewhile
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
+from format import TacticContext
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 

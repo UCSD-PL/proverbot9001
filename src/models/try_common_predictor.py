@@ -29,9 +29,9 @@ import torch
 from typing import Dict, Any, List, Tuple, NamedTuple, Union
 
 from tokenizer import Tokenizer
-from models.tactic_predictor import TokenizingPredictor, Prediction, TacticContext, TokenizerEmbeddingState
+from models.tactic_predictor import TokenizingPredictor, Prediction, TokenizerEmbeddingState
 from models.components import Embedding, SimpleEmbedding
-from format import read_tuple, ScrapedTactic
+from format import read_tuple, ScrapedTactic, TacticContext
 from util import *
 from serapi_instance import get_stem
 from data import get_text_data, Dataset, TokenizedDataset

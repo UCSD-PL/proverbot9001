@@ -32,6 +32,7 @@ from data import get_text_data, \
     encode_bag_classify_data, encode_bag_classify_input, ClassifyBagDataset
 from context_filter import get_context_filter
 from util import *
+from format import TacticContext
 from models.args import take_std_args
 from models.components import DNNClassifier
 
@@ -45,7 +46,7 @@ import torch.utils.data as data
 import torch.cuda
 from torch.optim import Optimizer
 
-from models.tactic_predictor import TacticPredictor, Prediction, TacticContext
+from models.tactic_predictor import TacticPredictor, Prediction
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, cast
 
 from serapi_instance import get_stem
