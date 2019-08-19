@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import (Dict, List, Union, Tuple, Iterable, NamedTuple,
-                    Sequence, Any, Optional)
+                    Sequence, Any, Optional, cast, BinaryIO)
 from format import ScrapedTactic, TacticContext
 from abc import ABCMeta, abstractmethod
 import argparse
@@ -162,9 +162,9 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         -> DatasetType:
         pass
 
-    def _encode_data(self, data : RawDataset, args : Namespace) \
-        -> Tuple[DatasetType, TokenizerEmbeddingState]:
         preprocessed_data = self._preprocess_data(data, args)
+    def _encode_data(self, data: RawDataset, args: Namespace) \
+            -> Tuple[DatasetType, TokenizerEmbeddingState]:
         embedding = SimpleEmbedding()
         embedded_data : EmbeddedDataset
         with multiprocessing.Pool(args.num_threads) as pool:

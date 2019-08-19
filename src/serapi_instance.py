@@ -31,13 +31,14 @@ import sys
 import signal
 from dataclasses import dataclass
 
-from typing import List, Any, Optional, cast, Tuple, Union
+from typing import List, Any, Optional, cast, Tuple, Union, Iterable
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
 from sexpdata import *
 from traceback import *
-from util import *
+from util import (split_by_char_outside_matching, eprint, mybarfmt,
+                  hash_file, sighandler_context)
 from format import ScrapedTactic
 import tokenizer
 
@@ -798,7 +799,7 @@ class SerapiInstance(threading.Thread):
             msg = self.get_message()
             proof_context_msg = match(normalizeMessage(msg),
                                       ["Answer", int, ["CoqExn", [], [], ["Backtrace", []], ['Stack overflow']]],
-                                      lambda statenum: raise_(CoqExn("Stack overflow")),
+                                      lambda statenum: raise_(CoqExn(["Stack overflow"])),
                                       ["Answer", int, list],
                                       lambda statenum, contents: contents,
                                       _, lambda *args: raise_(UnrecognizedError(dumps(msg))))
