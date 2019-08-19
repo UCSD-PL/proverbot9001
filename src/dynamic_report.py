@@ -375,12 +375,13 @@ class Worker(threading.Thread):
                     assert initial_context
                     hyps = coq.hypotheses
                     goals = coq.goals
+                    relevant_lemmas = coq.local_lemmas
                     if self.baseline:
                         predictions_and_certanties = [baseline_tactic + ".", 1] \
                                                      * num_predictions
                     else:
                         predictions_and_certainties, loss = net.predictKTacticsWithLoss(
-                            TacticContext(prev_tactics, hyps, goals),
+                            TacticContext(relevant_lemmas, prev_tactics, hyps, goals),
                             num_predictions,
                             command)
 
@@ -392,7 +393,8 @@ class Worker(threading.Thread):
                         coq.run_stmt(command)
                         actual_result_context = coq.proof_context
                         actual_result_goal = coq.goals
-                        actual_result_hypothesis = coq.hypotheses
+                        actual_result_hypotheses = coq.hypotheses
+                        actual_result_lemmas = coq.local_lemmas
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
                             BadResponse, ParseError, LexError, TimeoutError):
@@ -410,12 +412,15 @@ class Worker(threading.Thread):
                                           zip(prediction_runs,
                                               predictions_and_certainties)]
                     assert net.training_args
-                    if self.cfilter({"goal": format_goal(goals),
-                                     "hyps": format_hypothesis(hyps)},
+                    if self.cfilter(TacticContext(relevant_lemmas,
+                                                  prev_tactics,
+                                                  hyps,
+                                                  goals),
                                     command,
-                                    {"goal": format_goal(actual_result_goal),
-                                     "hyps":
-                                     format_hypothesis(actual_result_hypothesis)},
+                                    TacticContext(actual_result_lemmas,
+                                                  prev_tactics + [command],
+                                                  actual_result_hypotheses,
+                                                  actual_result_goal),
                                     net.training_args):
                         fresult.add_command_result(
                             [pred for pred, ctxt, ex in prediction_runs],

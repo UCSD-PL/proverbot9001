@@ -27,10 +27,10 @@ import argparse
 from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 
 from tokenizer import get_symbols
+from format import TacticContext
 import serapi_instance
 
-ContextData = Dict[str, Union[str, List[str]]]
-ContextFilter = Callable[[ContextData, str, ContextData, argparse.Namespace], bool]
+ContextFilter = Callable[[TacticContext, str, TacticContext, argparse.Namespace], bool]
 
 def filter_and(*args : ContextFilter) -> ContextFilter:
     def filter_and2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
@@ -51,75 +51,88 @@ def filter_or(*args : ContextFilter) -> ContextFilter:
     else:
         return filter_or2(args[0], filter_or(*args[1:]))
 
-def no_compound_or_bullets(in_data : ContextData, tactic : str,
-                           next_in_data : ContextData,
+def no_compound_or_bullets(in_data : TacticContext, tactic : str,
+                           next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
     return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
             not re.match(".*;.*", tactic, flags=re.DOTALL))
-def not_proof_keyword(in_data : ContextData, tactic : str,
-                      next_in_data : ContextData,
+def not_proof_keyword(in_data : TacticContext, tactic : str,
+                      next_in_data : TacticContext,
                       arg_values : argparse.Namespace) -> bool:
     return not re.match("Proof", tactic)
-def not_background_subgoal(in_data : ContextData, tactic : str,
-                           next_in_data : ContextData,
+def not_background_subgoal(in_data : TacticContext, tactic : str,
+                           next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
     return not re.match("\d*:.*", tactic)
-def not_vernac(in_data : ContextData, tactic : str,
-               next_in_data : ContextData,
+def not_vernac(in_data : TacticContext, tactic : str,
+               next_in_data : TacticContext,
                arg_values : argparse.Namespace) -> bool:
-    return not (re.match("\s*Opaque", tactic))
+    return not (re.match("\s*(Opaque|Proof|Qed|Defined|Unshelve)", tactic))
 
-def goal_changed(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData,
+def goal_changed(in_data : TacticContext, tactic : str,
+                 next_in_data : TacticContext,
                  arg_values : argparse.Namespace) -> bool:
-    return in_data["goal"] != next_in_data["goal"]
+    return in_data.goal != next_in_data.goal
 
-def hyps_changed(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData,
+def hyps_changed(in_data : TacticContext, tactic : str,
+                 next_in_data : TacticContext,
                  arg_values : argparse.Namespace) -> bool:
-    return in_data["hyps"] != next_in_data["hyps"]
+    return in_data.hypotheses != next_in_data.hypotheses
 
-def no_args(in_data : ContextData, tactic : str,
-            next_in_data : ContextData,
+def no_args(in_data : TacticContext, tactic : str,
+            next_in_data : TacticContext,
             arg_values : argparse.Namespace) -> bool:
     return re.match("\s*\S*\.", tactic) != None
 
-def args_vars_in_context(in_data : ContextData, tactic : str,
-                         next_in_data : ContextData,
-                         arg_values : argparse.Namespace) -> bool:
+def args_vars_in_list(tactic : str,
+                      context_list : List[str]) -> bool:
     stem, args_string  = serapi_instance.split_tactic(tactic)
     args = args_string[:-1].split()
     if not serapi_instance.tacticTakesHypArgs(stem) and len(args) > 0:
         return False
-    var_names = serapi_instance.get_vars_in_hyps(cast(List[str], in_data["hyps"]))
+    var_names = serapi_instance.get_vars_in_hyps(context_list)
     for arg in args:
         if not arg in var_names:
             return False
     return True
+def args_vars_in_context(in_data : TacticContext, tactic : str,
+                         next_in_data : TacticContext,
+                         arg_values : argparse.Namespace) -> bool:
+    return args_vars_in_list(tactic, in_data.hypotheses)
 
 def tactic_literal(tactic_to_match : str,
-                   in_data: ContextData, tactic : str,
-                   new_in_data : ContextData,
+                   in_data: TacticContext, tactic : str,
+                   new_in_data : TacticContext,
                    arg_values : argparse.Namespace) -> bool:
     return re.match("\s*{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 def tactic_eliteral(tactic_to_match : str,
-                    in_data: ContextData, tactic : str,
-                    new_in_data : ContextData,
+                    in_data: TacticContext, tactic : str,
+                    new_in_data : TacticContext,
                     arg_values : argparse.Namespace) -> bool:
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
+
+
+def min_args(num_str: str,
+             in_data: TacticContext, tactic: str,
+             new_in_data: TacticContext,
+             arg_values: argparse.Namespace) -> bool:
+    stem, args_string = serapi_instance.split_tactic(tactic)
+    args = args_string.strip()[:-1].split()
+    return len(args) >= int(num_str)
+
+
 def max_args(num_str : str,
-             in_data: ContextData, tactic : str,
-             new_in_data : ContextData,
+             in_data: TacticContext, tactic : str,
+             new_in_data : TacticContext,
              arg_values : argparse.Namespace) -> bool:
     stem, args_string  = serapi_instance.split_tactic(tactic)
     args = args_string.strip()[:-1].split()
     return len(args) <= int(num_str)
 
-def numeric_args(in_data : ContextData, tactic : str,
-                 next_in_data : ContextData,
+def numeric_args(in_data : TacticContext, tactic : str,
+                 next_in_data : TacticContext,
                  arg_values : argparse.Namespace) -> bool:
-    goal = in_data["goal"]
-    goal_words = get_symbols(cast(str, goal))
+    goal_words = get_symbols(in_data.goal)
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
@@ -127,17 +140,21 @@ def numeric_args(in_data : ContextData, tactic : str,
             return False
     return True
 
-def args_token_in_goal(in_data : ContextData, tactic : str,
-                       next_in_data : ContextData,
+def args_token_in_goal(in_data : TacticContext, tactic : str,
+                       next_in_data : TacticContext,
                        arg_values : argparse.Namespace) -> bool:
-    goal = in_data["goal"]
-    goal_words = get_symbols(cast(str, goal))[:arg_values.max_length]
+    goal_words = get_symbols(in_data.goal)[:arg_values.max_length]
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
         if not arg in goal_words:
             return False
     return True
+
+def relevant_lemma_args(in_data : TacticContext, tactic : str,
+                        next_in_data : TacticContext,
+                        arg_values : argparse.Namespace) -> bool:
+    return args_vars_in_list(tactic, in_data.relevant_lemmas)
 
 def get_subexprs(text : str) -> List[str]:
     def inner() -> Iterable[str]:
@@ -217,7 +234,7 @@ def get_context_filter(specstr : str) -> ContextFilter:
             assert all([operator == "+" for operator in pieces[1::2]])
             return filter_or(*[get_context_filter(substr) for substr in pieces[::2]])
 
-ParamterizedFilterFunc = Callable[[str, ContextData, str, ContextData, argparse.Namespace], bool]
+ParamterizedFilterFunc = Callable[[str, TacticContext, str, TacticContext, argparse.Namespace], bool]
 PrefixEntry = Tuple[str, ParamterizedFilterFunc, str]
 special_prefixes : List[PrefixEntry] \
     = [
@@ -226,6 +243,7 @@ special_prefixes : List[PrefixEntry] \
         ("~tactic:", lambda *args: not tactic_literal(*args), "<tacticname>"),
         ("~etactic:", lambda *args: not tactic_eliteral(*args), "<tacticname>"),
         ("maxargs:", max_args, "<number>"),
+        ("minargs:", min_args, "<number>"),
     ]
 
 def get_prefix_argstr(prefix_entry : PrefixEntry):
@@ -249,5 +267,6 @@ context_filters : Dict[str, ContextFilter] = {
     "no-args": filter_and(no_args, no_compound_or_bullets),
     "hyp-args":filter_and(args_vars_in_context, no_compound_or_bullets),
     "goal-args" : args_token_in_goal,
+    "rel-lemma-args" : relevant_lemma_args,
     "numeric-args" : numeric_args,
 }

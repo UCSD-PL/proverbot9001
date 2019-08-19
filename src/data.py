@@ -241,22 +241,30 @@ def get_text_data(arg_values: Namespace) -> RawDataset:
     _print("Reading dataset...", end="")
     sys.stdout.flush()
     raw_data = RawDataset(list(read_text_data(arg_values.scrape_file)))
-    filtered_data = RawDataset(list(itertools.islice(filter_data(raw_data, get_context_filter(arg_values.context_filter), arg_values), arg_values.max_tuples)))
+    filtered_data = RawDataset(list(itertools.islice(
+        preprocess_data(arg_values,
+                        filter_data(raw_data,
+                                    get_context_filter(arg_values.
+                                                       context_filter),
+                                    arg_values)),
+        arg_values.max_tuples)))
     _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
 
-def filter_data(data : RawDataset, pair_filter : ContextFilter,
-                arg_values : Namespace) -> Iterable[ScrapedTactic]:
-    return (ScrapedTactic(relevant_lemmas, prev_tactics, hyps, goal, tactic)
-            for ((relevant_lemmas, prev_tactics, hyps, goal, tactic),
-                 (next_relevant_lemmas, next_prev_tactics, next_hyps,
-                  next_goal, next_tactic)) in
+
+import argparse
+ContextFilter = Callable[[TacticContext, str, TacticContext, argparse.Namespace], bool]
+
+
+def filter_data(data: RawDataset, pair_filter: ContextFilter,
+                arg_values: Namespace) -> Iterable[ScrapedTactic]:
+    return (scraped
+            for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [(None, None, None, None, None)]))
-            if pair_filter({"goal": goal, "hyps" : hyps}, tactic,
-                           {"goal": next_goal, "hyps" : next_hyps},
-                           arg_values))
+                                      [([], [], [], "", "hey")]))
+            if pair_filter(strip_scraped_output(scraped), scraped.tactic,
+                           strip_scraped_output(next_scraped), arg_values))
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
