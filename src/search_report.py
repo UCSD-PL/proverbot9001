@@ -226,7 +226,7 @@ def write_summary_html(filename : Path2,
                                                    combined_stats.num_proofs))
                     line('td', stringified_percent(combined_stats.num_proofs_failed,
                                                    combined_stats.num_proofs))
-    with open(filename, "w") as fout:
+    with filename.open("w") as fout:
         fout.write(doc.getvalue())
 
 import csv
@@ -244,7 +244,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                   cur_commit : str, cur_date : datetime.datetime,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
-    write_summary_html("{}/report.html".format(args.output),
+    write_summary_html(args.output / "report.html",
                        options, cur_commit, cur_date, individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
     write_proof_summary_csv(args.output, [s.filename for s in individual_stats])
