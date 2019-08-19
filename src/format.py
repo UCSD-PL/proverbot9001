@@ -86,7 +86,7 @@ def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
                 hyps.append(line.strip())
         try:
             goal = next(lines_it)
-            assert next(lines_it) == "+++++\n"
+            assert next(lines_it) == "+++++\n", lines
             tactic = next(lines_it)
             return ScrapedTactic(prev_tactics=prev_tactics, hypotheses=hyps,
                                  goal=goal, tactic=tactic)

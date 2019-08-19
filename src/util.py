@@ -213,7 +213,10 @@ def sighandler_context(signal, f):
     old_handler = sig.signal(signal, f)
     yield
     sig.signal(signal, old_handler)
+
+
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
+
 
 def split_to_next_matching(openpat : str, closepat : str, target : str) \
     -> Tuple[str, str]:

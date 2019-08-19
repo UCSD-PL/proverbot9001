@@ -20,32 +20,34 @@
 #
 ##########################################################################
 
-import pdb
 import re
 import itertools
 import multiprocessing
 import functools
 import sys
 import time
-import pickle
+import io
+from abc import ABCMeta
+from dataclasses import dataclass
+
 from argparse import Namespace
 from itertools import chain
-from sparse_list import SparseList # type: ignore
+from sparse_list import SparseList  # type: ignore
 import random
+import torch
+
 from tokenizer import Tokenizer, TokenizerState, \
     make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
 from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple
 from models.components import SimpleEmbedding
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
-                    Sized, Sequence, Dict, Generic)
-from abc import ABCMeta
-from dataclasses import dataclass
-from util import *
-from context_filter import ContextFilter, get_context_filter
+                    Sized, Sequence, Dict, Generic, Iterable, TypeVar,
+                    Any)
+from util import eprint, chunks
+from context_filter import get_context_filter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
-
 TOKEN_START = 2
 SOS_token = 1
 EOS_token = 0
@@ -206,13 +208,16 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
                 t = read_tactic_tuple(f)
     return RawDataset(list(worker_generator()))
 
-def read_text_data(data_path : Path2) -> Iterable[ScrapedTactic]:
+
+def read_text_data(data_path: Path2) -> Iterable[ScrapedTactic]:
     with multiprocessing.Pool(None) as pool:
         line_chunks = file_chunks(data_path, 32768)
         data_chunks = pool.imap(read_text_data_worker__, line_chunks)
         result = itertools.chain.from_iterable(data_chunks)
         yield from result
-def get_text_data(arg_values : Namespace) -> RawDataset:
+
+
+def get_text_data(arg_values: Namespace) -> RawDataset:
     def _print(*args, **kwargs):
         eprint(*args, **kwargs, guard=arg_values.verbose)
 

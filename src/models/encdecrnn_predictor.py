@@ -34,8 +34,8 @@ import itertools
 from tokenizer import KeywordTokenizer, context_keywords, tactic_keywords
 from data import get_text_data, encode_seq_seq_data, Sentence, \
     SequenceSequenceDataset, EOS_token, SOS_token
-from util import *
-from util import _inflate
+from util import (_inflate, maybe_cuda, LongTensor, timeSince,
+                  FloatTensor)
 
 import torch
 import torch.nn as nn
@@ -195,7 +195,7 @@ def commandLinePredict(predictor : EncDecRNNPredictor, k : int) -> None:
     while next_line != "+++++\n":
         sentence += next_line
         next_line = sys.stdin.readline()
-    for result in predictor.predictKTactics(TacticContext([], [], sentence), k):
+    for result in predictor.predictKTactics(TacticContext([], [], [], sentence), k):
         print(result)
 
 def adjustLearningRates(initial : float,

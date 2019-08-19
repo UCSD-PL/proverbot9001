@@ -21,7 +21,7 @@ from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
     cast, TypeVar, NewType
 from pathlib_revised import Path2
 
-from data import file_chunks, filter_data
+from data import file_chunks, filter_data, strip_scraped_output
 from context_filter import get_context_filter
 from serapi_instance import get_stem, try_load_lin, load_commands_preserve
 import serapi_instance
@@ -151,9 +151,7 @@ def report_file(args : argparse.Namespace,
         total_loss = 0.
         for tactic_interaction in tactic_interactions:
             assert isinstance(tactic_interaction.goal, str)
-        inputs = [TacticContext(tactic_interaction.prev_tactics,
-                                tactic_interaction.hypotheses,
-                                format_goal(tactic_interaction.goal))
+        inputs = [strip_scraped_output(tactic_interaction)
                   for tactic_interaction in tactic_interactions]
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]
