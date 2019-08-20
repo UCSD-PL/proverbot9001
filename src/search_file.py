@@ -139,6 +139,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
+    parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
+                        action='store_false')
     parser.add_argument("--search-width", dest="search_width", type=int, default=5)
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=6)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
