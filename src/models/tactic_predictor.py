@@ -11,6 +11,7 @@ from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
                   EmbeddedDataset, StrictEmbeddedDataset,
                   LazyEmbeddedDataset, DatasetMetadata, tokenize_data,
                   TOKEN_START)
+from os import path
 
 class Prediction(NamedTuple):
     prediction : str
@@ -206,7 +207,7 @@ import torch.optim.lr_scheduler as scheduler
 from torch import optim
 import torch.nn as nn
 from util import *
-from util import chunks
+from util import chunks, maybe_cuda
 from models.components import NeuralPredictorState
 
 optimizers = {
@@ -426,8 +427,6 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
             return results, loss
         pass
 
-from os import path
-from typing import cast, BinaryIO
 def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
@@ -466,7 +465,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                                  lr=arg_values.learning_rate)
     adjuster = scheduler.StepLR(optimizer, arg_values.epoch_step,
                                 gamma=arg_values.gamma)
-    training_start=time.time()
+    training_start = time.time()
     print("Training...")
     for epoch in range(epoch_start, arg_values.num_epochs + 1):
         adjuster.step()
@@ -510,6 +509,7 @@ def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
 
 import os.path
 
+Sentence = List[int]
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace,
                    tokenizer:Optional[Tokenizer]=None) \
     -> Tuple[Tokenizer, List[Sentence]]:
@@ -530,7 +530,7 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace,
                 subset = random.sample(data, args.num_relevance_samples)
             tokenizer = make_keyword_tokenizer_relevance(
                 [(goal, next_tactic) for
-                 prev_tactics, hypotheses, goal, next_tactic in subset],
+                 relevant_lemmas, prev_tactics, hypotheses, goal, next_tactic in subset],
                 tokenizers[args.tokenizer], args.num_keywords, TOKEN_START, args.num_threads)
             print("{}s".format(time.time() - start))
     if args.save_tokens:
@@ -544,7 +544,8 @@ def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace,
     sys.stdout.flush()
     tokenized_data = tokenize_data(tokenizer, data, args.num_threads)
     print("{:.2f}s".format(time.time() - start))
-    return tokenizer, [goal for prev_tactics, hypotheses, goal, tactic in tokenized_data]
+    return tokenizer, [goal for rel_lemmas, prev_tactics,
+                       hypotheses, goal, tactic in tokenized_data]
 
 def tokenize_hyps(data : RawDataset, args : Namespace, tokenizer : Tokenizer) \
     -> List[List[Sentence]]:

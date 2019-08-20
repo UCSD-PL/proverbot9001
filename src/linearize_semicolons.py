@@ -204,7 +204,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 assert isinstance(pending_commands_stack[-1], list)
                 pending_cmd_lst = pending_commands_stack[-1]
                 old_selected_cmd = pending_cmd_lst[goal_num - 2]
-                cmd_before_period = re.match("(.*)\.$", old_selected_cmd).group(1)
+                cmd_before_period = unwrap(re.match("(.*)\.$", old_selected_cmd)).group(1)
                 new_selected_cmd = f"{cmd_before_period} ; {rest}."
                 pending_cmd_lst[goal_num - 2] = new_selected_cmd
             continue

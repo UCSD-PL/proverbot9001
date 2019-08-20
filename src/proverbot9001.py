@@ -20,7 +20,6 @@
 #
 ##########################################################################
 
-import pdb
 import signal
 import sys
 from tokenizer import tokenizers
@@ -32,16 +31,17 @@ import data
 import itertools
 import serapi_instance
 import features
-from util import *
-from models.tactic_predictor import strip_scraped_output
+from util import eprint
 from models.components import SimpleEmbedding
 from predict_tactic import trainable_modules
 from pathlib_revised import Path2
 
 from typing import Dict, Callable, List
 
+
 def exit_early(signal, frame):
     sys.exit(0)
+
 
 def main():
     signal.signal(signal.SIGINT, exit_early)
@@ -96,18 +96,18 @@ def get_data(args : List[str]) -> None:
                   end="\\n\n" if arg_values.lineend else "\n")
     elif arg_values.format == "goals":
         dataset = data.get_text_data(arg_values)
-        for prev_tactics, hyps, goal, tactic in dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             print(goal)
     elif arg_values.format =="hyps+goal":
         dataset = data.get_text_data(arg_values)
-        for prev_tactics, hyps, goal, tactic in dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
                 print(hyp)
             print("================================")
             print(goal)
     elif arg_values.format =="hyps+goal+tactic":
         dataset = data.get_text_data(arg_values)
-        for prev_tactics, hyps, goal, tactic in dataset:
+        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
                 print(hyp)
             print("================================")
@@ -120,7 +120,7 @@ def get_data(args : List[str]) -> None:
         eprint("Encoding tactics...", guard=arg_values.verbose)
         answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
                    for datum in dataset]
-        stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
+        stripped_data = [data.strip_scraped_output(scraped) for scraped in dataset]
         eprint("Constructing features...", guard=arg_values.verbose)
         word_feature_functions = [word_feature_constructor(stripped_data, arg_values) # type: ignore
                                   for word_feature_constructor in features.word_feature_constructors]
@@ -132,7 +132,7 @@ def get_data(args : List[str]) -> None:
         vec_features = [[feature_val for feature in
                          vec_features_functions
                          for feature_val in feature(c)]
-                         for c in stripped_data]
+                        for c in stripped_data]
         eprint("Done", guard=arg_values.verbose)
         for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
             print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))

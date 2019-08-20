@@ -754,14 +754,14 @@ class SerapiInstance(threading.Thread):
 
     @property
     def goals(self) -> str:
-        if self.proof_context.fg_goals:
+        if self.proof_context and self.proof_context.fg_goals:
             return self.proof_context.fg_goals[0].goal
         else:
             return ""
 
     @property
     def hypotheses(self) -> List[str]:
-        if self.proof_context.fg_goals:
+        if self.proof_context and self.proof_context.fg_goals:
             return self.proof_context.fg_goals[0].hypotheses
         else:
             return []
