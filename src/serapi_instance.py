@@ -38,7 +38,7 @@ from pampy import match, _, TAIL
 from sexpdata import *
 from traceback import *
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
-                  hash_file, sighandler_context)
+                  hash_file, sighandler_context, unwrap)
 from format import ScrapedTactic
 import tokenizer
 
@@ -280,8 +280,8 @@ class SerapiInstance(threading.Thread):
 
         if lemma_match:
             lemma_name = lemma_match.group(1)
-            binders, body = split_by_char_outside_matching("\(", "\)", ":",
-                                                           lemma_match.group(2))
+            binders, body = unwrap(split_by_char_outside_matching(r"\(", r"\)", ":",
+                                                                  lemma_match.group(2)))
             if binders.strip():
                 lemma_statement = lemma_name + " : forall " + binders + ", " + body[1:]
             else:

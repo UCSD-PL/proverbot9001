@@ -651,8 +651,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                 context_before = coq.proof_context or ProofContext([],[],[],[])
                 if re.match("\s*Hypothesis", saved_command) and \
                    re.match("\s*Let", peek_loaded()):
-                    status_marker = re.search("(\(\*(?:INCOMPLETE|FAILURE)\*\))",
-                                              saved_command).group(1)
+                    status_marker = unwrap(re.search("(\(\*(?:INCOMPLETE|FAILURE)\*\))",
+                                                     saved_command)).group(1)
 
                     svfile_commands = [peek_loaded(), "Proof.",
                                        f"Admitted {status_marker}."] + \
