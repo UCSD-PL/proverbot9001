@@ -305,6 +305,8 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
         training_start=time.time()
 
         print("Training...")
+        for epoch in range(1, epoch_start):
+            adjuster.step()
         for epoch in range(epoch_start, arg_values.num_epochs + 1):
             adjuster.step()
             print("Epoch {} (learning rate {:.6f})".format(epoch, optimizer.param_groups[0]['lr']))
@@ -485,6 +487,8 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                 gamma=arg_values.gamma)
     training_start=time.time()
     print("Training...")
+    for epoch in range(1, epoch_start):
+        adjuster.step()
     for epoch in range(epoch_start, arg_values.num_epochs + 1):
         adjuster.step()
         print("Epoch {} (learning rate {:.6f})"
