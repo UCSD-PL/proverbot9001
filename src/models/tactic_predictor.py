@@ -84,24 +84,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
     @abstractmethod
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[DatasetType, MetadataType]: pass
-    def _preprocess_data(self, text_dataset : RawDataset, arg_values : Namespace) \
-        -> Iterable[ScrapedTactic]:
-        if arg_values.use_substitutions:
-            start = time.time()
-            print("Preprocessing...", end="")
-            sys.stdout.flush()
-            substitutions = {"auto": "eauto.",
-                             "intros until": "intros.",
-                             "intro": "intros.",
-                             "constructor": "econstructor."}
-            with multiprocessing.Pool(arg_values.num_threads) as pool:
-                iterator = pool.imap(
-                    functools.partial(tactic_substitutions, substitutions),
-                    text_dataset)
-                yield from iterator
-            print("{:.2f}s".format(time.time() - start))
-        else:
-            yield from text_dataset
+
     @abstractmethod
     def _optimize_model_to_disc(self,
                                 encoded_data : DatasetType,
@@ -164,14 +147,13 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         -> DatasetType:
         pass
 
-        preprocessed_data = self._preprocess_data(data, args)
     def _encode_data(self, data: RawDataset, args: Namespace) \
             -> Tuple[DatasetType, TokenizerEmbeddingState]:
         embedding = SimpleEmbedding()
-        embedded_data : EmbeddedDataset
+        embedded_data: EmbeddedDataset
         with multiprocessing.Pool(args.num_threads) as pool:
             stemmed_data = pool.imap(
-                stemmify_data, preprocessed_data, chunksize=10240)
+                stemmify_data, data, chunksize=10240)
             lazy_embedded_data = LazyEmbeddedDataset((
                 EmbeddedSample(prev_tactics, hypotheses, goal,
                                embedding.encode_token(tactic))

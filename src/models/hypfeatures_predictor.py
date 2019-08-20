@@ -144,18 +144,17 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[HypFeaturesDataset, Tuple[Tokenizer, Embedding,
                                            List[WordFeature], List[VecFeature]]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
         start = time.time()
         print("Stripping...", end="")
         sys.stdout.flush()
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        stripped_data = [strip_scraped_output(dat) for dat in data]
         print("{:.2f}s".format(time.time() - start))
-        self._word_feature_functions  = [feature_constructor(stripped_data, arg_values) for # type: ignore
-                                       feature_constructor in
+        self._word_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
+                                        feature_constructor in
                                         word_feature_constructors]
         self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in vec_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        embedding, embedded_data = embed_data(data)
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
@@ -164,7 +163,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             tokenized_hyps = list(pool.imap(functools.partial(get_closest_hyp_type,
                                                               tokenizer,
                                                               arg_values.max_length),
-                                            preprocessed_data))
+                                            data))
             print("{:.2f}s".format(time.time() - start))
             start = time.time()
             print("Creating dataset...", end="")

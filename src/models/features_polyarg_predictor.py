@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -11,6 +12,7 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample, EOS_token)
 from util import *
 from format import ScrapedTactic, TacticContext, strip_scraped_output
+import time
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
@@ -427,30 +429,25 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("max-length", 30))
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 5))
-    def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Iterable[ScrapedTactic]:
-        data_iter = super()._preprocess_data(data, arg_values)
-        yield from map(serapi_instance.normalizeNumericArgs, data_iter)
-
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
         embedding : Embedding
         tokenizer : Tokenizer
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
         if arg_values.start_from:
             predictor_name, (loaded_args, metadata, predictor_state) = \
                 torch.load(arg_values.start_from)
             assert predictor_name == "polyarg"
             tokenizer, embedding, wfeats, vfeats = metadata
             print(f"{embedding.num_tokens()} tokens in loaded embedding")
-            _, embedded_data = embed_data(RawDataset(preprocessed_data), embedding)
-            _, tokenized_goals = tokenize_goals(embedded_data, arg_values, tokenizer)
+            _, embedded_data = embed_data(data, embedding)
+            _, tokenized_goals = tokenize_goals(embedded_data,
+                                                arg_values, tokenizer)
             self._word_feature_functions = wfeats
             self._vec_feature_functions = vfeats
         else:
             stripped_data = [strip_scraped_output(dat)
-                             for dat in preprocessed_data]
+                             for dat in data]
             self._word_feature_functions = \
                 [feature_constructor(stripped_data, arg_values)  # type: ignore
                  for feature_constructor in
@@ -458,8 +455,9 @@ class FeaturesPolyargPredictor(
             self._vec_feature_functions = \
                 [feature_constructor(stripped_data, arg_values) for # type: ignore
                  feature_constructor in vec_feature_constructors]
-            embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
-            tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
+            embedding, embedded_data = embed_data(data)
+            tokenizer, tokenized_goals = tokenize_goals(embedded_data,
+                                                        arg_values)
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
             print("Creating dataset...", end="")
@@ -470,7 +468,7 @@ class FeaturesPolyargPredictor(
                                   arg_values.max_length,
                                   self._word_feature_functions,
                                   self._vec_feature_functions),
-                zip(preprocessed_data, tokenized_goals))))
+                zip(data, tokenized_goals))))
             print("{:.2f}s".format(time.time() - start))
         assert self._word_feature_functions
         assert self._vec_feature_functions

@@ -306,28 +306,22 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                             default=default_values.get("num-head-keywords", 100))
         parser.add_argument("--num-tactic-keywords", dest="num_tactic_keywords", type=int,
                             default=default_values.get("num-tactic-keywords", 50))
-    def _preprocess_data(self, data : RawDataset, arg_values : Namespace) \
-        -> Iterable[ScrapedTactic]:
-        data_iter = super()._preprocess_data(data, arg_values)
-        yield from map(serapi_instance.normalizeNumericArgs, data_iter)
-
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[CopyArgDataset, Tuple[Tokenizer, Embedding,
                                        List[WordFeature], List[VecFeature]]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        for datum in preprocessed_data:
+        for datum in data:
             assert not re.match("induction\s+\d+\.", datum.tactic)
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        stripped_data = [strip_scraped_output(dat) for dat in data]
         self._word_feature_functions  = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in
                                         word_feature_constructors]
         self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in vec_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        embedding, embedded_data = embed_data(data)
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             arg_idxs = pool.imap(functools.partial(get_arg_idx, arg_values.max_length),
-                                 preprocessed_data)
+                                 data)
 
             start = time.time()
             print("Creating dataset...", end="")

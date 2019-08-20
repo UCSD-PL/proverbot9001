@@ -36,10 +36,13 @@ from sparse_list import SparseList  # type: ignore
 import random
 import torch
 
-from tokenizer import Tokenizer, TokenizerState, \
-    make_keyword_tokenizer_relevance, make_keyword_tokenizer_topk, tokenizers, get_words
-from format import read_tactic_tuple, ScrapedTactic, ScrapedCommand, read_tuple, TacticContext
+from tokenizer import (Tokenizer, TokenizerState,
+                       make_keyword_tokenizer_relevance,
+                       make_keyword_tokenizer_topk, tokenizers)
+from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
+                    read_tuple, TacticContext)
 from models.components import SimpleEmbedding
+import serapi_instance
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
@@ -222,6 +225,32 @@ def read_text_data(data_path: Path2) -> Iterable[ScrapedTactic]:
         yield from result
 
 
+def preprocess_data(arg_values: Namespace, dataset_iter:
+                    Iterable[ScrapedTactic]) \
+                    -> Iterable[ScrapedTactic]:
+    with multiprocessing.Pool(arg_values.num_threads) as pool:
+        if arg_values.truncate_semicolons:
+            dataset_iter = pool.imap(truncate_tactic_semicolons,
+                                     dataset_iter)
+        if arg_values.use_substitutions:
+            substitutions = {"auto": "eauto.",
+                             "intros until": "intros.",
+                             "intro": "intros.",
+                             "constructor": "econstructor."}
+            dataset_iter = pool.imap(
+                functools.partial(tactic_substitutions, substitutions),
+                dataset_iter)
+        dataset_iter = pool.imap(
+            serapi_instance.normalizeNumericArgs, dataset_iter)
+        start = time.time()
+        eprint("Preprocessing...", end="")
+        sys.stderr.flush()
+        dataset_list = list(dataset_iter)
+        print("{:.2f}s".format(time.time() - start))
+
+    return dataset_list
+
+
 def get_text_data(arg_values: Namespace) -> RawDataset:
     def _print(*args, **kwargs):
         eprint(*args, **kwargs, guard=arg_values.verbose)
@@ -402,3 +431,10 @@ def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic)
     return ScrapedTactic(prev_tactics, hyps, goal,
                          tactic if get_stem(tactic) not in substitutions
                          else substitutions[get_stem(tactic)])
+
+
+def truncate_tactic_semicolons(sample: ScrapedTactic) \
+        -> ScrapedTactic:
+    rl, pt, hyp, goal, tactic = sample
+    return ScrapedTactic(rl, pt, hyp, goal,
+                         re.sub(";.*", ".", tactic))
