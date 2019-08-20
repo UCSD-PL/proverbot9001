@@ -94,13 +94,12 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
             serapi_instance.get_first_var_in_hyp(relevant_hyp)
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[HypStemDataset, Tuple[Tokenizer, Embedding]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        embedding, embedded_data = embed_data(data)
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         print("Encoding hyps...")
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             relevant_hyps, relevances = \
-                zip(*list(pool.imap(most_relevant_hyp, preprocessed_data)))
+                zip(*list(pool.imap(most_relevant_hyp, data)))
         encoded_relevant_hyps = [getNGramTokenbagVector(arg_values.num_grams,
                                                         tokenizer.numTokens(),
                                                         tokenizer.toTokenList(hyp_term))

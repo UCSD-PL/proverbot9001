@@ -138,13 +138,12 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
                             default=default_values.get("word_embedding_size", 10))
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesDataset, Tuple[Embedding, List[VecFeature], List[WordFeature]]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        stripped_data = [strip_scraped_output(dat) for dat in data]
         self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in vec_feature_constructors]
         self._word_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
-                                       feature_constructor in word_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+                                        feature_constructor in word_feature_constructors]
+        embedding, embedded_data = embed_data(data)
         return (FeaturesDataset([
             FeaturesSample(self._get_vec_features(strip_scraped_output(scraped)),
                            self._get_word_features(strip_scraped_output(scraped)),

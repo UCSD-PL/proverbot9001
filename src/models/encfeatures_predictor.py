@@ -186,13 +186,12 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[EncFeaturesDataset, Tuple[Tokenizer, Embedding,
                                            List[VecFeature], List[WordFeature]]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        stripped_data = [strip_scraped_output(dat) for dat in data]
         self._vec_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in vec_feature_constructors]
         self._word_feature_functions = [feature_constructor(stripped_data, arg_values) for # type: ignore
                                        feature_constructor in word_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        embedding, embedded_data = embed_data(data)
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
         result_data = EncFeaturesDataset([EncFeaturesSample(
             self._get_vec_features(TacticContext([], prev_tactics, hypotheses, goal)),

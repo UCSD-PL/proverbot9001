@@ -83,11 +83,10 @@ class FeaturesSVMPredictor(TrainablePredictor[FeaturesDataset,
                 for feature_val in feature(context)]
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesDataset, Tuple[Embedding, List[VecFeature]]]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        stripped_data = [strip_scraped_output(dat) for dat in preprocessed_data]
+        stripped_data = [strip_scraped_output(dat) for dat in data]
         self._feature_functions = [feature_constructor(stripped_data, arg_values) for
                                    feature_constructor in vec_feature_constructors]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        embedding, embedded_data = embed_data(data)
         return (FeaturesDataset([
             FeaturesSample(self._get_features(strip_scraped_output(scraped)),
                            scraped.tactic)

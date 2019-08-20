@@ -206,7 +206,7 @@ class KNNPredictor(TrainablePredictor[ClassifyBagDataset, KNNMetadata, NearnessT
     def _encode_data(self, data : RawDataset, arg_values : argparse.Namespace) \
         -> Tuple[ClassifyBagDataset, KNNMetadata]:
         samples, tokenizer, embedding = \
-            encode_bag_classify_data(RawDataset(list(self._preprocess_data(data, arg_values))),
+            encode_bag_classify_data(data,
                                      tokenizers[arg_values.tokenizer],
                                      arg_values.num_keywords, 2)
         return samples, KNNMetadata(embedding, tokenizer, arg_values.tokenizer,

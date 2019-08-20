@@ -125,12 +125,10 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[ApplyDataset, Tokenizer]:
-        preprocessed_data = list(self._preprocess_data(data, arg_values))
-        isRelevants = [self._determine_relevance(inter) for inter in preprocessed_data]
-        embedding, embedded_data = embed_data(RawDataset(preprocessed_data))
+        isRelevants = [self._determine_relevance(inter) for inter in data]
+        embedding, embedded_data = embed_data(data)
         tokenizer, tokenized_goals = tokenize_goals(embedded_data, arg_values)
-        tokenized_hyp_lists = tokenize_hyps(RawDataset(preprocessed_data), arg_values,
-                                            tokenizer)
+        tokenized_hyp_lists = tokenize_hyps(data, arg_values, tokenizer)
         with multiprocessing.Pool(None) as pool:
             encoded_hyp_lists = list(pool.imap(functools.partial(encodeHypList,
                                                                  arg_values.num_grams,
