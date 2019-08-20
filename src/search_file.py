@@ -20,17 +20,14 @@
 #
 ##########################################################################
 import argparse
-import subprocess
 import os
 import sys
-import multiprocessing
 import re
 import datetime
 import time
-import functools
-import shutil
 import csv
-from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict, Union, Iterator
+from typing import (List, Tuple, NamedTuple, Optional, Dict,
+                    Union, Iterator, Callable, Iterable)
 
 from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -39,9 +36,11 @@ import serapi_instance
 from serapi_instance import ProofContext, Obligation
 
 import linearize_semicolons
-import syntax
-from format import format_goal, TacticContext
-from util import *
+# import syntax
+from format import TacticContext
+from util import (unwrap, eprint, escape_filename, mybarfmt,
+                  split_by_char_outside_matching, nostderr)
+import itertools
 
 from tqdm import tqdm
 from yattag import Doc
