@@ -47,7 +47,7 @@ def main():
     parser.add_argument('-c', '--continue', dest='cont', default=False, const=True, action='store_const')
     parser.add_argument('--hardfail', default=False, const=True, action='store_const')
     parser.add_argument('--prelude', default=".")
-    parser.add_argument('-v', '--verbose', default=False, const=True, action='store_const')
+    parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
@@ -55,7 +55,6 @@ def main():
                     dest='skip_nochange_tac')
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
-
 
     includes=subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                               stdout=subprocess.PIPE).communicate()[0]\
@@ -102,7 +101,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             serapi_instance.save_lin(commands, full_filename)
 
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.debug = args.debug
+            coq.verbose = args.verbose
             try:
                 with open(result_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stdout,

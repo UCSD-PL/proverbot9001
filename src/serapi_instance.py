@@ -255,7 +255,7 @@ class SerapiInstance(threading.Thread):
         # messages from serapi.
         self.message_queue = queue.Queue() # type: queue.Queue[Sexp]
         # Set the debug flag to default to false.
-        self.debug = False
+        self.verbose = 0
         # Set the "extra quiet" flag (don't print on failures) to false
         self.quiet = False
         # Start the message queue thread
@@ -343,7 +343,7 @@ class SerapiInstance(threading.Thread):
             self.timeout = timeout
         assert self.message_queue.empty(), self.messages
         eprint("Running statement: " + stmt.lstrip('\n'),
-               guard=self.debug) # lstrip makes output shorter
+               guard=self.verbose) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
         # too early.
         stmt = stmt.replace("\\", "\\\\")
@@ -405,7 +405,7 @@ class SerapiInstance(threading.Thread):
 
     def handle_exception(self, e : Exception, stmt : str):
         eprint("Problem running statement: {}\n{}".format(stmt, e),
-               guard=(not self.quiet or self.debug))
+               guard=(not self.quiet or self.verbose))
         match(e,
               TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                                 self.cancel_last(), # type: ignore
@@ -503,13 +503,13 @@ class SerapiInstance(threading.Thread):
             old_subgoals = context_before.fg_goals
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
-                   guard=self.debug)
+                   guard=self.verbose)
         else:
             cancelled = ""
             old_subgoals = []
             eprint(f"Cancelling vernac "
                    f"from state {self.cur_state}",
-                   guard=self.debug)
+                   guard=self.verbose)
         # Run the cancel
         self.send_acked("(Cancel ({}))".format(self.cur_state))
         # Get the response from cancelling
@@ -640,7 +640,7 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
             return msg
         except queue.Empty:
-            eprint("Command timed out! Interrupting", guard=self.debug)
+            eprint("Command timed out! Interrupting", guard=self.verbose)
             self._proc.send_signal(signal.SIGINT)
             num_breaks = 1
             try:

@@ -110,7 +110,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
         try:
             batch_handled = list(handle_with(command_batch, with_tactic))
             linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
-                                                       args.debug, skip_nochange_tac))
+                                                       args.verbose, skip_nochange_tac))
             yield from linearized_commands
         except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
             eprint("Aborting current proof linearization!")
@@ -131,7 +131,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
 def linearize_proof(coq : serapi_instance.SerapiInstance,
                     theorem_name : str,
                     command_batch : List[str],
-                    debug:bool=False,
+                    verbose:int=0,
                     skip_nochange_tac:bool=False) -> Iterable[str]:
     pending_commands_stack : List[Union[str, List[str], None]] = []
     while command_batch:
@@ -186,7 +186,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
             continue
 
         command = command_proper
-        if debug:
+        if verbose >= 2:
             eprint(f"Linearizing command \"{command}\"")
 
         goal_selector_match = re.match(r"\s*(\d*)\s*:\s*(.*)\.\s*", command)
@@ -436,7 +436,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              skip_nochange_tac : bool) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.debug = args.debug
+            coq.verbose = args.verbose
             with tqdm(file=sys.stdout,
                       disable=not args.progress,
                       position=(file_idx * 2),
@@ -483,7 +483,7 @@ def main():
     parser.add_argument('--prelude', default=".")
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument('--hardfail', default=False, const=True, action='store_const')
-    parser.add_argument('--verbose', default=False, const=True, action='store_const')
+    parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
     parser.add_argument("--progress",
