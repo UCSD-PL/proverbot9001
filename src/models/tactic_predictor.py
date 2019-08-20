@@ -47,7 +47,7 @@ from pathlib_revised import Path2
 DatasetType = TypeVar('DatasetType')
 RestrictedDatasetType = TypeVar('RestrictedDatasetType', bound=Sized)
 MetadataType = TypeVar('MetadataType')
-StateType = TypeVar('StateType')
+StateType = TypeVar('StateType', bound=PredictorState)
 
 class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, StateType],
                          metaclass=ABCMeta):
@@ -211,7 +211,7 @@ from torch import optim
 import torch.nn as nn
 from util import *
 from util import chunks, maybe_cuda
-from models.components import NeuralPredictorState
+from models.components import NeuralPredictorState, PredictorState
 
 optimizers = {
     "SGD": optim.SGD,

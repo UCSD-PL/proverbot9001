@@ -251,7 +251,11 @@ optimizers = {
 }
 
 @dataclass(init=True)
-class NeuralPredictorState:
+class PredictorState:
+    epoch : int
+
+@dataclass(init=True)
+class NeuralPredictorState(PredictorState):
     epoch : int
     loss : float
     weights : Dict[str, Any]
