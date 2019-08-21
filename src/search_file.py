@@ -193,7 +193,6 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     if args.resume:
         try:
-            eprint(f"filename: {args.filename}")
             check_csv_args(args, args.filename)
             with tqdm(total=1, unit="cmd", file=sys.stdout,
                       desc=args.filename.name + " (Resumed)",
@@ -664,11 +663,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                        not (serapi_instance.ending_proof(saved_command) or
                             re.match("\s*[}]", saved_command))):
                     coq.run_stmt(saved_command)
-                else:
-                    eprint(f"Skipping {saved_command}")
                 if coq.proof_context == None:
                     loaded_command = next(commands_in_iter)
-                    eprint(f"loaded command {loaded_command}")
                     if in_proof:
                         if not skip_sync_next_lemma:
                             num_proofs += 1
@@ -711,7 +707,6 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                 itertools.chain([loaded_command], commands_in_iter)))
                             coq.run_stmt(loaded_command)
                             num_original_commands_run += len(proof_cmds)
-                            eprint("Running original proof.")
                             for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                                   desc="Running original proof",
                                                   disable=(not args.progress),
@@ -721,7 +716,6 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                 coq.run_stmt(proof_cmd)
                                 origProofInters.append(
                                     TacticInteraction(proof_cmd, context_before_orig))
-                            eprint("Done with original proof.")
                             blocks_out.append(ProofBlock(curLemma,
                                                          ".".join(module_stack),
                                                          search_status,
