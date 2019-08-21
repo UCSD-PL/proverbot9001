@@ -43,6 +43,7 @@ import sys
 from argparse import Namespace
 from serapi_instance import get_stem
 from pathlib_revised import Path2
+from models.components import NeuralPredictorState, PredictorState
 
 DatasetType = TypeVar('DatasetType')
 RestrictedDatasetType = TypeVar('RestrictedDatasetType', bound=Sized)
@@ -211,7 +212,6 @@ from torch import optim
 import torch.nn as nn
 from util import *
 from util import chunks, maybe_cuda
-from models.components import NeuralPredictorState, PredictorState
 
 optimizers = {
     "SGD": optim.SGD,
