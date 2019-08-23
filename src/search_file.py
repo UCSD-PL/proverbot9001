@@ -148,6 +148,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
+    parser.add_argument("--max-proof-time", dest="max_proof_time",
+                        type=float, default=90)
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
@@ -318,7 +320,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
-                    coq.debug = args.debug
+                    coq.verbose = args.verbose
                     if args.resume and len(commands_run) == 0:
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
@@ -786,6 +788,7 @@ import pygraphviz as pgv
 
 class LabeledNode(NamedTuple): # type: ignore
     prediction : str
+    time_taken : Optional[float]
     node_id : int
     context_before : ProofContext
     previous : Optional["LabeledNode"]
@@ -806,7 +809,7 @@ class SearchGraph:
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
         self.__next_node_id += 1
-        newNode = LabeledNode(prediction, self.__next_node_id-1,
+        newNode = LabeledNode(prediction, None, self.__next_node_id-1,
                               context_before, previous_node)
         if previous_node:
             self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
@@ -863,10 +866,18 @@ def tryPrediction(args : argparse.Namespace,
                   g : SearchGraph,
                   predictionNode : LabeledNode) -> Tuple[ProofContext, int, int, int]:
     coq.quiet = True
+    time_on_path = 0
+    prev = predictionNode.previous
+    while prev != None:
+        time_on_path += prev.time_taken
+    time_left = args.max_proof_time - total_time
+    start_time = time.time()
     if coq.use_hammer:
-        coq.run_stmt(predictionNode.prediction, timeout=30)
+        coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 30))
     else:
-        coq.run_stmt(predictionNode.prediction, timeout=5)
+        coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 5))
+    time_taken = time.time() - start_time()
+    predictionNode.time_taken = time_taken
     num_stmts = 1
     subgoals_closed = 0
     if len(unwrap(coq.proof_context).fg_goals) == 0 and \
@@ -914,7 +925,7 @@ def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                                coq.goals),
                                  k)])
 
-goalBignessLimit = 100
+goalBignessLimit = 70
 def contextIsBig(context : ProofContext):
     for obligation in context.all_goals:
         for hypothesis in obligation.hypotheses:
