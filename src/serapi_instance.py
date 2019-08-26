@@ -29,6 +29,7 @@ from pathlib_revised import Path2
 import argparse
 import sys
 import signal
+import functools
 from dataclasses import dataclass
 
 from typing import List, Any, Optional, cast, Tuple, Union, Iterable
@@ -449,6 +450,7 @@ class SerapiInstance(threading.Thread):
     def flush_queue(self) -> None:
         while not self.message_queue.empty():
             self.get_message()
+    @functools.lru_cache(maxsize=128)
     def sexpStrToTermStr(self, sexp_str : str) -> str:
         answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {sexp_str}))")
         return match(normalizeMessage(answer),
