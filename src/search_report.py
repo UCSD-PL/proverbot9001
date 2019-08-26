@@ -79,6 +79,7 @@ def main(arg_list : List[str]) -> None:
     for filename in args.filenames:
         csv_args, result = read_stats_from_csv(args.output, filename)
         csv_args.debug = False
+        csv_args.verbose = 0
         csv_args.progress = False
         csv_args.filename = ""
         csv_args.output_dir = ""
