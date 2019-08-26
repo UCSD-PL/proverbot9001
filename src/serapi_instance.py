@@ -485,6 +485,7 @@ class SerapiInstance(threading.Thread):
         goal_str = self.sexpStrToTermStr(goal_term_str)
         hyps = [self.parseSexpHypStr(hyp_str) for hyp_str in
                 parseSexpOneLevel(hyps_list_str)]
+        return Obligation(hyps, goal_str)
 
     def parseSexpGoal(self, sexp) -> Obligation:
         goal_num, goal_term, hyps_list = \
