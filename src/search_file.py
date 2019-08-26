@@ -150,7 +150,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
     parser.add_argument("--max-proof-time", dest="max_proof_time",
-                        type=float, default=90)
+                        type=float, default=300)
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
