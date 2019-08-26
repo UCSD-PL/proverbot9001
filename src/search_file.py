@@ -870,13 +870,13 @@ def tryPrediction(args : argparse.Namespace,
     prev = predictionNode.previous
     while prev != None:
         time_on_path += prev.time_taken
-    time_left = args.max_proof_time - total_time
+    time_left = args.max_proof_time - time_on_path
     start_time = time.time()
     if coq.use_hammer:
         coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 30))
     else:
         coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 5))
-    time_taken = time.time() - start_time()
+    time_taken = time.time() - start_time
     predictionNode.time_taken = time_taken
     num_stmts = 1
     subgoals_closed = 0
