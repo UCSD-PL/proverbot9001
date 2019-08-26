@@ -800,6 +800,7 @@ class SearchGraph:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(lemma_name, ProofContext([],[],[],[]), None)
+        self.start_node.time_taken = 0.0
         pass
     def addPredictions(self, src : LabeledNode, context_before : ProofContext,
                        predictions : List[str]) -> List[LabeledNode]:
