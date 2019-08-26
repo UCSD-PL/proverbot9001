@@ -41,6 +41,7 @@ from format import TacticContext
 from util import (unwrap, eprint, escape_filename, mybarfmt,
                   split_by_char_outside_matching, nostderr)
 import itertools
+from dataclasses import dataclass
 
 from tqdm import tqdm
 from yattag import Doc
@@ -786,7 +787,8 @@ def attempt_search(args : argparse.Namespace,
 import pygraphviz as pgv
 # from graphviz import Digraph
 
-class LabeledNode(NamedTuple): # type: ignore
+@dataclass(init=True)
+class LabeledNode:
     prediction : str
     time_taken : Optional[float]
     node_id : int
