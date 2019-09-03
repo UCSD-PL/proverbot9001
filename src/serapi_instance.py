@@ -882,7 +882,8 @@ class SerapiInstance(threading.Thread):
             line = self._fout.readline().decode('utf-8')
             if line == '': break
             self.message_queue.put(line)
-            # try:
+            eprint(f"RECEIVED: {line}", guard=self.verbose >= 3)
+                # try:
             #     response = loads(line)
             # except:
             #     eprint("Couldn't parse Sexp:\n{}".format(line))
