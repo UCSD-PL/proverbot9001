@@ -859,10 +859,10 @@ def contextInPath(full_context : ProofContext, path : List[LabeledNode]):
     return any([contextSurjective(full_context, n.context_before)
                 for n in path])
 def numNodesInTree(branching_factor : int, depth : int):
-    assert depth > 0
+    assert depth > 0, f"depth is {depth}"
     result = int((branching_factor ** depth - 1) / \
                  (branching_factor - 1))
-    assert result >= 1
+    assert result >= 1, f"result is {result}"
     return result
 def tryPrediction(args : argparse.Namespace,
                   coq : serapi_instance.SerapiInstance,
@@ -998,7 +998,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     added_nodes = new_remaining_nodes - old_remaining_nodes
                     assert added_nodes > 0
                     old_val = pbar.n
-                    assert old_val > 0
+                    assert old_val > 0, old_val
                     pbar.reset(total=pbar.total+added_nodes)
                     pbar.update(old_val)
                     pbar.refresh()
