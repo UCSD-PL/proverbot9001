@@ -659,13 +659,13 @@ class SerapiInstance(threading.Thread):
             num_breaks = 1
             try:
                 interrupt_response = \
-                    self.message_queue.get(timeout=self.timeout)
+                    loads(self.message_queue.get(timeout=self.timeout))
             except:
                 self._proc.send_signal(signal.SIGINT)
                 num_breaks += 1
                 try:
                     interrupt_response = \
-                        self.message_queue.get(timeout=self.timeout)
+                        loads(self.message_queue.get(timeout=self.timeout))
                 except:
                     raise CoqAnomaly("Timing Out")
 
@@ -679,7 +679,7 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 for i in range(num_breaks):
                     try:
-                        msg = self.message_queue.get(timeout=self.timeout)
+                        msg = loads(self.message_queue.get(timeout=self.timeout))
                     except:
                         raise CoqAnomaly("Timing out")
                     assert isBreakMessage(msg), msg
@@ -699,7 +699,7 @@ class SerapiInstance(threading.Thread):
                        _, lambda *args: False):
                 for i in range(num_breaks):
                     try:
-                        msg = self.message_queue.get(timeout=self.timeout)
+                        msg = loads(self.message_queue.get(timeout=self.timeout))
                     except:
                         raise CoqAnomaly("Timing out")
                     assert isBreakAnswer(msg), msg
