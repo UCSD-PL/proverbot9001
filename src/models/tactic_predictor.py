@@ -488,8 +488,11 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
             epoch_loss += loss.item()
             if batch_num % arg_values.print_every == 0:
                 items_processed = batch_num * arg_values.batch_size + \
-                    (epoch - 1 - epoch_start) * dataset_size
-                progress = items_processed / (dataset_size * arg_values.num_epochs)
+                    (epoch - epoch_start) * dataset_size
+                assert items_processed > 0
+                progress = items_processed / \
+                    (dataset_size * (arg_values.num_epochs - (epoch_start - 1)))
+                assert progress > 0
                 print("{} ({:7} {:5.2f}%) {:.4f}"
                       .format(timeSince(training_start, progress),
                               items_processed, progress * 100,
