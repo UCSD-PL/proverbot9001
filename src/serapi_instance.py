@@ -642,7 +642,7 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, list],
                      lambda state_num, contents:
                      match(contents,
-                           ["CoqExn", _, _, _, list],
+                           ["CoqExn", _, _, _, _],
                            lambda loc1, loc2, loc3, inner:
                            raise_(CoqExn(inner)),
                            ["Added", int, TAIL],
