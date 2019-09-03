@@ -876,10 +876,22 @@ def tryPrediction(args : argparse.Namespace,
         prev = prev.previous
     time_left = max(args.max_proof_time - time_on_path, 0)
     start_time = time.time()
-    if coq.use_hammer:
-        coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 30))
-    else:
-        coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 5))
+    time_per_command = 30 if coq.use_hammer else 5
+    try:
+        coq.run_stmt(predictionNode.prediction, timeout=min(time_left, time_per_command))
+    except serapi_instance.TimeoutError:
+        if time_left < time_per_command:
+            g.setNodeColor(predictionNode, "purple4")
+            raise
+        else:
+            g.setNodeColor(predictionNode, "purple")
+            raise
+    except serapi_instance.ParseError:
+        g.setNodeColor(predictionNode, "gray64")
+        raise
+    except (serapi_instance.CoqExn, serapi_instance.OverflowError, serapi_instance.UnrecognizedError):
+        g.setNodeColor(predictionNode, "red")
+        raise
     time_taken = time.time() - start_time
     predictionNode.time_taken = time_taken
     num_stmts = 1
@@ -1069,7 +1081,6 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
                 pbar.update(1)
-                g.setNodeColor(predictionNode, "red")
                 depth = (args.search_depth + extra_depth + 1) - len(current_path)
                 assert depth > 0
                 nodes_skipped = numNodesInTree(args.search_width, depth) - 1
