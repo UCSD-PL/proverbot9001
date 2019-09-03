@@ -314,8 +314,7 @@ class SerapiInstance(threading.Thread):
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
     def send_flush(self, cmd : str):
-        # if self.debug:
-        #     print("SEND: " + cmd)
+        eprint("SENT: " + cmd, guard=self.verbose >= 3)
         self._fin.write(cmd.encode('utf-8'))
         self._fin.flush()
         self._current_fg_goal_count = None

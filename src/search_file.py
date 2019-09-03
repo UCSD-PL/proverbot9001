@@ -874,7 +874,7 @@ def tryPrediction(args : argparse.Namespace,
     while prev != None:
         time_on_path += prev.time_taken
         prev = prev.previous
-    time_left = args.max_proof_time - time_on_path
+    time_left = max(args.max_proof_time - time_on_path, 0)
     start_time = time.time()
     if coq.use_hammer:
         coq.run_stmt(predictionNode.prediction, timeout=max(time_left, 30))
