@@ -112,14 +112,14 @@ def _inflate(tensor : torch.Tensor, times : int) -> torch.Tensor:
         raise ValueError("Tensor can be of 1D, 2D, or 3D only. "
                          "This one is {}D.".format(tensor_dim))
 
-def chunks(l : Iterable[Any], chunk_size : int) -> Iterable[List[Any]]:
+T = TypeVar('T')
+def chunks(l : Iterable[T], chunk_size : int) -> Iterable[List[T]]:
     i = iter(l)
     next_chunk = list(itertools.islice(i, chunk_size))
     while next_chunk:
         yield next_chunk
         next_chunk = list(itertools.islice(i, chunk_size))
 
-T = TypeVar('T')
 def list_topk(lst : List[T], k : int, f : Optional[Callable[[T], float]] = None) \
     -> Tuple[List[int], List[T]]:
     if f == None:

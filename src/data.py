@@ -27,6 +27,7 @@ import functools
 import sys
 import time
 import io
+import os
 from abc import ABCMeta
 from dataclasses import dataclass
 
@@ -227,19 +228,29 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
                 t = read_tactic_tuple(f)
     return RawDataset(list(worker_generator()))
 
+T = TypeVar('T')
+O = TypeVar('O')
 
-def read_text_data(data_path: Path2) -> Iterable[ScrapedTactic]:
-    with multiprocessing.Pool(None) as pool:
-        line_chunks = file_chunks(data_path, 32768)
-        data_chunks = pool.imap(read_text_data_worker__, line_chunks)
-        result = itertools.chain.from_iterable(data_chunks)
-        yield from result
+def lazy_multiprocessing_imap(in_data : Iterable[T], worker : Callable[[T], O],
+                              num_threads : int=os.cpu_count(),
+                              chunk_size : Optional[int]=None) -> Iterable[O]:
+    if chunk_size == None:
+        chunk_size = num_threads * 10
+    with multiprocessing.Pool(num_threads) as pool:
+        for chunk in chunks(in_data, chunk_size):
+            yield from list(pool.imap(worker, chunk))
+
+def read_text_data(data_path: Path2) \
+                  -> Iterable[ScrapedTactic]:
+    line_chunks = file_chunks(data_path, 32768)
+    data_chunks = lazy_multiprocessing_imap(line_chunks, read_text_data_worker__)
+    yield from itertools.chain.from_iterable(data_chunks)
 
 
 def preprocess_data(arg_values: Namespace, dataset_iter:
                     Iterable[ScrapedTactic]) \
                     -> Iterable[ScrapedTactic]:
-    with multiprocessing.Pool(arg_values.num_threads) as pool:
+    with multiprocessing.Pool(None) as pool:
         if arg_values.truncate_semicolons:
             dataset_iter = pool.imap(truncate_tactic_semicolons,
                                      dataset_iter)
@@ -253,13 +264,7 @@ def preprocess_data(arg_values: Namespace, dataset_iter:
                 dataset_iter)
         dataset_iter = pool.imap(
             serapi_instance.normalizeNumericArgs, dataset_iter)
-        start = time.time()
-        eprint("Preprocessing...", end="")
-        sys.stderr.flush()
-        dataset_list = list(dataset_iter)
-        print("{:.2f}s".format(time.time() - start))
-
-    return dataset_list
+        yield from dataset_iter
 
 
 def get_text_data(arg_values: Namespace) -> RawDataset:
@@ -269,14 +274,15 @@ def get_text_data(arg_values: Namespace) -> RawDataset:
     start = time.time()
     _print("Reading dataset...", end="")
     sys.stdout.flush()
-    raw_data = RawDataset(list(read_text_data(arg_values.scrape_file)))
-    filtered_data = RawDataset(list(itertools.islice(
+    raw_data = read_text_data(arg_values.scrape_file)
+    filtered_data = RawDataset(list(
         preprocess_data(arg_values,
-                        filter_data(raw_data,
-                                    get_context_filter(arg_values.
-                                                       context_filter),
-                                    arg_values)),
-        arg_values.max_tuples)))
+                        itertools.islice(
+                            filter_data(raw_data,
+                                        get_context_filter(arg_values.
+                                                           context_filter),
+                                        arg_values),
+                            arg_values.max_tuples))))
     _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
@@ -291,7 +297,7 @@ def filter_data(data: RawDataset, pair_filter: ContextFilter,
     return (scraped
             for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [([], [], [], "", "hey")]))
+                                      [([], [], [], "", "")]))
             if pair_filter(strip_scraped_output(scraped), scraped.tactic,
                            strip_scraped_output(next_scraped), arg_values))
 
