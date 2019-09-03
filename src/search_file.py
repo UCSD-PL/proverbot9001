@@ -941,7 +941,7 @@ def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                                                coq.goals),
                                  k)])
 
-goalBignessLimit = 70
+goalBignessLimit = 3000
 def contextIsBig(context : ProofContext):
     for obligation in context.all_goals:
         for hypothesis in obligation.hypotheses:
