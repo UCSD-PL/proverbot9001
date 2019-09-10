@@ -48,7 +48,7 @@ import serapi_instance
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
-from util import eprint, chunks
+from util import eprint, chunks, split_by_char_outside_matching
 from context_filter import get_context_filter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
@@ -460,5 +460,13 @@ def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic)
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
         -> ScrapedTactic:
     rl, pt, hyp, goal, tactic = sample
-    return ScrapedTactic(rl, pt, hyp, goal,
-                         re.sub(";.*", ".", tactic))
+    newtac = tactic
+    outer_parens_match = re.fullmatch("\((.*)\)", newtac.strip())
+    if outer_parens_match:
+        newtac = outer_parens_match.group(1)
+    splitresult = split_by_char_outside_matching(
+        "\(|\[", "\)|\]", ";", newtac)
+    if splitresult:
+        before_semi, after_semi = splitresult
+        newtac = before_semi.strip() + "."
+    return ScrapedTactic(rl, pt, hyp, goal, newtac)
