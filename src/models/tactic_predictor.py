@@ -66,6 +66,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         -> None:
         parser.add_argument("scrape_file", type=Path2)
         parser.add_argument("save_file", type=Path2)
+        parser.add_argument("--save-all-epochs", action='store_true', dest='save_all_epochs')
         parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
                             default=default_values.get("num-threads", None))
         parser.add_argument("--max-tuples", dest="max_tuples", type=int,
@@ -452,8 +453,11 @@ def save_checkpoints(predictor_name : str,
                      checkpoints_stream : Iterable[StateType]):
     for predictor_state in checkpoints_stream:
         epoch = predictor_state.epoch
-        epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + f"-{epoch}.dat")
-        with epoch_filename.open(mode='wb') as f:
+        if arg_values.save_all_epochs:
+            epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + f"-{epoch}.dat")
+        else:
+            epoch_filename = arg_values.save_file
+        with cast(BinaryIO, epoch_filename.open(mode='wb')) as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
             torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
 
