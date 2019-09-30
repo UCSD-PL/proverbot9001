@@ -40,7 +40,7 @@ scrape:
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
 CompCert/%.scrape: CompCert/%
-	python3.7 src/scrape.py $(FLAGS) -v -c -j 1 --prelude=./CompCert $* > /dev/null
+	python3.7 src/scrape.py $(FLAGS) -c -j 1 --prelude=./CompCert $* > /dev/null
 
 report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
