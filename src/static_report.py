@@ -182,20 +182,23 @@ def report_file(args : argparse.Namespace,
             cast(List[Optional[ScrapedCommand]], list_data[1:])  + [None]
         for point, nextpoint in zip(list_data, extended_list):
             if isinstance(point, ScrapedTactic) \
-               and not re.match("\s*[{}]\s*", point.tactic):
+               and not re.match("\s*[{}]\s*", point.tactic) and \
+               point.goal.strip() != "":
                 if isinstance(nextpoint, ScrapedTactic):
-                    yield(point, not context_filter({"goal":format_goal(point.goal),
-                                                     "hyps":point.hypotheses},
+                    yield(point, not context_filter(TacticContext([], [],
+                                                                  point.hypotheses,
+                                                                  point.goal),
                                                     point.tactic,
-                                                    {"goal":format_goal(nextpoint.goal),
-                                                     "hyps":nextpoint.hypotheses},
+                                                    TacticContext([], [],
+                                                                  nextpoint.hypotheses,
+                                                                  nextpoint.goal),
                                                     training_args))
                 else:
-                    yield(point, not context_filter({"goal":format_goal(point.goal),
-                                                     "hyps":point.hypotheses},
+                    yield(point, not context_filter(TacticContext([], [],
+                                                                  point.hypotheses,
+                                                                  point.goal),
                                                     point.tactic,
-                                                    {"goal":"",
-                                                     "hyps":""},
+                                                    TacticContext([], [], [], ""),
                                                     training_args))
             else:
                 yield (point, True)
