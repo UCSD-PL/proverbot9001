@@ -29,9 +29,7 @@ from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 from tokenizer import get_symbols
 import serapi_instance
 
-ContextData = Dict[str, Union[str, List[str]]]
-ContextFilter = Callable[[ContextData, str, ContextData, argparse.Namespace], bool]
-
+ContextFilter = Callable[[TacticContext, str, TacticContext, Namespace], bool]
 def filter_and(*args : ContextFilter) -> ContextFilter:
     def filter_and2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
         return lambda in_data, tactic, next_in_data, args: \

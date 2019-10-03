@@ -45,7 +45,7 @@ from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
 from util import eprint, chunks
-from context_filter import get_context_filter
+from context_filter import get_context_filter, ContextFilter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
 TOKEN_START = 2
