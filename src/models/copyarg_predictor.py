@@ -28,9 +28,9 @@ from features import (WordFeature, VecFeature,
 import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EmbeddedSample, EOS_token, strip_scraped_output)
+                  EmbeddedSample, EOS_token)
 from util import *
-from format import ScrapedTactic, TacticContext
+from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
