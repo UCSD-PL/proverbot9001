@@ -33,7 +33,7 @@ import itertools
 import serapi_instance
 import features
 from util import *
-from models.tactic_predictor import strip_scraped_output
+from format import strip_scraped_output
 from models.components import SimpleEmbedding
 from predict_tactic import trainable_modules
 from pathlib_revised import Path2

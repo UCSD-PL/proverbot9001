@@ -36,6 +36,14 @@ class TacticContext(NamedTuple):
 
 ScrapedCommand = Union[ScrapedTactic, str]
 
+def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
+    prev_tactics, hypotheses, goal, output = scraped
+    assert prev_tactics != None
+    assert hypotheses != None
+    assert goal != None
+    assert output != None
+    return TacticContext(prev_tactics, hypotheses, goal)
+
 def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
 
