@@ -40,7 +40,7 @@ from tokenizer import (Tokenizer, TokenizerState,
                        make_keyword_tokenizer_relevance,
                        make_keyword_tokenizer_topk, tokenizers)
 from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
-                    read_tuple, TacticContext)
+                    read_tuple, TacticContext, strip_scraped_output)
 from models.components import SimpleEmbedding
 import serapi_instance
 
@@ -275,7 +275,7 @@ def filter_data(data: RawDataset, pair_filter: ContextFilter,
     return (scraped
             for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [([], [], [], "", "hey")]))
+                                      [([], [], "", "hey")]))
             if pair_filter(strip_scraped_output(scraped), scraped.tactic,
                            strip_scraped_output(next_scraped), arg_values))
 
@@ -435,6 +435,6 @@ def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic)
 
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
         -> ScrapedTactic:
-    rl, pt, hyp, goal, tactic = sample
-    return ScrapedTactic(rl, pt, hyp, goal,
+    pt, hyp, goal, tactic = sample
+    return ScrapedTactic(pt, hyp, goal,
                          re.sub(";.*", ".", tactic))
