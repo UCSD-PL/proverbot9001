@@ -70,6 +70,8 @@ def add_nn_args(parser : argparse.ArgumentParser,
                         choices=list(optimizers.keys()), type=str,
                         default=default_values.get("optimizer",
                                                    list(optimizers.keys())[0]))
+    parser.add_argument("--max-premises", dest="max_premises", type=int,
+                        default=default_values.get("max-premises", 20))
 
 class StraightlineClassifierModel(Generic[S], metaclass=ABCMeta):
     @staticmethod

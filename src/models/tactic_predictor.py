@@ -238,6 +238,8 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
                             default=default_values.get("print-every", 5))
         parser.add_argument("--learning-rate", dest="learning_rate", type=float,
                             default=default_values.get("learning-rate", .7))
+        parser.add_argument("--max-premises", dest="max_premises", type=int,
+                            default=default_values.get("max-premises", 20))
         parser.add_argument("--epoch-step", dest="epoch_step", type=int,
                             default=default_values.get("epoch-step", 10))
         parser.add_argument("--gamma", dest="gamma", type=float,

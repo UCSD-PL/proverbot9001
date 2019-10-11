@@ -13,6 +13,7 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   strip_scraped_output)
 from util import *
 import time
+import random
 from format import ScrapedTactic, TacticContext
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
@@ -469,6 +470,7 @@ class FeaturesPolyargPredictor(
                 functools.partial(mkFPASample, embedding,
                                   tokenizer,
                                   arg_values.max_length,
+                                  arg_values.max_premises,
                                   self._word_feature_functions,
                                   self._vec_feature_functions),
                 zip(data, tokenized_goals))))
@@ -659,33 +661,31 @@ class FeaturesPolyargPredictor(
 def mkFPASample(embedding : Embedding,
                 mytokenizer : Tokenizer,
                 max_length : int,
+                max_premises : int,
                 word_feature_functions : List[WordFeature],
                 vec_feature_functions : List[VecFeature],
                 zipped : Tuple[ScrapedTactic, List[int]]) \
                 -> FeaturesPolyArgSample:
     inter, tokenized_goal = zipped
     relevant_lemmas, prev_tactics, hypotheses, goal_str, tactic = inter
-    all_hyps = hypotheses + relevant_lemmas
     context = strip_scraped_output(inter)
     word_features = [feature(context) for feature in word_feature_functions]
     vec_features = [feature_val for feature in vec_feature_functions
                     for feature_val in feature(context)]
-    tokenized_hyp_types = [normalizeSentenceLength(
-        mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
-        max_length)
-                           for hyp in all_hyps]
-    hypfeatures = [[SequenceMatcher(None, goal_str,
-                                    serapi_instance.get_hyp_type(hyp)).ratio(),
-                    len(hyp)] for hyp in all_hyps]
     tactic_stem, tactic_argstr = serapi_instance.split_tactic(tactic)
     stem_idx = embedding.encode_token(tactic_stem)
     argstr_tokens = tactic_argstr.strip(".").split()
     assert len(argstr_tokens) < 2, \
         "Tactic {} doesn't fit our argument model! Too many tokens" .format(tactic)
     arg : TacticArg
+    all_hyps = hypotheses + relevant_lemmas
     if len(argstr_tokens) == 0:
         arg_type = ArgType.NO_ARG
         arg = None
+        if len(all_hyps) > max_premises:
+            selected_hyps = random.sample(all_hyps, max_premises)
+        else:
+            selected_hyps = all_hyps
     else:
         goal_symbols = tokenizer.get_symbols(goal_str)[:max_length]
         arg_token = argstr_tokens[0]
@@ -697,6 +697,10 @@ def mkFPASample(embedding : Embedding,
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg = GoalTokenArg(goal_symbols.index(arg_token))
+            if len(all_hyps) > max_premises:
+                selected_hyps = random.sample(all_hyps, max_premises)
+            else:
+                selected_hyps = all_hyps
         else:
             indexed_hyp_vars = serapi_instance.get_indexed_vars_in_hyps(all_hyps)
             hyp_vars = [hyp_var for hyp_var, idx in indexed_hyp_vars]
@@ -705,7 +709,25 @@ def mkFPASample(embedding : Embedding,
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg_type = ArgType.HYP_ID
-            arg = HypIdArg(dict(indexed_hyp_vars)[arg_token])
+            correct_hyp_idx = dict(indexed_hyp_vars)[arg_token]
+            if len(all_hyps) > max_premises:
+                selected_hyps = random.sample(all_hyps[:correct_hyp_idx]+
+                                              all_hyps[correct_hyp_idx+1:],
+                                              max_premises-1)
+                new_hyp_idx = random.randrange(max_premises)
+                selected_hyps.insert(new_hyp_idx,
+                                     all_hyps[correct_hyp_idx])
+                arg = HypIdArg(new_hyp_idx)
+            else:
+                selected_hyps = all_hyps
+                arg = HypIdArg(correct_hyp_idx)
+    tokenized_hyp_types = [normalizeSentenceLength(
+        mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
+        max_length)
+                           for hyp in selected_hyps]
+    hypfeatures = [[SequenceMatcher(None, goal_str,
+                                    serapi_instance.get_hyp_type(hyp)).ratio(),
+                    len(hyp)] for hyp in selected_hyps]
     return FeaturesPolyArgSample(
         tokenized_hyp_types,
         hypfeatures,
