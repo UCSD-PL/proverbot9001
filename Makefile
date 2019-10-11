@@ -35,7 +35,7 @@ scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3.7 scrape.py $(FLAGS) -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../CompCert
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
