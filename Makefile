@@ -113,3 +113,6 @@ clean:
 clean-progress:
 	fd '.*\.v\.lin' CompCert | xargs rm -f
 	fd '.*\.scrape' CompCert | xargs rm -f
+
+clean-scrape:
+	fd '.*\.scrape' CompCert | xargs rm -f
