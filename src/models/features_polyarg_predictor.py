@@ -9,8 +9,7 @@ from features import (WordFeature, VecFeature, Feature,
 import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EOS_token,
-                  strip_scraped_output)
+                  EOS_token)
 from util import *
 import time
 import random
