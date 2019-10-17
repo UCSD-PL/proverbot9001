@@ -185,21 +185,14 @@ def report_file(args : argparse.Namespace,
                and not re.match("\s*[{}]\s*", point.tactic) and \
                point.goal.strip() != "":
                 if isinstance(nextpoint, ScrapedTactic):
-                    yield(point, not context_filter(TacticContext([], [],
-                                                                  point.hypotheses,
-                                                                  point.goal),
-                                                    point.tactic,
-                                                    TacticContext([], [],
-                                                                  nextpoint.hypotheses,
-                                                                  nextpoint.goal),
-                                                    training_args))
+                    context_after = strip_scraped_output(nextpoint)
                 else:
-                    yield(point, not context_filter(TacticContext([], [],
-                                                                  point.hypotheses,
-                                                                  point.goal),
-                                                    point.tactic,
-                                                    TacticContext([], [], [], ""),
-                                                    training_args))
+                    context_after = TacticContext([], [], [], "")
+                should_filter = not context_filter(strip_scraped_output(point),
+                                                   point.tactic,
+                                                   context_after,
+                                                   training_args)
+                yield (point, should_filter)
             else:
                 yield (point, True)
     try:
