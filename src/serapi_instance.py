@@ -289,7 +289,7 @@ class SerapiInstance(threading.Thread):
                 lemma_statement = lemma_name + " " + body
             self.local_lemmas.append(lemma_statement)
 
-        proposition_match = re.match(r"Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
+        proposition_match = re.match(r".*Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
                                      cmd, flags=re.DOTALL)
         if proposition_match:
             case_matches = re.finditer(r"\|\s*(\w+\s*:[^|]*)", proposition_match.group(1))
