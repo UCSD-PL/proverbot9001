@@ -298,11 +298,11 @@ def encode_hyparg_data(data : RawDataset,
     termEncoder = functools.partial(getNGramTokenbagVector, 1, tokenizer.numTokens())
     with multiprocessing.Pool(num_threads) as pool:
         hyps, contexts, tactics = zip(*data_list)
-        encoded_contexts = pool.imap_unordered(functools.partial(
+        encoded_contexts = pool.imap(functools.partial(
             _encode, tokenizer, termEncoder), contexts)
-        encoded_hyps = pool.imap_unordered(functools.partial(
+        encoded_hyps = pool.imap(functools.partial(
             _encode_hyps, tokenizer, termEncoder, max_hyps, encoded_length), contexts)
-        encoded_tactics = pool.imap_unordered(
+        encoded_tactics = pool.imap(
             functools.partial(encode_tactic_structure, stem_embedding, max_args),
             zip(hyps, tactics))
         result = list(zip(encoded_hyps, encoded_contexts, encoded_tactics))
