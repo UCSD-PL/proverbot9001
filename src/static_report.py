@@ -361,6 +361,9 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                         with tag('td'):
                             with tag('a', href=escape_filename(fresult.filename) + ".html"):
                                 text("Details")
+                avg_loss = 0
+                if combined_stats.num_tactics > 0:
+                    avg_loss = combined_stats.total_loss / combined_stats.num_tactics
                 with tag('tr'):
                     line('td', "Total");
                     line('td', str(combined_stats.num_tactics))
@@ -372,8 +375,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                                                    combined_stats.num_tactics))
                     line('td', stringified_percent(combined_stats.num_topNPartial,
                                                    combined_stats.num_tactics))
-                    line('td', "{:10.2f}".format(combined_stats.total_loss /
-                                                 combined_stats.num_tactics))
+                    line('td', "{:10.2f}".format(avg_loss))
 
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
     for filename in extra_files:
