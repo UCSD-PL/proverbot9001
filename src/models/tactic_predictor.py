@@ -460,6 +460,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     dataset_size = data_tensors[0].size()[0]
     num_batches = int(dataset_size / arg_values.batch_size)
     dataset_size = num_batches * arg_values.batch_size
+    assert dataset_size > 0
     print("Initializing model...")
     if arg_values.start_from:
         print("Starting from file")
@@ -492,7 +493,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
             epoch_loss += loss.item()
             if batch_num % arg_values.print_every == 0:
                 items_processed = batch_num * arg_values.batch_size + \
-                    (epoch - 1 - epoch_start) * dataset_size
+                    (epoch - epoch_start) * dataset_size
                 assert items_processed > 0
                 progress = items_processed / \
                     (dataset_size * (arg_values.num_epochs - (epoch_start - 1)))
