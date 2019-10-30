@@ -22,7 +22,9 @@ FLAGS+=-m "$(MESSAGE)"
 endif
 REPORT="report"
 TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
+COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
+CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
@@ -31,12 +33,16 @@ all: scrape report
 setup:
 	./src/setup.sh && $(MAKE) publish-depv
 
+compcert-scrape: $(CC_TRAIN_SCRAPES)
+	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
+	xargs python3.7 scrape.py $(FLAGS) -c -j $(NTHREADS) --output ../data/compcert-scrape.txt --prelude ../CompCert
+
 scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
-	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
-	xargs python3.7 scrape.py $(FLAGS) -c -j $(NTHREADS) --output ../data/scrape.txt \
-				        		 --prelude ../CompCert
+	cat ../data/coq-projects-train-files.txt | $(HEAD_CMD) | \
+	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+				        		 --prelude ../coq-projects
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
 CompCert/%.scrape: CompCert/%
@@ -66,9 +72,10 @@ search-test:
 
 scrape-test:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
-	cat data/coqgym-demo-files.txt | $(HEAD_CMD) | \
-	xargs python3 src/scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output data/scrape-test.txt \
-				        		 --prelude=./coq-projects/zfc
+	cd src && \
+	cat ../data/coq-projects-train-files.txt | tail -n +320 | head -n 50 | \
+	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+				        		 --prelude ../coq-projects
 
 INDEX_FILES=index.js index.css build-index.py
 

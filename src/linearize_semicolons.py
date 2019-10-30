@@ -432,11 +432,11 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
 
 def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              commands : List[str], coqargs : List[str], includes : str,
-                             filename : str, relative_filename : str,
+                             prelude : str, filename : str, relative_filename : str,
                              skip_nochange_tac : bool) -> List[str]:
     try:
-        with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.verbose = args.verbose
+        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+            coq.debug = args.debug
             with tqdm(file=sys.stdout,
                       disable=not args.progress,
                       position=(file_idx * 2),
@@ -469,7 +469,7 @@ def get_linearized(args : argparse.Namespace, coqargs : List[str], includes : st
         fresh_commands = preprocess_file_commands(
             args, bar_idx,
             original_commands,
-            coqargs, includes,
+            coqargs, includes, args.prelude,
             local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
         return fresh_commands
@@ -504,7 +504,7 @@ def main():
             arg_values, 0, arg_values.prelude + "/" + filename)
         fresh_commands = preprocess_file_commands(arg_values, 0,
                                                   original_commands,
-                                                  coqargs, includes,
+                                                  coqargs, includes, arg_values.prelude,
                                                   local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
 

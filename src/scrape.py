@@ -60,10 +60,9 @@ def main():
     includes=subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
                               stdout=subprocess.PIPE).communicate()[0]\
                        .strip().decode('utf-8')
-
     thispath = os.path.dirname(os.path.abspath(__file__))
     # Set up the command which runs sertop.
-    coqargs = ["sertop"]
+    coqargs = ["sertop", "--implicit"]
     with multiprocessing.Pool(args.threads) as pool:
         scrape_result_files = pool.imap_unordered(
             functools.partial(scrape_file, coqargs, args, includes),
@@ -86,6 +85,10 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
     result_file = full_filename + ".scrape"
+    prelude = os.path.join(args.prelude, "/".join(file_tuple[1].split("/")[:2]))
+    includes = subprocess.Popen(['cat', '{}/_CoqProject'.format(prelude)],
+                                stdout=subprocess.PIPE).communicate()[0]\
+                         .strip().decode('utf-8')
     if args.cont:
         with contextlib.suppress(FileNotFoundError):
             with open(result_file, 'r') as f:
@@ -98,11 +101,10 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             commands = linearize_semicolons.preprocess_file_commands(
                 args, file_idx,
                 serapi_instance.load_commands(full_filename),
-                coqargs, includes, full_filename, filename, args.skip_nochange_tac)
+                coqargs, includes, prelude, full_filename, filename, args.skip_nochange_tac)
             serapi_instance.save_lin(commands, full_filename)
-
-        with serapi_instance.SerapiContext(coqargs, includes, args.prelude) as coq:
-            coq.verbose = args.verbose
+        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+            coq.debug = args.debug
             try:
                 with open(result_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stdout,
