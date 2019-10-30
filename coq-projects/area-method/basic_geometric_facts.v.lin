@@ -1,0 +1,2957 @@
+c20dcaaae137a2ca712a86cf9ffdd4e0
+Require Export geometry_tools.
+Theorem field_prop1 : forall a : F, -a=0 -> a=0.
+Proof.
+  intros.
+  assert (- -a=-0).
+  {
+    rewrite H.
+    try solve [ ring | congruence ].
+  }
+  {
+    assert (- -a=a).
+    {
+      try solve [ ring | congruence ].
+    }
+    {
+      try solve [ ring | congruence ].
+      assert (-0=0).
+      {
+        try solve [ ring | congruence ].
+      }
+      {
+        try solve [ ring | congruence ].
+      }
+    }
+  }
+Qed.
+Hint Resolve field_prop1 : Geom.
+Theorem col_1 : forall A B C : Point, Col A B C -> Col B A C.
+Proof.
+  unfold Col in |- *.
+  intros.
+  uniformize_signed_areas.
+  Geometry.
+Qed.
+Theorem col_2 : forall A B C : Point, Col A B C -> Col A C B.
+Proof.
+  unfold Col in |- *.
+  intros.
+  uniformize_signed_areas.
+  Geometry.
+Qed.
+Theorem col_3 : forall A B C : Point, Col A B C -> Col B C A.
+Proof.
+  unfold Col in |- *.
+  intros.
+  uniformize_signed_areas.
+  Geometry.
+Qed.
+Theorem col_4 : forall A B C : Point, Col A B C -> Col C B A.
+Proof.
+  unfold Col in |- *.
+  intros.
+  uniformize_signed_areas.
+  Geometry.
+Qed.
+Theorem col_5 : forall A B C : Point, Col A B C -> Col C A B.
+Proof.
+  unfold Col in |- *.
+  intros.
+  uniformize_signed_areas.
+  Geometry.
+Qed.
+Hint Resolve col_1 col_2 col_3 col_4 col_5: Geom.
+Theorem noteqnotzero : forall A B : Point, A <> B -> A ** B <> 0.
+  intros.
+  assert (A ** B = 0 <-> A = B).
+  {
+    apply A1b.
+  }
+  {
+    intuition.
+  }
+Qed.
+Hint Resolve noteqnotzero: Geom.
+Theorem egalcol : forall A B C : Point, A = B -> Col A B C.
+Proof.
+  intros.
+  unfold Col.
+  rewrite H.
+  try solve [ Geometry | congruence ].
+Qed.
+Theorem notcolnotegal_1 : forall A B C : Point, ~ Col A B C -> A <> B.
+  unfold Col in |- *.
+  intros.
+  intuition.
+  assert (T := egalcol A B C H0).
+  auto.
+Qed.
+Theorem notcolnotegal_2 : forall A B C : Point, ~ Col A B C -> B <> C.
+  intros.
+  assert (~ Col A B C -> ~ Col B C A).
+  {
+    intuition.
+  }
+  {
+    assert (~ Col B C A).
+    {
+      auto.
+    }
+    {
+      eapply notcolnotegal_1.
+      apply H1.
+    }
+  }
+Qed.
+Theorem notcolnotegal_3 : forall A B C : Point, ~ Col A B C -> A <> C.
+  intros.
+  assert (~ Col A B C -> ~ Col A C B).
+  {
+    intuition.
+  }
+  {
+    assert (~ Col A C B).
+    {
+      auto.
+    }
+    {
+      eapply notcolnotegal_1.
+      apply H1.
+    }
+  }
+Qed.
+Hint Resolve notcolnotegal_1 notcolnotegal_2 notcolnotegal_3: Geom.
+Theorem notparallelnotegal_1 : forall A B C D, 
+ ~ parallel A B C D -> A<>B.
+Proof.
+  intros.
+  unfold not.
+  intro.
+  subst.
+  auto with Geom.
+Qed.
+Theorem notparallelnotegal_2 : forall A B C D, 
+ ~ parallel A B C D -> C<>D.
+Proof.
+  intros.
+  unfold not.
+  intro.
+  subst.
+  auto with Geom.
+Qed.
+Hint Resolve notparallelnotegal_1 notparallelnotegal_2 : Geom.
+Theorem dirseg_1 :
+ forall A B C D : Point, D ** C <> 0 -> A ** B / C ** D = B ** A / D ** C.
+Proof.
+  intros.
+  uniformize_dir_seg.
+  field.
+  Geometry.
+Qed.
+Hint Resolve dirseg_1: Geom.
+Theorem dirseg_2 : forall A B C D : Point, A ** B = C ** D -> B ** A = D ** C.
+Proof.
+  intros.
+  uniformize_dir_seg.
+  rewrite H.
+  auto.
+Qed.
+Hint Resolve dirseg_2: Geom.
+Theorem dirseg_3 :
+ forall A B C D : Point, C ** D <> 0 -> A ** B / C ** D = - (B ** A / C ** D).
+Proof.
+  intros.
+  uniformize_dir_seg.
+  field.
+  Geometry.
+Qed.
+Theorem dirseg_4 :
+ forall A B C D : Point, C ** D <> 0 -> A ** B / C ** D = - (A ** B / D ** C).
+Proof.
+  intros.
+  Geometry.
+  uniformize_dir_seg.
+  field.
+  Geometry.
+Qed.
+Hint Resolve dirseg_3 dirseg_4: Geom.
+Theorem dirseg_simpl_1 : 
+ forall A B, A<>B -> A**B / A**B = 1.
+Proof.
+  intros.
+  field.
+  auto with Geom.
+Qed.
+Theorem dirseg_simpl_2 : 
+ forall A B, A<>B -> B**A / A**B = -(1).
+Proof.
+  intros.
+  replace (B**A) with (- A**B).
+  {
+    field.
+    auto with Geom.
+  }
+  {
+    symmetry.
+    auto with Geom.
+  }
+Qed.
+Theorem dirsur_1 :
+ forall A B C D E F : Point,
+ ~ Col D E F -> S A B C / S D E F = S A C B / S D F E.
+Proof.
+  intros.
+  uniformize_signed_areas.
+  field.
+  Geometry.
+Qed.
+Hint Resolve dirsur_1: Geom.
+Theorem col_trans_1 :
+ forall A B C D : Point, A <> B -> Col A B C -> Col A B D -> Col A C D.
+Proof.
+  intros.
+  assert (S A B C = S A B D + S A D C + S D B C).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    rewrite H0 in H2.
+    rewrite H1 in H2.
+    cases_col A D C.
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      cases_equality C A.
+      {
+        Geometry.
+        apply egalcol.
+        Geometry.
+      }
+      {
+        Geometry.
+        NormalizeRing H2.
+        Geometry.
+        assert (C ** B / C ** A = S D C B / S D C A).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (C ** A + A ** B = C ** B).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite <- H6 in H5.
+            Geometry.
+            assert ((C ** A + A ** B) / C ** A = 1 + A ** B / C ** A).
+            {
+              Geometry.
+              field.
+              Geometry.
+            }
+            {
+              Geometry.
+              rewrite H7 in H5.
+              clear H7 H6.
+              assert (S D B C = - S D C B).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                rewrite H6 in H2.
+                Geometry.
+                assert (S A D C = S D C A).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  rewrite H7 in H2.
+                  Geometry.
+                  IsoleVarRing (S D C B) H2.
+                  Geometry.
+                  rewrite H2 in H5.
+                  Geometry.
+                  assert (S D C A / S D C A = 1).
+                  {
+                    Geometry.
+                    field.
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    rewrite H8 in H5.
+                    clear H6 H7 H8.
+                    IsoleVarRing (A ** B) H5.
+                    {
+                      Geometry.
+                      assert (A = B).
+                      {
+                        Geometry.
+                      }
+                      {
+                        Geometry.
+                        intuition.
+                      }
+                    }
+                    {
+                      Geometry.
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve col_trans_1.
+Lemma build_point_not_collinear_1 : forall A B, A<>B -> exists C, ~ Col A B C.
+Proof.
+  assert ({A : Point &  {B : Point &  {C : Point | ~ Col A B C}}}).
+  {
+    apply A4.
+  }
+  {
+    intros.
+    elim H.
+    intro X.
+    intros.
+    elim p.
+    intro Y.
+    intros.
+    elim p0.
+    intro Z.
+    intros.
+    cases_col A B X.
+    {
+      cases_col A B Y.
+      {
+        cases_col A B Z.
+        {
+          cases_equality Y A.
+          {
+            subst Y.
+            assert (Col A X Z).
+            {
+              eapply col_trans_1 with (B:=B).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+              }
+            }
+            {
+              assert (Col X A Z).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                intuition.
+              }
+            }
+          }
+          {
+            assert (Col A Y Z).
+            {
+              eapply col_trans_1 with (B:=B).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+              }
+            }
+            {
+              assert (Col A Y X).
+              {
+                eapply col_trans_1 with (B:=B).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                }
+              }
+              {
+                assert (Col Y X Z).
+                {
+                  eapply col_trans_1 with (B:=A).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                  }
+                }
+                {
+                  assert (Col X Y Z).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    intuition.
+                  }
+                }
+              }
+            }
+          }
+        }
+        {
+          exists Z.
+          Geometry.
+        }
+      }
+      {
+        exists Y.
+        Geometry.
+      }
+    }
+    {
+      exists X.
+      Geometry.
+    }
+  }
+Qed.
+Lemma build_point_not_collinear_2 : forall A, exists B, exists C, ~ Col A B C.
+Proof.
+  intros.
+  assert ({A : Point &  {B : Point &  {C : Point | ~ Col A B C}}}).
+  {
+    apply A4.
+  }
+  {
+    DecompEx H A1.
+    DecompEx p B.
+    DecompEx p0 C.
+    cases_equality A B.
+    {
+      subst A.
+      exists A1.
+      exists C.
+      Geometry.
+    }
+    {
+      assert  (T:=build_point_not_collinear_1 A B H).
+      DecompEx T C1.
+      exists B.
+      exists C1.
+      Geometry.
+    }
+  }
+Qed.
+Theorem col_not_col_1 :
+ forall A B O P : Point, A <> O -> Col A P O -> ~ Col P A B -> ~ Col O A B.
+Proof.
+  intros.
+  unfold not in |- *.
+  intro.
+  assert (Col A O P).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (Col A O B).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      assert (Col A P B).
+      {
+        Geometry.
+        eauto with Geom.
+      }
+      {
+        Geometry.
+      }
+    }
+  }
+Qed.
+Hint Resolve col_not_col_1.
+Theorem A6_1 :
+ forall P Q A M : Point,
+ M <> Q -> ~ Col Q A M -> Col P Q M -> P ** M / Q ** M = S P A M / S Q A M.
+Proof.
+  intros.
+  try solve [ Geometry | congruence ].
+  assert (P ** M / Q ** M = M ** P / M ** Q).
+  {
+    try solve [ Geometry | congruence ].
+  }
+  {
+    try solve [ Geometry | congruence ].
+    assert (M ** P / M ** Q = S A M P / S A M Q).
+    {
+      try solve [ Geometry | congruence ].
+    }
+    {
+      try solve [ Geometry | congruence ].
+      assert (S A M P = S P A M).
+      {
+        try solve [ Geometry | congruence ].
+      }
+      {
+        try solve [ Geometry | congruence ].
+        assert (S A M Q = S Q A M).
+        {
+          try solve [ Geometry | congruence ].
+        }
+        {
+          try solve [ Geometry | congruence ].
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve A6_1: Geom.
+Theorem A6_2 :
+ forall P Q R A : Point,
+ P <> Q -> ~ Col Q A P -> Col P Q R -> P ** R / P ** Q = S R A P / S Q A P.
+Proof.
+  intros.
+  try solve [ Geometry | congruence ].
+  assert (P ** R / P ** Q = S A P R / S A P Q).
+  {
+    try solve [ Geometry | congruence ].
+  }
+  {
+    try solve [ Geometry | congruence ].
+    assert (S A P R = S R A P).
+    {
+      try solve [ Geometry | congruence ].
+    }
+    {
+      try solve [ Geometry | congruence ].
+      assert (S A P Q = S Q A P).
+      {
+        try solve [ Geometry | congruence ].
+      }
+      {
+        try solve [ Geometry | congruence ].
+      }
+    }
+  }
+Qed.
+Hint Resolve A6_2: Geom.
+Theorem A6_3 :
+ forall A B C P : Point,
+ A <> C -> ~ Col P A C -> Col A B C -> C ** B / A ** C = S P C B / S P A C.
+Proof.
+  intros.
+  Geometry.
+  assert (C ** A = - A ** C).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (S P C A = - S P A C).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      assert (C ** B / C ** A = S P C B / S P C A).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        rewrite H3 in H4.
+        Geometry.
+        rewrite H2 in H4.
+        Geometry.
+        RewriteVar (C ** B) H4.
+        {
+          Geometry.
+          field.
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve A6_3: Geom.
+Theorem A6_4 :
+ forall A B C P : Point,
+ A <> B -> ~ Col P A B -> Col A B C -> C ** A / A ** B = S P C A / S P A B.
+Proof.
+  intros.
+  Geometry.
+  assert (A ** C / B ** A = S P A C / S P B A).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (A ** C / B ** A = C ** A / A ** B).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      assert (S P C A / S P A B = S P A C / S P B A).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        congruence.
+      }
+    }
+  }
+Qed.
+Hint Resolve A6_4: Geom.
+Theorem A6_5 :
+ forall A B O P : Point,
+ O <> A -> ~ Col O A B -> Col P A O -> P ** A / O ** A = S P A B / S O A B.
+Proof.
+  intros.
+  Geometry.
+  assert (P ** A / O ** A = S P B A / S O B A).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (S P A B = - S P B A).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      assert (S O A B = - S O B A).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        rewrite H3.
+        Geometry.
+        rewrite H4.
+        Geometry.
+        rewrite H2.
+        Geometry.
+        assert (S O B A <> 0).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          field.
+          Geometry.
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve A6_5: Geom.
+Theorem A6_6 :
+ forall A B R Q : Point,
+ A <> Q -> ~ Col Q A B -> Col A R Q -> A ** R / A ** Q = S R A B / S Q A B.
+Proof.
+  intros.
+  Geometry.
+  assert (S R A B / S Q A B = S R B A / S Q B A).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    rewrite H2.
+    Geometry.
+  }
+Qed.
+Hint Resolve A6_6: Geom.
+Theorem l2_7 :
+ forall A B C D P : Point,
+ Col C A B ->
+ Col D A B ->
+ ~ Col P C A -> ~ Col P A B -> A <> B -> S P C D / S P A B = C ** D / A ** B.
+Proof with try solve [ Geometry | congruence | field; Geometry ].
+intros...
+cases_equality C A...
+assert (Col A B D)...
+rewrite H4...
+symmetry  in |- *...
+assert (S P C D / S P A B = S P C D / S P C A * (S P C A / S P A B))...
+assert (A <> C)...
+assert (Col C D A)...
+eauto with Geom...
+assert (C ** D / C ** A = S P C D / S P C A)...
+assert (A ** C / A ** B = S P A C / S P A B)...
+assert (C ** A / A ** B = S P C A / S P A B)...
+assert (C ** D / C ** A * (C ** A / A ** B) = C ** D / A ** B)...
+Qed.
+Theorem par_aux_1 : forall P Q U V : Point, ~ parallel P Q U V -> P <> Q.
+Proof.
+  intros.
+  Geometry.
+  unfold parallel in H.
+  Geometry.
+  unfold S4 in H.
+  Geometry.
+  unfold not in |- *.
+  intro.
+  Geometry.
+  assert (S P U Q = 0).
+  {
+    Geometry.
+    rewrite H0.
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (S P Q V = 0).
+    {
+      Geometry.
+      rewrite H0.
+      Geometry.
+    }
+    {
+      Geometry.
+      rewrite H1 in H.
+      Geometry.
+      rewrite H2 in H.
+      Geometry.
+    }
+  }
+Qed.
+Theorem par_not_all_col :
+ forall P Q U V : Point, ~ parallel P Q U V -> ~ Col P U Q \/ ~ Col P Q V.
+  intros.
+  cases_col P U Q.
+  {
+    unfold parallel in H.
+    unfold S4 in H.
+    rewrite H0 in H.
+    assert (0 + S P Q V = S P Q V).
+    {
+      ring.
+    }
+    {
+      rewrite H1 in H.
+      right.
+      unfold Col in |- *.
+      trivial.
+    }
+  }
+  {
+    left.
+    trivial.
+  }
+Qed.
+Theorem co_side_main :
+ forall A B P Q M : Point,
+ ~ Col Q A B ->
+ ~ Col P A M ->
+ ~ Col Q A M ->
+ Q <> M -> Col A B M -> Col P Q M -> P ** M / Q ** M = S P A B / S Q A B.
+Proof with try solve [ Geometry | congruence | field; Geometry ].
+intros...
+assert
+ (S P A B / S Q A B =
+  S P A B / S P A M * (S P A M / S Q A M * (S Q A M / S Q A B)))...
+assert (A <> B); eauto with Geom...
+assert (A <> M); eauto with Geom...
+assert (A ** B / A ** M * (P ** M / Q ** M * (A ** M / A ** B)) = P ** M / Q ** M)...
+assert (A ** B / A ** M = S P A B / S P A M)...
+assert (P ** M / Q ** M = S P A M / S Q A M)...
+assert (A ** M / A ** B = S Q A M / S Q A B)...
+Qed.
+Theorem co_side :
+ forall A B P Q M : Point,
+ ~ Col Q A B ->
+ Q <> M -> Col A B M -> Col P Q M -> P ** M / Q ** M = S P A B / S Q A B.
+Proof.
+  intros.
+  Geometry.
+  cases_equality M A.
+  {
+    Geometry.
+    rewrite H3.
+    Geometry.
+    rewrite H3 in H0.
+    Geometry.
+    rewrite H3 in H2.
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (~ Col Q A M).
+    {
+      Geometry.
+      unfold not in |- *.
+      intro.
+      Geometry.
+      assert (Col Q M A).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        assert (Col Q M P).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (Col Q A P).
+          {
+            eauto with Geom.
+          }
+          {
+            eauto with Geom.
+            Geometry.
+            assert (Col A M Q).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (Col A M B).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                assert (Col A B Q).
+                {
+                  eauto with Geom.
+                }
+                {
+                  eauto with Geom.
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      Geometry.
+      cases_equality P M.
+      {
+        Geometry.
+        rewrite <- H5 in H1.
+        Geometry.
+        assert (Col P A B).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          rewrite H6.
+          Geometry.
+          assert (P ** M = 0).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite H7.
+            Geometry.
+            field.
+            Geometry.
+          }
+        }
+      }
+      {
+        Geometry.
+        cases_equality P Q.
+        {
+          Geometry.
+          rewrite H6.
+          Geometry.
+          field.
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (~ Col P A M).
+          {
+            Geometry.
+            unfold not in |- *.
+            intro.
+            Geometry.
+            assert (Col P M A).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (Col P M Q).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                assert (Col P A Q).
+                {
+                  eauto with Geom.
+                }
+                {
+                  eauto with Geom.
+                }
+              }
+            }
+          }
+          {
+            Geometry.
+            apply co_side_main.
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve co_side: Geom.
+Theorem inter_unicity :
+ forall A B P Q M : Point,
+ ~ parallel P Q A B -> Col A B M -> Col P Q M -> A = Q -> A = M.
+Proof.
+  intros.
+  Geometry.
+  cases_equality A M.
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (Col A M B).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      assert (Col Q M P).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        rewrite <- H2 in H5.
+        Geometry.
+        assert (Col A B P).
+        {
+          Geometry.
+          eauto with Geom.
+        }
+        {
+          Geometry.
+          assert (~ Col P A Q \/ ~ Col P Q B).
+          {
+            Geometry.
+            apply par_not_all_col.
+            Geometry.
+          }
+          {
+            Geometry.
+            case H7.
+            {
+              intro.
+              Geometry.
+              assert (Col P A A).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                rewrite <- H2 in H8.
+                Geometry.
+                intuition.
+              }
+            }
+            {
+              intro.
+              Geometry.
+              rewrite H2 in H6.
+              Geometry.
+              assert (Col P Q B).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                intuition.
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Theorem inter_unicity_2 :
+ forall A B P Q M N: Point,
+ ~ parallel P Q A B -> 
+ Col A B M -> Col P Q M -> 
+ Col A B N -> Col P Q N -> 
+ M = N.
+Proof.
+  intros.
+  assert (A<>B).
+  {
+    intro.
+    subst.
+    auto with Geom.
+  }
+  {
+    idtac.
+    assert (P<>Q).
+    {
+      intro.
+      subst.
+      auto with Geom.
+    }
+    {
+      idtac.
+      assert (Col A M N).
+      {
+        apply (col_trans_1 A B M N).
+        {
+          auto.
+        }
+        {
+          auto.
+        }
+        {
+          auto.
+        }
+      }
+      {
+        idtac.
+        assert (Col P M N).
+        {
+          apply (col_trans_1 P Q M N).
+          {
+            auto.
+          }
+          {
+            auto.
+          }
+          {
+            auto.
+          }
+        }
+        {
+          idtac.
+          cases_equality M N.
+          {
+            auto.
+          }
+          {
+            auto.
+            assert (Col M A P).
+            {
+              apply (col_trans_1 M N A P).
+              {
+                auto with Geom.
+              }
+              {
+                auto with Geom.
+              }
+              {
+                auto with Geom.
+              }
+            }
+            {
+              idtac.
+              assert (Col B M N).
+              {
+                apply (col_trans_1 B A M N).
+                {
+                  auto with Geom.
+                }
+                {
+                  auto with Geom.
+                }
+                {
+                  auto with Geom.
+                }
+              }
+              {
+                idtac.
+                assert (Col Q M N).
+                {
+                  apply (col_trans_1 Q P M N).
+                  {
+                    auto with Geom.
+                  }
+                  {
+                    auto with Geom.
+                  }
+                  {
+                    auto with Geom.
+                  }
+                }
+                {
+                  idtac.
+                  assert (Col M Q B).
+                  {
+                    apply (col_trans_1 M N Q B).
+                    {
+                      auto with Geom.
+                    }
+                    {
+                      auto with Geom.
+                    }
+                    {
+                      auto with Geom.
+                    }
+                  }
+                  {
+                    idtac.
+                    cases_equality P M.
+                    {
+                      subst.
+                      unfold parallel  in *.
+                      unfold S4 in *.
+                      rewrite H12 in H.
+                      basic_simpl.
+                      clear H7 H9 H1 H3.
+                      assert (Col M A Q).
+                      {
+                        apply  (col_trans_1 M N A Q).
+                        {
+                          auto with Geom.
+                        }
+                        {
+                          auto with Geom.
+                        }
+                        {
+                          auto with Geom.
+                        }
+                      }
+                      {
+                        idtac.
+                        intuition.
+                      }
+                    }
+                    {
+                      assert (Col P A Q).
+                      {
+                        apply (col_trans_1 P M A Q).
+                        {
+                          auto with Geom.
+                        }
+                        {
+                          auto with Geom.
+                        }
+                        {
+                          auto with Geom.
+                        }
+                      }
+                      {
+                        idtac.
+                        unfold parallel  in *.
+                        unfold S4 in *.
+                        rewrite H14 in H.
+                        basic_simpl.
+                        cases_equality Q M.
+                        {
+                          subst.
+                          clear H1 H11 H12 H14.
+                          assert (Col M P B).
+                          {
+                            apply (col_trans_1 M N P B).
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              auto with Geom.
+                            }
+                          }
+                          {
+                            idtac.
+                            assert (Col P M B).
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              idtac.
+                              intuition.
+                            }
+                          }
+                        }
+                        {
+                          assert (Col Q B P).
+                          {
+                            apply (col_trans_1 Q M B P).
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              auto with Geom.
+                            }
+                          }
+                          {
+                            idtac.
+                            assert (Col P Q B).
+                            {
+                              auto with Geom.
+                            }
+                            {
+                              idtac.
+                              intuition.
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Theorem co_side_bis :
+ forall A B P Q M : Point,
+ ~ parallel P Q A B ->
+ Col A B M -> Col P Q M -> Q ** M / P ** Q = S Q A B / S4 P A Q B.
+Proof.
+  intros.
+  Geometry.
+  assert (P <> Q).
+  {
+    Geometry.
+    eapply par_aux_1.
+    apply H.
+  }
+  {
+    Geometry.
+    cases_equality Q M.
+    {
+      Geometry.
+      assert (Q ** M = 0).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        rewrite H4.
+        Geometry.
+        rewrite <- H3 in H0.
+        Geometry.
+        assert (Col Q A B).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          unfold parallel in H.
+          Geometry.
+          rewrite H5.
+          field.
+          Geometry.
+        }
+      }
+    }
+    {
+      Geometry.
+      cases_equality A Q.
+      {
+        Geometry.
+        assert (A = M).
+        {
+          Geometry.
+          apply (inter_unicity A B P Q M H H0 H1 H4).
+        }
+        {
+          Geometry.
+          rewrite H4.
+          Geometry.
+          assert (Q = M).
+          {
+            Geometry.
+            congruence.
+          }
+          {
+            Geometry.
+            assert (Q ** M = 0).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (S Q Q B = 0).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                rewrite H7.
+                Geometry.
+                rewrite H8.
+                Geometry.
+                field.
+                Geometry.
+              }
+            }
+          }
+        }
+      }
+      {
+        Geometry.
+        assert (~ Col Q A B).
+        {
+          Geometry.
+          unfold not in |- *.
+          intro.
+          Geometry.
+          unfold parallel in H.
+          Geometry.
+          unfold S4 in H.
+          Geometry.
+          assert (S P A B = S P A Q + S P Q B + S Q A B).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite H5 in H6.
+            Geometry.
+            IsoleVar (S P A Q) H6.
+            Geometry.
+            rewrite H6 in H.
+            Geometry.
+            assert (S P A B - 0 - S P Q B + S P Q B = S P A B).
+            {
+              Geometry.
+              ring.
+            }
+            {
+              Geometry.
+              rewrite H7 in H.
+              Geometry.
+              clear H6 H7.
+              Geometry.
+              assert (Col A B Q).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                assert (A <> B).
+                {
+                  Geometry.
+                  unfold not in |- *.
+                  intro.
+                  Geometry.
+                  assert (S P A B = 0).
+                  {
+                    Geometry.
+                    rewrite H7.
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                  }
+                }
+                {
+                  Geometry.
+                  assert (Col A M Q).
+                  {
+                    eauto with Geom.
+                  }
+                  {
+                    eauto with Geom.
+                    Geometry.
+                    assert (Col Q M P).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      assert (Col Q M A).
+                      {
+                        Geometry.
+                      }
+                      {
+                        Geometry.
+                        assert (Col Q A P).
+                        {
+                          eauto with Geom.
+                        }
+                        {
+                          eauto with Geom.
+                          Geometry.
+                          assert (Col A Q B).
+                          {
+                            Geometry.
+                          }
+                          {
+                            Geometry.
+                            assert (Col A Q P).
+                            {
+                              Geometry.
+                            }
+                            {
+                              Geometry.
+                              assert (Col A B P).
+                              {
+                                eauto with Geom.
+                              }
+                              {
+                                eauto with Geom.
+                                Geometry.
+                                assert (Col P A B).
+                                {
+                                  Geometry.
+                                }
+                                {
+                                  Geometry.
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        {
+          Geometry.
+          assert (P ** M / Q ** M = S P A B / S Q A B).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            assert (Q ** M / P ** Q * (P ** Q / Q ** M) = 1).
+            {
+              Geometry.
+              field.
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (P ** M / Q ** M - 1 = P ** Q / Q ** M).
+              {
+                replace (P ** Q) with (P ** M - Q ** M).
+                {
+                  field.
+                  Geometry.
+                }
+                {
+                  assert (Q ** M = - M ** Q).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    rewrite H8 in |- *.
+                    ring_simplify.
+                    Geometry.
+                  }
+                }
+              }
+              {
+                rewrite <- H8 in H7.
+                clear H8.
+                rewrite H6 in H7.
+                assert (S4 P A Q B = S P A B - S Q A B).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  rewrite H8.
+                  clear H8.
+                  IsoleVar (Q ** M / P ** Q) H7.
+                  {
+                    Geometry.
+                    rewrite H7.
+                    field.
+                    Geometry.
+                    split.
+                    {
+                      Geometry.
+                      assert (S4 P A Q B = S P A B - S Q A B).
+                      {
+                        Geometry.
+                      }
+                      {
+                        Geometry.
+                        unfold parallel in H.
+                        rewrite H9 in H.
+                        Geometry.
+                      }
+                    }
+                    {
+                      Geometry.
+                    }
+                  }
+                  {
+                    Geometry.
+                    assert (S P A B / S Q A B - 1 = (S P A B - S Q A B) / S Q A B).
+                    {
+                      field.
+                      Geometry.
+                    }
+                    {
+                      rewrite H8.
+                      Geometry.
+                      apply nonzerodiv.
+                      {
+                        Geometry.
+                        assert (S4 P A Q B = S P A B - S Q A B).
+                        {
+                          Geometry.
+                        }
+                        {
+                          Geometry.
+                          rewrite <- H9.
+                          Geometry.
+                        }
+                      }
+                      {
+                        Geometry.
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve co_side_bis: Geom.
+Theorem co_side_ter :
+ forall A B P Q M : Point,
+ ~ parallel P Q A B ->
+ Col A B M -> Col P Q M -> P ** M / P ** Q = S P A B / S4 P A Q B.
+Proof.
+  intros.
+  Geometry.
+  assert (Q ** M / P ** Q = S Q A B / S4 P A Q B).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (P ** Q + Q ** M = P ** M).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      rewrite <- H3.
+      Geometry.
+      RewriteVar (Q ** M) H2.
+      {
+        Geometry.
+        assert (S P A B = S P A Q + S P Q B + S Q A B).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          rewrite H5.
+          Geometry.
+          unfold S4 in |- *.
+          Geometry.
+          field.
+          Geometry.
+        }
+      }
+      {
+        Geometry.
+        assert (P <> Q).
+        {
+          Geometry.
+          eapply par_aux_1.
+          apply H.
+        }
+        {
+          Geometry.
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve co_side_ter: Geom.
+Theorem l2_9_weak :
+ forall A B P Q R : Point,
+ P <> Q ->
+ ~ Col Q A P ->
+ ~ Col Q P B ->
+ Col R P Q -> S R A B = P ** R / P ** Q * S Q A B + R ** Q / P ** Q * S P A B.
+Proof.
+  intros.
+  Geometry.
+  assert (S R A B = S R A P + S R P B + S P A B).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    assert (P ** R / P ** Q = S R A P / S Q A P).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      RewriteVar (S R A P) H4.
+      {
+        Geometry.
+        clear H4.
+        Geometry.
+        assert (P ** R / P ** Q = S B P R / S B P Q).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (- S B P R = S R P B).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite <- H6 in H3.
+            Geometry.
+            RewriteVar (S B P R) H4.
+            {
+              Geometry.
+              clear H4 H6.
+              Geometry.
+              assert (S R A B = P ** R / P ** Q * (S Q A P - S B P Q) + S P A B).
+              {
+                Geometry.
+                rewrite H3.
+                Geometry.
+                field.
+                Geometry.
+              }
+              {
+                Geometry.
+                clear H3.
+                Geometry.
+                assert (S A P Q - S B P Q = S4 A P B Q).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  unfold S4 in H3.
+                  Geometry.
+                  assert (S Q A P = S A P Q).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    rewrite <- H6 in H3.
+                    Geometry.
+                    rewrite H3 in H4.
+                    Geometry.
+                    clear H3 H6.
+                    Geometry.
+                    assert (S A B Q = S Q A B).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      rewrite H3 in H4.
+                      Geometry.
+                      clear H3.
+                      Geometry.
+                      assert (S A P B = - S P A B).
+                      {
+                        Geometry.
+                      }
+                      {
+                        Geometry.
+                        rewrite H3 in H4.
+                        Geometry.
+                        clear H3.
+                        Geometry.
+                        assert
+ (P ** R / P ** Q * (- S P A B + S Q A B) + S P A B =
+  P ** R / P ** Q * S Q A B + (1 - P ** R / P ** Q) * S P A B).
+                        {
+                          Geometry.
+                          field.
+                          Geometry.
+                        }
+                        {
+                          Geometry.
+                          rewrite H3 in H4.
+                          Geometry.
+                          clear H3.
+                          Geometry.
+                          assert (1 - P ** R / P ** Q = R ** Q / P ** Q).
+                          {
+                            Geometry.
+                            assert (R ** P + P ** Q = R ** Q).
+                            {
+                              Geometry.
+                            }
+                            {
+                              Geometry.
+                              rewrite <- H3.
+                              Geometry.
+                              assert (R ** P = - P ** R).
+                              {
+                                Geometry.
+                              }
+                              {
+                                Geometry.
+                                rewrite H6.
+                                field.
+                                Geometry.
+                              }
+                            }
+                          }
+                          {
+                            Geometry.
+                            congruence.
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            {
+              Geometry.
+            }
+          }
+        }
+      }
+      {
+        Geometry.
+      }
+    }
+  }
+Qed.
+Theorem l2_9aux :
+ forall A B P Q R : Point,
+ P <> Q ->
+ Col R P Q ->
+ Col Q A P ->
+ ~ Col Q P B -> S R A B = P ** R / P ** Q * S Q A B + R ** Q / P ** Q * S P A B.
+Proof.
+  intros.
+  cases_equality Q A.
+  {
+    assert (Col Q A B).
+    {
+      apply egalcol.
+      auto.
+    }
+    {
+      rewrite H4.
+      ring_simplify.
+      rewrite <- H3.
+      assert (R ** Q / P ** Q = S R Q B / S P Q B).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        rewrite H5.
+        field.
+        Geometry.
+      }
+    }
+  }
+  {
+    assert (~ Col Q A B).
+    {
+      unfold not in |- *.
+      intro.
+      assert (Col Q P B).
+      {
+        eauto with Geom.
+      }
+      {
+        auto.
+      }
+    }
+    {
+      assert (Col Q R A).
+      {
+        assert (Col P Q R).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (Col P Q A).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            eauto with Geom.
+          }
+        }
+      }
+      {
+        assert (A ** R / A ** Q = S R A B / S Q A B).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (A ** P / A ** Q = S P A B / S Q A B).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            RewriteVar (S R A B) H6.
+            {
+              RewriteVar (S P A B) H7.
+              assert (A ** R / A ** Q = P ** R / P ** Q + R ** Q / P ** Q * (A ** P / A ** Q)).
+              {
+                assert (A ** Q + Q ** R = A ** R).
+                {
+                  apply chasles.
+                  Geometry.
+                }
+                {
+                  assert (A ** R * P ** Q = A ** Q * P ** Q + Q ** R * P ** Q).
+                  {
+                    rewrite <- H9.
+                    ring.
+                  }
+                  {
+                    assert (P ** R + R ** Q = P ** Q).
+                    {
+                      apply chasles.
+                      Geometry.
+                    }
+                    {
+                      assert
+ (A ** Q * P ** Q + Q ** R * P ** Q = A ** Q * (P ** R + R ** Q) + Q ** R * P ** Q).
+                      {
+                        rewrite <- H11.
+                        ring.
+                      }
+                      {
+                        rewrite H12 in H10.
+                        clear H12.
+                        NormalizeRing H10.
+                        assert (P ** Q * Q ** R + A ** Q * R ** Q = R ** Q * A ** P).
+                        {
+                          assert (A ** Q + Q ** P = A ** P).
+                          {
+                            apply chasles.
+                            Geometry.
+                          }
+                          {
+                            rewrite <- H12.
+                            assert (P ** Q = - Q ** P).
+                            {
+                              Geometry.
+                            }
+                            {
+                              Geometry.
+                              rewrite H13.
+                              assert (Q ** R = - R ** Q).
+                              {
+                                Geometry.
+                              }
+                              {
+                                Geometry.
+                                rewrite H14.
+                                ring.
+                              }
+                            }
+                          }
+                        }
+                        {
+                          assert (P ** Q * A ** R = A ** Q * P ** R + R ** Q * A ** P).
+                          {
+                            replace (P ** Q * A ** R) with (A ** R * P ** Q) by  ring.
+                            rewrite H10.
+                            rewrite <- H12.
+                            ring.
+                          }
+                          {
+                            clear H9 H10 H11 H12.
+                            IsoleVar (A ** R) H13.
+                            {
+                              rewrite H13.
+                              field.
+                              Geometry.
+                            }
+                            {
+                              Geometry.
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              {
+                rewrite H9.
+                ring.
+              }
+            }
+            {
+              trivial.
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Theorem l2_9 :
+ forall A B P Q R : Point,
+ P <> Q ->
+ Col R P Q -> S R A B = P ** R / P ** Q * S Q A B + R ** Q / P ** Q * S P A B.
+Proof.
+  intros.
+  cases_col Q A P.
+  {
+    cases_col Q P B.
+    {
+      assert (Col Q P A).
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        clear H1.
+        assert (Col Q A B).
+        {
+          eauto with Geom.
+        }
+        {
+          assert (Col P A B).
+          {
+            eauto with Geom.
+          }
+          {
+            rewrite H1.
+            rewrite H4.
+            ring_simplify.
+            change (Col R A B) in |- *.
+            assert (Col Q R B).
+            {
+              eauto with Geom.
+            }
+            {
+              assert (Col Q R A).
+              {
+                eauto with Geom.
+              }
+              {
+                assert (Col R Q B).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  assert (Col R Q A).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    cases_equality R Q.
+                    {
+                      rewrite H9.
+                      trivial.
+                    }
+                    {
+                      eauto with Geom.
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      apply l2_9aux.
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+    }
+  }
+  {
+    cases_col Q P B.
+    {
+      assert (S R B A = P ** R / P ** Q * S Q B A + R ** Q / P ** Q * S P B A).
+      {
+        apply l2_9aux.
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+      }
+      {
+        assert (S R A B = - S R B A).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (S Q A B = - S Q B A).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            assert (S P A B = - S P B A).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              rewrite H4.
+              rewrite H5.
+              rewrite H6.
+              rewrite H3.
+              ring.
+            }
+          }
+        }
+      }
+    }
+    {
+      apply l2_9_weak.
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+    }
+  }
+Qed.
+Theorem A2bgen :
+ forall (A B P P' : Point) (r : F),
+ Col A B P -> A ** P = r * A ** B -> Col A B P' -> A ** P' = r * A ** B -> P = P'.
+Proof.
+  intros.
+  Geometry.
+  cases_equality A B.
+  {
+    Geometry.
+    assert (A ** B = 0).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      rewrite H4 in H2.
+      Geometry.
+      rewrite H4 in H0.
+      Geometry.
+      NormalizeRing H2.
+      Geometry.
+      NormalizeRing H0.
+      Geometry.
+      assert (A = P').
+      {
+        Geometry.
+      }
+      {
+        Geometry.
+        assert (A = P).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          congruence.
+        }
+      }
+    }
+  }
+  {
+    Geometry.
+    apply (A2b A B P P' r H3 H H0 H1 H2).
+  }
+Qed.
+Definition mid_point (I A B : Point) : Prop := 
+  Col A B I /\ A ** I = I ** B.
+Definition symmetric_point (I A B : Point) : Prop :=
+  Col A B I /\ A ** B = B ** I.
+Theorem mid_point_ex : forall A B : Point, {O : Point | mid_point O A B}.
+Proof with try solve [ Geometry | field; Geometry | congruence ].
+intros...
+assert (T := A2a A B (1 / 2))...
+elim T; intros; clear T...
+exists x...
+intuition...
+assert (A ** x + x ** B = A ** B)...
+unfold mid_point in |- *...
+intuition...
+RewriteVar (A ** x) H0...
+RewriteVar (x ** B) H1...
+Qed.
+Theorem symmetric_point_ex :
+ forall A O : Point, {A' : Point | Col A O A' /\ A ** O = O ** A'}.
+Proof.
+  intros.
+  try solve [ Geometry | ring | congruence ].
+  assert (T := A2a A O 2).
+  try solve [ Geometry | ring | congruence ].
+  elim T.
+  intros.
+  clear T.
+  try solve [ Geometry | ring | congruence ].
+  exists x.
+  try solve [ Geometry | ring | congruence ].
+  unfold symmetric_point in |- *.
+  try solve [ Geometry | ring | congruence ].
+  intuition.
+  try solve [ Geometry | ring | congruence ].
+  assert (O ** x = - x ** O).
+  {
+    try solve [ Geometry | ring | congruence ].
+  }
+  {
+    try solve [ Geometry | ring | congruence ].
+    assert (A ** x + x ** O = A ** O).
+    {
+      try solve [ Geometry | ring | congruence ].
+    }
+    {
+      try solve [ Geometry | ring | congruence ].
+      rewrite H1.
+      clear H1.
+      try solve [ Geometry | ring | congruence ].
+      RewriteVar (A ** x) H0.
+      try solve [ Geometry | ring | congruence ].
+      RewriteVar (x ** O) H2.
+      try solve [ Geometry | ring | congruence ].
+    }
+  }
+Qed.
+Lemma mid_point_comm :
+  forall A B C,
+  mid_point A B C -> mid_point A C B.
+Proof.
+  unfold mid_point.
+  intuition.
+Qed.
+Hint Immediate mid_point_comm : Geom.
+Theorem diag_mid_point_parallel : forall O A P B Q,
+mid_point O A P -> mid_point O B Q -> parallel A B P Q.
+Proof.
+  intros.
+  unfold mid_point in *.
+  DecompAndAll.
+  rename H0 into H.
+  assert (Col B O Q).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    clear H1.
+    rename H0 into H1.
+    rename H3 into H0.
+    cases_equality A P.
+    {
+      Geometry.
+      assert (A = O).
+      {
+        Geometry.
+        assert (A ** O + O ** P = A ** P).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          assert (A ** P = 0).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite H5 in H4.
+            clear H5.
+            Geometry.
+            rewrite <- H0 in H4.
+            Geometry.
+            assert (A ** O + A ** O = 2 * A ** O).
+            {
+              Geometry.
+              ring.
+            }
+            {
+              Geometry.
+              rewrite H5 in H4.
+              clear H5.
+              Geometry.
+              IsoleVar (A ** O) H4.
+              {
+                Geometry.
+                assert (0 / 2 = 0).
+                {
+                  Geometry.
+                  field.
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  rewrite H6 in H4.
+                  Geometry.
+                }
+              }
+              {
+                Geometry.
+              }
+            }
+          }
+        }
+      }
+      {
+        Geometry.
+        unfold parallel in |- *.
+        Geometry.
+        unfold S4 in |- *.
+        Geometry.
+        rewrite H3.
+        Geometry.
+        assert (S P P B = 0).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          rewrite H5.
+          Geometry.
+          ring_simplify.
+          assert (Col P B Q).
+          {
+            Geometry.
+            rewrite <- H3.
+            Geometry.
+            rewrite <- H4 in H1.
+            Geometry.
+          }
+          {
+            Geometry.
+          }
+        }
+      }
+    }
+    {
+      Geometry.
+      assert (A <> O).
+      {
+        Geometry.
+        unfold not in |- *.
+        intro.
+        Geometry.
+        assert (A ** O = 0).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          rewrite H5 in H0.
+          Geometry.
+          assert (O = P).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            assert (A = P).
+            {
+              Geometry.
+              congruence.
+            }
+            {
+              Geometry.
+            }
+          }
+        }
+      }
+      {
+        Geometry.
+        cases_equality B O.
+        {
+          Geometry.
+          unfold parallel in |- *.
+          Geometry.
+          unfold S4 in |- *.
+          Geometry.
+          assert (B ** O = 0).
+          {
+            Geometry.
+          }
+          {
+            Geometry.
+            rewrite H6 in H2.
+            Geometry.
+            assert (O = Q).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (B = Q).
+              {
+                Geometry.
+                congruence.
+              }
+              {
+                Geometry.
+                rewrite H7 in H.
+                Geometry.
+                rewrite H8.
+                Geometry.
+                rewrite H.
+                Geometry.
+                assert (S A Q Q = 0).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  rewrite H9.
+                  Geometry.
+                }
+              }
+            }
+          }
+        }
+        {
+          Geometry.
+          cases_col O A B.
+          {
+            Geometry.
+            unfold parallel in |- *.
+            Geometry.
+            unfold S4 in |- *.
+            Geometry.
+            assert (Col A O B).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (Col A O P).
+              {
+                Geometry.
+              }
+              {
+                Geometry.
+                assert (Col A P B).
+                {
+                  eauto with Geom.
+                }
+                {
+                  eauto with Geom.
+                  Geometry.
+                  assert (Col B O Q).
+                  {
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    assert (Col B O A).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      assert (Col B Q A).
+                      {
+                        eauto with Geom.
+                      }
+                      {
+                        eauto with Geom.
+                        Geometry.
+                        rewrite H9.
+                        Geometry.
+                        assert (Col A B Q).
+                        {
+                          Geometry.
+                        }
+                        {
+                          Geometry.
+                          rewrite H13.
+                          Geometry.
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          {
+            Geometry.
+            assert (Q ** B / O ** B = S Q A B / S O A B).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+              assert (Q <> O).
+              {
+                Geometry.
+                unfold not in |- *.
+                intro.
+                Geometry.
+                assert (O ** Q = 0).
+                {
+                  Geometry.
+                }
+                {
+                  Geometry.
+                  assert (B ** O = 0).
+                  {
+                    Geometry.
+                    congruence.
+                  }
+                  {
+                    Geometry.
+                  }
+                }
+              }
+              {
+                Geometry.
+                assert (Q ** B / O ** B = 2).
+                {
+                  Geometry.
+                  assert (Q ** B = Q ** O + O ** B).
+                  {
+                    Geometry.
+                    symmetry  in |- *.
+                    Geometry.
+                  }
+                  {
+                    Geometry.
+                    rewrite H9.
+                    Geometry.
+                    assert (O ** B = Q ** O).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      rewrite H10.
+                      Geometry.
+                      field.
+                      Geometry.
+                    }
+                  }
+                }
+                {
+                  Geometry.
+                  assert (O <> P).
+                  {
+                    Geometry.
+                    unfold not in |- *.
+                    intro.
+                    Geometry.
+                    assert (O ** P = 0).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      assert (A ** O = 0).
+                      {
+                        Geometry.
+                        congruence.
+                      }
+                      {
+                        Geometry.
+                      }
+                    }
+                  }
+                  {
+                    Geometry.
+                    assert (P ** A / O ** A = S P A B / S O A B).
+                    {
+                      Geometry.
+                    }
+                    {
+                      Geometry.
+                      assert (P ** A / O ** A = A ** P / A ** O).
+                      {
+                        Geometry.
+                      }
+                      {
+                        Geometry.
+                        assert (A ** O + O ** P = A ** P).
+                        {
+                          Geometry.
+                        }
+                        {
+                          Geometry.
+                          rewrite <- H13 in H12.
+                          Geometry.
+                          rewrite H0 in H12.
+                          Geometry.
+                          assert ((O ** P + O ** P) / O ** P = 2).
+                          {
+                            Geometry.
+                            field.
+                            Geometry.
+                          }
+                          {
+                            Geometry.
+                            rewrite H14 in H12.
+                            Geometry.
+                            unfold parallel in |- *.
+                            Geometry.
+                            assert (S Q A B / S O A B = S P A B / S O A B).
+                            {
+                              Geometry.
+                              congruence.
+                            }
+                            {
+                              Geometry.
+                              assert (S Q A B = S A B Q).
+                              {
+                                Geometry.
+                              }
+                              {
+                                Geometry.
+                                assert (S A P B = - S P A B).
+                                {
+                                  Geometry.
+                                }
+                                {
+                                  Geometry.
+                                  unfold S4 in |- *.
+                                  Geometry.
+                                  rewrite <- H16.
+                                  Geometry.
+                                  rewrite H17.
+                                  Geometry.
+                                  RewriteVar (S Q A B) H15.
+                                  {
+                                    Geometry.
+                                    field.
+                                    Geometry.
+                                  }
+                                  {
+                                    Geometry.
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Theorem euclid_parallel_existence_strong :
+ forall A B P : Point, A<>B -> {Q : Point | parallel A B P Q /\ P<>Q}.
+Proof.
+  intros.
+  assert (Op := mid_point_ex A P).
+  Geometry.
+  elim Op.
+  intro O.
+  clear Op.
+  Geometry.
+  intros.
+  Geometry.
+  elim p.
+  intros.
+  clear p.
+  Geometry.
+  assert (Op := symmetric_point_ex B O).
+  Geometry.
+  elim Op.
+  intro Q.
+  clear Op.
+  Geometry.
+  intros.
+  Geometry.
+  elim p.
+  intros.
+  clear p.
+  Geometry.
+  exists Q.
+  Geometry.
+  split.
+  {
+    eapply diag_mid_point_parallel.
+    {
+      unfold mid_point.
+      split.
+      {
+        apply H0.
+      }
+      {
+        assumption.
+      }
+    }
+    {
+      unfold mid_point.
+      split.
+      {
+        Geometry.
+      }
+      {
+        assumption.
+      }
+    }
+  }
+  {
+    unfold not.
+    intro.
+    subst Q.
+    rewrite <- H1 in H3.
+    cases_equality O P.
+    {
+      subst P.
+      replace (O**O) with 0 in H1.
+      {
+        assert (A=O).
+        {
+          Geometry.
+        }
+        {
+          subst A.
+          replace (O**O) with 0 in H3.
+          assert (B=O).
+          {
+            Geometry.
+          }
+          {
+            subst B.
+            intuition.
+          }
+        }
+      }
+      {
+        symmetry.
+        Geometry.
+      }
+    }
+    {
+      assert (Col O A B).
+      {
+        eapply col_trans_1 with (B:=P).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+        }
+      }
+      {
+        assert (A**O+O**B=A**B).
+        {
+          Geometry.
+        }
+        {
+          Geometry.
+          rewrite <- H3 in H6.
+          replace (B**O) with (-O**B) in H6.
+          {
+            NormalizeRing H6.
+            assert (A=B).
+            {
+              Geometry.
+            }
+            {
+              Geometry.
+            }
+          }
+          {
+            symmetry.
+            Geometry.
+          }
+        }
+      }
+    }
+  }
+Qed.
+Theorem euclid_parallel_existence :
+ forall A B P : Point, {Q : Point | parallel A B P Q}.
+Proof.
+  intros.
+  assert (Op := mid_point_ex A P).
+  Geometry.
+  elim Op.
+  intro O.
+  clear Op.
+  Geometry.
+  intros.
+  Geometry.
+  elim p.
+  intros.
+  clear p.
+  Geometry.
+  assert (Op := symmetric_point_ex B O).
+  Geometry.
+  elim Op.
+  intro Q.
+  clear Op.
+  Geometry.
+  intros.
+  Geometry.
+  elim p.
+  intros.
+  clear p.
+  Geometry.
+  exists Q.
+  Geometry.
+  eapply diag_mid_point_parallel.
+  {
+    unfold mid_point.
+    split.
+    {
+      apply H.
+    }
+    {
+      assumption.
+    }
+  }
+  {
+    unfold mid_point.
+    split.
+    {
+      Geometry.
+    }
+    {
+      assumption.
+    }
+  }
+Qed.
+Theorem par_1 : forall A B C D : Point, 
+   parallel A B C D -> parallel B A C D.
+Proof.
+  unfold parallel  in |- *.
+  unfold S4 in |- *.
+  intros.
+  uniformize_signed_areas.
+  RewriteVar (S A C B) H.
+  ring.
+Qed.
+Hint Resolve par_1: Geom.
+Theorem par_2 : forall A B C D : Point, 
+   parallel A B C D -> parallel C D A B.
+Proof.
+  unfold parallel in |- *.
+  intros.
+  assert (S4 A C B D = - S4 C A D B).
+  {
+    Geometry.
+  }
+  {
+    Geometry.
+    rewrite H0 in H.
+    Geometry.
+  }
+Qed.
+Hint Resolve par_2: Geom.
+Theorem not_parallel_not_eq_1 : forall A B C D,
+  ~ parallel A B C D -> A<>B.
+Proof.
+  intros.
+  unfold not.
+  intro.
+  subst A.
+  Geometry.
+Qed.
+Theorem not_parallel_not_eq_2 : forall A B C D,
+  ~ parallel A B C D -> C<>D.
+Proof.
+  intros.
+  unfold not.
+  intro.
+  subst C.
+  Geometry.
+Qed.
+Hint Resolve not_parallel_not_eq_1 not_parallel_not_eq_2 : Geom.
+Lemma mid_point_degenerated_1 : forall A B, mid_point A A B -> A=B.
+Proof.
+  intros.
+  unfold mid_point in H.
+  DecompAndAll.
+  basic_simpl.
+  Geometry.
+Qed.
+Lemma mid_point_degenerated_2 : forall A B, mid_point A B B -> A=B.
+Proof.
+  intros.
+  unfold mid_point in H.
+  DecompAndAll.
+  replace (A**B) with (- B**A) in H1.
+  {
+    assert (B**A = 0).
+    {
+      Geometry.
+    }
+    {
+      Geometry.
+      symmetry.
+      Geometry.
+    }
+  }
+  {
+    symmetry.
+    Geometry.
+  }
+Qed.
+Lemma mid_point_degenerated_3 : forall A B, mid_point A B A -> A=B.
+Proof.
+  intros.
+  unfold mid_point in H.
+  DecompAndAll.
+  basic_simpl.
+  symmetry.
+  Geometry.
+Qed.
+Hint Resolve mid_point_degenerated_1 mid_point_degenerated_2 mid_point_degenerated_3:Geom.
+Lemma eq_diff_diff : forall A B C D, A<>B -> A**B=C**D -> C<>D.
+Proof.
+  intuition idtac.
+  subst C.
+  basic_simpl.
+  Geometry.
+Qed.
+Hint Resolve eq_diff_diff : Geom.
+Lemma parallel_side_eq_parallel' : forall P Q C D,
+  parallel P Q C D -> P**Q=C**D -> parallel D Q P C.
+Proof.
+  intros.
+  cases_equality C D.
+  {
+    subst.
+    basic_simpl.
+    assert (P=Q).
+    {
+      apply A1b.
+      assumption.
+    }
+    {
+      subst.
+      clear H0.
+      unfold parallel  in *.
+      unfold S4 in *.
+      basic_simpl.
+      trivial.
+    }
+  }
+  {
+    apply parallel_side_eq_parallel.
+    {
+      auto.
+    }
+    {
+      auto.
+    }
+    {
+      auto.
+    }
+  }
+Qed.

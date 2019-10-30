@@ -1,0 +1,1635 @@
+Set Implicit Arguments.
+-----
+From Coq Require Export List.
+-----
+Section Wrap.
+-----
+Variable A : Set.
+-----
+Variable leA : A -> A -> Prop.
+-----
+Variable leA_dec : forall a a', {leA a a'} + {~ leA a a'}.
+-----
+Inductive greater : A -> list A -> Prop :=\n| Gr0 : forall a a' w, leA a' a -> greater a (a'::w)\n| Gr1 : forall a a' w, greater a w -> greater a (a'::w).
+-----
+Inductive good : list A -> Prop :=\n| Gd0 : forall a w, greater a w -> good (a::w)\n| Gd1 : forall a w, good w -> good (a::w).
+-----
+Definition bad (l : list A) : Prop := ~ good l.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall (a : A) (l : list A), sumbool (greater a l) (not (greater a l))
++++++
+Proof.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall (a : A) (l : list A), sumbool (greater a l) (not (greater a l))
++++++
+intros a l.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+
+*****
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a l) (not (greater a l))
++++++
+induction l as [|a' l IHl].
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+
+*****
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a nil) (not (greater a nil))
++++++
+right.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+right.
+
+*****
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+not (greater a nil)
++++++
+intro HF.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+right.
+intro HF.
+
+*****
+HF : greater a nil
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+
+*****
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+elim (leA_dec a' a).
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+
+*****
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : leA a' a, sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+intro case_a_a'.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+
+*****
+case_a_a' : leA a' a
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+left.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+left.
+
+*****
+case_a_a' : leA a' a
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a (cons a' l)
++++++
+constructor 1.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+left.
+constructor 1.
+
+*****
+case_a_a' : leA a' a
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+leA a' a
++++++
+trivial.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+
+*****
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : not (leA a' a), sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+intro case_a_a'.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+
+*****
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+elim IHl.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+
+*****
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : greater a l, sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+intro case_l.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+
+*****
+case_l : greater a l
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+left.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+left.
+
+*****
+case_l : greater a l
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a (cons a' l)
++++++
+constructor 2.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+left.
+constructor 2.
+
+*****
+case_l : greater a l
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a l
++++++
+trivial.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+
+*****
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : not (greater a l), sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+intro case_l.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+
+*****
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (greater a (cons a' l)) (not (greater a (cons a' l)))
++++++
+right.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+
+*****
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+not (greater a (cons a' l))
++++++
+intro HF.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+
+*****
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+
+*****
+H2 : eq w l
+H : eq a'0 a'
+H0 : eq a0 a
+H1 : leA a' a
+w : list A
+a0,a'0 : A
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H1 : leA a' a
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply case_a_a'.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+subst.
+apply case_a_a'.
+
+*****
+H1 : leA a' a
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+leA a' a
++++++
+trivial.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+
+*****
+H2 : eq w l
+H : eq a'0 a'
+H0 : eq a0 a
+H1 : greater a l
+w : list A
+a0,a'0 : A
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H1 : greater a l
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply case_l.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+elim (leA_dec a' a).
+intro case_a_a'.
+elim IHl.
+intro case_l.
+right.
+intro HF.
+inversion HF.
+subst.
+apply case_l.
+
+*****
+H1 : greater a l
+HF : greater a (cons a' l)
+case_l : not (greater a l)
+case_a_a' : not (leA a' a)
+IHl : sumbool (greater a l) (not (greater a l))
+l : list A
+a,a' : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a l
++++++
+trivial.
+-----
+Lemma greater_dec : forall a l, {greater a l} + {~ greater a l}.
+Proof.
+intros a l.
+induction l as [|a' l IHl].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall l : list A, sumbool (good l) (bad l)
++++++
+Proof.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall l : list A, sumbool (good l) (bad l)
++++++
+intro l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+
+*****
+l : list A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good l) (bad l)
++++++
+induction l as [|a l IHl].
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good nil) (bad nil)
++++++
+right.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+right.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad nil
++++++
+intro HF.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+right.
+intro HF.
+
+*****
+HF : good nil
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good (cons a l)) (bad (cons a l))
++++++
+elim IHl.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+
+*****
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : good l, sumbool (good (cons a l)) (bad (cons a l))
++++++
+intro case_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+
+*****
+case_l : good l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good (cons a l)) (bad (cons a l))
++++++
+left.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+left.
+
+*****
+case_l : good l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+good (cons a l)
++++++
+constructor 2.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+left.
+constructor 2.
+
+*****
+case_l : good l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+good l
++++++
+trivial.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+
+*****
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : bad l, sumbool (good (cons a l)) (bad (cons a l))
++++++
+intro case_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+
+*****
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good (cons a l)) (bad (cons a l))
++++++
+elim (greater_dec a l).
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+
+*****
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : greater a l, sumbool (good (cons a l)) (bad (cons a l))
++++++
+intro case_a_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+
+*****
+case_a_l : greater a l
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good (cons a l)) (bad (cons a l))
++++++
+left.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+left.
+
+*****
+case_a_l : greater a l
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+good (cons a l)
++++++
+constructor 1.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+left.
+constructor 1.
+
+*****
+case_a_l : greater a l
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a l
++++++
+trivial.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+
+*****
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : not (greater a l), sumbool (good (cons a l)) (bad (cons a l))
++++++
+intro case_a_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+
+*****
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+sumbool (good (cons a l)) (bad (cons a l))
++++++
+right.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+
+*****
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (cons a l)
++++++
+intro HF.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+
+*****
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+
+*****
+H1 : eq w l
+H : eq a0 a
+H0 : greater a l
+w : list A
+a0 : A
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H0 : greater a l
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply case_a_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+subst.
+apply case_a_l.
+
+*****
+H0 : greater a l
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a l
++++++
+trivial.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+
+*****
+H1 : eq w l
+H : eq a0 a
+H0 : good l
+w : list A
+a0 : A
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H0 : good l
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply case_l.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+elim IHl.
+intro case_l.
+elim (greater_dec a l).
+intro case_a_l.
+right.
+intro HF.
+inversion HF.
+subst.
+apply case_l.
+
+*****
+H0 : good l
+HF : good (cons a l)
+case_a_l : not (greater a l)
+case_l : bad l
+IHl : sumbool (good l) (bad l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+good l
++++++
+trivial.
+-----
+Lemma good_dec : forall l, {good l} + {bad l}.
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint bad_subsequence (l : list A) : list A :=\nmatch l with \n| nil => nil\n| a :: l' => let bl := bad_subsequence l' in \n		match (greater_dec a bl) with \n		| left _ => bl\n		| right _ => a :: bl\n		end\nend.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall l : list A, bad (bad_subsequence l)
++++++
+Proof.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall l : list A, bad (bad_subsequence l)
++++++
+intro l.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+
+*****
+l : list A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (bad_subsequence l)
++++++
+induction l as [|a l IHl].
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (bad_subsequence nil)
++++++
+simpl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+
+*****
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad nil
++++++
+intro HF.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+intro HF.
+
+*****
+HF : good nil
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (bad_subsequence (cons a l))
++++++
+simpl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+
+*****
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (if greater_dec a (bad_subsequence l) then bad_subsequence l else cons a (bad_subsequence l))
++++++
+elim (greater_dec a (bad_subsequence l)).
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+
+*****
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : greater a (bad_subsequence l), bad (bad_subsequence l)
++++++
+intro case_a_bl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+
+*****
+case_a_bl : greater a (bad_subsequence l)
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (bad_subsequence l)
++++++
+assumption.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+
+*****
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+forall _ : not (greater a (bad_subsequence l)), bad (cons a (bad_subsequence l))
++++++
+intro case_a_bl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+
+*****
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+bad (cons a (bad_subsequence l))
++++++
+intro HF.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+
+*****
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+inversion HF.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+
+*****
+H1 : eq w (bad_subsequence l)
+H : eq a0 a
+H0 : greater a (bad_subsequence l)
+w : list A
+a0 : A
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H0 : greater a (bad_subsequence l)
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply case_a_bl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+subst.
+apply case_a_bl.
+
+*****
+H0 : greater a (bad_subsequence l)
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+greater a (bad_subsequence l)
++++++
+trivial.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+
+*****
+H1 : eq w (bad_subsequence l)
+H : eq a0 a
+H0 : good (bad_subsequence l)
+w : list A
+a0 : A
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+subst.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+subst.
+
+*****
+H0 : good (bad_subsequence l)
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+False
++++++
+apply IHl.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+simpl.
+elim (greater_dec a (bad_subsequence l)).
+intro case_a_bl.
+intro HF.
+inversion HF.
+subst.
+apply IHl.
+
+*****
+H0 : good (bad_subsequence l)
+HF : good (cons a (bad_subsequence l))
+case_a_bl : not (greater a (bad_subsequence l))
+IHl : bad (bad_subsequence l)
+l : list A
+a : A
+leA_dec : forall a a' : A, sumbool (leA a a') (not (leA a a'))
+leA : forall (_ : A) (_ : A), Prop
+A : Set
+*****
+good (bad_subsequence l)
++++++
+trivial.
+-----
+Lemma bad_subsequence_is_bad : forall l, bad (bad_subsequence l).
+Proof.
+intro l.
+induction l as [|a l IHl].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive continues : list A -> list A -> Prop :=\n| Ct0 : forall a l, ~ greater a l -> continues (a::l) l.
+-----
+Definition wqo_acc : Prop := forall l, bad l -> Acc continues l.
+-----
+End Wrap.
+-----

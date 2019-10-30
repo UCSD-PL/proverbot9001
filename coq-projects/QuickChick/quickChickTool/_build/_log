@@ -1,0 +1,30 @@
+### Starting build.
+# Target: quickChickTool.ml.depends, tags: { package(coq.lib), extension:ml, file:quickChickTool.ml, ocaml, ocamldep, quiet, rectypes, thread, traverse }
+ocamlfind ocamldep -package coq.lib -modules quickChickTool.ml > quickChickTool.ml.depends
+# Target: quickChickToolLexer.mll, tags: { package(coq.lib), extension:mll, file:quickChickToolLexer.mll, lexer, ocaml, ocamllex, quiet, rectypes, thread, traverse }
+/home/yousef/.opam/4.07.1/bin/ocamllex.opt -q quickChickToolLexer.mll
+# Target: quickChickToolLexer.ml.depends, tags: { package(coq.lib), extension:ml, file:quickChickToolLexer.ml, ocaml, ocamldep, quiet, rectypes, thread, traverse }
+ocamlfind ocamldep -package coq.lib -modules quickChickToolLexer.ml > quickChickToolLexer.ml.depends
+# Target: quickChickToolParser.mly, tags: { package(coq.lib), extension:mly, file:quickChickToolParser.mly, infer, ocaml, ocamlyacc, parser, quiet, rectypes, thread, traverse }
+/home/yousef/.opam/4.07.1/bin/ocamlyacc quickChickToolParser.mly
++ /home/yousef/.opam/4.07.1/bin/ocamlyacc quickChickToolParser.mly
+1 shift/reduce conflict.
+# Target: quickChickToolParser.mli.depends, tags: { package(coq.lib), extension:mli, file:quickChickToolParser.mli, ocaml, ocamldep, quiet, rectypes, thread, traverse }
+ocamlfind ocamldep -package coq.lib -modules quickChickToolParser.mli > quickChickToolParser.mli.depends
+# Target: quickChickToolTypes.ml.depends, tags: { package(coq.lib), extension:ml, file:quickChickToolTypes.ml, ocaml, ocamldep, quiet, rectypes, thread, traverse }
+ocamlfind ocamldep -package coq.lib -modules quickChickToolTypes.ml > quickChickToolTypes.ml.depends
+# Target: quickChickToolTypes.cmo, tags: { package(coq.lib), byte, compile, extension:cmo, extension:ml, file:quickChickToolTypes.cmo, file:quickChickToolTypes.ml, implem, ocaml, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -c -rectypes -thread -package coq.lib -o quickChickToolTypes.cmo quickChickToolTypes.ml
+# Target: quickChickToolParser.cmi, tags: { package(coq.lib), byte, compile, extension:mli, file:quickChickToolParser.mli, interf, ocaml, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -c -rectypes -thread -package coq.lib -o quickChickToolParser.cmi quickChickToolParser.mli
+# Target: quickChickToolLexer.cmo, tags: { package(coq.lib), byte, compile, extension:cmo, extension:ml, file:quickChickToolLexer.cmo, file:quickChickToolLexer.ml, implem, ocaml, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -c -rectypes -thread -package coq.lib -o quickChickToolLexer.cmo quickChickToolLexer.ml
+# Target: quickChickTool.cmo, tags: { package(coq.lib), byte, compile, extension:cmo, extension:ml, file:quickChickTool.cmo, file:quickChickTool.ml, implem, ocaml, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -c -rectypes -thread -package coq.lib -o quickChickTool.cmo quickChickTool.ml
+# Target: quickChickToolParser.ml.depends, tags: { package(coq.lib), extension:ml, file:quickChickToolParser.ml, ocaml, ocamldep, quiet, rectypes, thread, traverse }
+ocamlfind ocamldep -package coq.lib -modules quickChickToolParser.ml > quickChickToolParser.ml.depends
+# Target: quickChickToolParser.cmo, tags: { package(coq.lib), byte, compile, extension:cmo, extension:ml, file:quickChickToolParser.cmo, file:quickChickToolParser.ml, implem, ocaml, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -c -rectypes -thread -package coq.lib -o quickChickToolParser.cmo quickChickToolParser.ml
+# Target: quickChickTool.byte, tags: { package(coq.lib), byte, dont_link_with, extension:byte, file:quickChickTool.byte, link, ocaml, program, quiet, rectypes, thread, traverse }
+ocamlfind ocamlc -linkpkg -thread -package coq.lib quickChickToolTypes.cmo quickChickToolParser.cmo quickChickToolLexer.cmo quickChickTool.cmo -o quickChickTool.byte
+# Compilation successful.

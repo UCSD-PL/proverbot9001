@@ -1,0 +1,6114 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.suma.
+-----
+Section original_euclid_original_spp.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : euclid_s_parallel_postulate, alternative_strong_parallel_postulate
++++++
+Proof.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : euclid_s_parallel_postulate, alternative_strong_parallel_postulate
++++++
+intros oe A B C D P Q R Hos HSuma HNBet.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+
+*****
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(HA' := symmetric_point_construction A B).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+
+*****
+HA' : ex (fun P' : Tpoint => Midpoint B A P')
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+destruct HA' as [A'].
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+
+*****
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(HD' := symmetric_point_construction D C).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+
+*****
+HD' : ex (fun P' : Tpoint => Midpoint C D P')
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+destruct HD' as [D'].
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+
+*****
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert (Hdiff := HSuma).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+
+*****
+Hdiff : SumA A B C B C D P Q R
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+apply suma_distincts in Hdiff.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+
+*****
+Hdiff : and (not (eq A B))\n (and (not (eq B C))\n (and (not (eq B C))\n (and (not (eq C D)) (and (not (eq P Q)) (not (eq Q R))))))
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+spliter.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+
+*****
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2,H3 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert_diffs.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+
+*****
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+elim(lea_total B C D C B A'); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+
+*****
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : LeA B C D C B A', ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+intro.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+
+*****
+H3 : LeA B C D C B A'
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(HY := oe A B C D P Q R).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(HY := oe A B C D P Q R).
+
+*****
+HY : forall (_ : OS B C A D) (_ : SAMS A B C B C D)\n (_ : SumA A B C B C D P Q R) (_ : not (Bet P Q R)),\nex (fun Y : Tpoint => and (Out B A Y) (Out C D Y))
+H3 : LeA B C D C B A'
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+destruct HY as [Y []]; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(HY := oe A B C D P Q R).
+destruct HY as [Y []]; auto.
+
+*****
+H3 : LeA B C D C B A'
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS A B C B C D
++++++
+apply (sams_chara _ _ _ _ _ _ A'); Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(HY := oe A B C D P Q R).
+destruct HY as [Y []]; auto.
+apply (sams_chara _ _ _ _ _ _ A'); Between.
+
+*****
+H13 : Out C D Y
+H11 : Out B A Y
+Y : Tpoint
+H3 : LeA B C D C B A'
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert_cols.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(HY := oe A B C D P Q R).
+destruct HY as [Y []]; auto.
+apply (sams_chara _ _ _ _ _ _ A'); Between.
+assert_cols.
+
+*****
+H18 : Col B A Y
+H17 : Col C D Y
+H16 : Col B A A'
+H15 : Col C D D'
+H13 : Out C D Y
+H11 : Out B A Y
+Y : Tpoint
+H3 : LeA B C D C B A'
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+exists Y; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+
+*****
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : LeA C B A' B C D, ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+intro.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+
+*****
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+
+*****
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(HSuma' := ex_suma A' B C B C D').
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+
+*****
+HSuma' : forall (_ : not (eq A' B)) (_ : not (eq B C)) (_ : not (eq B C))\n (_ : not (eq C D')),\nex\n (fun G : Tpoint =>\n ex\n (fun H : Tpoint => ex (fun I : Tpoint => SumA A' B C B C D' G H I)))
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+
+*****
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(Hdiff := HSuma').
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+
+*****
+HSuma',Hdiff : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+apply suma_distincts in Hdiff.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+
+*****
+Hdiff : and (not (eq A' B))\n (and (not (eq B C))\n (and (not (eq B C))\n (and (not (eq C D')) (and (not (eq P' Q')) (not (eq Q' R'))))))
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+spliter.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+
+*****
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+assert(HY := oe A' B C D' P' Q' R').
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+
+*****
+HY : forall (_ : OS B C A' D') (_ : SAMS A' B C B C D')\n (_ : SumA A' B C B C D' P' Q' R') (_ : not (Bet P' Q' R')),\nex (fun Y : Tpoint => and (Out B A' Y) (Out C D' Y))
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun Y : Tpoint => and (Col B A Y) (Col C D Y))
++++++
+destruct HY as [Y []]; SumA.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+
+*****
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS B C A' D'
++++++
+3: exists Y; split; ColR.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+
+*****
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS B C A' D'
++++++
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+
+*****
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS B C A' D'
++++++
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS B C A' D'
++++++
+exists D.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (TS B C A' D) (TS B C D' D)
++++++
+split.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS B C A' D
++++++
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS B C A A'
++++++
+-
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS B C A A'
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A' B C)
++++++
+intro; apply HNCol1; ColR.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun T : Tpoint => and (Col T B C) (Bet A T A'))
++++++
+exists B; Col; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+exists B; Col; Between.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+exists B; Col; Between.
+-
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS B C D' D
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+exists B; Col; Between.
+-
+repeat split; Col.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col D' B C)
++++++
+intro; apply HNCol2; ColR.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+exists B; Col; Between.
+-
+repeat split; Col.
+intro; apply HNCol2; ColR.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun T : Tpoint => and (Col T B C) (Bet D' T D))
++++++
+exists C.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+assert(HNCol1 : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(HNCol2 : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+exists D.
+split.
+apply l9_2; apply (l9_8_2 _ _ A); auto.
+-
+repeat split; Col.
+intro; apply HNCol1; ColR.
+exists B; Col; Between.
+-
+repeat split; Col.
+intro; apply HNCol2; ColR.
+exists C.
+
+*****
+HNCol2 : not (Col B C D)
+HNCol1 : not (Col B C A)
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Col C B C) (Bet D' C D)
++++++
+split; Col; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+
+*****
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Bet P' Q' R')
++++++
+intro.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HNBet.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet P Q R
++++++
+apply (bet_conga__bet P' Q' R'); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA P' Q' R' P Q R
++++++
+apply (suma2__conga A B C B C D); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA A B C B C D P' Q' R'
++++++
+apply suma_sym.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA B C D A B C P' Q' R'
++++++
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A' B C B C D
++++++
+3: apply conga_refl; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A' B C B C D
++++++
+-
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A' B C B C D
++++++
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+
+*****
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A' B C B C D
++++++
+assert(TS C B D D').
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+
+*****
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS C B D D'
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+repeat split; Col.
+
+*****
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col D' C B)
++++++
+intro; apply HNCol; ColR.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+repeat split; Col.
+intro; apply HNCol; ColR.
+
+*****
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun T : Tpoint => and (Col T C B) (Bet D T D'))
++++++
+exists C; Col; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A' B C B C D
++++++
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS A' B C B C D'
++++++
+SumA.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS B C D B C D'
++++++
+apply sams_left_comm.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS D C B B C D'
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (Out C B D') (not (Bet D C B))
++++++
+right; intro; assert_cols; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+right; intro; assert_cols; Col.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun J : Tpoint => and (CongA B C J B C D') (and (not (OS C B D J)) (and (not (TS D C B J)) (Coplanar D C B J))))
++++++
+exists D'.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists D'.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (CongA B C D' B C D') (and (not (OS C B D D')) (and (not (TS D C B D')) (Coplanar D C B D')))
++++++
+split; CongA; split.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists D'.
+split; CongA; split.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (OS C B D D')
++++++
+apply l9_9; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (not (TS D C B D')) (Coplanar D C B D')
++++++
+split; Cop.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (TS D C B D')
++++++
+intro Hts; destruct Hts as [_ []]; assert_cols; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA B C D B C D' P' Q' R'
++++++
+apply suma_left_comm.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA D C B B C D' P' Q' R'
++++++
+exists D'.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (CongA B C D' B C D') (and (not (OS C B D D')) (and (Coplanar D C B D') (CongA D C D' P' Q' R')))
++++++
+split; CongA; split.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (OS C B D D')
++++++
+apply l9_9; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Coplanar D C B D') (CongA D C D' P' Q' R')
++++++
+split; Cop.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+
+*****
+H21 : TS C B D D'
+HNCol : not (Col B C D)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA D C D' P' Q' R'
++++++
+apply conga_line; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+
+*****
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA B C D' A B C
++++++
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+
+*****
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA B C D' A B C
++++++
+assert(TS B C A A').
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+
+*****
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS B C A A'
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+repeat split; Col.
+
+*****
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A' B C)
++++++
+intro; apply HNCol; ColR.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+repeat split; Col.
+intro; apply HNCol; ColR.
+
+*****
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun T : Tpoint => and (Col T B C) (Bet A T A'))
++++++
+exists B; Col; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA B C D' A B C
++++++
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS A' B C B C D'
++++++
+SumA.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS A' B C A B C
++++++
+apply sams_left_comm.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS C B A' A B C
++++++
+apply sams_sym.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS A B C C B A'
++++++
+repeat split; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (Out B C A') (not (Bet A B C))
++++++
+right; intro; assert_cols; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+right; intro; assert_cols; Col.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun J : Tpoint => and (CongA C B J C B A') (and (not (OS B C A J)) (and (not (TS A B C J)) (Coplanar A B C J))))
++++++
+exists A'.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists A'.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (CongA C B A' C B A') (and (not (OS B C A A')) (and (not (TS A B C A')) (Coplanar A B C A')))
++++++
+split; CongA; split.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists A'.
+split; CongA; split.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (OS B C A A')
++++++
+apply l9_9; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists A'.
+split; CongA; split.
+apply l9_9; auto.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (not (TS A B C A')) (Coplanar A B C A')
++++++
+split; Cop.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply sams_left_comm.
+apply sams_sym.
+repeat split; Col.
+right; intro; assert_cols; Col.
+exists A'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (TS A B C A')
++++++
+intro Hts; destruct Hts as [_ []]; assert_cols; Col.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA A' B C A B C P' Q' R'
++++++
+apply suma_sym.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA A B C A' B C P' Q' R'
++++++
+exists A'.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+exists A'.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (CongA C B A' A' B C) (and (not (OS B C A A')) (and (Coplanar A B C A') (CongA A B A' P' Q' R')))
++++++
+split; CongA; split.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+exists A'.
+split; CongA; split.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (OS B C A A')
++++++
+apply l9_9; auto.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+exists A'.
+split; CongA; split.
+apply l9_9; auto.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Coplanar A B C A') (CongA A B A' P' Q' R')
++++++
+split; Cop.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+exists A'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+
+*****
+H21 : TS B C A A'
+HNCol : not (Col B C A)
+H20 : Bet P' Q' R'
+H19 : not (eq Q' R')
+H18 : not (eq P' Q')
+H17 : not (eq C D')
+H15,H16 : not (eq B C)
+H13 : not (eq A' B)
+HSuma' : SumA A' B C B C D' P' Q' R'
+P',Q',R' : Tpoint
+H11 : SAMS D' C B C B A'
+H3 : LeA C B A' B C D
+H14 : not (eq C A)
+H12 : not (eq B D)
+H10 : not (eq B A')
+H7 : not (eq A A')
+H9 : not (eq C D')
+H8 : not (eq D D')
+H6 : not (eq Q R)
+H5 : not (eq P Q)
+H4 : not (eq C D)
+H2 : not (eq B C)
+H1 : not (eq A B)
+H0 : Midpoint C D D'
+D' : Tpoint
+H : Midpoint B A A'
+A' : Tpoint
+HNBet : not (Bet P Q R)
+HSuma : SumA A B C B C D P Q R
+Hos : OS B C A D
+A,B,C,D,P,Q,R : Tpoint
+oe : euclid_s_parallel_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+CongA A B A' P' Q' R'
++++++
+apply conga_line; Between.
+-----
+Lemma original_euclid__original_spp : euclid_s_parallel_postulate -> alternative_strong_parallel_postulate.
+Proof.
+intros oe A B C D P Q R Hos HSuma HNBet.
+assert(HA' := symmetric_point_construction A B).
+destruct HA' as [A'].
+assert(HD' := symmetric_point_construction D C).
+destruct HD' as [D'].
+assert (Hdiff := HSuma).
+apply suma_distincts in Hdiff.
+spliter.
+assert_diffs.
+elim(lea_total B C D C B A'); auto.
+intro.
+assert(SAMS D' C B C B A') by (apply (sams_chara _ _ _ _ _ _ D); Between).
+assert(HSuma' := ex_suma A' B C B C D').
+destruct HSuma' as [P' [Q' [R' HSuma']]]; auto.
+assert(Hdiff := HSuma').
+apply suma_distincts in Hdiff.
+spliter.
+assert(HY := oe A' B C D' P' Q' R').
+destruct HY as [Y []]; SumA.
+3: exists Y; split; ColR.
+intro.
+apply HNBet.
+apply (bet_conga__bet P' Q' R'); auto.
+apply (suma2__conga A B C B C D); auto.
+apply suma_sym.
+apply (conga3_suma__suma A' B C B C D' P' Q' R'); auto.
+3: apply conga_refl; auto.
+-
+assert(HNCol : ~ Col B C D) by (apply (one_side_not_col123 _ _ _ A); Side).
+assert(TS C B D D').
+apply (sams2_suma2__conga123 _ _ _ _ _ _ B C D' P' Q' R'); auto.
+SumA.
+apply suma_left_comm.
+exists D'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+-
+assert(HNCol : ~ Col B C A) by (apply (one_side_not_col123 _ _ _ D); auto).
+assert(TS B C A A').
+apply (sams2_suma2__conga456 A' B C _ _ _ _ _ _ P' Q' R'); auto.
+SumA.
+apply suma_sym.
+exists A'.
+split; CongA; split.
+apply l9_9; auto.
+split; Cop.
+apply conga_line; Between.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End original_euclid_original_spp.
+-----

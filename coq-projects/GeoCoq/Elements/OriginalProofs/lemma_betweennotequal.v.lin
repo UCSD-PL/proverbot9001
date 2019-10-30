@@ -1,0 +1,90 @@
+415110c3c52fb72f3b8d5e7df01c43e4
+Require Export GeoCoq.Elements.OriginalProofs.lemma_3_6a.
+Section Euclid.
+Context `{Ax:euclidean_neutral}.
+Lemma lemma_betweennotequal : 
+   forall A B C, 
+   BetS A B C ->
+   neq B C /\ neq A B /\ neq A C.
+Proof.
+  intros.
+  assert (~ eq B C).
+  {
+    intro.
+    assert (BetS A C B).
+    {
+      conclude cn_equalitysub.
+    }
+    {
+      idtac.
+      assert (BetS B C B).
+      {
+        conclude lemma_3_6a.
+      }
+      {
+        idtac.
+        assert (~ BetS B C B).
+        {
+          conclude axiom_betweennessidentity.
+        }
+        {
+          idtac.
+          contradict.
+        }
+      }
+    }
+  }
+  {
+    assert (~ eq A B).
+    {
+      intro.
+      assert (BetS B A C).
+      {
+        conclude cn_equalitysub.
+      }
+      {
+        idtac.
+        assert (BetS A B A).
+        {
+          conclude axiom_innertransitivity.
+        }
+        {
+          idtac.
+          assert (~ BetS A B A).
+          {
+            conclude axiom_betweennessidentity.
+          }
+          {
+            idtac.
+            contradict.
+          }
+        }
+      }
+    }
+    {
+      assert (~ eq A C).
+      {
+        intro.
+        assert (BetS A B A).
+        {
+          conclude cn_equalitysub.
+        }
+        {
+          idtac.
+          assert (~ BetS A B A).
+          {
+            conclude axiom_betweennessidentity.
+          }
+          {
+            idtac.
+            contradict.
+          }
+        }
+      }
+      {
+        close.
+      }
+    }
+  }
+Qed.
+End Euclid.

@@ -1,0 +1,112 @@
+7b23b687001981dc9f0d377def122725
+Require Export GeoCoq.Elements.OriginalProofs.lemma_26helper.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_trichotomy1.
+Section Euclid.
+Context `{Ax:euclidean_neutral_ruler_compass}.
+Lemma proposition_26B : 
+   forall A B C D E F, 
+   Triangle A B C -> Triangle D E F -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E ->
+   Cong B C E F /\ Cong A C D F /\ CongA B A C E D F.
+Proof.
+  intros.
+  assert (~ Lt E F B C).
+  {
+    conclude lemma_26helper.
+  }
+  {
+    idtac.
+    assert (CongA D E F A B C).
+    {
+      conclude lemma_equalanglessymmetric.
+    }
+    {
+      idtac.
+      assert (CongA E F D B C A).
+      {
+        conclude lemma_equalanglessymmetric.
+      }
+      {
+        idtac.
+        assert (Cong D E A B).
+        {
+          conclude lemma_congruencesymmetric.
+        }
+        {
+          idtac.
+          assert (~ Lt B C E F).
+          {
+            conclude lemma_26helper.
+          }
+          {
+            idtac.
+            assert (~ eq B C).
+            {
+              intro.
+              assert (Col A B C).
+              {
+                conclude_def Col .
+              }
+              {
+                idtac.
+                assert (nCol A B C).
+                {
+                  conclude_def Triangle .
+                }
+                {
+                  idtac.
+                  contradict.
+                }
+              }
+            }
+            {
+              assert (~ eq E F).
+              {
+                intro.
+                assert (Col D E F).
+                {
+                  conclude_def Col .
+                }
+                {
+                  idtac.
+                  assert (nCol D E F).
+                  {
+                    conclude_def Triangle .
+                  }
+                  {
+                    idtac.
+                    contradict.
+                  }
+                }
+              }
+              {
+                assert (Cong B C E F).
+                {
+                  conclude lemma_trichotomy1.
+                }
+                {
+                  idtac.
+                  assert (Cong B A E D).
+                  {
+                    forward_using lemma_congruenceflip.
+                  }
+                  {
+                    idtac.
+                    assert ((Cong A C D F /\ CongA B A C E D F /\ CongA B C A E F D)).
+                    {
+                      conclude proposition_04.
+                    }
+                    {
+                      idtac.
+                      close.
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euclid.

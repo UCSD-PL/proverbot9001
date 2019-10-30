@@ -1,0 +1,6582 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_PGflip.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.proposition_34.
+-----
+Section Euclid.
+-----
+Context `{Ax:area}.
+-----
+Lemma proposition_43 : \n   forall A B C D E F G H K, \n   PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C ->\n   EF K G B E D F K H.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+
+*****
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E F G H K : Point) (_ : PG A B C D) (_ : BetS A H D) (_ : BetS A E B) (_ : BetS D F C) (_ : BetS B G C) (_ : BetS A K C) (_ : PG E A H K) (_ : PG G K F C), EF K G B E D F K H
++++++
+Proof.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+
+*****
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E F G H K : Point) (_ : PG A B C D) (_ : BetS A H D) (_ : BetS A E B) (_ : BetS D F C) (_ : BetS B G C) (_ : BetS A K C) (_ : PG E A H K) (_ : PG G K F C), EF K G B E D F K H
++++++
+intros.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+
+*****
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (PG B A D C).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+
+*****
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+PG B A D C
++++++
+conclude lemma_PGflip.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+
+*****
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+
+*****
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (Cong_3 A B C C D A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+
+*****
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong_3 A B C C D A
++++++
+conclude proposition_34.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+
+*****
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+
+*****
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A B C C D A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+
+*****
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C C D A
++++++
+conclude axiom_congruentequal.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+
+*****
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+
+*****
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (Cong_3 A E K K H A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+
+*****
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong_3 A E K K H A
++++++
+conclude proposition_34.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+
+*****
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+
+*****
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A E K K H A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+
+*****
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A E K K H A
++++++
+conclude axiom_congruentequal.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+
+*****
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+
+*****
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (Cong_3 K G C C F K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+
+*****
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong_3 K G C C F K
++++++
+conclude proposition_34.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+
+*****
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+
+*****
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET K G C C F K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+
+*****
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET K G C C F K
++++++
+conclude axiom_congruentequal.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+
+*****
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+
+*****
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET K G C K C F).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+
+*****
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET K G C K C F
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+
+*****
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+
+*****
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET K C F K G C).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+
+*****
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET K C F K G C
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+
+*****
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+
+*****
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET K C F K C G).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+
+*****
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET K C F K C G
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+
+*****
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+
+*****
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET K C G K C F).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+
+*****
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET K C G K C F
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+
+*****
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+
+*****
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A B C A C D).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+
+*****
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C A C D
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+
+*****
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+
+*****
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A C D A B C).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+
+*****
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A C D A B C
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+
+*****
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+
+*****
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A C D A C B).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+
+*****
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A C D A C B
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+
+*****
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+
+*****
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A C B A C D).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+
+*****
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A C B A C D
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+
+*****
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+
+*****
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF A K G B A K F D).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+
+*****
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF A K G B A K F D
++++++
+conclude axiom_cutoff1.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+
+*****
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+
+*****
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (BetS B E A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+
+*****
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+BetS B E A
++++++
+conclude axiom_betweennesssymmetry.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+
+*****
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+
+*****
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (BetS D H A).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+
+*****
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+BetS D H A
++++++
+conclude axiom_betweennesssymmetry.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+
+*****
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+
+*****
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET A E K H A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+
+*****
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A E K H A K
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+
+*****
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+
+*****
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET H A K A E K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+
+*****
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET H A K A E K
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+
+*****
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+
+*****
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET H A K E A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+
+*****
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET H A K E A K
++++++
+forward_using axiom_ETpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+
+*****
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+
+*****
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (ET E A K H A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+
+*****
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET E A K H A K
++++++
+conclude axiom_ETsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+
+*****
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+
+*****
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF A K G B F D A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+
+*****
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF A K G B F D A K
++++++
+forward_using axiom_EFpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+
+*****
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+
+*****
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF F D A K A K G B).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+
+*****
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF F D A K A K G B
++++++
+conclude axiom_EFsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+
+*****
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+
+*****
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF F D A K G B A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+
+*****
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF F D A K G B A K
++++++
+forward_using axiom_EFpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+
+*****
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+
+*****
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF G B A K F D A K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+
+*****
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF G B A K F D A K
++++++
+conclude axiom_EFsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+
+*****
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+
+*****
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF G B E K F D H K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+
+*****
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF G B E K F D H K
++++++
+conclude axiom_cutoff2.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+
+*****
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+
+*****
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF G B E K D F K H).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+
+*****
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF G B E K D F K H
++++++
+forward_using axiom_EFpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+
+*****
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+
+*****
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF D F K H G B E K).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+
+*****
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF D F K H G B E K
++++++
+conclude axiom_EFsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+
+*****
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+
+*****
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF D F K H K G B E).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+
+*****
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF D F K H K G B E
++++++
+forward_using axiom_EFpermutation.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+
+*****
+H37 : EF D F K H K G B E
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+idtac.
+
+*****
+H37 : EF D F K H K G B E
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+assert (EF K G B E D F K H).
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+idtac.
+assert (EF K G B E D F K H).
+
+*****
+H37 : EF D F K H K G B E
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+conclude axiom_EFsymmetric.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+idtac.
+assert (EF K G B E D F K H).
+
+*****
+H38 : EF K G B E D F K H
+H37 : EF D F K H K G B E
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+idtac.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+idtac.
+assert (Cong_3 A B C C D A).
+idtac.
+assert (ET A B C C D A).
+idtac.
+assert (Cong_3 A E K K H A).
+idtac.
+assert (ET A E K K H A).
+idtac.
+assert (Cong_3 K G C C F K).
+idtac.
+assert (ET K G C C F K).
+idtac.
+assert (ET K G C K C F).
+idtac.
+assert (ET K C F K G C).
+idtac.
+assert (ET K C F K C G).
+idtac.
+assert (ET K C G K C F).
+idtac.
+assert (ET A B C A C D).
+idtac.
+assert (ET A C D A B C).
+idtac.
+assert (ET A C D A C B).
+idtac.
+assert (ET A C B A C D).
+idtac.
+assert (EF A K G B A K F D).
+idtac.
+assert (BetS B E A).
+idtac.
+assert (BetS D H A).
+idtac.
+assert (ET A E K H A K).
+idtac.
+assert (ET H A K A E K).
+idtac.
+assert (ET H A K E A K).
+idtac.
+assert (ET E A K H A K).
+idtac.
+assert (EF A K G B F D A K).
+idtac.
+assert (EF F D A K A K G B).
+idtac.
+assert (EF F D A K G B A K).
+idtac.
+assert (EF G B A K F D A K).
+idtac.
+assert (EF G B E K F D H K).
+idtac.
+assert (EF G B E K D F K H).
+idtac.
+assert (EF D F K H G B E K).
+idtac.
+assert (EF D F K H K G B E).
+idtac.
+assert (EF K G B E D F K H).
+idtac.
+
+*****
+H38 : EF K G B E D F K H
+H37 : EF D F K H K G B E
+H36 : EF D F K H G B E K
+H35 : EF G B E K D F K H
+H34 : EF G B E K F D H K
+H33 : EF G B A K F D A K
+H32 : EF F D A K G B A K
+H31 : EF F D A K A K G B
+H30 : EF A K G B F D A K
+H29 : ET E A K H A K
+H28 : ET H A K E A K
+H27 : ET H A K A E K
+H26 : ET A E K H A K
+H25 : BetS D H A
+H24 : BetS B E A
+H23 : EF A K G B A K F D
+H22 : ET A C B A C D
+H21 : ET A C D A C B
+H20 : ET A C D A B C
+H19 : ET A B C A C D
+H18 : ET K C G K C F
+H17 : ET K C F K C G
+H16 : ET K C F K G C
+H15 : ET K G C K C F
+H14 : ET K G C C F K
+H13 : Cong_3 K G C C F K
+H12 : ET A E K K H A
+H11 : Cong_3 A E K K H A
+H10 : ET A B C C D A
+H9 : Cong_3 A B C C D A
+H8 : PG B A D C
+H7 : PG G K F C
+H6 : PG E A H K
+H5 : BetS A K C
+H4 : BetS B G C
+H3 : BetS D F C
+H2 : BetS A E B
+H1 : BetS A H D
+H0 : PG A B C D
+A,B,C,D,E,F,G,H,K : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+EF K G B E D F K H
++++++
+close.
+-----
+Lemma proposition_43 : forall A B C D E F G H K, PG A B C D -> BetS A H D -> BetS A E B -> BetS D F C -> BetS B G C -> BetS A K C -> PG E A H K -> PG G K F C -> EF K G B E D F K H.
+Proof.
+intros.
+assert (PG B A D C).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

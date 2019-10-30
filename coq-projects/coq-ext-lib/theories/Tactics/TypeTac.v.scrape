@@ -1,0 +1,22 @@
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Data.Fun.
+-----
+Require Import ExtLib.Structures.Proper.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Hint Extern 1 (proper (fun x => _)) => apply proper_fun; intros : typeclass_instances.
+-----
+Hint Extern 1 (equal (fun x => _) _) => apply proper_fun; intros : typeclass_instances.
+-----
+Hint Extern 1 (equal _ (fun x => _)) => apply proper_fun; intros : typeclass_instances.
+-----
+Hint Extern 0 (PReflexive _) => eapply equiv_prefl.
+-----
+Ltac solve_proper :=\n  repeat match goal with \n           | |- _ => solve [ eauto ]\n           | |- proper (fun x => _) => eapply proper_fun; intros; solve_equal\n           | |- _ => eapply proper_app; \n             [ solve [ eauto with typeclass_instances ] \n             | solve [ eauto with typeclass_instances ]\n             | solve_proper | solve_proper ]\n         end;\n  eauto with typeclass_instances\nwith solve_equal :=\n  repeat match goal with\n           | |- _ => solve [ eauto ]\n           | |- equal ?X ?X => \n             solve [ eapply preflexive with (wf := proper); eauto 100 with typeclass_instances ]\n           | |- equal (fun x => _) _ => eapply equal_fun; intros\n           | |- equal _ (fun x => _) => eapply equal_fun; intros\n           | |- _ => eapply equal_app\n         end; eauto with typeclass_instances.
+-----
+Ltac type_tac :=\n  match goal with\n    | |- proper _ => solve_proper\n    | |- equal _ _ => solve_equal\n  end.
+-----

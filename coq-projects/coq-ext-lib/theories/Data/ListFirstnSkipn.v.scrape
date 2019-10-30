@@ -1,0 +1,2501 @@
+Require Import Coq.Lists.List.
+-----
+Require Import Coq.ZArith.ZArith.
+-----
+Lemma firstn_app_L : forall T n (a b : list T),\n  n <= length a ->\n  firstn n (a ++ b) = firstn n a.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le n (length a)), eq (firstn n (app a b)) (firstn n a)
++++++
+Proof.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le n (length a)), eq (firstn n (app a b)) (firstn n a)
++++++
+induction n.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a b : list T) (_ : le O (length a)), eq (firstn O (app a b)) (firstn O a)
++++++
+destruct a.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le O (length nil)), eq (firstn O (app nil b)) (firstn O nil)
++++++
+simpl in *.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+T : Type
+*****
+forall (_ : list T) (_ : le O O), eq nil nil
++++++
+intros.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O O
+b : list T
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le O (length (cons t a))), eq (firstn O (app (cons t a) b)) (firstn O (cons t a))
++++++
+simpl in *.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (_ : list T) (_ : le O (S (length a))), eq nil nil
++++++
+intros.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O (S (length a))
+a,b : list T
+t : T
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+forall (a b : list T) (_ : le (S n) (length a)), eq (firstn (S n) (app a b)) (firstn (S n) a)
++++++
+destruct a.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (length nil)), eq (firstn (S n) (app nil b)) (firstn (S n) nil)
++++++
+simpl in *.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) O), eq match b with | nil => nil | cons a l => cons a (firstn n l) end nil
++++++
+intros.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons a l => cons a (firstn n l) end nil
++++++
+auto.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons a l => cons a (firstn n l) end nil
++++++
+exfalso.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (length (cons t a))), eq (firstn (S n) (app (cons t a) b)) (firstn (S n) (cons t a))
++++++
+simpl in *.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (S (length a))), eq (cons t (firstn n (app a b))) (cons t (firstn n a))
++++++
+intros.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+eq (cons t (firstn n (app a b))) (cons t (firstn n a))
++++++
+auto.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+eq (cons t (firstn n (app a b))) (cons t (firstn n a))
++++++
+f_equal.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+eq (firstn n (app a b)) (firstn n a)
++++++
+eapply IHn.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+eapply IHn.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+le n (length a)
++++++
+eauto.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+eapply IHn.
+eauto.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (firstn n (app a b)) (firstn n a)
+n : nat
+T : Type
+*****
+le n (length a)
++++++
+omega.
+-----
+Lemma firstn_app_L : forall T n (a b : list T), n <= length a -> firstn n (a ++ b) = firstn n a.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma firstn_app_R : forall T n (a b : list T),\n  length a <= n ->\n  firstn n (a ++ b) = a ++ firstn (n - length a) b.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le (length a) n), eq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
++++++
+Proof.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le (length a) n), eq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
++++++
+induction n.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a b : list T) (_ : le (length a) O), eq (firstn O (app a b)) (app a (firstn (Init.Nat.sub O (length a)) b))
++++++
+destruct a.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le (length nil) O), eq (firstn O (app nil b)) (app nil (firstn (Init.Nat.sub O (length nil)) b))
++++++
+simpl in *.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+T : Type
+*****
+forall (_ : list T) (_ : le O O), eq nil nil
++++++
+intros.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O O
+b : list T
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le (length (cons t a)) O), eq (firstn O (app (cons t a) b)) (app (cons t a) (firstn (Init.Nat.sub O (length (cons t a))) b))
++++++
+simpl in *.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (_ : list T) (_ : le (S (length a)) O), eq nil (cons t (app a nil))
++++++
+intros.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+eq nil (cons t (app a nil))
++++++
+auto.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+eq nil (cons t (app a nil))
++++++
+exfalso.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+forall (a b : list T) (_ : le (length a) (S n)), eq (firstn (S n) (app a b)) (app a (firstn (Init.Nat.sub (S n) (length a)) b))
++++++
+destruct a.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (length nil) (S n)), eq (firstn (S n) (app nil b)) (app nil (firstn (Init.Nat.sub (S n) (length nil)) b))
++++++
+simpl in *.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le O (S n)), eq match b with | nil => nil | cons a l => cons a (firstn n l) end match b with | nil => nil | cons a l => cons a (firstn n l) end
++++++
+intros.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O (S n)
+b : list T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons a l => cons a (firstn n l) end match b with | nil => nil | cons a l => cons a (firstn n l) end
++++++
+auto.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (length (cons t a)) (S n)), eq (firstn (S n) (app (cons t a) b)) (app (cons t a) (firstn (Init.Nat.sub (S n) (length (cons t a))) b))
++++++
+simpl in *.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S (length a)) (S n)), eq (cons t (firstn n (app a b))) (cons t (app a (firstn (Init.Nat.sub n (length a)) b)))
++++++
+intros.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+eq (cons t (firstn n (app a b))) (cons t (app a (firstn (Init.Nat.sub n (length a)) b)))
++++++
+auto.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+eq (cons t (firstn n (app a b))) (cons t (app a (firstn (Init.Nat.sub n (length a)) b)))
++++++
+f_equal.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+eq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
++++++
+eapply IHn.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+eapply IHn.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+le (length a) n
++++++
+eauto.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+f_equal.
+eapply IHn.
+eauto.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (firstn n (app a b)) (app a (firstn (Init.Nat.sub n (length a)) b))
+n : nat
+T : Type
+*****
+le (length a) n
++++++
+omega.
+-----
+Lemma firstn_app_R : forall T n (a b : list T), length a <= n -> firstn n (a ++ b) = a ++ firstn (n - length a) b.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma firstn_all : forall T n (a : list T),\n  length a <= n ->\n  firstn n a = a.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : le (length a) n), eq (firstn n a) a
++++++
+Proof.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : le (length a) n), eq (firstn n a) a
++++++
+induction n.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a : list T) (_ : le (length a) O), eq (firstn O a) a
++++++
+destruct a.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall _ : le (length nil) O, eq (firstn O nil) nil
++++++
+simpl.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+
+*****
+T : Type
+*****
+forall _ : le O O, eq nil nil
++++++
+intros.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+
+*****
+H : le O O
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall _ : le (length (cons t a)) O, eq (firstn O (cons t a)) (cons t a)
++++++
+simpl.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall _ : le (S (length a)) O, eq nil (cons t a)
++++++
+intros.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+eq nil (cons t a)
++++++
+auto.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+eq nil (cons t a)
++++++
+exfalso.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+forall (a : list T) (_ : le (length a) (S n)), eq (firstn (S n) a) a
++++++
+destruct a.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+forall _ : le (length nil) (S n), eq (firstn (S n) nil) nil
++++++
+simpl.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+forall _ : le O (S n), eq nil nil
++++++
+intros.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+
+*****
+H : le O (S n)
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+forall _ : le (length (cons t a)) (S n), eq (firstn (S n) (cons t a)) (cons t a)
++++++
+simpl.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+
+*****
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+forall _ : le (S (length a)) (S n), eq (cons t (firstn n a)) (cons t a)
++++++
+intros.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+eq (cons t (firstn n a)) (cons t a)
++++++
+auto.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+eq (cons t (firstn n a)) (cons t a)
++++++
+simpl.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+simpl.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+eq (cons t (firstn n a)) (cons t a)
++++++
+f_equal.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+simpl.
+f_equal.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+eq (firstn n a) a
++++++
+eapply IHn.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+destruct a.
+simpl.
+intros.
+auto.
+simpl.
+f_equal.
+eapply IHn.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (firstn n a) a
+n : nat
+T : Type
+*****
+le (length a) n
++++++
+omega.
+-----
+Lemma firstn_all : forall T n (a : list T), length a <= n -> firstn n a = a.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma firstn_0 : forall T n (a : list T),\n  n = 0 ->\n  firstn n a = nil.
+-----
+Lemma firstn_0 : forall T n (a : list T), n = 0 -> firstn n a = nil.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : eq n O), eq (firstn n a) nil
++++++
+Proof.
+-----
+Lemma firstn_0 : forall T n (a : list T), n = 0 -> firstn n a = nil.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : eq n O), eq (firstn n a) nil
++++++
+intros.
+-----
+Lemma firstn_0 : forall T n (a : list T), n = 0 -> firstn n a = nil.
+Proof.
+intros.
+
+*****
+H : eq n O
+a : list T
+n : nat
+T : Type
+*****
+eq (firstn n a) nil
++++++
+subst.
+-----
+Lemma firstn_0 : forall T n (a : list T), n = 0 -> firstn n a = nil.
+Proof.
+intros.
+subst.
+
+*****
+a : list T
+T : Type
+*****
+eq (firstn O a) nil
++++++
+auto.
+-----
+Lemma firstn_0 : forall T n (a : list T), n = 0 -> firstn n a = nil.
+Proof.
+intros.
+subst.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma firstn_cons : forall T n a (b : list T),\n  0 < n ->\n  firstn n (a :: b) = a :: firstn (n - 1) b.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : T) (b : list T) (_ : lt O n), eq (firstn n (cons a b)) (cons a (firstn (Init.Nat.sub n (S O)) b))
++++++
+Proof.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : T) (b : list T) (_ : lt O n), eq (firstn n (cons a b)) (cons a (firstn (Init.Nat.sub n (S O)) b))
++++++
+destruct n.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+T : Type
+*****
+forall (a : T) (b : list T) (_ : lt O O), eq (firstn O (cons a b)) (cons a (firstn (Init.Nat.sub O (S O)) b))
++++++
+intros.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+
+*****
+H : lt O O
+b : list T
+a : T
+T : Type
+*****
+eq (firstn O (cons a b)) (cons a (firstn (Init.Nat.sub O (S O)) b))
++++++
+omega.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+n : nat
+T : Type
+*****
+forall (a : T) (b : list T) (_ : lt O (S n)), eq (firstn (S n) (cons a b)) (cons a (firstn (Init.Nat.sub (S n) (S O)) b))
++++++
+intros.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (firstn (S n) (cons a b)) (cons a (firstn (Init.Nat.sub (S n) (S O)) b))
++++++
+simpl.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (cons a (firstn n b)) (cons a (firstn (Init.Nat.sub n O) b))
++++++
+cutrewrite (n - 0 = n).
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (cons a (firstn n b)) (cons a (firstn n b))
++++++
+idtac.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+idtac.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (cons a (firstn n b)) (cons a (firstn n b))
++++++
+reflexivity.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (Init.Nat.sub n O) n
++++++
+omega.
+-----
+Lemma firstn_cons : forall T n a (b : list T), 0 < n -> firstn n (a :: b) = a :: firstn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Rewrite firstn_app_L firstn_app_R firstn_all firstn_0 firstn_cons using omega : list_rw.
+-----
+Lemma skipn_app_R : forall T n (a b : list T),\n  length a <= n ->\n  skipn n (a ++ b) = skipn (n - length a) b.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le (length a) n), eq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
++++++
+Proof.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le (length a) n), eq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
++++++
+induction n.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a b : list T) (_ : le (length a) O), eq (skipn O (app a b)) (skipn (Init.Nat.sub O (length a)) b)
++++++
+destruct a.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le (length nil) O), eq (skipn O (app nil b)) (skipn (Init.Nat.sub O (length nil)) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le O O), eq b b
++++++
+intros.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O O
+b : list T
+T : Type
+*****
+eq b b
++++++
+auto.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le (length (cons t a)) O), eq (skipn O (app (cons t a) b)) (skipn (Init.Nat.sub O (length (cons t a))) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le (S (length a)) O), eq (cons t (app a b)) b
++++++
+intros.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+eq (cons t (app a b)) b
++++++
+auto.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+eq (cons t (app a b)) b
++++++
+exfalso.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S (length a)) O
+a,b : list T
+t : T
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+forall (a b : list T) (_ : le (length a) (S n)), eq (skipn (S n) (app a b)) (skipn (Init.Nat.sub (S n) (length a)) b)
++++++
+destruct a.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (length nil) (S n)), eq (skipn (S n) (app nil b)) (skipn (Init.Nat.sub (S n) (length nil)) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le O (S n)), eq match b with | nil => nil | cons _ l => skipn n l end match b with | nil => nil | cons _ l => skipn n l end
++++++
+intros.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O (S n)
+b : list T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons _ l => skipn n l end match b with | nil => nil | cons _ l => skipn n l end
++++++
+auto.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (length (cons t a)) (S n)), eq (skipn (S n) (app (cons t a) b)) (skipn (Init.Nat.sub (S n) (length (cons t a))) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S (length a)) (S n)), eq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
++++++
+intros.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+eq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
++++++
+auto.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+eq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
++++++
+eapply IHn.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+eapply IHn.
+
+*****
+H : le (S (length a)) (S n)
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le (length a) n),\neq (skipn n (app a b)) (skipn (Init.Nat.sub n (length a)) b)
+n : nat
+T : Type
+*****
+le (length a) n
++++++
+omega.
+-----
+Lemma skipn_app_R : forall T n (a b : list T), length a <= n -> skipn n (a ++ b) = skipn (n - length a) b.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma skipn_app_L : forall T n (a b : list T),\n  n <= length a ->\n  skipn n (a ++ b) = (skipn n a) ++ b.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le n (length a)), eq (skipn n (app a b)) (app (skipn n a) b)
++++++
+Proof.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a b : list T) (_ : le n (length a)), eq (skipn n (app a b)) (app (skipn n a) b)
++++++
+induction n.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a b : list T) (_ : le O (length a)), eq (skipn O (app a b)) (app (skipn O a) b)
++++++
+destruct a.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le O (length nil)), eq (skipn O (app nil b)) (app (skipn O nil) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+T : Type
+*****
+forall (b : list T) (_ : le O O), eq b b
++++++
+intros.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O O
+b : list T
+T : Type
+*****
+eq b b
++++++
+auto.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le O (length (cons t a))), eq (skipn O (app (cons t a) b)) (app (skipn O (cons t a)) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall (b : list T) (_ : le O (S (length a))), eq (cons t (app a b)) (cons t (app a b))
++++++
+intros.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O (S (length a))
+a,b : list T
+t : T
+T : Type
+*****
+eq (cons t (app a b)) (cons t (app a b))
++++++
+auto.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+forall (a b : list T) (_ : le (S n) (length a)), eq (skipn (S n) (app a b)) (app (skipn (S n) a) b)
++++++
+destruct a.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (length nil)), eq (skipn (S n) (app nil b)) (app (skipn (S n) nil) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) O), eq match b with | nil => nil | cons _ l => skipn n l end b
++++++
+intros.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons _ l => skipn n l end b
++++++
+auto.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+eq match b with | nil => nil | cons _ l => skipn n l end b
++++++
+exfalso.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S n) O
+b : list T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (length (cons t a))), eq (skipn (S n) (app (cons t a) b)) (app (skipn (S n) (cons t a)) b)
++++++
+simpl in *.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+forall (b : list T) (_ : le (S n) (S (length a))), eq (skipn n (app a b)) (app (skipn n a) b)
++++++
+intros.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+eq (skipn n (app a b)) (app (skipn n a) b)
++++++
+auto.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+eq (skipn n (app a b)) (app (skipn n a) b)
++++++
+eapply IHn.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+eapply IHn.
+
+*****
+H : le (S n) (S (length a))
+a,b : list T
+t : T
+IHn : forall (a b : list T) (_ : le n (length a)),\neq (skipn n (app a b)) (app (skipn n a) b)
+n : nat
+T : Type
+*****
+le n (length a)
++++++
+omega.
+-----
+Lemma skipn_app_L : forall T n (a b : list T), n <= length a -> skipn n (a ++ b) = (skipn n a) ++ b.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma skipn_0 : forall T n (a : list T),\n  n = 0 ->\n  skipn n a = a.
+-----
+Lemma skipn_0 : forall T n (a : list T), n = 0 -> skipn n a = a.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : eq n O), eq (skipn n a) a
++++++
+Proof.
+-----
+Lemma skipn_0 : forall T n (a : list T), n = 0 -> skipn n a = a.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : eq n O), eq (skipn n a) a
++++++
+intros.
+-----
+Lemma skipn_0 : forall T n (a : list T), n = 0 -> skipn n a = a.
+Proof.
+intros.
+
+*****
+H : eq n O
+a : list T
+n : nat
+T : Type
+*****
+eq (skipn n a) a
++++++
+subst.
+-----
+Lemma skipn_0 : forall T n (a : list T), n = 0 -> skipn n a = a.
+Proof.
+intros.
+subst.
+
+*****
+a : list T
+T : Type
+*****
+eq (skipn O a) a
++++++
+auto.
+-----
+Lemma skipn_0 : forall T n (a : list T), n = 0 -> skipn n a = a.
+Proof.
+intros.
+subst.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma skipn_all : forall T n (a : list T),\n  length a <= n ->\n  skipn n a = nil.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : le (length a) n), eq (skipn n a) nil
++++++
+Proof.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : list T) (_ : le (length a) n), eq (skipn n a) nil
++++++
+induction n.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (a : list T) (_ : le (length a) O), eq (skipn O a) nil
++++++
+destruct a.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+
+*****
+T : Type
+*****
+forall _ : le (length nil) O, eq (skipn O nil) nil
++++++
+simpl in *.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+T : Type
+*****
+forall _ : le O O, eq nil nil
++++++
+intros.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O O
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall _ : le (length (cons t a)) O, eq (skipn O (cons t a)) nil
++++++
+simpl in *.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+T : Type
+*****
+forall _ : le (S (length a)) O, eq (cons t a) nil
++++++
+intros.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+eq (cons t a) nil
++++++
+auto.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+eq (cons t a) nil
++++++
+exfalso.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+exfalso.
+
+*****
+H : le (S (length a)) O
+a : list T
+t : T
+T : Type
+*****
+False
++++++
+omega.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+forall (a : list T) (_ : le (length a) (S n)), eq (skipn (S n) a) nil
++++++
+destruct a.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+forall _ : le (length nil) (S n), eq (skipn (S n) nil) nil
++++++
+simpl in *.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+forall _ : le O (S n), eq nil nil
++++++
+intros.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le O (S n)
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+eq nil nil
++++++
+auto.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+
+*****
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+forall _ : le (length (cons t a)) (S n), eq (skipn (S n) (cons t a)) nil
++++++
+simpl in *.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+
+*****
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+forall _ : le (S (length a)) (S n), eq (skipn n a) nil
++++++
+intros.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+eq (skipn n a) nil
++++++
+auto.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+eq (skipn n a) nil
++++++
+apply IHn.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+destruct a.
+simpl in *.
+intros.
+auto.
+apply IHn.
+
+*****
+H : le (S (length a)) (S n)
+a : list T
+t : T
+IHn : forall (a : list T) (_ : le (length a) n), eq (skipn n a) nil
+n : nat
+T : Type
+*****
+le (length a) n
++++++
+omega.
+-----
+Lemma skipn_all : forall T n (a : list T), length a <= n -> skipn n a = nil.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma skipn_cons : forall T n a (b : list T),\n  0 < n ->\n  skipn n (a :: b) = skipn (n - 1) b.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : T) (b : list T) (_ : lt O n), eq (skipn n (cons a b)) (skipn (Init.Nat.sub n (S O)) b)
++++++
+Proof.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (n : nat) (a : T) (b : list T) (_ : lt O n), eq (skipn n (cons a b)) (skipn (Init.Nat.sub n (S O)) b)
++++++
+destruct n.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+T : Type
+*****
+forall (a : T) (b : list T) (_ : lt O O), eq (skipn O (cons a b)) (skipn (Init.Nat.sub O (S O)) b)
++++++
+intros.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+
+*****
+H : lt O O
+b : list T
+a : T
+T : Type
+*****
+eq (skipn O (cons a b)) (skipn (Init.Nat.sub O (S O)) b)
++++++
+omega.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+n : nat
+T : Type
+*****
+forall (a : T) (b : list T) (_ : lt O (S n)), eq (skipn (S n) (cons a b)) (skipn (Init.Nat.sub (S n) (S O)) b)
++++++
+intros.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (skipn (S n) (cons a b)) (skipn (Init.Nat.sub (S n) (S O)) b)
++++++
+simpl.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (skipn n b) (skipn (Init.Nat.sub n O) b)
++++++
+cutrewrite (n - 0 = n).
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (skipn n b) (skipn n b)
++++++
+idtac.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+idtac.
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (skipn n b) (skipn n b)
++++++
+reflexivity.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+intros.
+simpl.
+cutrewrite (n - 0 = n).
+
+*****
+H : lt O (S n)
+b : list T
+a : T
+n : nat
+T : Type
+*****
+eq (Init.Nat.sub n O) n
++++++
+omega.
+-----
+Lemma skipn_cons : forall T n a (b : list T), 0 < n -> skipn n (a :: b) = skipn (n - 1) b.
+Proof.
+destruct n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Rewrite skipn_app_L skipn_app_R skipn_0 skipn_all skipn_cons using omega : list_rw.
+-----

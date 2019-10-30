@@ -1,0 +1,2 @@
+-I . -I fake_maple  -R . MapleMode
+Examples.v Maple.v

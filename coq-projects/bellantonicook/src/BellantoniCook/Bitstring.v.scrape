@@ -1,0 +1,1221 @@
+From Coq Require Import Bool.
+-----
+From Coq Require Import List.
+-----
+From Coq Require Import Arith.
+-----
+Require Import   Coq.Arith.Div2 .
+-----
+Require Import BellantoniCook.Lib.
+-----
+Notation bs := (list bool).
+-----
+Definition unary (v : bs) := forallb id v.
+-----
+Definition bs2bool (v:bs) : bool := hd false v.
+-----
+Definition bool2bs (b:bool) : bs :=\n  if b then true::nil else nil.
+-----
+Lemma bs_nat2bool_true : forall v,\n  bs2bool v = true -> length v <> 0.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+
+*****
+
+*****
+forall (v : list bool) (_ : eq (bs2bool v) true), not (eq (length v) O)
++++++
+Proof.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+
+*****
+
+*****
+forall (v : list bool) (_ : eq (bs2bool v) true), not (eq (length v) O)
++++++
+intro v.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+
+*****
+v : list bool
+*****
+forall _ : eq (bs2bool v) true, not (eq (length v) O)
++++++
+case v.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+
+*****
+v : list bool
+*****
+forall _ : eq (bs2bool nil) true, not (eq (length nil) O)
++++++
+simpl.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+forall _ : eq false true, not (eq O O)
++++++
+auto.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+simpl.
+auto.
+
+*****
+v : list bool
+*****
+forall _ : eq false true, not (eq O O)
++++++
+intros.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+simpl.
+auto.
+intros.
+
+*****
+H : eq false true
+v : list bool
+*****
+not (eq O O)
++++++
+discriminate.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool) (_ : eq (bs2bool (cons b l)) true), not (eq (length (cons b l)) O)
++++++
+simpl.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool) (_ : eq b true), not (eq (S (length l)) O)
++++++
+auto.
+-----
+Lemma bs_nat2bool_true : forall v, bs2bool v = true -> length v <> 0.
+Proof.
+intro v.
+case v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs_nat2bool_true_conv : forall v,\n  unary v = true ->\n  length v <> 0 -> bs2bool v = true.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+
+*****
+
+*****
+forall (v : list bool) (_ : eq (unary v) true) (_ : not (eq (length v) O)), eq (bs2bool v) true
++++++
+Proof.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+
+*****
+
+*****
+forall (v : list bool) (_ : eq (unary v) true) (_ : not (eq (length v) O)), eq (bs2bool v) true
++++++
+intro v.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+
+*****
+v : list bool
+*****
+forall (_ : eq (unary v) true) (_ : not (eq (length v) O)), eq (bs2bool v) true
++++++
+case v.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+
+*****
+v : list bool
+*****
+forall (_ : eq (unary nil) true) (_ : not (eq (length nil) O)), eq (bs2bool nil) true
++++++
+simpl.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+forall (_ : eq true true) (_ : not (eq O O)), eq false true
++++++
+intros.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+
+*****
+H0 : not (eq O O)
+H : eq true true
+v : list bool
+*****
+eq false true
++++++
+elim H0.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+elim H0.
+
+*****
+H0 : not (eq O O)
+H : eq true true
+v : list bool
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool) (_ : eq (unary (cons b l)) true) (_ : not (eq (length (cons b l)) O)), eq (bs2bool (cons b l)) true
++++++
+simpl.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool) (_ : eq (andb (id b) (unary l)) true) (_ : not (eq (S (length l)) O)), eq b true
++++++
+intros.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+
+*****
+H0 : not (eq (S (length l)) O)
+H : eq (andb (id b) (unary l)) true
+l : list bool
+b : bool
+v : list bool
+*****
+eq b true
++++++
+rewrite andb_true_iff in H.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+rewrite andb_true_iff in H.
+
+*****
+H0 : not (eq (S (length l)) O)
+H : and (eq (id b) true) (eq (unary l) true)
+l : list bool
+b : bool
+v : list bool
+*****
+eq b true
++++++
+decompose [and] H.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+
+*****
+H2 : eq (unary l) true
+H1 : eq (id b) true
+H0 : not (eq (S (length l)) O)
+H : and (eq (id b) true) (eq (unary l) true)
+l : list bool
+b : bool
+v : list bool
+*****
+eq b true
++++++
+destruct b.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+destruct b.
+
+*****
+H2 : eq (unary l) true
+H1 : eq (id true) true
+H0 : not (eq (S (length l)) O)
+H : and (eq (id true) true) (eq (unary l) true)
+v,l : list bool
+*****
+eq true true
++++++
+trivial.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+simpl.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+destruct b.
+
+*****
+H2 : eq (unary l) true
+H1 : eq (id false) true
+H0 : not (eq (S (length l)) O)
+H : and (eq (id false) true) (eq (unary l) true)
+v,l : list bool
+*****
+eq false true
++++++
+trivial.
+-----
+Lemma bs_nat2bool_true_conv : forall v, unary v = true -> length v <> 0 -> bs2bool v = true.
+Proof.
+intro v.
+case v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs_nat2bool_false v :\n  unary v = true ->\n  bs2bool v = false -> length v = 0.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+
+*****
+v : list bool
+*****
+forall (_ : eq (unary v) true) (_ : eq (bs2bool v) false), eq (length v) O
++++++
+Proof.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+
+*****
+v : list bool
+*****
+forall (_ : eq (unary v) true) (_ : eq (bs2bool v) false), eq (length v) O
++++++
+destruct v.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+
+*****
+
+*****
+forall (_ : eq (unary nil) true) (_ : eq (bs2bool nil) false), eq (length nil) O
++++++
+simpl.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+
+*****
+
+*****
+forall (_ : eq true true) (_ : eq false false), eq O O
++++++
+trivial.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+
+*****
+v : list bool
+b : bool
+*****
+forall (_ : eq (unary (cons b v)) true) (_ : eq (bs2bool (cons b v)) false), eq (length (cons b v)) O
++++++
+simpl.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+
+*****
+v : list bool
+b : bool
+*****
+forall (_ : eq (andb (id b) (unary v)) true) (_ : eq b false), eq (S (length v)) O
++++++
+trivial.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+
+*****
+v : list bool
+b : bool
+*****
+forall (_ : eq (andb (id b) (unary v)) true) (_ : eq b false), eq (S (length v)) O
++++++
+intros.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+
+*****
+H0 : eq b false
+H : eq (andb (id b) (unary v)) true
+v : list bool
+b : bool
+*****
+eq (S (length v)) O
++++++
+rewrite andb_true_iff in H.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+rewrite andb_true_iff in H.
+
+*****
+H0 : eq b false
+H : and (eq (id b) true) (eq (unary v) true)
+v : list bool
+b : bool
+*****
+eq (S (length v)) O
++++++
+decompose [and] H.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+
+*****
+H2 : eq (unary v) true
+H1 : eq (id b) true
+H0 : eq b false
+H : and (eq (id b) true) (eq (unary v) true)
+v : list bool
+b : bool
+*****
+eq (S (length v)) O
++++++
+destruct b.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+destruct b.
+
+*****
+H2 : eq (unary v) true
+H1 : eq (id true) true
+H0 : eq true false
+H : and (eq (id true) true) (eq (unary v) true)
+v : list bool
+*****
+eq (S (length v)) O
++++++
+discriminate.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+rewrite andb_true_iff in H.
+decompose [and] H.
+destruct b.
+
+*****
+H2 : eq (unary v) true
+H1 : eq (id false) true
+H0 : eq false false
+H : and (eq (id false) true) (eq (unary v) true)
+v : list bool
+*****
+eq (S (length v)) O
++++++
+discriminate.
+-----
+Lemma bs_nat2bool_false v : unary v = true -> bs2bool v = false -> length v = 0.
+Proof.
+destruct v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs_nat2bool_false_conv v :\n  length v = 0 ->\n  bs2bool v = false.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+
+*****
+v : list bool
+*****
+forall _ : eq (length v) O, eq (bs2bool v) false
++++++
+Proof.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+
+*****
+v : list bool
+*****
+forall _ : eq (length v) O, eq (bs2bool v) false
++++++
+destruct v.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+
+*****
+
+*****
+forall _ : eq (length nil) O, eq (bs2bool nil) false
++++++
+simpl.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+simpl.
+
+*****
+
+*****
+forall _ : eq O O, eq false false
++++++
+trivial.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+
+*****
+v : list bool
+b : bool
+*****
+forall _ : eq (length (cons b v)) O, eq (bs2bool (cons b v)) false
++++++
+simpl.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+simpl.
+
+*****
+v : list bool
+b : bool
+*****
+forall _ : eq (S (length v)) O, eq b false
++++++
+trivial.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+simpl.
+trivial.
+
+*****
+v : list bool
+b : bool
+*****
+forall _ : eq (S (length v)) O, eq b false
++++++
+intros.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+simpl.
+trivial.
+intros.
+
+*****
+H : eq (S (length v)) O
+v : list bool
+b : bool
+*****
+eq b false
++++++
+discriminate.
+-----
+Lemma bs_nat2bool_false_conv v : length v = 0 -> bs2bool v = false.
+Proof.
+destruct v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint bs2nat (v:bs) : nat :=\n  match v with\n  | nil => 0\n  | false :: v' => 2 * bs2nat v'\n  | true  :: v' => S (2 * bs2nat v')\n  end.
+-----
+Fixpoint succ_bs (v : bs) : bs :=\n  match v with\n    | nil => [true]\n    | false :: v' => true :: v'\n    | true :: v' => false :: succ_bs v'\n  end.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+
+*****
+v : list bool
+*****
+eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
++++++
+Proof.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+
+*****
+v : list bool
+*****
+eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
++++++
+induction v.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+
+*****
+
+*****
+eq (bs2nat (succ_bs nil)) (Init.Nat.add (bs2nat nil) (S O))
++++++
+simpl.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+
+*****
+
+*****
+eq (S O) (S O)
++++++
+trivial.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (bs2nat (succ_bs (cons a v))) (Init.Nat.add (bs2nat (cons a v)) (S O))
++++++
+simpl.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (bs2nat (if a then cons false (succ_bs v) else cons true v)) (Init.Nat.add (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) (S O))
++++++
+trivial.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+trivial.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (bs2nat (if a then cons false (succ_bs v) else cons true v)) (Init.Nat.add (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) (S O))
++++++
+case a.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (bs2nat (cons false (succ_bs v))) (Init.Nat.add (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) (S O))
++++++
+simpl.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+trivial.
+case a.
+simpl.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (Init.Nat.add (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat (succ_bs v)) O)) (S (Init.Nat.add (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) (S O)))
++++++
+ring [IHv].
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (bs2nat (cons true v)) (Init.Nat.add (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) (S O))
++++++
+simpl.
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+simpl.
+trivial.
+case a.
+simpl.
+
+*****
+IHv : eq (bs2nat (succ_bs v)) (Init.Nat.add (bs2nat v) (S O))
+v : list bool
+a : bool
+*****
+eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) (Init.Nat.add (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) (S O))
++++++
+ring [IHv].
+-----
+Lemma succ_bs_correct v : bs2nat (succ_bs v) = bs2nat v + 1.
+Proof.
+induction v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint nat2bs (n:nat) : bs :=\n  match n with\n  | 0 => nil\n  | S n' => succ_bs (nat2bs n')\n  end.
+-----
+Lemma bs2nat_nil :\n  bs2nat nil = 0.
+-----
+Lemma bs2nat_nil : bs2nat nil = 0.
+
+*****
+
+*****
+eq (bs2nat nil) O
++++++
+Proof.
+-----
+Lemma bs2nat_nil : bs2nat nil = 0.
+Proof.
+
+*****
+
+*****
+eq (bs2nat nil) O
++++++
+trivial.
+-----
+Lemma bs2nat_nil : bs2nat nil = 0.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs2nat_false v :\n  bs2nat (false :: v) = 2 * bs2nat v.
+-----
+Lemma bs2nat_false v : bs2nat (false :: v) = 2 * bs2nat v.
+
+*****
+v : list bool
+*****
+eq (bs2nat (cons false v)) (Init.Nat.mul (S (S O)) (bs2nat v))
++++++
+Proof.
+-----
+Lemma bs2nat_false v : bs2nat (false :: v) = 2 * bs2nat v.
+Proof.
+
+*****
+v : list bool
+*****
+eq (bs2nat (cons false v)) (Init.Nat.mul (S (S O)) (bs2nat v))
++++++
+trivial.
+-----
+Lemma bs2nat_false v : bs2nat (false :: v) = 2 * bs2nat v.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs2nat_true v :\n  bs2nat (true :: v) = 1 + 2 * bs2nat v.
+-----
+Lemma bs2nat_true v : bs2nat (true :: v) = 1 + 2 * bs2nat v.
+
+*****
+v : list bool
+*****
+eq (bs2nat (cons true v)) (Init.Nat.add (S O) (Init.Nat.mul (S (S O)) (bs2nat v)))
++++++
+Proof.
+-----
+Lemma bs2nat_true v : bs2nat (true :: v) = 1 + 2 * bs2nat v.
+Proof.
+
+*****
+v : list bool
+*****
+eq (bs2nat (cons true v)) (Init.Nat.add (S O) (Init.Nat.mul (S (S O)) (bs2nat v)))
++++++
+trivial.
+-----
+Lemma bs2nat_true v : bs2nat (true :: v) = 1 + 2 * bs2nat v.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+
+*****
+
+*****
+forall v : list bool, eq (bs2nat (tl v)) (Nat.div2 (bs2nat v))
++++++
+Proof.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+
+*****
+
+*****
+forall v : list bool, eq (bs2nat (tl v)) (Nat.div2 (bs2nat v))
++++++
+destruct v.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+
+*****
+
+*****
+eq (bs2nat (tl nil)) (Nat.div2 (bs2nat nil))
++++++
+simpl.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+
+*****
+
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat (tl (cons b v))) (Nat.div2 (bs2nat (cons b v)))
++++++
+simpl.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (Nat.div2 (if b then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)))
++++++
+trivial.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (Nat.div2 (if b then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)))
++++++
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (Nat.div2 (if b then S (Init.Nat.mul (S (S O)) (bs2nat v)) else Init.Nat.mul (S (S O)) (bs2nat v)))
++++++
+case b.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+case b.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (Nat.div2 (S (Init.Nat.mul (S (S O)) (bs2nat v))))
++++++
+rewrite div2_double_plus_one.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+case b.
+rewrite div2_double_plus_one.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (bs2nat v)
++++++
+trivial.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+case b.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (Nat.div2 (Init.Nat.mul (S (S O)) (bs2nat v)))
++++++
+rewrite div2_double.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+simpl.
+trivial.
+replace (bs2nat v + (bs2nat v + 0)) with (2 * bs2nat v) by omega.
+case b.
+rewrite div2_double.
+
+*****
+v : list bool
+b : bool
+*****
+eq (bs2nat v) (bs2nat v)
++++++
+trivial.
+-----
+Lemma bs2nat_tl : forall v, bs2nat (tl v) = div2 (bs2nat v).
+Proof.
+destruct v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+
+*****
+
+*****
+forall n : nat, eq (bs2nat (nat2bs n)) n
++++++
+Proof.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+
+*****
+
+*****
+forall n : nat, eq (bs2nat (nat2bs n)) n
++++++
+induction n as [ | n' IHn].
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+
+*****
+
+*****
+eq (bs2nat (nat2bs O)) O
++++++
+simpl.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+simpl.
+
+*****
+
+*****
+eq O O
++++++
+auto.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+
+*****
+IHn : eq (bs2nat (nat2bs n')) n'
+n' : nat
+*****
+eq (bs2nat (nat2bs (S n'))) (S n')
++++++
+simpl.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+simpl.
+
+*****
+IHn : eq (bs2nat (nat2bs n')) n'
+n' : nat
+*****
+eq (bs2nat (succ_bs (nat2bs n'))) (S n')
++++++
+auto.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+simpl.
+auto.
+
+*****
+IHn : eq (bs2nat (nat2bs n')) n'
+n' : nat
+*****
+eq (bs2nat (succ_bs (nat2bs n'))) (S n')
++++++
+rewrite succ_bs_correct.
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+simpl.
+auto.
+rewrite succ_bs_correct.
+
+*****
+IHn : eq (bs2nat (nat2bs n')) n'
+n' : nat
+*****
+eq (Init.Nat.add (bs2nat (nat2bs n')) (S O)) (S n')
++++++
+ring [IHn].
+-----
+Lemma bs2nat_nat2bs : forall n, bs2nat (nat2bs n) = n.
+Proof.
+induction n as [ | n' IHn].
+
+*****
+
+*****
+
++++++
+Qed.
+-----

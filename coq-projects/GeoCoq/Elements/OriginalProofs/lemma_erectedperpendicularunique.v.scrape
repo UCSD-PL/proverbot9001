@@ -1,0 +1,836 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_sameside2.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_10_12.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.proposition_07.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_erectedperpendicularunique : \n   forall A B C E, \n   Per A B C -> Per A B E -> OS C E A B ->\n   Out B C E.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C E : Point) (_ : Per A B C) (_ : Per A B E) (_ : OS C E A B), Out B C E
++++++
+Proof.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C E : Point) (_ : Per A B C) (_ : Per A B E) (_ : OS C E A B), Out B C E
++++++
+intros.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+
+*****
+H1 : OS C E A B
+H0 : Per A B E
+H : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\ Cong A B D B /\ Cong A C D C /\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+
+*****
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (neq B E) by (conclude_def Per ).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+
+*****
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+
+*****
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (eq B B) by (conclude cn_equalityreflexive).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+
+*****
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Col A B B) by (conclude_def Col ).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+
+*****
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (OS C H A B) by (conclude lemma_sameside2).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+
+*****
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Per A B H) by (conclude lemma_8_3).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+
+*****
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+
+*****
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Cong A C A H) by (conclude lemma_10_12).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+
+*****
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+
+*****
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+
+*****
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (~ eq A B).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+
+*****
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq A B)
++++++
+intro.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+intro.
+
+*****
+H18 : eq A B
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A B C) by (conclude_def Col ).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+intro.
+assert (Col A B C) by (conclude_def Col ).
+
+*****
+H19 : Col A B C
+H18 : eq A B
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+intro.
+assert (Col A B C) by (conclude_def Col ).
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+
+*****
+H20 : nCol A B C
+H19 : Col A B C
+H18 : eq A B
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+
+*****
+H18 : not (eq A B)
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (eq C H) by (conclude proposition_07).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+assert (eq C H) by (conclude proposition_07).
+
+*****
+H19 : eq C H
+H18 : not (eq A B)
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Out B E C) by (conclude cn_equalitysub).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+assert (eq C H) by (conclude proposition_07).
+assert (Out B E C) by (conclude cn_equalitysub).
+
+*****
+H20 : Out B E C
+H19 : eq C H
+H18 : not (eq A B)
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+assert (Out B C E) by (conclude lemma_ray5).
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+assert (eq C H) by (conclude proposition_07).
+assert (Out B E C) by (conclude cn_equalitysub).
+assert (Out B C E) by (conclude lemma_ray5).
+
+*****
+H21 : Out B C E
+H20 : Out B E C
+H19 : eq C H
+H18 : not (eq A B)
+H17 : Cong C B H B
+H16 : Cong C A H A
+H15 : Cong A C A H
+H14 : Cong B C B H
+H13 : Per A B H
+H12 : OS C H A B
+H11 : Col A B B
+H10 : eq B B
+H9 : Cong B H B C
+H8 : Out B E H
+H : Point
+H6 : neq B E
+H5 : neq B C
+H4 : Cong A C D C
+H3 : Cong A B D B
+H2 : BetS A B D
+D : Point
+H1 : OS C E A B
+H0 : Per A B E
+H7 : Per A B C
+A,B,C,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B C E
++++++
+close.
+-----
+Lemma lemma_erectedperpendicularunique : forall A B C E, Per A B C -> Per A B E -> OS C E A B -> Out B C E.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B E) by (conclude_def Per ).
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (Out B E H /\\ Cong B H B C)) by (conclude lemma_layoff);destruct Tf as [H];spliter.
+assert (eq B B) by (conclude cn_equalityreflexive).
+assert (Col A B B) by (conclude_def Col ).
+assert (OS C H A B) by (conclude lemma_sameside2).
+assert (Per A B H) by (conclude lemma_8_3).
+assert (Cong B C B H) by (conclude lemma_congruencesymmetric).
+assert (Cong A C A H) by (conclude lemma_10_12).
+assert (Cong C A H A) by (forward_using lemma_congruenceflip).
+assert (Cong C B H B) by (forward_using lemma_congruenceflip).
+assert (~ eq A B).
+assert (eq C H) by (conclude proposition_07).
+assert (Out B E C) by (conclude cn_equalitysub).
+assert (Out B C E) by (conclude lemma_ray5).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

@@ -1,0 +1,1174 @@
+Require Import Coq.Lists.List.
+-----
+Require Import Coq.NArith.NArith.
+-----
+Require Import Coq.PArith.PArith.
+-----
+Require Import ListString.All.
+-----
+Import ListNotations.
+-----
+Local Open Scope type.
+-----
+Module ClientSocketId.
+-----
+Inductive t : Set :=\n  | New : N -> t.
+-----
+End ClientSocketId.
+-----
+Module Command.
+-----
+Inductive t : Set :=\n  | Log\n  | FileRead\n  | ServerSocketBind\n  | ClientSocketRead | ClientSocketWrite | ClientSocketClose\n  | Time.
+-----
+Definition request (command : t) : Set :=\n    match command with\n    | Log => LString.t\n    | FileRead => LString.t\n    | ServerSocketBind => N\n    | ClientSocketRead => ClientSocketId.t\n    | ClientSocketWrite => ClientSocketId.t * LString.t\n    | ClientSocketClose => ClientSocketId.t\n    | Time => unit\n    end.
+-----
+Definition answer (command : t) : Set :=\n    match command with\n    | Log => bool\n    | FileRead => option LString.t\n    | ServerSocketBind => option ClientSocketId.t\n    | ClientSocketRead => option LString.t\n    | ClientSocketWrite => bool\n    | ClientSocketClose => bool\n    | Time => N\n    end.
+-----
+Definition eq_dec (command1 command2 : t) :\n    {command1 = command2} + {command1 <> command2}.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+
+*****
+command1,command2 : True
+*****
+sumbool (eq command1 command2) (not (eq command1 command2))
++++++
+destruct command1.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq Log command2) (not (eq Log command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log Log) (not (eq Log Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log FileRead) (not (eq Log FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log FileRead) (not (eq Log FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log ServerSocketBind) (not (eq Log ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log ServerSocketBind) (not (eq Log ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log ClientSocketRead) (not (eq Log ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log ClientSocketRead) (not (eq Log ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log ClientSocketWrite) (not (eq Log ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log ClientSocketWrite) (not (eq Log ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log ClientSocketClose) (not (eq Log ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log ClientSocketClose) (not (eq Log ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Log Time) (not (eq Log Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Log Time) (not (eq Log Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq FileRead command2) (not (eq FileRead command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead Log) (not (eq FileRead Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead Log) (not (eq FileRead Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead FileRead) (not (eq FileRead FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead ServerSocketBind) (not (eq FileRead ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead ServerSocketBind) (not (eq FileRead ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketRead) (not (eq FileRead ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketRead) (not (eq FileRead ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketWrite) (not (eq FileRead ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketWrite) (not (eq FileRead ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketClose) (not (eq FileRead ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead ClientSocketClose) (not (eq FileRead ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq FileRead Time) (not (eq FileRead Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq FileRead Time) (not (eq FileRead Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq ServerSocketBind command2) (not (eq ServerSocketBind command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind Log) (not (eq ServerSocketBind Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind Log) (not (eq ServerSocketBind Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind FileRead) (not (eq ServerSocketBind FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind FileRead) (not (eq ServerSocketBind FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ServerSocketBind) (not (eq ServerSocketBind ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketRead) (not (eq ServerSocketBind ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketRead) (not (eq ServerSocketBind ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketWrite) (not (eq ServerSocketBind ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketWrite) (not (eq ServerSocketBind ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketClose) (not (eq ServerSocketBind ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind ClientSocketClose) (not (eq ServerSocketBind ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ServerSocketBind Time) (not (eq ServerSocketBind Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ServerSocketBind Time) (not (eq ServerSocketBind Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq ClientSocketRead command2) (not (eq ClientSocketRead command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead Log) (not (eq ClientSocketRead Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead Log) (not (eq ClientSocketRead Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead FileRead) (not (eq ClientSocketRead FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead FileRead) (not (eq ClientSocketRead FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ServerSocketBind) (not (eq ClientSocketRead ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ServerSocketBind) (not (eq ClientSocketRead ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ClientSocketRead) (not (eq ClientSocketRead ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ClientSocketWrite) (not (eq ClientSocketRead ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ClientSocketWrite) (not (eq ClientSocketRead ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ClientSocketClose) (not (eq ClientSocketRead ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead ClientSocketClose) (not (eq ClientSocketRead ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketRead Time) (not (eq ClientSocketRead Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketRead Time) (not (eq ClientSocketRead Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq ClientSocketWrite command2) (not (eq ClientSocketWrite command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite Log) (not (eq ClientSocketWrite Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite Log) (not (eq ClientSocketWrite Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite FileRead) (not (eq ClientSocketWrite FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite FileRead) (not (eq ClientSocketWrite FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ServerSocketBind) (not (eq ClientSocketWrite ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ServerSocketBind) (not (eq ClientSocketWrite ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ClientSocketRead) (not (eq ClientSocketWrite ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ClientSocketRead) (not (eq ClientSocketWrite ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ClientSocketWrite) (not (eq ClientSocketWrite ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ClientSocketClose) (not (eq ClientSocketWrite ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite ClientSocketClose) (not (eq ClientSocketWrite ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite Time) (not (eq ClientSocketWrite Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketWrite Time) (not (eq ClientSocketWrite Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq ClientSocketClose command2) (not (eq ClientSocketClose command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose Log) (not (eq ClientSocketClose Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose Log) (not (eq ClientSocketClose Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose FileRead) (not (eq ClientSocketClose FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose FileRead) (not (eq ClientSocketClose FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ServerSocketBind) (not (eq ClientSocketClose ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ServerSocketBind) (not (eq ClientSocketClose ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ClientSocketRead) (not (eq ClientSocketClose ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ClientSocketRead) (not (eq ClientSocketClose ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ClientSocketWrite) (not (eq ClientSocketClose ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ClientSocketWrite) (not (eq ClientSocketClose ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose ClientSocketClose) (not (eq ClientSocketClose ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq ClientSocketClose Time) (not (eq ClientSocketClose Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq ClientSocketClose Time) (not (eq ClientSocketClose Time))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+command2 : True
+*****
+sumbool (eq Time command2) (not (eq Time command2))
++++++
+destruct command2.
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time Log) (not (eq Time Log))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time Log) (not (eq Time Log))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time FileRead) (not (eq Time FileRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time FileRead) (not (eq Time FileRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time ServerSocketBind) (not (eq Time ServerSocketBind))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time ServerSocketBind) (not (eq Time ServerSocketBind))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time ClientSocketRead) (not (eq Time ClientSocketRead))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time ClientSocketRead) (not (eq Time ClientSocketRead))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time ClientSocketWrite) (not (eq Time ClientSocketWrite))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time ClientSocketWrite) (not (eq Time ClientSocketWrite))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time ClientSocketClose) (not (eq Time ClientSocketClose))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+try (left; congruence).
+
+*****
+
+*****
+sumbool (eq Time ClientSocketClose) (not (eq Time ClientSocketClose))
++++++
+try (right; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+destruct command2.
+
+*****
+
+*****
+sumbool (eq Time Time) (not (eq Time Time))
++++++
+try (left; congruence).
+-----
+Definition eq_dec (command1 command2 : t) : {command1 = command2} + {command1 <> command2}.
+destruct command1.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Command.
+-----
+Module Output.
+-----
+Record t : Set := New {\n    command : Command.t;\n    id : positive;\n    argument : Command.request command }.
+-----
+End Output.
+-----
+Module Input.
+-----
+Record t : Set := New {\n    command : Command.t;\n    id : positive;\n    argument : Command.answer command }.
+-----
+End Input.
+-----

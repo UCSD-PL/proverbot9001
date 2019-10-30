@@ -1,0 +1,84 @@
+Require Import GeoCoq.Tarski_dev.Definitions.
+-----
+Section Euclid_def.
+-----
+Context `{Tn:Tarski_neutral_dimensionless}.
+-----
+Definition decidability_of_parallelism := forall A B C D,\n  Par A B C D \/ ~ Par A B C D.
+-----
+Definition decidability_of_not_intersection := forall A B C D,\n  ~ (exists I, Col I A B /\ Col I C D) \/\n  ~ ~ (exists I, Col I A B /\ Col I C D).
+-----
+Definition decidability_of_intersection := forall A B C D,\n  (exists I, Col I A B /\ Col I C D) \/\n  ~ (exists I, Col I A B /\ Col I C D).
+-----
+Definition tarski_s_parallel_postulate := forall A B C D T,\n  Bet A D T -> Bet B D C -> A <> D ->\n  exists X Y, Bet A B X /\ Bet A C Y /\ Bet X T Y.
+-----
+Definition playfair_s_postulate := forall A1 A2 B1 B2 C1 C2 P,\n  Par A1 A2 B1 B2 -> Col P B1 B2 ->\n  Par A1 A2 C1 C2 -> Col P C1 C2 ->\n  Col C1 B1 B2 /\ Col C2 B1 B2.
+-----
+Definition triangle_postulate := forall A B C D E F,\n  TriSumA A B C D E F -> Bet D E F.
+-----
+Definition bachmann_s_lotschnittaxiom := forall P Q R P1 R1,\n  P <> Q -> Q <> R -> Per P Q R -> Per Q P P1 -> Per Q R R1 ->\n  Coplanar P Q R P1 -> Coplanar P Q R R1 ->\n  exists S, Col P P1 S /\ Col R R1 S.
+-----
+Definition postulate_of_transitivity_of_parallelism := forall A1 A2 B1 B2 C1 C2,\n  Par A1 A2 B1 B2 -> Par B1 B2 C1 C2 ->\n  Par A1 A2 C1 C2.
+-----
+Definition midpoint_converse_postulate := forall A B C P Q,\n  ~ Col A B C ->\n  Midpoint P B C -> Par A B Q P -> Col A C Q ->\n  Midpoint Q A C.
+-----
+Definition alternate_interior_angles_postulate := forall A B C D,\n  TS A C B D -> Par A B C D ->\n  CongA B A C D C A.
+-----
+Definition consecutive_interior_angles_postulate := forall A B C D,\n  OS B C A D -> Par A B C D -> SuppA A B C B C D.
+-----
+Definition perpendicular_transversal_postulate := forall A B C D P Q,\n  Par A B C D -> Perp A B P Q -> Coplanar C D P Q ->\n  Perp C D P Q.
+-----
+Definition postulate_of_parallelism_of_perpendicular_transversals :=\n  forall A1 A2 B1 B2 C1 C2 D1 D2,\n    Par A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 ->\n    Coplanar A1 A2 C1 D1 -> Coplanar A1 A2 C1 D2 ->\n    Coplanar A1 A2 C2 D1 -> Coplanar A1 A2 C2 D2 ->\n    Par C1 C2 D1 D2.
+-----
+Definition universal_posidonius_postulate := forall A1 A2 A3 A4 B1 B2 B3 B4,\n  Par A1 A2 B1 B2 ->\n  Col A1 A2 A3 -> Col B1 B2 B3 -> Perp A1 A2 A3 B3 ->\n  Col A1 A2 A4 -> Col B1 B2 B4 -> Perp A1 A2 A4 B4 ->\n  Cong A3 B3 A4 B4.
+-----
+Definition alternative_playfair_s_postulate := forall A1 A2 B1 B2 C1 C2 P,\n  Perp2 A1 A2 B1 B2 P -> ~ Col A1 A2 P -> Col P B1 B2 -> Coplanar A1 A2 B1 B2 ->\n  Par A1 A2 C1 C2 -> Col P C1 C2 ->\n  Col C1 B1 B2 /\ Col C2 B1 B2.
+-----
+Definition proclus_postulate := forall A B C D P Q,\n  Par A B C D -> Col A B P -> ~ Col A B Q -> Coplanar C D P Q ->\n  exists Y, Col P Q Y /\ Col C D Y.
+-----
+Definition alternative_proclus_postulate := forall A B C D P Q,\n  Perp2 A B C D P -> ~ Col C D P -> Coplanar A B C D ->\n  Col A B P -> ~ Col A B Q -> Coplanar C D P Q ->\n  exists Y, Col P Q Y /\ Col C D Y.
+-----
+Definition triangle_circumscription_principle := forall A B C,\n  ~ Col A B C ->\n  exists CC, Cong A CC B CC /\ Cong A CC C CC /\ Coplanar A B C CC.
+-----
+Definition inverse_projection_postulate := forall A B C P Q,\n  Acute A B C ->\n  Out B A P -> P <> Q -> Per B P Q -> Coplanar A B C Q ->\n  exists Y, Out B C Y /\ Col P Q Y.
+-----
+Definition euclid_5 := forall P Q R S T U,\n  BetS P T Q -> BetS R T S -> BetS Q U R -> ~ Col P Q S ->\n  Cong P T Q T -> Cong R T S T ->\n  exists I, BetS S Q I /\ BetS P U I.
+-----
+Definition strong_parallel_postulate :=  forall P Q R S T U,\n  BetS P T Q -> BetS R T S -> ~ Col P R U ->\n  Coplanar P Q R U ->\n  Cong P T Q T -> Cong R T S T ->\n  exists I, Col S Q I /\ Col P U I.
+-----
+Definition alternative_strong_parallel_postulate := forall A B C D P Q R,\n  OS B C A D -> SumA A B C B C D P Q R -> ~ Bet P Q R ->\n  exists Y, Col B A Y /\ Col C D Y.
+-----
+Definition euclid_s_parallel_postulate := forall A B C D P Q R,\n  OS B C A D -> SAMS A B C B C D -> SumA A B C B C D P Q R -> ~ Bet P Q R ->\n  exists Y, Out B A Y /\ Out C D Y.
+-----
+Definition postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights :=\n  exists A B C D E F, ~ Col A B C /\ TriSumA A B C D E F /\ Bet D E F.
+-----
+Definition posidonius_postulate :=\n  exists A1 A2 B1 B2,\n    ~ Col A1 A2 B1 /\ B1 <> B2 /\ Coplanar A1 A2 B1 B2 /\\n    forall A3 A4 B3 B4,\n      Col A1 A2 A3 -> Col B1 B2 B3 -> Perp A1 A2 A3 B3 ->\n      Col A1 A2 A4 -> Col B1 B2 B4 -> Perp A1 A2 A4 B4 ->\n      Cong A3 B3 A4 B4.
+-----
+Definition postulate_of_existence_of_similar_triangles :=\n  exists A B C D E F,\n    ~ Col A B C /\ ~ Cong A B D E /\\n    CongA A B C D E F /\ CongA B C A E F D /\ CongA C A B F D E.
+-----
+Definition thales_postulate := forall A B C M,\n  ~ Col A B C -> Midpoint M A B -> Cong M A M C ->\n  Per A C B.
+-----
+Definition thales_converse_postulate := forall A B C M,\n  ~ Col A B C -> Midpoint M A B -> Per A C B ->\n  Cong M A M C.
+-----
+Definition existential_thales_postulate :=\n  exists A B C M, ~ Col A B C /\ Midpoint M A B /\ Cong M A M C /\ Per A C B.
+-----
+Definition postulate_of_right_saccheri_quadrilaterals := forall A B C D,\n  Saccheri A B C D -> Per A B C.
+-----
+Definition postulate_of_existence_of_a_right_saccheri_quadrilateral :=\n  exists A B C D, Saccheri A B C D /\ Per A B C.
+-----
+Definition postulate_of_right_lambert_quadrilaterals := forall A B C D,\n  Lambert A B C D -> Per B C D.
+-----
+Definition postulate_of_existence_of_a_right_lambert_quadrilateral :=\n  exists A B C D, Lambert A B C D /\ Per B C D.
+-----
+Definition weak_inverse_projection_postulate := forall A B C D E F P Q,\n  Acute A B C -> Per D E F -> SumA A B C A B C D E F ->\n  Out B A P -> P <> Q -> Per B P Q -> Coplanar A B C Q ->\n  exists Y, Out B C Y /\ Col P Q Y.
+-----
+Definition weak_tarski_s_parallel_postulate := forall A B C T,\n  Per A B C -> InAngle T A B C ->\n  exists X Y, Out B A X /\ Out B C Y /\ Bet X T Y.
+-----
+Definition weak_triangle_circumscription_principle := forall A B C A1 A2 B1 B2,\n  ~ Col A B C -> Per A C B ->\n  Perp_bisect A1 A2 B C -> Perp_bisect B1 B2 A C ->\n  Coplanar A B C A1 -> Coplanar A B C A2 ->\n  Coplanar A B C B1 -> Coplanar A B C B2 ->\n  exists I, Col A1 A2 I /\ Col B1 B2 I.
+-----
+Definition legendre_s_parallel_postulate :=\n  exists A B C,\n    ~ Col A B C /\ Acute A B C /\\n    forall T,\n      InAngle T A B C ->\n      exists X Y, Out B A X /\ Out B C Y /\ Bet X T Y.
+-----
+Definition existential_playfair_s_postulate :=\n  exists A1 A2 P, ~ Col A1 A2 P /\\n             (forall B1 B2 C1 C2,\n                Par A1 A2 B1 B2 -> Col P B1 B2 ->\n                Par A1 A2 C1 C2 -> Col P C1 C2 ->\n                Col C1 B1 B2 /\ Col C2 B1 B2).
+-----
+End Euclid_def.
+-----

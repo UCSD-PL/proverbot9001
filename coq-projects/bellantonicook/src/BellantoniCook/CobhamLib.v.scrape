@@ -1,0 +1,3345 @@
+From Coq Require Import List.
+-----
+From Coq Require Import Arith.
+-----
+Require Import BellantoniCook.Lib BellantoniCook.Cobham.
+-----
+Definition Zero_e (n:nat) : Cobham :=\n  Comp n Zero nil.
+-----
+Lemma arity_Zero n : arity (Zero_e n) = ok_arity n.
+-----
+Lemma arity_Zero n : arity (Zero_e n) = ok_arity n.
+
+*****
+n : nat
+*****
+eq (arity (Zero_e n)) (ok_arity n)
++++++
+Proof.
+-----
+Lemma arity_Zero n : arity (Zero_e n) = ok_arity n.
+Proof.
+
+*****
+n : nat
+*****
+eq (arity (Zero_e n)) (ok_arity n)
++++++
+trivial.
+-----
+Lemma arity_Zero n : arity (Zero_e n) = ok_arity n.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_Zero n : \n  rec_bounded (Zero_e n).
+-----
+Lemma rec_bounded_Zero n : rec_bounded (Zero_e n).
+
+*****
+n : nat
+*****
+rec_bounded (Zero_e n)
++++++
+Proof.
+-----
+Lemma rec_bounded_Zero n : rec_bounded (Zero_e n).
+Proof.
+
+*****
+n : nat
+*****
+rec_bounded (Zero_e n)
++++++
+simpl.
+-----
+Lemma rec_bounded_Zero n : rec_bounded (Zero_e n).
+Proof.
+simpl.
+
+*****
+n : nat
+*****
+and True True
++++++
+tauto.
+-----
+Lemma rec_bounded_Zero n : rec_bounded (Zero_e n).
+Proof.
+simpl.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition One_e (n:nat) : Cobham :=\n  Comp n (Comp 0 (Succ true) [Zero]) nil.
+-----
+Lemma arity_One n : arity (One_e n) = ok_arity n.
+-----
+Lemma arity_One n : arity (One_e n) = ok_arity n.
+
+*****
+n : nat
+*****
+eq (arity (One_e n)) (ok_arity n)
++++++
+Proof.
+-----
+Lemma arity_One n : arity (One_e n) = ok_arity n.
+Proof.
+
+*****
+n : nat
+*****
+eq (arity (One_e n)) (ok_arity n)
++++++
+trivial.
+-----
+Lemma arity_One n : arity (One_e n) = ok_arity n.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_One n :\n  rec_bounded (One_e n).
+-----
+Lemma rec_bounded_One n : rec_bounded (One_e n).
+
+*****
+n : nat
+*****
+rec_bounded (One_e n)
++++++
+Proof.
+-----
+Lemma rec_bounded_One n : rec_bounded (One_e n).
+Proof.
+
+*****
+n : nat
+*****
+rec_bounded (One_e n)
++++++
+simpl.
+-----
+Lemma rec_bounded_One n : rec_bounded (One_e n).
+Proof.
+simpl.
+
+*****
+n : nat
+*****
+and (and True (and True True)) True
++++++
+tauto.
+-----
+Lemma rec_bounded_One n : rec_bounded (One_e n).
+Proof.
+simpl.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition App_e : Cobham :=\n  Rec (Proj 1 0)\n  (Comp 3 (Succ false) [Proj 3 1])\n  (Comp 3 (Succ true) [Proj 3 1])\n  (Comp 2 Smash [Comp 2 (Succ true) [Proj 2 0]; Comp 2 (Succ true) [Proj 2 1] ]).
+-----
+Lemma arity_App : arity App_e = ok_arity 2.
+-----
+Lemma arity_App : arity App_e = ok_arity 2.
+
+*****
+
+*****
+eq (arity App_e) (ok_arity (S (S O)))
++++++
+Proof.
+-----
+Lemma arity_App : arity App_e = ok_arity 2.
+Proof.
+
+*****
+
+*****
+eq (arity App_e) (ok_arity (S (S O)))
++++++
+trivial.
+-----
+Lemma arity_App : arity App_e = ok_arity 2.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+
+*****
+
+*****
+rec_bounded App_e
++++++
+Proof.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+
+*****
+
+*****
+rec_bounded App_e
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+
+*****
+
+*****
+and (and True (and (and True (and True True)) (and (and True (and True True)) True))) (and True (and (and True (and True True)) (and (and True (and True True)) (forall l : list (list bool), le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil l) (tl l))) (S (length (smash' (nth (S O) l nil) (smash_bs (nth O l nil) (cons true (nth (S O) l nil))))))))))
++++++
+intuition.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+
+*****
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil l) (tl l))) (S (length (smash' (nth (S O) l nil) (smash_bs (nth O l nil) (cons true (nth (S O) l nil))))))
++++++
+destruct l as [ | u [ | v l] ].
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+
+*****
+
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil nil) (tl nil))) (S (length (smash' (nth (S O) nil nil) (smash_bs (nth O nil nil) (cons true (nth (S O) nil nil))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+
+*****
+
+*****
+le O (S (S O))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+
+*****
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil (cons u nil)) (tl (cons u nil)))) (S (length (smash' (nth (S O) (cons u nil) nil) (smash_bs (nth O (cons u nil) nil) (cons true (nth (S O) (cons u nil) nil))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+
+*****
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil)) (S (length (smash_bs u (cons true nil))))
++++++
+rewrite length_smash.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+
+*****
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil)) (S (Init.Nat.add (S O) (Init.Nat.mul (length u) (length (cons true nil)))))
++++++
+rewrite mult_1_r.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+
+*****
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil)) (S (Init.Nat.add (S O) (length u)))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+
+*****
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil)) (S (S (length u)))
++++++
+induction u as [ | [ | ] u IH].
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) nil nil)) (S (S (length nil)))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+
+*****
+le O (S (S O))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n nil)) (S (S (length u)))
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (cons true u) nil)) (S (S (length (cons true u))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n nil)) (S (S (length u)))
+u : list bool
+*****
+le (S (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil))) (S (S (S (length u))))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n nil)) (S (S (length u)))
+u : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (cons false u) nil)) (S (S (length (cons false u))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash.
+rewrite mult_1_r.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n nil)) (S (S (length u)))
+u : list bool
+*****
+le (S (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u nil))) (S (S (S (length u))))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil (cons u (cons v l))) (tl (cons u (cons v l))))) (S (length (smash' (nth (S O) (cons u (cons v l)) nil) (smash_bs (nth O (cons u (cons v l)) nil) (cons true (nth (S O) (cons u (cons v l)) nil))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l))) (S (length (smash' v (smash_bs u (cons true v)))))
++++++
+rewrite length_smash'.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l))) (S (Init.Nat.add (length v) (length (smash_bs u (cons true v)))))
++++++
+rewrite length_smash.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l))) (S (Init.Nat.add (length v) (Init.Nat.add (S O) (Init.Nat.mul (length u) (length (cons true v))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l))) (S (Init.Nat.add (length v) (S (Init.Nat.mul (length u) (S (length v))))))
++++++
+induction u as [ | [ | ] u IH].
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) nil (cons v l))) (S (Init.Nat.add (length v) (S (Init.Nat.mul (length nil) (S (length v))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length v) (S (Init.Nat.add (length v) (S O)))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n (cons v l)))\n (S\n (Init.Nat.add (length v)\n (S (Init.Nat.mul (length u) (S (length v))))))
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (cons true u) (cons v l))) (S (Init.Nat.add (length v) (S (Init.Nat.mul (length (cons true u)) (S (length v))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n (cons v l)))\n (S\n (Init.Nat.add (length v)\n (S (Init.Nat.mul (length u) (S (length v))))))
+l : list (list bool)
+u,v : list bool
+*****
+le (S (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l)))) (S (Init.Nat.add (length v) (S (S (Init.Nat.add (length v) (Init.Nat.mul (length u) (S (length v))))))))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n (cons v l)))\n (S\n (Init.Nat.add (length v)\n (S (Init.Nat.mul (length u) (S (length v))))))
+l : list (list bool)
+u,v : list bool
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (cons false u) (cons v l))) (S (Init.Nat.add (length v) (S (Init.Nat.mul (length (cons false u)) (S (length v))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+simpl.
+rewrite length_smash'.
+rewrite length_smash.
+simpl.
+induction u as [ | [ | ] u IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u\n (cons v l)))\n (S\n (Init.Nat.add (length v)\n (S (Init.Nat.mul (length u) (S (length v))))))
+l : list (list bool)
+u,v : list bool
+*****
+le (S (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) u (cons v l)))) (S (Init.Nat.add (length v) (S (S (Init.Nat.add (length v) (Init.Nat.mul (length u) (S (length v))))))))
++++++
+omega.
+-----
+Lemma rec_bounded_App : rec_bounded App_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | u [ | v l] ].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma App_correct : forall l,\n  Sem App_e l = hd nil l ++ hd nil (tl l).
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+
+*****
+
+*****
+forall l : list (list bool), eq (Sem App_e l) (app (hd nil l) (hd nil (tl l)))
++++++
+Proof.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+
+*****
+
+*****
+forall l : list (list bool), eq (Sem App_e l) (app (hd nil l) (hd nil (tl l)))
++++++
+intros.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+
+*****
+l : list (list bool)
+*****
+eq (Sem App_e l) (app (hd nil l) (hd nil (tl l)))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+
+*****
+l : list (list bool)
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil l) (tl l)) (app (hd nil l) (hd nil (tl l)))
++++++
+destruct l.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+
+*****
+
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil nil) (tl nil)) (app (hd nil nil) (hd nil (tl nil)))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+
+*****
+
+*****
+eq nil nil
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+
+*****
+l0 : list (list bool)
+l : list bool
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (hd nil (cons l l0)) (tl (cons l l0))) (app (hd nil (cons l l0)) (hd nil (tl (cons l l0))))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+
+*****
+l0 : list (list bool)
+l : list bool
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0) (app l (hd nil l0))
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+
+*****
+l0 : list (list bool)
+l : list bool
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0) (app l (hd nil l0))
++++++
+induction l.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+
+*****
+l0 : list (list bool)
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) nil l0) (app nil (hd nil l0))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+
+*****
+l0 : list (list bool)
+*****
+eq (nth O l0 nil) (hd nil l0)
++++++
+destruct l0.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+destruct l0.
+
+*****
+
+*****
+eq (nth O nil nil) (hd nil nil)
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+destruct l0.
+simpl.
+
+*****
+
+*****
+eq nil nil
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+destruct l0.
+
+*****
+l0 : list (list bool)
+l : list bool
+*****
+eq (nth O (cons l l0) nil) (hd nil (cons l l0))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+destruct l0.
+simpl.
+
+*****
+l0 : list (list bool)
+l : list bool
+*****
+eq l l
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+
+*****
+IHl : eq\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)\n (app l (hd nil l0))
+l0 : list (list bool)
+l : list bool
+a : bool
+*****
+eq (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) (cons a l) l0) (app (cons a l) (hd nil l0))
++++++
+simpl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+
+*****
+IHl : eq\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)\n (app l (hd nil l0))
+l0 : list (list bool)
+l : list bool
+a : bool
+*****
+eq (if a then cons true (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0) else cons false (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => cons false (nth (S O) vl nil)) (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)) (cons a (app l (hd nil l0)))
++++++
+rewrite IHl.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+rewrite IHl.
+
+*****
+IHl : eq\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)\n (app l (hd nil l0))
+l0 : list (list bool)
+l : list bool
+a : bool
+*****
+eq (if a then cons true (app l (hd nil l0)) else cons false (app l (hd nil l0))) (cons a (app l (hd nil l0)))
++++++
+case a.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+rewrite IHl.
+case a.
+
+*****
+IHl : eq\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)\n (app l (hd nil l0))
+l0 : list (list bool)
+l : list bool
+a : bool
+*****
+eq (cons true (app l (hd nil l0))) (cons true (app l (hd nil l0)))
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+simpl.
+trivial.
+induction l.
+simpl.
+rewrite IHl.
+case a.
+
+*****
+IHl : eq\n (sem_Rec (fun vl : list (list bool) => nth O vl nil)\n (fun vl : list (list bool) => cons false (nth (S O) vl nil))\n (fun vl : list (list bool) => cons true (nth (S O) vl nil)) l l0)\n (app l (hd nil l0))
+l0 : list (list bool)
+l : list bool
+a : bool
+*****
+eq (cons false (app l (hd nil l0))) (cons false (app l (hd nil l0)))
++++++
+trivial.
+-----
+Lemma App_correct : forall l, Sem App_e l = hd nil l ++ hd nil (tl l).
+Proof.
+intros.
+simpl.
+destruct l.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Opaque App_e.
+-----
+Definition Rev_e : Cobham :=\n  Rec\n    Zero\n    (Comp 2 App_e [Proj 2 1; Comp 2 (Succ false) [Zero_e 2]])\n    (Comp 2 App_e [Proj 2 1; Comp 2 (Succ true) [Zero_e 2]])\n    (Proj 1 0).
+-----
+Lemma arity_Rev : \n  arity Rev_e = ok_arity 1.
+-----
+Lemma arity_Rev : arity Rev_e = ok_arity 1.
+
+*****
+
+*****
+eq (arity Rev_e) (ok_arity (S O))
++++++
+Proof.
+-----
+Lemma arity_Rev : arity Rev_e = ok_arity 1.
+Proof.
+
+*****
+
+*****
+eq (arity Rev_e) (ok_arity (S O))
++++++
+trivial.
+-----
+Lemma arity_Rev : arity Rev_e = ok_arity 1.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_Rev :\n  rec_bounded Rev_e.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+
+*****
+
+*****
+rec_bounded Rev_e
++++++
+Proof.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+
+*****
+
+*****
+rec_bounded Rev_e
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+
+*****
+
+*****
+and True (and True (and (and (rec_bounded App_e) (and True (and (and True (and (and True True) True)) True))) (and (and (rec_bounded App_e) (and True (and (and True (and (and True True) True)) True))) (forall l : list (list bool), le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (hd nil l) (tl l))) (length (nth O l nil))))))
++++++
+intuition.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+
+*****
+
+*****
+rec_bounded App_e
++++++
+apply rec_bounded_App.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+
+*****
+
+*****
+rec_bounded App_e
++++++
+apply rec_bounded_App.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+
+*****
+l : list (list bool)
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (hd nil l) (tl l))) (length (nth O l nil))
++++++
+destruct l as [ | v l].
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+
+*****
+
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (hd nil nil) (tl nil))) (length (nth O nil nil))
++++++
+trivial.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (hd nil (cons v l)) (tl (cons v l)))) (length (nth O (cons v l) nil))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l)) (length v)
++++++
+induction v as [ | [ | ] v IH].
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+l : list (list bool)
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) nil l)) (length nil)
++++++
+trivial.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (cons true v) l)) (length (cons true v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (Sem App_e (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil)))) (S (length v))
++++++
+rewrite App_correct.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (app (hd nil (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil))) (hd nil (tl (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil)))))) (S (length v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (app (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons true nil))) (S (length v))
++++++
+rewrite app_length.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+rewrite app_length.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (Init.Nat.add (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l)) (length (cons true nil))) (S (length v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+rewrite app_length.
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (Init.Nat.add (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l)) (S O)) (S (length v))
++++++
+omega.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (cons false v) l)) (length (cons false v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (Sem App_e (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil)))) (S (length v))
++++++
+rewrite App_correct.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (app (hd nil (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil))) (hd nil (tl (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil)))))) (S (length v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (app (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons false nil))) (S (length v))
++++++
+rewrite app_length.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+rewrite app_length.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (Init.Nat.add (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l)) (length (cons false nil))) (S (length v))
++++++
+simpl.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+rewrite app_length.
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e\n (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil)))\n v l)) (length v)
+l : list (list bool)
+v : list bool
+*****
+le (Init.Nat.add (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l)) (S O)) (S (length v))
++++++
+omega.
+-----
+Lemma rec_bounded_Rev : rec_bounded Rev_e.
+Proof.
+simpl.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Rev_correct l :\n  Sem Rev_e l = List.rev (hd nil l).
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+
+*****
+l : list (list bool)
+*****
+eq (Sem Rev_e l) (rev (hd nil l))
++++++
+Proof.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+
+*****
+l : list (list bool)
+*****
+eq (Sem Rev_e l) (rev (hd nil l))
++++++
+destruct l as [ | v l].
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+
+*****
+
+*****
+eq (Sem Rev_e nil) (rev (hd nil nil))
++++++
+trivial.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+
+*****
+l : list (list bool)
+v : list bool
+*****
+eq (Sem Rev_e (cons v l)) (rev (hd nil (cons v l)))
++++++
+simpl.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+
+*****
+l : list (list bool)
+v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (rev v)
++++++
+induction v as [ | [ | ] v IH].
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+l : list (list bool)
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) nil l) (rev nil)
++++++
+trivial.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (cons true v) l) (rev (cons true v))
++++++
+simpl.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (Sem App_e (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil))) (app (rev v) (cons true nil))
++++++
+rewrite App_correct.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (app (hd nil (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil))) (hd nil (tl (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons true nil) nil))))) (app (rev v) (cons true nil))
++++++
+simpl.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (app (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons true nil)) (app (rev v) (cons true nil))
++++++
+congruence.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) (cons false v) l) (rev (cons false v))
++++++
+simpl.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (Sem App_e (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil))) (app (rev v) (cons false nil))
++++++
+rewrite App_correct.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (app (hd nil (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil))) (hd nil (tl (cons (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons (cons false nil) nil))))) (app (rev v) (cons false nil))
++++++
+simpl.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+rewrite App_correct.
+simpl.
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil)))\n (fun vl : list (list bool) =>\n Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v\n l) (rev v)
+l : list (list bool)
+v : list bool
+*****
+eq (app (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons false nil) nil))) (fun vl : list (list bool) => Sem App_e (cons (nth (S O) vl nil) (cons (cons true nil) nil))) v l) (cons false nil)) (app (rev v) (cons false nil))
++++++
+congruence.
+-----
+Lemma Rev_correct l : Sem Rev_e l = List.rev (hd nil l).
+Proof.
+destruct l as [ | v l].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition RemoveLSZ_e : Cobham :=\n  Rec\n    Zero\n    (Proj 2 1)\n    (Comp 2 (Succ true) [Proj 2 0])\n    (Proj 1 0).
+-----
+Lemma arity_RemoveLSZ : \n  arity RemoveLSZ_e = ok_arity 1.
+-----
+Lemma arity_RemoveLSZ : arity RemoveLSZ_e = ok_arity 1.
+
+*****
+
+*****
+eq (arity RemoveLSZ_e) (ok_arity (S O))
++++++
+Proof.
+-----
+Lemma arity_RemoveLSZ : arity RemoveLSZ_e = ok_arity 1.
+Proof.
+
+*****
+
+*****
+eq (arity RemoveLSZ_e) (ok_arity (S O))
++++++
+trivial.
+-----
+Lemma arity_RemoveLSZ : arity RemoveLSZ_e = ok_arity 1.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_RemoveLSZ :\n  rec_bounded RemoveLSZ_e.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+
+*****
+
+*****
+rec_bounded RemoveLSZ_e
++++++
+Proof.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+
+*****
+
+*****
+rec_bounded RemoveLSZ_e
++++++
+simpl.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+
+*****
+
+*****
+and True (and True (and True (and (and True (and True True)) (forall l : list (list bool), le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (hd nil l) (tl l))) (length (nth O l nil))))))
++++++
+intuition.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+
+*****
+l : list (list bool)
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (hd nil l) (tl l))) (length (nth O l nil))
++++++
+destruct l as [ | v l].
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+
+*****
+
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (hd nil nil) (tl nil))) (length (nth O nil nil))
++++++
+trivial.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (hd nil (cons v l)) (tl (cons v l)))) (length (nth O (cons v l) nil))
++++++
+simpl.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+
+*****
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l)) (length v)
++++++
+induction v as [ | [ | ] v IH].
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+l : list (list bool)
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) nil l)) (length nil)
++++++
+trivial.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) v l))\n (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (cons true v) l)) (length (cons true v))
++++++
+trivial.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) v l))\n (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (cons false v) l)) (length (cons false v))
++++++
+simpl.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+simpl.
+induction v as [ | [ | ] v IH].
+simpl.
+
+*****
+IH : le\n (length\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) v l))\n (length v)
+l : list (list bool)
+v : list bool
+*****
+le (length (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l)) (S (length v))
++++++
+omega.
+-----
+Lemma rec_bounded_RemoveLSZ : rec_bounded RemoveLSZ_e.
+Proof.
+simpl.
+intuition.
+destruct l as [ | v l].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma RemoveLSZ_app u v l :\n  Sem RemoveLSZ_e ((u++v)::l) =\n  match Sem RemoveLSZ_e (u::l) with\n  | nil => Sem RemoveLSZ_e (v::l)\n  | u' => u'++v\n  end.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+eq (Sem RemoveLSZ_e (cons (app u v) l)) match Sem RemoveLSZ_e (cons u l) with | nil => Sem RemoveLSZ_e (cons v l) | cons b l => app (cons b l) v end
++++++
+Proof.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+eq (Sem RemoveLSZ_e (cons (app u v) l)) match Sem RemoveLSZ_e (cons u l) with | nil => Sem RemoveLSZ_e (cons v l) | cons b l => app (cons b l) v end
++++++
+simpl.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+simpl.
+
+*****
+l : list (list bool)
+u,v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (app u v) l) match sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) u l with | nil => sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l | cons b l => cons b (app l v) end
++++++
+induction u as [ | [ | ] u IH].
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+l : list (list bool)
+v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (app nil v) l) match sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) nil l with | nil => sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l | cons b l => cons b (app l v) end
++++++
+trivial.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) \n (app u v) l)\n match\n sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) u l\n with\n | nil =>\n sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) v l\n | cons b l => cons b (app l v)\n end
+l : list (list bool)
+u,v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (app (cons true u) v) l) match sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (cons true u) l with | nil => sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l | cons b l => cons b (app l v) end
++++++
+trivial.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+IH : eq\n (sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) \n (app u v) l)\n match\n sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) u l\n with\n | nil =>\n sem_Rec (fun _ : list (list bool) => nil)\n (fun vl : list (list bool) => nth (S O) vl nil)\n (fun vl : list (list bool) => cons true (nth O vl nil)) v l\n | cons b l => cons b (app l v)\n end
+l : list (list bool)
+u,v : list bool
+*****
+eq (sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (app (cons false u) v) l) match sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) (cons false u) l with | nil => sem_Rec (fun _ : list (list bool) => nil) (fun vl : list (list bool) => nth (S O) vl nil) (fun vl : list (list bool) => cons true (nth O vl nil)) v l | cons b l => cons b (app l v) end
++++++
+trivial.
+-----
+Lemma RemoveLSZ_app u v l : Sem RemoveLSZ_e ((u++v)::l) = match Sem RemoveLSZ_e (u::l) with | nil => Sem RemoveLSZ_e (v::l) | u' => u'++v end.
+Proof.
+simpl.
+induction u as [ | [ | ] u IH].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition Cond : Cobham :=\n  Rec (Proj 3 0) (Proj 5 4) (Proj 5 3) (\n    Comp 4 Smash [\n      Comp 4 (Succ true) [Proj 4 1];\n      Comp 4 Smash [\n        Comp 4 (Succ true) [Proj 4 2];\n        Comp 4 (Succ true) [Proj 4 3]\n      ]\n    ]\n  ).
+-----
+Lemma arity_Cond : arity Cond = ok_arity 4.
+-----
+Lemma arity_Cond : arity Cond = ok_arity 4.
+
+*****
+
+*****
+eq (arity Cond) (ok_arity (S (S (S (S O)))))
++++++
+Proof.
+-----
+Lemma arity_Cond : arity Cond = ok_arity 4.
+Proof.
+
+*****
+
+*****
+eq (arity Cond) (ok_arity (S (S (S (S O)))))
++++++
+trivial.
+-----
+Lemma arity_Cond : arity Cond = ok_arity 4.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+
+*****
+
+*****
+rec_bounded' Cond
++++++
+Proof.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+
+*****
+
+*****
+rec_bounded' Cond
++++++
+simpl.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+
+*****
+
+*****
+and (and True (and (and True (and True True)) (and (and True (and (and True (and True True)) (and (and True (and True True)) True))) True))) (and True (and True (and True (forall (l : list (list bool)) (_ : eq (length l) (S (S (S (S O))))), le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (length (smash' (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))) (smash_bs (nth (S O) l nil) (cons false (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))))))))))))
++++++
+repeat (split; auto).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+
+*****
+
+*****
+forall (l : list (list bool)) (_ : eq (length l) (S (S (S (S O))))), le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (length (smash' (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))) (smash_bs (nth (S O) l nil) (cons false (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))))))))
++++++
+intros.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (length (smash' (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))) (smash_bs (nth (S O) l nil) (cons false (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))))))))
++++++
+repeat (rewrite length_smash'; simpl).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (length (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil))))) (length (smash_bs (nth (S O) l nil) (cons false (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil)))))))))
++++++
+repeat (rewrite length_smash; simpl).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (length (smash' (nth (S (S (S O))) l nil) (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil))))))))))
++++++
+repeat (rewrite length_smash'; simpl).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (length (smash_bs (nth (S (S O)) l nil) (cons true (nth (S (S (S O))) l nil))))))))))
++++++
+repeat (rewrite length_smash; simpl).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (hd nil l) (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+destruct (hd nil l).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) nil (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth O (tl l) nil)) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+repeat rewrite nth_S_tl.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+rewrite plus_n_Sm.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+rewrite plus_comm.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (Nat.add (S (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))) (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))
++++++
+apply le_plus_trans.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (S (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil))))))))))
++++++
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (S (Init.Nat.mul (S (length (nth (S O) l nil))) (S O)))
++++++
+omega.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S (length (nth (S O) l nil))) (S O))) (S (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil))))))))))
++++++
+apply le_n_S.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+apply le_n_S.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.mul (S (length (nth (S O) l nil))) (S O)) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))
++++++
+apply le_n_S.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+apply le_n_S.
+apply le_n_S.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le ((fix mul (n m : nat) {struct n} : nat := match n with | O => O | S p => Init.Nat.add m (mul p m) end) (length (nth (S O) l nil)) (S O)) (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil))))))))
++++++
+apply mult_le_compat.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+apply le_n_S.
+apply le_n_S.
+apply mult_le_compat.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S O) l nil)) (length (nth (S O) l nil))
++++++
+trivial.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+apply le_n_S.
+apply le_n_S.
+apply mult_le_compat.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S O) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))
++++++
+apply le_n_S.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+rewrite plus_n_Sm.
+rewrite plus_comm.
+apply le_plus_trans.
+apply le_trans with ( S (S (length (nth 1 l nil)) * 1)).
+apply le_n_S.
+apply le_n_S.
+apply mult_le_compat.
+apply le_n_S.
+
+*****
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le O (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil))))))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (sem_Rec (fun vl : list (list bool) => nth O vl nil) (fun vl : list (list bool) => nth (S (S (S (S O)))) vl nil) (fun vl : list (list bool) => nth (S (S (S O))) vl nil) (cons b l0) (tl l))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+simpl.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (if b then nth (S O) (tl l) nil else nth (S (S O)) (tl l) nil)) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+repeat rewrite nth_S_tl.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil)) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil)) (Init.Nat.mul (S (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil))) (S O))
++++++
+rewrite mult_1_r.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+rewrite mult_1_r.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil)) (S (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.mul (S (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil))) (S O)) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.mul (S (length (if b then nth (S (S O)) l nil else nth (S (S (S O))) l nil))) (S O)) (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil)))))
++++++
+case b.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S O)) (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil)))))
++++++
+rewrite mult_1_r.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (length (nth (S (S O)) l nil))) (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil)))))
++++++
+apply le_n_S.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S (S O)) l nil)) (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))
++++++
+rewrite <- mult_1_r at 1.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_r at 1.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Nat.mul (length (nth (S (S O)) l nil)) (S O)) (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))
++++++
+apply mult_le_compat.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_r at 1.
+apply mult_le_compat.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S (S O)) l nil)) (S (length (nth (S (S O)) l nil)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_r at 1.
+apply mult_le_compat.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S O) (S (length (nth (S (S (S O))) l nil)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.mul (S (length (nth (S (S (S O))) l nil))) (S O)) (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil)))))
++++++
+rewrite mult_1_r.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (length (nth (S (S (S O))) l nil))) (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil)))))
++++++
+apply le_n_S.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S (S (S O))) l nil)) (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))
++++++
+rewrite <- mult_1_l at 1.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_l at 1.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Nat.mul (S O) (length (nth (S (S (S O))) l nil))) (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))
++++++
+apply mult_le_compat.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_l at 1.
+apply mult_le_compat.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S O) (S (length (nth (S (S O)) l nil)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+case b.
+rewrite mult_1_r.
+apply le_n_S.
+rewrite <- mult_1_l at 1.
+apply mult_le_compat.
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (length (nth (S (S (S O))) l nil)) (S (length (nth (S (S (S O))) l nil)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+
+*****
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul (length (nth (S O) l nil)) (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+set (R1 := length (nth 1 l nil)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+
+*****
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S (length (nth (S (S O)) l nil))) (S (length (nth (S (S (S O))) l nil))))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul R1 (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul (length (nth (S (S O)) l nil)) (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+set (R2 := length (nth 2 l nil)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+
+*****
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S R2) (S (length (nth (S (S (S O))) l nil))))) (S (Init.Nat.add (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul R2 (S (length (nth (S (S (S O))) l nil)))))) (S (Init.Nat.mul R1 (S (Init.Nat.add (length (nth (S (S (S O))) l nil)) (S (Init.Nat.mul R2 (S (length (nth (S (S (S O))) l nil)))))))))))
++++++
+set (R3 := length (nth 3 l nil)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+set (R3 := length (nth 3 l nil)).
+
+*****
+R3 : nat
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S R2) (S R3))) (S (Init.Nat.add (Init.Nat.add R3 (S (Init.Nat.mul R2 (S R3)))) (S (Init.Nat.mul R1 (S (Init.Nat.add R3 (S (Init.Nat.mul R2 (S R3)))))))))
++++++
+set (R4 := length (nth 4 l nil)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+set (R3 := length (nth 3 l nil)).
+set (R4 := length (nth 4 l nil)).
+
+*****
+R4 : nat
+R3 : nat
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (S (Init.Nat.mul (S R2) (S R3))) (S (Init.Nat.add (Init.Nat.add R3 (S (Init.Nat.mul R2 (S R3)))) (S (Init.Nat.mul R1 (S (Init.Nat.add R3 (S (Init.Nat.mul R2 (S R3)))))))))
++++++
+ring_simplify.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+set (R3 := length (nth 3 l nil)).
+set (R4 := length (nth 4 l nil)).
+ring_simplify.
+
+*****
+R4 : nat
+R3 : nat
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul R2 R3) R2) R3) (S (S O))) (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul (Init.Nat.mul R2 R3) R1) (Init.Nat.mul R2 R3)) (Init.Nat.mul R2 R1)) R2) (Init.Nat.mul R3 R1)) R3) (Init.Nat.mul (S (S O)) R1)) (S (S (S O))))
++++++
+cutrewrite (R2 * R3 * R1 + R2 * R3 + R2 * R1 + R2 + R3 * R1 + R3 + 2 * R1 + 3 = (R2 * R3 + R2 + R3 + 2) + (R2 * R3 * R1 + R2 * R1 + R3 * R1 + 2 * R1 + 1)).
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+set (R3 := length (nth 3 l nil)).
+set (R4 := length (nth 4 l nil)).
+ring_simplify.
+cutrewrite (R2 * R3 * R1 + R2 * R3 + R2 * R1 + R2 + R3 * R1 + R3 + 2 * R1 + 3 = (R2 * R3 + R2 + R3 + 2) + (R2 * R3 * R1 + R2 * R1 + R3 * R1 + 2 * R1 + 1)).
+
+*****
+R4 : nat
+R3 : nat
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+le (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul R2 R3) R2) R3) (S (S O))) (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul R2 R3) R2) R3) (S (S O))) (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul (Init.Nat.mul R2 R3) R1) (Init.Nat.mul R2 R1)) (Init.Nat.mul R3 R1)) (Init.Nat.mul (S (S O)) R1)) (S O)))
++++++
+auto with arith.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+simpl.
+repeat rewrite nth_S_tl.
+apply le_trans with ( S (length (if b then nth 2 l nil else nth 3 l nil)) * 1).
+apply le_trans with (S (S (length (nth 2 l nil)) * S (length (nth 3 l nil)))).
+set (R1 := length (nth 1 l nil)).
+set (R2 := length (nth 2 l nil)).
+set (R3 := length (nth 3 l nil)).
+set (R4 := length (nth 4 l nil)).
+ring_simplify.
+cutrewrite (R2 * R3 * R1 + R2 * R3 + R2 * R1 + R2 + R3 * R1 + R3 + 2 * R1 + 3 = (R2 * R3 + R2 + R3 + 2) + (R2 * R3 * R1 + R2 * R1 + R3 * R1 + 2 * R1 + 1)).
+
+*****
+R4 : nat
+R3 : nat
+R2 : nat
+R1 : nat
+l0 : list bool
+b : bool
+H : eq (length l) (S (S (S (S O))))
+l : list (list bool)
+*****
+eq (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul (Init.Nat.mul R2 R3) R1) (Init.Nat.mul R2 R3)) (Init.Nat.mul R2 R1)) R2) (Init.Nat.mul R3 R1)) R3) (Init.Nat.mul (S (S O)) R1)) (S (S (S O)))) (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul R2 R3) R2) R3) (S (S O))) (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.add (Init.Nat.mul (Init.Nat.mul R2 R3) R1) (Init.Nat.mul R2 R1)) (Init.Nat.mul R3 R1)) (Init.Nat.mul (S (S O)) R1)) (S O)))
++++++
+ring.
+-----
+Lemma rec_bounded_Cond : rec_bounded' Cond.
+Proof.
+simpl.
+repeat (split; auto).
+intros.
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+repeat (rewrite length_smash'; simpl).
+repeat (rewrite length_smash; simpl).
+destruct (hd nil l).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Cond_correct : forall l,\n  Sem Cond l =\n  match hd nil l with\n  | nil => hd nil (tl l)\n  | true::_ => hd nil (tl (tl l))\n  | false::_ => hd nil (tl (tl (tl l)))\n  end.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+
+*****
+
+*****
+forall l : list (list bool), eq (Sem Cond l) match hd nil l with | nil => hd nil (tl l) | cons true _ => hd nil (tl (tl l)) | cons false _ => hd nil (tl (tl (tl l))) end
++++++
+Proof.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+
+*****
+
+*****
+forall l : list (list bool), eq (Sem Cond l) match hd nil l with | nil => hd nil (tl l) | cons true _ => hd nil (tl (tl l)) | cons false _ => hd nil (tl (tl (tl l))) end
++++++
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+
+*****
+eq (Sem Cond nil) match hd nil nil with | nil => hd nil (tl nil) | cons true _ => hd nil (tl (tl nil)) | cons false _ => hd nil (tl (tl (tl nil))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+
+*****
+eq (Sem Cond (cons nil nil)) match hd nil (cons nil nil) with | nil => hd nil (tl (cons nil nil)) | cons true _ => hd nil (tl (tl (cons nil nil))) | cons false _ => hd nil (tl (tl (tl (cons nil nil)))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v2 : list bool
+*****
+eq (Sem Cond (cons nil (cons v2 nil))) match hd nil (cons nil (cons v2 nil)) with | nil => hd nil (tl (cons nil (cons v2 nil))) | cons true _ => hd nil (tl (tl (cons nil (cons v2 nil)))) | cons false _ => hd nil (tl (tl (tl (cons nil (cons v2 nil))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v2,v3 : list bool
+*****
+eq (Sem Cond (cons nil (cons v2 (cons v3 nil)))) match hd nil (cons nil (cons v2 (cons v3 nil))) with | nil => hd nil (tl (cons nil (cons v2 (cons v3 nil)))) | cons true _ => hd nil (tl (tl (cons nil (cons v2 (cons v3 nil))))) | cons false _ => hd nil (tl (tl (tl (cons nil (cons v2 (cons v3 nil)))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+l : list (list bool)
+v2,v3,v4 : list bool
+*****
+eq (Sem Cond (cons nil (cons v2 (cons v3 (cons v4 l))))) match hd nil (cons nil (cons v2 (cons v3 (cons v4 l)))) with | nil => hd nil (tl (cons nil (cons v2 (cons v3 (cons v4 l))))) | cons true _ => hd nil (tl (tl (cons nil (cons v2 (cons v3 (cons v4 l)))))) | cons false _ => hd nil (tl (tl (tl (cons nil (cons v2 (cons v3 (cons v4 l))))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1 : list bool
+*****
+eq (Sem Cond (cons (cons true v1) nil)) match hd nil (cons (cons true v1) nil) with | nil => hd nil (tl (cons (cons true v1) nil)) | cons true _ => hd nil (tl (tl (cons (cons true v1) nil))) | cons false _ => hd nil (tl (tl (tl (cons (cons true v1) nil)))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1,v2 : list bool
+*****
+eq (Sem Cond (cons (cons true v1) (cons v2 nil))) match hd nil (cons (cons true v1) (cons v2 nil)) with | nil => hd nil (tl (cons (cons true v1) (cons v2 nil))) | cons true _ => hd nil (tl (tl (cons (cons true v1) (cons v2 nil)))) | cons false _ => hd nil (tl (tl (tl (cons (cons true v1) (cons v2 nil))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1,v2,v3 : list bool
+*****
+eq (Sem Cond (cons (cons true v1) (cons v2 (cons v3 nil)))) match hd nil (cons (cons true v1) (cons v2 (cons v3 nil))) with | nil => hd nil (tl (cons (cons true v1) (cons v2 (cons v3 nil)))) | cons true _ => hd nil (tl (tl (cons (cons true v1) (cons v2 (cons v3 nil))))) | cons false _ => hd nil (tl (tl (tl (cons (cons true v1) (cons v2 (cons v3 nil)))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+l : list (list bool)
+v1,v2,v3,v4 : list bool
+*****
+eq (Sem Cond (cons (cons true v1) (cons v2 (cons v3 (cons v4 l))))) match hd nil (cons (cons true v1) (cons v2 (cons v3 (cons v4 l)))) with | nil => hd nil (tl (cons (cons true v1) (cons v2 (cons v3 (cons v4 l))))) | cons true _ => hd nil (tl (tl (cons (cons true v1) (cons v2 (cons v3 (cons v4 l)))))) | cons false _ => hd nil (tl (tl (tl (cons (cons true v1) (cons v2 (cons v3 (cons v4 l))))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1 : list bool
+*****
+eq (Sem Cond (cons (cons false v1) nil)) match hd nil (cons (cons false v1) nil) with | nil => hd nil (tl (cons (cons false v1) nil)) | cons true _ => hd nil (tl (tl (cons (cons false v1) nil))) | cons false _ => hd nil (tl (tl (tl (cons (cons false v1) nil)))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1,v2 : list bool
+*****
+eq (Sem Cond (cons (cons false v1) (cons v2 nil))) match hd nil (cons (cons false v1) (cons v2 nil)) with | nil => hd nil (tl (cons (cons false v1) (cons v2 nil))) | cons true _ => hd nil (tl (tl (cons (cons false v1) (cons v2 nil)))) | cons false _ => hd nil (tl (tl (tl (cons (cons false v1) (cons v2 nil))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+v1,v2,v3 : list bool
+*****
+eq (Sem Cond (cons (cons false v1) (cons v2 (cons v3 nil)))) match hd nil (cons (cons false v1) (cons v2 (cons v3 nil))) with | nil => hd nil (tl (cons (cons false v1) (cons v2 (cons v3 nil)))) | cons true _ => hd nil (tl (tl (cons (cons false v1) (cons v2 (cons v3 nil))))) | cons false _ => hd nil (tl (tl (tl (cons (cons false v1) (cons v2 (cons v3 nil)))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+l : list (list bool)
+v1,v2,v3,v4 : list bool
+*****
+eq (Sem Cond (cons (cons false v1) (cons v2 (cons v3 (cons v4 l))))) match hd nil (cons (cons false v1) (cons v2 (cons v3 (cons v4 l)))) with | nil => hd nil (tl (cons (cons false v1) (cons v2 (cons v3 (cons v4 l))))) | cons true _ => hd nil (tl (tl (cons (cons false v1) (cons v2 (cons v3 (cons v4 l)))))) | cons false _ => hd nil (tl (tl (tl (cons (cons false v1) (cons v2 (cons v3 (cons v4 l))))))) end
++++++
+trivial.
+-----
+Lemma Cond_correct : forall l, Sem Cond l = match hd nil l with | nil => hd nil (tl l) | true::_ => hd nil (tl (tl l)) | false::_ => hd nil (tl (tl (tl l))) end.
+Proof.
+destruct l as [ | [ | [ | ] v1] [ | v2 [ | v3 [ | v4 l] ] ] ].
+
+*****
+
+*****
+
++++++
+Qed.
+-----

@@ -1,0 +1,70 @@
+Require Import Coq.Lists.List.
+-----
+Require Import Coq.NArith.NArith.
+-----
+Require Import Coq.Strings.String.
+-----
+Require Import ListString.All.
+-----
+Require Import Computation.
+-----
+Require Import Events.
+-----
+Require Import Extraction.
+-----
+Require Import StdLib.
+-----
+Import ListNotations.
+-----
+Import C.Notations.
+-----
+Local Open Scope string.
+-----
+Module DoNothing.
+-----
+Definition program (argv : list LString.t) : C.t [] unit :=\n    C.Exit.
+-----
+Definition test1 :\n    Run.run_on_inputs (program []) Memory.Nil [] = (true, []) :=\n    eq_refl.
+-----
+End DoNothing.
+-----
+Module HelloWorld.
+-----
+Definition program (argv : list LString.t) : C.t [] unit :=\n    Log.write (LString.s "Hello") (fun _ =>\n    Log.write (LString.s "world!") (fun _ =>\n    C.Exit)).
+-----
+Definition test1 : Run.run_on_inputs (program []) Memory.Nil [\n    Input.New Command.Log 1 true;\n    Input.New Command.Log 2 true ] =\n    (true, [\n      Output.New Command.Log 2 (LString.s "world!");\n      Output.New Command.Log 1 (LString.s "Hello") ]) :=\n    eq_refl.
+-----
+Definition test2 : Run.run_on_inputs (program []) Memory.Nil [\n    Input.New Command.Log 2 true;\n    Input.New Command.Log 1 true ] =\n    (false, [\n      Output.New Command.Log 2 (LString.s "world!");\n      Output.New Command.Log 1 (LString.s "Hello") ]) :=\n    eq_refl.
+-----
+End HelloWorld.
+-----
+Module ReadFile.
+-----
+Definition program (argv : list LString.t) : C.t [] unit :=\n    match argv with\n    | [_; file_name] =>\n      File.read file_name (fun content =>\n      let message := match content with\n        | None => (LString.s "Error: cannot read the file.")\n        | Some content => content\n        end in\n      Log.write message (fun _ => C.Exit))\n    | _ =>\n      Log.write (LString.s "One parameter (the file to read) expected.") (fun _ =>\n      C.Exit)\n    end.
+-----
+End ReadFile.
+-----
+Module EchoServer.
+-----
+Definition port : N := 5 % N.
+-----
+Definition program (argv : list LString.t) : C.t [] unit :=\n    ServerSocket.bind port (fun client_id =>\n      match client_id with\n      | None =>\n        do! Log.write (LString.s "Server socket failed.") (fun _ => C.Ret tt) in\n        C.Exit\n      | Some client_id =>\n        ClientSocket.read client_id tt (fun _ content =>\n        match content with\n        | None => C.Ret None\n        | Some content =>\n          do! ClientSocket.write client_id content (fun _ =>\n            Log.write content (fun _ => C.Ret tt)) in\n          C.Ret None\n        end)\n      end).
+-----
+End EchoServer.
+-----
+Definition do_nothing := Extraction.run Memory.Nil DoNothing.program.
+-----
+Extraction "extraction/doNothing" do_nothing.
+-----
+Definition hello_world := Extraction.run Memory.Nil HelloWorld.program.
+-----
+Extraction "extraction/helloWorld" hello_world.
+-----
+Definition read_file := Extraction.run Memory.Nil ReadFile.program.
+-----
+Extraction "extraction/readFile" read_file.
+-----
+Definition echo_server := Extraction.run Memory.Nil EchoServer.program.
+-----
+Extraction "extraction/echoServer" echo_server.
+-----

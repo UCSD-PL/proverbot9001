@@ -1,0 +1,211 @@
+From Coq Require Import BinPos.
+-----
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Structures.Proper.
+-----
+Global Instance type_N : type N :=\n{ equal := @eq N \n; proper := fun _ => True\n}.
+-----
+Global Instance typeOk_N : typeOk type_N.
+-----
+Global Instance typeOk_N : typeOk type_N.
+
+*****
+
+*****
+typeOk type_N
++++++
+Proof.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+
+*****
+
+*****
+typeOk type_N
++++++
+constructor.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+
+*****
+
+*****
+forall (x y : N) (_ : equal x y), and (proper x) (proper y)
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (x y : N) (_ : eq x y), and True True
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+
+*****
+
+*****
+PReflexive proper equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (x : N) (_ : True), eq x x
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+
+*****
+
+*****
+RelationClasses.Symmetric equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (x y : N) (_ : eq x y), eq y x
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+
+*****
+
+*****
+RelationClasses.Transitive equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (x y z : N) (_ : eq x y) (_ : eq y z), eq x z
++++++
+intros.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+intros.
+
+*****
+H0 : eq y z
+H : eq x y
+x,y,z : N
+*****
+eq x z
++++++
+etransitivity.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+intros.
+etransitivity.
+
+*****
+H0 : eq y z
+H : eq x y
+x,y,z : N
+*****
+eq x ?y
++++++
+eauto.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+compute.
+intros.
+etransitivity.
+
+*****
+H0 : eq y z
+H : eq x y
+x,y,z : N
+*****
+eq y z
++++++
+eauto.
+-----
+Global Instance typeOk_N : typeOk type_N.
+Proof.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance N_proper (n : N) : proper n.
+-----
+Global Instance N_proper (n : N) : proper n.
+
+*****
+n : N
+*****
+proper n
++++++
+Proof.
+-----
+Global Instance N_proper (n : N) : proper n.
+Proof.
+
+*****
+n : N
+*****
+proper n
++++++
+exact I.
+-----
+Global Instance N_proper (n : N) : proper n.
+Proof.
+exact I.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

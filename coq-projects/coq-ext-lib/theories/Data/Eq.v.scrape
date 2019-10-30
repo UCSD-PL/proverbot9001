@@ -1,0 +1,428 @@
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Create HintDb eq_rw discriminated.
+-----
+Lemma eq_sym_eq\n: forall T (a b : T) (pf : a = b) (F : T -> Type) val,\n    match eq_sym pf in _ = x return F x with\n      | eq_refl => val\n    end =\n    match pf in _ = x return F x -> F a with\n      | eq_refl => fun x => x\n    end val.
+-----
+Lemma eq_sym_eq : forall T (a b : T) (pf : a = b) (F : T -> Type) val, match eq_sym pf in _ = x return F x with | eq_refl => val end = match pf in _ = x return F x -> F a with | eq_refl => fun x => x end val.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (val : F b), eq match eq_sym pf in (eq _ x) return (F x) with | eq_refl => val end (match pf in (eq _ x) return (forall _ : F x, F a) with | eq_refl => fun x : F a => x end val)
++++++
+Proof.
+-----
+Lemma eq_sym_eq : forall T (a b : T) (pf : a = b) (F : T -> Type) val, match eq_sym pf in _ = x return F x with | eq_refl => val end = match pf in _ = x return F x -> F a with | eq_refl => fun x => x end val.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (val : F b), eq match eq_sym pf in (eq _ x) return (F x) with | eq_refl => val end (match pf in (eq _ x) return (forall _ : F x, F a) with | eq_refl => fun x : F a => x end val)
++++++
+destruct pf.
+-----
+Lemma eq_sym_eq : forall T (a b : T) (pf : a = b) (F : T -> Type) val, match eq_sym pf in _ = x return F x with | eq_refl => val end = match pf in _ = x return F x -> F a with | eq_refl => fun x => x end val.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (F : forall _ : T, Type) (val : F a), eq match eq_sym eq_refl in (eq _ x) return (F x) with | eq_refl => val end val
++++++
+reflexivity.
+-----
+Lemma eq_sym_eq : forall T (a b : T) (pf : a = b) (F : T -> Type) val, match eq_sym pf in _ = x return F x with | eq_refl => val end = match pf in _ = x return F x -> F a with | eq_refl => fun x => x end val.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Lemma match_eq_sym_eq\n: forall T (a b : T) (pf : a = b) F X,\n    match pf in _ = t return F t with\n      | eq_refl => match eq_sym pf in _ = t return F t with\n                     | eq_refl => X\n                   end\n    end = X.
+-----
+Lemma match_eq_sym_eq : forall T (a b : T) (pf : a = b) F X, match pf in _ = t return F t with | eq_refl => match eq_sym pf in _ = t return F t with | eq_refl => X end end = X.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (X : F b), eq match pf in (eq _ t) return (F t) with | eq_refl => match eq_sym pf in (eq _ t) return (F t) with | eq_refl => X end end X
++++++
+Proof.
+-----
+Lemma match_eq_sym_eq : forall T (a b : T) (pf : a = b) F X, match pf in _ = t return F t with | eq_refl => match eq_sym pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (X : F b), eq match pf in (eq _ t) return (F t) with | eq_refl => match eq_sym pf in (eq _ t) return (F t) with | eq_refl => X end end X
++++++
+destruct pf.
+-----
+Lemma match_eq_sym_eq : forall T (a b : T) (pf : a = b) F X, match pf in _ = t return F t with | eq_refl => match eq_sym pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (F : forall _ : T, Type) (X : F a), eq match eq_sym eq_refl in (eq _ t) return (F t) with | eq_refl => X end X
++++++
+reflexivity.
+-----
+Lemma match_eq_sym_eq : forall T (a b : T) (pf : a = b) F X, match pf in _ = t return F t with | eq_refl => match eq_sym pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Hint Rewrite match_eq_sym_eq : eq_rw.
+-----
+Lemma match_eq_sym_eq'\n: forall T (a b : T) (pf : a = b) F X,\n    match eq_sym pf in _ = t return F t with\n      | eq_refl => match pf in _ = t return F t with\n                     | eq_refl => X\n                   end\n    end = X.
+-----
+Lemma match_eq_sym_eq' : forall T (a b : T) (pf : a = b) F X, match eq_sym pf in _ = t return F t with | eq_refl => match pf in _ = t return F t with | eq_refl => X end end = X.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (X : F a), eq match eq_sym pf in (eq _ t) return (F t) with | eq_refl => match pf in (eq _ t) return (F t) with | eq_refl => X end end X
++++++
+Proof.
+-----
+Lemma match_eq_sym_eq' : forall T (a b : T) (pf : a = b) F X, match eq_sym pf in _ = t return F t with | eq_refl => match pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (X : F a), eq match eq_sym pf in (eq _ t) return (F t) with | eq_refl => match pf in (eq _ t) return (F t) with | eq_refl => X end end X
++++++
+destruct pf.
+-----
+Lemma match_eq_sym_eq' : forall T (a b : T) (pf : a = b) F X, match eq_sym pf in _ = t return F t with | eq_refl => match pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (F : forall _ : T, Type) (X : F a), eq match eq_sym eq_refl in (eq _ t) return (F t) with | eq_refl => X end X
++++++
+reflexivity.
+-----
+Lemma match_eq_sym_eq' : forall T (a b : T) (pf : a = b) F X, match eq_sym pf in _ = t return F t with | eq_refl => match pf in _ = t return F t with | eq_refl => X end end = X.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Hint Rewrite match_eq_sym_eq' : eq_rw.
+-----
+Lemma match_eq_match_eq\n: forall T F (a b : T) (pf : a = b) X Y,\n    X = Y ->\n    match pf in _ = T return F T with\n      | eq_refl => X\n    end =\n    match pf in _ = T return F T with\n      | eq_refl => Y\n    end.
+-----
+Lemma match_eq_match_eq : forall T F (a b : T) (pf : a = b) X Y, X = Y -> match pf in _ = T return F T with | eq_refl => X end = match pf in _ = T return F T with | eq_refl => Y end.
+
+*****
+
+*****
+forall (T : Type) (F : forall _ : T, Type) (a b : T) (pf : eq a b) (X Y : F a) (_ : eq X Y), eq match pf in (eq _ T0) return (F T0) with | eq_refl => X end match pf in (eq _ T0) return (F T0) with | eq_refl => Y end
++++++
+Proof.
+-----
+Lemma match_eq_match_eq : forall T F (a b : T) (pf : a = b) X Y, X = Y -> match pf in _ = T return F T with | eq_refl => X end = match pf in _ = T return F T with | eq_refl => Y end.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (F : forall _ : T, Type) (a b : T) (pf : eq a b) (X Y : F a) (_ : eq X Y), eq match pf in (eq _ T0) return (F T0) with | eq_refl => X end match pf in (eq _ T0) return (F T0) with | eq_refl => Y end
++++++
+intros.
+-----
+Lemma match_eq_match_eq : forall T F (a b : T) (pf : a = b) X Y, X = Y -> match pf in _ = T return F T with | eq_refl => X end = match pf in _ = T return F T with | eq_refl => Y end.
+Proof.
+intros.
+
+*****
+H : eq X Y
+X,Y : F a
+pf : eq a b
+a,b : T
+F : forall _ : T, Type
+T : Type
+*****
+eq match pf in (eq _ T0) return (F T0) with | eq_refl => X end match pf in (eq _ T0) return (F T0) with | eq_refl => Y end
++++++
+subst.
+-----
+Lemma match_eq_match_eq : forall T F (a b : T) (pf : a = b) X Y, X = Y -> match pf in _ = T return F T with | eq_refl => X end = match pf in _ = T return F T with | eq_refl => Y end.
+Proof.
+intros.
+subst.
+
+*****
+Y : F b
+b : T
+F : forall _ : T, Type
+T : Type
+*****
+eq Y Y
++++++
+auto.
+-----
+Lemma match_eq_match_eq : forall T F (a b : T) (pf : a = b) X Y, X = Y -> match pf in _ = T return F T with | eq_refl => X end = match pf in _ = T return F T with | eq_refl => Y end.
+Proof.
+intros.
+subst.
+auto.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Lemma eq_sym_eq_trans\n: forall T (a b c : T) (pf : a = b) (pf' : b = c),\n    eq_sym (eq_trans pf pf') =\n    eq_trans (eq_sym pf') (eq_sym pf).
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+
+*****
+
+*****
+forall (T : Type) (a b c : T) (pf : eq a b) (pf' : eq b c), eq (eq_sym (eq_trans pf pf')) (eq_trans (eq_sym pf') (eq_sym pf))
++++++
+Proof.
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b c : T) (pf : eq a b) (pf' : eq b c), eq (eq_sym (eq_trans pf pf')) (eq_trans (eq_sym pf') (eq_sym pf))
++++++
+clear.
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+Proof.
+clear.
+
+*****
+
+*****
+forall (T : Type) (a b c : T) (pf : eq a b) (pf' : eq b c), eq (eq_sym (eq_trans pf pf')) (eq_trans (eq_sym pf') (eq_sym pf))
++++++
+destruct pf.
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+Proof.
+clear.
+destruct pf.
+
+*****
+a,c : T
+T : Type
+*****
+forall pf' : eq a c, eq (eq_sym (eq_trans eq_refl pf')) (eq_trans (eq_sym pf') (eq_sym eq_refl))
++++++
+destruct pf'.
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+Proof.
+clear.
+destruct pf.
+destruct pf'.
+
+*****
+a : T
+T : Type
+*****
+eq (eq_sym (eq_trans eq_refl eq_refl)) (eq_trans (eq_sym eq_refl) (eq_sym eq_refl))
++++++
+reflexivity.
+-----
+Lemma eq_sym_eq_trans : forall T (a b c : T) (pf : a = b) (pf' : b = c), eq_sym (eq_trans pf pf') = eq_trans (eq_sym pf') (eq_sym pf).
+Proof.
+clear.
+destruct pf.
+destruct pf'.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Lemma eq_Const_eq\n: forall T (a b : T) (pf : a = b) (R : Type) val,\n    match pf in _ = x return R with\n      | eq_refl => val\n    end = val.
+-----
+Lemma eq_Const_eq : forall T (a b : T) (pf : a = b) (R : Type) val, match pf in _ = x return R with | eq_refl => val end = val.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (R : Type) (val : R), eq match pf with | eq_refl => val end val
++++++
+Proof.
+-----
+Lemma eq_Const_eq : forall T (a b : T) (pf : a = b) (R : Type) val, match pf in _ = x return R with | eq_refl => val end = val.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (R : Type) (val : R), eq match pf with | eq_refl => val end val
++++++
+destruct pf.
+-----
+Lemma eq_Const_eq : forall T (a b : T) (pf : a = b) (R : Type) val, match pf in _ = x return R with | eq_refl => val end = val.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (R : Type) (val : R), eq val val
++++++
+reflexivity.
+-----
+Lemma eq_Const_eq : forall T (a b : T) (pf : a = b) (R : Type) val, match pf in _ = x return R with | eq_refl => val end = val.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Hint Rewrite eq_Const_eq : eq_rw.
+-----
+Lemma eq_Arr_eq\n: forall T (a b : T) (pf : a = b) (F G : T -> Type) val x,\n    match pf in _ = x return F x -> G x with\n      | eq_refl => val\n    end x =\n    match pf in _ = x return G x with\n      | eq_refl => val match eq_sym pf in _ = x return F x with\n                         | eq_refl => x\n                       end\n    end.
+-----
+Lemma eq_Arr_eq : forall T (a b : T) (pf : a = b) (F G : T -> Type) val x, match pf in _ = x return F x -> G x with | eq_refl => val end x = match pf in _ = x return G x with | eq_refl => val match eq_sym pf in _ = x return F x with | eq_refl => x end end.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F G : forall _ : T, Type) (val : forall _ : F a, G a) (x : F b), eq (match pf in (eq _ x0) return (forall _ : F x0, G x0) with | eq_refl => val end x) match pf in (eq _ x0) return (G x0) with | eq_refl => val match eq_sym pf in (eq _ x0) return (F x0) with | eq_refl => x end end
++++++
+Proof.
+-----
+Lemma eq_Arr_eq : forall T (a b : T) (pf : a = b) (F G : T -> Type) val x, match pf in _ = x return F x -> G x with | eq_refl => val end x = match pf in _ = x return G x with | eq_refl => val match eq_sym pf in _ = x return F x with | eq_refl => x end end.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F G : forall _ : T, Type) (val : forall _ : F a, G a) (x : F b), eq (match pf in (eq _ x0) return (forall _ : F x0, G x0) with | eq_refl => val end x) match pf in (eq _ x0) return (G x0) with | eq_refl => val match eq_sym pf in (eq _ x0) return (F x0) with | eq_refl => x end end
++++++
+destruct pf.
+-----
+Lemma eq_Arr_eq : forall T (a b : T) (pf : a = b) (F G : T -> Type) val x, match pf in _ = x return F x -> G x with | eq_refl => val end x = match pf in _ = x return G x with | eq_refl => val match eq_sym pf in _ = x return F x with | eq_refl => x end end.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (F G : forall _ : T, Type) (val : forall _ : F a, G a) (x : F a), eq (val x) (val match eq_sym eq_refl in (eq _ x0) return (F x0) with | eq_refl => x end)
++++++
+reflexivity.
+-----
+Lemma eq_Arr_eq : forall T (a b : T) (pf : a = b) (F G : T -> Type) val x, match pf in _ = x return F x -> G x with | eq_refl => val end x = match pf in _ = x return G x with | eq_refl => val match eq_sym pf in _ = x return F x with | eq_refl => x end end.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Hint Rewrite eq_Arr_eq : eq_rw.
+-----
+Lemma eq_sym_eq_sym : forall (T : Type) (a b : T) (pf : a = b),\n                        eq_sym (eq_sym pf) = pf.
+-----
+Lemma eq_sym_eq_sym : forall (T : Type) (a b : T) (pf : a = b), eq_sym (eq_sym pf) = pf.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b), eq (eq_sym (eq_sym pf)) pf
++++++
+Proof.
+-----
+Lemma eq_sym_eq_sym : forall (T : Type) (a b : T) (pf : a = b), eq_sym (eq_sym pf) = pf.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b), eq (eq_sym (eq_sym pf)) pf
++++++
+destruct pf.
+-----
+Lemma eq_sym_eq_sym : forall (T : Type) (a b : T) (pf : a = b), eq_sym (eq_sym pf) = pf.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+eq (eq_sym (eq_sym eq_refl)) eq_refl
++++++
+reflexivity.
+-----
+Lemma eq_sym_eq_sym : forall (T : Type) (a b : T) (pf : a = b), eq_sym (eq_sym pf) = pf.
+Proof.
+destruct pf.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Hint Rewrite eq_sym_eq_sym : eq_rw.
+-----
+Ltac autorewrite_eq_rw :=\n  repeat progress (autorewrite with eq_rw;\n                   repeat match goal with\n                            | |- context [ match ?X in @eq _ _ _ return _ -> _ with\n                                             | eq_refl => _\n                                           end ] => rewrite (eq_Arr_eq X)\n                          end).
+-----
+Require Export ExtLib.Data.Eq.UIP_trans.
+-----

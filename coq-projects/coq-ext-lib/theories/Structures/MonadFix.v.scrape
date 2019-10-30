@@ -1,0 +1,30 @@
+Require Import ExtLib.Structures.Monad.
+-----
+Set Implicit Arguments.
+-----
+Class MonadFix (m : Type -> Type) : Type :=\n{ mfix : forall {T U}, ((T -> m U) -> T -> m U) -> T -> m U }.
+-----
+Section MonadFix.
+-----
+Fixpoint ftype (ls : list Type) (r : Type) : Type :=\n    match ls with\n      | nil => r\n      | cons l ls => l -> ftype ls r\n    end.
+-----
+Fixpoint tuple (ls : list Type) : Type :=\n    match ls with\n      | nil => unit\n      | cons l ls => l * tuple ls\n    end%type.
+-----
+Fixpoint wrap (ls : list Type) R {struct ls} : (tuple ls -> R) -> ftype ls R :=\n    match ls as ls return (tuple ls -> R) -> ftype ls R with\n      | nil => fun f => f tt\n      | cons l ls => fun f => fun x => wrap ls (fun g => f (x,g))\n    end.
+-----
+Fixpoint apply (ls : list Type) R {struct ls} : ftype ls R -> tuple ls -> R :=\n    match ls as ls return ftype ls R -> tuple ls -> R with\n      | nil => fun f _ => f\n      | cons l ls  => fun f t => @apply ls R (f (fst t)) (snd t)\n    end.
+-----
+Context {m : Type -> Type} {MF : MonadFix m}.
+-----
+Definition mfix_multi (ls : list Type) (R : Type)\n    (f : ftype ls (m R) -> ftype ls (m R))\n    : ftype ls (m R) :=\n    @wrap ls (m R) (@mfix _ MF (tuple ls) R\n      (fun packed => apply ls (m R) (f (wrap ls packed)))).
+-----
+Context {mMonad:Monad m}.
+-----
+Definition mfix2 A B C\n    (ff:(A -> B -> m C) -> (A -> B -> m C)) (a:A) (b:B) : m C :=\n    let ff' fabp (abp:A*B) :=\n      let (a,b) := abp in\n      let fab a b := fabp (a,b) in\n      ff fab a b\n    in\n    mfix ff' (a,b).
+-----
+Definition mfix3 A B C D\n    (ff:(A -> B -> C -> m D) -> (A -> B -> C -> m D))\n    (a:A) (b:B) (c:C) : m D :=\n    let ff' fabcp (abcp:A*B*C) :=\n      let (abp,c) := abcp in\n      let (a,b) := abp in\n      let fabc a b c := fabcp (a,b,c) in\n      ff fabc a b c\n    in\n    mfix ff' (a,b,c).
+-----
+End MonadFix.
+-----
+Arguments mfix {m MonadFix T U} _ _.
+-----

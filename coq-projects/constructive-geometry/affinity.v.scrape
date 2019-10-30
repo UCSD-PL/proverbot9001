@@ -1,0 +1,2620 @@
+Require Import basis.
+-----
+Require Import part1.
+-----
+Require Import part2.
+-----
+Require Import part3.
+-----
+Axiom\n  constructed_parallel :\n    forall (l : Line) (a : Point), {l' : Line | Par l' l /\ Incident a l'}.
+-----
+Definition par : Line -> Point -> Line.
+-----
+Definition par : Line -> Point -> Line.
+
+*****
+
+*****
+forall (_ : Line) (_ : Point), Line
++++++
+Proof.
+-----
+Definition par : Line -> Point -> Line.
+Proof.
+
+*****
+
+*****
+forall (_ : Line) (_ : Point), Line
++++++
+intros l a.
+-----
+Definition par : Line -> Point -> Line.
+Proof.
+intros l a.
+
+*****
+a : Point
+l : Line
+*****
+Line
++++++
+elim (constructed_parallel l a).
+-----
+Definition par : Line -> Point -> Line.
+Proof.
+intros l a.
+elim (constructed_parallel l a).
+
+*****
+a : Point
+l : Line
+*****
+forall (x : Line) (_ : and (Par x l) (Incident a x)), Line
++++++
+intros x H.
+-----
+Definition par : Line -> Point -> Line.
+Proof.
+intros l a.
+elim (constructed_parallel l a).
+intros x H.
+
+*****
+H : and (Par x l) (Incident a x)
+x : Line
+a : Point
+l : Line
+*****
+Line
++++++
+exact x.
+-----
+Definition par : Line -> Point -> Line.
+Proof.
+intros l a.
+elim (constructed_parallel l a).
+intros x H.
+exact x.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Axiom\n  constructive_uniqueness_for_parallels :\n    forall (l m : Line) (a : Point),\n    DiLn l m -> (Apart a l \/ Apart a m) \/ ConLn l m.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+
+*****
+
+*****
+forall (l : Line) (a : Point), Par (par l a) l
++++++
+Proof.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+
+*****
+
+*****
+forall (l : Line) (a : Point), Par (par l a) l
++++++
+intros l a.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+intros l a.
+
+*****
+a : Point
+l : Line
+*****
+Par (par l a) l
++++++
+unfold par at 1 in |- *.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+
+*****
+a : Point
+l : Line
+*****
+Par (sig_rec (fun _ : sig (fun l' : Line => and (Par l' l) (Incident a l')) => Line) (fun (x : Line) (_ : and (Par x l) (Incident a x)) => x) (constructed_parallel l a)) l
++++++
+elim (constructed_parallel l a).
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+
+*****
+a : Point
+l : Line
+*****
+forall (x : Line) (p : and (Par x l) (Incident a x)), Par (sig_rec (fun _ : sig (fun l' : Line => and (Par l' l) (Incident a l')) => Line) (fun (x0 : Line) (_ : and (Par x0 l) (Incident a x0)) => x0) (exist (fun l' : Line => and (Par l' l) (Incident a l')) x p)) l
++++++
+simpl in |- *.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+simpl in |- *.
+
+*****
+a : Point
+l : Line
+*****
+forall (x : Line) (_ : and (Par x l) (Incident a x)), Par x l
++++++
+tauto.
+-----
+Theorem Ax1_i : forall (l : Line) (a : Point), Par (par l a) l.
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+simpl in |- *.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+
+*****
+
+*****
+forall (l : Line) (a : Point), Incident a (par l a)
++++++
+Proof.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+
+*****
+
+*****
+forall (l : Line) (a : Point), Incident a (par l a)
++++++
+intros l a.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+intros l a.
+
+*****
+a : Point
+l : Line
+*****
+Incident a (par l a)
++++++
+unfold par at 1 in |- *.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+
+*****
+a : Point
+l : Line
+*****
+Incident a (sig_rec (fun _ : sig (fun l' : Line => and (Par l' l) (Incident a l')) => Line) (fun (x : Line) (_ : and (Par x l) (Incident a x)) => x) (constructed_parallel l a))
++++++
+elim (constructed_parallel l a).
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+
+*****
+a : Point
+l : Line
+*****
+forall (x : Line) (p : and (Par x l) (Incident a x)), Incident a (sig_rec (fun _ : sig (fun l' : Line => and (Par l' l) (Incident a l')) => Line) (fun (x0 : Line) (_ : and (Par x0 l) (Incident a x0)) => x0) (exist (fun l' : Line => and (Par l' l) (Incident a l')) x p))
++++++
+simpl in |- *.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+simpl in |- *.
+
+*****
+a : Point
+l : Line
+*****
+forall (x : Line) (_ : and (Par x l) (Incident a x)), Incident a x
++++++
+tauto.
+-----
+Theorem Ax1_ii : forall (l : Line) (a : Point), Incident a (par l a).
+Proof.
+intros l a.
+unfold par at 1 in |- *.
+elim (constructed_parallel l a).
+simpl in |- *.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve Ax1_i Ax1_ii.
+-----
+Theorem thm7_1 :\n forall (l m : Line) (a : Point), Incident a l /\ Par l m -> EqLn l (par m a).
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+
+*****
+
+*****
+forall (l m : Line) (a : Point) (_ : and (Incident a l) (Par l m)), EqLn l (par m a)
++++++
+Proof.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+
+*****
+
+*****
+forall (l m : Line) (a : Point) (_ : and (Incident a l) (Par l m)), EqLn l (par m a)
++++++
+intros l m a H'.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+
+*****
+H' : and (Incident a l) (Par l m)
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+elim H'.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+
+*****
+H' : and (Incident a l) (Par l m)
+a : Point
+l,m : Line
+*****
+forall (_ : Incident a l) (_ : Par l m), EqLn l (par m a)
++++++
+intros H'0 H'1.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+
+*****
+H'1 : Par l m
+H'0 : Incident a l
+H' : and (Incident a l) (Par l m)
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+try exact H'1.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+
+*****
+H'1 : Par l m
+H'0 : Incident a l
+H' : and (Incident a l) (Par l m)
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+clear H'.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+
+*****
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+generalize (Ax1_i m a).
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+
+*****
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : Par (par m a) m, EqLn l (par m a)
++++++
+intro H'2.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+
+*****
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+elim equiv_Par.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+
+*****
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall (_ : Reflexive Line Par) (_ : Symmetric Line Par) (_ : Transitive Line Par), EqLn l (par m a)
++++++
+intros H'3 H'4 H'5.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+
+*****
+H'5 : Transitive Line Par
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+red in H'5.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+
+*****
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+assert (H'8 := H'5 (par m a) m l).
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+
+*****
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+lapply H'8.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+
+*****
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : forall _ : Par m l, Par (par m a) l, EqLn l (par m a)
++++++
+intro H'9.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+
+*****
+H'9 : forall _ : Par m l, Par (par m a) l
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+lapply H'9.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+
+*****
+H'9 : forall _ : Par m l, Par (par m a) l
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : Par (par m a) l, EqLn l (par m a)
++++++
+intro H'10.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+
+*****
+H'10 : Par (par m a) l
+H'9 : forall _ : Par m l, Par (par m a) l
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+clear H'9 H'8.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+
+*****
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+
+*****
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+EqLn l (par m a)
++++++
+red in |- *.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+
+*****
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Negation Line DiLn l (par m a)
++++++
+red in |- *.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+
+*****
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+not (DiLn l (par m a))
++++++
+red in |- *.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+
+*****
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : DiLn l (par m a), False
++++++
+intro H'6.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+
+*****
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+
+*****
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a)), False
++++++
+intro H'11.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+
+*****
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+elim H'11.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+
+*****
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : or (Apart a l) (Apart a (par m a)), False
++++++
+intro H'.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+
+*****
+H' : or (Apart a l) (Apart a (par m a))
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+elim H'.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+
+*****
+H' : or (Apart a l) (Apart a (par m a))
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : Apart a l, False
++++++
+idtac.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+idtac.
+
+*****
+H' : or (Apart a l) (Apart a (par m a))
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : Apart a l, False
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+
+*****
+H' : or (Apart a l) (Apart a (par m a))
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : Apart a (par m a), False
++++++
+intro H'7.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+intro H'7.
+
+*****
+H'7 : Apart a (par m a)
+H' : or (Apart a l) (Apart a (par m a))
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+clear H' H'11.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+intro H'7.
+clear H' H'11.
+
+*****
+H'7 : Apart a (par m a)
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+intro H'7.
+clear H' H'11.
+auto.
+
+*****
+H'7 : Apart a (par m a)
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+False
++++++
+elim (Ax1_ii m a).
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+intro H'.
+elim H'.
+intro H'7.
+clear H' H'11.
+auto.
+elim (Ax1_ii m a).
+
+*****
+H'7 : Apart a (par m a)
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Apart a (par m a)
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+
+*****
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : ConLn l (par m a), False
++++++
+idtac.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+intro H'11.
+elim H'11.
+idtac.
+
+*****
+H'11 : or (or (Apart a l) (Apart a (par m a))) (ConLn l (par m a))
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+forall _ : ConLn l (par m a), False
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+intro H'10.
+clear H'9 H'8.
+auto.
+red in |- *.
+red in |- *.
+red in |- *.
+intro H'6.
+lapply (constructive_uniqueness_for_parallels l (par m a) a).
+
+*****
+H'6 : DiLn l (par m a)
+H'10 : Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+DiLn l (par m a)
++++++
+assumption.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+
+*****
+H'9 : forall _ : Par m l, Par (par m a) l
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Par m l
++++++
+clear H'9 H'8.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+intro H'9.
+lapply H'9.
+clear H'9 H'8.
+
+*****
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Par m l
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+
+*****
+H'8 : forall (_ : Par (par m a) m) (_ : Par m l), Par (par m a) l
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Par (par m a) m
++++++
+clear H'8.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+clear H'8.
+
+*****
+H'5 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'4 : Symmetric Line Par
+H'3 : Reflexive Line Par
+H'2 : Par (par m a) m
+H'1 : Par l m
+H'0 : Incident a l
+a : Point
+l,m : Line
+*****
+Par (par m a) m
++++++
+auto.
+-----
+Theorem thm7_1 : forall (l m : Line) (a : Point), Incident a l /\\ Par l m -> EqLn l (par m a).
+Proof.
+intros l m a H'.
+elim H'.
+intros H'0 H'1.
+try exact H'1.
+clear H'.
+generalize (Ax1_i m a).
+intro H'2.
+elim equiv_Par.
+intros H'3 H'4 H'5.
+red in H'5.
+assert (H'8 := H'5 (par m a) m l).
+lapply H'8.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve thm7_1.
+-----
+Theorem thm7_3 :\n forall (l m : Line) (a : Point),\n Incident a l -> Incident a m -> Par l m -> EqLn l m.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+
+*****
+
+*****
+forall (l m : Line) (a : Point) (_ : Incident a l) (_ : Incident a m) (_ : Par l m), EqLn l m
++++++
+Proof.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+
+*****
+
+*****
+forall (l m : Line) (a : Point) (_ : Incident a l) (_ : Incident a m) (_ : Par l m), EqLn l m
++++++
+elim equiv_EqLn.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+
+*****
+
+*****
+forall (_ : Reflexive Line EqLn) (_ : Symmetric Line EqLn) (_ : Transitive Line EqLn) (l m : Line) (a : Point) (_ : Incident a l) (_ : Incident a m) (_ : Par l m), EqLn l m
++++++
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : Transitive Line EqLn
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn l m
++++++
+unfold Transitive at 1 in H'1.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn l m
++++++
+apply H'1 with (y := par m a).
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn l (par m a)
++++++
+auto.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn (par m a) m
++++++
+auto.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+auto.
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn (par m a) m
++++++
+apply H'0.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+auto.
+apply H'0.
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+EqLn m (par m a)
++++++
+elim equiv_Par.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+auto.
+apply H'0.
+elim equiv_Par.
+
+*****
+H'4 : Par l m
+H'3 : Incident a m
+H'2 : Incident a l
+a : Point
+l,m : Line
+H'1 : forall (x y z : Line) (_ : EqLn x y) (_ : EqLn y z), EqLn x z
+H'0 : Symmetric Line EqLn
+H' : Reflexive Line EqLn
+*****
+forall (_ : Reflexive Line Par) (_ : Symmetric Line Par) (_ : Transitive Line Par), EqLn m (par m a)
++++++
+auto.
+-----
+Theorem thm7_3 : forall (l m : Line) (a : Point), Incident a l -> Incident a m -> Par l m -> EqLn l m.
+Proof.
+elim equiv_EqLn.
+intros H' H'0 H'1 l m a H'2 H'3 H'4.
+unfold Transitive at 1 in H'1.
+apply H'1 with (y := par m a).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm7_4 :\n forall (l m n : Line) (a : Point),\n Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+
+*****
+
+*****
+forall (l m n : Line) (a : Point) (_ : Apart a l) (_ : Incident a m) (_ : Incident a n) (_ : Par n l) (_ : Par m l), EqLn m n
++++++
+Proof.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+
+*****
+
+*****
+forall (l m n : Line) (a : Point) (_ : Apart a l) (_ : Incident a m) (_ : Incident a n) (_ : Par n l) (_ : Par m l), EqLn m n
++++++
+intros l m n a H' H'0 H'1 H'2 H'3.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+EqLn m n
++++++
+try assumption.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+EqLn m n
++++++
+apply thm7_3 with (a := a).
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Incident a m
++++++
+auto.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Incident a n
++++++
+auto.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par m n
++++++
+auto.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par m n
++++++
+elim equiv_Par.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+elim equiv_Par.
+
+*****
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+forall (_ : Reflexive Line Par) (_ : Symmetric Line Par) (_ : Transitive Line Par), Par m n
++++++
+intros H'4 H'5 H'6.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+elim equiv_Par.
+intros H'4 H'5 H'6.
+
+*****
+H'6 : Transitive Line Par
+H'5 : Symmetric Line Par
+H'4 : Reflexive Line Par
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par m n
++++++
+red in H'6.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+elim equiv_Par.
+intros H'4 H'5 H'6.
+red in H'6.
+
+*****
+H'6 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'5 : Symmetric Line Par
+H'4 : Reflexive Line Par
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par m n
++++++
+apply H'6 with (y := l).
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+elim equiv_Par.
+intros H'4 H'5 H'6.
+red in H'6.
+apply H'6 with (y := l).
+
+*****
+H'6 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'5 : Symmetric Line Par
+H'4 : Reflexive Line Par
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par m l
++++++
+auto.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+auto.
+elim equiv_Par.
+intros H'4 H'5 H'6.
+red in H'6.
+apply H'6 with (y := l).
+
+*****
+H'6 : forall (x y z : Line) (_ : Par x y) (_ : Par y z), Par x z
+H'5 : Symmetric Line Par
+H'4 : Reflexive Line Par
+H'3 : Par m l
+H'2 : Par n l
+H'1 : Incident a n
+H'0 : Incident a m
+H' : Apart a l
+a : Point
+l,m,n : Line
+*****
+Par l n
++++++
+auto.
+-----
+Theorem thm7_4 : forall (l m n : Line) (a : Point), Apart a l -> Incident a m -> Incident a n -> Par n l -> Par m l -> EqLn m n.
+Proof.
+intros l m n a H' H'0 H'1 H'2 H'3.
+try assumption.
+apply thm7_3 with (a := a).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem DiLn_qimp_con :\n forall l m : Line,\n DiLn l m -> ex (fun b : Point => Incident b l /\ Incident b m) -> ConLn l m.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+
+*****
+
+*****
+forall (l m : Line) (_ : DiLn l m) (_ : ex (fun b : Point => and (Incident b l) (Incident b m))), ConLn l m
++++++
+Proof.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+
+*****
+
+*****
+forall (l m : Line) (_ : DiLn l m) (_ : ex (fun b : Point => and (Incident b l) (Incident b m))), ConLn l m
++++++
+unfold Incident in |- *.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+
+*****
+
+*****
+forall (l m : Line) (_ : DiLn l m) (_ : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))), ConLn l m
++++++
+unfold Negation in |- *.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+
+*****
+
+*****
+forall (l m : Line) (_ : DiLn l m) (_ : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))), ConLn l m
++++++
+intros l m H' H'0.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+
+*****
+H'0 : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))
+H' : DiLn l m
+l,m : Line
+*****
+ConLn l m
++++++
+elim H'0.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+
+*****
+H'0 : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))
+H' : DiLn l m
+l,m : Line
+*****
+forall (x : Point) (_ : and (not (Apart x l)) (not (Apart x m))), ConLn l m
++++++
+intros b E.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+
+*****
+E : and (not (Apart b l)) (not (Apart b m))
+b : Point
+H'0 : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))
+H' : DiLn l m
+l,m : Line
+*****
+ConLn l m
++++++
+elim E.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+
+*****
+E : and (not (Apart b l)) (not (Apart b m))
+b : Point
+H'0 : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))
+H' : DiLn l m
+l,m : Line
+*****
+forall (_ : not (Apart b l)) (_ : not (Apart b m)), ConLn l m
++++++
+intros H'1 H'2.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+
+*****
+H'2 : not (Apart b m)
+H'1 : not (Apart b l)
+E : and (not (Apart b l)) (not (Apart b m))
+b : Point
+H'0 : ex (fun b : Point => and (not (Apart b l)) (not (Apart b m)))
+H' : DiLn l m
+l,m : Line
+*****
+ConLn l m
++++++
+clear E H'0.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+clear E H'0.
+
+*****
+H'2 : not (Apart b m)
+H'1 : not (Apart b l)
+b : Point
+H' : DiLn l m
+l,m : Line
+*****
+ConLn l m
++++++
+lapply (constructive_uniqueness_for_parallels l m b).
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+clear E H'0.
+lapply (constructive_uniqueness_for_parallels l m b).
+
+*****
+H'2 : not (Apart b m)
+H'1 : not (Apart b l)
+b : Point
+H' : DiLn l m
+l,m : Line
+*****
+forall _ : or (or (Apart b l) (Apart b m)) (ConLn l m), ConLn l m
++++++
+intro H'5.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+clear E H'0.
+lapply (constructive_uniqueness_for_parallels l m b).
+intro H'5.
+
+*****
+H'5 : or (or (Apart b l) (Apart b m)) (ConLn l m)
+H'2 : not (Apart b m)
+H'1 : not (Apart b l)
+b : Point
+H' : DiLn l m
+l,m : Line
+*****
+ConLn l m
++++++
+tauto.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+clear E H'0.
+lapply (constructive_uniqueness_for_parallels l m b).
+
+*****
+H'2 : not (Apart b m)
+H'1 : not (Apart b l)
+b : Point
+H' : DiLn l m
+l,m : Line
+*****
+DiLn l m
++++++
+trivial.
+-----
+Theorem DiLn_qimp_con : forall l m : Line, DiLn l m -> ex (fun b : Point => Incident b l /\\ Incident b m) -> ConLn l m.
+Proof.
+unfold Incident in |- *.
+unfold Negation in |- *.
+intros l m H' H'0.
+elim H'0.
+intros b E.
+elim E.
+intros H'1 H'2.
+clear E H'0.
+lapply (constructive_uniqueness_for_parallels l m b).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem strict_parallel :\n forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+
+*****
+
+*****
+forall (a : Point) (l : Line) (_ : Apart a l), DiLn l (par l a)
++++++
+Proof.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+
+*****
+
+*****
+forall (a : Point) (l : Line) (_ : Apart a l), DiLn l (par l a)
++++++
+intros a l H'.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+
+*****
+H' : Apart a l
+l : Line
+a : Point
+*****
+DiLn l (par l a)
++++++
+lapply (cmp_apt_diln a l (par l a)).
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+
+*****
+H' : Apart a l
+l : Line
+a : Point
+*****
+forall _ : or (DiLn l (par l a)) (Apart a (par l a)), DiLn l (par l a)
++++++
+intro H'3.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+
+*****
+H'3 : or (DiLn l (par l a)) (Apart a (par l a))
+H' : Apart a l
+l : Line
+a : Point
+*****
+DiLn l (par l a)
++++++
+elim H'3.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+elim H'3.
+
+*****
+H'3 : or (DiLn l (par l a)) (Apart a (par l a))
+H' : Apart a l
+l : Line
+a : Point
+*****
+forall _ : DiLn l (par l a), DiLn l (par l a)
++++++
+trivial.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+elim H'3.
+
+*****
+H'3 : or (DiLn l (par l a)) (Apart a (par l a))
+H' : Apart a l
+l : Line
+a : Point
+*****
+forall _ : Apart a (par l a), DiLn l (par l a)
++++++
+intro H'0.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+elim H'3.
+intro H'0.
+
+*****
+H'0 : Apart a (par l a)
+H'3 : or (DiLn l (par l a)) (Apart a (par l a))
+H' : Apart a l
+l : Line
+a : Point
+*****
+DiLn l (par l a)
++++++
+clear H'3.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+elim H'3.
+intro H'0.
+clear H'3.
+
+*****
+H'0 : Apart a (par l a)
+H' : Apart a l
+l : Line
+a : Point
+*****
+DiLn l (par l a)
++++++
+elim (Ax1_ii l a).
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+intro H'3.
+elim H'3.
+intro H'0.
+clear H'3.
+elim (Ax1_ii l a).
+
+*****
+H'0 : Apart a (par l a)
+H' : Apart a l
+l : Line
+a : Point
+*****
+Apart a (par l a)
++++++
+auto.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+
+*****
+H' : Apart a l
+l : Line
+a : Point
+*****
+Apart a l
++++++
+trivial.
+-----
+Theorem strict_parallel : forall (a : Point) (l : Line), Apart a l -> DiLn l (par l a).
+Proof.
+intros a l H'.
+lapply (cmp_apt_diln a l (par l a)).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve strict_parallel.
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+
+*****
+
+*****
+forall (a : Point) (l : Line) (_ : Apart a l), SPar l (par l a)
++++++
+Proof.
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+Proof.
+
+*****
+
+*****
+forall (a : Point) (l : Line) (_ : Apart a l), SPar l (par l a)
++++++
+intros a l H'.
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+Proof.
+intros a l H'.
+
+*****
+H' : Apart a l
+l : Line
+a : Point
+*****
+SPar l (par l a)
++++++
+red in |- *.
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+Proof.
+intros a l H'.
+red in |- *.
+
+*****
+H' : Apart a l
+l : Line
+a : Point
+*****
+and (Par l (par l a)) (DiLn l (par l a))
++++++
+auto.
+-----
+Theorem spar : forall (a : Point) (l : Line), Apart a l -> SPar l (par l a).
+Proof.
+intros a l H'.
+red in |- *.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve spar.
+-----

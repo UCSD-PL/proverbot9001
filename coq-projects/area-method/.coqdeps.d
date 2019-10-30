@@ -1,0 +1,86 @@
+bench_normalization_tactics.vo bench_normalization_tactics.glob bench_normalization_tactics.v.beautified: bench_normalization_tactics.v geometry_tools.vo Rgeometry_tools.vo
+bench_normalization_tactics.vio: bench_normalization_tactics.v geometry_tools.vio Rgeometry_tools.vio
+chou_gao_zhang_axioms.vo chou_gao_zhang_axioms.glob chou_gao_zhang_axioms.v.beautified: chou_gao_zhang_axioms.v field.vo
+chou_gao_zhang_axioms.vio: chou_gao_zhang_axioms.v field.vio
+basic_geometric_facts.vo basic_geometric_facts.glob basic_geometric_facts.v.beautified: basic_geometric_facts.v geometry_tools.vo
+basic_geometric_facts.vio: basic_geometric_facts.v geometry_tools.vio
+construction_lemmas.vo construction_lemmas.glob construction_lemmas.v.beautified: construction_lemmas.v parallel_lemmas.vo
+construction_lemmas.vio: construction_lemmas.v parallel_lemmas.vio
+construction_tactics.vo construction_tactics.glob construction_tactics.v.beautified: construction_tactics.v construction_lemmas_2.vo
+construction_tactics.vio: construction_tactics.v construction_lemmas_2.vio
+elimination_prepare.vo elimination_prepare.glob elimination_prepare.v.beautified: elimination_prepare.v area_elimination_lemmas.vo py_elimination_lemmas.vo
+elimination_prepare.vio: elimination_prepare.v area_elimination_lemmas.vio py_elimination_lemmas.vio
+area_elimination_lemmas.vo area_elimination_lemmas.glob area_elimination_lemmas.v.beautified: area_elimination_lemmas.v advanced_parallel_lemmas.vo geometry_tools.vo
+area_elimination_lemmas.vio: area_elimination_lemmas.v advanced_parallel_lemmas.vio geometry_tools.vio
+area_coords_constructions.vo area_coords_constructions.glob area_coords_constructions.v.beautified: area_coords_constructions.v pythagoras_difference_lemmas.vo
+area_coords_constructions.vio: area_coords_constructions.v pythagoras_difference_lemmas.vio
+area_coords_elimination.vo area_coords_elimination.glob area_coords_elimination.v.beautified: area_coords_elimination.v area_coords_constructions.vo
+area_coords_elimination.vio: area_coords_elimination.v area_coords_constructions.vio
+field_general_properties.vo field_general_properties.glob field_general_properties.v.beautified: field_general_properties.v field_variable_isolation_tactic.vo
+field_general_properties.vio: field_general_properties.v field_variable_isolation_tactic.vio
+field.vo field.glob field.v.beautified: field.v
+field.vio: field.v
+field_variable_isolation_tactic.vo field_variable_isolation_tactic.glob field_variable_isolation_tactic.v.beautified: field_variable_isolation_tactic.v field.vo general_tactics.vo
+field_variable_isolation_tactic.vio: field_variable_isolation_tactic.v field.vio general_tactics.vio
+freepoints.vo freepoints.glob freepoints.v.beautified: freepoints.v area_elimination_lemmas.vo
+freepoints.vio: freepoints.v area_elimination_lemmas.vio
+general_tactics.vo general_tactics.glob general_tactics.v.beautified: general_tactics.v
+general_tactics.vio: general_tactics.v
+geometry_tools_lemmas.vo geometry_tools_lemmas.glob geometry_tools_lemmas.v.beautified: geometry_tools_lemmas.v field_general_properties.vo chou_gao_zhang_axioms.vo
+geometry_tools_lemmas.vio: geometry_tools_lemmas.v field_general_properties.vio chou_gao_zhang_axioms.vio
+geometry_tools.vo geometry_tools.glob geometry_tools.v.beautified: geometry_tools.v geometry_tools_lemmas.vo my_field_tac.vo
+geometry_tools.vio: geometry_tools.v geometry_tools_lemmas.vio my_field_tac.vio
+my_field_tac.vo my_field_tac.glob my_field_tac.v.beautified: my_field_tac.v field_general_properties.vo field.vo chou_gao_zhang_axioms.vo
+my_field_tac.vio: my_field_tac.v field_general_properties.vio field.vio chou_gao_zhang_axioms.vio
+parallel_lemmas.vo parallel_lemmas.glob parallel_lemmas.v.beautified: parallel_lemmas.v basic_geometric_facts.vo
+parallel_lemmas.vio: parallel_lemmas.v basic_geometric_facts.vio
+Rgeometry_tools.vo Rgeometry_tools.glob Rgeometry_tools.v.beautified: Rgeometry_tools.v geometry_tools_lemmas.vo general_tactics.vo
+Rgeometry_tools.vio: Rgeometry_tools.v geometry_tools_lemmas.vio general_tactics.vio
+area_method.vo area_method.glob area_method.v.beautified: area_method.v general_tactics.vo Rgeometry_tools.vo constructed_points_elimination.vo free_points_elimination.vo simplify_constructions.vo construction_tactics.vo my_field_tac.vo
+area_method.vio: area_method.v general_tactics.vio Rgeometry_tools.vio constructed_points_elimination.vio free_points_elimination.vio simplify_constructions.vio construction_tactics.vio my_field_tac.vio
+tests_elimination_tactics_areas.vo tests_elimination_tactics_areas.glob tests_elimination_tactics_areas.v.beautified: tests_elimination_tactics_areas.v area_method.vo
+tests_elimination_tactics_areas.vio: tests_elimination_tactics_areas.v area_method.vio
+tests_elimination_tactics_ratios.vo tests_elimination_tactics_ratios.glob tests_elimination_tactics_ratios.v.beautified: tests_elimination_tactics_ratios.v area_method.vo
+tests_elimination_tactics_ratios.vio: tests_elimination_tactics_ratios.v area_method.vio
+tests_elimination_tactics_py.vo tests_elimination_tactics_py.glob tests_elimination_tactics_py.v.beautified: tests_elimination_tactics_py.v area_method.vo
+tests_elimination_tactics_py.vio: tests_elimination_tactics_py.v area_method.vio
+examples_1.vo examples_1.glob examples_1.v.beautified: examples_1.v area_method.vo
+examples_1.vio: examples_1.v area_method.vio
+examples_2.vo examples_2.glob examples_2.v.beautified: examples_2.v area_method.vo
+examples_2.vio: examples_2.v area_method.vio
+examples_3.vo examples_3.glob examples_3.v.beautified: examples_3.v area_method.vo
+examples_3.vio: examples_3.v area_method.vio
+examples_4.vo examples_4.glob examples_4.v.beautified: examples_4.v area_method.vo
+examples_4.vio: examples_4.v area_method.vio
+examples_5.vo examples_5.glob examples_5.v.beautified: examples_5.v area_method.vo
+examples_5.vio: examples_5.v area_method.vio
+examples_6.vo examples_6.glob examples_6.v.beautified: examples_6.v area_method.vo
+examples_6.vio: examples_6.v area_method.vio
+examples_interactive.vo examples_interactive.glob examples_interactive.v.beautified: examples_interactive.v area_method.vo
+examples_interactive.vio: examples_interactive.v area_method.vio
+examples_circumcenter.vo examples_circumcenter.glob examples_circumcenter.v.beautified: examples_circumcenter.v area_method.vo
+examples_circumcenter.vio: examples_circumcenter.v area_method.vio
+examples_centroid.vo examples_centroid.glob examples_centroid.v.beautified: examples_centroid.v area_method.vo
+examples_centroid.vio: examples_centroid.v area_method.vio
+simplify_constructions.vo simplify_constructions.glob simplify_constructions.v.beautified: simplify_constructions.v area_elimination_lemmas.vo
+simplify_constructions.vio: simplify_constructions.v area_elimination_lemmas.vio
+constructed_points_elimination.vo constructed_points_elimination.glob constructed_points_elimination.v.beautified: constructed_points_elimination.v ratios_elimination_lemmas.vo py_elimination_lemmas.vo area_coords_elimination.vo elimination_prepare.vo
+constructed_points_elimination.vio: constructed_points_elimination.v ratios_elimination_lemmas.vio py_elimination_lemmas.vio area_coords_elimination.vio elimination_prepare.vio
+free_points_elimination.vo free_points_elimination.glob free_points_elimination.v.beautified: free_points_elimination.v freepoints.vo
+free_points_elimination.vio: free_points_elimination.v freepoints.vio
+advanced_parallel_lemmas.vo advanced_parallel_lemmas.glob advanced_parallel_lemmas.v.beautified: advanced_parallel_lemmas.v construction_lemmas.vo
+advanced_parallel_lemmas.vio: advanced_parallel_lemmas.v construction_lemmas.vio
+ratios_elimination_lemmas.vo ratios_elimination_lemmas.glob ratios_elimination_lemmas.v.beautified: ratios_elimination_lemmas.v area_elimination_lemmas.vo
+ratios_elimination_lemmas.vio: ratios_elimination_lemmas.v area_elimination_lemmas.vio
+construction_lemmas_2.vo construction_lemmas_2.glob construction_lemmas_2.v.beautified: construction_lemmas_2.v area_elimination_lemmas.vo
+construction_lemmas_2.vio: construction_lemmas_2.v area_elimination_lemmas.vio
+euclidean_constructions.vo euclidean_constructions.glob euclidean_constructions.v.beautified: euclidean_constructions.v pythagoras_difference.vo
+euclidean_constructions.vio: euclidean_constructions.v pythagoras_difference.vio
+euclidean_constructions_2.vo euclidean_constructions_2.glob euclidean_constructions_2.v.beautified: euclidean_constructions_2.v pythagoras_difference_lemmas.vo
+euclidean_constructions_2.vio: euclidean_constructions_2.v pythagoras_difference_lemmas.vio
+pythagoras_difference.vo pythagoras_difference.glob pythagoras_difference.v.beautified: pythagoras_difference.v advanced_parallel_lemmas.vo
+pythagoras_difference.vio: pythagoras_difference.v advanced_parallel_lemmas.vio
+pythagoras_difference_lemmas.vo pythagoras_difference_lemmas.glob pythagoras_difference_lemmas.v.beautified: pythagoras_difference_lemmas.v euclidean_constructions.vo area_elimination_lemmas.vo ratios_elimination_lemmas.vo
+pythagoras_difference_lemmas.vio: pythagoras_difference_lemmas.v euclidean_constructions.vio area_elimination_lemmas.vio ratios_elimination_lemmas.vio
+py_elimination_lemmas.vo py_elimination_lemmas.glob py_elimination_lemmas.v.beautified: py_elimination_lemmas.v pythagoras_difference_lemmas.vo ratios_elimination_lemmas.vo
+py_elimination_lemmas.vio: py_elimination_lemmas.v pythagoras_difference_lemmas.vio ratios_elimination_lemmas.vio

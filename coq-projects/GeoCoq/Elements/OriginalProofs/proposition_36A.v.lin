@@ -1,0 +1,268 @@
+d9f77d8cb26cbaa3a7f285173ff6633c
+Require Export GeoCoq.Elements.OriginalProofs.lemma_collinearparallel2.
+Require Export GeoCoq.Elements.OriginalProofs.proposition_33.
+Require Export GeoCoq.Elements.OriginalProofs.proposition_35.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_PGsymmetric.
+Section Euclid.
+Context `{Ax:area}.
+Lemma proposition_36A : 
+   forall A B C D E F G H M, 
+   PG A B C D -> PG E F G H -> Col A D E -> Col A D H -> Col B C F -> Col B C G -> Cong B C F G -> BetS B M H -> BetS C M E ->
+   EF A B C D E F G H.
+Proof.
+  intros.
+  assert ((Par A B C D /\ Par A D B C)).
+  {
+    conclude_def PG .
+  }
+  {
+    idtac.
+    assert ((Par E F G H /\ Par E H F G)).
+    {
+      conclude_def PG .
+    }
+    {
+      idtac.
+      assert (nCol A C D).
+      {
+        forward_using lemma_parallelNC.
+      }
+      {
+        idtac.
+        assert (neq A D).
+        {
+          forward_using lemma_NCdistinct.
+        }
+        {
+          idtac.
+          assert (Cong A D B C).
+          {
+            forward_using proposition_34.
+          }
+          {
+            idtac.
+            assert (Cong E H F G).
+            {
+              forward_using proposition_34.
+            }
+            {
+              idtac.
+              assert (Cong F G E H).
+              {
+                conclude lemma_congruencesymmetric.
+              }
+              {
+                idtac.
+                assert (Cong B C E H).
+                {
+                  conclude lemma_congruencetransitive.
+                }
+                {
+                  idtac.
+                  assert (Par B C A D).
+                  {
+                    conclude lemma_parallelsymmetric.
+                  }
+                  {
+                    idtac.
+                    assert (nCol A B C).
+                    {
+                      forward_using lemma_parallelNC.
+                    }
+                    {
+                      idtac.
+                      assert (neq B C).
+                      {
+                        forward_using lemma_NCdistinct.
+                      }
+                      {
+                        idtac.
+                        assert (neq E H).
+                        {
+                          conclude axiom_nocollapse.
+                        }
+                        {
+                          idtac.
+                          assert (Par B C E H).
+                          {
+                            conclude lemma_collinearparallel2.
+                          }
+                          {
+                            idtac.
+                            assert ((Par B E C H /\ Cong B E C H)).
+                            {
+                              conclude proposition_33.
+                            }
+                            {
+                              idtac.
+                              assert (Par E B C H).
+                              {
+                                forward_using lemma_parallelflip.
+                              }
+                              {
+                                idtac.
+                                assert (Par E H B C).
+                                {
+                                  conclude lemma_parallelsymmetric.
+                                }
+                                {
+                                  idtac.
+                                  assert (PG E B C H).
+                                  {
+                                    conclude_def PG .
+                                  }
+                                  {
+                                    idtac.
+                                    assert (EF A B C D E B C H).
+                                    {
+                                      conclude proposition_35.
+                                    }
+                                    {
+                                      idtac.
+                                      assert (Cong F G B C).
+                                      {
+                                        conclude lemma_congruencesymmetric.
+                                      }
+                                      {
+                                        idtac.
+                                        assert (Cong G F C B).
+                                        {
+                                          forward_using lemma_congruenceflip.
+                                        }
+                                        {
+                                          idtac.
+                                          assert (PG C H E B).
+                                          {
+                                            conclude lemma_PGsymmetric.
+                                          }
+                                          {
+                                            idtac.
+                                            assert (nCol A B C).
+                                            {
+                                              forward_using lemma_parallelNC.
+                                            }
+                                            {
+                                              idtac.
+                                              assert (neq B C).
+                                              {
+                                                forward_using lemma_NCdistinct.
+                                              }
+                                              {
+                                                idtac.
+                                                assert (neq C B).
+                                                {
+                                                  conclude lemma_inequalitysymmetric.
+                                                }
+                                                {
+                                                  idtac.
+                                                  assert (Col C F G).
+                                                  {
+                                                    conclude lemma_collinear4.
+                                                  }
+                                                  {
+                                                    idtac.
+                                                    assert (Col G F C).
+                                                    {
+                                                      forward_using lemma_collinearorder.
+                                                    }
+                                                    {
+                                                      idtac.
+                                                      assert (Col C B F).
+                                                      {
+                                                        forward_using lemma_collinearorder.
+                                                      }
+                                                      {
+                                                        idtac.
+                                                        assert (Col C B G).
+                                                        {
+                                                          forward_using lemma_collinearorder.
+                                                        }
+                                                        {
+                                                          idtac.
+                                                          assert (Col B F G).
+                                                          {
+                                                            conclude lemma_collinear4.
+                                                          }
+                                                          {
+                                                            idtac.
+                                                            assert (Col G F B).
+                                                            {
+                                                              forward_using lemma_collinearorder.
+                                                            }
+                                                            {
+                                                              idtac.
+                                                              assert (PG G H E F).
+                                                              {
+                                                                conclude lemma_PGsymmetric.
+                                                              }
+                                                              {
+                                                                idtac.
+                                                                assert (EF G H E F C H E B).
+                                                                {
+                                                                  conclude proposition_35.
+                                                                }
+                                                                {
+                                                                  idtac.
+                                                                  assert (EF G H E F E B C H).
+                                                                  {
+                                                                    forward_using axiom_EFpermutation.
+                                                                  }
+                                                                  {
+                                                                    idtac.
+                                                                    assert (EF E B C H G H E F).
+                                                                    {
+                                                                      conclude axiom_EFsymmetric.
+                                                                    }
+                                                                    {
+                                                                      idtac.
+                                                                      assert (EF A B C D G H E F).
+                                                                      {
+                                                                        conclude axiom_EFtransitive.
+                                                                      }
+                                                                      {
+                                                                        idtac.
+                                                                        assert (EF A B C D E F G H).
+                                                                        {
+                                                                          forward_using axiom_EFpermutation.
+                                                                        }
+                                                                        {
+                                                                          idtac.
+                                                                          close.
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euclid.

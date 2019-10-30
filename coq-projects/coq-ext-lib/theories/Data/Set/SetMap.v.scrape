@@ -1,0 +1,8 @@
+Require Import ExtLib.Structures.Maps.
+-----
+Require Import ExtLib.Structures.Sets.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----

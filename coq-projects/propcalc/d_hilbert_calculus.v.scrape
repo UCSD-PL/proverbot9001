@@ -1,0 +1,1766 @@
+Require Export c_completeness.
+-----
+Set Implicit Arguments.
+-----
+Module Type hilbert_mod (B: base_mod) (S: sound_mod B) (C: complete_mod B S).
+-----
+Import B S C.
+-----
+Reserved Notation "Γ ⊢H A" (at level 80).
+-----
+Inductive AxiomH : PropF -> Prop :=\n| HOrI1  : forall A B  , AxiomH (A → A∨B)\n| HOrI2  : forall A B  , AxiomH (B → A∨B)\n| HAndI  : forall A B  , AxiomH (A → B → A∧B)\n| HOrE   : forall A B C, AxiomH (A∨B → (A → C) → (B → C) → C)\n| HAndE1 : forall A B  , AxiomH (A∧B → A)\n| HAndE2 : forall A B  , AxiomH (A∧B → B)\n| HS      : forall A B C, AxiomH ((A → B → C) → (A → B) → A → C)\n| HK      : forall A B  , AxiomH (A → B → A)\n| HClas  : forall A    , AxiomH (¬(¬A) → A).
+-----
+Inductive Hc : list PropF-> PropF->Prop :=\n| Hass  : forall A Γ,   In A Γ               -> Γ ⊢H A\n| Hax   : forall A Γ,   AxiomH A             -> Γ ⊢H A\n| HImpE : forall Γ A B, Γ ⊢H A → B -> Γ ⊢H A -> Γ ⊢H B\nwhere "Γ ⊢H A" := (Hc Γ A) : My_scope.
+-----
+Definition ProvH A := [] ⊢H A.
+-----
+Ltac Hmp := eapply HImpE.
+-----
+Ltac aK := constructor 2;apply HK.
+-----
+Ltac aS := constructor 2;apply HS.
+-----
+Ltac aC := constructor 2;apply HClas.
+-----
+Ltac is_ax := constructor 2;constructor||assumption.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+
+*****
+
+*****
+forall (A : PropF) (_ : AxiomH A), Provable A
++++++
+induction 1.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl A (Disj A B))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons A nil) (Disj A B)
++++++
+apply OrI1.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply OrI1.
+
+*****
+A, B : PropF
+*****
+Nc (cons A nil) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl B (Disj A B))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons B nil) (Disj A B)
++++++
+apply OrI2.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply OrI2.
+
+*****
+A, B : PropF
+*****
+Nc (cons B nil) B
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl A (Impl B (Conj A B)))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons B (cons A nil)) (Conj A B)
++++++
+apply AndI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply AndI.
+
+*****
+A, B : PropF
+*****
+Nc (cons B (cons A nil)) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply AndI.
+
+*****
+A, B : PropF
+*****
+Nc (cons B (cons A nil)) B
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B, C : PropF
+*****
+Provable (Impl (Disj A B) (Impl (Impl A C) (Impl (Impl B C) C)))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil))) C
++++++
+eapply OrE.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil))) (Disj ?A ?B)
++++++
+idtac.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+idtac.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil))) (Disj ?A ?B)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) C
++++++
+eapply ImpE with A.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+eapply ImpE with A.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) (Impl A C)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+eapply ImpE with A.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons B (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) C
++++++
+mp.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons B (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) (Impl ?A C)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply OrE.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons B (cons (Impl B C) (cons (Impl A C) (cons (Disj A B) nil)))) B
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl (Conj A B) A)
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons (Conj A B) nil) A
++++++
+eapply AndE1.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply AndE1.
+
+*****
+A, B : PropF
+*****
+Nc (cons (Conj A B) nil) (Conj A ?B)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl (Conj A B) B)
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons (Conj A B) nil) B
++++++
+eapply AndE2.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+eapply AndE2.
+
+*****
+A, B : PropF
+*****
+Nc (cons (Conj A B) nil) (Conj ?A B)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B, C : PropF
+*****
+Provable (Impl (Impl A (Impl B C)) (Impl (Impl A B) (Impl A C)))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) C
++++++
+mp.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) (Impl ?A C)
++++++
+mp.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) (Impl ?A0 (Impl ?A C))
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) B
++++++
+mp.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) (Impl ?A B)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+mp.
+mp.
+
+*****
+A, B, C : PropF
+*****
+Nc (cons A (cons (Impl A B) (cons (Impl A (Impl B C)) nil))) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A, B : PropF
+*****
+Provable (Impl A (Impl B A))
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A, B : PropF
+*****
+Nc (cons B (cons A nil)) A
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+A : PropF
+*****
+Provable (Impl (Neg (Neg A)) A)
++++++
+repeat apply ImpI.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+
+*****
+A : PropF
+*****
+Nc (cons (Neg (Neg A)) nil) A
++++++
+apply BotC.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply BotC.
+
+*****
+A : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Neg A)) nil)) Bot
++++++
+apply ImpE with ¬A.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply BotC.
+apply ImpE with ¬A.
+
+*****
+A : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Neg A)) nil)) (Impl (Neg A) Bot)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+repeat apply ImpI.
+apply BotC.
+apply ImpE with ¬A.
+
+*****
+A : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Neg A)) nil)) (Neg A)
++++++
+is_ass.
+-----
+Lemma Nc_AxiomH : forall A, AxiomH A -> Provable A.
+induction 1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF) (_ : Hc Γ A), Nc Γ A
++++++
+induction 1.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+
+*****
+A : PropF
+Γ : list PropF
+H : In A Γ
+*****
+Nc Γ A
++++++
+is_ass.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+
+*****
+A : PropF
+Γ : list PropF
+H : AxiomH A
+*****
+Nc Γ A
++++++
+AddnilL.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+AddnilL.
+
+*****
+A : PropF
+Γ : list PropF
+H : AxiomH A
+*****
+Nc (app nil Γ) A
++++++
+eapply weakening.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+AddnilL.
+eapply weakening.
+
+*****
+A : PropF
+Γ : list PropF
+H : AxiomH A
+*****
+Nc nil A
++++++
+apply Nc_AxiomH.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+AddnilL.
+eapply weakening.
+apply Nc_AxiomH.
+
+*****
+A : PropF
+Γ : list PropF
+H : AxiomH A
+*****
+AxiomH A
++++++
+assumption.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+H0 : Hc Γ A
+IHHc1 : Nc Γ (Impl A B)
+IHHc2 : Nc Γ A
+*****
+Nc Γ B
++++++
+mp.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+mp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+H0 : Hc Γ A
+IHHc1 : Nc Γ (Impl A B)
+IHHc2 : Nc Γ A
+*****
+Nc Γ (Impl ?A B)
++++++
+eassumption.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+mp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+H0 : Hc Γ A
+IHHc1 : Nc Γ (Impl A B)
+IHHc2 : Nc Γ A
+*****
+Nc Γ A
++++++
+eassumption.
+-----
+Theorem Hc_to_Nc : forall Γ A, Γ ⊢H A -> Γ ⊢ A.
+induction 1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+
+*****
+
+*****
+forall (Γ Δ : list PropF) (A : PropF) (_ : forall (B : PropF) (_ : In B Γ), In B Δ) (_ : Hc Γ A), Hc Δ A
++++++
+induction 2.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A : PropF
+H0 : In A Γ
+*****
+Hc Δ A
++++++
+constructor.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+constructor.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A : PropF
+H0 : In A Γ
+*****
+In A Δ
++++++
+auto.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A : PropF
+H0 : AxiomH A
+*****
+Hc Δ A
++++++
+is_ax.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A, B : PropF
+H0_ : Hc Γ (Impl A B)
+H0_0 : Hc Γ A
+IHHc1 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ,\n Hc Δ (Impl A B)
+IHHc2 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ, Hc Δ A
+*****
+Hc Δ B
++++++
+Hmp.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+Hmp.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A, B : PropF
+H0_ : Hc Γ (Impl A B)
+H0_0 : Hc Γ A
+IHHc1 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ,\n Hc Δ (Impl A B)
+IHHc2 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ, Hc Δ A
+*****
+Hc Δ (Impl ?A B)
++++++
+auto.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+Hmp.
+
+*****
+Δ, Γ : list PropF
+H : forall (B : PropF) (_ : In B Γ), In B Δ
+A, B : PropF
+H0_ : Hc Γ (Impl A B)
+H0_0 : Hc Γ A
+IHHc1 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ,\n Hc Δ (Impl A B)
+IHHc2 : forall _ : forall (B : PropF) (_ : In B Γ), In B Δ, Hc Δ A
+*****
+Hc Δ A
++++++
+auto.
+-----
+Lemma H_weakening : forall Γ Δ A, (forall B, In B Γ -> In B Δ) -> Γ ⊢H A -> Δ ⊢H A.
+induction 2.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+
+*****
+
+*****
+forall (Γ : list PropF) (A B : PropF), iff (Hc (cons A Γ) B) (Hc Γ (Impl A B))
++++++
+split;intro.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc (cons A Γ) B
+*****
+Hc Γ (Impl A B)
++++++
+remember (A::Γ).
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+
+*****
+Γ : list PropF
+A, B : PropF
+l : list PropF
+Heql : eq l (cons A Γ)
+H : Hc l B
+*****
+Hc Γ (Impl A B)
++++++
+revert Γ Heql.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+
+*****
+A, B : PropF
+l : list PropF
+H : Hc l B
+*****
+forall (Γ : list PropF) (_ : eq l (cons A Γ)), Hc Γ (Impl A B)
++++++
+induction H;intros;subst.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+
+*****
+A, A0 : PropF
+Γ0 : list PropF
+H : In A0 (cons A Γ0)
+*****
+Hc Γ0 (Impl A A0)
++++++
+destruct H.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+
+*****
+A, A0 : PropF
+Γ0 : list PropF
+H : eq A A0
+*****
+Hc Γ0 (Impl A A0)
++++++
+subst.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+
+*****
+A0 : PropF
+Γ0 : list PropF
+*****
+Hc Γ0 (Impl A0 A0)
++++++
+do 2 (Hmp;[|aK]).
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+
+*****
+A0 : PropF
+Γ0 : list PropF
+*****
+Hc Γ0 (Impl (Impl ?Goal6 (Impl ?Goal7 ?Goal6)) (Impl (Impl ?Goal3 (Impl ?Goal4 ?Goal3)) (Impl A0 A0)))
++++++
+instantiate (2:=⊥).
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+
+*****
+A0 : PropF
+Γ0 : list PropF
+*****
+Hc Γ0 (Impl (Impl ?Goal5 (Impl ?Goal6 ?Goal5)) (Impl (Impl ?Goal3 (Impl Bot ?Goal3)) (Impl A0 A0)))
++++++
+aS.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+
+*****
+A, A0 : PropF
+Γ0 : list PropF
+H : In A0 Γ0
+*****
+Hc Γ0 (Impl A A0)
++++++
+Hmp;[aK|is_ass].
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+
+*****
+A, A0 : PropF
+H : AxiomH A0
+Γ0 : list PropF
+*****
+Hc Γ0 (Impl A A0)
++++++
+Hmp;[aK|is_ax].
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+Hmp;[aK|is_ax].
+
+*****
+A, A0, B : PropF
+Γ0 : list PropF
+IHHc2 : forall (Γ : list PropF) (_ : eq (cons A Γ0) (cons A Γ)),\n Hc Γ (Impl A A0)
+IHHc1 : forall (Γ : list PropF) (_ : eq (cons A Γ0) (cons A Γ)),\n Hc Γ (Impl A (Impl A0 B))
+H0 : Hc (cons A Γ0) A0
+H : Hc (cons A Γ0) (Impl A0 B)
+*****
+Hc Γ0 (Impl A B)
++++++
+Hmp;[Hmp;[aS|]|];auto.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+Hmp;[aK|is_ax].
+Hmp;[Hmp;[aS|]|];auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+*****
+Hc (cons A Γ) B
++++++
+Hmp;[|is_ass].
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+Hmp;[aK|is_ax].
+Hmp;[Hmp;[aS|]|];auto.
+Hmp;[|is_ass].
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+*****
+Hc (cons A Γ) (Impl A B)
++++++
+eapply H_weakening;[|eassumption].
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+Hmp;[aK|is_ax].
+Hmp;[Hmp;[aS|]|];auto.
+Hmp;[|is_ass].
+eapply H_weakening;[|eassumption].
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Hc Γ (Impl A B)
+*****
+forall (B : PropF) (_ : In B Γ), In B (cons A Γ)
++++++
+intros;in_solve.
+-----
+Theorem H_Deduction_Theorem : forall Γ A B, A::Γ ⊢H B <-> Γ ⊢H A → B.
+split;intro.
+remember (A::Γ).
+revert Γ Heql.
+induction H;intros;subst.
+destruct H.
+subst.
+do 2 (Hmp;[|aK]).
+instantiate (2:=⊥).
+aS.
+Hmp;[aK|is_ass].
+Hmp;[aK|is_ax].
+Hmp;[Hmp;[aS|]|];auto.
+Hmp;[|is_ass].
+eapply H_weakening;[|eassumption].
+intros;in_solve.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac HImpI := apply H_Deduction_Theorem.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF) (_ : Nc Γ A), Hc Γ A
++++++
+induction 1.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+*****
+Hc Γ A
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+*****
+Hc Γ A
++++++
+is_ass.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc (cons A Γ) B
+IHNc : Hc (cons A Γ) B
+*****
+Hc Γ (Impl A B)
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc (cons A Γ) B
+IHNc : Hc (cons A Γ) B
+*****
+Hc Γ (Impl A B)
++++++
+HImpI.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+HImpI.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc (cons A Γ) B
+IHNc : Hc (cons A Γ) B
+*****
+Hc (cons A Γ) B
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : Hc Γ (Impl A B)
+IHNc2 : Hc Γ A
+*****
+Hc Γ B
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : Hc Γ (Impl A B)
+IHNc2 : Hc Γ A
+*****
+Hc Γ B
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : Hc Γ (Impl A B)
+IHNc2 : Hc Γ A
+*****
+Hc Γ (Impl ?A B)
++++++
+eassumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : Hc Γ (Impl A B)
+IHNc2 : Hc Γ A
+*****
+Hc Γ A
++++++
+eassumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : Hc (cons (Neg A) Γ) Bot
+*****
+Hc Γ A
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : Hc (cons (Neg A) Γ) Bot
+*****
+Hc Γ A
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : Hc (cons (Neg A) Γ) Bot
+*****
+Hc Γ (Impl ?A A)
++++++
+aC.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : Hc (cons (Neg A) Γ) Bot
+*****
+Hc Γ (Neg (Neg A))
++++++
+HImpI.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+HImpI.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : Hc (cons (Neg A) Γ) Bot
+*****
+Hc (cons (Neg A) Γ) Bot
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ (Conj A B)
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ (Conj A B)
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ (Impl ?A (Conj A B))
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ (Impl ?A0 (Impl ?A (Conj A B)))
++++++
+is_ax.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ A
++++++
+idtac.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+idtac.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ A
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ B
++++++
+idtac.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+idtac.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : Hc Γ A
+IHNc2 : Hc Γ B
+*****
+Hc Γ B
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : Hc Γ (Conj A B)
+*****
+Hc Γ A
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : Hc Γ (Conj A B)
+*****
+Hc Γ B
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+IHNc : Hc Γ A
+*****
+Hc Γ (Disj A B)
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ B
+IHNc : Hc Γ B
+*****
+Hc Γ (Disj A B)
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ C
++++++
+try (Hmp;[|eassumption];is_ax;fail).
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ C
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl ?A C)
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl ?A0 (Impl ?A C))
++++++
+Hmp.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl ?A1 (Impl ?A0 (Impl ?A C)))
++++++
+is_ax.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Disj ?Goal2 ?Goal3)
++++++
+eassumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl A C)
++++++
+idtac.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+idtac.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl A C)
++++++
+HImpI.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+Hmp.
+idtac.
+HImpI.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc (cons A Γ) C
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl B C)
++++++
+idtac.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+idtac.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc Γ (Impl B C)
++++++
+HImpI.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+try (Hmp;[|eassumption];is_ax;fail).
+Hmp.
+idtac.
+HImpI.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : Hc Γ (Disj A B)
+IHNc2 : Hc (cons A Γ) C
+IHNc3 : Hc (cons B Γ) C
+*****
+Hc (cons B Γ) C
++++++
+assumption.
+-----
+Theorem Nc_to_Hc : forall Γ A, Γ ⊢ A -> Γ ⊢H A.
+induction 1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Nc_equiv_Hc : forall Γ A, Γ ⊢ A <-> Γ ⊢H A.
+-----
+Theorem Nc_equiv_Hc : forall Γ A, Γ ⊢ A <-> Γ ⊢H A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF), iff (Nc Γ A) (Hc Γ A)
++++++
+split.
+-----
+Theorem Nc_equiv_Hc : forall Γ A, Γ ⊢ A <-> Γ ⊢H A.
+split.
+
+*****
+Γ : list PropF
+A : PropF
+*****
+forall _ : Nc Γ A, Hc Γ A
++++++
+apply Nc_to_Hc.
+-----
+Theorem Nc_equiv_Hc : forall Γ A, Γ ⊢ A <-> Γ ⊢H A.
+split.
+
+*****
+Γ : list PropF
+A : PropF
+*****
+forall _ : Hc Γ A, Nc Γ A
++++++
+apply Hc_to_Nc.
+-----
+Theorem Nc_equiv_Hc : forall Γ A, Γ ⊢ A <-> Γ ⊢H A.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End hilbert_mod.
+-----

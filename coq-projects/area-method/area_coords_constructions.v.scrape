@@ -1,0 +1,833 @@
+Require Export pythagoras_difference_lemmas.
+-----
+Definition a_ratio A O U V ro ru rv := \n ~ Col O U V /\ \n S A U V / S O U V = ro /\\n S O A V / S O U V = ru /\\n S O U A / S O U V = rv.
+-----
+Definition is_centroid G A B C :=  a_ratio G A B C (1/(2+1)) (1/(2+1)) (1/(2+1)).
+-----
+Definition is_orthocenter' H A B C := \n  a_ratio H A B C (Py A B C * Py A C B / ((2*2*2*2) * (S A B C * S A B C)))\n                            (Py B A C * Py B C A / ((2*2*2*2) * (S A B C * S A B C)))\n                            (Py C A B * Py C B A / ((2*2*2*2) * (S A B C * S A B C))).
+-----
+Definition is_orthocenter H A B C := \n a_ratio H A B C \n        (Py A B C * Py A C B / (Py A B A * Py A C A - Py B A C * Py B A C))\n        (Py B A C * Py B C A / (Py A B A * Py A C A - Py B A C * Py B A C))\n        (Py C A B * Py C B A / (Py A B A * Py A C A - Py B A C * Py B A C)).
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C,\n is_orthocenter H A B C -> \n (2*2*2*2) * (S A B C * S A B C) <> 0.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_orthocenter H A B C), not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+Proof.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_orthocenter H A B C), not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+intros.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+
+*****
+H0 : is_orthocenter H A B C
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+unfold is_orthocenter in H0.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+
+*****
+H0 : a_ratio H A B C\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+unfold a_ratio in H0.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+
+*****
+H0 : and (not (Col A B C))\n (and\n (eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))\n (and\n (eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))\n (eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))))
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+use H0.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+repeat (apply nonzeromult).
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (S A B C) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py C A B) (Py C B A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py B A C) (Py B C A))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py A B C) (Py A C B))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (S A B C) F0)
++++++
+auto with Geom.
+-----
+Lemma is_orthocenter_non_zero' : forall H A B C, is_orthocenter H A B C -> (2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_orthocenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C,\n is_orthocenter H A B C -> \n (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_orthocenter H A B C), not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+Proof.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_orthocenter H A B C), not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+intros.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+
+*****
+H0 : is_orthocenter H A B C
+H,A,B,C : Point
+*****
+not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+apply is_orthocenter_non_zero' in H0.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_orthocenter_non_zero' in H0.
+
+*****
+H0 : not\n (eq\n (Fmult\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1))\n (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
+H,A,B,C : Point
+*****
+not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+rewrite (herron_qin A B C) in *.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_orthocenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+
+*****
+H0 : not\n (eq\n (Fmult\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1))\n (Fplus F1 F1))\n (Fmult\n (Fdiv F1\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1))\n (Fplus F1 F1)) (Fplus F1 F1)))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))) F0)
+H,A,B,C : Point
+*****
+not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with ((Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_orthocenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with ((Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+
+*****
+H0 : not\n (eq\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))) F0)
+H,A,B,C : Point
+*****
+not (eq (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))) F0)
++++++
+auto.
+-----
+Lemma is_orthocenter_non_zero : forall H A B C, is_orthocenter H A B C -> (Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_orthocenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with ((Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, \n is_orthocenter' H A B C <-> is_orthocenter H A B C.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+
+*****
+
+*****
+forall H A B C : Point, iff (is_orthocenter' H A B C) (is_orthocenter H A B C)
++++++
+Proof.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+
+*****
+
+*****
+forall H A B C : Point, iff (is_orthocenter' H A B C) (is_orthocenter H A B C)
++++++
+intros.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+
+*****
+H,A,B,C : Point
+*****
+iff (is_orthocenter' H A B C) (is_orthocenter H A B C)
++++++
+unfold is_orthocenter in *.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+unfold is_orthocenter in *.
+
+*****
+H,A,B,C : Point
+*****
+iff (is_orthocenter' H A B C) (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))
++++++
+unfold is_orthocenter' in *.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+unfold is_orthocenter in *.
+unfold is_orthocenter' in *.
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))))) (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))
++++++
+rewrite (herron_qin A B C).
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+unfold is_orthocenter in *.
+unfold is_orthocenter' in *.
+rewrite (herron_qin A B C).
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))) (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))
++++++
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (Py A B A * Py A C A - Py B A C * Py B A C) by (field;solve_conds).
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+unfold is_orthocenter in *.
+unfold is_orthocenter' in *.
+rewrite (herron_qin A B C).
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (Py A B A * Py A C A - Py B A C * Py B A C) by (field;solve_conds).
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (a_ratio H A B C (Fdiv (Fmult (Py A B C) (Py A C B)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py B A C) (Py B C A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) (Fdiv (Fmult (Py C A B) (Py C B A)) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))
++++++
+tauto.
+-----
+Lemma is_orthocenter_equiv : forall H A B C, is_orthocenter' H A B C <-> is_orthocenter H A B C.
+Proof.
+intros.
+unfold is_orthocenter in *.
+unfold is_orthocenter' in *.
+rewrite (herron_qin A B C).
+replace (2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (Py A B A * Py A C A - Py B A C * Py B A C) by (field;solve_conds).
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition is_circumcenter' O A B C := \n  a_ratio O A B C (Py B C B * Py B A C / ((2*2*2*2*2) * (S A B C * S A B C)))\n                            (Py A C A * Py A B C / ((2*2*2*2*2) * (S A B C * S A B C)))\n                           (Py A B A * Py A C B / ((2*2*2*2*2) * (S A B C * S A B C))).
+-----
+Definition is_circumcenter O A B C := \n  a_ratio O A B C (Py B C B * Py B A C / (2*(Py A B A * Py A C A - Py B A C * Py B A C)))\n                            (Py A C A * Py A B C /(2*(Py A B A * Py A C A - Py B A C * Py B A C)))\n                           (Py A B A * Py A C B / (2*(Py A B A * Py A C A - Py B A C * Py B A C))).
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C,\n is_circumcenter H A B C -> \n (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_circumcenter H A B C), not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+Proof.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_circumcenter H A B C), not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+intros.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+
+*****
+H0 : is_circumcenter H A B C
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+unfold is_circumcenter in H0.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+
+*****
+H0 : a_ratio H A B C\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+unfold a_ratio in H0.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+
+*****
+H0 : and (not (Col A B C))\n (and\n (eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))))\n (and\n (eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))))\n (eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))))))
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+use H0.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))) F0)
++++++
+repeat (apply nonzeromult).
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (S A B C) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+H5 : eq (Fdiv (S A B H) (S A B C))\n (Fdiv (Fmult (Py A B A) (Py A C B))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H2 : eq (Fdiv (S A H C) (S A B C))\n (Fdiv (Fmult (Py A C A) (Py A B C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H3 : eq (Fdiv (S H B C) (S A B C))\n (Fdiv (Fmult (Py B C B) (Py B A C))\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))))
+H1 : not (Col A B C)
+H,A,B,C : Point
+*****
+not (eq (S A B C) F0)
++++++
+auto with Geom.
+-----
+Lemma is_circumcenter_non_zero' : forall H A B C, is_circumcenter H A B C -> (2*2*2*2*2) * (S A B C * S A B C) <> 0.
+Proof.
+intros.
+unfold is_circumcenter in H0.
+unfold a_ratio in H0.
+use H0.
+repeat (apply nonzeromult).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C,\n is_circumcenter H A B C -> \n 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_circumcenter H A B C), not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+Proof.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+
+*****
+
+*****
+forall (H A B C : Point) (_ : is_circumcenter H A B C), not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+intros.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+
+*****
+H0 : is_circumcenter H A B C
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+apply is_circumcenter_non_zero' in H0.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_circumcenter_non_zero' in H0.
+
+*****
+H0 : not\n (eq\n (Fmult\n (Fmult\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1))\n (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C)))\n F0)
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+rewrite (herron_qin A B C) in *.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_circumcenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+
+*****
+H0 : not\n (eq\n (Fmult\n (Fmult\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1))\n (Fplus F1 F1)) (Fplus F1 F1))\n (Fmult\n (Fdiv F1\n (Fmult\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1))\n (Fplus F1 F1)) (Fplus F1 F1)))\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C))))) F0)
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2 * (Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_circumcenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2 * (Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+
+*****
+H0 : not\n (eq\n (Fmult (Fplus F1 F1)\n (Fminus (Fmult (Py A B A) (Py A C A))\n (Fmult (Py B A C) (Py B A C)))) F0)
+H,A,B,C : Point
+*****
+not (eq (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))) F0)
++++++
+auto.
+-----
+Lemma is_circumcenter_non_zero : forall H A B C, is_circumcenter H A B C -> 2*(Py A B A * Py A C A - Py B A C * Py B A C) <> 0.
+Proof.
+intros.
+apply is_circumcenter_non_zero' in H0.
+rewrite (herron_qin A B C) in *.
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2 * (Py A B A * Py A C A - Py B A C * Py B A C)) in * by (field;solve_conds).
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, \n is_circumcenter' H A B C <-> is_circumcenter H A B C.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+
+*****
+
+*****
+forall H A B C : Point, iff (is_circumcenter' H A B C) (is_circumcenter H A B C)
++++++
+Proof.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+
+*****
+
+*****
+forall H A B C : Point, iff (is_circumcenter' H A B C) (is_circumcenter H A B C)
++++++
+intros.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+
+*****
+H,A,B,C : Point
+*****
+iff (is_circumcenter' H A B C) (is_circumcenter H A B C)
++++++
+unfold is_circumcenter in *.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+unfold is_circumcenter in *.
+
+*****
+H,A,B,C : Point
+*****
+iff (is_circumcenter' H A B C) (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))
++++++
+unfold is_circumcenter' in *.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+unfold is_circumcenter in *.
+unfold is_circumcenter' in *.
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C)))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C)))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (S A B C) (S A B C))))) (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))
++++++
+rewrite (herron_qin A B C).
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+unfold is_circumcenter in *.
+unfold is_circumcenter' in *.
+rewrite (herron_qin A B C).
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fmult (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1)) (Fmult (Fdiv F1 (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (Fplus F1 F1)) (Fplus F1 F1))) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))) (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))
++++++
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2*(Py A B A * Py A C A - Py B A C * Py B A C)) by (field;solve_conds).
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+unfold is_circumcenter in *.
+unfold is_circumcenter' in *.
+rewrite (herron_qin A B C).
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2*(Py A B A * Py A C A - Py B A C * Py B A C)) by (field;solve_conds).
+
+*****
+H,A,B,C : Point
+*****
+iff (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C)))))) (a_ratio H A B C (Fdiv (Fmult (Py B C B) (Py B A C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A C A) (Py A B C)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))) (Fdiv (Fmult (Py A B A) (Py A C B)) (Fmult (Fplus F1 F1) (Fminus (Fmult (Py A B A) (Py A C A)) (Fmult (Py B A C) (Py B A C))))))
++++++
+tauto.
+-----
+Lemma is_circumcenter_equiv : forall H A B C, is_circumcenter' H A B C <-> is_circumcenter H A B C.
+Proof.
+intros.
+unfold is_circumcenter in *.
+unfold is_circumcenter' in *.
+rewrite (herron_qin A B C).
+replace (2 * 2 * 2 * 2 * 2 * (1 / (2 * 2 * 2 * 2) * (Py A B A * Py A C A - Py B A C * Py B A C))) with (2*(Py A B A * Py A C A - Py B A C * Py B A C)) by (field;solve_conds).
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition is_Lemoine L A B C :=\n a_ratio L A B C (Py B C B / (Py A B A + Py B C B + Py A C A))\n                 (Py A C A / (Py A B A + Py B C B + Py A C A))\n                 (Py A B A / (Py A B A + Py B C B + Py A C A)).
+-----

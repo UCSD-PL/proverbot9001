@@ -1,0 +1,2087 @@
+Require Import basis.
+-----
+Require Import part1.
+-----
+Theorem thm4_1a :\n forall (x : Segment) (l : Line),\n DiLn l (ln x) -> Apart (origin x) l \/ Apart (extremity x) l.
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+
+*****
+
+*****
+forall (x : Segment) (l : Line) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+Proof.
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+
+*****
+
+*****
+forall (x : Segment) (l : Line) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+intros x l.
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+
+*****
+l : Line
+x : Segment
+*****
+forall _ : DiLn l (ln x), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+generalize (inc_ln2 x).
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : Incident (extremity x) (ln x)) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+generalize (inc_ln1 x).
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : Incident (origin x) (ln x)) (_ : Incident (extremity x) (ln x)) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+unfold Incident in |- *.
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : not (Apart (origin x) (ln x))) (_ : not (Apart (extremity x) (ln x))) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+generalize (el_ax x l (ln x)).
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+generalize (el_ax x l (ln x)).
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : forall _ : DiLn l (ln x), or (or (Apart (origin x) l) (Apart (extremity x) l)) (or (Apart (origin x) (ln x)) (Apart (extremity x) (ln x)))) (_ : not (Apart (origin x) (ln x))) (_ : not (Apart (extremity x) (ln x))) (_ : DiLn l (ln x)), or (Apart (origin x) l) (Apart (extremity x) l)
++++++
+tauto.
+-----
+Theorem thm4_1a : forall (x : Segment) (l : Line), DiLn l (ln x) -> Apart (origin x) l \\/ Apart (extremity x) l.
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+generalize (el_ax x l (ln x)).
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_1b :\n forall (x : Segment) (l : Line),\n Apart (origin x) l \/ Apart (extremity x) l -> DiLn l (ln x).
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+
+*****
+
+*****
+forall (x : Segment) (l : Line) (_ : or (Apart (origin x) l) (Apart (extremity x) l)), DiLn l (ln x)
++++++
+Proof.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+
+*****
+
+*****
+forall (x : Segment) (l : Line) (_ : or (Apart (origin x) l) (Apart (extremity x) l)), DiLn l (ln x)
++++++
+intros x l.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+
+*****
+l : Line
+x : Segment
+*****
+forall _ : or (Apart (origin x) l) (Apart (extremity x) l), DiLn l (ln x)
++++++
+generalize (inc_ln2 x).
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : Incident (extremity x) (ln x)) (_ : or (Apart (origin x) l) (Apart (extremity x) l)), DiLn l (ln x)
++++++
+generalize (inc_ln1 x).
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : Incident (origin x) (ln x)) (_ : Incident (extremity x) (ln x)) (_ : or (Apart (origin x) l) (Apart (extremity x) l)), DiLn l (ln x)
++++++
+unfold Incident in |- *.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+
+*****
+l : Line
+x : Segment
+*****
+forall (_ : not (Apart (origin x) (ln x))) (_ : not (Apart (extremity x) (ln x))) (_ : or (Apart (origin x) l) (Apart (extremity x) l)), DiLn l (ln x)
++++++
+intros H' H'0 H'1.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+
+*****
+H'1 : or (Apart (origin x) l) (Apart (extremity x) l)
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+DiLn l (ln x)
++++++
+elim H'1.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+H'1 : or (Apart (origin x) l) (Apart (extremity x) l)
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : Apart (origin x) l, DiLn l (ln x)
++++++
+intro H'2.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+
+*****
+H'2 : Apart (origin x) l
+H'1 : or (Apart (origin x) l) (Apart (extremity x) l)
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+DiLn l (ln x)
++++++
+clear H'1.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+
+*****
+H'2 : Apart (origin x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+DiLn l (ln x)
++++++
+elim (cmp_apt_diln (origin x) l (ln x)).
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (origin x) l (ln x)).
+
+*****
+H'2 : Apart (origin x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : DiLn l (ln x), DiLn l (ln x)
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (origin x) l (ln x)).
+
+*****
+H'2 : Apart (origin x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : Apart (origin x) (ln x), DiLn l (ln x)
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (origin x) l (ln x)).
+
+*****
+H'2 : Apart (origin x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+Apart (origin x) l
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+H'1 : or (Apart (origin x) l) (Apart (extremity x) l)
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : Apart (extremity x) l, DiLn l (ln x)
++++++
+intro H'2.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+
+*****
+H'2 : Apart (extremity x) l
+H'1 : or (Apart (origin x) l) (Apart (extremity x) l)
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+DiLn l (ln x)
++++++
+clear H'1.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+
+*****
+H'2 : Apart (extremity x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+DiLn l (ln x)
++++++
+elim (cmp_apt_diln (extremity x) l (ln x)).
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (extremity x) l (ln x)).
+
+*****
+H'2 : Apart (extremity x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : DiLn l (ln x), DiLn l (ln x)
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (extremity x) l (ln x)).
+
+*****
+H'2 : Apart (extremity x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+forall _ : Apart (extremity x) (ln x), DiLn l (ln x)
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+elim (cmp_apt_diln (extremity x) l (ln x)).
+
+*****
+H'2 : Apart (extremity x) l
+H'0 : not (Apart (extremity x) (ln x))
+H' : not (Apart (origin x) (ln x))
+l : Line
+x : Segment
+*****
+Apart (extremity x) l
++++++
+tauto.
+-----
+Theorem thm4_1b : forall (x : Segment) (l : Line), Apart (origin x) l \\/ Apart (extremity x) l -> DiLn l (ln x).
+Proof.
+intros x l.
+generalize (inc_ln2 x).
+generalize (inc_ln1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve thm4_1a thm4_1b.
+-----
+Theorem thm4_1c :\n forall (x : Twolines) (a : Point),\n DiPt a (pt x) -> Apart a (line1 x) \/ Apart a (line2 x).
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+
+*****
+
+*****
+forall (x : Twolines) (a : Point) (_ : DiPt a (pt x)), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+Proof.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+
+*****
+
+*****
+forall (x : Twolines) (a : Point) (_ : DiPt a (pt x)), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+intros x a.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+
+*****
+a : Point
+x : Twolines
+*****
+forall _ : DiPt a (pt x), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+generalize (inc_pt2 x).
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : Incident (pt x) (line2 x)) (_ : DiPt a (pt x)), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+generalize (inc_pt1 x).
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : Incident (pt x) (line1 x)) (_ : Incident (pt x) (line2 x)) (_ : DiPt a (pt x)), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+unfold Incident in |- *.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : not (Apart (pt x) (line1 x))) (_ : not (Apart (pt x) (line2 x))) (_ : DiPt a (pt x)), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+intros H' H'0 H'1.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : forall _ : DiLn (line1 x) (line2 x), or (or (Apart (origin {| origin := a; extremity := pt x; Seg_cond := H'1 |}) (line1 x)) (Apart (extremity {| origin := a; extremity := pt x; Seg_cond := H'1 |}) (line1 x))) (or (Apart (origin {| origin := a; extremity := pt x; Seg_cond := H'1 |}) (line2 x)) (Apart (extremity {| origin := a; extremity := pt x; Seg_cond := H'1 |}) (line2 x))), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+simpl in |- *.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+simpl in |- *.
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : forall _ : DiLn (line1 x) (line2 x), or (or (Apart a (line1 x)) (Apart (pt x) (line1 x))) (or (Apart a (line2 x)) (Apart (pt x) (line2 x))), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+cut (DiLn (line1 x) (line2 x)).
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+simpl in |- *.
+cut (DiLn (line1 x) (line2 x)).
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall (_ : DiLn (line1 x) (line2 x)) (_ : forall _ : DiLn (line1 x) (line2 x), or (or (Apart a (line1 x)) (Apart (pt x) (line1 x))) (or (Apart a (line2 x)) (Apart (pt x) (line2 x)))), or (Apart a (line1 x)) (Apart a (line2 x))
++++++
+tauto.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+simpl in |- *.
+cut (DiLn (line1 x) (line2 x)).
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiLn (line1 x) (line2 x)
++++++
+elim x.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+simpl in |- *.
+cut (DiLn (line1 x) (line2 x)).
+elim x.
+
+*****
+H'1 : DiPt a (pt x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall (line3 line4 : Line) (Twol_cond : ConLn line3 line4), DiLn (line1 {| line1 := line3; line2 := line4; Twol_cond := Twol_cond |}) (line2 {| line1 := line3; line2 := line4; Twol_cond := Twol_cond |})
++++++
+auto.
+-----
+Theorem thm4_1c : forall (x : Twolines) (a : Point), DiPt a (pt x) -> Apart a (line1 x) \\/ Apart a (line2 x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+generalize (el_ax (Seg a (pt x) H'1) (line1 x) (line2 x)).
+simpl in |- *.
+cut (DiLn (line1 x) (line2 x)).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_1d :\n forall (x : Twolines) (a : Point),\n Apart a (line1 x) \/ Apart a (line2 x) -> DiPt a (pt x).
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+
+*****
+
+*****
+forall (x : Twolines) (a : Point) (_ : or (Apart a (line1 x)) (Apart a (line2 x))), DiPt a (pt x)
++++++
+Proof.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+
+*****
+
+*****
+forall (x : Twolines) (a : Point) (_ : or (Apart a (line1 x)) (Apart a (line2 x))), DiPt a (pt x)
++++++
+intros x a.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+
+*****
+a : Point
+x : Twolines
+*****
+forall _ : or (Apart a (line1 x)) (Apart a (line2 x)), DiPt a (pt x)
++++++
+generalize (inc_pt2 x).
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : Incident (pt x) (line2 x)) (_ : or (Apart a (line1 x)) (Apart a (line2 x))), DiPt a (pt x)
++++++
+generalize (inc_pt1 x).
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : Incident (pt x) (line1 x)) (_ : Incident (pt x) (line2 x)) (_ : or (Apart a (line1 x)) (Apart a (line2 x))), DiPt a (pt x)
++++++
+unfold Incident in |- *.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+
+*****
+a : Point
+x : Twolines
+*****
+forall (_ : not (Apart (pt x) (line1 x))) (_ : not (Apart (pt x) (line2 x))) (_ : or (Apart a (line1 x)) (Apart a (line2 x))), DiPt a (pt x)
++++++
+intros H' H'0 H'1.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+
+*****
+H'1 : or (Apart a (line1 x)) (Apart a (line2 x))
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiPt a (pt x)
++++++
+elim H'1.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+H'1 : or (Apart a (line1 x)) (Apart a (line2 x))
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : Apart a (line1 x), DiPt a (pt x)
++++++
+intro H'2.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+
+*****
+H'2 : Apart a (line1 x)
+H'1 : or (Apart a (line1 x)) (Apart a (line2 x))
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiPt a (pt x)
++++++
+clear H'1.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+
+*****
+H'2 : Apart a (line1 x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiPt a (pt x)
++++++
+generalize (cmp_apt_dipt a (pt x) (line1 x)).
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+generalize (cmp_apt_dipt a (pt x) (line1 x)).
+
+*****
+H'2 : Apart a (line1 x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : forall _ : Apart a (line1 x), or (DiPt a (pt x)) (Apart (pt x) (line1 x)), DiPt a (pt x)
++++++
+tauto.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+H'1 : or (Apart a (line1 x)) (Apart a (line2 x))
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : Apart a (line2 x), DiPt a (pt x)
++++++
+intro H'2.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+
+*****
+H'2 : Apart a (line2 x)
+H'1 : or (Apart a (line1 x)) (Apart a (line2 x))
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiPt a (pt x)
++++++
+clear H'1.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+
+*****
+H'2 : Apart a (line2 x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+DiPt a (pt x)
++++++
+generalize (cmp_apt_dipt a (pt x) (line2 x)).
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+intro H'2.
+clear H'1.
+generalize (cmp_apt_dipt a (pt x) (line2 x)).
+
+*****
+H'2 : Apart a (line2 x)
+H'0 : not (Apart (pt x) (line2 x))
+H' : not (Apart (pt x) (line1 x))
+a : Point
+x : Twolines
+*****
+forall _ : forall _ : Apart a (line2 x), or (DiPt a (pt x)) (Apart (pt x) (line2 x)), DiPt a (pt x)
++++++
+tauto.
+-----
+Theorem thm4_1d : forall (x : Twolines) (a : Point), Apart a (line1 x) \\/ Apart a (line2 x) -> DiPt a (pt x).
+Proof.
+intros x a.
+generalize (inc_pt2 x).
+generalize (inc_pt1 x).
+unfold Incident in |- *.
+intros H' H'0 H'1.
+elim H'1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Symmetry_of_Apart :\n forall x y : Segment,\n Apart (origin x) (ln y) \/ Apart (extremity x) (ln y) ->\n Apart (origin y) (ln x) \/ Apart (extremity y) (ln x).
+-----
+Theorem Symmetry_of_Apart : forall x y : Segment, Apart (origin x) (ln y) \\/ Apart (extremity x) (ln y) -> Apart (origin y) (ln x) \\/ Apart (extremity y) (ln x).
+
+*****
+
+*****
+forall (x y : Segment) (_ : or (Apart (origin x) (ln y)) (Apart (extremity x) (ln y))), or (Apart (origin y) (ln x)) (Apart (extremity y) (ln x))
++++++
+intros x y H'.
+-----
+Theorem Symmetry_of_Apart : forall x y : Segment, Apart (origin x) (ln y) \\/ Apart (extremity x) (ln y) -> Apart (origin y) (ln x) \\/ Apart (extremity y) (ln x).
+intros x y H'.
+
+*****
+H' : or (Apart (origin x) (ln y)) (Apart (extremity x) (ln y))
+x,y : Segment
+*****
+or (Apart (origin y) (ln x)) (Apart (extremity y) (ln x))
++++++
+apply thm4_1a.
+-----
+Theorem Symmetry_of_Apart : forall x y : Segment, Apart (origin x) (ln y) \\/ Apart (extremity x) (ln y) -> Apart (origin y) (ln x) \\/ Apart (extremity y) (ln x).
+intros x y H'.
+apply thm4_1a.
+
+*****
+H' : or (Apart (origin x) (ln y)) (Apart (extremity x) (ln y))
+x,y : Segment
+*****
+DiLn (ln x) (ln y)
++++++
+apply sym_DiLn.
+-----
+Theorem Symmetry_of_Apart : forall x y : Segment, Apart (origin x) (ln y) \\/ Apart (extremity x) (ln y) -> Apart (origin y) (ln x) \\/ Apart (extremity y) (ln x).
+intros x y H'.
+apply thm4_1a.
+apply sym_DiLn.
+
+*****
+H' : or (Apart (origin x) (ln y)) (Apart (extremity x) (ln y))
+x,y : Segment
+*****
+DiLn (ln y) (ln x)
++++++
+auto.
+-----
+Theorem Symmetry_of_Apart : forall x y : Segment, Apart (origin x) (ln y) \\/ Apart (extremity x) (ln y) -> Apart (origin y) (ln x) \\/ Apart (extremity y) (ln x).
+intros x y H'.
+apply thm4_1a.
+apply sym_DiLn.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_3a :\n forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+
+*****
+
+*****
+forall (x : Segment) (c : Point) (_ : Apart c (ln x)), DiPt c (origin x)
++++++
+Proof.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+
+*****
+
+*****
+forall (x : Segment) (c : Point) (_ : Apart c (ln x)), DiPt c (origin x)
++++++
+intros x c H'.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+DiPt c (origin x)
++++++
+elim (cmp_apt_dipt c (origin x) (ln x)).
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : DiPt c (origin x), DiPt c (origin x)
++++++
+trivial.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : Apart (origin x) (ln x), DiPt c (origin x)
++++++
+trivial.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+trivial.
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : Apart (origin x) (ln x), DiPt c (origin x)
++++++
+intro H0.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+trivial.
+intro H0.
+
+*****
+H0 : Apart (origin x) (ln x)
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+DiPt c (origin x)
++++++
+elim (inc_ln1 x).
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+trivial.
+intro H0.
+elim (inc_ln1 x).
+
+*****
+H0 : Apart (origin x) (ln x)
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+Apart (origin x) (ln x)
++++++
+trivial.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+Apart c (ln x)
++++++
+trivial.
+-----
+Theorem thm4_3a : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (origin x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (origin x) (ln x)).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_3b :\n forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+
+*****
+
+*****
+forall (x : Segment) (c : Point) (_ : Apart c (ln x)), DiPt c (extremity x)
++++++
+Proof.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+
+*****
+
+*****
+forall (x : Segment) (c : Point) (_ : Apart c (ln x)), DiPt c (extremity x)
++++++
+intros x c H'.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+DiPt c (extremity x)
++++++
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : DiPt c (extremity x), DiPt c (extremity x)
++++++
+trivial.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : Apart (extremity x) (ln x), DiPt c (extremity x)
++++++
+trivial.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+trivial.
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+forall _ : Apart (extremity x) (ln x), DiPt c (extremity x)
++++++
+intro H0.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+trivial.
+intro H0.
+
+*****
+H0 : Apart (extremity x) (ln x)
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+DiPt c (extremity x)
++++++
+elim (inc_ln2 x).
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+trivial.
+intro H0.
+elim (inc_ln2 x).
+
+*****
+H0 : Apart (extremity x) (ln x)
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+Apart (extremity x) (ln x)
++++++
+trivial.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+
+*****
+H' : Apart c (ln x)
+c : Point
+x : Segment
+*****
+Apart c (ln x)
++++++
+trivial.
+-----
+Theorem thm4_3b : forall (x : Segment) (c : Point), Apart c (ln x) -> DiPt c (extremity x).
+Proof.
+intros x c H'.
+elim (cmp_apt_dipt c (extremity x) (ln x)).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition Side1 : Triangle -> Segment.
+-----
+Definition Side1 : Triangle -> Segment.
+
+*****
+
+*****
+forall _ : Triangle, Segment
++++++
+Proof.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+
+*****
+
+*****
+forall _ : Triangle, Segment
++++++
+intro H'.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+
+*****
+H' : Triangle
+*****
+Segment
++++++
+elim H'.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+
+*****
+H' : Triangle
+*****
+forall (summit : Point) (base : Segment) (_ : Apart summit (ln base)), Segment
++++++
+clear H'.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+
+*****
+
+*****
+forall (summit : Point) (base : Segment) (_ : Apart summit (ln base)), Segment
++++++
+intros summit base H'.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Segment
++++++
+apply (Seg summit (origin base)).
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (origin base)).
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+DiPt summit (origin base)
++++++
+apply thm4_3a.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (origin base)).
+apply thm4_3a.
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Apart summit (ln base)
++++++
+trivial.
+-----
+Definition Side1 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (origin base)).
+apply thm4_3a.
+trivial.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Definition Side2 : Triangle -> Segment.
+-----
+Definition Side2 : Triangle -> Segment.
+
+*****
+
+*****
+forall _ : Triangle, Segment
++++++
+Proof.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+
+*****
+
+*****
+forall _ : Triangle, Segment
++++++
+intro H'.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+
+*****
+H' : Triangle
+*****
+Segment
++++++
+elim H'.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+
+*****
+H' : Triangle
+*****
+forall (summit : Point) (base : Segment) (_ : Apart summit (ln base)), Segment
++++++
+clear H'.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+
+*****
+
+*****
+forall (summit : Point) (base : Segment) (_ : Apart summit (ln base)), Segment
++++++
+intros summit base H'.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Segment
++++++
+apply (Seg summit (extremity base)).
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (extremity base)).
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+DiPt summit (extremity base)
++++++
+apply thm4_3b.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (extremity base)).
+apply thm4_3b.
+
+*****
+H' : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Apart summit (ln base)
++++++
+trivial.
+-----
+Definition Side2 : Triangle -> Segment.
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base H'.
+apply (Seg summit (extremity base)).
+apply thm4_3b.
+trivial.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+
+*****
+
+*****
+forall t : Triangle, eq (origin (base t)) (extremity (Side1 t))
++++++
+Proof.
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, eq (origin (base t)) (extremity (Side1 t))
++++++
+intro t.
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+Proof.
+intro t.
+
+*****
+t : Triangle
+*****
+eq (origin (base t)) (extremity (Side1 t))
++++++
+elim t.
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+Proof.
+intro t.
+elim t.
+
+*****
+t : Triangle
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), eq (origin (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (extremity (Side1 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem auxs1 : forall t : Triangle, origin (base t) = extremity (Side1 t).
+Proof.
+intro t.
+elim t.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+
+*****
+
+*****
+forall t : Triangle, eq (extremity (base t)) (extremity (Side2 t))
++++++
+Proof.
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, eq (extremity (base t)) (extremity (Side2 t))
++++++
+intro t.
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+Proof.
+intro t.
+
+*****
+t : Triangle
+*****
+eq (extremity (base t)) (extremity (Side2 t))
++++++
+elim t.
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+Proof.
+intro t.
+elim t.
+
+*****
+t : Triangle
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), eq (extremity (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (extremity (Side2 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem auxs2 : forall t : Triangle, extremity (base t) = extremity (Side2 t).
+Proof.
+intro t.
+elim t.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+
+*****
+
+*****
+forall t : Triangle, eq (summit t) (origin (Side1 t))
++++++
+Proof.
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, eq (summit t) (origin (Side1 t))
++++++
+intro t.
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+Proof.
+intro t.
+
+*****
+t : Triangle
+*****
+eq (summit t) (origin (Side1 t))
++++++
+elim t.
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+Proof.
+intro t.
+elim t.
+
+*****
+t : Triangle
+*****
+forall (summit0 : Point) (base : Segment) (Tri_cond : Apart summit0 (ln base)), eq (summit {| summit := summit0; base := base; Tri_cond := Tri_cond |}) (origin (Side1 {| summit := summit0; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem auxs3 : forall t : Triangle, summit t = origin (Side1 t).
+Proof.
+intro t.
+elim t.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+
+*****
+
+*****
+forall t : Triangle, eq (summit t) (origin (Side2 t))
++++++
+Proof.
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, eq (summit t) (origin (Side2 t))
++++++
+intro t.
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+Proof.
+intro t.
+
+*****
+t : Triangle
+*****
+eq (summit t) (origin (Side2 t))
++++++
+elim t.
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+Proof.
+intro t.
+elim t.
+
+*****
+t : Triangle
+*****
+forall (summit0 : Point) (base : Segment) (Tri_cond : Apart summit0 (ln base)), eq (summit {| summit := summit0; base := base; Tri_cond := Tri_cond |}) (origin (Side2 {| summit := summit0; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem auxs4 : forall t : Triangle, summit t = origin (Side2 t).
+Proof.
+intro t.
+elim t.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+
+*****
+
+*****
+forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t))
++++++
+Proof.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t))
++++++
+intro H'.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+
+*****
+H' : Triangle
+*****
+DiLn (ln (base H')) (ln (Side1 H'))
++++++
+elim H'.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+
+*****
+H' : Triangle
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), DiLn (ln (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (ln (Side1 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+clear H'.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+
+*****
+
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), DiLn (ln (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (ln (Side1 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+intros summit base Tri_cond.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side1 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+elim (cmp_apt_diln summit (ln base) (ln (Side1 (Tri summit base Tri_cond)))).
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side1 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+forall _ : DiLn (ln base) (ln (Side1 {| summit := summit; base := base; Tri_cond := Tri_cond |})), DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side1 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side1 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+forall _ : Apart summit (ln (Side1 {| summit := summit; base := base; Tri_cond := Tri_cond |})), DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side1 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side1 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Apart summit (ln base)
++++++
+auto.
+-----
+Theorem thm4_3c : forall t : Triangle, DiLn (ln (base t)) (ln (Side1 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side1 (Tri summit base Tri_cond)))).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+
+*****
+
+*****
+forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t))
++++++
+Proof.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+
+*****
+
+*****
+forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t))
++++++
+intro H'.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+
+*****
+H' : Triangle
+*****
+DiLn (ln (base H')) (ln (Side2 H'))
++++++
+elim H'.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+
+*****
+H' : Triangle
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), DiLn (ln (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (ln (Side2 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+clear H'.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+
+*****
+
+*****
+forall (summit : Point) (base0 : Segment) (Tri_cond : Apart summit (ln base0)), DiLn (ln (base {| summit := summit; base := base0; Tri_cond := Tri_cond |})) (ln (Side2 {| summit := summit; base := base0; Tri_cond := Tri_cond |}))
++++++
+intros summit base Tri_cond.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side2 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+elim (cmp_apt_diln summit (ln base) (ln (Side2 (Tri summit base Tri_cond)))).
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side2 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+forall _ : DiLn (ln base) (ln (Side2 {| summit := summit; base := base; Tri_cond := Tri_cond |})), DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side2 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side2 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+forall _ : Apart summit (ln (Side2 {| summit := summit; base := base; Tri_cond := Tri_cond |})), DiLn (ln (basis.base {| summit := summit; base := base; Tri_cond := Tri_cond |})) (ln (Side2 {| summit := summit; base := base; Tri_cond := Tri_cond |}))
++++++
+auto.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side2 (Tri summit base Tri_cond)))).
+
+*****
+Tri_cond : Apart summit (ln base)
+base : Segment
+summit : Point
+*****
+Apart summit (ln base)
++++++
+auto.
+-----
+Theorem thm4_3d : forall t : Triangle, DiLn (ln (base t)) (ln (Side2 t)).
+Proof.
+intro H'.
+elim H'.
+clear H'.
+intros summit base Tri_cond.
+elim (cmp_apt_diln summit (ln base) (ln (Side2 (Tri summit base Tri_cond)))).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve thm4_3c thm4_3d.
+-----

@@ -1,0 +1,8 @@
+a6794db786311dce39145032920e2f12
+Require Import ExtLib.Core.Type.
+Require Import ExtLib.Structures.Proper.
+Require Import ExtLib.Structures.Monads.
+Require Import ExtLib.Structures.MonadLaws.
+Require Import ExtLib.Tactics.TypeTac.
+Set Implicit Arguments.
+Set Strict Implicit.

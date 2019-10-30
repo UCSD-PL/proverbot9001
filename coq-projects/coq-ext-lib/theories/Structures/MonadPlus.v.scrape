@@ -1,0 +1,14 @@
+Require Import ExtLib.Structures.Monad.
+-----
+Set Implicit Arguments.
+-----
+Class MonadPlus (m : Type -> Type) : Type :=\n{ mplus : forall {A B:Type}, m A -> m B -> m (A + B)%type }.
+-----
+Definition mjoin {m : Type -> Type} {M : Monad m} {MP : MonadPlus m} {T} (a b : m T) : m T :=\n  bind (mplus a b) (fun x =>\n    match x with\n      | inl x | inr x => ret x\n    end).
+-----
+Module MonadPlusNotation.
+-----
+Notation "x <+> y" := (@mplus _ _ _ _ x y) (at level 49, right associativity) : monad_scope.
+-----
+End MonadPlusNotation.
+-----

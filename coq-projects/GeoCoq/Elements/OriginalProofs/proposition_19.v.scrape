@@ -1,0 +1,2867 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_angletrichotomy.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.proposition_18.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_trichotomy1.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma proposition_19 : \n   forall A B C, \n   Triangle A B C -> LtA B C A A B C ->\n   Lt A B A C.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C : Point) (_ : Triangle A B C) (_ : LtA B C A A B C), Lt A B A C
++++++
+Proof.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C : Point) (_ : Triangle A B C) (_ : LtA B C A A B C), Lt A B A C
++++++
+intros.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+
+*****
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (nCol A B C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+
+*****
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+nCol A B C
++++++
+conclude_def Triangle .
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+
+*****
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+
+*****
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (nCol B C A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+
+*****
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+nCol B C A
++++++
+forward_using lemma_NCorder.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+
+*****
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+
+*****
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (nCol A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+
+*****
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+nCol A C B
++++++
+forward_using lemma_NCorder.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+
+*****
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+
+*****
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (~ Cong A C A B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+
+*****
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (Cong A C A B)
++++++
+intro.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+
+*****
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong A B A C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+
+*****
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B A C
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+
+*****
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+
+*****
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (isosceles A B C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+
+*****
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+isosceles A B C
++++++
+conclude_def isosceles .
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+
+*****
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+
+*****
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B C A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+
+*****
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C A C B
++++++
+conclude proposition_05.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+
+*****
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+
+*****
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA A C B A B C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+
+*****
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A C B A B C
++++++
+conclude lemma_equalanglessymmetric.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+
+*****
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+
+*****
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA B C A A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+
+*****
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA B C A A C B
++++++
+conclude lemma_ABCequalsCBA.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+
+*****
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+
+*****
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA B C A A B C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+
+*****
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA B C A A B C
++++++
+conclude lemma_equalanglestransitive.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+
+*****
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+
+*****
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (LtA B C A B C A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+
+*****
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+LtA B C A B C A
++++++
+conclude lemma_angleorderrespectscongruence.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+
+*****
+H11 : LtA B C A B C A
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+idtac.
+
+*****
+H11 : LtA B C A B C A
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (~ LtA B C A B C A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+idtac.
+assert (~ LtA B C A B C A).
+
+*****
+H11 : LtA B C A B C A
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (LtA B C A B C A)
++++++
+conclude lemma_angletrichotomy.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+idtac.
+assert (~ LtA B C A B C A).
+
+*****
+H12 : not (LtA B C A B C A)
+H11 : LtA B C A B C A
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (isosceles A B C).
+idtac.
+assert (CongA A B C A C B).
+idtac.
+assert (CongA A C B A B C).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (CongA B C A A B C).
+idtac.
+assert (LtA B C A B C A).
+idtac.
+assert (~ LtA B C A B C A).
+idtac.
+
+*****
+H12 : not (LtA B C A B C A)
+H11 : LtA B C A B C A
+H10 : CongA B C A A B C
+H9 : CongA B C A A C B
+H8 : CongA A C B A B C
+H7 : CongA A B C A C B
+H6 : isosceles A B C
+H5 : Cong A B A C
+H4 : Cong A C A B
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+
+*****
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (~ Lt A C A B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+
+*****
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (Lt A C A B)
++++++
+intro.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+
+*****
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Triangle A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+
+*****
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Triangle A C B
++++++
+conclude_def Triangle .
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+
+*****
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+
+*****
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (LtA C B A A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+
+*****
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+LtA C B A A C B
++++++
+conclude proposition_18.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+
+*****
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+
+*****
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B C C B A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+
+*****
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C C B A
++++++
+conclude lemma_ABCequalsCBA.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+
+*****
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+
+*****
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (LtA A B C A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+
+*****
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+LtA A B C A C B
++++++
+conclude lemma_angleorderrespectscongruence2.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+
+*****
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+
+*****
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CongA B C A A C B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+
+*****
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA B C A A C B
++++++
+conclude lemma_ABCequalsCBA.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+
+*****
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+
+*****
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (LtA A B C B C A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+
+*****
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+LtA A B C B C A
++++++
+conclude lemma_angleorderrespectscongruence.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+
+*****
+H11 : LtA A B C B C A
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+idtac.
+
+*****
+H11 : LtA A B C B C A
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (~ LtA A B C B C A).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+idtac.
+assert (~ LtA A B C B C A).
+
+*****
+H11 : LtA A B C B C A
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (LtA A B C B C A)
++++++
+conclude lemma_angletrichotomy.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+idtac.
+assert (~ LtA A B C B C A).
+
+*****
+H12 : not (LtA A B C B C A)
+H11 : LtA A B C B C A
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+intro.
+assert (Triangle A C B).
+idtac.
+assert (LtA C B A A C B).
+idtac.
+assert (CongA A B C C B A).
+idtac.
+assert (LtA A B C A C B).
+idtac.
+assert (CongA B C A A C B).
+idtac.
+assert (LtA A B C B C A).
+idtac.
+assert (~ LtA A B C B C A).
+idtac.
+
+*****
+H12 : not (LtA A B C B C A)
+H11 : LtA A B C B C A
+H10 : CongA B C A A C B
+H9 : LtA A B C A C B
+H8 : CongA A B C C B A
+H7 : LtA C B A A C B
+H6 : Triangle A C B
+H5 : Lt A C A B
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+
+*****
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (CongA A B C A B C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+
+*****
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C A B C
++++++
+conclude lemma_equalanglesreflexive.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+
+*****
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+
+*****
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (neq A B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+
+*****
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq A B
++++++
+forward_using lemma_angledistinct.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+
+*****
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+
+*****
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (neq A C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+
+*****
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq A C
++++++
+forward_using lemma_angledistinct.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+
+*****
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+
+*****
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+assert (~ ~ Lt A B A C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+
+*****
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (not (Lt A B A C))
++++++
+intro.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+
+*****
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong A B A C).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+
+*****
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B A C
++++++
+conclude lemma_trichotomy1.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+
+*****
+H10 : Cong A B A C
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+idtac.
+
+*****
+H10 : Cong A B A C
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong A C A B).
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (Cong A C A B).
+
+*****
+H10 : Cong A B A C
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A B
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (Cong A C A B).
+
+*****
+H11 : Cong A C A B
+H10 : Cong A B A C
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+intro.
+assert (Cong A B A C).
+idtac.
+assert (Cong A C A B).
+idtac.
+
+*****
+H11 : Cong A C A B
+H10 : Cong A B A C
+H9 : not (Lt A B A C)
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+idtac.
+assert (nCol B C A).
+idtac.
+assert (nCol A C B).
+idtac.
+assert (~ Cong A C A B).
+assert (~ Lt A C A B).
+assert (CongA A B C A B C).
+idtac.
+assert (neq A B).
+idtac.
+assert (neq A C).
+idtac.
+assert (~ ~ Lt A B A C).
+
+*****
+H9 : not (not (Lt A B A C))
+H8 : neq A C
+H7 : neq A B
+H6 : CongA A B C A B C
+H5 : not (Lt A C A B)
+H4 : not (Cong A C A B)
+H3 : nCol A C B
+H2 : nCol B C A
+H1 : nCol A B C
+H0 : LtA B C A A B C
+H : Triangle A B C
+A,B,C : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Lt A B A C
++++++
+close.
+-----
+Lemma proposition_19 : forall A B C, Triangle A B C -> LtA B C A A B C -> Lt A B A C.
+Proof.
+intros.
+assert (nCol A B C).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

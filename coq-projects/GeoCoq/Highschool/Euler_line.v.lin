@@ -1,0 +1,1269 @@
+355323fdb0ef7b10a1b9376c3f532e92
+Require Export GeoCoq.Tarski_dev.Annexes.midpoint_theorems.
+Require Export GeoCoq.Highschool.circumcenter.
+Require Export GeoCoq.Highschool.orthocenter.
+Require Export GeoCoq.Highschool.midpoint_thales.
+Require Export GeoCoq.Highschool.concyclic.
+Require Export GeoCoq.Highschool.gravityCenter.
+Section Euler_line.
+Context `{TE:Tarski_euclidean}.
+Lemma concyclic_not_col_or_eq_aux :
+  forall A B C D, Concyclic A B C D -> A = B \/ A = C \/ B = C \/ ~ Col A B C.
+Proof.
+  intros A B C D HC.
+  elim (eq_dec_points A B).
+  {
+    intro HAB.
+    Col.
+  }
+  {
+    intro HAB.
+    Col.
+    elim (eq_dec_points A C).
+    {
+      intro HAC.
+      Col.
+    }
+    {
+      intro HAC.
+      Col.
+      elim (eq_dec_points B C).
+      {
+        intro HBC.
+        Col5.
+      }
+      {
+        intro HBC.
+        Col5.
+        right.
+        right.
+        right.
+        intro HCol.
+        destruct HC as [HCop [O [HCong1 [HCong2 HCong3]]]].
+        assert (H := midpoint_existence A B).
+        destruct H as [M1 HMid1].
+        assert (HOM1 : O <> M1).
+        {
+          intro.
+          treat_equalities.
+          assert (H := l7_20 O A C).
+          elim H.
+          {
+            clear H.
+            try intro H.
+            Cong.
+          }
+          {
+            clear H.
+            try intro H.
+            Cong.
+            try (apply HBC; apply symmetric_point_uniqueness with A O; Col).
+          }
+          {
+            clear H.
+            try intro H.
+            Cong.
+            try (apply HBC; apply symmetric_point_uniqueness with A O; Col).
+            assert_cols.
+            ColR.
+          }
+          {
+            clear H.
+            try intro H.
+            Cong.
+          }
+        }
+        {
+          assert (H := midpoint_existence A C).
+          destruct H as [M2 HMid2].
+          assert (HOM2 : O <> M2).
+          {
+            intro.
+            treat_equalities.
+            assert (H := l7_20 O A B).
+            elim H.
+            {
+              clear H.
+              try intro H.
+              Cong.
+            }
+            {
+              clear H.
+              try intro H.
+              Cong.
+              try (apply HBC; apply symmetric_point_uniqueness with A O; Col).
+            }
+            {
+              clear H.
+              try intro H.
+              Cong.
+              try (apply HBC; apply symmetric_point_uniqueness with A O; Col).
+              assert_cols.
+              ColR.
+            }
+            {
+              clear H.
+              try intro H.
+              Cong.
+            }
+          }
+          {
+            assert (HM1M2 : M1 <> M2).
+            {
+              intro.
+              treat_equalities.
+              Col.
+            }
+            {
+              idtac.
+              assert (HPerp1 : Perp_bisect O M1 A B).
+              {
+                apply cong_cop_perp_bisect.
+                {
+                  spliter.
+                  Cong.
+                }
+                {
+                  spliter.
+                  Cong.
+                }
+                {
+                  spliter.
+                  Cong.
+                  Cop.
+                }
+                {
+                  spliter.
+                  Cong.
+                }
+                {
+                  spliter.
+                  Cong.
+                }
+              }
+              {
+                idtac.
+                assert (HPerp2 : Perp_bisect O M2 A C).
+                {
+                  apply cong_cop_perp_bisect.
+                  {
+                    spliter.
+                    Cong.
+                  }
+                  {
+                    spliter.
+                    Cong.
+                  }
+                  {
+                    spliter.
+                    Cong.
+                    Cop.
+                  }
+                  {
+                    spliter.
+                    Cong.
+                  }
+                  {
+                    spliter.
+                    Cong.
+                  }
+                }
+                {
+                  idtac.
+                  assert (HOM1M2 : ~ Col O M1 M2).
+                  {
+                    intro HOM1M2.
+                    assert (H := l7_20 O A B).
+                    elim H.
+                    {
+                      clear H.
+                      try intro H.
+                      Cong.
+                    }
+                    {
+                      clear H.
+                      try intro H.
+                      Cong.
+                      try (apply HOM1; apply l7_17 with A B; Col).
+                    }
+                    {
+                      clear H.
+                      try intro H.
+                      Cong.
+                      try (apply HOM1; apply l7_17 with A B; Col).
+                      assert_diffs.
+                      assert_cols.
+                      ColR.
+                    }
+                    {
+                      clear H.
+                      try intro H.
+                      Cong.
+                    }
+                  }
+                  {
+                    assert (HPar_strict : Par_strict O M1 O M2).
+                    {
+                      apply par_not_col_strict with M2.
+                      {
+                        Col.
+                        apply l12_9 with A B.
+                        {
+                          Cop.
+                        }
+                        {
+                          Cop...
+                          apply coplanar_perm_16, col_cop__cop with C.
+                          {
+                            Col.
+                            Cop.
+                          }
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                          }
+                        }
+                        {
+                          Cop...
+                        }
+                        {
+                          Cop...
+                        }
+                        {
+                          idtac.
+                          apply perp_bisect_perp.
+                          Col.
+                        }
+                        {
+                          idtac.
+                          apply perp_col0 with A C.
+                          {
+                            Col.
+                            perm_apply perp_bisect_perp.
+                          }
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                          }
+                        }
+                      }
+                      {
+                        Col.
+                      }
+                      {
+                        Col.
+                      }
+                    }
+                    {
+                      assert (H := not_par_strict_id O M1 M2).
+                      Col.
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Lemma concyclic_not_col_or_eq :
+  forall A B C A', Concyclic A B C A' ->
+  A'=C \/ A'=B \/ A=B \/ A=C \/ A=A' \/ (~ Col A B A' /\ ~ Col A C A').
+Proof.
+  intros A B C A' H.
+  assert (H' := H).
+  apply concyclic_perm_1 in H.
+  apply concyclic_perm_3 in H'.
+  apply concyclic_not_col_or_eq_aux in H.
+  apply concyclic_not_col_or_eq_aux in H'.
+  elim (eq_dec_points A' C).
+  {
+    intro.
+    try tauto.
+  }
+  {
+    intro.
+    try tauto.
+    elim (eq_dec_points A' B).
+    {
+      intro.
+      try tauto.
+    }
+    {
+      intro.
+      try tauto.
+      elim (eq_dec_points A B).
+      {
+        intro.
+        try tauto.
+      }
+      {
+        intro.
+        try tauto.
+        elim (eq_dec_points A C).
+        {
+          intro.
+          try tauto.
+        }
+        {
+          intro.
+          try tauto.
+          elim (eq_dec_points A A').
+          {
+            intro.
+            try tauto.
+          }
+          {
+            intro.
+            try tauto.
+            do 3 (elim H; clear H; intro H; try tauto).
+            {
+              Col.
+            }
+            {
+              Col.
+              do 3 (elim H'; clear H'; intro H'; try tauto).
+              Col.
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Lemma Euler_line_special_case :
+  forall A B C G H O,
+  Per A B C ->
+  is_gravity_center G A B C ->
+  is_orthocenter H A B C ->
+  is_circumcenter O A B C ->
+  Col G H O.
+Proof.
+  intros.
+  assert (H=B).
+  {
+    apply orthocenter_per with A C.
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    subst.
+    assert (Midpoint O A C).
+    {
+      apply circumcenter_per with B.
+      {
+        finish.
+        unfold is_orthocenter in *.
+        spliter.
+        assert_diffs.
+        finish.
+      }
+      {
+        finish.
+        unfold is_orthocenter in *.
+        spliter.
+        assert_diffs.
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+    }
+    {
+      assert (is_gravity_center G A C B).
+      {
+        apply is_gravity_center_perm in H1.
+        intuition.
+      }
+      {
+        perm_apply (is_gravity_center_col A C B G O).
+      }
+    }
+  }
+Qed.
+Lemma gravity_center_change_triangle:
+ forall A B C G I B' C',
+ is_gravity_center G A B C ->
+ Midpoint I B C ->
+ Midpoint I B' C' ->
+ ~ Col A B' C' ->
+ is_gravity_center G A B' C'.
+Proof.
+  intros.
+  Name G' the midpoint of A and G.
+  assert (Midpoint G I G').
+  {
+    apply (is_gravity_center_third A B C G G' I).
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    idtac.
+    apply (is_gravity_center_third_reci A B' C' G I G').
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+Qed.
+Hint Resolve
+     is_gravity_center_perm_1
+     is_gravity_center_perm_2
+     is_gravity_center_perm_3
+     is_gravity_center_perm_4
+     is_gravity_center_perm_5 : gravitycenter.
+Hint Resolve
+     is_orthocenter_perm_1
+     is_orthocenter_perm_2
+     is_orthocenter_perm_3
+     is_orthocenter_perm_4
+     is_orthocenter_perm_5 : Orthocenter.
+Hint Resolve
+     is_circumcenter_perm_1
+     is_circumcenter_perm_2
+     is_circumcenter_perm_3
+     is_circumcenter_perm_4
+     is_circumcenter_perm_5 : Circumcenter.
+Lemma Euler_line :
+ forall A B C G H O,
+  ~ Col A B C ->
+  is_gravity_center G A B C ->
+  is_orthocenter H A B C ->
+  is_circumcenter O A B C ->
+  Col G H O.
+Proof.
+  intros.
+  elim (cong_dec A B A C).
+  {
+    intro.
+    Name A' the midpoint of B and C.
+    Name B' the midpoint of A and C.
+    Name C' the midpoint of A and B.
+    assert (Perp_bisect A A' B C).
+    {
+      apply cong_cop_perp_bisect.
+      {
+        assert_diffs.
+        Cong.
+        Cop.
+        intro.
+        treat_equalities.
+        apply H0.
+        Col.
+      }
+      {
+        assert_diffs.
+        Cong.
+      }
+      {
+        assert_diffs.
+        Cong.
+        Cop.
+      }
+      {
+        assert_diffs.
+        Cong.
+      }
+      {
+        assert_diffs.
+        Cong.
+      }
+    }
+    {
+      idtac.
+      assert (Col G A' A).
+      {
+        apply is_gravity_center_perm in H1.
+        apply is_gravity_center_col with B C.
+        {
+          spliter.
+          Col.
+        }
+        {
+          spliter.
+          Col.
+        }
+      }
+      {
+        idtac.
+        unfold is_orthocenter in *.
+        spliter.
+        elim (eq_dec_points O G).
+        {
+          intro.
+          treat_equalities.
+          Col.
+        }
+        {
+          intro.
+          treat_equalities.
+          Col.
+          elim (eq_dec_points O H).
+          {
+            intro.
+            treat_equalities.
+            Col.
+          }
+          {
+            intro.
+            treat_equalities.
+            Col.
+            elim (eq_dec_points O A').
+            {
+              intro.
+              treat_equalities.
+              assert (Col A H O).
+              {
+                apply cop_perp2__col with B C.
+                {
+                  Col.
+                  Cop.
+                }
+                {
+                  Col.
+                }
+                {
+                  Col.
+                  Cop.
+                  apply perp_bisect_perp.
+                  Col.
+                }
+              }
+              {
+                idtac.
+                apply col_permutation_1.
+                apply cop_perp2__col with B C.
+                {
+                  apply coplanar_trans_1 with A.
+                  {
+                    Cop.
+                  }
+                  {
+                    Cop.
+                  }
+                  {
+                    Cop.
+                  }
+                }
+                {
+                  apply perp_sym.
+                  apply perp_col0 with A O.
+                  {
+                    try apply perp_bisect_perp.
+                    Col.
+                  }
+                  {
+                    try apply perp_bisect_perp.
+                    Col.
+                  }
+                  {
+                    try apply perp_bisect_perp.
+                    Col.
+                  }
+                  {
+                    try apply perp_bisect_perp.
+                    Col.
+                  }
+                }
+                {
+                  apply perp_sym.
+                  apply perp_col0 with A H.
+                  {
+                    Col.
+                  }
+                  {
+                    Col.
+                  }
+                  {
+                    Col.
+                  }
+                  {
+                    Col.
+                  }
+                }
+              }
+            }
+            {
+              intro.
+              treat_equalities.
+              assert (Col A A' H).
+              {
+                apply cop_perp2__col with B C.
+                {
+                  Cop.
+                }
+                {
+                  Cop.
+                  apply perp_bisect_perp.
+                  auto.
+                }
+                {
+                  Cop.
+                }
+              }
+              {
+                idtac.
+                assert (Perp_bisect O A' B C).
+                {
+                  apply circumcenter_perp with A.
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                  {
+                    assert_diffs.
+                    Col.
+                  }
+                }
+                {
+                  idtac.
+                  assert (Col A' A O).
+                  {
+                    apply cop_perp2__col with B C.
+                    {
+                      Cop.
+                    }
+                    {
+                      Cop.
+                      apply perp_left_comm.
+                      apply perp_bisect_perp.
+                      auto.
+                    }
+                    {
+                      Cop.
+                      apply perp_left_comm.
+                      apply perp_bisect_perp.
+                      auto.
+                    }
+                  }
+                  {
+                    idtac.
+                    show_distinct A A'.
+                    {
+                      assert_cols.
+                      Col.
+                    }
+                    {
+                      assert_cols.
+                      Col.
+                      ColR.
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  {
+    intro.
+    Name A' the symmetric of A wrt O.
+    assert_diffs.
+    assert (Concyclic A B C A').
+    {
+      unfold Concyclic.
+      split.
+      {
+        destruct (eq_dec_points A O).
+        {
+          treat_equalities.
+          Cop.
+        }
+        {
+          apply coplanar_perm_12, col_cop__cop with O.
+          {
+            Col.
+            Cop.
+          }
+          {
+            Col.
+          }
+          {
+            Col.
+          }
+        }
+      }
+      {
+        exists O.
+        apply circumcenter_cong in H3.
+        spliter.
+        assert_congs_perm.
+        spliter.
+        repeat (split;finish).
+      }
+    }
+    {
+      assert (T:=concyclic_not_col_or_eq A B C A' H5).
+      decompose [or] T.
+      {
+        clear T.
+        try contradiction.
+        subst.
+        assert (Per A B C).
+        {
+          apply midpoint_thales with O.
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+            unfold is_circumcenter in *.
+            spliter.
+            finish.
+          }
+        }
+        {
+          apply (Euler_line_special_case A B C G H O).
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+        }
+      }
+      {
+        clear T.
+        try contradiction.
+        subst.
+        assert (Per A C B).
+        {
+          apply midpoint_thales with O.
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+            unfold is_circumcenter in *.
+            spliter.
+            apply cong_transitivity with O B.
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+          }
+        }
+        {
+          apply (Euler_line_special_case A C B G H O).
+          {
+            finish.
+          }
+          {
+            finish.
+            try (apply is_gravity_center_perm_1; assumption).
+          }
+          {
+            finish.
+            auto with Orthocenter.
+          }
+          {
+            finish.
+            auto with Circumcenter.
+          }
+        }
+      }
+      {
+        clear T.
+        try contradiction.
+      }
+      {
+        clear T.
+        try contradiction.
+      }
+      {
+        clear T.
+        try contradiction.
+        unfold is_circumcenter in *.
+        spliter.
+        treat_equalities.
+        intuition.
+      }
+      {
+        clear T.
+        try contradiction.
+        spliter.
+        assert_diffs.
+        assert (Per A B A').
+        {
+          apply midpoint_thales with O.
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+            unfold is_circumcenter in *.
+            spliter.
+            finish.
+          }
+        }
+        {
+          assert (Perp C H A B).
+          {
+            unfold is_orthocenter in *.
+            spliter.
+            finish.
+          }
+          {
+            idtac.
+            assert (Perp A' B B A).
+            {
+              apply per_perp.
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+            }
+            {
+              idtac.
+              assert (Par C H A' B).
+              {
+                unfold Concyclic in *.
+                spliter.
+                apply l12_9 with A B.
+                {
+                  Cop.
+                }
+                {
+                  Cop.
+                }
+                {
+                  idtac.
+                  apply coplanar_trans_1 with C.
+                  {
+                    Col.
+                  }
+                  {
+                    Col.
+                    Cop.
+                  }
+                  {
+                    Col.
+                    Cop.
+                  }
+                }
+                {
+                  Cop.
+                }
+                {
+                  Perp.
+                }
+                {
+                  Perp.
+                }
+              }
+              {
+                assert (Perp B H A C).
+                {
+                  unfold is_orthocenter in *.
+                  spliter.
+                  finish.
+                }
+                {
+                  idtac.
+                  assert (Per A C A').
+                  {
+                    apply midpoint_thales with O.
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                      unfold is_circumcenter in *.
+                      spliter.
+                      finish.
+                      apply cong_transitivity with B O.
+                      {
+                        finish.
+                      }
+                      {
+                        finish.
+                      }
+                    }
+                  }
+                  {
+                    assert (Perp A' C C A).
+                    {
+                      apply per_perp.
+                      {
+                        finish.
+                      }
+                      {
+                        finish.
+                      }
+                      {
+                        finish.
+                      }
+                    }
+                    {
+                      idtac.
+                      assert (Par B H C A').
+                      {
+                        unfold Concyclic in *.
+                        spliter.
+                        apply l12_9 with A C.
+                        {
+                          Cop.
+                        }
+                        {
+                          Cop.
+                        }
+                        {
+                          Cop.
+                        }
+                        {
+                          idtac.
+                          apply coplanar_trans_1 with B.
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                            Cop.
+                          }
+                          {
+                            Col.
+                            Cop.
+                          }
+                        }
+                        {
+                          Perp.
+                        }
+                        {
+                          Perp.
+                        }
+                      }
+                      {
+                        induction (col_dec B H C).
+                        {
+                          assert (H=B \/ H=C).
+                          {
+                            apply (orthocenter_col A B C H).
+                            {
+                              finish.
+                            }
+                            {
+                              finish.
+                            }
+                          }
+                          {
+                            idtac.
+                            induction H26.
+                            {
+                              subst H.
+                              assert (Midpoint O A C).
+                              {
+                                apply (circumcenter_per) with B.
+                                {
+                                  finish.
+                                }
+                                {
+                                  finish.
+                                }
+                                {
+                                  finish.
+                                }
+                                {
+                                  finish.
+                                }
+                              }
+                              {
+                                idtac.
+                                assert (Col G O B).
+                                {
+                                  apply (is_gravity_center_col A C B G O).
+                                  {
+                                    apply is_gravity_center_perm in H1.
+                                    intuition idtac.
+                                  }
+                                  {
+                                    assumption.
+                                  }
+                                }
+                                {
+                                  Col.
+                                }
+                              }
+                            }
+                            {
+                              subst H.
+                              assert_diffs.
+                              intuition.
+                            }
+                          }
+                        }
+                        {
+                          assert (Parallelogram B H C A').
+                          {
+                            apply par_2_plg.
+                            {
+                              finish.
+                            }
+                            {
+                              finish.
+                            }
+                            {
+                              finish.
+                            }
+                          }
+                          {
+                            idtac.
+                            assert (T:exists I : Tpoint, Midpoint I B C /\ Midpoint I H A').
+                            {
+                              apply plg_mid.
+                              finish.
+                            }
+                            {
+                              idtac.
+                              destruct T as [I [HI1 HI2]].
+                              elim (per_dec B A C).
+                              {
+                                intro.
+                                apply Euler_line_special_case with B A C.
+                                {
+                                  try apply is_gravity_center_cases.
+                                  auto.
+                                }
+                                {
+                                  try apply is_gravity_center_cases.
+                                  auto.
+                                }
+                                {
+                                  try apply is_gravity_center_cases.
+                                  auto.
+                                  try apply is_orthocenter_cases.
+                                  auto.
+                                }
+                                {
+                                  try apply is_gravity_center_cases.
+                                  auto.
+                                  try apply is_orthocenter_cases.
+                                  auto.
+                                  try apply is_circumcenter_cases.
+                                  auto.
+                                }
+                              }
+                              {
+                                intro.
+                                assert (is_gravity_center G A H A').
+                                {
+                                  apply gravity_center_change_triangle with B C I.
+                                  {
+                                    finish.
+                                  }
+                                  {
+                                    finish.
+                                  }
+                                  {
+                                    finish.
+                                  }
+                                  {
+                                    finish.
+                                    show_distinct A' H.
+                                    {
+                                      treat_equalities.
+                                      apply plg_par in H26.
+                                      {
+                                        spliter.
+                                        assert_diffs.
+                                        Col.
+                                        apply H25.
+                                        apply par_id_5.
+                                        Par.
+                                      }
+                                      {
+                                        spliter.
+                                        assert_diffs.
+                                        Col.
+                                      }
+                                      {
+                                        spliter.
+                                        assert_diffs.
+                                        Col.
+                                      }
+                                    }
+                                    {
+                                      treat_equalities.
+                                      intro.
+                                      Name A'' the midpoint of B and C.
+                                      show_distinct A'' O.
+                                      {
+                                        treat_equalities.
+                                        apply H27.
+                                        apply perp_per_1.
+                                        assert_diffs.
+                                        Perp.
+                                      }
+                                      {
+                                        treat_equalities.
+                                        assert (Perp_bisect O A'' B C).
+                                        {
+                                          apply circumcenter_perp with A.
+                                          {
+                                            Col.
+                                          }
+                                          {
+                                            Col.
+                                          }
+                                          {
+                                            Col.
+                                          }
+                                          {
+                                            Col.
+                                          }
+                                          {
+                                            Col.
+                                          }
+                                          {
+                                            Col.
+                                          }
+                                        }
+                                        {
+                                          idtac.
+                                          elim (eq_dec_points A A'').
+                                          {
+                                            intro.
+                                            treat_equalities.
+                                            eauto using perp_bisect_cong_2 with cong.
+                                          }
+                                          {
+                                            intro.
+                                            treat_equalities.
+                                            assert (Perp_bisect A'' A B C).
+                                            {
+                                              apply perp_mid_perp_bisect.
+                                              {
+                                                Col.
+                                              }
+                                              {
+                                                Col.
+                                                apply perp_sym.
+                                                apply perp_col0 with O A''.
+                                                {
+                                                  Col.
+                                                  try (apply perp_bisect_perp; assumption).
+                                                }
+                                                {
+                                                  Col.
+                                                }
+                                                {
+                                                  Col.
+                                                }
+                                                {
+                                                  Col.
+                                                  try (apply perp_bisect_perp; assumption).
+                                                  assert_cols.
+                                                  try ColR.
+                                                }
+                                              }
+                                            }
+                                            {
+                                              eauto using perp_bisect_cong_2 with cong.
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                {
+                                  assert (is_gravity_center G A A' H).
+                                  {
+                                    apply is_gravity_center_cases.
+                                    auto.
+                                  }
+                                  {
+                                    idtac.
+                                    perm_apply (is_gravity_center_col A A' H G O).
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euler_line.

@@ -1,0 +1,243 @@
+469f4997a07d0b76a24e57b5c6bef190
+From Coq Require Import Classical.
+Definition B := nat -> nat.
+Definition Top := B -> Prop.
+Definition inclusion (X Y : Top) := forall z : B, X z -> Y z.
+Definition equal (X Y : Top) := inclusion X Y /\ inclusion Y X.
+Definition complement (X : Top) (z : B) := ~ X z.
+Definition union (X Y : Top) (z : B) := X z \/ Y z.
+Definition inter (X Y : Top) (z : B) := X z /\ Y z.
+Definition neighbour (f : B) (n : nat) (g : B) :=
+  forall m : nat, m <= n -> f m = g m.
+Definition open (X : Top) :=
+  forall f : B, X f -> exists n : nat, inclusion (neighbour f n) X.
+Definition closed (X : Top) := open (complement X).
+Definition dense (X : Top) :=
+  forall (f : B) (n : nat), exists g : B, X g /\ neighbour f n g.
+Definition closure (X : Top) (f : B) :=
+  forall n : nat, exists g : B, X g /\ neighbour f n g.
+Lemma refl_neighbour : forall (n : nat) (x : B), neighbour x n x.
+  unfold neighbour in |- *.
+  auto.
+Qed.
+Hint Resolve refl_neighbour.
+Lemma trans_neighbour :
+ forall (n : nat) (f g h : B),
+ neighbour f n g -> neighbour g n h -> neighbour f n h.
+  unfold neighbour in |- *.
+  intros.
+  rewrite (H m).
+  {
+    trivial.
+    apply H0.
+    trivial.
+  }
+  {
+    trivial.
+  }
+Qed.
+Lemma closedc_clX : forall X : Top, closed (closure X).
+  unfold closed  in |- *.
+  unfold closure in |- *.
+  unfold open  in |- *.
+  unfold complement in |- *.
+  intros X f complement_clX.
+  generalize
+ (not_all_ex_not nat (fun n : nat => exists g : B, X g /\ neighbour f n g)
+    complement_clX).
+  simple induction 1.
+  intros n H1.
+  exists n.
+  unfold inclusion in |- *.
+  intros g fng.
+  unfold not in |- *.
+  intro H2.
+  apply H1.
+  elim (H2 n).
+  simple induction 1.
+  intros.
+  exists x.
+  split.
+  {
+    trivial.
+  }
+  {
+    trivial.
+    apply trans_neighbour with g.
+    {
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Hint Resolve closedc_clX.
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+  unfold inclusion in |- *.
+  intros X f Xf.
+  unfold closure in |- *.
+  intro n.
+  exists f.
+  split.
+  {
+    trivial.
+  }
+  {
+    trivial.
+  }
+Qed.
+Lemma Lemma1 :
+ forall X : Top,
+ equal X (inter (closure X) (union X (complement (closure X)))).
+  unfold equal  in |- *.
+  unfold inclusion in |- *.
+  intro X.
+  split.
+  {
+    unfold inter.
+    unfold union  in |- *.
+    unfold closure in |- *.
+    intros.
+    split.
+    {
+      intro n.
+      exists z.
+      split.
+      {
+        auto.
+      }
+      {
+        auto.
+      }
+    }
+    {
+      left.
+      trivial.
+    }
+  }
+  {
+    unfold inter.
+    unfold union  in |- *.
+    unfold closure in |- *.
+    intros.
+    elim H.
+    intros.
+    elim H1.
+    {
+      trivial.
+    }
+    {
+      trivial.
+      unfold complement in |- *.
+      intros.
+      elim (H2 H0).
+    }
+  }
+Qed.
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+  unfold dense in |- *.
+  intros X f n.
+  elim (classic (closure X f)).
+  {
+    intro clXf.
+    elim (clXf n).
+    simple induction 1.
+    intros.
+    exists x.
+    split.
+    {
+      trivial.
+      unfold union in |- *.
+      left.
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+  {
+    intro notclXf.
+    exists f.
+    intros.
+    split.
+    {
+      trivial.
+      unfold union in |- *.
+      right.
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Hint Resolve density.
+Theorem Rem :
+ forall X : Top,
+ exists Y : Top, (exists Z : Top, closed Y /\ dense Z /\ equal X (inter Y Z)).
+  intro X.
+  exists (closure X).
+  exists (union X (complement (closure X))).
+  split.
+  {
+    auto.
+  }
+  {
+    auto.
+    split.
+    {
+      auto.
+    }
+    {
+      auto.
+      apply Lemma1.
+    }
+  }
+Qed.
+Require Import Lt.
+Definition nbh := neighbour.
+Definition clopen (X : Top) := open X /\ closed X.
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+  intros f n.
+  unfold clopen in |- *.
+  split.
+  {
+    unfold open in |- *.
+    intro g.
+    intro Ofng.
+    exists (S n).
+    unfold inclusion in |- *.
+    intros h OhSnz.
+    unfold nbh in |- *.
+    unfold neighbour in |- *.
+    intros m lemn.
+    unfold neighbour in OhSnz.
+    unfold nbh in Ofng.
+    unfold neighbour in Ofng.
+    generalize (Ofng m lemn).
+    intro E.
+    rewrite E.
+    auto.
+  }
+  {
+    unfold closed  in |- *.
+    unfold nbh in |- *.
+    unfold open  in |- *.
+    unfold complement  in |- *.
+    unfold neighbour in |- *.
+    intro g.
+    intro notgfn.
+    exists n.
+    unfold inclusion in |- *.
+    intro h.
+    intro hgn.
+    unfold not in |- *.
+    intros fhn.
+    apply notgfn.
+    intros p psn.
+    rewrite (fhn p psn).
+    rewrite (hgn p psn).
+    trivial.
+  }
+Qed.

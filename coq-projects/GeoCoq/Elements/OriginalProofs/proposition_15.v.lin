@@ -1,0 +1,498 @@
+cf2dbc791f3632b422d97638803ff3b7
+Require Export GeoCoq.Elements.OriginalProofs.lemma_ABCequalsCBA.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_supplements.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_equalanglestransitive.
+Section Euclid.
+Context `{Ax:euclidean_neutral_ruler_compass}.
+Lemma proposition_15 : 
+   forall A B C D E, 
+   BetS A E B -> BetS C E D -> nCol A E C ->
+   CongA A E C D E B /\ CongA C E B A E D.
+Proof.
+  intros.
+  assert (neq E D).
+  {
+    forward_using lemma_betweennotequal.
+  }
+  {
+    idtac.
+    assert (neq D E).
+    {
+      conclude lemma_inequalitysymmetric.
+    }
+    {
+      idtac.
+      assert (neq E B).
+      {
+        forward_using lemma_betweennotequal.
+      }
+      {
+        idtac.
+        assert (neq B E).
+        {
+          conclude lemma_inequalitysymmetric.
+        }
+        {
+          idtac.
+          assert (~ Col B E D).
+          {
+            intro.
+            assert (Col A E B).
+            {
+              conclude_def Col .
+            }
+            {
+              idtac.
+              assert (Col B E A).
+              {
+                forward_using lemma_collinearorder.
+              }
+              {
+                idtac.
+                assert (Col E A D).
+                {
+                  conclude lemma_collinear4.
+                }
+                {
+                  idtac.
+                  assert (Col C E D).
+                  {
+                    conclude_def Col .
+                  }
+                  {
+                    idtac.
+                    assert (Col D E C).
+                    {
+                      forward_using lemma_collinearorder.
+                    }
+                    {
+                      idtac.
+                      assert (Col D E A).
+                      {
+                        forward_using lemma_collinearorder.
+                      }
+                      {
+                        idtac.
+                        assert (Col E C A).
+                        {
+                          conclude lemma_collinear4.
+                        }
+                        {
+                          idtac.
+                          assert (Col A E C).
+                          {
+                            forward_using lemma_collinearorder.
+                          }
+                          {
+                            idtac.
+                            contradict.
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          {
+            assert (eq D D).
+            {
+              conclude cn_equalityreflexive.
+            }
+            {
+              idtac.
+              assert (eq B B).
+              {
+                conclude cn_equalityreflexive.
+              }
+              {
+                idtac.
+                assert (eq C C).
+                {
+                  conclude cn_equalityreflexive.
+                }
+                {
+                  idtac.
+                  assert (Out E D D).
+                  {
+                    conclude lemma_ray4.
+                  }
+                  {
+                    idtac.
+                    assert (Out E B B).
+                    {
+                      conclude lemma_ray4.
+                    }
+                    {
+                      idtac.
+                      assert (BetS B E A).
+                      {
+                        conclude axiom_betweennesssymmetry.
+                      }
+                      {
+                        idtac.
+                        assert (Supp B E D D A).
+                        {
+                          conclude_def Supp .
+                        }
+                        {
+                          idtac.
+                          assert (BetS D E C).
+                          {
+                            conclude axiom_betweennesssymmetry.
+                          }
+                          {
+                            idtac.
+                            assert (Supp D E B B C).
+                            {
+                              conclude_def Supp .
+                            }
+                            {
+                              idtac.
+                              assert (~ Col A E D).
+                              {
+                                intro.
+                                assert (Col C E D).
+                                {
+                                  conclude_def Col .
+                                }
+                                {
+                                  idtac.
+                                  assert (Col D E C).
+                                  {
+                                    forward_using lemma_collinearorder.
+                                  }
+                                  {
+                                    idtac.
+                                    assert (Col D E A).
+                                    {
+                                      forward_using lemma_collinearorder.
+                                    }
+                                    {
+                                      idtac.
+                                      assert (Col E C A).
+                                      {
+                                        conclude lemma_collinear4.
+                                      }
+                                      {
+                                        idtac.
+                                        assert (Col A E C).
+                                        {
+                                          forward_using lemma_collinearorder.
+                                        }
+                                        {
+                                          idtac.
+                                          contradict.
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                              {
+                                assert (CongA B E D D E B).
+                                {
+                                  conclude lemma_ABCequalsCBA.
+                                }
+                                {
+                                  idtac.
+                                  assert (CongA D E A B E C).
+                                  {
+                                    conclude lemma_supplements.
+                                  }
+                                  {
+                                    idtac.
+                                    assert (~ Col B E C).
+                                    {
+                                      intro.
+                                      assert (Col A E B).
+                                      {
+                                        conclude_def Col .
+                                      }
+                                      {
+                                        idtac.
+                                        assert (Col B E A).
+                                        {
+                                          forward_using lemma_collinearorder.
+                                        }
+                                        {
+                                          idtac.
+                                          assert (Col E A C).
+                                          {
+                                            conclude lemma_collinear4.
+                                          }
+                                          {
+                                            idtac.
+                                            assert (Col A E C).
+                                            {
+                                              forward_using lemma_collinearorder.
+                                            }
+                                            {
+                                              idtac.
+                                              contradict.
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                    {
+                                      assert (CongA B E C C E B).
+                                      {
+                                        conclude lemma_ABCequalsCBA.
+                                      }
+                                      {
+                                        idtac.
+                                        assert (CongA D E A C E B).
+                                        {
+                                          conclude lemma_equalanglestransitive.
+                                        }
+                                        {
+                                          idtac.
+                                          assert (CongA A E D D E A).
+                                          {
+                                            conclude lemma_ABCequalsCBA.
+                                          }
+                                          {
+                                            idtac.
+                                            assert (CongA A E D C E B).
+                                            {
+                                              conclude lemma_equalanglestransitive.
+                                            }
+                                            {
+                                              idtac.
+                                              assert (CongA C E B A E D).
+                                              {
+                                                conclude lemma_equalanglessymmetric.
+                                              }
+                                              {
+                                                idtac.
+                                                assert (~ eq E C).
+                                                {
+                                                  intro.
+                                                  assert (Col B E C).
+                                                  {
+                                                    conclude_def Col .
+                                                  }
+                                                  {
+                                                    idtac.
+                                                    contradict.
+                                                  }
+                                                }
+                                                {
+                                                  assert (Out E C C).
+                                                  {
+                                                    conclude lemma_ray4.
+                                                  }
+                                                  {
+                                                    idtac.
+                                                    assert (Supp B E C C A).
+                                                    {
+                                                      conclude_def Supp .
+                                                    }
+                                                    {
+                                                      idtac.
+                                                      assert (BetS C E D).
+                                                      {
+                                                        conclude axiom_betweennesssymmetry.
+                                                      }
+                                                      {
+                                                        idtac.
+                                                        assert (Supp C E B B D).
+                                                        {
+                                                          conclude_def Supp .
+                                                        }
+                                                        {
+                                                          idtac.
+                                                          assert (~ Col A E C).
+                                                          {
+                                                            intro.
+                                                            assert (Col D E C).
+                                                            {
+                                                              conclude_def Col .
+                                                            }
+                                                            {
+                                                              idtac.
+                                                              assert (Col C E D).
+                                                              {
+                                                                forward_using lemma_collinearorder.
+                                                              }
+                                                              {
+                                                                idtac.
+                                                                assert (Col C E A).
+                                                                {
+                                                                  forward_using lemma_collinearorder.
+                                                                }
+                                                                {
+                                                                  idtac.
+                                                                  assert (neq C E).
+                                                                  {
+                                                                    forward_using lemma_betweennotequal.
+                                                                  }
+                                                                  {
+                                                                    idtac.
+                                                                    assert (Col E D A).
+                                                                    {
+                                                                      conclude lemma_collinear4.
+                                                                    }
+                                                                    {
+                                                                      idtac.
+                                                                      assert (Col A E D).
+                                                                      {
+                                                                        forward_using lemma_collinearorder.
+                                                                      }
+                                                                      {
+                                                                        idtac.
+                                                                        contradict.
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                          {
+                                                            assert (CongA B E C C E B).
+                                                            {
+                                                              conclude lemma_ABCequalsCBA.
+                                                            }
+                                                            {
+                                                              idtac.
+                                                              assert (CongA C E A B E D).
+                                                              {
+                                                                conclude lemma_supplements.
+                                                              }
+                                                              {
+                                                                idtac.
+                                                                assert (~ Col B E D).
+                                                                {
+                                                                  intro.
+                                                                  assert (Col A E B).
+                                                                  {
+                                                                    conclude_def Col .
+                                                                  }
+                                                                  {
+                                                                    idtac.
+                                                                    assert (Col B E A).
+                                                                    {
+                                                                      forward_using lemma_collinearorder.
+                                                                    }
+                                                                    {
+                                                                      idtac.
+                                                                      assert (Col E A D).
+                                                                      {
+                                                                        conclude lemma_collinear4.
+                                                                      }
+                                                                      {
+                                                                        idtac.
+                                                                        assert (Col A E D).
+                                                                        {
+                                                                          forward_using lemma_collinearorder.
+                                                                        }
+                                                                        {
+                                                                          idtac.
+                                                                          contradict.
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                                {
+                                                                  assert (CongA B E D D E B).
+                                                                  {
+                                                                    conclude lemma_ABCequalsCBA.
+                                                                  }
+                                                                  {
+                                                                    idtac.
+                                                                    assert (CongA C E A D E B).
+                                                                    {
+                                                                      conclude lemma_equalanglestransitive.
+                                                                    }
+                                                                    {
+                                                                      idtac.
+                                                                      assert (CongA A E C C E A).
+                                                                      {
+                                                                        conclude lemma_ABCequalsCBA.
+                                                                      }
+                                                                      {
+                                                                        idtac.
+                                                                        assert (CongA A E C D E B).
+                                                                        {
+                                                                          conclude lemma_equalanglestransitive.
+                                                                        }
+                                                                        {
+                                                                          idtac.
+                                                                          close.
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Lemma proposition_15a :
+ forall A B C D E : Point,
+       BetS A E B ->
+       BetS C E D -> nCol A E C -> CongA A E C D E B.
+Proof.
+  intros.
+  apply (proposition_15 A B C D E).
+  {
+    assumption.
+  }
+  {
+    assumption.
+  }
+  {
+    assumption.
+  }
+Qed.
+Lemma proposition_15b :
+ forall A B C D E : Point,
+       BetS A E B ->
+       BetS C E D -> nCol A E C ->
+       CongA C E B A E D.
+Proof.
+  intros.
+  apply (proposition_15 A B C D E).
+  {
+    assumption.
+  }
+  {
+    assumption.
+  }
+  {
+    assumption.
+  }
+Qed.
+End Euclid.

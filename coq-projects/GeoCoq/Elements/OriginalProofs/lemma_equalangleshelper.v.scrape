@@ -1,0 +1,179 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_ray3.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_equalangleshelper : \n   forall A B C a b c p q, \n   CongA A B C a b c -> Out b a p -> Out b c q ->\n   CongA A B C p b q.
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C a b c p q : Point) (_ : CongA A B C a b c) (_ : Out b a p) (_ : Out b c q), CongA A B C p b q
++++++
+Proof.
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C a b c p q : Point) (_ : CongA A B C a b c) (_ : Out b a p) (_ : Out b c q), CongA A B C p b q
++++++
+intros.
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+
+*****
+H1 : Out b c q
+H0 : Out b a p
+H : CongA A B C a b c
+A,B,C,a,b,c,p,q : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C p b q
++++++
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\ Out B C V /\ Out b a u /\ Out b c v /\ Cong B U b u /\ Cong B V b v /\ Cong U V u v /\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\\ Out B C V /\\ Out b a u /\\ Out b c v /\\ Cong B U b u /\\ Cong B V b v /\\ Cong U V u v /\\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+
+*****
+H9 : nCol A B C
+H8 : Cong U V u v
+H7 : Cong B V b v
+H6 : Cong B U b u
+H5 : Out b c v
+H4 : Out b a u
+H3 : Out B C V
+H2 : Out B A U
+U,V,u,v : Point
+H1 : Out b c q
+H0 : Out b a p
+H : CongA A B C a b c
+A,B,C,a,b,c,p,q : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C p b q
++++++
+assert (Out b p u) by (conclude lemma_ray3).
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\\ Out B C V /\\ Out b a u /\\ Out b c v /\\ Cong B U b u /\\ Cong B V b v /\\ Cong U V u v /\\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+assert (Out b p u) by (conclude lemma_ray3).
+
+*****
+H10 : Out b p u
+H9 : nCol A B C
+H8 : Cong U V u v
+H7 : Cong B V b v
+H6 : Cong B U b u
+H5 : Out b c v
+H4 : Out b a u
+H3 : Out B C V
+H2 : Out B A U
+U,V,u,v : Point
+H1 : Out b c q
+H0 : Out b a p
+H : CongA A B C a b c
+A,B,C,a,b,c,p,q : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C p b q
++++++
+assert (Out b q v) by (conclude lemma_ray3).
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\\ Out B C V /\\ Out b a u /\\ Out b c v /\\ Cong B U b u /\\ Cong B V b v /\\ Cong U V u v /\\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+assert (Out b p u) by (conclude lemma_ray3).
+assert (Out b q v) by (conclude lemma_ray3).
+
+*****
+H11 : Out b q v
+H10 : Out b p u
+H9 : nCol A B C
+H8 : Cong U V u v
+H7 : Cong B V b v
+H6 : Cong B U b u
+H5 : Out b c v
+H4 : Out b a u
+H3 : Out B C V
+H2 : Out B A U
+U,V,u,v : Point
+H1 : Out b c q
+H0 : Out b a p
+H : CongA A B C a b c
+A,B,C,a,b,c,p,q : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C p b q
++++++
+assert (CongA A B C p b q) by (conclude_def CongA ).
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\\ Out B C V /\\ Out b a u /\\ Out b c v /\\ Cong B U b u /\\ Cong B V b v /\\ Cong U V u v /\\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+assert (Out b p u) by (conclude lemma_ray3).
+assert (Out b q v) by (conclude lemma_ray3).
+assert (CongA A B C p b q) by (conclude_def CongA ).
+
+*****
+H12 : CongA A B C p b q
+H11 : Out b q v
+H10 : Out b p u
+H9 : nCol A B C
+H8 : Cong U V u v
+H7 : Cong B V b v
+H6 : Cong B U b u
+H5 : Out b c v
+H4 : Out b a u
+H3 : Out B C V
+H2 : Out B A U
+U,V,u,v : Point
+H1 : Out b c q
+H0 : Out b a p
+H : CongA A B C a b c
+A,B,C,a,b,c,p,q : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+CongA A B C p b q
++++++
+close.
+-----
+Lemma lemma_equalangleshelper : forall A B C a b c p q, CongA A B C a b c -> Out b a p -> Out b c q -> CongA A B C p b q.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists U V u v, (Out B A U /\\ Out B C V /\\ Out b a u /\\ Out b c v /\\ Cong B U b u /\\ Cong B V b v /\\ Cong U V u v /\\ nCol A B C)) by (conclude_def CongA );destruct Tf as [U[V[u[v]]]];spliter.
+assert (Out b p u) by (conclude lemma_ray3).
+assert (Out b q v) by (conclude lemma_ray3).
+assert (CongA A B C p b q) by (conclude_def CongA ).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

@@ -1,0 +1,3760 @@
+Require Import Coq.Lists.List.
+-----
+Require Coq.Classes.EquivDec.
+-----
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Structures.Monoid.
+-----
+Require Import ExtLib.Structures.Reducible.
+-----
+Require ExtLib.Data.Nat.
+-----
+Require Import ExtLib.Tactics.Consider.
+-----
+Require Import ExtLib.Tactics.Injection.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section type.
+-----
+Variable T : Type.
+-----
+Context {type_T : type T}.
+-----
+Inductive list_eq : list T -> list T -> Prop :=\n  | nil_eq : list_eq nil nil\n  | cons_eq : forall x xs y ys, equal x y -> list_eq xs ys -> list_eq (x :: xs) (y :: ys).
+-----
+Instance type_list : type (list T) :=\n  { equal := list_eq\n  ; proper := Forall proper\n  }.
+-----
+Context {typeOk_T : typeOk type_T}.
+-----
+Instance typeOk_list : typeOk type_list.
+-----
+Instance typeOk_list : typeOk type_list.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_list
++++++
+Proof.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_list
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (x y : list T) (_ : equal x y), and (proper x) (proper y)
++++++
+intros.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+
+*****
+H : equal x y
+x,y : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+and (proper x) (proper y)
++++++
+induction H.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+and (proper nil) (proper nil)
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+intuition.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper nil
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+intuition.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper nil
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+
+*****
+IHlist_eq : and (proper xs) (proper ys)
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+and (proper (cons x xs)) (proper (cons y ys))
++++++
+apply only_proper in H.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+
+*****
+IHlist_eq : and (proper xs) (proper ys)
+H0 : list_eq xs ys
+H : and (proper x) (proper y)
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+and (proper (cons x xs)) (proper (cons y ys))
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+
+*****
+IHlist_eq : and (proper xs) (proper ys)
+H0 : list_eq xs ys
+H : and (proper x) (proper y)
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+and (proper (cons x xs)) (proper (cons y ys))
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper (cons x xs)
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+constructor.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper x
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+constructor.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+Forall proper xs
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper (cons y ys)
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+constructor.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper y
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+auto.
+intuition.
+constructor.
+
+*****
+H3 : proper ys
+H : proper xs
+H2 : proper y
+H1 : proper x
+H0 : list_eq xs ys
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+Forall proper ys
++++++
+intuition.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intros.
+induction H.
+apply only_proper in H.
+
+*****
+IHlist_eq : and (proper xs) (proper ys)
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_T
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+Proper.PReflexive proper equal
++++++
+intro.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+
+*****
+x : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall _ : proper x, equal x x
++++++
+induction x.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall _ : proper nil, equal nil nil
++++++
+intros.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+
+*****
+H : proper nil
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal nil nil
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+
+*****
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall _ : proper (cons a x), equal (cons a x) (cons a x)
++++++
+intros.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+
+*****
+H : proper (cons a x)
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons a x) (cons a x)
++++++
+inversion H.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+
+*****
+H1 : eq l x
+H0 : eq x0 a
+H3 : Forall proper x
+H2 : proper a
+l : list T
+x0 : T
+H : proper (cons a x)
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons a x) (cons a x)
++++++
+clear H.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+
+*****
+H1 : eq l x
+H0 : eq x0 a
+H3 : Forall proper x
+H2 : proper a
+l : list T
+x0 : T
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons a x) (cons a x)
++++++
+subst.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons a x) (cons a x)
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal a a
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+auto.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal a a
++++++
+apply equiv_prefl.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+auto.
+apply equiv_prefl.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_T
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+auto.
+apply equiv_prefl.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper a
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+list_eq x x
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+auto.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+list_eq x x
++++++
+apply IHx.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction x.
+intros.
+inversion H.
+clear H.
+subst.
+constructor.
+auto.
+apply IHx.
+
+*****
+H3 : Forall proper x
+H2 : proper a
+IHx : forall _ : proper x, equal x x
+x : list T
+a : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+proper x
++++++
+apply H3.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+RelationClasses.Symmetric equal
++++++
+intro.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+
+*****
+x : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (y : list T) (_ : equal x y), equal y x
++++++
+induction 1.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal nil nil
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons y ys) (cons x xs)
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+constructor.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal y x
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+constructor.
+auto.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal y x
++++++
+apply equiv_sym.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+constructor.
+auto.
+apply equiv_sym.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_T
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+constructor.
+auto.
+apply equiv_sym.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal x y
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+induction 1.
+constructor.
+
+*****
+IHlist_eq : equal ys xs
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+list_eq ys xs
++++++
+auto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+RelationClasses.Transitive equal
++++++
+intro.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+
+*****
+x : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (y z : list T) (_ : equal x y) (_ : equal y z), equal x z
++++++
+do 3 intro.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+
+*****
+H : equal x y
+x,y,z : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall _ : equal y z, equal x z
++++++
+revert z.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+
+*****
+H : equal x y
+x,y : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (z : list T) (_ : equal y z), equal x z
++++++
+induction H.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+
+*****
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (z : list T) (_ : equal nil z), equal nil z
++++++
+remember nil.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember nil.
+
+*****
+Heql : eq l nil
+l : list T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (z : list T) (_ : equal l z), equal l z
++++++
+destruct 1.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember nil.
+destruct 1.
+
+*****
+Heql : eq nil nil
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal nil nil
++++++
+try congruence.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember nil.
+destruct 1.
+try congruence.
+
+*****
+Heql : eq nil nil
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal nil nil
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember nil.
+destruct 1.
+
+*****
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+Heql : eq (cons x xs) nil
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y ys)
++++++
+try congruence.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+
+*****
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (z : list T) (_ : equal (cons y ys) z), equal (cons x xs) z
++++++
+remember (y :: ys).
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+
+*****
+Heql : eq l (cons y ys)
+l : list T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+forall (z : list T) (_ : equal l z), equal (cons x xs) z
++++++
+destruct 1.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+
+*****
+Heql : eq nil (cons y ys)
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) nil
++++++
+try congruence.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+
+*****
+H2 : list_eq xs0 ys0
+H1 : equal x0 y0
+ys0 : list T
+y0 : T
+Heql : eq (cons x0 xs0) (cons y ys)
+xs0 : list T
+x0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y0 ys0)
++++++
+try congruence.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+
+*****
+H2 : list_eq xs0 ys0
+H1 : equal x0 y0
+ys0 : list T
+y0 : T
+Heql : eq (cons x0 xs0) (cons y ys)
+xs0 : list T
+x0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y0 ys0)
++++++
+inversion Heql.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+
+*****
+H5 : eq xs0 ys
+H4 : eq x0 y
+H2 : list_eq xs0 ys0
+H1 : equal x0 y0
+ys0 : list T
+y0 : T
+Heql : eq (cons x0 xs0) (cons y ys)
+xs0 : list T
+x0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y0 ys0)
++++++
+clear Heql.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+
+*****
+H5 : eq xs0 ys
+H4 : eq x0 y
+H2 : list_eq xs0 ys0
+H1 : equal x0 y0
+ys0 : list T
+y0 : T
+xs0 : list T
+x0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y0 ys0)
++++++
+subst.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal (cons x xs) (cons y0 ys0)
++++++
+constructor.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal x y0
++++++
+eapply equiv_trans.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+eapply equiv_trans.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+typeOk type_T
++++++
+eauto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+eapply equiv_trans.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal x ?y
++++++
+eauto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+eapply equiv_trans.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal y y0
++++++
+eauto.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+list_eq xs ys0
++++++
+eapply IHlist_eq.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+intro.
+do 3 intro.
+revert z.
+induction H.
+remember (y :: ys).
+destruct 1.
+try congruence.
+inversion Heql.
+clear Heql.
+subst.
+constructor.
+eapply IHlist_eq.
+
+*****
+H2 : list_eq ys ys0
+H1 : equal y y0
+ys0 : list T
+y0 : T
+IHlist_eq : forall (z : list T) (_ : equal ys z), equal xs z
+H0 : list_eq xs ys
+H : equal x y
+ys : list T
+y : T
+xs : list T
+x : T
+typeOk_T : typeOk type_T
+type_T : type T
+T : Type
+*****
+equal ys ys0
++++++
+apply H2.
+-----
+Instance typeOk_list : typeOk type_list.
+Proof.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End type.
+-----
+Section EqDec.
+-----
+Variable T : Type.
+-----
+Variable EqDec_T : EquivDec.EqDec _ (@eq T).
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+
+*****
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+EquivDec.EqDec (list T) eq
++++++
+Proof.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+
+*****
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+EquivDec.EqDec (list T) eq
++++++
+red.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+
+*****
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+forall x y : list T, sumbool (Equivalence.equiv x y) (RelationClasses.complement Equivalence.equiv x y)
++++++
+unfold Equivalence.equiv.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+
+*****
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+forall x y : list T, sumbool (eq x y) (RelationClasses.complement eq x y)
++++++
+unfold RelationClasses.complement.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+unfold RelationClasses.complement.
+
+*****
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+forall x y : list T, sumbool (eq x y) (forall _ : eq x y, False)
++++++
+intros.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+unfold RelationClasses.complement.
+intros.
+
+*****
+x,y : list T
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+sumbool (eq x y) (forall _ : eq x y, False)
++++++
+change (x = y -> False) with (x <> y).
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+unfold RelationClasses.complement.
+intros.
+change (x = y -> False) with (x <> y).
+
+*****
+x,y : list T
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+sumbool (eq x y) (not (eq x y))
++++++
+decide equality.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+unfold RelationClasses.complement.
+intros.
+change (x = y -> False) with (x <> y).
+decide equality.
+
+*****
+l0 : list T
+t : T
+X : forall x0 : list T, sumbool (eq l x0) (not (eq l x0))
+l : list T
+a : T
+x,y : list T
+EqDec_T : EquivDec.EqDec T eq
+T : Type
+*****
+sumbool (eq a t) (not (eq a t))
++++++
+eapply EqDec_T.
+-----
+Global Instance EqDec_list : EquivDec.EqDec _ (@eq (list T)).
+Proof.
+red.
+unfold Equivalence.equiv.
+unfold RelationClasses.complement.
+intros.
+change (x = y -> False) with (x <> y).
+decide equality.
+eapply EqDec_T.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End EqDec.
+-----
+Lemma list_ind_singleton\n: forall {T : Type} (P : list T -> Prop)\n         (Hnil : P nil)\n         (Hsingle : forall t, P (t :: nil))\n         (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)),\n    forall ls, P ls.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : list T, Prop) (_ : P nil) (_ : forall t : T, P (cons t nil)) (_ : forall (t u : T) (us : list T) (_ : P (cons u us)), P (cons t (cons u us))) (ls : list T), P ls
++++++
+Proof.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : list T, Prop) (_ : P nil) (_ : forall t : T, P (cons t nil)) (_ : forall (t u : T) (us : list T) (_ : P (cons u us)), P (cons t (cons u us))) (ls : list T), P ls
++++++
+induction ls.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+
+*****
+Hcons : forall (t u : T) (us : list T) (_ : P (cons u us)),\nP (cons t (cons u us))
+Hsingle : forall t : T, P (cons t nil)
+Hnil : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P nil
++++++
+eauto.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+
+*****
+IHls : P ls
+ls : list T
+a : T
+Hcons : forall (t u : T) (us : list T) (_ : P (cons u us)),\nP (cons t (cons u us))
+Hsingle : forall t : T, P (cons t nil)
+Hnil : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (cons a ls)
++++++
+eauto.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+eauto.
+
+*****
+IHls : P ls
+ls : list T
+a : T
+Hcons : forall (t u : T) (us : list T) (_ : P (cons u us)),\nP (cons t (cons u us))
+Hsingle : forall t : T, P (cons t nil)
+Hnil : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (cons a ls)
++++++
+destruct ls.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+eauto.
+destruct ls.
+
+*****
+IHls : P nil
+a : T
+Hcons : forall (t u : T) (us : list T) (_ : P (cons u us)),\nP (cons t (cons u us))
+Hsingle : forall t : T, P (cons t nil)
+Hnil : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (cons a nil)
++++++
+eauto.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+eauto.
+destruct ls.
+
+*****
+IHls : P (cons t ls)
+ls : list T
+a,t : T
+Hcons : forall (t u : T) (us : list T) (_ : P (cons u us)),\nP (cons t (cons u us))
+Hsingle : forall t : T, P (cons t nil)
+Hnil : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (cons a (cons t ls))
++++++
+eauto.
+-----
+Lemma list_ind_singleton : forall {T : Type} (P : list T -> Prop) (Hnil : P nil) (Hsingle : forall t, P (t :: nil)) (Hcons : forall t u us, P (u :: us) -> P (t :: u :: us)), forall ls, P ls.
+Proof.
+induction ls.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma list_rev_ind\n  : forall T (P : list T -> Prop),\n    P nil ->\n    (forall l ls, P ls -> P (ls ++ l :: nil)) ->\n    forall ls, P ls.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : list T, Prop) (_ : P nil) (_ : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))) (ls : list T), P ls
++++++
+Proof.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : list T, Prop) (_ : P nil) (_ : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))) (ls : list T), P ls
++++++
+clear.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : list T, Prop) (_ : P nil) (_ : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))) (ls : list T), P ls
++++++
+intros.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+
+*****
+ls : list T
+H0 : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))
+H : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P ls
++++++
+rewrite <- rev_involutive.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+rewrite <- rev_involutive.
+
+*****
+ls : list T
+H0 : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))
+H : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (rev (rev ls))
++++++
+induction (rev ls).
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+rewrite <- rev_involutive.
+induction (rev ls).
+
+*****
+ls : list T
+H0 : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))
+H : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (rev nil)
++++++
+apply H.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+rewrite <- rev_involutive.
+induction (rev ls).
+
+*****
+IHl : P (rev l)
+l : list T
+a : T
+ls : list T
+H0 : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))
+H : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (rev (cons a l))
++++++
+simpl.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+rewrite <- rev_involutive.
+induction (rev ls).
+simpl.
+
+*****
+IHl : P (rev l)
+l : list T
+a : T
+ls : list T
+H0 : forall (l : T) (ls : list T) (_ : P ls), P (app ls (cons l nil))
+H : P nil
+P : forall _ : list T, Prop
+T : Type
+*****
+P (app (rev l) (cons a nil))
++++++
+auto.
+-----
+Lemma list_rev_ind : forall T (P : list T -> Prop), P nil -> (forall l ls, P ls -> P (ls ++ l :: nil)) -> forall ls, P ls.
+Proof.
+clear.
+intros.
+rewrite <- rev_involutive.
+induction (rev ls).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Section AllB.
+-----
+Variable T : Type.
+-----
+Variable p : T -> bool.
+-----
+Fixpoint allb (ls : list T) : bool :=\n    match ls with\n      | nil => true\n      | l :: ls =>\n        if p l then allb ls else false\n    end.
+-----
+Fixpoint anyb (ls : list T) : bool :=\n    match ls with\n      | nil => false\n      | l :: ls =>\n        if p l then true else anyb ls\n    end.
+-----
+End AllB.
+-----
+Lemma Forall_map\n: forall T U (f : T -> U) P ls,\n    Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+
+*****
+
+*****
+forall (T U : Type) (f : forall _ : T, U) (P : forall _ : U, Prop) (ls : list T), iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
++++++
+Proof.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+
+*****
+
+*****
+forall (T U : Type) (f : forall _ : T, U) (P : forall _ : U, Prop) (ls : list T), iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
++++++
+induction ls.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+
+*****
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+iff (Forall P (map f nil)) (Forall (fun x : T => P (f x)) nil)
++++++
+simpl.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+
+*****
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+iff (Forall P nil) (Forall (fun x : T => P (f x)) nil)
++++++
+split.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+
+*****
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+forall _ : Forall P nil, Forall (fun x : T => P (f x)) nil
++++++
+intros.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+intros.
+
+*****
+H : Forall P nil
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) nil
++++++
+constructor.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+
+*****
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+forall _ : Forall (fun x : T => P (f x)) nil, Forall P nil
++++++
+intros.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+intros.
+
+*****
+H : Forall (fun x : T => P (f x)) nil
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P nil
++++++
+constructor.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+
+*****
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+iff (Forall P (map f (cons a ls))) (Forall (fun x : T => P (f x)) (cons a ls))
++++++
+simpl.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+
+*****
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+iff (Forall P (cons (f a) (map f ls))) (Forall (fun x : T => P (f x)) (cons a ls))
++++++
+split.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+
+*****
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+forall _ : Forall P (cons (f a) (map f ls)), Forall (fun x : T => P (f x)) (cons a ls)
++++++
+inversion 1.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+
+*****
+H1 : eq l (map f ls)
+H0 : eq x (f a)
+H3 : Forall P (map f ls)
+H2 : P (f a)
+l : list U
+x : U
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) (cons a ls)
++++++
+intros.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+
+*****
+H1 : eq l (map f ls)
+H0 : eq x (f a)
+H3 : Forall P (map f ls)
+H2 : P (f a)
+l : list U
+x : U
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) (cons a ls)
++++++
+subst.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+
+*****
+H3 : Forall P (map f ls)
+H2 : P (f a)
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) (cons a ls)
++++++
+constructor.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+
+*****
+H3 : Forall P (map f ls)
+H2 : P (f a)
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+P (f a)
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+
+*****
+H3 : Forall P (map f ls)
+H2 : P (f a)
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) ls
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+auto.
+
+*****
+H3 : Forall P (map f ls)
+H2 : P (f a)
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) ls
++++++
+apply IHls.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+auto.
+apply IHls.
+
+*****
+H3 : Forall P (map f ls)
+H2 : P (f a)
+H : Forall P (cons (f a) (map f ls))
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (map f ls)
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+
+*****
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+forall _ : Forall (fun x : T => P (f x)) (cons a ls), Forall P (cons (f a) (map f ls))
++++++
+inversion 1.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+
+*****
+H1 : eq l ls
+H0 : eq x a
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+l : list T
+x : T
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (cons (f a) (map f ls))
++++++
+intros.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+
+*****
+H1 : eq l ls
+H0 : eq x a
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+l : list T
+x : T
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (cons (f a) (map f ls))
++++++
+subst.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+
+*****
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (cons (f a) (map f ls))
++++++
+constructor.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+
+*****
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+P (f a)
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+
+*****
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (map f ls)
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+auto.
+
+*****
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall P (map f ls)
++++++
+apply IHls.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+simpl.
+split.
+inversion 1.
+intros.
+subst.
+constructor.
+auto.
+apply IHls.
+
+*****
+H3 : Forall (fun x : T => P (f x)) ls
+H2 : P (f a)
+H : Forall (fun x : T => P (f x)) (cons a ls)
+IHls : iff (Forall P (map f ls)) (Forall (fun x : T => P (f x)) ls)
+ls : list T
+a : T
+P : forall _ : U, Prop
+f : forall _ : T, U
+U : Type
+T : Type
+*****
+Forall (fun x : T => P (f x)) ls
++++++
+auto.
+-----
+Lemma Forall_map : forall T U (f : T -> U) P ls, Forall P (List.map f ls) <-> Forall (fun x => P (f x)) ls.
+Proof.
+induction ls.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b,\n    Forall P (a :: b) <-> (P a /\ Forall P b).
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop) (a : T) (b : list T), iff (Forall P (cons a b)) (and (P a) (Forall P b))
++++++
+Proof.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop) (a : T) (b : list T), iff (Forall P (cons a b)) (and (P a) (Forall P b))
++++++
+clear.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop) (a : T) (b : list T), iff (Forall P (cons a b)) (and (P a) (Forall P b))
++++++
+split.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+
+*****
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+forall _ : Forall P (cons a b), and (P a) (Forall P b)
++++++
+inversion 1.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+inversion 1.
+
+*****
+H1 : eq l b
+H0 : eq x a
+H3 : Forall P b
+H2 : P a
+l : list T
+x : T
+H : Forall P (cons a b)
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+and (P a) (Forall P b)
++++++
+auto.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+
+*****
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+forall _ : and (P a) (Forall P b), Forall P (cons a b)
++++++
+destruct 1.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+destruct 1.
+
+*****
+H0 : Forall P b
+H : P a
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+Forall P (cons a b)
++++++
+constructor.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+destruct 1.
+constructor.
+
+*****
+H0 : Forall P b
+H : P a
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+P a
++++++
+auto.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+destruct 1.
+constructor.
+
+*****
+H0 : Forall P b
+H : P a
+b : list T
+a : T
+P : forall _ : T, Prop
+T : Type
+*****
+Forall P b
++++++
+auto.
+-----
+Lemma Forall_cons_iff : forall (T : Type) (P : T -> Prop) a b, Forall P (a :: b) <-> (P a /\\ Forall P b).
+Proof.
+clear.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop),\n    Forall P nil <-> True.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop), iff (Forall P nil) True
++++++
+Proof.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop), iff (Forall P nil) True
++++++
+clear.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+Proof.
+clear.
+
+*****
+
+*****
+forall (T : Type) (P : forall _ : T, Prop), iff (Forall P nil) True
++++++
+split.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+Proof.
+clear.
+split.
+
+*****
+P : forall _ : T, Prop
+T : Type
+*****
+forall _ : Forall P nil, True
++++++
+auto.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+Proof.
+clear.
+split.
+
+*****
+P : forall _ : T, Prop
+T : Type
+*****
+forall _ : True, Forall P nil
++++++
+auto.
+-----
+Lemma Forall_nil_iff : forall (T : Type) (P : T -> Prop), Forall P nil <-> True.
+Proof.
+clear.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Foldable_list {T} : Foldable (list T) T :=\n  fun _ f x ls => fold_right f x ls.
+-----
+Require Import ExtLib.Structures.Traversable.
+-----
+Require Import ExtLib.Structures.Functor.
+-----
+Require Import ExtLib.Structures.Monad.
+-----
+Require Import ExtLib.Structures.Applicative.
+-----
+Section traversable.
+-----
+Polymorphic Context {F : Type -> Type}.
+-----
+Polymorphic Context {Applicative_F : Applicative F}.
+-----
+Polymorphic Context {A B : Type}.
+-----
+Polymorphic Variable f : A -> F B.
+-----
+Polymorphic Fixpoint mapT_list (ls : list A) : F (list B) :=\n    match ls with\n      | nil => pure nil\n      | l :: ls => ap (ap (pure (@cons B)) (f l)) (mapT_list ls)\n    end.
+-----
+End traversable.
+-----
+Global Instance Traversable_list : Traversable list :=\n{ mapT := @mapT_list }.
+-----
+Global Instance Monad_list : Monad list :=\n{ ret  := fun _ x => x :: nil\n; bind := fun _ _ x f =>\n  List.fold_right (fun x acc => f x ++ acc) nil x\n}.
+-----
+Section list.
+-----
+Inductive R_list_len {T} : list T -> list T -> Prop :=\n  | R_l_len : forall n m, length n < length m -> R_list_len n m.
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+
+*****
+T : Type
+*****
+well_founded R_list_len
++++++
+Proof.
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+
+*****
+T : Type
+*****
+well_founded R_list_len
++++++
+constructor.
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+
+*****
+a : list T
+T : Type
+*****
+forall (y : list T) (_ : R_list_len y a), Acc R_list_len y
++++++
+intros.
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+intros.
+
+*****
+H : R_list_len y a
+a,y : list T
+T : Type
+*****
+Acc R_list_len y
++++++
+refine (@Fix _ _ Nat.wf_R_lt (fun n : nat => forall ls : list T, n = length ls -> Acc R_list_len ls) (fun x rec ls pfls => Acc_intro _ _) _ _ refl_equal).
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+intros.
+refine (@Fix _ _ Nat.wf_R_lt (fun n : nat => forall ls : list T, n = length ls -> Acc R_list_len ls) (fun x rec ls pfls => Acc_intro _ _) _ _ refl_equal).
+
+*****
+pfls : eq x (length ls)
+ls : list T
+rec : forall (y : nat) (_ : Nat.R_nat_lt y x),\n(fun n : nat =>\n forall (ls : list T) (_ : eq n (length ls)), Acc R_list_len ls) y
+x : nat
+H : R_list_len y a
+a,y : list T
+T : Type
+*****
+forall (y : list T) (_ : R_list_len y ls), Acc R_list_len y
++++++
+refine ( match ls as ls return x = length ls -> forall z : list T, R_list_len z ls -> Acc R_list_len z with | nil => fun (pfls : x = 0) z pf => _ | cons l ls => fun pfls z pf => rec _ (match pf in R_list_len xs ys return x = length ys -> Nat.R_nat_lt (length xs) x with | R_l_len n m pf' => fun pf_eq => match eq_sym pf_eq in _ = x return Nat.R_nat_lt (length n) x with | refl_equal => Nat.R_lt pf' end end pfls) _ eq_refl end pfls).
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+intros.
+refine (@Fix _ _ Nat.wf_R_lt (fun n : nat => forall ls : list T, n = length ls -> Acc R_list_len ls) (fun x rec ls pfls => Acc_intro _ _) _ _ refl_equal).
+refine ( match ls as ls return x = length ls -> forall z : list T, R_list_len z ls -> Acc R_list_len z with | nil => fun (pfls : x = 0) z pf => _ | cons l ls => fun pfls z pf => rec _ (match pf in R_list_len xs ys return x = length ys -> Nat.R_nat_lt (length xs) x with | R_l_len n m pf' => fun pf_eq => match eq_sym pf_eq in _ = x return Nat.R_nat_lt (length n) x with | refl_equal => Nat.R_lt pf' end end pfls) _ eq_refl end pfls).
+
+*****
+pf : R_list_len z nil
+z : list T
+pfls : eq x O
+pfls0 : eq x (length ls)
+ls : list T
+rec : forall (y : nat) (_ : Nat.R_nat_lt y x),\n(fun n : nat =>\n forall (ls : list T) (_ : eq n (length ls)), Acc R_list_len ls) y
+x : nat
+H : R_list_len y a
+a,y : list T
+T : Type
+*****
+Acc R_list_len z
++++++
+clear - pf.
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+intros.
+refine (@Fix _ _ Nat.wf_R_lt (fun n : nat => forall ls : list T, n = length ls -> Acc R_list_len ls) (fun x rec ls pfls => Acc_intro _ _) _ _ refl_equal).
+refine ( match ls as ls return x = length ls -> forall z : list T, R_list_len z ls -> Acc R_list_len z with | nil => fun (pfls : x = 0) z pf => _ | cons l ls => fun pfls z pf => rec _ (match pf in R_list_len xs ys return x = length ys -> Nat.R_nat_lt (length xs) x with | R_l_len n m pf' => fun pf_eq => match eq_sym pf_eq in _ = x return Nat.R_nat_lt (length n) x with | refl_equal => Nat.R_lt pf' end end pfls) _ eq_refl end pfls).
+clear - pf.
+
+*****
+pf : R_list_len z nil
+z : list T
+T : Type
+*****
+Acc R_list_len z
++++++
+abstract (inversion pf; subst; simpl in *; inversion H).
+-----
+Theorem wf_R_list_len T : well_founded (@R_list_len T).
+Proof.
+constructor.
+intros.
+refine (@Fix _ _ Nat.wf_R_lt (fun n : nat => forall ls : list T, n = length ls -> Acc R_list_len ls) (fun x rec ls pfls => Acc_intro _ _) _ _ refl_equal).
+refine ( match ls as ls return x = length ls -> forall z : list T, R_list_len z ls -> Acc R_list_len z with | nil => fun (pfls : x = 0) z pf => _ | cons l ls => fun pfls z pf => rec _ (match pf in R_list_len xs ys return x = length ys -> Nat.R_nat_lt (length xs) x with | R_l_len n m pf' => fun pf_eq => match eq_sym pf_eq in _ = x return Nat.R_nat_lt (length n) x with | refl_equal => Nat.R_lt pf' end end pfls) _ eq_refl end pfls).
+clear - pf.
+abstract (inversion pf; subst; simpl in *; inversion H).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End list.
+-----
+Definition Monoid_list_app {T} : Monoid (list T) :=\n{| monoid_plus := @List.app _\n ; monoid_unit := @nil _\n |}.
+-----
+Section ListEq.
+-----
+Variable T : Type.
+-----
+Variable EDT : RelDec (@eq T).
+-----
+Fixpoint list_eqb (ls rs : list T) : bool :=\n    match ls , rs with\n      | nil , nil => true\n      | cons l ls , cons r rs =>\n        if l ?[ eq ] r then list_eqb ls rs else false\n      | _ , _ => false\n    end.
+-----
+Global Instance RelDec_eq_list : RelDec (@eq (list T)) :=\n  { rel_dec := list_eqb }.
+-----
+Variable EDCT : RelDec_Correct EDT.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+
+*****
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+RelDec_Correct RelDec_eq_list
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+
+*****
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+RelDec_Correct RelDec_eq_list
++++++
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+
+*****
+H0 : eq (list_eqb x y) true
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (cons t x) (cons t y)
++++++
+-
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+
+*****
+H0 : eq (list_eqb x y) true
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (cons t x) (cons t y)
++++++
+f_equal.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+
+*****
+H0 : eq (list_eqb x y) true
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq x y
++++++
+eapply IHx.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+
+*****
+H0 : eq (list_eqb x y) true
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+eapply H0.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+
+*****
+
+*****
+
++++++
+-
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+
+*****
+H : eq (cons t x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (list_eqb x y) true
++++++
+inversion H.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+
+*****
+H1 : eq x y
+H : eq (cons t x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (list_eqb y y) true
++++++
+subst.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+
+*****
+IHx : forall y0 : list T, iff (eq (rel_dec y y0) true) (eq y y0)
+H : eq (cons t y) (cons t y)
+t : T
+y : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq (list_eqb y y) true
++++++
+eapply IHx.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+
+*****
+IHx : forall y0 : list T, iff (eq (rel_dec y y0) true) (eq y y0)
+H : eq (cons t y) (cons t y)
+t : T
+y : list T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq y y
++++++
+reflexivity.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+
+*****
+
+*****
+
++++++
+-
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+-
+
+*****
+H0 : not (eq a t)
+H : eq (cons a x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+a : T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq false true
++++++
+inversion H.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+-
+inversion H.
+
+*****
+H3 : eq x y
+H2 : eq a t
+H0 : not (eq a t)
+H : eq (cons a x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+a : T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq false true
++++++
+exfalso.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+-
+inversion H.
+exfalso.
+
+*****
+H3 : eq x y
+H2 : eq a t
+H0 : not (eq a t)
+H : eq (cons a x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+a : T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+False
++++++
+eapply H0.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+-
+inversion H.
+exfalso.
+eapply H0.
+
+*****
+H3 : eq x y
+H2 : eq a t
+H0 : not (eq a t)
+H : eq (cons a x) (cons t y)
+y : list T
+t : T
+IHx : forall y : list T, iff (eq (rel_dec x y) true) (eq x y)
+x : list T
+a : T
+EDCT : RelDec_Correct EDT
+EDT : RelDec eq
+T : Type
+*****
+eq a t
++++++
+assumption.
+-----
+Global Instance RelDec_Correct_eq_list : RelDec_Correct RelDec_eq_list.
+Proof.
+constructor; induction x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; try solve [ auto | exfalso; clear - H; inversion H ].
+-
+f_equal.
+eapply IHx.
+eapply H0.
+-
+inversion H.
+subst.
+eapply IHx.
+reflexivity.
+-
+inversion H.
+exfalso.
+eapply H0.
+assumption.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End ListEq.
+-----
+Global Instance Injective_cons T (a : T) b c d : Injective (a :: b = c :: d).
+-----
+Global Instance Injective_cons T (a : T) b c d : Injective (a :: b = c :: d).
+
+*****
+d : list T
+c : T
+b : list T
+a : T
+T : Type
+*****
+Injective (eq (cons a b) (cons c d))
++++++
+refine {| result := a = c /\ b = d |}.
+-----
+Global Instance Injective_cons T (a : T) b c d : Injective (a :: b = c :: d).
+refine {| result := a = c /\\ b = d |}.
+
+*****
+d : list T
+c : T
+b : list T
+a : T
+T : Type
+*****
+forall _ : eq (cons a b) (cons c d), and (eq a c) (eq b d)
++++++
+inversion 1.
+-----
+Global Instance Injective_cons T (a : T) b c d : Injective (a :: b = c :: d).
+refine {| result := a = c /\\ b = d |}.
+inversion 1.
+
+*****
+H2 : eq b d
+H1 : eq a c
+H : eq (cons a b) (cons c d)
+d : list T
+c : T
+b : list T
+a : T
+T : Type
+*****
+and (eq c c) (eq d d)
++++++
+auto.
+-----
+Global Instance Injective_cons T (a : T) b c d : Injective (a :: b = c :: d).
+refine {| result := a = c /\\ b = d |}.
+inversion 1.
+auto.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_cons_nil T (a : T) b : Injective (a :: b = nil).
+-----
+Global Instance Injective_cons_nil T (a : T) b : Injective (a :: b = nil).
+
+*****
+b : list T
+a : T
+T : Type
+*****
+Injective (eq (cons a b) nil)
++++++
+refine {| result := False |}.
+-----
+Global Instance Injective_cons_nil T (a : T) b : Injective (a :: b = nil).
+refine {| result := False |}.
+
+*****
+b : list T
+a : T
+T : Type
+*****
+forall _ : eq (cons a b) nil, False
++++++
+inversion 1.
+-----
+Global Instance Injective_cons_nil T (a : T) b : Injective (a :: b = nil).
+refine {| result := False |}.
+inversion 1.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_nil_cons T (a : T) b : Injective (nil = a :: b).
+-----
+Global Instance Injective_nil_cons T (a : T) b : Injective (nil = a :: b).
+
+*****
+b : list T
+a : T
+T : Type
+*****
+Injective (eq nil (cons a b))
++++++
+refine {| result := False |}.
+-----
+Global Instance Injective_nil_cons T (a : T) b : Injective (nil = a :: b).
+refine {| result := False |}.
+
+*****
+b : list T
+a : T
+T : Type
+*****
+forall _ : eq nil (cons a b), False
++++++
+inversion 1.
+-----
+Global Instance Injective_nil_cons T (a : T) b : Injective (nil = a :: b).
+refine {| result := False |}.
+inversion 1.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_nil_nil T : Injective (nil = @nil T).
+-----
+Global Instance Injective_nil_nil T : Injective (nil = @nil T).
+
+*****
+T : Type
+*****
+Injective (eq nil nil)
++++++
+refine {| result := True |}.
+-----
+Global Instance Injective_nil_nil T : Injective (nil = @nil T).
+refine {| result := True |}.
+
+*****
+T : Type
+*****
+forall _ : eq nil nil, True
++++++
+auto.
+-----
+Global Instance Injective_nil_nil T : Injective (nil = @nil T).
+refine {| result := True |}.
+auto.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_app_cons {T} (a : list T) b c d\n: Injective (a ++ b :: nil = (c ++ d :: nil)).
+-----
+Global Instance Injective_app_cons {T} (a : list T) b c d : Injective (a ++ b :: nil = (c ++ d :: nil)).
+
+*****
+d : T
+c : list T
+b : T
+a : list T
+T : Type
+*****
+Injective (eq (app a (cons b nil)) (app c (cons d nil)))
++++++
+Proof.
+-----
+Global Instance Injective_app_cons {T} (a : list T) b c d : Injective (a ++ b :: nil = (c ++ d :: nil)).
+Proof.
+
+*****
+d : T
+c : list T
+b : T
+a : list T
+T : Type
+*****
+Injective (eq (app a (cons b nil)) (app c (cons d nil)))
++++++
+refine {| result := a = c /\ b = d |}.
+-----
+Global Instance Injective_app_cons {T} (a : list T) b c d : Injective (a ++ b :: nil = (c ++ d :: nil)).
+Proof.
+refine {| result := a = c /\\ b = d |}.
+
+*****
+d : T
+c : list T
+b : T
+a : list T
+T : Type
+*****
+forall _ : eq (app a (cons b nil)) (app c (cons d nil)), and (eq a c) (eq b d)
++++++
+eapply app_inj_tail.
+-----
+Global Instance Injective_app_cons {T} (a : list T) b c d : Injective (a ++ b :: nil = (c ++ d :: nil)).
+Proof.
+refine {| result := a = c /\\ b = d |}.
+eapply app_inj_tail.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_app_same_L {T} (a : list T) b c\n: Injective (b ++ a = b ++ c).
+-----
+Global Instance Injective_app_same_L {T} (a : list T) b c : Injective (b ++ a = b ++ c).
+
+*****
+a,b,c : list T
+T : Type
+*****
+Injective (eq (app b a) (app b c))
++++++
+Proof.
+-----
+Global Instance Injective_app_same_L {T} (a : list T) b c : Injective (b ++ a = b ++ c).
+Proof.
+
+*****
+a,b,c : list T
+T : Type
+*****
+Injective (eq (app b a) (app b c))
++++++
+refine {| result := a = c |}.
+-----
+Global Instance Injective_app_same_L {T} (a : list T) b c : Injective (b ++ a = b ++ c).
+Proof.
+refine {| result := a = c |}.
+
+*****
+a,b,c : list T
+T : Type
+*****
+forall _ : eq (app b a) (app b c), eq a c
++++++
+apply app_inv_head.
+-----
+Global Instance Injective_app_same_L {T} (a : list T) b c : Injective (b ++ a = b ++ c).
+Proof.
+refine {| result := a = c |}.
+apply app_inv_head.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Injective_app_same_R {T} (a : list T) b c\n: Injective (a ++ b = c ++ b).
+-----
+Global Instance Injective_app_same_R {T} (a : list T) b c : Injective (a ++ b = c ++ b).
+
+*****
+a,b,c : list T
+T : Type
+*****
+Injective (eq (app a b) (app c b))
++++++
+Proof.
+-----
+Global Instance Injective_app_same_R {T} (a : list T) b c : Injective (a ++ b = c ++ b).
+Proof.
+
+*****
+a,b,c : list T
+T : Type
+*****
+Injective (eq (app a b) (app c b))
++++++
+refine {| result := a = c |}.
+-----
+Global Instance Injective_app_same_R {T} (a : list T) b c : Injective (a ++ b = c ++ b).
+Proof.
+refine {| result := a = c |}.
+
+*****
+a,b,c : list T
+T : Type
+*****
+forall _ : eq (app a b) (app c b), eq a c
++++++
+apply app_inv_tail.
+-----
+Global Instance Injective_app_same_R {T} (a : list T) b c : Injective (a ++ b = c ++ b).
+Proof.
+refine {| result := a = c |}.
+apply app_inv_tail.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Lemma eq_list_eq\n: forall T (a b : T) (pf : a = b) (F : _ -> Type) val,\n    match pf in _ = x return list (F x) with\n      | eq_refl => val\n    end = map (fun val => match pf in _ = x return F x with\n                            | eq_refl => val\n                          end) val.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (val : list (F a)), eq match pf in (eq _ x) return (list (F x)) with | eq_refl => val end (map (fun val0 : F a => match pf in (eq _ x) return (F x) with | eq_refl => val0 end) val)
++++++
+Proof.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+Proof.
+
+*****
+
+*****
+forall (T : Type) (a b : T) (pf : eq a b) (F : forall _ : T, Type) (val : list (F a)), eq match pf in (eq _ x) return (list (F x)) with | eq_refl => val end (map (fun val0 : F a => match pf in (eq _ x) return (F x) with | eq_refl => val0 end) val)
++++++
+destruct pf.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+Proof.
+destruct pf.
+
+*****
+a : T
+T : Type
+*****
+forall (F : forall _ : T, Type) (val : list (F a)), eq val (map (fun val0 : F a => val0) val)
++++++
+intros.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+Proof.
+destruct pf.
+intros.
+
+*****
+val : list (F a)
+F : forall _ : T, Type
+a : T
+T : Type
+*****
+eq val (map (fun val : F a => val) val)
++++++
+rewrite map_id.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+Proof.
+destruct pf.
+intros.
+rewrite map_id.
+
+*****
+val : list (F a)
+F : forall _ : T, Type
+a : T
+T : Type
+*****
+eq val val
++++++
+reflexivity.
+-----
+Lemma eq_list_eq : forall T (a b : T) (pf : a = b) (F : _ -> Type) val, match pf in _ = x return list (F x) with | eq_refl => val end = map (fun val => match pf in _ = x return F x with | eq_refl => val end) val.
+Proof.
+destruct pf.
+intros.
+rewrite map_id.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Rewrite eq_list_eq : eq_rw.
+-----
+Export Coq.Lists.List.
+-----

@@ -1,0 +1,313 @@
+Require Coq.Setoids.Setoid.
+-----
+Require Import Coq.Relations.Relations.
+-----
+Require Import Coq.Classes.RelationClasses.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section relations.
+-----
+Context {T : Type} (wf : T -> Prop) (R : relation T).
+-----
+Class PReflexive : Prop :=\n    preflexive : forall x : T, wf x -> R x x.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+
+*****
+r : Reflexive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PReflexive
++++++
+Proof.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+Proof.
+
+*****
+r : Reflexive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PReflexive
++++++
+red.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+Proof.
+red.
+
+*****
+r : Reflexive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+forall (x : T) (_ : wf x), R x x
++++++
+intros.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+Proof.
+red.
+intros.
+
+*****
+H : wf x
+x : T
+r : Reflexive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R x x
++++++
+reflexivity.
+-----
+Global Instance PReflexive_Reflexive (r : Reflexive R) : PReflexive.
+Proof.
+red.
+intros.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Class PSymmetric : Prop :=\n    psymmetric : forall x y, wf x -> wf y -> R x y -> R y x.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+
+*****
+r : Symmetric R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PSymmetric
++++++
+Proof.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+Proof.
+
+*****
+r : Symmetric R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PSymmetric
++++++
+red.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+Proof.
+red.
+
+*****
+r : Symmetric R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+forall (x y : T) (_ : wf x) (_ : wf y) (_ : R x y), R y x
++++++
+intros.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+Proof.
+red.
+intros.
+
+*****
+H1 : R x y
+H0 : wf y
+H : wf x
+x,y : T
+r : Symmetric R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R y x
++++++
+symmetry.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+Proof.
+red.
+intros.
+symmetry.
+
+*****
+H1 : R x y
+H0 : wf y
+H : wf x
+x,y : T
+r : Symmetric R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R x y
++++++
+auto.
+-----
+Global Instance PSymmetric_Symmetric (r : Symmetric R) : PSymmetric.
+Proof.
+red.
+intros.
+symmetry.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Class PTransitive : Prop :=\n    ptransitive : forall x y z, wf x -> wf y -> wf z ->\n      R x y -> R y z -> R x z.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+
+*****
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PTransitive
++++++
+Proof.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+
+*****
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+PTransitive
++++++
+intro.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+intro.
+
+*****
+x : T
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+forall (y z : T) (_ : wf x) (_ : wf y) (_ : wf z) (_ : R x y) (_ : R y z), R x z
++++++
+intros.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+intro.
+intros.
+
+*****
+H3 : R y z
+H2 : R x y
+H1 : wf z
+H0 : wf y
+H : wf x
+x,y,z : T
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R x z
++++++
+etransitivity.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+intro.
+intros.
+etransitivity.
+
+*****
+H3 : R y z
+H2 : R x y
+H1 : wf z
+H0 : wf y
+H : wf x
+x,y,z : T
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R x ?y
++++++
+eauto.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+intro.
+intros.
+etransitivity.
+
+*****
+H3 : R y z
+H2 : R x y
+H1 : wf z
+H0 : wf y
+H : wf x
+x,y,z : T
+r : Transitive R
+R : relation T
+wf : forall _ : T, Prop
+T : Type
+*****
+R y z
++++++
+eauto.
+-----
+Global Instance PTransitive_Transitive (r : Transitive R) : PTransitive.
+Proof.
+intro.
+intros.
+etransitivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End relations.
+-----
+Arguments PReflexive {T} wf R.
+-----
+Arguments PSymmetric {T} wf R.
+-----
+Arguments PTransitive {T} wf R.
+-----

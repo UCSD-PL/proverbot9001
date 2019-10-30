@@ -1,0 +1,91 @@
+8803427b27273434a0261129241c02f9
+Require Import GeoCoq.Axioms.parallel_postulates.
+Require Import GeoCoq.Tarski_dev.Ch13_1.
+Section playfair_midpoints.
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+Lemma playfair_s_postulate_implies_midpoint_converse_postulate :
+  playfair_s_postulate ->
+  midpoint_converse_postulate.
+Proof.
+  intros HP A.
+  intros.
+  destruct (midpoint_existence A C) as [X HAC].
+  assert (X = Q).
+  {
+    assert (Par_strict A B X P).
+    {
+      apply triangle_mid_par with C.
+      {
+        assumption.
+      }
+      {
+        assumption.
+      }
+      {
+        assumption.
+      }
+    }
+    {
+      assert_diffs.
+      assert_cols.
+      apply l6_21 with A C P Q.
+      {
+        intro.
+        assert (Col A B C).
+        {
+          ColR.
+        }
+        {
+          idtac.
+          contradiction.
+        }
+      }
+      {
+        assert (Par A B Q P /\ A <> B /\ Q <> P).
+        {
+          apply par_distincts.
+          finish.
+        }
+        {
+          idtac.
+          spliter.
+          intuition.
+        }
+      }
+      {
+        Col.
+      }
+      {
+        Col.
+      }
+      {
+        destruct (HP A B Q P X P P) as [HCol1 HCol2].
+        {
+          Col.
+        }
+        {
+          Col.
+        }
+        {
+          Col.
+          apply par_strict_par.
+          Par.
+        }
+        {
+          Col.
+        }
+        {
+          Col.
+        }
+      }
+      {
+        Col.
+      }
+    }
+  }
+  {
+    treat_equalities.
+    assumption.
+  }
+Qed.
+End playfair_midpoints.

@@ -1,0 +1,1914 @@
+Require Import GeoCoq.Utils.arity.
+-----
+Require Import GeoCoq.Tactics.Coinc.tactics_axioms.
+-----
+Section Permutations.
+-----
+Context `{COT : Coinc_theory}.
+-----
+Lemma PermWdOK :\n  forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))),\n  app wd cp1 ->\n  Permutation.Permutation (CPToList cp1) (CPToList cp2) ->\n  app wd cp2.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))) (_ : app wd cp1) (_ : Permutation.Permutation (CPToList cp1) (CPToList cp2)), app wd cp2
++++++
+Proof.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))) (_ : app wd cp1) (_ : Permutation.Permutation (CPToList cp1) (CPToList cp2)), app wd cp2
++++++
+intros cp1 cp2 Happ HPerm.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app wd cp2
++++++
+apply PermOK with cp1.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+try assumption.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+clear HPerm.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+
+*****
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+clear Happ.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+
+*****
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+clear cp2.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+
+*****
+cp1 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+clear cp1.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app wd (consHeadCP A X)), app wd (consTailCP X A)
++++++
+intros A X Happ.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app wd (consTailCP X A)
++++++
+apply app_n_1_app with A X.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app_n_1 wd X A
++++++
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP A X)) A
++++++
+simpl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+simpl.
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailCP (consHeadCP A X)) X
++++++
+apply consHeadCPTl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (allButLastCP (consTailCP X A)) X
++++++
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (allButLastCP (consTailCP X A)) X
++++++
+apply consTailCPAbl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (lastCP (consTailCP X A)) A
++++++
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply wd_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app wd (consHeadCP A X)
+X : cartesianPower COINCpoint (S n)
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (lastCP (consTailCP X A)) A
++++++
+apply consTailCPLast.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+try assumption.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+clear HPerm.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+
+*****
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+clear Happ.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+
+*****
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+clear cp2.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+
+*****
+cp1 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+clear cp1.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint n) (_ : app wd (consHeadCP A (consHeadCP B X))), app wd (consHeadCP B (consHeadCP A X))
++++++
+intros A B X Happ.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app wd (consHeadCP B (consHeadCP A X))
++++++
+apply app_2_n_app_default with B A X X.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app_2_n wd B A X
++++++
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP A (consHeadCP B X))) A
++++++
+simpl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP A (consHeadCP B X)))) B
++++++
+rewrite consHeadCPTl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP B X)) B
++++++
+rewrite consHeadCPHd.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+rewrite consHeadCPHd.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq B B
++++++
+reflexivity.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailDefaultCP (tailCP (consHeadCP A (consHeadCP B X))) X) X
++++++
+rewrite consHeadCPTl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailDefaultCP (consHeadCP B X) X) X
++++++
+apply consTailCPTlD.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP B (consHeadCP A X))) B
++++++
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP B (consHeadCP A X))) B
++++++
+simpl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq B B
++++++
+reflexivity.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP B (consHeadCP A X)))) A
++++++
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP B (consHeadCP A X)))) A
++++++
+rewrite consHeadCPTl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP A X)) A
++++++
+rewrite consHeadCPHd.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+rewrite consHeadCPHd.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailDefaultCP (tailCP (consHeadCP B (consHeadCP A X))) X) X
++++++
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailDefaultCP (tailCP (consHeadCP B (consHeadCP A X))) X) X
++++++
+rewrite consHeadCPTl.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app_default with B A X X.
+try (apply wd_perm_2; apply app_app_2_n_default with X (consHeadCP A (consHeadCP B X)); try assumption).
+rewrite consHeadCPTl.
+
+*****
+Happ : app wd (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint n
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailDefaultCP (consHeadCP A X) X) X
++++++
+apply consTailCPTlD.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app wd cp1
++++++
+try assumption.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app wd cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S n))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+Permutation.Permutation (CPToList cp1) (CPToList cp2)
++++++
+try assumption.
+-----
+Lemma PermWdOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S n))), app wd cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app wd cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma PermCoincOK :\n  forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))),\n  app coinc cp1 ->\n  Permutation.Permutation (CPToList cp1) (CPToList cp2) ->\n  app coinc cp2.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))) (_ : app coinc cp1) (_ : Permutation.Permutation (CPToList cp1) (CPToList cp2)), app coinc cp2
++++++
+Proof.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))) (_ : app coinc cp1) (_ : Permutation.Permutation (CPToList cp1) (CPToList cp2)), app coinc cp2
++++++
+intros cp1 cp2 Happ HPerm.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app coinc cp2
++++++
+apply PermOK with cp1.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+try assumption.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+clear HPerm.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+
+*****
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+clear Happ.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+
+*****
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+clear cp2.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+
+*****
+cp1 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+clear cp1.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A : COINCpoint) (X : cartesianPower COINCpoint (S (S n))) (_ : app coinc (consHeadCP A X)), app coinc (consTailCP X A)
++++++
+intros A X Happ.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app coinc (consTailCP X A)
++++++
+apply app_n_1_app with A X.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app_n_1 coinc X A
++++++
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP A X)) A
++++++
+simpl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+simpl.
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailCP (consHeadCP A X)) X
++++++
+apply consHeadCPTl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (allButLastCP (consTailCP X A)) X
++++++
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (allButLastCP (consTailCP X A)) X
++++++
+apply consTailCPAbl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (lastCP (consTailCP X A)) A
++++++
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A X Happ.
+apply app_n_1_app with A X.
+try (apply coinc_perm_1; apply app_app_1_n with (consHeadCP A X); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A X)
+X : cartesianPower COINCpoint (S (S n))
+A : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (lastCP (consTailCP X A)) A
++++++
+apply consTailCPLast.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+try assumption.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+clear HPerm.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+
+*****
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+clear Happ.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+
+*****
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+clear cp2.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+
+*****
+cp1 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+clear cp1.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+
+*****
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+forall (A B : COINCpoint) (X : cartesianPower COINCpoint (S n)) (_ : app coinc (consHeadCP A (consHeadCP B X))), app coinc (consHeadCP B (consHeadCP A X))
++++++
+intros A B X Happ.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app coinc (consHeadCP B (consHeadCP A X))
++++++
+apply app_2_n_app with B A X.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app_2_n coinc B A X
++++++
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP A (consHeadCP B X))) A
++++++
+simpl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP A (consHeadCP B X)))) B
++++++
+simpl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq B B
++++++
+reflexivity.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailCP (tailCP (consHeadCP A (consHeadCP B X)))) X
++++++
+apply consHeadCPTl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP B (consHeadCP A X))) B
++++++
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (consHeadCP B (consHeadCP A X))) B
++++++
+simpl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq B B
++++++
+reflexivity.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP B (consHeadCP A X)))) A
++++++
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (headCP (tailCP (consHeadCP B (consHeadCP A X)))) A
++++++
+simpl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+simpl.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq A A
++++++
+reflexivity.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailCP (tailCP (consHeadCP B (consHeadCP A X)))) X
++++++
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+try assumption.
+clear HPerm.
+clear Happ.
+clear cp2.
+clear cp1.
+intros A B X Happ.
+apply app_2_n_app with B A X.
+try (apply coinc_perm_2; apply app_app_2_n with (consHeadCP A (consHeadCP B X)); try assumption).
+
+*****
+Happ : app coinc (consHeadCP A (consHeadCP B X))
+X : cartesianPower COINCpoint (S n)
+A,B : COINCpoint
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+eq (tailCP (tailCP (consHeadCP B (consHeadCP A X)))) X
++++++
+apply consHeadCPTl.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+app coinc cp1
++++++
+try assumption.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+HPerm : Permutation.Permutation (CPToList cp1) (CPToList cp2)
+Happ : app coinc cp1
+cp1,cp2 : cartesianPower COINCpoint (S (S (S n)))
+COT : Coinc_theory Ar COP
+COP : Coinc_predicates Ar
+Ar : Arity
+*****
+Permutation.Permutation (CPToList cp1) (CPToList cp2)
++++++
+try assumption.
+-----
+Lemma PermCoincOK : forall (cp1 cp2 : cartesianPower COINCpoint (S (S (S n)))), app coinc cp1 -> Permutation.Permutation (CPToList cp1) (CPToList cp2) -> app coinc cp2.
+Proof.
+intros cp1 cp2 Happ HPerm.
+apply PermOK with cp1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Permutations.
+-----

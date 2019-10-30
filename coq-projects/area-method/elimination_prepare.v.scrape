@@ -1,0 +1,489 @@
+Require Export area_elimination_lemmas.
+-----
+Require Export py_elimination_lemmas.
+-----
+Lemma  col_decS : forall A B C:Point, S A B C = 0 \/ S A B C <>0.
+-----
+Lemma col_decS : forall A B C:Point, S A B C = 0 \\/ S A B C <>0.
+
+*****
+
+*****
+forall A B C : Point, or (eq (S A B C) F0) (not (eq (S A B C) F0))
++++++
+Proof.
+-----
+Lemma col_decS : forall A B C:Point, S A B C = 0 \\/ S A B C <>0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, or (eq (S A B C) F0) (not (eq (S A B C) F0))
++++++
+unfold Col.
+-----
+Lemma col_decS : forall A B C:Point, S A B C = 0 \\/ S A B C <>0.
+Proof.
+unfold Col.
+
+*****
+
+*****
+forall A B C : Point, or (eq (S A B C) F0) (not (eq (S A B C) F0))
++++++
+apply col_dec.
+-----
+Lemma col_decS : forall A B C:Point, S A B C = 0 \\/ S A B C <>0.
+Proof.
+unfold Col.
+apply col_dec.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac named_cases_colS A B C H := elim (col_decS A B C);intro H.
+-----
+Ltac test_col A B C Tac1 Tac2 := \n match goal with \n| HCol : S A B C = 0 |- _ => Tac1 HCol\n| HCol : S A B C <>0 |- _ => Tac2 HCol\n| _ => let HCol := fresh in \n      (named_cases_colS A B C HCol;\n   [ Tac1 HCol | Tac2 HCol])\nend.
+-----
+Ltac test_parallel A B C D Tac1 Tac2 := \n match goal with \n| HPar : parallel A B C D |- _ => Tac1 HPar\n| HPar : ~ parallel A B C D |- _ => Tac2 HPar\n| _ => let HPar := fresh in \n      (named_cases_parallel A B C D HPar;\n   [ Tac1 HPar | Tac2 HPar])\nend.
+-----
+Ltac test_equality A B Tac1 Tac2 := \n match goal with \n| H : A = B |- _ => Tac1 H\n| H : A<>B |- _ => Tac2 H\n| _ => let H := fresh in \n      (named_cases_equality A B H;\n   [ Tac1 H | Tac2 H])\nend.
+-----
+Ltac invdiffhyp A B :=\n  let H := HypOfType (A <> B) in\n  let Hnew := fresh in\n  (assert (Hnew := ldiff A B H); clear H).
+-----
+Ltac put_on_the_right_areas P :=\n  repeat match goal with\n    | |- context[S P ?X1 ?X2] => \n         rewrite (S_1 P X1 X2) in *\n    | |- context[S ?X1 P ?X2] => \n         rewrite (S_0 X1 P X2) in *\nend.
+-----
+Ltac put_on_the_right_pys P :=\n  repeat match goal with\n    | |- context[Py ?A P ?A] => rewrite (pyth_simpl_4 A P) in *	\n    | |- context[Py P ?X1 ?X2] => rewrite (pyth_sym P X1 X2) in * \nend.
+-----
+Ltac changeparhyp A B C D lpar :=\n  let Hpar := HypOfType (parallel A B C D) in\n  let HparNew := fresh in\n  (assert (HparNew := lpar A B C D Hpar); clear Hpar).
+-----
+Ltac put_on_the_right_ratios Y :=\n  repeat match goal with\n  |_:_ |- context [(?X5 ** Y / Y ** ?X7)] =>\n      replace (X5 ** Y / Y ** X7) with (- (X5 ** Y / X7 ** Y));\n       [ changeparhyp X5 Y Y X7 lpar1; invdiffhyp Y X7\n       | symmetry  in |- *; apply dirseg_4; Geometry ]\n  | _:_ |- context [(Y ** ?X5 / ?X7 ** Y)] =>\n      replace (Y ** X5 / X7 ** Y) with (- (X5 ** Y / X7 ** Y));\n       [ changeparhyp Y X5 X7 Y lpar2\n       | symmetry  in |- *; apply dirseg_4; Geometry ]\n  | _:_ |- context [(Y ** ?X5 / ?X6 ** ?X7)] =>\n      replace (Y ** X5 / X6 ** X7) with (X5 ** Y / X7 ** X6);\n       [ changeparhyp Y X5 X6 X7 lpar3; invdiffhyp X6 X7 | Geometry ]\n  | _:_ |- context [(?X5 ** ?X6 / Y ** ?X7)] =>\n      replace (X5 ** X6 / Y ** X7) with (X6 ** X5 / X7 ** Y);\n       [ changeparhyp X5 X6 Y X7 lpar3; invdiffhyp Y X7 | Geometry ]\nend.
+-----
+Ltac case_equal X5 X6 X7 Y Heq := rewrite Heq in *.
+-----
+Lemma invariant_inverse_ratio : forall A B C D,\n A<>B -> C<>D -> C**D/ A**B <> 0.
+-----
+Lemma invariant_inverse_ratio : forall A B C D, A<>B -> C<>D -> C**D/ A**B <> 0.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : not (eq A B)) (_ : not (eq C D)), not (eq (Fdiv (DSeg C D) (DSeg A B)) F0)
++++++
+intros.
+-----
+Lemma invariant_inverse_ratio : forall A B C D, A<>B -> C<>D -> C**D/ A**B <> 0.
+intros.
+
+*****
+H0 : not (eq C D)
+H : not (eq A B)
+A,B,C,D : Point
+*****
+not (eq (Fdiv (DSeg C D) (DSeg A B)) F0)
++++++
+apply nonzerodiv.
+-----
+Lemma invariant_inverse_ratio : forall A B C D, A<>B -> C<>D -> C**D/ A**B <> 0.
+intros.
+apply nonzerodiv.
+
+*****
+H0 : not (eq C D)
+H : not (eq A B)
+A,B,C,D : Point
+*****
+not (eq (DSeg C D) F0)
++++++
+Geometry.
+-----
+Lemma invariant_inverse_ratio : forall A B C D, A<>B -> C<>D -> C**D/ A**B <> 0.
+intros.
+apply nonzerodiv.
+
+*****
+H0 : not (eq C D)
+H : not (eq A B)
+A,B,C,D : Point
+*****
+not (eq (DSeg A B) F0)
++++++
+Geometry.
+-----
+Lemma invariant_inverse_ratio : forall A B C D, A<>B -> C<>D -> C**D/ A**B <> 0.
+intros.
+apply nonzerodiv.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac case_not_equal X5 X6 X7 Y Heq :=\n let T:= fresh in\n  assert (T:X7**Y/X5**X6 <> 0);[apply (invariant_inverse_ratio X5 X6 X7 Y );try assumption|idtac];\n (replace (X5**X6 / X7**Y) with (1/(X7**Y / X5 ** X6));[changeparhyp X5 X6 X7 Y par_2|symmetry;apply inverse_ratio;Geometry]).
+-----
+Ltac put_on_the_upper_right_ratios Y :=\n repeat match goal with\n   |_:_ |- context [(?X5 ** Y / ?X6 ** Y)] => fail 1\n   |_:_ |- context [(?X5 ** ?X6 / ?X7**Y)] => \n          test_equality X5 X6 ltac:(case_equal X5 X6 X7 Y) ltac:(case_not_equal X5 X6 X7 Y)\nend.
+-----
+Ltac unify_signed_areas_point P :=\n  repeat\n   match goal with\n   |  |- context [(S ?X1 ?X1 ?X2)] =>\n       replace (S X1 X1 X2) with 0; [ idtac | apply trivial_col1 ]\n   |  |- context [(S ?X2 ?X1 ?X1)] =>\n       replace (S X2 X1 X1) with 0; [ idtac | apply trivial_col2 ]\n   |  |- context [(S ?X1 ?X2 ?X1)] =>\n       replace (S X1 X2 X1) with 0; [ idtac | apply trivial_col3 ]\n   |  |- context [(S ?X1 ?X2 P)] =>\n    ( let Truc := fresh in\n    match goal with\n       |  |- context [(S ?X4 ?X5 P)] =>\n            (assert (Truc : S X4 X5 P = - S X1 X2 P);\n             [ apply S_3 || apply S_2 || apply S_4\n             | rewrite Truc in *; clear Truc ]) ||\n             (assert (Truc : S X4 X5 P = S X1 X2 P);\n               [ apply S_0 || apply S_1 | rewrite Truc in *; clear Truc ])\n       end)\n   end.
+-----
+Ltac unify_signed_areas_and_put_on_the_right P :=\n put_on_the_right_areas P;\n put_on_the_right_pys P;\n put_on_the_right_ratios P;\n put_on_the_upper_right_ratios P;\n unify_signed_areas_point P.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S B A C)) F0
++++++
+Proof.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S B A C)) F0
++++++
+intros.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S B A C)) F0
++++++
+unify_signed_areas_and_put_on_the_right B.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right B.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S C A B) (Fopp (S C A B))) F0
++++++
+ring.
+-----
+Lemma test_1 : forall A B C, S A B C + S B A C = 0.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right B.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> \n Y**A / C**D = (A**Y / D**C).
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> Y**A / C**D = (A**Y / D**C).
+
+*****
+
+*****
+forall (Y A C D : Point) (_ : parallel Y A C D) (_ : not (eq C D)), eq (Fdiv (DSeg Y A) (DSeg C D)) (Fdiv (DSeg A Y) (DSeg D C))
++++++
+Proof.
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> Y**A / C**D = (A**Y / D**C).
+Proof.
+
+*****
+
+*****
+forall (Y A C D : Point) (_ : parallel Y A C D) (_ : not (eq C D)), eq (Fdiv (DSeg Y A) (DSeg C D)) (Fdiv (DSeg A Y) (DSeg D C))
++++++
+intros.
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> Y**A / C**D = (A**Y / D**C).
+Proof.
+intros.
+
+*****
+H0 : not (eq C D)
+H : parallel Y A C D
+Y,A,C,D : Point
+*****
+eq (Fdiv (DSeg Y A) (DSeg C D)) (Fdiv (DSeg A Y) (DSeg D C))
++++++
+put_on_the_right_ratios Y.
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> Y**A / C**D = (A**Y / D**C).
+Proof.
+intros.
+put_on_the_right_ratios Y.
+
+*****
+H : not (eq D C)
+H1 : parallel A Y D C
+Y,A,C,D : Point
+*****
+eq (Fdiv (DSeg A Y) (DSeg D C)) (Fdiv (DSeg A Y) (DSeg D C))
++++++
+reflexivity.
+-----
+Lemma test_2 : forall Y A C D, parallel Y A C D -> C<>D -> Y**A / C**D = (A**Y / D**C).
+Proof.
+intros.
+put_on_the_right_ratios Y.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> \nC<>D -> C**D / A**Y = 1/(A**Y / C**D).
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> C<>D -> C**D / A**Y = 1/(A**Y / C**D).
+
+*****
+
+*****
+forall (Y A C D : Point) (_ : parallel C D A Y) (_ : not (eq A Y)) (_ : not (eq C D)), eq (Fdiv (DSeg C D) (DSeg A Y)) (Fdiv F1 (Fdiv (DSeg A Y) (DSeg C D)))
++++++
+Proof.
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> C<>D -> C**D / A**Y = 1/(A**Y / C**D).
+Proof.
+
+*****
+
+*****
+forall (Y A C D : Point) (_ : parallel C D A Y) (_ : not (eq A Y)) (_ : not (eq C D)), eq (Fdiv (DSeg C D) (DSeg A Y)) (Fdiv F1 (Fdiv (DSeg A Y) (DSeg C D)))
++++++
+intros.
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> C<>D -> C**D / A**Y = 1/(A**Y / C**D).
+Proof.
+intros.
+
+*****
+H1 : not (eq C D)
+H0 : not (eq A Y)
+H : parallel C D A Y
+Y,A,C,D : Point
+*****
+eq (Fdiv (DSeg C D) (DSeg A Y)) (Fdiv F1 (Fdiv (DSeg A Y) (DSeg C D)))
++++++
+unify_signed_areas_and_put_on_the_right Y.
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> C<>D -> C**D / A**Y = 1/(A**Y / C**D).
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+
+*****
+H3 : parallel A Y C D
+H2 : not (eq (Fdiv (DSeg A Y) (DSeg C D)) F0)
+H1 : not (eq C D)
+H0 : not (eq A Y)
+Y,A,C,D : Point
+*****
+eq (Fdiv F1 (Fdiv (DSeg A Y) (DSeg C D))) (Fdiv F1 (Fdiv (DSeg A Y) (DSeg C D)))
++++++
+reflexivity.
+-----
+Lemma test_3 :forall Y A C D, parallel C D A Y -> A<>Y -> C<>D -> C**D / A**Y = 1/(A**Y / C**D).
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+
+*****
+
+*****
+forall A B Y : Point, eq (Py Y A B) (Py B A Y)
++++++
+Proof.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+Proof.
+
+*****
+
+*****
+forall A B Y : Point, eq (Py Y A B) (Py B A Y)
++++++
+intros.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+Proof.
+intros.
+
+*****
+A,B,Y : Point
+*****
+eq (Py Y A B) (Py B A Y)
++++++
+unify_signed_areas_and_put_on_the_right Y.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+
+*****
+A,B,Y : Point
+*****
+eq (Py B A Y) (Py B A Y)
++++++
+reflexivity.
+-----
+Lemma test_4: forall A B Y, Py Y A B = Py B A Y.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+
+*****
+
+*****
+forall A Y : Point, eq (Py Y A Y) (Py Y A Y)
++++++
+Proof.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+Proof.
+
+*****
+
+*****
+forall A Y : Point, eq (Py Y A Y) (Py Y A Y)
++++++
+intros.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+Proof.
+intros.
+
+*****
+A,Y : Point
+*****
+eq (Py Y A Y) (Py Y A Y)
++++++
+unify_signed_areas_and_put_on_the_right Y.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+
+*****
+A,Y : Point
+*****
+eq (Py Y A Y) (Py Y A Y)
++++++
+reflexivity.
+-----
+Lemma test_5: forall A Y, Py Y A Y = Py Y A Y.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right Y.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+
+*****
+
+*****
+forall C B A E : Point, eq (Fplus (Py B E B) (Py E A C)) (Fplus (Py E B E) (Py C A E))
++++++
+Proof.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+Proof.
+
+*****
+
+*****
+forall C B A E : Point, eq (Fplus (Py B E B) (Py E A C)) (Fplus (Py E B E) (Py C A E))
++++++
+intros.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+Proof.
+intros.
+
+*****
+C,B,A,E : Point
+*****
+eq (Fplus (Py B E B) (Py E A C)) (Fplus (Py E B E) (Py C A E))
++++++
+unify_signed_areas_and_put_on_the_right E.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right E.
+
+*****
+C,B,A,E : Point
+*****
+eq (Fplus (Py E B E) (Py C A E)) (Fplus (Py E B E) (Py C A E))
++++++
+reflexivity.
+-----
+Lemma test_6: forall C B A E, Py B E B + Py E A C = Py E B E + Py C A E.
+Proof.
+intros.
+unify_signed_areas_and_put_on_the_right E.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

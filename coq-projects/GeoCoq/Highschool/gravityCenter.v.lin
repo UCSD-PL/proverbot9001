@@ -1,0 +1,499 @@
+024eacf1658dd9b2758e6e3e071d26cb
+Require Export GeoCoq.Tarski_dev.Annexes.midpoint_theorems.
+Require Export GeoCoq.Highschool.varignon.
+Section GravityCenter.
+Context `{TE:Tarski_euclidean}.
+Lemma intersection_two_medians_exist :
+forall A B C I J,
+ ~Col A B C ->
+ Midpoint I B C -> Midpoint J A C ->
+ exists G, Col G A I /\ Col G B J.
+Proof with finish.
+intros.
+assert_bets.
+elim (inner_pasch A B C J I)...
+intro G;intros.
+exists G.
+spliter;assert_cols;split...
+Qed.
+Lemma intersection_two_medians_exist_unique :
+forall A B C I J,
+ ~Col A B C ->
+ Midpoint I B C -> Midpoint J A C ->
+ exists! G, Col G A I /\ Col G B J.
+Proof with finish.
+intros.
+elim (intersection_two_medians_exist A B C I J H H0 H1); intros G HG; spliter.
+exists G.
+unfold unique.
+assert_all.
+repeat split...
+intros G' HG'; spliter.
+apply l6_21 with A I B J...
+intro; search_contradiction.
+show_distinct' B J...
+Qed.
+Definition is_gravity_center G A B C :=
+ ~ Col A B C /\
+ exists I, exists J, Midpoint I B C /\ Midpoint J A C /\ Col G A I /\ Col G B J.
+Lemma is_gravity_center_coplanar : forall A B C G,
+  is_gravity_center G A B C -> Coplanar G A B C.
+Proof.
+intros.
+destruct H as [HNCol [I [J]]]; spliter.
+exists I; left; split; Col.
+Qed.
+Lemma is_gravity_center_exist_unique : forall A B C,
+  ~ Col A B C ->
+  exists! G, is_gravity_center G A B C.
+Proof with finish.
+intros.
+assert_diffs.
+Name I the midpoint of B and C.
+Name J the midpoint of A and C.
+elim (intersection_two_medians_exist A B C I J H H1 H4); intros G HG; spliter.
+exists G; unfold unique; unfold is_gravity_center; repeat split...
+exists I;  exists J; do 3 (split; finish).
+intros G' HG'; spliter; decompose [ex and] H8;clear H8.
+assert_all.
+apply l6_21 with A x B x0...
+intro;search_contradiction.
+show_distinct' B x0...
+Qed.
+Ltac intersection_medians G A B C I J H1 H2 H3 :=
+ let T := fresh in assert(T:= intersection_two_medians_exist A B C I J H1 H2 H3);
+ ex_and T G.
+Tactic Notation "Name" ident(G) "the" "intersection" "of" "the" "medians" "(" ident(A) ident(I) ")" "which" "is" "a" "median" "since" ident(H2) "and" "(" ident(B) ident(J) ")" "which" "is" "a" "median" "since" ident(H3) "of" "the" "non-flat" "triangle" ident(A) ident(B) ident(C) ident(H1) :=
+ intersection_medians G A B C I J H1 H2 H3.
+Lemma three_medians_intersect:
+ forall A B C I J K,
+ ~Col A B C ->
+ Midpoint I B C ->
+ Midpoint J A C ->
+ Midpoint K A B ->
+ exists G, Col G A I /\ Col G B J /\Col G C K.
+Proof with assert_all.
+intros.
+assert_diffs.
+Name G the intersection of the medians (A I)
+     which is a median since H0 and (B J)
+     which is a median since H1
+     of the non-flat triangle A B C H.
+exists G; repeat split; try assumption.
+Name D the symmetric of C wrt G.
+assert_all.
+show_distinct' A D.
+permutation_intro_in_hyps.
+assert (Par A D J G) by (apply (triangle_mid_par A D C G J H13 H14 H1)).
+show_distinct' B G.
+assert (Par G B A D)
+     by (perm_apply (par_col_par A D G J B)).
+show_distinct' B D.
+assert (Par B D I G) by (apply (triangle_mid_par B D C G I H104 H14 H0)).
+show_distinct' A G.
+assert (Par G A D B)
+     by (perm_apply (par_col_par B D G I A))...
+show_distinct' D G.
+assert (~ Col G A D)
+     by (intro; search_contradiction).
+assert (Parallelogram G A D B)
+     by (apply (par_2_plg G A D B); finish).
+Name Z the intersection of the diagonals (G D)
+     and (A B) of the parallelogram H17...
+ColR.
+Qed.
+Lemma is_gravity_center_col : forall A B C G I,
+  is_gravity_center G A B C ->
+  Midpoint I A B ->
+  Col G I C.
+Proof.
+intros.
+unfold is_gravity_center in *.
+spliter.
+destruct H1 as [J [K [Ha [Hb [Hc Hd]]]]].
+elim (three_medians_intersect A B C J K I H);try assumption.
+intro G';intros.
+spliter.
+assert (T:=is_gravity_center_exist_unique A B C H).
+elim T.
+intros G''.
+intros.
+unfold unique in *.
+spliter.
+assert (G''=G).
+apply H5.
+unfold is_gravity_center.
+split;auto.
+exists J.
+exists K;auto.
+assert (G''=G').
+apply H5.
+unfold is_gravity_center.
+split;auto.
+exists J.
+exists K;auto.
+subst.
+subst.
+Col.
+Qed.
+Lemma is_gravity_center_diff_1 :
+ forall A B C G,
+ is_gravity_center G A B C ->
+ G<>A.
+Proof.
+intros.
+intro.
+unfold is_gravity_center in *.
+spliter.
+decompose [ex and] H1.
+assert_cols.
+apply H.
+treat_equalities.
+assert_diffs.
+ColR.
+Qed.
+Lemma is_gravity_center_diff_2 :
+ forall A B C G,
+ is_gravity_center G A B C ->
+ G<>B.
+Proof.
+intros.
+intro.
+unfold is_gravity_center in *.
+spliter.
+decompose [ex and] H1.
+assert_cols.
+apply H.
+treat_equalities.
+assert_diffs.
+ColR.
+Qed.
+Lemma is_gravity_center_diff_3 :
+ forall A B C G,
+ is_gravity_center G A B C ->
+ G<>C.
+Proof.
+intros.
+intro.
+unfold is_gravity_center in *.
+spliter.
+decompose [ex and] H1.
+assert_cols.
+apply H.
+treat_equalities.
+assert_diffs.
+ColR.
+Qed.
+Lemma is_gravity_center_third :
+ forall A B C G G' A',
+ is_gravity_center G A B C ->
+ Midpoint G' A G ->
+ Midpoint A' B C ->
+ Midpoint G A' G'.
+Proof.
+intros.
+Name C' the midpoint of A and B.
+assert (Col G C' C) by (apply is_gravity_center_col with A B; Col).
+unfold is_gravity_center in *.
+spliter.
+destruct H4 as [A'' [B' HIJ]].
+spliter.
+treat_equalities.
+assert_diffs.
+Name G'' the midpoint of C and G.
+assert (HPar : Parallelogram  C' A' G'' G').
+apply (varignon' A B C G C' A' G'' G'); finish.
+apply parallelogram_to_plg in HPar.
+destruct HPar as [HDiff [I [HCol1 HCol2]]].
+assert (G = I); try (treat_equalities; unfold Midpoint in *; spliter; eCong).
+show_distinct G A; assert_diffs; try (apply H; assert_cols; ColR).
+assert_diffs; assert_cols.
+assert (~ Col A C G) by (intro; apply H; ColR).
+elim HDiff; clear HDiff; intro; show_distinct A' G'; show_distinct C' G''; Col;
+assert_diffs; assert_cols; try (apply H; ColR);
+apply l6_21 with A G C G; assert_diffs; Col; ColR.
+Qed.
+Lemma is_gravity_center_third_reci :
+ forall A B C G A' A'',
+ Midpoint A' B C ->
+ Midpoint A'' A G ->
+ Midpoint G A' A'' ->
+ ~ Col A B C ->
+ is_gravity_center G A B C.
+Proof.
+intros A B C G A' A'' HMid1 HMid2 HMid3 HNC.
+split; Col.
+Name B' the midpoint of A and C.
+Name C' the midpoint of A and B.
+exists A'; exists B'; split; Col; try split; Col; split;
+try (assert (A <> G) by (intro; treat_equalities; assert_cols; Col);
+     assert_diffs; assert_cols; ColR).
+Name B'' the midpoint of B and G.
+assert (HB' := symmetric_point_construction B'' G).
+destruct HB' as [B''' HB'].
+assert (HPar1 : Par B A A' B').
+{
+apply triangle_mid_par with C; assert_diffs; try split;
+  unfold Midpoint in *; spliter; Between; Cong.
+}
+assert (HCong1 : Cong A C' A' B').
+{
+assert (H := triangle_mid_par_cong A B C A' B' C');
+  destruct H as [Hc1 [Hc2 [Hc3 [H Hc4]]]]; assert_diffs; Cong.
+}
+assert (HPar2 : Par A B A'' B'').
+{
+apply triangle_mid_par with G; assert_diffs; try split;
+  unfold Midpoint in *; spliter; Between; Cong.
+}
+assert (HCong2 : Cong A C' A'' B'').
+{
+assert (H := triangle_mid_par_cong A B G B'' A'' C');
+  destruct H as [Hc1 [Hc2 [Hc3 [H Hc4]]]]; assert_diffs; Cong;
+  intro; treat_equalities; assert_cols; Col.
+assert_diffs; apply HNC; ColR.
+}
+assert (HPar3 : Par A'' B'' A' B''').
+{
+apply plg_par_1; try (intro; treat_equalities; Col; assert_diffs; assert_cols; apply HNC; ColR).
+apply mid_plg_1 with G; try (intro; treat_equalities; assert_cols; Col);
+  unfold Midpoint in *; spliter; split; Between; Cong.
+}
+assert (Cong3 : Cong A'' B'' A' B''').
+{
+apply plg_cong_1.
+apply mid_plg_1 with G; try (intro; treat_equalities; assert_cols; Col);
+  unfold Midpoint in *; spliter; split; Between; Cong.
+}
+assert (HCol : Col A' B' B''').
+{
+assert (H := parallel_uniqueness A B A' B' A' B''' A'); destruct H as [HCol1 HCol2]; Col; Par.
+apply par_trans with A'' B''; Par.
+}
+assert (HElim := l7_20 A' B' B'''); elim HElim; clear HElim; try intro HElim; Col; eCong.
+{
+treat_equalities; assert_diffs; assert_cols.
+assert (G <> B'') by (intro; treat_equalities; Col); ColR.
+}
+{
+assert (HFalse : OS A' B'' A'' B''').
+{
+apply one_side_transitivity with G.
+{
+apply one_side_symmetry.
+assert (HH1 : A' <> B'') by (intro; treat_equalities; Col).
+assert (HH2 : Col A' B'' A') by Col.
+assert (HH3 : Col G A''  A') by (assert_cols; Col).
+assert (HH := l9_19 A' B'' G A'' A' HH2 HH3); rewrite HH.
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; Col.
+split; try (intro; treat_equalities; Col).
+unfold Midpoint in *; spliter; Between.
+}
+{
+assert (HH1 : A' <> B'') by (intro; treat_equalities; Col).
+assert (HH2 : Col A' B'' B'') by Col.
+assert (HH3 : Col G B'''  B'') by (assert_cols; Col).
+assert (HH := l9_19 A' B'' G B''' B'' HH2 HH3); rewrite HH.
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; Col.
+split; try (intro; treat_equalities; Col).
+unfold Midpoint in *; spliter; Between.
+}
+}
+apply l9_9_bis in HFalse; exfalso; apply HFalse; clear HFalse.
+apply l9_8_2 with B'.
+{
+assert (A' <> B'') by (intro; treat_equalities; Col).
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; try (intro; apply HABG; ColR).
+exists A'; unfold Midpoint in *; spliter; split; Col; Between.
+}
+{
+apply one_side_transitivity with A.
+{
+apply one_side_symmetry; apply l9_17 with C;
+      try (unfold Midpoint in *; spliter; assumption).
+apply one_side_transitivity with G.
+{
+apply one_side_symmetry.
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert (HH1 : A' <> B'') by (intro; treat_equalities; Col).
+assert (HH2 : Col A' B'' A') by Col.
+assert (HH3 : Col G A  A') by ColR.
+assert (HH := l9_19 A' B'' G A A' HH2 HH3); rewrite HH.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; Col.
+split; try (intro; treat_equalities; Col).
+unfold Midpoint in *; spliter; eBetween.
+}
+{
+exists B; split.
+{
+assert (A' <> B'') by (intro; treat_equalities; Col).
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; try (intro; apply HABG; ColR).
+exists B''; unfold Midpoint in *; spliter; split; Col; Between.
+}
+{
+assert (A' <> B'') by (intro; treat_equalities; Col).
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+split; try (intro; apply HABG; ColR).
+split; try (intro; apply HABG; ColR).
+exists A'; unfold Midpoint in *; spliter; split; Col; Between.
+}
+}
+}
+{
+assert_diffs; assert_cols; show_distinct G A'; treat_equalities; Col.
+show_distinct G A''; treat_equalities; Col.
+show_distinct G B''; treat_equalities; Col.
+assert (HH1 : A' <> B'') by (intro; treat_equalities; Col).
+assert (HH2 : Col A' B'' A') by Col.
+assert (HH3 : Col A A''  A') by ColR.
+assert (HH := l9_19 A' B'' A A'' A' HH2 HH3); rewrite HH.
+assert_diffs; assert_cols; assert (HABG : ~ Col A B G) by (intro; apply HNC; ColR).
+show_distinct A A'; Col.
+split; try (intro; apply HABG; ColR).
+split; Col.
+split; try (intro; treat_equalities; Col).
+unfold Midpoint in *; spliter; eBetween.
+}
+}
+}
+Qed.
+Lemma is_gravity_center_perm : forall A B C G,
+ is_gravity_center G A B C ->
+ is_gravity_center G A B C /\ is_gravity_center G A C B /\
+ is_gravity_center G B A C /\ is_gravity_center G B C A /\
+ is_gravity_center G C A B /\ is_gravity_center G C B A.
+Proof.
+intros.
+Name I the midpoint of A and B.
+assert (Col G I C)
+ by (apply is_gravity_center_col with A B;finish).
+unfold is_gravity_center in *.
+spliter.
+destruct H2 as [J [K [Ha [Hb [Hc Hd]]]]].
+repeat split;Col.
+exists J; exists K;repeat (split;finish).
+exists J; exists I;repeat (split;finish).
+exists K; exists J;repeat (split;finish).
+exists K; exists I;repeat (split;finish).
+exists I; exists J;repeat (split;finish).
+exists I; exists K;repeat (split;finish).
+Qed.
+Lemma is_gravity_center_perm_1 : forall A B C G,
+ is_gravity_center G A B C -> is_gravity_center G A C B.
+Proof.
+intros.
+apply is_gravity_center_perm in H;intuition.
+Qed.
+Lemma is_gravity_center_perm_2 : forall A B C G,
+ is_gravity_center G A B C -> is_gravity_center G B A C.
+Proof.
+intros.
+apply is_gravity_center_perm in H;intuition.
+Qed.
+Lemma is_gravity_center_perm_3 : forall A B C G,
+ is_gravity_center G A B C -> is_gravity_center G B C A.
+Proof.
+intros.
+apply is_gravity_center_perm in H;intuition.
+Qed.
+Lemma is_gravity_center_perm_4 : forall A B C G,
+ is_gravity_center G A B C -> is_gravity_center G C A B.
+Proof.
+intros.
+apply is_gravity_center_perm in H;intuition.
+Qed.
+Lemma is_gravity_center_perm_5 : forall A B C G,
+ is_gravity_center G A B C -> is_gravity_center G C B A.
+Proof.
+intros.
+apply is_gravity_center_perm in H;intuition.
+Qed.
+Lemma is_gravity_center_cases : forall A B C G,
+  is_gravity_center G A B C \/
+  is_gravity_center G A C B \/
+  is_gravity_center G B A C \/
+  is_gravity_center G B C A \/
+  is_gravity_center G C A B \/
+  is_gravity_center G C B A ->
+  is_gravity_center G A B C.
+Proof.
+intros.
+decompose [or] H;clear H.
+apply is_gravity_center_perm in H0;intuition.
+apply is_gravity_center_perm in H1;intuition.
+apply is_gravity_center_perm in H0;intuition.
+apply is_gravity_center_perm in H1;intuition.
+apply is_gravity_center_perm in H0;intuition.
+apply is_gravity_center_perm in H0;intuition.
+Qed.
+End GravityCenter.
+Hint Resolve is_gravity_center_coplanar : cop.
+Hint Resolve
+     is_gravity_center_perm_1
+     is_gravity_center_perm_2
+     is_gravity_center_perm_3
+     is_gravity_center_perm_4
+     is_gravity_center_perm_5 : gravitycenter.
+Ltac permutation_intro_in_goal :=
+ match goal with
+ | |- Par ?A ?B ?C ?D => apply Par_cases
+ | |- Par_strict ?A ?B ?C ?D => apply Par_strict_cases
+ | |- Perp ?A ?B ?C ?D => apply Perp_cases
+ | |- Perp_at ?X ?A ?B ?C ?D => apply Perp_in_cases
+ | |- Per ?A ?B ?C => apply Per_cases
+ | |- Midpoint ?A ?B ?C => apply Mid_cases
+ | |- ~ Col ?A ?B ?C => apply NCol_cases
+ | |- Col ?A ?B ?C => apply Col_cases
+ | |- Bet ?A ?B ?C => apply Bet_cases
+ | |- Cong ?A ?B ?C ?D => apply Cong_cases
+ | |- is_gravity_center ?G ?A ?B ?C => apply is_gravity_center_cases
+ end.
+Ltac Gravitycenter := auto with gravitycenter.
+Ltac sfinish := repeat match goal with
+ | |- Bet ?A ?B ?C => Between; eBetween
+ | |- Col ?A ?B ?C => Col;ColR
+ | |- ~ Col ?A ?B ?C => Col
+ | |- ~ Col ?A ?B ?C => intro;search_contradiction
+ | |- Par ?A ?B ?C ?D => Par
+ | |- Par_strict ?A ?B ?C ?D => Par
+ | |- Perp ?A ?B ?C ?D => Perp
+ | |- Perp_at ?A ?B ?C ?D ?E => Perp
+ | |- Per ?A ?B ?C => Perp
+ | |- Cong ?A ?B ?C ?D => Cong;eCong
+ | |- is_gravity_center ?G ?A ?B ?C => Gravitycenter
+ | |- Midpoint ?A ?B ?C => Midpoint
+ | |- ?A<>?B => apply swap_diff;assumption
+ | |- ?A<>?B => intro;treat_equalities; solve [search_contradiction]
+ | |- ?G1 /\ ?G2 => split
+ | |- _ => try assumption
+end.
+Ltac perm_apply t :=
+ permutation_intro_in_goal;
+ try_or ltac:(apply t;solve [finish]).

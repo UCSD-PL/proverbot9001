@@ -1,0 +1,233 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Definitions.
+-----
+Section playfair_existential_playfair.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma playfair__existential_playfair :\n  playfair_s_postulate ->\n  existential_playfair_s_postulate.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : playfair_s_postulate, existential_playfair_s_postulate
++++++
+Proof.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : playfair_s_postulate, existential_playfair_s_postulate
++++++
+intro HF.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+
+*****
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+existential_playfair_s_postulate
++++++
+exists PA, PB, PC.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+
+*****
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (not (Col PA PB PC)) (forall (B1 B2 C1 C2 : Tpoint) (_ : Par PA PB B1 B2) (_ : Col PC B1 B2) (_ : Par PA PB C1 C2) (_ : Col PC C1 C2), and (Col C1 B1 B2) (Col C2 B1 B2))
++++++
+split.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+
+*****
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col PA PB PC)
++++++
+apply lower_dim.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+
+*****
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (B1 B2 C1 C2 : Tpoint) (_ : Par PA PB B1 B2) (_ : Col PC B1 B2) (_ : Par PA PB C1 C2) (_ : Col PC C1 C2), and (Col C1 B1 B2) (Col C2 B1 B2)
++++++
+idtac.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+
+*****
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (B1 B2 C1 C2 : Tpoint) (_ : Par PA PB B1 B2) (_ : Col PC B1 B2) (_ : Par PA PB C1 C2) (_ : Col PC C1 C2), and (Col C1 B1 B2) (Col C2 B1 B2)
++++++
+intros.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+intros.
+
+*****
+H2 : Col PC C1 C2
+H1 : Par PA PB C1 C2
+H0 : Col PC B1 B2
+H : Par PA PB B1 B2
+B1,B2,C1,C2 : Tpoint
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Col C1 B1 B2) (Col C2 B1 B2)
++++++
+apply HF with PA PB PC.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+intros.
+apply HF with PA PB PC.
+
+*****
+H2 : Col PC C1 C2
+H1 : Par PA PB C1 C2
+H0 : Col PC B1 B2
+H : Par PA PB B1 B2
+B1,B2,C1,C2 : Tpoint
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par PA PB B1 B2
++++++
+assumption.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+intros.
+apply HF with PA PB PC.
+
+*****
+H2 : Col PC C1 C2
+H1 : Par PA PB C1 C2
+H0 : Col PC B1 B2
+H : Par PA PB B1 B2
+B1,B2,C1,C2 : Tpoint
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col PC B1 B2
++++++
+assumption.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+intros.
+apply HF with PA PB PC.
+
+*****
+H2 : Col PC C1 C2
+H1 : Par PA PB C1 C2
+H0 : Col PC B1 B2
+H : Par PA PB B1 B2
+B1,B2,C1,C2 : Tpoint
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par PA PB C1 C2
++++++
+assumption.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+idtac.
+intros.
+apply HF with PA PB PC.
+
+*****
+H2 : Col PC C1 C2
+H1 : Par PA PB C1 C2
+H0 : Col PC B1 B2
+H : Par PA PB B1 B2
+B1,B2,C1,C2 : Tpoint
+HF : playfair_s_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col PC C1 C2
++++++
+assumption.
+-----
+Lemma playfair__existential_playfair : playfair_s_postulate -> existential_playfair_s_postulate.
+Proof.
+intro HF.
+exists PA, PB, PC.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End playfair_existential_playfair.
+-----

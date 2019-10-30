@@ -1,0 +1,4688 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Meta_theory.Parallel_postulates.rah_thales_postulate.
+-----
+Require Import GeoCoq.Meta_theory.Parallel_postulates.thales_converse_postulate_weak_triangle_circumscription_principle.
+-----
+Require Import GeoCoq.Meta_theory.Parallel_postulates.thales_postulate_thales_converse_postulate.
+-----
+Require Import GeoCoq.Meta_theory.Parallel_postulates.weak_triangle_circumscription_principle_bachmann_s_lotschnittaxiom.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Require Import GeoCoq.Tarski_dev.Ch12_parallel.
+-----
+Section universal_posidonius_postulate_perpendicular_transversal_postulate.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate :\n  universal_posidonius_postulate -> perpendicular_transversal_postulate.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : universal_posidonius_postulate, perpendicular_transversal_postulate
++++++
+Proof.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : universal_posidonius_postulate, perpendicular_transversal_postulate
++++++
+intros HP A B C D P Q HPar HPerp1 HCop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+
+*****
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+
+*****
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+
+*****
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HEF : exists E F, Col A B E /\ Col C D F /\ Perp A B E F /\ E <> R).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+
+*****
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E R))))))
++++++
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+
+*****
+HPerp2 : Perp A B C E1
+HC3 : Col A B E1
+E1 : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E R))))))
++++++
+destruct (l8_18_existence A B D) as [E2 [HC4 HPerp3]]; [apply par_strict_not_col_1 with C; Par|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC4 HPerp3]]; [apply par_strict_not_col_1 with C; Par|].
+
+*****
+HPerp3 : Perp A B D E2
+HC4 : Col A B E2
+E2 : Tpoint
+HPerp2 : Perp A B C E1
+HC3 : Col A B E1
+E1 : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E R))))))
++++++
+elim (eq_dec_points E1 R); intro; treat_equalities; [|exists E1, C; repeat (split; Col; Perp)].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC4 HPerp3]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 R); intro; treat_equalities; [|exists E1, C; repeat (split; Col; Perp)].
+
+*****
+HPerp3 : Perp A B D E2
+HC4 : Col A B E2
+E2 : Tpoint
+HPerp2 : Perp A B C E1
+HC1 : Col A B E1
+HC2 : Col P Q E1
+E1 : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E E1))))))
++++++
+elim (eq_dec_points E1 E2); intro; treat_equalities; [|exists E2, D; repeat (split; Col; Perp)].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC4 HPerp3]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 R); intro; treat_equalities; [|exists E1, C; repeat (split; Col; Perp)].
+elim (eq_dec_points E1 E2); intro; treat_equalities; [|exists E2, D; repeat (split; Col; Perp)].
+
+*****
+HPerp3 : Perp A B D E1
+HPerp2 : Perp A B C E1
+HC1 : Col A B E1
+HC2 : Col P Q E1
+E1 : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E E1))))))
++++++
+assert (HC4 : Col E1 C D) by (apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct (l8_18_existence A B C) as [E1 [HC3 HPerp2]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC4 HPerp3]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 R); intro; treat_equalities; [|exists E1, C; repeat (split; Col; Perp)].
+elim (eq_dec_points E1 E2); intro; treat_equalities; [|exists E2, D; repeat (split; Col; Perp)].
+assert (HC4 : Col E1 C D) by (apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop).
+
+*****
+HC4 : Col E1 C D
+HPerp3 : Perp A B D E1
+HPerp2 : Perp A B C E1
+HC1 : Col A B E1
+HC2 : Col P Q E1
+E1 : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (Col A B E) (and (Col C D F) (and (Perp A B E F) (not (eq E E1))))))
++++++
+destruct HParS as [_ [_ [_ HF]]]; exfalso; apply HF; exists E1; Col.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+
+*****
+HEF : ex\n (fun E : Tpoint =>\n ex\n (fun F : Tpoint =>\n and (Col A B E)\n (and (Col C D F) (and (Perp A B E F) (not (eq E R))))))
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+
+*****
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HGH : exists G H, Col A B G /\ Col C D H /\ Perp A B G H /\ E <> G /\ F <> H).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+
+*****
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun G : Tpoint => ex (fun H : Tpoint => and (Col A B G) (and (Col C D H) (and (Perp A B G H) (and (not (eq E G)) (not (eq F H)))))))
++++++
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+
+*****
+HPerp3 : Perp A B C E1
+HC5 : Col A B E1
+E1 : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun G : Tpoint => ex (fun H : Tpoint => and (Col A B G) (and (Col C D H) (and (Perp A B G H) (and (not (eq E G)) (not (eq F H)))))))
++++++
+destruct (l8_18_existence A B D) as [E2 [HC6 HPerp4]]; [apply par_strict_not_col_1 with C; Par|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC6 HPerp4]]; [apply par_strict_not_col_1 with C; Par|].
+
+*****
+HPerp4 : Perp A B D E2
+HC6 : Col A B E2
+E2 : Tpoint
+HPerp3 : Perp A B C E1
+HC5 : Col A B E1
+E1 : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun G : Tpoint => ex (fun H : Tpoint => and (Col A B G) (and (Col C D H) (and (Perp A B G H) (and (not (eq E G)) (not (eq F H)))))))
++++++
+elim (eq_dec_points E1 E); intro HD; treat_equalities; [|exists E1, C; repeat (split; Col; Perp); intro; treat_equalities; apply HD; apply l6_21 with A B F E; assert_diffs; Col; [elim (perp_not_col2 _ _ _ _ HPerp2); Col| apply cop_perp2__col with A B; Perp]]; Cop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC6 HPerp4]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 E); intro HD; treat_equalities; [|exists E1, C; repeat (split; Col; Perp); intro; treat_equalities; apply HD; apply l6_21 with A B F E; assert_diffs; Col; [elim (perp_not_col2 _ _ _ _ HPerp2); Col| apply cop_perp2__col with A B; Perp]]; Cop.
+
+*****
+HPerp4 : Perp A B D E2
+HC6 : Col A B E2
+E2 : Tpoint
+HPerp3 : Perp A B C E1
+HPerp2 : Perp A B E1 F
+HD1 : not (eq E1 R)
+HC4 : Col C D F
+HC3 : Col A B E1
+F,E1 : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun G : Tpoint => ex (fun H : Tpoint => and (Col A B G) (and (Col C D H) (and (Perp A B G H) (and (not (eq E1 G)) (not (eq F H)))))))
++++++
+elim (eq_dec_points E1 E2); intro HD'; treat_equalities; [assert (HC7 : Col E1 C D) by (apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop); destruct HParS as [_ [_ [_ HF]]]; exfalso; apply HF; exists E1; Col|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC6 HPerp4]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 E); intro HD; treat_equalities; [|exists E1, C; repeat (split; Col; Perp); intro; treat_equalities; apply HD; apply l6_21 with A B F E; assert_diffs; Col; [elim (perp_not_col2 _ _ _ _ HPerp2); Col| apply cop_perp2__col with A B; Perp]]; Cop.
+elim (eq_dec_points E1 E2); intro HD'; treat_equalities; [assert (HC7 : Col E1 C D) by (apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop); destruct HParS as [_ [_ [_ HF]]]; exfalso; apply HF; exists E1; Col|].
+
+*****
+HD' : not (eq E1 E2)
+HPerp4 : Perp A B D E2
+HC6 : Col A B E2
+E2 : Tpoint
+HPerp3 : Perp A B C E1
+HPerp2 : Perp A B E1 F
+HD1 : not (eq E1 R)
+HC4 : Col C D F
+HC3 : Col A B E1
+F,E1 : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun G : Tpoint => ex (fun H : Tpoint => and (Col A B G) (and (Col C D H) (and (Perp A B G H) (and (not (eq E1 G)) (not (eq F H)))))))
++++++
+exists E2, D; repeat (split; Col; Perp); intro; treat_equalities; apply HD'.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct (l8_18_existence A B C) as [E1 [HC5 HPerp3]]; [apply par_strict_not_col_1 with D; Par|].
+destruct (l8_18_existence A B D) as [E2 [HC6 HPerp4]]; [apply par_strict_not_col_1 with C; Par|].
+elim (eq_dec_points E1 E); intro HD; treat_equalities; [|exists E1, C; repeat (split; Col; Perp); intro; treat_equalities; apply HD; apply l6_21 with A B F E; assert_diffs; Col; [elim (perp_not_col2 _ _ _ _ HPerp2); Col| apply cop_perp2__col with A B; Perp]]; Cop.
+elim (eq_dec_points E1 E2); intro HD'; treat_equalities; [assert (HC7 : Col E1 C D) by (apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop); destruct HParS as [_ [_ [_ HF]]]; exfalso; apply HF; exists E1; Col|].
+exists E2, D; repeat (split; Col; Perp); intro; treat_equalities; apply HD'.
+
+*****
+HD' : not (eq E1 E2)
+HPerp4 : Perp A B F E2
+HC6 : Col A B E2
+E2 : Tpoint
+HPerp3 : Perp A B C E1
+HPerp2 : Perp A B E1 F
+HD1 : not (eq E1 R)
+HC3 : Col A B E1
+E1 : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HCop : Coplanar C F P Q
+HParS : Par_strict A B C F
+HPerp1 : Perp A B P Q
+HPar : Par A B C F
+A,B,C,P,Q,F : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+eq E1 E2
++++++
+apply l6_21 with A B F E1; assert_diffs; Col; [elim (perp_not_col2 _ _ _ _ HPerp2); Col|apply cop_perp2__col with A B; Perp; apply par__coplanar in HPar; Cop].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+
+*****
+HGH : ex\n (fun G : Tpoint =>\n ex\n (fun H : Tpoint =>\n and (Col A B G)\n (and (Col C D H)\n (and (Perp A B G H) (and (not (eq E G)) (not (eq F H)))))))
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HSacc1 : Saccheri E F H G).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Saccheri E F H G
++++++
+split; [apply perp_per_1; apply perp_col0 with A B; Perp|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+split; [apply perp_per_1; apply perp_col0 with A B; Perp|].
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Per E G H) (and (Cong E F H G) (OS E G F H))
++++++
+split; [apply perp_per_1; apply perp_sym; apply perp_col0 with A B; Perp|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+split; [apply perp_per_1; apply perp_col0 with A B; Perp|].
+split; [apply perp_per_1; apply perp_sym; apply perp_col0 with A B; Perp|].
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong E F H G) (OS E G F H)
++++++
+split; [assert (Cong E F G H); Cong; apply HP with A B C D; Col|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+split; [apply perp_per_1; apply perp_col0 with A B; Perp|].
+split; [apply perp_per_1; apply perp_sym; apply perp_col0 with A B; Perp|].
+split; [assert (Cong E F G H); Cong; apply HP with A B C D; Col|].
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS E G F H
++++++
+apply l12_6; apply par_strict_col2_par_strict with C D; Col.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+split; [apply perp_per_1; apply perp_col0 with A B; Perp|].
+split; [apply perp_per_1; apply perp_sym; apply perp_col0 with A B; Perp|].
+split; [assert (Cong E F G H); Cong; apply HP with A B C D; Col|].
+apply l12_6; apply par_strict_col2_par_strict with C D; Col.
+
+*****
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict E G C D
++++++
+apply par_strict_symmetry; apply par_strict_col2_par_strict with A B; Col; Par.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+
+*****
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+destruct (midpoint_existence E G) as [M1 HMid1].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+
+*****
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+destruct (midpoint_existence F H) as [M2 HMid2].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+
+*****
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HSacc2 : Saccheri E F M2 M1).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Saccheri E F M2 M1
++++++
+split; [unfold Lambert in *; spliter; Perp|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Per E M1 M2) (and (Cong E F M2 M1) (OS E M1 F M2))
++++++
+split; [unfold Lambert in *; spliter; Perp|].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong E F M2 M1) (OS E M1 F M2)
++++++
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong E F M1 M2
++++++
+apply HP with A B C D; Col; try solve [assert_diffs; assert_cols; ColR].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+apply HP with A B C D; Col; try solve [assert_diffs; assert_cols; ColR].
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp A B M1 M2
++++++
+apply perp_sym; apply perp_col0 with E M1; try solve [assert_diffs; assert_cols; Col; ColR].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+apply HP with A B C D; Col; try solve [assert_diffs; assert_cols; ColR].
+apply perp_sym; apply perp_col0 with E M1; try solve [assert_diffs; assert_cols; Col; ColR].
+
+*****
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp E M1 M1 M2
++++++
+apply per_perp; unfold Lambert in *; spliter; Perp.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+
+*****
+HCong : Cong E F M1 M2
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+OS E M1 F M2
++++++
+apply l12_6; apply par_strict_col2_par_strict with C D; Col; try solve [assert_diffs; assert_cols; Col; ColR].
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+split; [unfold Lambert in *; spliter; Perp|].
+split; [unfold Lambert in *; spliter; Perp|].
+assert (HCong : Cong E F M1 M2); [|split; Cong].
+apply l12_6; apply par_strict_col2_par_strict with C D; Col; try solve [assert_diffs; assert_cols; Col; ColR].
+
+*****
+HCong : Cong E F M1 M2
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict E M1 C D
++++++
+apply par_strict_symmetry; apply par_strict_col2_par_strict with A B; Col; Par; assert_diffs; assert_cols; Col; ColR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+
+*****
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+
+*****
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C D P Q
++++++
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\ Col D1 D2 I).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+
+*****
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD : Tpoint) (_ : Perp A1 A2 B1 B2) (_ : Perp A1 A2 C1 C2) (_ : Perp B1 B2 D1 D2) (_ : Col A1 A2 IAB) (_ : Col B1 B2 IAB) (_ : Col A1 A2 IAC) (_ : Col C1 C2 IAC) (_ : Col B1 B2 IBD) (_ : Col D1 D2 IBD) (_ : Coplanar IAB IAC IBD C1) (_ : Coplanar IAB IAC IBD C2) (_ : Coplanar IAB IAC IBD D1) (_ : Coplanar IAB IAC IBD D2) (_ : not (Col IAB IAC IBD)), ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+cut bachmann_s_lotschnittaxiom.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+
+*****
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HD1 : not (eq E R)
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HC2 : Col P Q R
+HC1 : Col A B R
+R : Tpoint
+HParS : Par_strict A B C D
+HCop : Coplanar C D P Q
+HPerp1 : Perp A B P Q
+HPar : Par A B C D
+A,B,C,D,P,Q : Tpoint
+HP : universal_posidonius_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : bachmann_s_lotschnittaxiom) (A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD : Tpoint) (_ : Perp A1 A2 B1 B2) (_ : Perp A1 A2 C1 C2) (_ : Perp B1 B2 D1 D2) (_ : Col A1 A2 IAB) (_ : Col B1 B2 IAB) (_ : Col A1 A2 IAC) (_ : Col C1 C2 IAC) (_ : Col B1 B2 IBD) (_ : Col D1 D2 IBD) (_ : Coplanar IAB IAC IBD C1) (_ : Coplanar IAB IAC IBD C2) (_ : Coplanar IAB IAC IBD D1) (_ : Coplanar IAB IAC IBD D2) (_ : not (Col IAB IAC IBD)), ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+
+*****
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : bachmann_s_lotschnittaxiom) (A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD : Tpoint) (_ : Perp A1 A2 B1 B2) (_ : Perp A1 A2 C1 C2) (_ : Perp B1 B2 D1 D2) (_ : Col A1 A2 IAB) (_ : Col B1 B2 IAB) (_ : Col A1 A2 IAC) (_ : Col C1 C2 IAC) (_ : Col B1 B2 IBD) (_ : Col D1 D2 IBD) (_ : Coplanar IAB IAC IBD C1) (_ : Coplanar IAB IAC IBD C2) (_ : Coplanar IAB IAC IBD D1) (_ : Coplanar IAB IAC IBD D2) (_ : not (Col IAB IAC IBD)), ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+
+*****
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : Col A1 A2 IAB) (_ : Col B1 B2 IAB) (_ : Col A1 A2 IAC) (_ : Col C1 C2 IAC) (_ : Col B1 B2 IBD) (_ : Col D1 D2 IBD) (_ : Coplanar IAB IAC IBD C1) (_ : Coplanar IAB IAC IBD C2) (_ : Coplanar IAB IAC IBD D1) (_ : Coplanar IAB IAC IBD D2) (_ : not (Col IAB IAC IBD)), ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+
+*****
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+
+*****
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+
+*****
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+
+*****
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+
+*****
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Coplanar IAB IAC IBD A1) by Cop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+
+*****
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Coplanar IAB IAC IBD A2) by Cop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+
+*****
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Coplanar IAB IAC IBD B1) by Cop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+
+*****
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (Coplanar IAB IAC IBD B2) by Cop.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+
+*****
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HNC2 : ~ Col A1 A2 D1).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+
+*****
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A1 A2 D1)
++++++
+apply par_strict_not_col_1 with D2; apply par_not_col_strict with IBD; Col; try (intro; apply HNC1; assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+apply par_strict_not_col_1 with D2; apply par_not_col_strict with IBD; Col; try (intro; apply HNC1; assert_diffs; ColR).
+
+*****
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par A1 A2 D1 D2
++++++
+apply l12_9 with B1 B2; Perp; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+
+*****
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HNC3 : ~ Col B1 B2 C1).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+
+*****
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col B1 B2 C1)
++++++
+apply par_strict_not_col_1 with C2; apply par_not_col_strict with IAC; Col; try (intro; apply HNC1; assert_diffs; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+apply par_strict_not_col_1 with C2; apply par_not_col_strict with IAC; Col; try (intro; apply HNC1; assert_diffs; ColR).
+
+*****
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par B1 B2 C1 C2
++++++
+apply l12_9 with A1 A2; Perp; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+
+*****
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HParA : Par_strict A1 A2 D1 D2).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+
+*****
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict A1 A2 D1 D2
++++++
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+
+*****
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HParB : Par_strict B1 B2 C1 C2).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+
+*****
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict B1 B2 C1 C2
++++++
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+
+*****
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+
+*****
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+
+*****
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+
+*****
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+
+*****
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+
+*****
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per IAC IAB IBD
++++++
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per IAB IAC P1
++++++
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per IAB IBD R1
++++++
+apply perp_per_2; apply perp_col2 with B1 B2; Col; apply perp_sym; apply perp_col2 with D1 D2; Col; Perp.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+apply perp_per_2; apply perp_col2 with B1 B2; Col; apply perp_sym; apply perp_col2 with D1 D2; Col; Perp.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar IAC IAB IBD P1
++++++
+assert_diffs; apply col_cop2__cop with C1 C2; Col; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+apply perp_per_2; apply perp_col2 with B1 B2; Col; apply perp_sym; apply perp_col2 with D1 D2; Col; Perp.
+assert_diffs; apply col_cop2__cop with C1 C2; Col; CopR.
+
+*****
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar IAC IAB IBD R1
++++++
+assert_diffs; apply col_cop2__cop with D1 D2; Col; CopR.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+apply perp_per_2; apply perp_col2 with B1 B2; Col; apply perp_sym; apply perp_col2 with D1 D2; Col; Perp.
+assert_diffs; apply col_cop2__cop with C1 C2; Col; CopR.
+assert_diffs; apply col_cop2__cop with D1 D2; Col; CopR.
+
+*****
+HI2 : Col IBD R1 I
+HI1 : Col IAC P1 I
+I : Tpoint
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col C1 C2 I) (Col D1 D2 I))
++++++
+exists I.
+-----
+Lemma universal_posidonius_postulate__perpendicular_transversal_postulate : universal_posidonius_postulate -> perpendicular_transversal_postulate.
+Proof.
+intros HP A B C D P Q HPar HPerp1 HCop.
+elim HPar; intro HParS; [|destruct HParS as [_ [_ [HC1 HC2]]]; assert_diffs; apply perp_sym; apply perp_col0 with A B; Col; ColR].
+assert (H := HPerp1); destruct H as [R HR]; apply perp_in_col in HR; destruct HR as [HC1 HC2].
+assert (HEF : exists E F, Col A B E /\\ Col C D F /\\ Perp A B E F /\\ E <> R).
+destruct HEF as [E [F [HC3 [HC4 [HPerp2 HD1]]]]].
+assert (HGH : exists G H, Col A B G /\\ Col C D H /\\ Perp A B G H /\\ E <> G /\\ F <> H).
+destruct HGH as [G [H [HC5 [HC6 [HPerp3 [HD2 HD3]]]]]].
+assert (HSacc1 : Saccheri E F H G).
+destruct (midpoint_existence E G) as [M1 HMid1].
+destruct (midpoint_existence F H) as [M2 HMid2].
+assert (HLamb := mid2_sac__lam6521 _ _ _ _ _ _ HSacc1 HMid2 HMid1).
+assert (HSacc2 : Saccheri E F M2 M1).
+assert (HRAH : postulate_of_right_saccheri_quadrilaterals) by (apply per_sac__rah with M1 M2 F E; try apply sac_perm; unfold Lambert in *; spliter; auto).
+assert (HP' : forall A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD, Perp A1 A2 B1 B2 -> Perp A1 A2 C1 C2 -> Perp B1 B2 D1 D2 -> Col A1 A2 IAB -> Col B1 B2 IAB -> Col A1 A2 IAC -> Col C1 C2 IAC -> Col B1 B2 IBD -> Col D1 D2 IBD -> Coplanar IAB IAC IBD C1 -> Coplanar IAB IAC IBD C2 -> Coplanar IAB IAC IBD D1 -> Coplanar IAB IAC IBD D2 -> ~ Col IAB IAC IBD -> exists I, Col C1 C2 I /\\ Col D1 D2 I).
+cut bachmann_s_lotschnittaxiom.
+clear HP; clear dependent P; clear dependent Q; clear dependent R.
+intros bla A1 A2 B1 B2 C1 C2 D1 D2 IAB IAC IBD HPerpAB HPerpAC HPerpBD.
+intros HCol1 HCol2 HCol3 HCol4 HCol5 HCol6 HCop1 HCop2 HCop3 HCop4 HNC1.
+assert (Col IAB IAC A1) by (assert_diffs; ColR).
+assert (Col IAB IAC A2) by (assert_diffs; ColR).
+assert (Col IAB IBD B1) by (assert_diffs; ColR).
+assert (Col IAB IBD B2) by (assert_diffs; ColR).
+assert (Coplanar IAB IAC IBD A1) by Cop.
+assert (Coplanar IAB IAC IBD A2) by Cop.
+assert (Coplanar IAB IAC IBD B1) by Cop.
+assert (Coplanar IAB IAC IBD B2) by Cop.
+assert (HNC2 : ~ Col A1 A2 D1).
+assert (HNC3 : ~ Col B1 B2 C1).
+assert (HParA : Par_strict A1 A2 D1 D2).
+apply par_not_col_strict with D1; Col; apply l12_9 with B1 B2; Perp; CopR.
+assert (HParB : Par_strict B1 B2 C1 C2).
+apply par_not_col_strict with C1; Col; apply l12_9 with A1 A2; Perp; CopR.
+assert (HNCol3 : ~ Col IAC B1 B2) by (apply par_not_col with C1 C2; Par; ColR).
+assert (HNCol4 : ~ Col IBD A1 A2) by (apply par_not_col with D1 D2; Par; ColR).
+assert (HPQ : IAC <> IAB) by (assert_diffs; auto).
+assert (HQR : IAB <> IBD) by (assert_diffs; auto).
+destruct (diff_col_ex3 C1 C2 IAC) as [P1 [HC1P1 [HC2P1 [HPP1 HCP1]]]]; Col.
+destruct (diff_col_ex3 D1 D2 IBD) as [R1 [HD1R1 [HD2R1 [HRR1 HDR1]]]]; Col.
+destruct (bla IAC IAB IBD P1 R1) as [I [HI1 HI2]]; auto.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with B1 B2; Col; Perp.
+apply perp_per_2; apply perp_col2 with A1 A2; Col; apply perp_sym; apply perp_col2 with C1 C2; Col; Perp.
+apply perp_per_2; apply perp_col2 with B1 B2; Col; apply perp_sym; apply perp_col2 with D1 D2; Col; Perp.
+assert_diffs; apply col_cop2__cop with C1 C2; Col; CopR.
+assert_diffs; apply col_cop2__cop with D1 D2; Col; CopR.
+exists I.
+
+*****
+HI2 : Col IBD R1 I
+HI1 : Col IAC P1 I
+I : Tpoint
+HDR1 : Col D1 D2 R1
+HRR1 : not (eq IBD R1)
+HD2R1 : not (eq D2 R1)
+HD1R1 : not (eq D1 R1)
+R1 : Tpoint
+HCP1 : Col C1 C2 P1
+HPP1 : not (eq IAC P1)
+HC2P1 : not (eq C2 P1)
+HC1P1 : not (eq C1 P1)
+P1 : Tpoint
+HQR : not (eq IAB IBD)
+HPQ : not (eq IAC IAB)
+HNCol4 : not (Col IBD A1 A2)
+HNCol3 : not (Col IAC B1 B2)
+HParB : Par_strict B1 B2 C1 C2
+HParA : Par_strict A1 A2 D1 D2
+HNC3 : not (Col B1 B2 C1)
+HNC2 : not (Col A1 A2 D1)
+H7 : Coplanar IAB IAC IBD B2
+H6 : Coplanar IAB IAC IBD B1
+H5 : Coplanar IAB IAC IBD A2
+H4 : Coplanar IAB IAC IBD A1
+H3 : Col IAB IBD B2
+H2 : Col IAB IBD B1
+H1 : Col IAB IAC A2
+H0 : Col IAB IAC A1
+HNC1 : not (Col IAB IAC IBD)
+HCop4 : Coplanar IAB IAC IBD D2
+HCop3 : Coplanar IAB IAC IBD D1
+HCop2 : Coplanar IAB IAC IBD C2
+HCop1 : Coplanar IAB IAC IBD C1
+HCol6 : Col D1 D2 IBD
+HCol5 : Col B1 B2 IBD
+HCol4 : Col C1 C2 IAC
+HCol3 : Col A1 A2 IAC
+HCol2 : Col B1 B2 IAB
+HCol1 : Col A1 A2 IAB
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HPerpAB : Perp A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2,IAB,IAC,IBD : Tpoint
+bla : bachmann_s_lotschnittaxiom
+HRAH : postulate_of_right_saccheri_quadrilaterals
+HSacc2 : Saccheri E F M2 M1
+HLamb : Lambert M1 M2 F E
+HMid2 : Midpoint M2 F H
+M2 : Tpoint
+HMid1 : Midpoint M1 E G
+M1 : Tpoint
+HSacc1 : Saccheri E F H G
+HD3 : not (eq F H)
+HD2 : not (eq E G)
+HPerp3 : Perp A B G H
+HC6 : Col C D H
+HC5 : Col A B G
+G,H : Tpoint
+HPerp2 : Perp A B E F
+HC4 : Col C D F
+HC3 : Col A B E
+E,F : Tpoint
+HParS : Par_strict A B C D
+HPar : Par A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Col C1 C2 I) (Col D1 D2 I)
++++++

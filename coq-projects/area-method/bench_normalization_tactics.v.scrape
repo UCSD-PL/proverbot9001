@@ -1,0 +1,3529 @@
+Require Import geometry_tools.
+-----
+Require Import Rgeometry_tools.
+-----
+Ltac local_uniformize_signed_areas := Runiformize_signed_areas.
+-----
+Ltac local_basic_simpl := Rbasic_simpl.
+-----
+Ltac local_uniformize_signed_areas4 := uniformize_signed_areas4.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+
+*****
+
+*****
+forall A B C : Point, eq (S A B C) (S B C A)
++++++
+Proof.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (S A B C) (S B C A)
++++++
+intros.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (S A B C) (S B C A)
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (S A B C) (S A B C)
++++++
+auto.
+-----
+Lemma test1 : forall A B C :Point, S A B C = S B C A.
+Proof.
+intros.
+local_uniformize_signed_areas.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S B A C)) F0
++++++
+Proof.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S B A C)) F0
++++++
+intros.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S B A C)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (Fopp (S B A C)) (S B A C)) F0
++++++
+ring.
+-----
+Lemma test2 : forall A B C :Point, S A B C + S B A C = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S A C B)) F0
++++++
+Proof.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S A C B)) F0
++++++
+intros.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S A C B)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (Fopp (S A C B)) (S A C B)) F0
++++++
+ring.
+-----
+Lemma test3 : forall A B C :Point, S A B C + S A C B = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (Fopp (S B C A))) F0
++++++
+Proof.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (Fopp (S B C A))) F0
++++++
+intros.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (Fopp (S B C A))) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S B C A) (Fopp (S B C A))) F0
++++++
+ring.
+-----
+Lemma test4 : forall A B C :Point, S A B C +- S B C A = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fminus (S A B C) (S C A B)) F0
++++++
+Proof.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fminus (S A B C) (S C A B)) F0
++++++
+intros.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (S A B C) (S C A B)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S C A B) (Fopp (S C A B))) F0
++++++
+basic_simpl.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+basic_simpl.
+
+*****
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test5 : forall A B C :Point, S A B C - S C A B = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S C B A)) F0
++++++
+Proof.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fplus (S A B C) (S C B A)) F0
++++++
+intros.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S C B A)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (Fopp (S C B A)) (S C B A)) F0
++++++
+ring.
+-----
+Lemma test6 : forall A B C :Point, S A B C + S C B A = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S B A C)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S B A C)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fplus (S A B C) (S B A C)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (Fopp (S B A C)) (S B A C)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test7 : forall A B C :Point, S A B C + S B A C = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S A C B)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S A C B)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fplus (S A B C) (S A C B)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (Fopp (S A C B)) (S A C B)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test8 : forall A B C :Point, S A B C + S A C B = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S B C A)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S B C A)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fminus (S A B C) (S B C A)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (S B C A) (Fopp (S B C A))) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test9 : forall A B C :Point, S A B C - S B C A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S C A B)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S C A B)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fminus (S A B C) (S C A B)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (S C A B) (Fopp (S C A B))) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test10 : forall A B C :Point, S A B C - S C A B = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S C B A)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S C B A)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fplus (S A B C) (S C B A)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (Fopp (S C B A)) (S C B A)) F0
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test11 : forall A B C :Point, S A B C + S C B A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S C A B)) F0), eq (Fplus (S A B C) (S C B A)) F0
++++++
+Proof.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fminus (S A B C) (S C A B)) F0), eq (Fplus (S A B C) (S C B A)) F0
++++++
+intros.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+Proof.
+intros.
+
+*****
+H : eq (Fminus (S A B C) (S C A B)) F0
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S C B A)) F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (S C A B) (Fopp (S C A B))) F0
+A,B,C : Point
+*****
+eq (Fplus (S C A B) (Fopp (S C A B))) F0
++++++
+ring.
+-----
+Lemma test12 : forall A B C :Point, S A B C - S C A B = 0 -> S A B C + S C B A = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 ->\nS A B C + S B A C = 0 -> S A B C - S B C A = 0.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 -> S A B C + S B A C = 0 -> S A B C - S B C A = 0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S C B A)) F0) (_ : eq (Fplus (S A B C) (S B A C)) F0), eq (Fminus (S A B C) (S B C A)) F0
++++++
+Proof.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 -> S A B C + S B A C = 0 -> S A B C - S B C A = 0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S C B A)) F0) (_ : eq (Fplus (S A B C) (S B A C)) F0), eq (Fminus (S A B C) (S B C A)) F0
++++++
+intros.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 -> S A B C + S B A C = 0 -> S A B C - S B C A = 0.
+Proof.
+intros.
+
+*****
+H0 : eq (Fplus (S A B C) (S B A C)) F0
+H : eq (Fplus (S A B C) (S C B A)) F0
+A,B,C : Point
+*****
+eq (Fminus (S A B C) (S B C A)) F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 -> S A B C + S B A C = 0 -> S A B C - S B C A = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H,H0 : eq (Fplus (Fopp (S C B A)) (S C B A)) F0
+A,B,C : Point
+*****
+eq (Fplus (Fopp (S C B A)) (Fopp (Fopp (S C B A)))) F0
++++++
+ring.
+-----
+Lemma test13 : forall A B C :Point, S A B C + S C B A = 0 -> S A B C + S B A C = 0 -> S A B C - S B C A = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test15 : forall A B C : Point,\nS A B C = 0 -> S B A C = 0.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (S A B C) F0), eq (S B A C) F0
++++++
+Proof.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (S A B C) F0), eq (S B A C) F0
++++++
+intros.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+Proof.
+intros.
+
+*****
+H : eq (S A B C) F0
+A,B,C : Point
+*****
+eq (S B A C) F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (S A B C) F0
+A,B,C : Point
+*****
+eq (Fopp (S A B C)) F0
++++++
+rewrite H.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+rewrite H.
+
+*****
+H : eq (S A B C) F0
+A,B,C : Point
+*****
+eq (Fopp F0) F0
++++++
+ring.
+-----
+Lemma test15 : forall A B C : Point, S A B C = 0 -> S B A C = 0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test16 : forall A B C : Point,\nS A B C + S B A C = S A B C -> 0=0.
+-----
+Lemma test16 : forall A B C : Point, S A B C + S B A C = S A B C -> 0=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S B A C)) (S A B C)), eq F0 F0
++++++
+Proof.
+-----
+Lemma test16 : forall A B C : Point, S A B C + S B A C = S A B C -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Fplus (S A B C) (S B A C)) (S A B C)), eq F0 F0
++++++
+intros.
+-----
+Lemma test16 : forall A B C : Point, S A B C + S B A C = S A B C -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (Fplus (S A B C) (S B A C)) (S A B C)
+A,B,C : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test16 : forall A B C : Point, S A B C + S B A C = S A B C -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq (Fplus (Fopp (S B A C)) (S B A C)) (Fopp (S B A C))
+A,B,C : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma test16 : forall A B C : Point, S A B C + S B A C = S A B C -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+
+*****
+
+*****
+forall (A B C : Point) (_ : not (eq (S A B C) F0)) (_ : eq (S C B A) F0) (_ : eq (S B C A) F0), eq F0 F1
++++++
+Proof.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : not (eq (S A B C) F0)) (_ : eq (S C B A) F0) (_ : eq (S B C A) F0), eq F0 F1
++++++
+intros.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+Proof.
+intros.
+
+*****
+H1 : eq (S B C A) F0
+H0 : eq (S C B A) F0
+H : not (eq (S A B C) F0)
+A,B,C : Point
+*****
+eq F0 F1
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+H1 : eq (S A B C) F0
+H0 : eq (Fopp (S A B C)) F0
+H : not (eq (S A B C) F0)
+A,B,C : Point
+*****
+eq F0 F1
++++++
+rewrite H1 in H.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+Proof.
+intros.
+local_uniformize_signed_areas.
+rewrite H1 in H.
+
+*****
+H1 : eq (S A B C) F0
+H0 : eq (Fopp (S A B C)) F0
+H : not (eq F0 F0)
+A,B,C : Point
+*****
+eq F0 F1
++++++
+intuition.
+-----
+Lemma test172 : forall A B C, S A B C <> 0 -> S C B A = 0 -> S B C A =0 -> 0=1.
+Proof.
+intros.
+local_uniformize_signed_areas.
+rewrite H1 in H.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test173 : forall A B C P, \n - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+-----
+Lemma test173 : forall A B C P, - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+
+*****
+
+*****
+forall (A B C P : Point) (_ : eq (Fopp (Fmult (Fdiv (S A C P) (S B C P)) (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P))))) F1), eq F0 F0
++++++
+Proof.
+-----
+Lemma test173 : forall A B C P, - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C P : Point) (_ : eq (Fopp (Fmult (Fdiv (S A C P) (S B C P)) (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P))))) F1), eq F0 F0
++++++
+intros.
+-----
+Lemma test173 : forall A B C P, - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq\n (Fopp\n (Fmult (Fdiv (S A C P) (S B C P))\n (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P)))))\n F1
+A,B,C,P : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test173 : forall A B C P, - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq\n (Fopp\n (Fmult (Fmult (Fopp (S C A P)) (Finv (Fopp (S C B P))))\n (Fmult (Fmult (Fopp (S A B P)) (Finv (S C A P)))\n (Fmult (S C B P) (Finv (S A B P)))))) F1
+A,B,C,P : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test173 : forall A B C P, - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test174 : forall A B C P, \n  S B C P <> 0 ->\n  S A B P <> 0 ->\n  S C A P <> 0 ->\n False ->\n- (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+-----
+Lemma test174 : forall A B C P, S B C P <> 0 -> S A B P <> 0 -> S C A P <> 0 -> False -> - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+
+*****
+
+*****
+forall (A B C P : Point) (_ : not (eq (S B C P) F0)) (_ : not (eq (S A B P) F0)) (_ : not (eq (S C A P) F0)) (_ : False), eq (Fopp (Fmult (Fdiv (S A C P) (S B C P)) (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P))))) F1
++++++
+Proof.
+-----
+Lemma test174 : forall A B C P, S B C P <> 0 -> S A B P <> 0 -> S C A P <> 0 -> False -> - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+Proof.
+
+*****
+
+*****
+forall (A B C P : Point) (_ : not (eq (S B C P) F0)) (_ : not (eq (S A B P) F0)) (_ : not (eq (S C A P) F0)) (_ : False), eq (Fopp (Fmult (Fdiv (S A C P) (S B C P)) (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P))))) F1
++++++
+intros.
+-----
+Lemma test174 : forall A B C P, S B C P <> 0 -> S A B P <> 0 -> S C A P <> 0 -> False -> - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+Proof.
+intros.
+
+*****
+H2 : False
+H1 : not (eq (S C A P) F0)
+H0 : not (eq (S A B P) F0)
+H : not (eq (S B C P) F0)
+A,B,C,P : Point
+*****
+eq (Fopp (Fmult (Fdiv (S A C P) (S B C P)) (Fmult (Fdiv (S B A P) (S C A P)) (Fdiv (S C B P) (S A B P))))) F1
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test174 : forall A B C P, S B C P <> 0 -> S A B P <> 0 -> S C A P <> 0 -> False -> - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+H1 : not (eq (Fopp (S A C P)) F0)
+H0 : not (eq (S A B P) F0)
+H : not (eq (S B C P) F0)
+H2 : False
+A,B,C,P : Point
+*****
+eq (Fopp (Fmult (Fmult (S A C P) (Finv (S B C P))) (Fmult (Fmult (Fopp (S A B P)) (Finv (Fopp (S A C P)))) (Fmult (Fopp (S B C P)) (Finv (S A B P)))))) F1
++++++
+intuition.
+-----
+Lemma test174 : forall A B C P, S B C P <> 0 -> S A B P <> 0 -> S C A P <> 0 -> False -> - (S A C P / S B C P * (S B A P / S C A P * (S C B P / S A B P))) = 1.
+Proof.
+intros.
+local_uniformize_signed_areas.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 B C D A)
++++++
+Proof.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 B C D A)
++++++
+intros.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 B C D A)
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test18 : forall A B C D, S4 A B C D = S4 B C D A.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 C D A B)
++++++
+Proof.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 C D A B)
++++++
+intros.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 C D A B)
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test19 : forall A B C D, S4 A B C D = S4 C D A B.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 D A B C)
++++++
+Proof.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (S4 D A B C)
++++++
+intros.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 D A B C)
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test20 : forall A B C D, S4 A B C D = S4 D A B C.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 A D C B))
++++++
+Proof.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 A D C B))
++++++
+intros.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (Fopp (S4 A D C B))
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test21 : forall A B C D, S4 A B C D = - S4 A D C B.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4  D C B A.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4 D C B A.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 D C B A))
++++++
+Proof.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4 D C B A.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 D C B A))
++++++
+intros.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4 D C B A.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (Fopp (S4 D C B A))
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4 D C B A.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test22 : forall A B C D, S4 A B C D = - S4 D C B A.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 C B A D))
++++++
+Proof.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 C B A D))
++++++
+intros.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (Fopp (S4 C B A D))
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test23 : forall A B C D, S4 A B C D = - S4 C B A D.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+Proof.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+intros.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+local_uniformize_signed_areas4.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+
+*****
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test24 : forall A B C D, S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (S4 A B C D) (Fopp (S4 B A D C))), eq F0 F0
++++++
+Proof.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (S4 A B C D) (Fopp (S4 B A D C))), eq F0 F0
++++++
+intros.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 A B C D) (Fopp (S4 B A D C))
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S4 A B C D) (S4 A B C D)
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test25 : forall A B C D, S4 A B C D = - S4 B A D C -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (S4 A B C D) (Fopp (S4 B A D C))), eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+Proof.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (S4 A B C D) (Fopp (S4 B A D C))), eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+intros.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+
+*****
+H : eq (S4 A B C D) (Fopp (S4 B A D C))
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (Fopp (S4 B A D C))
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S4 A B C D) (S4 A B C D)
+A,B,C,D : Point
+*****
+eq (S4 A B C D) (S4 A B C D)
++++++
+auto.
+-----
+Lemma test26 : forall A B C D, S4 A B C D = - S4 B A D C -> S4 A B C D = - S4 B A D C.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A A C D) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A A C D) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 A A C D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S A C D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test27 : forall A C D, S4 A A C D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C D A A) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C D A A) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 C D A A) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S C D A) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test28 : forall A C D, S4 C D A A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A C D A) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A C D A) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 A C D A) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S A C D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test29 : forall A C D, S4 A C D A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C A A D) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C A A D) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 C A A D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq (S C A D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test30 : forall A C D, S4 C A A D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C A D A) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 C A D A) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 C A D A) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq F0 F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test31 : forall A C D, S4 C A D A = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A C A D) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A C D : Point) (_ : eq (S4 A C A D) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (S4 A C A D) F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas4.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+
+*****
+H : eq F0 F0
+A,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test32 : forall A C D, S4 A C A D = 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas4.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+
+*****
+
+*****
+forall A B : Point, eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+A,B : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test35 : forall A B, A**B=-B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (DSeg A B) (Fopp (DSeg B A))), eq F0 F0
++++++
+Proof.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (DSeg A B) (Fopp (DSeg B A))), eq F0 F0
++++++
+intros.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq (DSeg A B) (Fopp (DSeg B A))
+A,B : Point
+*****
+eq F0 F0
++++++
+progress uniformize_dir_seg.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+Proof.
+intros.
+progress uniformize_dir_seg.
+
+*****
+H : eq (DSeg A B) (DSeg A B)
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test36 : forall A B, A**B=-B**A -> 0=0.
+Proof.
+intros.
+progress uniformize_dir_seg.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+
+*****
+
+*****
+forall A C : Point, eq (Fplus (Fplus (S A A C) (S A C C)) (S A C A)) F0
++++++
+Proof.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+Proof.
+
+*****
+
+*****
+forall A C : Point, eq (Fplus (Fplus (S A A C) (S A C C)) (S A C A)) F0
++++++
+intros.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+Proof.
+intros.
+
+*****
+A,C : Point
+*****
+eq (Fplus (Fplus (S A A C) (S A C C)) (S A C A)) F0
++++++
+basic_simpl.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,C : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test40 : forall A C, S A A C + S A C C + S A C A = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test41 : forall A , A**A = 0.
+-----
+Lemma test41 : forall A , A**A = 0.
+
+*****
+
+*****
+forall A : Point, eq (DSeg A A) F0
++++++
+Proof.
+-----
+Lemma test41 : forall A , A**A = 0.
+Proof.
+
+*****
+
+*****
+forall A : Point, eq (DSeg A A) F0
++++++
+intros.
+-----
+Lemma test41 : forall A , A**A = 0.
+Proof.
+intros.
+
+*****
+A : Point
+*****
+eq (DSeg A A) F0
++++++
+basic_simpl.
+-----
+Lemma test41 : forall A , A**A = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test41 : forall A , A**A = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fmult F0 (DSeg A B)) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+Proof.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fmult F0 (DSeg A B)) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+intros.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fmult F0 (DSeg A B)) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+basic_simpl.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test42 : forall A B, 0*A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fplus (Fopp (DSeg A B)) (Fopp (Fopp (DSeg A B)))) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+Proof.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fplus (Fopp (DSeg A B)) (Fopp (Fopp (DSeg A B)))) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+intros.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fplus (Fopp (DSeg A B)) (Fopp (Fopp (DSeg A B)))) (Fminus (Fmult F1 (DSeg A B)) (Fmult F1 (DSeg A B)))) F0
++++++
+basic_simpl.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test43 : forall A B, -A**B + - - A**B + (1*A**B -1*A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (DSeg A B) (Fopp (DSeg A B))) F0
++++++
+Proof.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (DSeg A B) (Fopp (DSeg A B))) F0
++++++
+intros.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fplus (DSeg A B) (Fopp (DSeg A B))) F0
++++++
+basic_simpl.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test44 : forall A B, A**B + (-A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fopp (DSeg A B)) (DSeg A B)) F0
++++++
+Proof.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fopp (DSeg A B)) (DSeg A B)) F0
++++++
+intros.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fopp (DSeg A B)) (DSeg A B)) F0
++++++
+basic_simpl.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test45 : forall A B, - A**B + (A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fopp (Fopp (DSeg A B))) (Fopp (DSeg A B))) F0
++++++
+Proof.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fplus (Fopp (Fopp (DSeg A B))) (Fopp (DSeg A B))) F0
++++++
+intros.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fopp (Fopp (DSeg A B))) (Fopp (DSeg A B))) F0
++++++
+basic_simpl.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test46 : forall A B, - - A**B + -(A**B) = 0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (DSeg A B) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+Proof.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (DSeg A B) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+intros.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fplus (DSeg A B) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+basic_simpl.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fminus (DSeg A B) (DSeg C D)) (DSeg C D)) (DSeg A B)) F0
++++++
+ring.
+-----
+Lemma test47 : forall A B C D, A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test48 : forall A B C D,  S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+-----
+Lemma test48 : forall A B C D, S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (Fplus (S4 A B A C) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+Proof.
+-----
+Lemma test48 : forall A B C D, S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (Fplus (S4 A B A C) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+intros.
+-----
+Lemma test48 : forall A B C D, S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fplus (Fplus (S4 A B A C) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+basic_simpl.
+-----
+Lemma test48 : forall A B C D, S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fminus (DSeg A B) (DSeg C D)) (DSeg C D)) (DSeg A B)) F0
++++++
+ring.
+-----
+Lemma test48 : forall A B C D, S4 A B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test49 : forall A B C D,  S4 A B A C + S A A C + 1* S A B C - - S B A C +  A**B + -(C**D) + (C**D) - (A**B)= 0.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (Fplus (Fminus (Fplus (Fplus (S4 A B A C) (S A A C)) (Fmult F1 (S A B C))) (Fopp (S B A C))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+Proof.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fminus (Fplus (Fplus (Fplus (Fminus (Fplus (Fplus (S4 A B A C) (S A A C)) (Fmult F1 (S A B C))) (Fopp (S B A C))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+intros.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fplus (Fplus (Fminus (Fplus (Fplus (S4 A B A C) (S A A C)) (Fmult F1 (S A B C))) (Fopp (S B A C))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (S4 A B A C) (S C A A)) (Fmult F1 (S C A B))) (Fopp (Fopp (Fopp (S C A B))))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (Fopp (DSeg A B))) F0
++++++
+basic_simpl.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+basic_simpl.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fplus (Fminus (DSeg A B) (DSeg C D)) (DSeg C D)) (DSeg A B)) F0
++++++
+ring.
+-----
+Lemma test49 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)), eq (Fdiv A A) F1
++++++
+Proof.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+Proof.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)), eq (Fdiv A A) F1
++++++
+intros.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+Proof.
+intros.
+
+*****
+H : not (eq A F0)
+A : F
+*****
+eq (Fdiv A A) F1
++++++
+basic_field_simpl.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+Proof.
+intros.
+basic_field_simpl.
+
+*****
+H : not (eq A F0)
+A : F
+*****
+eq F1 F1
++++++
+auto.
+-----
+Lemma test50 : forall A , A<>0 -> A/ A = 1.
+Proof.
+intros.
+basic_field_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)) (_ : eq (Fdiv A A) F0), eq F0 F1
++++++
+Proof.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+Proof.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)) (_ : eq (Fdiv A A) F0), eq F0 F1
++++++
+intros.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+Proof.
+intros.
+
+*****
+H0 : eq (Fdiv A A) F0
+H : not (eq A F0)
+A : F
+*****
+eq F0 F1
++++++
+basic_field_simpl.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+Proof.
+intros.
+basic_field_simpl.
+
+*****
+H0 : eq F1 F0
+H : not (eq A F0)
+A : F
+*****
+eq F0 F1
++++++
+auto.
+-----
+Lemma test51 : forall A , A<>0 -> A/ A = 0 -> 0=1.
+Proof.
+intros.
+basic_field_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test52 : forall A B C D,  S4 A B A C + S A A C + 1* S A B C - - S B A C +  A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Fminus (Fplus (Fplus (Fplus (Fminus (Fplus (Fplus (S4 A B A C) (S A A C)) (Fmult F1 (S A B C))) (Fopp (S B A C))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0), eq F0 F0
++++++
+Proof.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Fminus (Fplus (Fplus (Fplus (Fminus (Fplus (Fplus (S4 A B A C) (S A A C)) (Fmult F1 (S A B C))) (Fopp (S B A C))) (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) (DSeg A B)) F0), eq F0 F0
++++++
+intros.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+Proof.
+intros.
+
+*****
+H : eq\n (Fminus\n (Fplus\n (Fplus\n (Fplus\n (Fminus\n (Fplus (Fplus (S4 A B A C) (S A A C))\n (Fmult F1 (S A B C))) (Fopp (S B A C))) \n (DSeg A B)) (Fopp (DSeg C D))) (DSeg C D)) \n (DSeg A B)) F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+progress local_uniformize_signed_areas.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+
+*****
+H : eq\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus (Fplus (S4 A B A C) (S C A A))\n (Fmult F1 (S C A B)))\n (Fopp (Fopp (Fopp (S C A B))))) (DSeg A B))\n (Fopp (DSeg C D))) (DSeg C D)) (Fopp (DSeg A B))) F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+progress basic_simpl.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+progress basic_simpl.
+
+*****
+H : eq\n (Fminus (Fplus (Fminus (DSeg A B) (DSeg C D)) (DSeg C D)) (DSeg A B))\n F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test52 : forall A B C D, S4 A B A C + S A A C + 1* S A B C - - S B A C + A**B + -(C**D) + (C**D) - (A**B)= 0 -> 0=0.
+Proof.
+intros.
+progress local_uniformize_signed_areas.
+progress basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)), eq (Fplus (Fdiv (Fplus F0 A) A) (Fdiv (Fopp A) A)) F0
++++++
+Proof.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+Proof.
+
+*****
+
+*****
+forall (A : F) (_ : not (eq A F0)), eq (Fplus (Fdiv (Fplus F0 A) A) (Fdiv (Fopp A) A)) F0
++++++
+intros.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+Proof.
+intros.
+
+*****
+H : not (eq A F0)
+A : F
+*****
+eq (Fplus (Fdiv (Fplus F0 A) A) (Fdiv (Fopp A) A)) F0
++++++
+basic_simpl.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+H : not (eq A F0)
+A : F
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test53 : forall A, A<>0 -> (0+A)/A+(-A)/A=0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+
+*****
+
+*****
+forall x : F, eq (Fmult (Fopp x) (Fopp x)) (Fmult x x)
++++++
+Proof.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+Proof.
+
+*****
+
+*****
+forall x : F, eq (Fmult (Fopp x) (Fopp x)) (Fmult x x)
++++++
+intros.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+Proof.
+intros.
+
+*****
+x : F
+*****
+eq (Fmult (Fopp x) (Fopp x)) (Fmult x x)
++++++
+basic_simpl.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+Proof.
+intros.
+basic_simpl.
+
+*****
+x : F
+*****
+eq (Fmult x x) (Fmult x x)
++++++
+auto.
+-----
+Lemma test54 : forall x, -x*-x=x*x.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+
+*****
+
+*****
+forall x y : F, eq (Fmult (Fopp x) y) (Fopp (Fmult x y))
++++++
+Proof.
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+Proof.
+
+*****
+
+*****
+forall x y : F, eq (Fmult (Fopp x) y) (Fopp (Fmult x y))
++++++
+intros.
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+Proof.
+intros.
+
+*****
+x,y : F
+*****
+eq (Fmult (Fopp x) y) (Fopp (Fmult x y))
++++++
+basic_simpl.
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+Proof.
+intros.
+basic_simpl.
+
+*****
+x,y : F
+*****
+eq (Fopp (Fmult x y)) (Fopp (Fmult x y))
++++++
+auto.
+-----
+Lemma test55 : forall x y, -x*y=-(x*y).
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq y F0)), eq (Fdiv (Fopp x) y) (Fopp (Fdiv x y))
++++++
+Proof.
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+Proof.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq y F0)), eq (Fdiv (Fopp x) y) (Fopp (Fdiv x y))
++++++
+intros.
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+Proof.
+intros.
+
+*****
+H : not (eq y F0)
+x,y : F
+*****
+eq (Fdiv (Fopp x) y) (Fopp (Fdiv x y))
++++++
+basic_simpl.
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+Proof.
+intros.
+basic_simpl.
+
+*****
+H : not (eq y F0)
+x,y : F
+*****
+eq (Fopp (Fdiv x y)) (Fopp (Fdiv x y))
++++++
+auto.
+-----
+Lemma test56 : forall x y, y<>0 -> (-x)/y=-(x/y).
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+
+*****
+
+*****
+forall (y : F) (_ : not (eq y F0)), eq (Fdiv F0 y) F0
++++++
+Proof.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+Proof.
+
+*****
+
+*****
+forall (y : F) (_ : not (eq y F0)), eq (Fdiv F0 y) F0
++++++
+intros.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+Proof.
+intros.
+
+*****
+H : not (eq y F0)
+y : F
+*****
+eq (Fdiv F0 y) F0
++++++
+basic_simpl.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+H : not (eq y F0)
+y : F
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test57 : forall y, y<>0 -> 0/y=0.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq y F0)), eq (Fdiv (Fmult x y) y) x
++++++
+Proof.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+Proof.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq y F0)), eq (Fdiv (Fmult x y) y) x
++++++
+intros.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+Proof.
+intros.
+
+*****
+H : not (eq y F0)
+x,y : F
+*****
+eq (Fdiv (Fmult x y) y) x
++++++
+basic_simpl.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+Proof.
+intros.
+basic_simpl.
+
+*****
+H : not (eq y F0)
+x,y : F
+*****
+eq x x
++++++
+auto.
+-----
+Lemma test58 : forall x y, y<>0 -> (x*y)/y =x.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq x F0)), eq (Fdiv (Fmult x y) x) y
++++++
+Proof.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+Proof.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq x F0)), eq (Fdiv (Fmult x y) x) y
++++++
+intros.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+Proof.
+intros.
+
+*****
+H : not (eq x F0)
+x,y : F
+*****
+eq (Fdiv (Fmult x y) x) y
++++++
+basic_simpl.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+Proof.
+intros.
+basic_simpl.
+
+*****
+H : not (eq x F0)
+x,y : F
+*****
+eq y y
++++++
+auto.
+-----
+Lemma test59 : forall x y, x<>0 -> (x*y)/x =y.
+Proof.
+intros.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq x F0)) (_ : eq (Fdiv (Fmult x y) x) y), eq F0 F0
++++++
+Proof.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+Proof.
+
+*****
+
+*****
+forall (x y : F) (_ : not (eq x F0)) (_ : eq (Fdiv (Fmult x y) x) y), eq F0 F0
++++++
+intros.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+Proof.
+intros.
+
+*****
+H0 : eq (Fdiv (Fmult x y) x) y
+H : not (eq x F0)
+x,y : F
+*****
+eq F0 F0
++++++
+progress basic_simpl.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+Proof.
+intros.
+progress basic_simpl.
+
+*****
+H0 : eq y y
+H : not (eq x F0)
+x,y : F
+*****
+eq F0 F0
++++++
+auto.
+-----
+Lemma test60 : forall x y, x<>0 -> (x*y)/x =y -> 0=0.
+Proof.
+intros.
+progress basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : False), eq (S A B C) F0
++++++
+Proof.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : False), eq (S A B C) F0
++++++
+intros.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+Proof.
+intros.
+
+*****
+H : False
+A,B,C : Point
+*****
+eq (S A B C) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+H : False
+A,B,C : Point
+*****
+eq (S A B C) F0
++++++
+intuition.
+-----
+Lemma test61 : forall A B C, False -> S A B C=0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test62 : forall A B C, False ->  0 = S A B C.
+-----
+Lemma test62 : forall A B C, False -> 0 = S A B C.
+
+*****
+
+*****
+forall (A B C : Point) (_ : False), eq F0 (S A B C)
++++++
+Proof.
+-----
+Lemma test62 : forall A B C, False -> 0 = S A B C.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : False), eq F0 (S A B C)
++++++
+intros.
+-----
+Lemma test62 : forall A B C, False -> 0 = S A B C.
+Proof.
+intros.
+
+*****
+H : False
+A,B,C : Point
+*****
+eq F0 (S A B C)
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test62 : forall A B C, False -> 0 = S A B C.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+H : False
+A,B,C : Point
+*****
+eq F0 (S A B C)
++++++
+intuition.
+-----
+Lemma test62 : forall A B C, False -> 0 = S A B C.
+Proof.
+intros.
+local_uniformize_signed_areas.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 ->\nS B A F + S A B F = 0.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 -> S B A F + S A B F = 0.
+
+*****
+
+*****
+forall (A B C D _ : Point) (F1 : Point) (_ : not (eq (S A C D) F0)), eq (Fplus (S B A F1) (S A B F1)) F0
++++++
+Proof.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 -> S B A F + S A B F = 0.
+Proof.
+
+*****
+
+*****
+forall (A B C D _ : Point) (F1 : Point) (_ : not (eq (S A C D) F0)), eq (Fplus (S B A F1) (S A B F1)) F0
++++++
+intros.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 -> S B A F + S A B F = 0.
+Proof.
+intros.
+
+*****
+H : not (eq (S A C D) F0)
+A,B,C,D,E,F : Point
+*****
+eq (Fplus (S B A F) (S A B F)) F0
++++++
+local_uniformize_signed_areas.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 -> S B A F + S A B F = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+
+*****
+H : not (eq (S A C D) F0)
+A,B,C,D,E,F : Point
+*****
+eq (Fplus (Fopp (S B F A)) (S B F A)) F0
++++++
+ring.
+-----
+Lemma test65 : forall A B C D E F:Point, S A C D <> 0 -> S B A F + S A B F = 0.
+Proof.
+intros.
+local_uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

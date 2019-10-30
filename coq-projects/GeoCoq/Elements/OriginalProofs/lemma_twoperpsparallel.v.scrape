@@ -1,0 +1,859 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_Euclid4.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.proposition_28C.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_parallelflip.
+-----
+Section Euclid.
+-----
+Context `{Ax1:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_twoperpsparallel : \n   forall A B C D, \n   Per A B C -> Per B C D -> OS A D B C ->\n   Par A B C D.
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+
+*****
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : Per A B C) (_ : Per B C D) (_ : OS A D B C), Par A B C D
++++++
+Proof.
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+
+*****
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : Per A B C) (_ : Per B C D) (_ : OS A D B C), Par A B C D
++++++
+intros.
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+
+*****
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+
+*****
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (neq B C) by (forward_using lemma_NCdistinct).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+
+*****
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+
+*****
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Col B C E) by (conclude_def Col ).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+
+*****
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (neq C E) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+
+*****
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+
+*****
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Per E C D) by (conclude lemma_collinearright).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+
+*****
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Per D C E) by (conclude lemma_8_2).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+
+*****
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (eq D D) by (conclude cn_equalityreflexive).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+
+*****
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+
+*****
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (neq C D) by (forward_using lemma_NCdistinct).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+
+*****
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Out C D D) by (conclude lemma_ray4).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+
+*****
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Supp B C D D E) by (conclude_def Supp ).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+
+*****
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+
+*****
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+
+*****
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (RT A B C B C D) by (conclude_def RT ).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+
+*****
+H18 : RT A B C B C D
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Par B A C D) by (conclude proposition_28C).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+assert (Par B A C D) by (conclude proposition_28C).
+
+*****
+H19 : Par B A C D
+H18 : RT A B C B C D
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Par C D B A) by (conclude lemma_parallelsymmetric).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+assert (Par B A C D) by (conclude proposition_28C).
+assert (Par C D B A) by (conclude lemma_parallelsymmetric).
+
+*****
+H20 : Par C D B A
+H19 : Par B A C D
+H18 : RT A B C B C D
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Par C D A B) by (forward_using lemma_parallelflip).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+assert (Par B A C D) by (conclude proposition_28C).
+assert (Par C D B A) by (conclude lemma_parallelsymmetric).
+assert (Par C D A B) by (forward_using lemma_parallelflip).
+
+*****
+H21 : Par C D A B
+H20 : Par C D B A
+H19 : Par B A C D
+H18 : RT A B C B C D
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+assert (Par A B C D) by (conclude lemma_parallelsymmetric).
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+assert (Par B A C D) by (conclude proposition_28C).
+assert (Par C D B A) by (conclude lemma_parallelsymmetric).
+assert (Par C D A B) by (forward_using lemma_parallelflip).
+assert (Par A B C D) by (conclude lemma_parallelsymmetric).
+
+*****
+H22 : Par A B C D
+H21 : Par C D A B
+H20 : Par C D B A
+H19 : Par B A C D
+H18 : RT A B C B C D
+H17 : CongA B C D D C E
+H16 : CongA A B C B C D
+H15 : Supp B C D D E
+H14 : Out C D D
+H13 : neq C D
+H12 : nCol B C D
+H11 : eq D D
+H10 : Per D C E
+H9 : Per E C D
+H8 : neq E C
+H7 : neq C E
+H6 : Col B C E
+H5 : Cong C E B C
+H4 : BetS B C E
+E : Point
+H3 : neq B C
+H2 : nCol A B C
+H1 : OS A D B C
+H0 : Per B C D
+H : Per A B C
+A,B,C,D : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+Par A B C D
++++++
+close.
+-----
+Lemma lemma_twoperpsparallel : forall A B C D, Per A B C -> Per B C D -> OS A D B C -> Par A B C D.
+Proof.
+intros.
+assert (nCol A B C) by (conclude lemma_rightangleNC).
+assert (neq B C) by (forward_using lemma_NCdistinct).
+let Tf:=fresh in assert (Tf:exists E, (BetS B C E /\\ Cong C E B C)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (Col B C E) by (conclude_def Col ).
+assert (neq C E) by (forward_using lemma_betweennotequal).
+assert (neq E C) by (conclude lemma_inequalitysymmetric).
+assert (Per E C D) by (conclude lemma_collinearright).
+assert (Per D C E) by (conclude lemma_8_2).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (nCol B C D) by (conclude lemma_rightangleNC).
+assert (neq C D) by (forward_using lemma_NCdistinct).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (Supp B C D D E) by (conclude_def Supp ).
+assert (CongA A B C B C D) by (conclude lemma_Euclid4).
+assert (CongA B C D D C E) by (conclude lemma_Euclid4).
+assert (RT A B C B C D) by (conclude_def RT ).
+assert (Par B A C D) by (conclude proposition_28C).
+assert (Par C D B A) by (conclude lemma_parallelsymmetric).
+assert (Par C D A B) by (forward_using lemma_parallelflip).
+assert (Par A B C D) by (conclude lemma_parallelsymmetric).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

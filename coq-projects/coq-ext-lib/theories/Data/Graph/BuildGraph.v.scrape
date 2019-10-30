@@ -1,0 +1,60 @@
+Require Import ExtLib.Structures.Monads.
+-----
+Require Import ExtLib.Data.Monads.StateMonad.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section Graph.
+-----
+Variable V : Type.
+-----
+Variable G : Type.
+-----
+Class BuildGraph : Type :=\n  { emptyGraph : G\n  ; addVertex : V -> G -> G\n  ; addEdge   : V -> V -> G -> G\n  }.
+-----
+End Graph.
+-----
+Arguments emptyGraph {_} {_} {_}.
+-----
+Arguments addVertex {_} {_} {_} _ _.
+-----
+Arguments addEdge {_} {_} {_} _ _ _.
+-----
+Section Monadic.
+-----
+Variable m : Type -> Type.
+-----
+Context {Monad_m : Monad m}.
+-----
+Variable V : Type.
+-----
+Variable G : Type.
+-----
+Variable BuildGraph_VG : BuildGraph V G.
+-----
+Definition GraphBuilderT (T : Type) : Type := stateT G m T.
+-----
+Global Instance Monad_GraphBuilder : Monad GraphBuilderT :=\n    Monad_stateT _ _.
+-----
+Global Instance MonadT_GraphBuilder : MonadT GraphBuilderT m :=\n    MonadT_stateT _ _.
+-----
+Instance State_GraphBuilder : MonadState G GraphBuilderT :=\n    MonadState_stateT _ _.
+-----
+Import MonadNotation.
+-----
+Local Open Scope monad_scope.
+-----
+Definition newEdge (f t : V) : GraphBuilderT unit :=\n    g <- get ;;\n    put (addEdge f t g).
+-----
+Definition newVertex (v : V) : GraphBuilderT unit :=\n    g <- get ;;\n    put (addVertex v g).
+-----
+Definition buildGraph {v} (c : GraphBuilderT v) (g : G) : m G :=\n    execStateT c g.
+-----
+End Monadic.
+-----
+Arguments newEdge {_} {_} {_} {_} {_} (_) (_).
+-----
+Arguments newVertex {_} {_} {_} {_} {_} (_).
+-----

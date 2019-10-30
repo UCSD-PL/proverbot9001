@@ -1,0 +1,197 @@
+80355445cd3e03033a2ce1ca93dabb34
+Require Export GeoCoq.Elements.OriginalProofs.lemma_angletrichotomy.
+Require Export GeoCoq.Elements.OriginalProofs.proposition_18.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_trichotomy1.
+Section Euclid.
+Context `{Ax:euclidean_neutral_ruler_compass}.
+Lemma proposition_19 : 
+   forall A B C, 
+   Triangle A B C -> LtA B C A A B C ->
+   Lt A B A C.
+Proof.
+  intros.
+  assert (nCol A B C).
+  {
+    conclude_def Triangle .
+  }
+  {
+    idtac.
+    assert (nCol B C A).
+    {
+      forward_using lemma_NCorder.
+    }
+    {
+      idtac.
+      assert (nCol A C B).
+      {
+        forward_using lemma_NCorder.
+      }
+      {
+        idtac.
+        assert (~ Cong A C A B).
+        {
+          intro.
+          assert (Cong A B A C).
+          {
+            conclude lemma_congruencesymmetric.
+          }
+          {
+            idtac.
+            assert (isosceles A B C).
+            {
+              conclude_def isosceles .
+            }
+            {
+              idtac.
+              assert (CongA A B C A C B).
+              {
+                conclude proposition_05.
+              }
+              {
+                idtac.
+                assert (CongA A C B A B C).
+                {
+                  conclude lemma_equalanglessymmetric.
+                }
+                {
+                  idtac.
+                  assert (CongA B C A A C B).
+                  {
+                    conclude lemma_ABCequalsCBA.
+                  }
+                  {
+                    idtac.
+                    assert (CongA B C A A B C).
+                    {
+                      conclude lemma_equalanglestransitive.
+                    }
+                    {
+                      idtac.
+                      assert (LtA B C A B C A).
+                      {
+                        conclude lemma_angleorderrespectscongruence.
+                      }
+                      {
+                        idtac.
+                        assert (~ LtA B C A B C A).
+                        {
+                          conclude lemma_angletrichotomy.
+                        }
+                        {
+                          idtac.
+                          contradict.
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        {
+          assert (~ Lt A C A B).
+          {
+            intro.
+            assert (Triangle A C B).
+            {
+              conclude_def Triangle .
+            }
+            {
+              idtac.
+              assert (LtA C B A A C B).
+              {
+                conclude proposition_18.
+              }
+              {
+                idtac.
+                assert (CongA A B C C B A).
+                {
+                  conclude lemma_ABCequalsCBA.
+                }
+                {
+                  idtac.
+                  assert (LtA A B C A C B).
+                  {
+                    conclude lemma_angleorderrespectscongruence2.
+                  }
+                  {
+                    idtac.
+                    assert (CongA B C A A C B).
+                    {
+                      conclude lemma_ABCequalsCBA.
+                    }
+                    {
+                      idtac.
+                      assert (LtA A B C B C A).
+                      {
+                        conclude lemma_angleorderrespectscongruence.
+                      }
+                      {
+                        idtac.
+                        assert (~ LtA A B C B C A).
+                        {
+                          conclude lemma_angletrichotomy.
+                        }
+                        {
+                          idtac.
+                          contradict.
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          {
+            assert (CongA A B C A B C).
+            {
+              conclude lemma_equalanglesreflexive.
+            }
+            {
+              idtac.
+              assert (neq A B).
+              {
+                forward_using lemma_angledistinct.
+              }
+              {
+                idtac.
+                assert (neq A C).
+                {
+                  forward_using lemma_angledistinct.
+                }
+                {
+                  idtac.
+                  assert (~ ~ Lt A B A C).
+                  {
+                    intro.
+                    assert (Cong A B A C).
+                    {
+                      conclude lemma_trichotomy1.
+                    }
+                    {
+                      idtac.
+                      assert (Cong A C A B).
+                      {
+                        conclude lemma_congruencesymmetric.
+                      }
+                      {
+                        idtac.
+                        contradict.
+                      }
+                    }
+                  }
+                  {
+                    close.
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euclid.

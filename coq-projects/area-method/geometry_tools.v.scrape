@@ -1,0 +1,751 @@
+Require Export geometry_tools_lemmas.
+-----
+Require Export my_field_tac.
+-----
+Ltac uniformize_signed_areas_goal :=\n  repeat\n   match goal with\n   |  |- context [(- - ?X1)] =>\n       replace (- - X1) with X1 by apply simplring1\n   |  |- context [(S ?X1 ?X1 ?X2)] =>\n       replace (S X1 X1 X2) with 0 by apply trivial_col1\n   |  |- context [(S ?X2 ?X1 ?X1)] =>\n       replace (S X2 X1 X1) with 0 by apply trivial_col2\n   |  |- context [(S ?X1 ?X2 ?X1)] =>\n       replace (S X1 X2 X1) with 0 by apply trivial_col3\n   |  |- context [(S ?X1 ?X2 ?X3)] =>\n    ( let Truc := fresh in\n    match goal with\n       |  |- context [(S ?X4 ?X5 ?X6)] =>\n            (assert (Truc : S X4 X5 X6 = - S X1 X2 X3);\n             [ apply S_3 || apply S_2 || apply S_4\n             | rewrite Truc; clear Truc ]) ||\n             (assert (Truc : S X4 X5 X6 = S X1 X2 X3);\n               [ apply S_0 || apply S_1 | rewrite Truc; clear Truc ])\n       end)\n   end.
+-----
+Ltac generalize_all_areas :=\n   repeat match goal with\n          H: context [(S ?X1 ?X2 ?X3)] |- _=> revert H\n end.
+-----
+Ltac uniformize_signed_areas :=\n  generalize_all_areas;uniformize_signed_areas_goal;intros.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+
+*****
+
+*****
+forall A B C : Point, eq (S4 A B B C) (S A B C)
++++++
+intros.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (S4 A B B C) (S A B C)
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+intros.
+unfold S4 in |- *.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B B) (S A B C)) (S A B C)
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus F0 (S A B C)) (S A B C)
++++++
+ring.
+-----
+Lemma S4Simpl_1 : forall A B C : Point, S4 A B B C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+
+*****
+
+*****
+forall A B C : Point, eq (S4 A B C C) (S A B C)
++++++
+intros.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (S4 A B C C) (S A B C)
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+intros.
+unfold S4 in |- *.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S A C C)) (S A B C)
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) F0) (S A B C)
++++++
+ring.
+-----
+Lemma S4Simpl_2 : forall A B C : Point, S4 A B C C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+
+*****
+
+*****
+forall A B C : Point, eq (S4 A A B C) (S A B C)
++++++
+intros.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (S4 A A B C) (S A B C)
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+intros.
+unfold S4 in |- *.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A A B) (S A B C)) (S A B C)
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus F0 (S A B C)) (S A B C)
++++++
+ring.
+-----
+Lemma S4Simpl_3 : forall A B C : Point, S4 A A B C = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+
+*****
+
+*****
+forall A B C : Point, eq (S4 A B C A) (S A B C)
++++++
+intros.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (S4 A B C A) (S A B C)
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+intros.
+unfold S4 in |- *.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) (S A C A)) (S A B C)
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,B,C : Point
+*****
+eq (Fplus (S A B C) F0) (S A B C)
++++++
+ring.
+-----
+Lemma S4Simpl_4 : forall A B C : Point, S4 A B C A = S A B C.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+
+*****
+
+*****
+forall A C D : Point, eq (S4 C A D A) F0
++++++
+Proof.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+Proof.
+
+*****
+
+*****
+forall A C D : Point, eq (S4 C A D A) F0
++++++
+intros.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+Proof.
+intros.
+
+*****
+A,C,D : Point
+*****
+eq (S4 C A D A) F0
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+
+*****
+A,C,D : Point
+*****
+eq (Fplus (S C A D) (S C D A)) F0
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,C,D : Point
+*****
+eq (Fplus (S C A D) (Fopp (S C A D))) F0
++++++
+ring.
+-----
+Lemma S4Simpl_5 : forall A C D : Point, S4 C A D A = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+
+*****
+
+*****
+forall A C D : Point, eq (S4 A C A D) F0
++++++
+Proof.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+Proof.
+
+*****
+
+*****
+forall A C D : Point, eq (S4 A C A D) F0
++++++
+intros.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+Proof.
+intros.
+
+*****
+A,C,D : Point
+*****
+eq (S4 A C A D) F0
++++++
+unfold S4 in |- *.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+
+*****
+A,C,D : Point
+*****
+eq (Fplus (S A C A) (S A A D)) F0
++++++
+uniformize_signed_areas.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+
+*****
+A,C,D : Point
+*****
+eq (Fplus F0 F0) F0
++++++
+ring.
+-----
+Lemma S4Simpl_6 : forall A C D : Point, S4 A C A D = 0.
+Proof.
+intros.
+unfold S4 in |- *.
+uniformize_signed_areas.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma half : 1- 1/2 = 1/2.
+-----
+Lemma half : 1- 1/2 = 1/2.
+
+*****
+
+*****
+eq (Fminus F1 (Fdiv F1 (Fplus F1 F1))) (Fdiv F1 (Fplus F1 F1))
++++++
+Proof.
+-----
+Lemma half : 1- 1/2 = 1/2.
+Proof.
+
+*****
+
+*****
+eq (Fminus F1 (Fdiv F1 (Fplus F1 F1))) (Fdiv F1 (Fplus F1 F1))
++++++
+field.
+-----
+Lemma half : 1- 1/2 = 1/2.
+Proof.
+field.
+
+*****
+
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma half : 1- 1/2 = 1/2.
+Proof.
+field.
+auto with Geom.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac uniformize_signed_areas4_goal :=\n  repeat\n   match goal with\n   |  |- context [(- - ?X1)] =>      \n       replace (- - X1) with X1; [ idtac | apply simplring1 ]\n   |  |- context [(S4 ?X1 ?X2 ?X1 ?X3)] =>\n	rewrite (S4Simpl_6 X1 X2 X3)\n   |  |- context [(S4 ?X2 ?X1 ?X3 ?X1)] =>\n        rewrite (S4Simpl_5 X1 X2 X3)\n   |  |- context [(S4 ?X1 ?X2 ?X2 ?X3)] =>\n        rewrite (S4Simpl_1 X1 X2 X3)\n   |  |- context [(S4 ?X1 ?X2 ?X3 ?X3)] =>\n        rewrite (S4Simpl_2 X1 X2 X3)\n   |  |- context [(S4 ?X1 ?X1 ?X2 ?X3)] =>\n        rewrite (S4Simpl_3 X1 X2 X3)\n   |  |- context [(S4 ?X1 ?X2 ?X3 ?X1)] =>\n        rewrite (S4Simpl_4 X1 X2 X3)\n   |  |- context [(S4 ?X1 ?X2 ?X3 ?X4)] =>\n       match goal with\n       |  |- context [(S4 ?X5 ?X6 ?X7 ?X8)] =>\n           (assert (Truc : S4 X5 X6 X7 X8 = - S4 X1 X2 X3 X4);\n             [ apply S4_5 || apply S4_6 || apply S4_7 || apply S4_8\n             | rewrite Truc; clear Truc ]) ||\n             (assert (Truc : S4 X5 X6 X7 X8 = S4 X1 X2 X3 X4);\n               [ apply S4_2 || apply S4_3 || apply S4_4\n               | rewrite Truc; clear Truc ])\n       end\n   end.
+-----
+Ltac generalize_all_areas4 :=\n   repeat match goal with\n          H: context [(S4 ?X1 ?X2 ?X3 ?X4)] |- _=> revert H\n end.
+-----
+Ltac uniformize_signed_areas4 :=\n  generalize_all_areas4;uniformize_signed_areas4_goal;intros.
+-----
+Ltac uniformize_dir_seg_goal :=\n  repeat\n   match goal with\n   |  |- context [(- - ?X1)] =>\n       replace (- - X1) with X1; [ idtac | apply simplring1 ]\n   |  |- context [(?X1 ** ?X1)] =>\n       rewrite <- (nuldirseg X1)\n   |  |- context [(?X1 ** ?X2)] =>\n       match goal with\n       |  |- context [(?X3 ** ?X4)] =>\n           match constr:((X3, X4)) with\n           | (?X2, ?X1) => rewrite (A1a X1 X2)\n           end\n       end\n   end.
+-----
+Ltac generalize_all_seg :=\n   repeat match goal with\n          H: context [(?X1 ** ?X2)] |- _=> revert H\n end.
+-----
+Ltac uniformize_dir_seg_general :=\n  generalize_all_seg;uniformize_dir_seg_goal;intros.
+-----
+Ltac try_rw A B := try rewrite <- (A1a B A) in *;\n                   try rewrite    (A1a A B) in *.
+-----
+Ltac uniformize_dir_seg_spec := match reverse goal with\n\n | [A : Point, B : Point, C : Point, \n    D : Point, E : Point, F : Point,\n    G : Point |- _ ] => fail 1\n\n | [A : Point, B : Point, C : Point, D: Point, E: Point, F: Point |- _ ] => \n     try_rw A B; try_rw A C; try_rw A D; try_rw A E; try_rw A F; \n     try_rw B C; try_rw B D; try_rw B E; try_rw B F;\n     try_rw C D; try_rw C E; try_rw C F;\n     try_rw D E; try_rw D F;\n     try_rw E F\n\n | [A : Point, B : Point, C : Point, D: Point, E: Point |- _ ] => \n     try_rw A B; try_rw A C; try_rw A D; try_rw A E; \n     try_rw B C; try_rw B D; try_rw B E;\n     try_rw C D; try_rw C E;\n     try_rw D E\n\n | [A : Point, B : Point, C : Point, D: Point |- _ ] => \n     try_rw A B; try_rw A C; try_rw A D; try_rw B C; try_rw B D; try_rw C D\n\n | [A : Point, B : Point, C : Point |- _ ] => \n     try_rw A B; try_rw A C;try_rw B C\n\n | [A : Point, B : Point |- _ ] => \n     try_rw A B\nend.
+-----
+Ltac uniformize_dir_seg := uniformize_dir_seg_spec || uniformize_dir_seg_general.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B,\nA ** B = - B**A.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B, A ** B = - B**A.
+
+*****
+
+*****
+forall A B : Point, eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B, A ** B = - B**A.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B, A ** B = - B**A.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B, A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+A,B : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test_uniformize_dir_seg_1 : forall A B, A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B,\nA ** B = - B**A ->\nA ** B = - B**A.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B, A ** B = - B**A -> A ** B = - B**A.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (DSeg A B) (Fopp (DSeg B A))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B, A ** B = - B**A -> A ** B = - B**A.
+Proof.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (DSeg A B) (Fopp (DSeg B A))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B, A ** B = - B**A -> A ** B = - B**A.
+Proof.
+intros.
+
+*****
+H : eq (DSeg A B) (Fopp (DSeg B A))
+A,B : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B, A ** B = - B**A -> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+H : eq (DSeg A B) (DSeg A B)
+A,B : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test_uniformize_dir_seg_2 : forall A B, A ** B = - B**A -> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C,\nA ** B = - B**A + A**C + C**A + B**C + C**A ->\nA ** B = - B**A.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C, A ** B = - B**A + A**C + C**A + B**C + C**A -> A ** B = - B**A.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C, A ** B = - B**A + A**C + C**A + B**C + C**A -> A ** B = - B**A.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C, A ** B = - B**A + A**C + C**A + B**C + C**A -> A ** B = - B**A.
+Proof.
+intros.
+
+*****
+H : eq (DSeg A B)\n (Fplus\n (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A))\n (DSeg B C)) (DSeg C A))
+A,B,C : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C, A ** B = - B**A + A**C + C**A + B**C + C**A -> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+H : eq (DSeg A B)\n (Fplus\n (Fplus (Fplus (Fplus (DSeg A B) (DSeg A C)) (Fopp (DSeg A C)))\n (DSeg B C)) (Fopp (DSeg A C)))
+A,B,C : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test_uniformize_dir_seg_3 : forall A B C, A ** B = - B**A + A**C + C**A + B**C + C**A -> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D,\nA ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D->\nA ** B = - B**A.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A)) (DSeg D A)) (DSeg A D))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A)) (DSeg D A)) (DSeg A D))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+
+*****
+H : eq (DSeg A B)\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A))\n (DSeg B C)) (DSeg C A)) (DSeg D A)) \n (DSeg A D))
+A,B,C,D : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+H : eq (DSeg A B)\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus (Fplus (DSeg A B) (DSeg A C)) (Fopp (DSeg A C)))\n (DSeg B C)) (Fopp (DSeg A C))) (Fopp (DSeg A D)))\n (DSeg A D))
+A,B,C,D : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test_uniformize_dir_seg_4 : forall A B C D, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall  E F G H I : Point,\nA ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D->\nA ** B = - B**A.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall E F G H I : Point, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+
+*****
+
+*****
+forall (A B C D _ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A)) (DSeg D A)) (DSeg A D))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+Proof.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall E F G H I : Point, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+
+*****
+
+*****
+forall (A B C D _ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : eq (DSeg A B) (Fplus (Fplus (Fplus (Fplus (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A)) (DSeg B C)) (DSeg C A)) (DSeg D A)) (DSeg A D))), eq (DSeg A B) (Fopp (DSeg B A))
++++++
+intros.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall E F G H I : Point, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+
+*****
+H0 : eq (DSeg A B)\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus (Fplus (Fopp (DSeg B A)) (DSeg A C)) (DSeg C A))\n (DSeg B C)) (DSeg C A)) (DSeg D A)) \n (DSeg A D))
+A,B,C,D,E,F,G,H,I : Point
+*****
+eq (DSeg A B) (Fopp (DSeg B A))
++++++
+uniformize_dir_seg.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall E F G H I : Point, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+
+*****
+H0 : eq (DSeg A B)\n (Fplus\n (Fplus\n (Fplus\n (Fplus\n (Fplus (Fplus (DSeg A B) (DSeg A C)) (Fopp (DSeg A C)))\n (DSeg B C)) (Fopp (DSeg A C))) (DSeg D A))\n (Fopp (DSeg D A)))
+A,B,C,D,E,F,G,H,I : Point
+*****
+eq (DSeg A B) (DSeg A B)
++++++
+ring.
+-----
+Lemma test_uniformize_dir_seg_5 : forall A B C D, forall E F G H I : Point, A ** B = - B**A + A**C + C**A + B**C + C**A + D**A + A**D-> A ** B = - B**A.
+Proof.
+intros.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Rewrite S4Simpl_1  S4Simpl_2 S4Simpl_3 S4Simpl_4 S4Simpl_5 S4Simpl_6 : S4_simplifications.
+-----
+Hint Rewrite <- trivial_col1: S_simplifications.
+-----
+Hint Rewrite <- trivial_col2: S_simplifications.
+-----
+Hint Rewrite <- trivial_col3: S_simplifications.
+-----
+Hint Rewrite <- nuldirseg : seg_simplifications.
+-----
+Hint Rewrite half  : seg_simplifications.
+-----
+Ltac basic_non_field_simpl:= autorewrite with ring_simplification \n                               S4_simplifications \n                             S_simplifications\n          seg_simplifications in *.
+-----
+Ltac basic_simpl := repeat (progress (basic_non_field_simpl;basic_field_simpl)).
+-----

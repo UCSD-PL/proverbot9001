@@ -1,0 +1,1957 @@
+Require Import Coq.Classes.RelationClasses.
+-----
+Require Import Coq.Setoids.Setoid.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Set Asymmetric Patterns.
+-----
+Section parametric.
+-----
+Variable T : Type.
+-----
+Variable R : T -> T -> Prop.
+-----
+Inductive makeRefl (x : T) : T -> Prop :=\n  | RRefl : makeRefl x x\n  | RStep : forall y, R x y -> makeRefl x y.
+-----
+Global Instance Refl_makeRefl : Reflexive makeRefl.
+-----
+Global Instance Refl_makeRefl : Reflexive makeRefl.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Reflexive makeRefl
++++++
+Proof.
+-----
+Global Instance Refl_makeRefl : Reflexive makeRefl.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Reflexive makeRefl
++++++
+constructor.
+-----
+Global Instance Refl_makeRefl : Reflexive makeRefl.
+Proof.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : Transitive R, Transitive makeRefl
++++++
+Proof.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : Transitive R, Transitive makeRefl
++++++
+intro.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+
+*****
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Transitive makeRefl
++++++
+intro.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+
+*****
+x : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (y z : T) (_ : makeRefl x y) (_ : makeRefl y z), makeRefl x z
++++++
+intros.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+
+*****
+H1 : makeRefl y z
+H0 : makeRefl x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+inversion H0.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+
+*****
+H2 : eq x y
+H1 : makeRefl y z
+H0 : makeRefl x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl y z
++++++
+clear H0.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+
+*****
+H2 : eq x y
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl y z
++++++
+subst.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+
+*****
+H1 : makeRefl y z
+y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl y z
++++++
+auto.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+
+*****
+H3 : eq y0 y
+H2 : R x y
+y0 : T
+H1 : makeRefl y z
+H0 : makeRefl x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+clear H0.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+
+*****
+H3 : eq y0 y
+H2 : R x y
+y0 : T
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+subst.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+
+*****
+H2 : R x y
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+auto.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+
+*****
+H2 : R x y
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+inversion H1.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+
+*****
+H0 : eq y z
+H2 : R x y
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+clear H1.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+
+*****
+H0 : eq y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+subst.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+
+*****
+H2 : R x z
+x,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+auto using RStep.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+
+*****
+H3 : eq y0 z
+H0 : R y z
+y0 : T
+H2 : R x y
+H1 : makeRefl y z
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+clear H1.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+
+*****
+H3 : eq y0 z
+H0 : R y z
+y0 : T
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+subst.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+
+*****
+H0 : R y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+auto using RStep.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+auto using RStep.
+
+*****
+H0 : R y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl x z
++++++
+apply RStep.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+auto using RStep.
+apply RStep.
+
+*****
+H0 : R y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x z
++++++
+etransitivity.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+auto using RStep.
+apply RStep.
+etransitivity.
+
+*****
+H0 : R y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x ?y
++++++
+eauto.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+clear H0.
+subst.
+auto.
+inversion H1.
+clear H1.
+subst.
+auto using RStep.
+apply RStep.
+etransitivity.
+
+*****
+H0 : R y z
+H2 : R x y
+x,y,z : T
+H : Transitive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R y z
++++++
+eauto.
+-----
+Global Instance Refl_makeTrans : Transitive R -> Transitive makeRefl.
+Proof.
+intro.
+intro.
+intros.
+inversion H0.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive makeTrans (x y : T) : Prop :=\n  | TStep : R x y -> makeTrans x y\n  | TTrans : forall z, makeTrans x z -> makeTrans z y -> makeTrans x y.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Transitive makeTrans
++++++
+Proof.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Transitive makeTrans
++++++
+intro.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+intro.
+
+*****
+x : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (y z : T) (_ : makeTrans x y) (_ : makeTrans y z), makeTrans x z
++++++
+intros.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+intro.
+intros.
+
+*****
+H0 : makeTrans y z
+H : makeTrans x y
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans x z
++++++
+eapply TTrans.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+intro.
+intros.
+eapply TTrans.
+
+*****
+H0 : makeTrans y z
+H : makeTrans x y
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans x ?z
++++++
+eassumption.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+intro.
+intros.
+eapply TTrans.
+
+*****
+H0 : makeTrans y z
+H : makeTrans x y
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans y z
++++++
+eassumption.
+-----
+Global Instance Trans_makeTrans : Transitive makeTrans.
+Proof.
+intro.
+intros.
+eapply TTrans.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : Reflexive R, Reflexive makeTrans
++++++
+Proof.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : Reflexive R, Reflexive makeTrans
++++++
+intro.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+Proof.
+intro.
+
+*****
+H : Reflexive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Reflexive makeTrans
++++++
+intro.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+Proof.
+intro.
+intro.
+
+*****
+x : T
+H : Reflexive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans x x
++++++
+apply TStep.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+Proof.
+intro.
+intro.
+apply TStep.
+
+*****
+x : T
+H : Reflexive R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x x
++++++
+reflexivity.
+-----
+Global Instance Trans_makeRefl : Reflexive R -> Reflexive makeTrans.
+Proof.
+intro.
+intro.
+apply TStep.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive leftTrans (x y : T) : Prop :=\n  | LTFin : R x y -> leftTrans x y\n  | LTStep : forall z, R x z -> leftTrans z y -> leftTrans x y.
+-----
+Inductive rightTrans (x y : T) : Prop :=\n  | RTFin : R x y -> rightTrans x y\n  | RTStep : forall z, rightTrans x z -> R z y -> rightTrans x y.
+-----
+Fixpoint leftTrans_rightTrans_acc x y (l : leftTrans y x) : forall z, rightTrans z y -> rightTrans z x :=\n    match l with\n      | LTFin pf => fun z pfR => RTStep pfR pf\n      | LTStep _ pf pfL => fun z pfR =>\n        leftTrans_rightTrans_acc pfL (RTStep pfR pf)\n    end.
+-----
+Fixpoint rightTrans_leftTrans_acc x y (l : rightTrans x y) : forall z, leftTrans y z -> leftTrans x z :=\n    match l with\n      | RTFin pf => fun z pfR => LTStep pf pfR\n      | RTStep _ pf pfL => fun z pfR =>\n        rightTrans_leftTrans_acc pf (LTStep pfL pfR)\n    end.
+-----
+Theorem leftTrans_rightTrans : forall x y,\n    leftTrans x y <-> rightTrans x y.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall x y : T, iff (leftTrans x y) (rightTrans x y)
++++++
+Proof.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall x y : T, iff (leftTrans x y) (rightTrans x y)
++++++
+split.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+
+*****
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : leftTrans x y, rightTrans x y
++++++
+destruct 1.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x y
++++++
+apply RTFin.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+apply RTFin.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x y
++++++
+assumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+
+*****
+H0 : leftTrans z y
+H : R x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x y
++++++
+eapply leftTrans_rightTrans_acc.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply leftTrans_rightTrans_acc.
+
+*****
+H0 : leftTrans z y
+H : R x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans ?y y
++++++
+eassumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply leftTrans_rightTrans_acc.
+
+*****
+H0 : leftTrans z y
+H : R x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x z
++++++
+eapply RTFin.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply leftTrans_rightTrans_acc.
+eapply RTFin.
+
+*****
+H0 : leftTrans z y
+H : R x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x z
++++++
+eassumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+
+*****
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : rightTrans x y, leftTrans x y
++++++
+destruct 1.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans x y
++++++
+apply LTFin.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+apply LTFin.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x y
++++++
+assumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+
+*****
+H0 : R z y
+H : rightTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans x y
++++++
+eapply rightTrans_leftTrans_acc.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply rightTrans_leftTrans_acc.
+
+*****
+H0 : R z y
+H : rightTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x ?y
++++++
+eassumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply rightTrans_leftTrans_acc.
+
+*****
+H0 : R z y
+H : rightTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans z y
++++++
+eapply LTFin.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+destruct 1.
+eapply rightTrans_leftTrans_acc.
+eapply LTFin.
+
+*****
+H0 : R z y
+H : rightTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R z y
++++++
+eassumption.
+-----
+Theorem leftTrans_rightTrans : forall x y, leftTrans x y <-> rightTrans x y.
+Proof.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint leftTrans_makeTrans_acc x y (l : leftTrans x y) : makeTrans x y :=\n    match l with\n      | LTFin pf => TStep pf\n      | LTStep _ pf pfL =>\n        TTrans (TStep pf) (leftTrans_makeTrans_acc pfL)\n    end.
+-----
+Fixpoint leftTrans_trans x y (l : leftTrans x y) : forall z (r : leftTrans y z), leftTrans x z :=\n    match l with\n      | LTFin pf => fun _ pfL => LTStep pf pfL\n      | LTStep _ pf pfL => fun _ pfR => LTStep pf (leftTrans_trans pfL pfR)\n    end.
+-----
+Theorem makeTrans_leftTrans : forall s s',\n    makeTrans s s' <-> leftTrans s s'.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans s s') (leftTrans s s')
++++++
+Proof.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans s s') (leftTrans s s')
++++++
+split.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeTrans s s', leftTrans s s'
++++++
+intros.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+
+*****
+H : makeTrans s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans s s'
++++++
+induction H.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+induction H.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans x y
++++++
+eapply LTFin.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+induction H.
+eapply LTFin.
+
+*****
+H : R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x y
++++++
+eassumption.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+induction H.
+
+*****
+IHmakeTrans2 : leftTrans z y
+IHmakeTrans1 : leftTrans x z
+H0 : makeTrans z y
+H : makeTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans x y
++++++
+eapply leftTrans_trans.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+induction H.
+eapply leftTrans_trans.
+
+*****
+IHmakeTrans2 : leftTrans z y
+IHmakeTrans1 : leftTrans x z
+H0 : makeTrans z y
+H : makeTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans x ?y
++++++
+eassumption.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+induction H.
+eapply leftTrans_trans.
+
+*****
+IHmakeTrans2 : leftTrans z y
+IHmakeTrans1 : leftTrans x z
+H0 : makeTrans z y
+H : makeTrans x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans z y
++++++
+eassumption.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : leftTrans s s', makeTrans s s'
++++++
+intros.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+
+*****
+H : leftTrans s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans s s'
++++++
+apply leftTrans_makeTrans_acc.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+intros.
+apply leftTrans_makeTrans_acc.
+
+*****
+H : leftTrans s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+leftTrans s s'
++++++
+assumption.
+-----
+Theorem makeTrans_leftTrans : forall s s', makeTrans s s' <-> leftTrans s s'.
+Proof.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem makeTrans_rightTrans : forall s s',\n    makeTrans s s' <-> rightTrans s s'.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans s s') (rightTrans s s')
++++++
+Proof.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans s s') (rightTrans s s')
++++++
+intros.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+Proof.
+intros.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+iff (makeTrans s s') (rightTrans s s')
++++++
+etransitivity.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+Proof.
+intros.
+etransitivity.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+iff (makeTrans s s') ?y
++++++
+apply makeTrans_leftTrans.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+Proof.
+intros.
+etransitivity.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+iff (leftTrans s s') (rightTrans s s')
++++++
+apply leftTrans_rightTrans.
+-----
+Theorem makeTrans_rightTrans : forall s s', makeTrans s s' <-> rightTrans s s'.
+Proof.
+intros.
+etransitivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (x y z : T) (_ : R x y) (_ : rightTrans y z), rightTrans x z
++++++
+intros.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+
+*****
+H0 : rightTrans y z
+H : R x y
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x z
++++++
+revert H.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+
+*****
+H0 : rightTrans y z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : R x y, rightTrans x z
++++++
+revert x.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+
+*****
+H0 : rightTrans y z
+y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (x : T) (_ : R x y), rightTrans x z
++++++
+induction H0.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+
+*****
+H : R y y0
+y,y0 : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (x : T) (_ : R x y), rightTrans x y0
++++++
+intros.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+
+*****
+H0 : R x y
+x : T
+H : R y y0
+y,y0 : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x y0
++++++
+eapply RTStep.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+
+*****
+H0 : R x y
+x : T
+H : R y y0
+y,y0 : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x ?z
++++++
+eapply RTFin.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+eapply RTFin.
+
+*****
+H0 : R x y
+x : T
+H : R y y0
+y,y0 : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x ?z
++++++
+eassumption.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+
+*****
+H0 : R x y
+x : T
+H : R y y0
+y,y0 : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R y y0
++++++
+eassumption.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+
+*****
+IHrightTrans : forall (x : T) (_ : R x y), rightTrans x z
+H : R z y0
+H0 : rightTrans y z
+y,y0,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall (x : T) (_ : R x y), rightTrans x y0
++++++
+intros.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+
+*****
+H1 : R x y
+x : T
+IHrightTrans : forall (x : T) (_ : R x y), rightTrans x z
+H : R z y0
+H0 : rightTrans y z
+y,y0,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x y0
++++++
+eapply RTStep.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+
+*****
+H1 : R x y
+x : T
+IHrightTrans : forall (x : T) (_ : R x y), rightTrans x z
+H : R z y0
+H0 : rightTrans y z
+y,y0,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+rightTrans x ?z
++++++
+eapply IHrightTrans.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+eapply IHrightTrans.
+
+*****
+H1 : R x y
+x : T
+IHrightTrans : forall (x : T) (_ : R x y), rightTrans x z
+H : R z y0
+H0 : rightTrans y z
+y,y0,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R x y
++++++
+eassumption.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+intros.
+eapply RTStep.
+
+*****
+H1 : R x y
+x : T
+IHrightTrans : forall (x : T) (_ : R x y), rightTrans x z
+H : R z y0
+H0 : rightTrans y z
+y,y0,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+R z y0
++++++
+eassumption.
+-----
+Definition RTStep_left : forall x y z : T, R x y -> rightTrans y z -> rightTrans x z.
+intros.
+revert H.
+revert x.
+induction H0.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End parametric.
+-----
+Section param.
+-----
+Variable T : Type.
+-----
+Variable R : T -> T -> Prop.
+-----
+Theorem makeTrans_idem : forall s s',\n    makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans (makeTrans R) s s') (makeTrans R s s')
++++++
+Proof.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans (makeTrans R) s s') (makeTrans R s s')
++++++
+split.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeTrans (makeTrans R) s s', makeTrans R s s'
++++++
+induction 1.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+split.
+induction 1.
+
+*****
+H : makeTrans R x y
+x,y : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans R x y
++++++
+eauto using TTrans.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+split.
+induction 1.
+
+*****
+IHmakeTrans2 : makeTrans R z y
+IHmakeTrans1 : makeTrans R x z
+H0 : makeTrans (makeTrans R) z y
+H : makeTrans (makeTrans R) x z
+x,y,z : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans R x y
++++++
+eauto using TTrans.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeTrans R s s', makeTrans (makeTrans R) s s'
++++++
+eapply TStep.
+-----
+Theorem makeTrans_idem : forall s s', makeTrans (makeTrans R) s s' <-> makeTrans R s s'.
+Proof.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s',\n    makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans (makeRefl R) s s') (makeRefl (makeTrans R) s s')
++++++
+Proof.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeTrans (makeRefl R) s s') (makeRefl (makeTrans R) s s')
++++++
+split.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeTrans (makeRefl R) s s', makeRefl (makeTrans R) s s'
++++++
+induction 1; repeat match goal with | [ H : makeRefl _ _ _ |- _ ] => inversion H; clear H; subst end; eauto using RRefl, RStep, TStep, TTrans.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeRefl (makeTrans R) s s', makeTrans (makeRefl R) s s'
++++++
+intros.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+intros.
+
+*****
+H : makeRefl (makeTrans R) s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans (makeRefl R) s s'
++++++
+inversion H; clear H; subst; auto.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+intros.
+inversion H; clear H; subst; auto.
+
+*****
+s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans (makeRefl R) s' s'
++++++
+apply TStep.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+intros.
+inversion H; clear H; subst; auto.
+apply TStep.
+
+*****
+s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl R s' s'
++++++
+apply RRefl.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+intros.
+inversion H; clear H; subst; auto.
+apply TStep.
+apply RRefl.
+
+*****
+H0 : makeTrans R s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeTrans (makeRefl R) s s'
++++++
+induction H0; eauto using RStep, TStep, TTrans.
+-----
+Theorem makeTrans_makeRefl_comm : forall s s', makeTrans (makeRefl R) s s' <-> makeRefl (makeTrans R) s s'.
+Proof.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem makeRefl_idem : forall s s',\n    makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeRefl (makeRefl R) s s') (makeRefl R s s')
++++++
+Proof.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+
+*****
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall s s' : T, iff (makeRefl (makeRefl R) s s') (makeRefl R s s')
++++++
+split.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeRefl (makeRefl R) s s', makeRefl R s s'
++++++
+inversion 1.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+
+*****
+H0 : eq s s'
+H : makeRefl (makeRefl R) s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl R s' s'
++++++
+subst.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+subst.
+
+*****
+H : makeRefl (makeRefl R) s' s'
+s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl R s' s'
++++++
+eauto using RStep, RRefl.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+
+*****
+H1 : eq y s'
+H0 : makeRefl R s s'
+y : T
+H : makeRefl (makeRefl R) s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl R s s'
++++++
+subst.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+subst.
+
+*****
+H0 : makeRefl R s s'
+H : makeRefl (makeRefl R) s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl R s s'
++++++
+eauto using RStep, RRefl.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+
+*****
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall _ : makeRefl R s s', makeRefl (makeRefl R) s s'
++++++
+inversion 1.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+
+*****
+H0 : eq s s'
+H : makeRefl R s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl (makeRefl R) s' s'
++++++
+subst.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+subst.
+
+*****
+H : makeRefl R s' s'
+s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl (makeRefl R) s' s'
++++++
+eauto using RStep, RRefl.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+
+*****
+H1 : eq y s'
+H0 : R s s'
+y : T
+H : makeRefl R s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl (makeRefl R) s s'
++++++
+subst.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+inversion 1.
+subst.
+
+*****
+H0 : R s s'
+H : makeRefl R s s'
+s,s' : T
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+makeRefl (makeRefl R) s s'
++++++
+eauto using RStep, RRefl.
+-----
+Theorem makeRefl_idem : forall s s', makeRefl (makeRefl R) s s' <-> makeRefl R s s'.
+Proof.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End param.
+-----

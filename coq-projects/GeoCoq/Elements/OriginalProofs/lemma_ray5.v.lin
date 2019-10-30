@@ -1,0 +1,36 @@
+b8dafe010480053337ea51c8dee850e7
+Require Export GeoCoq.Elements.OriginalProofs.lemma_ray1.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_raystrict.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_ray4.
+Section Euclid.
+Context `{Ax:euclidean_neutral_ruler_compass}.
+Lemma lemma_ray5 : 
+   forall A B C, 
+   Out A B C ->
+   Out A C B.
+Proof.
+  intros.
+  assert ((BetS A C B \/ eq B C \/ BetS A B C)).
+  {
+    conclude lemma_ray1.
+  }
+  {
+    idtac.
+    assert (neq A C).
+    {
+      conclude lemma_raystrict.
+    }
+    {
+      idtac.
+      assert (Out A C B).
+      {
+        conclude lemma_ray4.
+      }
+      {
+        idtac.
+        close.
+      }
+    }
+  }
+Qed.
+End Euclid.

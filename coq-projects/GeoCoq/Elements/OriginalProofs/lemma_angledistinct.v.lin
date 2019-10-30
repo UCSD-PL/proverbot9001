@@ -1,0 +1,118 @@
+fc712eecf0f57f5adaf071c5ac749abb
+Require Export GeoCoq.Elements.OriginalProofs.lemma_equalanglessymmetric.
+Section Euclid.
+Context `{Ax1:euclidean_neutral_ruler_compass}.
+Lemma lemma_angledistinct : 
+   forall A B C a b c, 
+   CongA A B C a b c ->
+   neq A B /\ neq B C /\ neq A C /\ neq a b /\ neq b c /\ neq a c.
+Proof.
+  intros.
+  assert (nCol A B C).
+  {
+    conclude_def CongA .
+  }
+  {
+    idtac.
+    assert (~ eq A B).
+    {
+      intro.
+      assert (Col A B C).
+      {
+        conclude_def Col .
+      }
+      {
+        idtac.
+        contradict.
+      }
+    }
+    {
+      assert (~ eq B C).
+      {
+        intro.
+        assert (Col A B C).
+        {
+          conclude_def Col .
+        }
+        {
+          idtac.
+          contradict.
+        }
+      }
+      {
+        assert (~ eq A C).
+        {
+          intro.
+          assert (Col A B C).
+          {
+            conclude_def Col .
+          }
+          {
+            idtac.
+            contradict.
+          }
+        }
+        {
+          assert (CongA a b c A B C).
+          {
+            conclude lemma_equalanglessymmetric.
+          }
+          {
+            idtac.
+            assert (nCol a b c).
+            {
+              conclude_def CongA .
+            }
+            {
+              idtac.
+              assert (~ eq a b).
+              {
+                intro.
+                assert (Col a b c).
+                {
+                  conclude_def Col .
+                }
+                {
+                  idtac.
+                  contradict.
+                }
+              }
+              {
+                assert (~ eq b c).
+                {
+                  intro.
+                  assert (Col a b c).
+                  {
+                    conclude_def Col .
+                  }
+                  {
+                    idtac.
+                    contradict.
+                  }
+                }
+                {
+                  assert (~ eq a c).
+                  {
+                    intro.
+                    assert (Col a b c).
+                    {
+                      conclude_def Col .
+                    }
+                    {
+                      idtac.
+                      contradict.
+                    }
+                  }
+                  {
+                    close.
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euclid.

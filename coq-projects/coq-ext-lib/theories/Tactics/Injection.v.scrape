@@ -1,0 +1,10 @@
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Class Injective (P : Prop) : Type :=\n{ result : Prop\n; injection : P -> result\n}.
+-----
+Ltac destruct_ands H :=\n  match type of H with\n    | _ /\ _ =>\n      let H1 := fresh in\n      let H2 := fresh in\n      destruct H as [ H1 H2 ] ;\n        destruct_ands H1 ; destruct_ands H2\n    | exists x , _ =>\n      let H1 := fresh in\n      destruct H as [ ? H1 ] ;\n        destruct_ands H1\n    | _ => idtac\n  end.
+-----
+Ltac inv_all :=\n  repeat match goal with\n           | [ H : ?X |- _ ] =>\n             let z := constr:(_ : Injective X) in\n             eapply (@injection X z) in H; do 2 red in H ; destruct_ands H\n         end.
+-----

@@ -1,0 +1,3986 @@
+Require Export GeoCoq.Elements.OriginalProofs.proposition_16.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_angletrichotomy.
+-----
+Section Euclid.
+-----
+Context `{Ax1:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_26helper : \n   forall A B C D E F, \n   Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E ->\n   ~ Lt E F B C.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+
+*****
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+forall (A B C D E F : Point) (_ : Triangle A B C) (_ : CongA A B C D E F) (_ : CongA B C A E F D) (_ : Cong A B D E), not (Lt E F B C)
++++++
+Proof.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+
+*****
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+forall (A B C D E F : Point) (_ : Triangle A B C) (_ : CongA A B C D E F) (_ : CongA B C A E F D) (_ : Cong A B D E), not (Lt E F B C)
++++++
+intros.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+
+*****
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (nCol A B C) by (conclude_def Triangle ).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+
+*****
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+
+*****
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq A B) by (forward_using lemma_angledistinct).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+
+*****
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+
+*****
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq B C) by (forward_using lemma_angledistinct).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+
+*****
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+
+*****
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq A C) by (forward_using lemma_angledistinct).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+
+*****
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+
+*****
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+assert (~ Lt E F B C).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+
+*****
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+intro.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+
+*****
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+
+*****
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+
+*****
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (eq A A) by (conclude cn_equalityreflexive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+
+*****
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Out B A A) by (conclude lemma_ray4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+
+*****
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Out B C H) by (conclude lemma_ray4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+
+*****
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+
+*****
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+
+*****
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+
+*****
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+
+*****
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert ((Cong A H D F /\ CongA B A H E D F /\ CongA B H A E F D)) by (conclude proposition_04).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+
+*****
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+
+*****
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (~ Col A C H).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+
+*****
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Col A C H)
++++++
+intro.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+
+*****
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col H C A) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+
+*****
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col B H C) by (conclude_def Col ).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+
+*****
+H27 : Col B H C
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col H C B) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H C B) by (forward_using lemma_collinearorder).
+
+*****
+H28 : Col H C B
+H27 : Col B H C
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (neq H C) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H C B) by (forward_using lemma_collinearorder).
+assert (neq H C) by (forward_using lemma_betweennotequal).
+
+*****
+H29 : neq H C
+H28 : Col H C B
+H27 : Col B H C
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col C A B) by (conclude lemma_collinear4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H C B) by (forward_using lemma_collinearorder).
+assert (neq H C) by (forward_using lemma_betweennotequal).
+assert (Col C A B) by (conclude lemma_collinear4).
+
+*****
+H30 : Col C A B
+H29 : neq H C
+H28 : Col H C B
+H27 : Col B H C
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col A B C) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+intro.
+assert (Col H C A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H C B) by (forward_using lemma_collinearorder).
+assert (neq H C) by (forward_using lemma_betweennotequal).
+assert (Col C A B) by (conclude lemma_collinear4).
+assert (Col A B C) by (forward_using lemma_collinearorder).
+
+*****
+H31 : Col A B C
+H30 : Col C A B
+H29 : neq H C
+H28 : Col H C B
+H27 : Col B H C
+H26 : Col H C A
+H25 : Col A C H
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+
+*****
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Triangle A C H) by (conclude_def Triangle ).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+
+*****
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+
+*****
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (LtA H C A A H B) by (conclude proposition_16).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+
+*****
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Out C B H) by (conclude lemma_ray4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+
+*****
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (eq A A) by (conclude cn_equalityreflexive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+
+*****
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Out C A A) by (conclude lemma_ray4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+
+*****
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (~ Col B C A).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+
+*****
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Col B C A)
++++++
+intro.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+intro.
+
+*****
+H32 : Col B C A
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col A B C) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+intro.
+assert (Col A B C) by (forward_using lemma_collinearorder).
+
+*****
+H33 : Col A B C
+H32 : Col B C A
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+
+*****
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+
+*****
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+
+*****
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+
+*****
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+
+*****
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+
+*****
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (~ Col A H B).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+
+*****
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Col A H B)
++++++
+intro.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+
+*****
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col H B A) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+
+*****
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col B H C) by (conclude_def Col ).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+
+*****
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col H B C) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H B C) by (forward_using lemma_collinearorder).
+
+*****
+H41 : Col H B C
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (neq B H) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H B C) by (forward_using lemma_collinearorder).
+assert (neq B H) by (forward_using lemma_betweennotequal).
+
+*****
+H42 : neq B H
+H41 : Col H B C
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (neq H B) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H B C) by (forward_using lemma_collinearorder).
+assert (neq B H) by (forward_using lemma_betweennotequal).
+assert (neq H B) by (conclude lemma_inequalitysymmetric).
+
+*****
+H43 : neq H B
+H42 : neq B H
+H41 : Col H B C
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col B A C) by (conclude lemma_collinear4).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H B C) by (forward_using lemma_collinearorder).
+assert (neq B H) by (forward_using lemma_betweennotequal).
+assert (neq H B) by (conclude lemma_inequalitysymmetric).
+assert (Col B A C) by (conclude lemma_collinear4).
+
+*****
+H44 : Col B A C
+H43 : neq H B
+H42 : neq B H
+H41 : Col H B C
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (Col A B C) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+intro.
+assert (Col H B A) by (forward_using lemma_collinearorder).
+assert (Col B H C) by (conclude_def Col ).
+assert (Col H B C) by (forward_using lemma_collinearorder).
+assert (neq B H) by (forward_using lemma_betweennotequal).
+assert (neq H B) by (conclude lemma_inequalitysymmetric).
+assert (Col B A C) by (conclude lemma_collinear4).
+assert (Col A B C) by (forward_using lemma_collinearorder).
+
+*****
+H45 : Col A B C
+H44 : Col B A C
+H43 : neq H B
+H42 : neq B H
+H41 : Col H B C
+H40 : Col B H C
+H39 : Col H B A
+H38 : Col A H B
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+
+*****
+H38 : not (Col A H B)
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A H B B H A) by (conclude lemma_ABCequalsCBA).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+assert (CongA A H B B H A) by (conclude lemma_ABCequalsCBA).
+
+*****
+H39 : CongA A H B B H A
+H38 : not (Col A H B)
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (CongA A H B E F D) by (conclude lemma_equalanglestransitive).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+assert (CongA A H B B H A) by (conclude lemma_ABCequalsCBA).
+assert (CongA A H B E F D) by (conclude lemma_equalanglestransitive).
+
+*****
+H40 : CongA A H B E F D
+H39 : CongA A H B B H A
+H38 : not (Col A H B)
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (LtA A H B A H B) by (conclude lemma_angleorderrespectscongruence2).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+assert (CongA A H B B H A) by (conclude lemma_ABCequalsCBA).
+assert (CongA A H B E F D) by (conclude lemma_equalanglestransitive).
+assert (LtA A H B A H B) by (conclude lemma_angleorderrespectscongruence2).
+
+*****
+H41 : LtA A H B A H B
+H40 : CongA A H B E F D
+H39 : CongA A H B B H A
+H38 : not (Col A H B)
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+assert (~ LtA A H B A H B) by (conclude lemma_angletrichotomy).
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+intro.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS B H C /\\ Cong B H E F)) by (conclude_def Lt );destruct Tf as [H];spliter.
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out B A A) by (conclude lemma_ray4).
+assert (Out B C H) by (conclude lemma_ray4).
+assert (CongA A B C A B H) by (conclude lemma_equalangleshelper).
+assert (CongA A B H A B C) by (conclude lemma_equalanglessymmetric).
+assert (CongA A B H D E F) by (conclude lemma_equalanglestransitive).
+assert (Cong B A E D) by (forward_using lemma_congruenceflip).
+assert ((Cong A H D F /\\ CongA B A H E D F /\\ CongA B H A E F D)) by (conclude proposition_04).
+assert (CongA E F D B C A) by (conclude lemma_equalanglessymmetric).
+assert (~ Col A C H).
+assert (Triangle A C H) by (conclude_def Triangle ).
+assert (BetS C H B) by (conclude axiom_betweennesssymmetry).
+assert (LtA H C A A H B) by (conclude proposition_16).
+assert (Out C B H) by (conclude lemma_ray4).
+assert (eq A A) by (conclude cn_equalityreflexive).
+assert (Out C A A) by (conclude lemma_ray4).
+assert (~ Col B C A).
+assert (CongA B C A B C A) by (conclude lemma_equalanglesreflexive).
+assert (CongA B C A H C A) by (conclude lemma_equalangleshelper).
+assert (CongA H C A B C A) by (conclude lemma_equalanglessymmetric).
+assert (LtA B C A A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (LtA E F D A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ Col A H B).
+assert (CongA A H B B H A) by (conclude lemma_ABCequalsCBA).
+assert (CongA A H B E F D) by (conclude lemma_equalanglestransitive).
+assert (LtA A H B A H B) by (conclude lemma_angleorderrespectscongruence2).
+assert (~ LtA A H B A H B) by (conclude lemma_angletrichotomy).
+
+*****
+H42 : not (LtA A H B A H B)
+H41 : LtA A H B A H B
+H40 : CongA A H B E F D
+H39 : CongA A H B B H A
+H38 : not (Col A H B)
+H37 : LtA E F D A H B
+H36 : LtA B C A A H B
+H35 : CongA H C A B C A
+H34 : CongA B C A H C A
+H33 : CongA B C A B C A
+H32 : not (Col B C A)
+H31 : Out C A A
+H30 : eq A A
+H29 : Out C B H
+H28 : LtA H C A A H B
+H27 : BetS C H B
+H26 : Triangle A C H
+H25 : not (Col A C H)
+H24 : CongA E F D B C A
+H23 : and (Cong A H D F) (and (CongA B A H E D F) (CongA B H A E F D))
+H22 : Cong B A E D
+H21 : CongA A B H D E F
+H20 : CongA A B H A B C
+H19 : CongA A B C A B H
+H18 : Out B C H
+H17 : Out B A A
+H16 : eq A A
+H15 : CongA A B C A B C
+H14 : Cong B H E F
+H13 : BetS B H C
+H : Point
+H11 : Lt E F B C
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H12 : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+
+*****
+H11 : not (Lt E F B C)
+H10 : neq C A
+H9 : neq A C
+H8 : neq C B
+H7 : neq B C
+H6 : neq B A
+H5 : neq A B
+H4 : CongA A B C A B C
+H3 : nCol A B C
+H2 : Cong A B D E
+H1 : CongA B C A E F D
+H0 : CongA A B C D E F
+H : Triangle A B C
+A,B,C,D,E,F : Point
+Ax1 : euclidean_neutral_ruler_compass Ax
+Ax : euclidean_neutral
+*****
+not (Lt E F B C)
++++++
+close.
+-----
+Lemma lemma_26helper : forall A B C D E F, Triangle A B C -> CongA A B C D E F -> CongA B C A E F D -> Cong A B D E -> ~ Lt E F B C.
+Proof.
+intros.
+assert (nCol A B C) by (conclude_def Triangle ).
+assert (CongA A B C A B C) by (conclude lemma_equalanglesreflexive).
+assert (neq A B) by (forward_using lemma_angledistinct).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (neq B C) by (forward_using lemma_angledistinct).
+assert (neq C B) by (conclude lemma_inequalitysymmetric).
+assert (neq A C) by (forward_using lemma_angledistinct).
+assert (neq C A) by (conclude lemma_inequalitysymmetric).
+assert (~ Lt E F B C).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

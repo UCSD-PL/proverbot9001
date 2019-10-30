@@ -1,0 +1,3193 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.perp_bisect.
+-----
+Require Import GeoCoq.Tarski_dev.Ch12_parallel.
+-----
+Section par_perp_perp_TCP.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription :\n  decidability_of_intersection ->\n  perpendicular_transversal_postulate ->\n  triangle_circumscription_principle.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : decidability_of_intersection) (_ : perpendicular_transversal_postulate), triangle_circumscription_principle
++++++
+Proof.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : decidability_of_intersection) (_ : perpendicular_transversal_postulate), triangle_circumscription_principle
++++++
+intros HID HPTP A B C HNC.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+
+*****
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+
+*****
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+
+*****
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+assert (HInter := HID B1 B2 C1 C2).
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+
+*****
+HInter : or (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))\n (not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2))))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+elim HInter; clear HInter; intro HInter.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+
+*****
+HInter : ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+destruct HInter as [CC [HCol1 HCol2]].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+exists CC; split.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A CC B CC
++++++
+elim (eq_dec_points CC C1); intro HEq; try subst.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+
+*****
+HCol1 : Col C1 B1 B2
+HCol2 : Col C1 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A C1 B C1
++++++
+apply perp_bisect_cong_1 with C2; assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A CC B CC
++++++
+apply perp_bisect_cong_1 with C1.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect CC C1 A B
++++++
+apply perp_bisect_sym_1.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect C1 CC A B
++++++
+apply perp_bisect_equiv_def in HAB.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect_bis C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect C1 CC A B
++++++
+destruct HAB as [I [HPerp HMid]].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect C1 CC A B
++++++
+apply perp_bisect_equiv_def.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect_bis C1 CC A B
++++++
+exists I; split; try assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I C1 CC A B
++++++
+apply perp_in_sym.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I A B C1 CC
++++++
+apply perp_in_col_perp_in with C2; Col.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I A B C1 C2
++++++
+apply perp_in_sym.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+
+*****
+HEq : not (eq CC C1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I C1 C2 A B
++++++
+assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong A CC C CC) (Coplanar A B C CC)
++++++
+split.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A CC C CC
++++++
+elim (eq_dec_points CC B1); intro HEq; try subst.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+
+*****
+HCol1 : Col B1 B1 B2
+HCol2 : Col B1 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A B1 C B1
++++++
+apply perp_bisect_cong_1 with B2; assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A CC C CC
++++++
+apply perp_bisect_cong_1 with B1.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect CC B1 A C
++++++
+apply perp_bisect_sym_1.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect B1 CC A C
++++++
+apply perp_bisect_equiv_def in HAC.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect_bis B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect B1 CC A C
++++++
+destruct HAC as [I [HPerp HMid]].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect B1 CC A C
++++++
+apply perp_bisect_equiv_def.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_bisect_bis B1 CC A C
++++++
+exists I; split; try assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I B1 CC A C
++++++
+apply perp_in_sym.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I A C B1 CC
++++++
+apply perp_in_col_perp_in with B2; Col.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I A C B1 B2
++++++
+apply perp_in_sym.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+
+*****
+HEq : not (eq CC B1)
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp_at I B1 B2 A C
++++++
+assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A B C CC
++++++
+destruct HCop1 as [HCop1 HCop3].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop3 : Coplanar A B C C2
+HCop1 : Coplanar A B C C1
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A B C CC
++++++
+destruct HAB as [[_ HE] HAB].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+
+*****
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop3 : Coplanar A B C C2
+HCop1 : Coplanar A B C C1
+HAB : not (eq A B)
+HE : or (Perp C1 C2 B A) (eq B A)
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A B C CC
++++++
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+
+*****
+H1 : not (eq C1 C2)
+H5 : not (eq A C)
+H2 : not (eq B C)
+H : Perp C1 C2 B A
+HCol2 : Col CC C1 C2
+HCol1 : Col CC B1 B2
+CC : Tpoint
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop3 : Coplanar A B C C2
+HCop1 : Coplanar A B C C1
+HAB : not (eq A B)
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A B C CC
++++++
+apply col_cop2__cop with C1 C2; Col; Cop.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun CC : Tpoint => and (Cong A CC B CC) (and (Cong A CC C CC) (Coplanar A B C CC)))
++++++
+exfalso; apply HNC.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col A B C
++++++
+assert (HPar : Par B1 B2 C1 C2).
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par B1 B2 C1 C2
++++++
+unfold Par; left.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict B1 B2 C1 C2
++++++
+repeat split.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq B1 B2)
++++++
+apply perp_bisect_equiv_def in HAC.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect_bis B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq B1 B2)
++++++
+destruct HAC as [I [HPerp HMid]].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : Perp_at I B1 B2 A C
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq B1 B2)
++++++
+apply perp_in_distinct in HPerp.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HMid : Midpoint I A C
+HPerp : and (not (eq B1 B2)) (not (eq A C))
+B1,B2,I : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq B1 B2)
++++++
+spliter; assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq C1 C2)
++++++
+apply perp_bisect_equiv_def in HAB.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect_bis C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq C1 C2)
++++++
+destruct HAB as [I [HPerp HMid]].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : Perp_at I C1 C2 A B
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq C1 C2)
++++++
+apply perp_in_distinct in HPerp.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HMid : Midpoint I A B
+HPerp : and (not (eq C1 C2)) (not (eq A B))
+C1,C2,I : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq C1 C2)
++++++
+spliter; assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar B1 B2 C1 C2
++++++
+spliter; CopR.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+
+*****
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (ex (fun X : Tpoint => and (Col X B1 B2) (Col X C1 C2)))
++++++
+intro HInter'; apply HInter.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+
+*****
+HInter' : ex (fun X : Tpoint => and (Col X B1 B2) (Col X C1 C2))
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2))
++++++
+destruct HInter' as [I HInter'].
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+
+*****
+HInter' : and (Col I B1 B2) (Col I C1 C2)
+I : Tpoint
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2))
++++++
+exists I; assumption.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+
+*****
+HPar : Par B1 B2 C1 C2
+HInter : not (ex (fun I : Tpoint => and (Col I B1 B2) (Col I C1 C2)))
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col A B C
++++++
+clear HInter.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+
+*****
+HPar : Par B1 B2 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp_bisect B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp_bisect C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col A B C
++++++
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+
+*****
+HPar : Par B1 B2 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col A B C
++++++
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+
+*****
+HPerp : forall _ : Coplanar C1 C2 A C, Perp C1 C2 A C
+HPar : Par B1 B2 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col A B C
++++++
+apply par_id.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+apply par_id.
+
+*****
+HPerp : forall _ : Coplanar C1 C2 A C, Perp C1 C2 A C
+HPar : Par B1 B2 C1 C2
+HCop2 : and (Coplanar A C B B1) (Coplanar A C B B2)
+HAC : Perp B1 B2 A C
+B1,B2 : Tpoint
+HCop1 : and (Coplanar A B C C1) (Coplanar A B C C2)
+HAB : Perp C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par A B A C
++++++
+spliter.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+apply par_id.
+spliter.
+
+*****
+HPerp : forall _ : Coplanar C1 C2 A C, Perp C1 C2 A C
+HPar : Par B1 B2 C1 C2
+H0 : Coplanar A C B B2
+H : Coplanar A C B B1
+HAC : Perp B1 B2 A C
+B1,B2 : Tpoint
+H2 : Coplanar A B C C2
+H1 : Coplanar A B C C1
+HAB : Perp C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par A B A C
++++++
+apply l12_9 with C1 C2; Perp; Cop; try CopR.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+apply par_id.
+spliter.
+apply l12_9 with C1 C2; Perp; Cop; try CopR.
+
+*****
+HPerp : forall _ : Coplanar C1 C2 A C, Perp C1 C2 A C
+HPar : Par B1 B2 C1 C2
+H0 : Coplanar A C B B2
+H : Coplanar A C B B1
+HAC : Perp B1 B2 A C
+B1,B2 : Tpoint
+H2 : Coplanar A B C C2
+H1 : Coplanar A B C C1
+HAB : Perp C1 C2 A B
+C1,C2 : Tpoint
+HNC : not (Col A B C)
+A,B,C : Tpoint
+HPTP : perpendicular_transversal_postulate
+HID : decidability_of_intersection
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp A C C1 C2
++++++
+apply perp_sym, HPerp; CopR.
+-----
+Lemma inter_dec_plus_par_perp_perp_imply_triangle_circumscription : decidability_of_intersection -> perpendicular_transversal_postulate -> triangle_circumscription_principle.
+Proof.
+intros HID HPTP A B C HNC.
+assert (HAB := perp_bisect_existence_cop A B C); destruct HAB as [C1 [C2 [HAB HCop1]]]; try (assert_diffs; assumption).
+assert (HAC := perp_bisect_existence_cop A C B); destruct HAC as [B1 [B2 [HAC HCop2]]]; try (assert_diffs; assumption).
+assert (HInter := HID B1 B2 C1 C2).
+elim HInter; clear HInter; intro HInter.
+destruct HInter as [CC [HCol1 HCol2]].
+exists CC; split.
+elim (eq_dec_points CC C1); intro HEq; try subst.
+apply perp_bisect_cong_1 with C2; assumption.
+apply perp_bisect_cong_1 with C1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with C2; Col.
+apply perp_in_sym.
+assumption.
+split.
+elim (eq_dec_points CC B1); intro HEq; try subst.
+apply perp_bisect_cong_1 with B2; assumption.
+apply perp_bisect_cong_1 with B1.
+apply perp_bisect_sym_1.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_bisect_equiv_def.
+exists I; split; try assumption.
+apply perp_in_sym.
+apply perp_in_col_perp_in with B2; Col.
+apply perp_in_sym.
+assumption.
+destruct HCop1 as [HCop1 HCop3].
+destruct HAB as [[_ HE] HAB].
+elim HE; clear HE; intro; [assert_diffs|exfalso; auto].
+apply col_cop2__cop with C1 C2; Col; Cop.
+exfalso; apply HNC.
+assert (HPar : Par B1 B2 C1 C2).
+unfold Par; left.
+repeat split.
+apply perp_bisect_equiv_def in HAC.
+destruct HAC as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+apply perp_bisect_equiv_def in HAB.
+destruct HAB as [I [HPerp HMid]].
+apply perp_in_distinct in HPerp.
+spliter; assumption.
+spliter; CopR.
+intro HInter'; apply HInter.
+destruct HInter' as [I HInter'].
+exists I; assumption.
+clear HInter.
+apply perp_bisect_perp in HAB; apply perp_bisect_perp in HAC.
+assert (HPerp := HPTP B1 B2 C1 C2 A C HPar HAC).
+apply par_id.
+spliter.
+apply l12_9 with C1 C2; Perp; Cop; try CopR.
+apply perp_sym, HPerp; CopR.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End par_perp_perp_TCP.
+-----

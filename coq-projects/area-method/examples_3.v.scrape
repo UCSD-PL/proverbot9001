@@ -1,0 +1,531 @@
+Require  Import area_method.
+-----
+Lemma l3_44: forall O A X P Q U R G r N,\n on_line_d P O A r ->\n inversion Q P O A ->\n is_midpoint U P O ->\n inter_lc R O X U N ->\n inversion G R O A -> \n perp G Q O A.
+-----
+Lemma l3_44: forall O A X P Q U R G r N, on_line_d P O A r -> inversion Q P O A -> is_midpoint U P O -> inter_lc R O X U N -> inversion G R O A -> perp G Q O A.
+
+*****
+
+*****
+forall (O A X P Q U R G : Point) (r : F) (N : Point) (_ : on_line_d P O A r) (_ : inversion Q P O A) (_ : is_midpoint U P O) (_ : inter_lc R O X U N) (_ : inversion G R O A), perp G Q O A
++++++
+Proof.
+-----
+Lemma l3_44: forall O A X P Q U R G r N, on_line_d P O A r -> inversion Q P O A -> is_midpoint U P O -> inter_lc R O X U N -> inversion G R O A -> perp G Q O A.
+Proof.
+
+*****
+
+*****
+forall (O A X P Q U R G : Point) (r : F) (N : Point) (_ : on_line_d P O A r) (_ : inversion Q P O A) (_ : is_midpoint U P O) (_ : inter_lc R O X U N) (_ : inversion G R O A), perp G Q O A
++++++
+area_method.
+-----
+Lemma l3_44: forall O A X P Q U R G r N, on_line_d P O A r -> inversion Q P O A -> is_midpoint U P O -> inter_lc R O X U N -> inversion G R O A -> perp G Q O A.
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point,\n parallel A M M C -> \n parallel A N N B -> \n parallel A SS SS L ->\n M<>C -> \n N<>B -> \n SS<>L -> \n inter_ll L B C A SS ->\n inter_ll N B A C SS ->\n inter_ll M A C B SS ->\n A**M/M**C+A**N/N**B = A**SS/SS**L.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+
+*****
+
+*****
+forall (L M N A B C SS : Point) (_ : parallel A M M C) (_ : parallel A N N B) (_ : parallel A SS SS L) (_ : not (eq M C)) (_ : not (eq N B)) (_ : not (eq SS L)) (_ : inter_ll L B C A SS) (_ : inter_ll N B A C SS) (_ : inter_ll M A C B SS), eq (Fplus (Fdiv (DSeg A M) (DSeg M C)) (Fdiv (DSeg A N) (DSeg N B))) (Fdiv (DSeg A SS) (DSeg SS L))
++++++
+Proof.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+Proof.
+
+*****
+
+*****
+forall (L M N A B C SS : Point) (_ : parallel A M M C) (_ : parallel A N N B) (_ : parallel A SS SS L) (_ : not (eq M C)) (_ : not (eq N B)) (_ : not (eq SS L)) (_ : inter_ll L B C A SS) (_ : inter_ll N B A C SS) (_ : inter_ll M A C B SS), eq (Fplus (Fdiv (DSeg A M) (DSeg M C)) (Fdiv (DSeg A N) (DSeg N B))) (Fdiv (DSeg A SS) (DSeg SS L))
++++++
+am_before_field.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+Proof.
+am_before_field.
+
+*****
+H8 : not (eq (Fopp (S C B SS)) F0)
+H6 : not (eq (S C B SS) F0)
+H3 : not (eq (DSeg M C) F0)
+H0 : not (eq (DSeg N B) F0)
+H : not (eq (DSeg SS L) F0)
+H9 : eq A SS
+H7 : not (eq B N)
+H5 : not (eq C M)
+H4 : not (eq SS L)
+H2 : parallel SS N B N
+H11 : parallel SS M C M
+H1 : parallel SS SS SS L
+L,M,N,A,B,C,SS : Point
+*****
+eq F0 F0
++++++
+field_and_conclude.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+Proof.
+am_before_field.
+
+*****
+H12 : eq F0 F0
+H10 : not (eq (Fminus (S A B SS) (S A C SS)) F0)
+H9 : not\n (eq (Fopp (Fmult (S C B SS) (Finv (Fminus (S A B SS) (S A C SS)))))\n F0)
+H7 : not (eq (Fopp (S C B SS)) F0)
+H5 : not (eq (S C B SS) F0)
+H1 : not (eq (DSeg M C) F0)
+H0 : not (eq (DSeg N B) F0)
+H : not (eq (DSeg SS L) F0)
+H8 : not (eq A SS)
+H6 : not (eq B N)
+H4 : not (eq C M)
+H3 : not (eq SS L)
+H13 : parallel SS L A SS
+H2 : parallel A N B N
+H11 : parallel A M C M
+L,M,N,A,B,C,SS : Point
+*****
+eq (Fminus (Fopp (Fmult (S A B SS) (Finv (S C B SS)))) (Fmult (S A C SS) (Finv (Fopp (S C B SS))))) (Finv (Fopp (Fmult (S C B SS) (Finv (Fminus (S A B SS) (S A C SS))))))
++++++
+field_and_conclude.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+Proof.
+am_before_field.
+
+*****
+H10,H12 : not (eq F0 F0)
+H9 : not (eq F1 F0)
+H7 : not (eq (Fopp (S C B SS)) F0)
+H5 : not (eq (S C B SS) F0)
+H1 : not (eq (DSeg M C) F0)
+H0 : not (eq (DSeg N B) F0)
+H : not (eq (DSeg SS L) F0)
+H8 : not (eq A SS)
+H6 : not (eq B N)
+H4 : not (eq C M)
+H3 : not (eq SS L)
+H13 : parallel SS L A SS
+H2 : parallel A N B N
+H11 : parallel A M C M
+L,M,N,A,B,C,SS : Point
+*****
+eq (Fminus (Fopp (Fmult (S A B SS) (Finv (S C B SS)))) (Fmult (S A C SS) (Finv (Fopp (S C B SS))))) F1
++++++
+intuition.
+-----
+Theorem example6_9 : forall L M N A B C SS:Point, parallel A M M C -> parallel A N N B -> parallel A SS SS L -> M<>C -> N<>B -> SS<>L -> inter_ll L B C A SS -> inter_ll N B A C SS -> inter_ll M A C B SS -> A**M/M**C+A**N/N**B = A**SS/SS**L.
+Proof.
+am_before_field.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point,\n is_midpoint M A B ->\n is_midpoint N A C ->\n is_midpoint K B C ->\n on_parallel X1 A C M ->\n on_parallel X2 K B N ->\n inter_ll P X1 A X2 K ->\n is_midpoint L A K ->\n B<>C -> \n parallel L P B C -> \n 2+2<>0 ->\n L<>P ->\n L**P / B**C = (1+2)/(2+2).
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+
+*****
+
+*****
+forall (A B C M N L P K X1 X2 : Point) (_ : is_midpoint M A B) (_ : is_midpoint N A C) (_ : is_midpoint K B C) (_ : on_parallel X1 A C M) (_ : on_parallel X2 K B N) (_ : inter_ll P X1 A X2 K) (_ : is_midpoint L A K) (_ : not (eq B C)) (_ : parallel L P B C) (_ : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)) (_ : not (eq L P)), eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+Proof.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+Proof.
+
+*****
+
+*****
+forall (A B C M N L P K X1 X2 : Point) (_ : is_midpoint M A B) (_ : is_midpoint N A C) (_ : is_midpoint K B C) (_ : on_parallel X1 A C M) (_ : on_parallel X2 K B N) (_ : inter_ll P X1 A X2 K) (_ : is_midpoint L A K) (_ : not (eq B C)) (_ : parallel L P B C) (_ : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)) (_ : not (eq L P)), eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+geoInit.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+
+*****
+H11 : not (eq L P)
+H6 : not (eq B C)
+H9 : not (eq (DSeg B C) F0)
+H2 : not (eq (DSeg L P) F0)
+H3 : on_parallel_d X1 A C M f0
+f0 : F
+H10 : on_parallel_d X2 K B N f
+f : F
+H8 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H7 : parallel L P B C
+H5 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H4 : inter_ll P X1 A X2 K
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K,X1,X2 : Point
+*****
+eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+eliminate P.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+H14 : not (eq (Fplus (S B X1 C) (S B C A)) F0)
+H13 : eq (S L X2 K) F0
+H11 : not (eq L P)
+H6 : not (eq B C)
+H9 : not (eq (DSeg B C) F0)
+H2 : not (eq (DSeg L P) F0)
+H3 : on_parallel_d X1 A C M f0
+f0 : F
+H10 : on_parallel_d X2 K B N f
+f : F
+H8 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H7 : parallel L P B C
+H5 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K,X1,X2 : Point
+*****
+eq (Fdiv (S L X1 A) (Fplus (S B X1 C) (S B C A))) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+area_method.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+H14 : not (eq (Fplus (S B X2 C) (S B C K)) F0)
+H13 : not (eq (S L X2 K) F0)
+H11 : not (eq L P)
+H6 : not (eq B C)
+H9 : not (eq (DSeg B C) F0)
+H2 : not (eq (DSeg L P) F0)
+H3 : on_parallel_d X1 A C M f0
+f0 : F
+H10 : on_parallel_d X2 K B N f
+f : F
+H8 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H7 : parallel L P B C
+H5 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K,X1,X2 : Point
+*****
+eq (Fdiv (S L X2 K) (Fplus (S B X2 C) (S B C K))) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+area_method.
+-----
+Theorem th6_41_b : forall A B C M N L P K X1 X2:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> on_parallel X1 A C M -> on_parallel X2 K B N -> inter_ll P X1 A X2 K -> is_midpoint L A K -> B<>C -> parallel L P B C -> 2+2<>0 -> L<>P -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma th6_232 : forall A B C D P Q,\n  on_parallel_d D A B C 1 ->\n  is_midpoint P B D ->\n  is_midpoint Q A C ->\n  parallel P Q A B.
+-----
+Lemma th6_232 : forall A B C D P Q, on_parallel_d D A B C 1 -> is_midpoint P B D -> is_midpoint Q A C -> parallel P Q A B.
+
+*****
+
+*****
+forall (A B C D P Q : Point) (_ : on_parallel_d D A B C F1) (_ : is_midpoint P B D) (_ : is_midpoint Q A C), parallel P Q A B
++++++
+Proof.
+-----
+Lemma th6_232 : forall A B C D P Q, on_parallel_d D A B C 1 -> is_midpoint P B D -> is_midpoint Q A C -> parallel P Q A B.
+Proof.
+
+*****
+
+*****
+forall (A B C D P Q : Point) (_ : on_parallel_d D A B C F1) (_ : is_midpoint P B D) (_ : is_midpoint Q A C), parallel P Q A B
++++++
+area_method.
+-----
+Lemma th6_232 : forall A B C D P Q, on_parallel_d D A B C 1 -> is_midpoint P B D -> is_midpoint Q A C -> parallel P Q A B.
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma th6_234_1 : forall A B C D O E F,\n  on_parallel D A B C ->\n  inter_ll O A C B D ->\n  on_inter_line_parallel E O B C A B ->\n  on_inter_line_parallel F O A D A B ->\n  Col O E F.
+-----
+Lemma th6_234_1 : forall A B C D O E F, on_parallel D A B C -> inter_ll O A C B D -> on_inter_line_parallel E O B C A B -> on_inter_line_parallel F O A D A B -> Col O E F.
+
+*****
+
+*****
+forall (A B C D O E F : Point) (_ : on_parallel D A B C) (_ : inter_ll O A C B D) (_ : on_inter_line_parallel E O B C A B) (_ : on_inter_line_parallel F O A D A B), Col O E F
++++++
+Proof.
+-----
+Lemma th6_234_1 : forall A B C D O E F, on_parallel D A B C -> inter_ll O A C B D -> on_inter_line_parallel E O B C A B -> on_inter_line_parallel F O A D A B -> Col O E F.
+Proof.
+
+*****
+
+*****
+forall (A B C D O E F : Point) (_ : on_parallel D A B C) (_ : inter_ll O A C B D) (_ : on_inter_line_parallel E O B C A B) (_ : on_inter_line_parallel F O A D A B), Col O E F
++++++
+area_method.
+-----
+Lemma th6_234_1 : forall A B C D O E F, on_parallel D A B C -> inter_ll O A C B D -> on_inter_line_parallel E O B C A B -> on_inter_line_parallel F O A D A B -> Col O E F.
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma th6_239 : forall A B C D P Q R A1 D1 J,\n is_midpoint Q B C ->\n is_midpoint P B A ->\n is_midpoint R C D ->\n inter_ll A1 D Q B R ->\n inter_ll D1 A Q C P ->\n inter_ll J A A1 D D1 ->\n parallel A J A1 J ->\n A<>J ->\n A1<>J ->\n  A**J/A1**J=- (2+1).
+-----
+Lemma th6_239 : forall A B C D P Q R A1 D1 J, is_midpoint Q B C -> is_midpoint P B A -> is_midpoint R C D -> inter_ll A1 D Q B R -> inter_ll D1 A Q C P -> inter_ll J A A1 D D1 -> parallel A J A1 J -> A<>J -> A1<>J -> A**J/A1**J=- (2+1).
+
+*****
+
+*****
+forall (A B C D P Q R A1 D1 J : Point) (_ : is_midpoint Q B C) (_ : is_midpoint P B A) (_ : is_midpoint R C D) (_ : inter_ll A1 D Q B R) (_ : inter_ll D1 A Q C P) (_ : inter_ll J A A1 D D1) (_ : parallel A J A1 J) (_ : not (eq A J)) (_ : not (eq A1 J)), eq (Fdiv (DSeg A J) (DSeg A1 J)) (Fopp (Fplus (Fplus F1 F1) F1))
++++++
+Proof.
+-----
+Lemma th6_239 : forall A B C D P Q R A1 D1 J, is_midpoint Q B C -> is_midpoint P B A -> is_midpoint R C D -> inter_ll A1 D Q B R -> inter_ll D1 A Q C P -> inter_ll J A A1 D D1 -> parallel A J A1 J -> A<>J -> A1<>J -> A**J/A1**J=- (2+1).
+Proof.
+
+*****
+
+*****
+forall (A B C D P Q R A1 D1 J : Point) (_ : is_midpoint Q B C) (_ : is_midpoint P B A) (_ : is_midpoint R C D) (_ : inter_ll A1 D Q B R) (_ : inter_ll D1 A Q C P) (_ : inter_ll J A A1 D D1) (_ : parallel A J A1 J) (_ : not (eq A J)) (_ : not (eq A1 J)), eq (Fdiv (DSeg A J) (DSeg A1 J)) (Fopp (Fplus (Fplus F1 F1) F1))
++++++
+area_method.
+-----
+Lemma th6_239 : forall A B C D P Q R A1 D1 J, is_midpoint Q B C -> is_midpoint P B A -> is_midpoint R C D -> inter_ll A1 D Q B R -> inter_ll D1 A Q C P -> inter_ll J A A1 D D1 -> parallel A J A1 J -> A<>J -> A1<>J -> A**J/A1**J=- (2+1).
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem th6_258 : forall A B C D E F M N P Q:Point,\n  on_parallel_d D B E A 1 ->\n  on_line C A E ->\n  on_line F B D ->\n  inter_ll M D C A F ->\n  inter_ll N E F B C ->\n  inter_ll P M N A D ->\n  inter_ll Q M N E B ->\n  D<>P -> E<>Q ->\n  parallel A P D P ->\n  parallel B Q E Q ->\n A**P/D**P=B**Q/E**Q.
+-----
+Theorem th6_258 : forall A B C D E F M N P Q:Point, on_parallel_d D B E A 1 -> on_line C A E -> on_line F B D -> inter_ll M D C A F -> inter_ll N E F B C -> inter_ll P M N A D -> inter_ll Q M N E B -> D<>P -> E<>Q -> parallel A P D P -> parallel B Q E Q -> A**P/D**P=B**Q/E**Q.
+
+*****
+
+*****
+forall (A B C D E F0 M N P Q : Point) (_ : on_parallel_d D B E A F1) (_ : on_line C A E) (_ : on_line F0 B D) (_ : inter_ll M D C A F0) (_ : inter_ll N E F0 B C) (_ : inter_ll P M N A D) (_ : inter_ll Q M N E B) (_ : not (eq D P)) (_ : not (eq E Q)) (_ : parallel A P D P) (_ : parallel B Q E Q), eq (Fdiv (DSeg A P) (DSeg D P)) (Fdiv (DSeg B Q) (DSeg E Q))
++++++
+Proof.
+-----
+Theorem th6_258 : forall A B C D E F M N P Q:Point, on_parallel_d D B E A 1 -> on_line C A E -> on_line F B D -> inter_ll M D C A F -> inter_ll N E F B C -> inter_ll P M N A D -> inter_ll Q M N E B -> D<>P -> E<>Q -> parallel A P D P -> parallel B Q E Q -> A**P/D**P=B**Q/E**Q.
+Proof.
+
+*****
+
+*****
+forall (A B C D E F0 M N P Q : Point) (_ : on_parallel_d D B E A F1) (_ : on_line C A E) (_ : on_line F0 B D) (_ : inter_ll M D C A F0) (_ : inter_ll N E F0 B C) (_ : inter_ll P M N A D) (_ : inter_ll Q M N E B) (_ : not (eq D P)) (_ : not (eq E Q)) (_ : parallel A P D P) (_ : parallel B Q E Q), eq (Fdiv (DSeg A P) (DSeg D P)) (Fdiv (DSeg B Q) (DSeg E Q))
++++++
+area_method.
+-----
+Theorem th6_258 : forall A B C D E F M N P Q:Point, on_parallel_d D B E A 1 -> on_line C A E -> on_line F B D -> inter_ll M D C A F -> inter_ll N E F B C -> inter_ll P M N A D -> inter_ll Q M N E B -> D<>P -> E<>Q -> parallel A P D P -> parallel B Q E Q -> A**P/D**P=B**Q/E**Q.
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma exercice2_38_3 : forall Y P Q U V A B,\n  inter_ll Y P Q U V -> \n  on_line A U V -> \n  S4 U P V Q <>0 ->\n  ~Col U V Q ->\n  S A B Y = (S U B V) * (S A P Q) / S4 U P V Q.
+-----
+Lemma exercice2_38_3 : forall Y P Q U V A B, inter_ll Y P Q U V -> on_line A U V -> S4 U P V Q <>0 -> ~Col U V Q -> S A B Y = (S U B V) * (S A P Q) / S4 U P V Q.
+
+*****
+
+*****
+forall (Y P Q U V A B : Point) (_ : inter_ll Y P Q U V) (_ : on_line A U V) (_ : not (eq (S4 U P V Q) F0)) (_ : not (Col U V Q)), eq (S A B Y) (Fdiv (Fmult (S U B V) (S A P Q)) (S4 U P V Q))
++++++
+Proof.
+-----
+Lemma exercice2_38_3 : forall Y P Q U V A B, inter_ll Y P Q U V -> on_line A U V -> S4 U P V Q <>0 -> ~Col U V Q -> S A B Y = (S U B V) * (S A P Q) / S4 U P V Q.
+Proof.
+
+*****
+
+*****
+forall (Y P Q U V A B : Point) (_ : inter_ll Y P Q U V) (_ : on_line A U V) (_ : not (eq (S4 U P V Q) F0)) (_ : not (Col U V Q)), eq (S A B Y) (Fdiv (Fmult (S U B V) (S A P Q)) (S4 U P V Q))
++++++
+area_method.
+-----
+Lemma exercice2_38_3 : forall Y P Q U V A B, inter_ll Y P Q U V -> on_line A U V -> S4 U P V Q <>0 -> ~Col U V Q -> S A B Y = (S U B V) * (S A P Q) / S4 U P V Q.
+Proof.
+area_method.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point,\n  is_midpoint M A B ->\n  is_midpoint N A C ->\n  is_midpoint K B C ->\n  is_midpoint L A K ->\n  on_inter_parallel_parallel P A C M K B N -> \n  B<>C -> \n  P<>L ->\n  P<>A ->\n  P<>K ->\n  parallel L P B C -> \n  S A B C <> 0 -> \n  2+2 <> 0 ->\n  L**P / B**C = (1+2)/(2+2).
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+
+*****
+
+*****
+forall (A B C M N L P K : Point) (_ : is_midpoint M A B) (_ : is_midpoint N A C) (_ : is_midpoint K B C) (_ : is_midpoint L A K) (_ : on_inter_parallel_parallel P A C M K B N) (_ : not (eq B C)) (_ : not (eq P L)) (_ : not (eq P A)) (_ : not (eq P K)) (_ : parallel L P B C) (_ : not (eq (S A B C) F0)) (_ : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)), eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+Proof.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+Proof.
+
+*****
+
+*****
+forall (A B C M N L P K : Point) (_ : is_midpoint M A B) (_ : is_midpoint N A C) (_ : is_midpoint K B C) (_ : is_midpoint L A K) (_ : on_inter_parallel_parallel P A C M K B N) (_ : not (eq B C)) (_ : not (eq P L)) (_ : not (eq P A)) (_ : not (eq P K)) (_ : parallel L P B C) (_ : not (eq (S A B C) F0)) (_ : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)), eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+geoInit.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+
+*****
+H14 : not (eq P K)
+H13 : not (eq P A)
+H12 : not (eq P L)
+H4 : not (eq B C)
+H5 : not (eq (DSeg B C) F0)
+H6 : not (eq (DSeg P L) F0)
+H7 : not (eq (DSeg P A) F0)
+H11 : not (eq (DSeg P K) F0)
+H10 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H9 : not (eq (S A B C) F0)
+H8 : parallel L P B C
+H3 : on_inter_parallel_parallel P A C M K B N
+H2 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K : Point
+*****
+eq (Fdiv (DSeg L P) (DSeg B C)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+eliminate P.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+H15 : parallel L P C M
+H14 : not (eq P K)
+H13 : not (eq P A)
+H12 : not (eq P L)
+H4 : not (eq B C)
+H5 : not (eq (DSeg B C) F0)
+H6 : not (eq (DSeg P L) F0)
+H7 : not (eq (DSeg P A) F0)
+H11 : not (eq (DSeg P K) F0)
+H10 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H9 : not (eq (S A B C) F0)
+H8 : parallel L P B C
+H2 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K : Point
+*****
+eq (Fdiv (Fplus (S L B K) (S L K N)) (S B C N)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+area_method.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+H15 : not (parallel L P C M)
+H14 : not (eq P K)
+H13 : not (eq P A)
+H12 : not (eq P L)
+H4 : not (eq B C)
+H5 : not (eq (DSeg B C) F0)
+H6 : not (eq (DSeg P L) F0)
+H7 : not (eq (DSeg P A) F0)
+H11 : not (eq (DSeg P K) F0)
+H10 : not (eq (Fplus (Fplus F1 F1) (Fplus F1 F1)) F0)
+H9 : not (eq (S A B C) F0)
+H8 : parallel L P B C
+H2 : on_line_d L A K (Fdiv F1 (Fplus F1 F1))
+H1 : on_line_d K B C (Fdiv F1 (Fplus F1 F1))
+H0 : on_line_d N A C (Fdiv F1 (Fplus F1 F1))
+H : on_line_d M A B (Fdiv F1 (Fplus F1 F1))
+A,B,C,M,N,L,P,K : Point
+*****
+eq (Fdiv (Fplus (S L C A) (S L A M)) (S B C M)) (Fdiv (Fplus F1 (Fplus F1 F1)) (Fplus (Fplus F1 F1) (Fplus F1 F1)))
++++++
+area_method.
+-----
+Theorem th6_41 : forall A B C M N L P K:Point, is_midpoint M A B -> is_midpoint N A C -> is_midpoint K B C -> is_midpoint L A K -> on_inter_parallel_parallel P A C M K B N -> B<>C -> P<>L -> P<>A -> P<>K -> parallel L P B C -> S A B C <> 0 -> 2+2 <> 0 -> L**P / B**C = (1+2)/(2+2).
+Proof.
+geoInit.
+eliminate P.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

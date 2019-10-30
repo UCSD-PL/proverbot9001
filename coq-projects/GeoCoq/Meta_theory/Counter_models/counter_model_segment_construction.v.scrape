@@ -1,0 +1,634 @@
+Require Export GeoCoq.Axioms.tarski_axioms.
+-----
+Section segment_construction_independent.
+-----
+Inductive Point :=\n P0.
+-----
+Definition Bet (A B C : Point) := False.
+-----
+Definition Cong (A B C D : Point) := True.
+-----
+Lemma between_identity : forall A B, Bet A B A -> A=B.
+-----
+Lemma between_identity : forall A B, Bet A B A -> A=B.
+
+*****
+
+*****
+forall (A B : Point) (_ : Bet A B A), eq A B
++++++
+Proof.
+-----
+Lemma between_identity : forall A B, Bet A B A -> A=B.
+Proof.
+
+*****
+
+*****
+forall (A B : Point) (_ : Bet A B A), eq A B
++++++
+unfold Bet.
+-----
+Lemma between_identity : forall A B, Bet A B A -> A=B.
+Proof.
+unfold Bet.
+
+*****
+
+*****
+forall (A B : Point) (_ : False), eq A B
++++++
+tauto.
+-----
+Lemma between_identity : forall A B, Bet A B A -> A=B.
+Proof.
+unfold Bet.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma cong_pseudo_reflexivity : forall A B, Cong A B B A.
+-----
+Lemma cong_pseudo_reflexivity : forall A B, Cong A B B A.
+
+*****
+
+*****
+forall A B : Point, Cong A B B A
++++++
+Proof.
+-----
+Lemma cong_pseudo_reflexivity : forall A B, Cong A B B A.
+Proof.
+
+*****
+
+*****
+forall A B : Point, Cong A B B A
++++++
+unfold Cong.
+-----
+Lemma cong_pseudo_reflexivity : forall A B, Cong A B B A.
+Proof.
+unfold Cong.
+
+*****
+
+*****
+forall (_ : Point) (_ : Point), True
++++++
+tauto.
+-----
+Lemma cong_pseudo_reflexivity : forall A B, Cong A B B A.
+Proof.
+unfold Cong.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+
+*****
+
+*****
+forall (A B C : Point) (_ : Cong A B C C), eq A B
++++++
+Proof.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : Cong A B C C), eq A B
++++++
+destruct A.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+Proof.
+destruct A.
+
+*****
+
+*****
+forall (B C : Point) (_ : Cong P0 B C C), eq P0 B
++++++
+destruct B.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+Proof.
+destruct A.
+destruct B.
+
+*****
+
+*****
+forall (C : Point) (_ : Cong P0 P0 C C), eq P0 P0
++++++
+reflexivity.
+-----
+Lemma cong_identity : forall A B C, Cong A B C C -> A = B.
+Proof.
+destruct A.
+destruct B.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma cong_inner_transitivity : forall A B C D E F,\n  Cong A B C D -> Cong A B E F -> Cong C D E F.
+-----
+Lemma cong_inner_transitivity : forall A B C D E F, Cong A B C D -> Cong A B E F -> Cong C D E F.
+
+*****
+
+*****
+forall (A B C D E F : Point) (_ : Cong A B C D) (_ : Cong A B E F), Cong C D E F
++++++
+Proof.
+-----
+Lemma cong_inner_transitivity : forall A B C D E F, Cong A B C D -> Cong A B E F -> Cong C D E F.
+Proof.
+
+*****
+
+*****
+forall (A B C D E F : Point) (_ : Cong A B C D) (_ : Cong A B E F), Cong C D E F
++++++
+unfold Cong.
+-----
+Lemma cong_inner_transitivity : forall A B C D E F, Cong A B C D -> Cong A B E F -> Cong C D E F.
+Proof.
+unfold Cong.
+
+*****
+
+*****
+forall (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : True) (_ : True), True
++++++
+tauto.
+-----
+Lemma cong_inner_transitivity : forall A B C D E F, Cong A B C D -> Cong A B E F -> Cong C D E F.
+Proof.
+unfold Cong.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma inner_pasch : forall A B C P Q,\n  Bet A P C -> Bet B Q C ->\n  exists x, Bet P x B /\ Bet Q x A.
+-----
+Lemma inner_pasch : forall A B C P Q, Bet A P C -> Bet B Q C -> exists x, Bet P x B /\\ Bet Q x A.
+
+*****
+
+*****
+forall (A B C P Q : Point) (_ : Bet A P C) (_ : Bet B Q C), ex (fun x : Point => and (Bet P x B) (Bet Q x A))
++++++
+Proof.
+-----
+Lemma inner_pasch : forall A B C P Q, Bet A P C -> Bet B Q C -> exists x, Bet P x B /\\ Bet Q x A.
+Proof.
+
+*****
+
+*****
+forall (A B C P Q : Point) (_ : Bet A P C) (_ : Bet B Q C), ex (fun x : Point => and (Bet P x B) (Bet Q x A))
++++++
+unfold Bet.
+-----
+Lemma inner_pasch : forall A B C P Q, Bet A P C -> Bet B Q C -> exists x, Bet P x B /\\ Bet Q x A.
+Proof.
+unfold Bet.
+
+*****
+
+*****
+forall (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : False) (_ : False), ex (fun _ : Point => and False False)
++++++
+tauto.
+-----
+Lemma inner_pasch : forall A B C P Q, Bet A P C -> Bet B Q C -> exists x, Bet P x B /\\ Bet Q x A.
+Proof.
+unfold Bet.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma five_segment : forall A A' B B' C C' D D',\n  Cong A B A' B' ->\n  Cong B C B' C' ->\n  Cong A D A' D' ->\n  Cong B D B' D' ->\n  Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+-----
+Lemma five_segment : forall A A' B B' C C' D D', Cong A B A' B' -> Cong B C B' C' -> Cong A D A' D' -> Cong B D B' D' -> Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+
+*****
+
+*****
+forall (A A' B B' C C' D D' : Point) (_ : Cong A B A' B') (_ : Cong B C B' C') (_ : Cong A D A' D') (_ : Cong B D B' D') (_ : Bet A B C) (_ : Bet A' B' C') (_ : not (eq A B)), Cong C D C' D'
++++++
+Proof.
+-----
+Lemma five_segment : forall A A' B B' C C' D D', Cong A B A' B' -> Cong B C B' C' -> Cong A D A' D' -> Cong B D B' D' -> Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+Proof.
+
+*****
+
+*****
+forall (A A' B B' C C' D D' : Point) (_ : Cong A B A' B') (_ : Cong B C B' C') (_ : Cong A D A' D') (_ : Cong B D B' D') (_ : Bet A B C) (_ : Bet A' B' C') (_ : not (eq A B)), Cong C D C' D'
++++++
+unfold Bet.
+-----
+Lemma five_segment : forall A A' B B' C C' D D', Cong A B A' B' -> Cong B C B' C' -> Cong A D A' D' -> Cong B D B' D' -> Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+Proof.
+unfold Bet.
+
+*****
+
+*****
+forall (A A' B B' C C' D D' : Point) (_ : Cong A B A' B') (_ : Cong B C B' C') (_ : Cong A D A' D') (_ : Cong B D B' D') (_ : False) (_ : False) (_ : not (eq A B)), Cong C D C' D'
++++++
+unfold Cong.
+-----
+Lemma five_segment : forall A A' B B' C C' D D', Cong A B A' B' -> Cong B C B' C' -> Cong A D A' D' -> Cong B D B' D' -> Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+Proof.
+unfold Bet.
+unfold Cong.
+
+*****
+
+*****
+forall (A _ : Point) (B _ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : Point) (_ : True) (_ : True) (_ : True) (_ : True) (_ : False) (_ : False) (_ : not (eq A B)), True
++++++
+tauto.
+-----
+Lemma five_segment : forall A A' B B' C C' D D', Cong A B A' B' -> Cong B C B' C' -> Cong A D A' D' -> Cong B D B' D' -> Bet A B C -> Bet A' B' C' -> A <> B -> Cong C D C' D'.
+Proof.
+unfold Bet.
+unfold Cong.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma not_segment_construction : ~ (forall A B C D,\n  exists E, Bet A B E /\ Cong B E C D).
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+
+*****
+
+*****
+not (forall A B C D : Point, ex (fun E : Point => and (Bet A B E) (Cong B E C D)))
++++++
+Proof.
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+
+*****
+
+*****
+not (forall A B C D : Point, ex (fun E : Point => and (Bet A B E) (Cong B E C D)))
++++++
+intro.
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+intro.
+
+*****
+H : forall A B C D : Point,\nex (fun E : Point => and (Bet A B E) (Cong B E C D))
+*****
+False
++++++
+unfold Bet in *.
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+intro.
+unfold Bet in *.
+
+*****
+H : forall (_ : Point) (B C D : Point),\nex (fun E : Point => and False (Cong B E C D))
+*****
+False
++++++
+assert (T:= H P0 P0 P0 P0).
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+intro.
+unfold Bet in *.
+assert (T:= H P0 P0 P0 P0).
+
+*****
+T : ex (fun E : Point => and False (Cong P0 E P0 P0))
+H : forall (_ : Point) (B C D : Point),\nex (fun E : Point => and False (Cong B E C D))
+*****
+False
++++++
+destruct T.
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+intro.
+unfold Bet in *.
+assert (T:= H P0 P0 P0 P0).
+destruct T.
+
+*****
+H0 : and False (Cong P0 x P0 P0)
+x : Point
+H : forall (_ : Point) (B C D : Point),\nex (fun E : Point => and False (Cong B E C D))
+*****
+False
++++++
+tauto.
+-----
+Lemma not_segment_construction : ~ (forall A B C D, exists E, Bet A B E /\\ Cong B E C D).
+Proof.
+intro.
+unfold Bet in *.
+assert (T:= H P0 P0 P0 P0).
+destruct T.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \/ Bet B C A \/ Bet C A B).
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+
+*****
+
+*****
+ex (fun A : Point => ex (fun B : Point => ex (fun C : Point => not (or (Bet A B C) (or (Bet B C A) (Bet C A B))))))
++++++
+Proof.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+
+*****
+
+*****
+ex (fun A : Point => ex (fun B : Point => ex (fun C : Point => not (or (Bet A B C) (or (Bet B C A) (Bet C A B))))))
++++++
+exists P0.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+exists P0.
+
+*****
+
+*****
+ex (fun B : Point => ex (fun C : Point => not (or (Bet P0 B C) (or (Bet B C P0) (Bet C P0 B)))))
++++++
+exists P0.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+exists P0.
+exists P0.
+
+*****
+
+*****
+ex (fun C : Point => not (or (Bet P0 P0 C) (or (Bet P0 C P0) (Bet C P0 P0))))
++++++
+exists P0.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+exists P0.
+exists P0.
+exists P0.
+
+*****
+
+*****
+not (or (Bet P0 P0 P0) (or (Bet P0 P0 P0) (Bet P0 P0 P0)))
++++++
+unfold Bet.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+exists P0.
+exists P0.
+exists P0.
+unfold Bet.
+
+*****
+
+*****
+not (or False (or False False))
++++++
+tauto.
+-----
+Lemma lower_dim : exists A, exists B, exists C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+exists P0.
+exists P0.
+exists P0.
+unfold Bet.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma upper_dim : forall A B C P Q ,\n  P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q ->\n  (Bet A B C \/ Bet B C A \/ Bet C A B).
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+
+*****
+
+*****
+forall (A B C P Q : Point) (_ : not (eq P Q)) (_ : Cong A P A Q) (_ : Cong B P B Q) (_ : Cong C P C Q), or (Bet A B C) (or (Bet B C A) (Bet C A B))
++++++
+Proof.
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+
+*****
+
+*****
+forall (A B C P Q : Point) (_ : not (eq P Q)) (_ : Cong A P A Q) (_ : Cong B P B Q) (_ : Cong C P C Q), or (Bet A B C) (or (Bet B C A) (Bet C A B))
++++++
+intros.
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+intros.
+
+*****
+H2 : Cong C P C Q
+H1 : Cong B P B Q
+H0 : Cong A P A Q
+H : not (eq P Q)
+A,B,C,P,Q : Point
+*****
+or (Bet A B C) (or (Bet B C A) (Bet C A B))
++++++
+destruct P.
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+intros.
+destruct P.
+
+*****
+H2 : Cong C P0 C Q
+H1 : Cong B P0 B Q
+H0 : Cong A P0 A Q
+H : not (eq P0 Q)
+A,B,C,Q : Point
+*****
+or (Bet A B C) (or (Bet B C A) (Bet C A B))
++++++
+destruct Q.
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+intros.
+destruct P.
+destruct Q.
+
+*****
+H2 : Cong C P0 C P0
+H1 : Cong B P0 B P0
+H0 : Cong A P0 A P0
+H : not (eq P0 P0)
+A,B,C : Point
+*****
+or (Bet A B C) (or (Bet B C A) (Bet C A B))
++++++
+tauto.
+-----
+Lemma upper_dim : forall A B C P Q , P <> Q -> Cong A P A Q -> Cong B P B Q -> Cong C P C Q -> (Bet A B C \\/ Bet B C A \\/ Bet C A B).
+Proof.
+intros.
+destruct P.
+destruct Q.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma euclid : forall A B C,\n  ~ (Bet A B C \/ Bet B C A \/ Bet C A B) -> exists CC, Cong A CC B CC /\ Cong A CC C CC.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+
+*****
+
+*****
+forall (A B C : Point) (_ : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))), ex (fun CC : Point => and (Cong A CC B CC) (Cong A CC C CC))
++++++
+Proof.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))), ex (fun CC : Point => and (Cong A CC B CC) (Cong A CC C CC))
++++++
+intros.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+Proof.
+intros.
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Point
+*****
+ex (fun CC : Point => and (Cong A CC B CC) (Cong A CC C CC))
++++++
+exists P0.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+Proof.
+intros.
+exists P0.
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Point
+*****
+and (Cong A P0 B P0) (Cong A P0 C P0)
++++++
+unfold Cong.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+Proof.
+intros.
+exists P0.
+unfold Cong.
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Point
+*****
+and True True
++++++
+tauto.
+-----
+Lemma euclid : forall A B C, ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists CC, Cong A CC B CC /\\ Cong A CC C CC.
+Proof.
+intros.
+exists P0.
+unfold Cong.
+tauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End segment_construction_independent.
+-----

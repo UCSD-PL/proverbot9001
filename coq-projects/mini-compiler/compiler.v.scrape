@@ -1,0 +1,3734 @@
+From Coq Require Import Arith.
+-----
+From Coq Require Import Omega.
+-----
+Unset Standard Proposition Elimination Names.
+-----
+Parameter string : Set.
+-----
+Inductive expr : Set :=\n  | Lit : nat -> expr\n  | Var : string -> expr\n  | Plus : expr -> expr -> expr.
+-----
+Definition state := string -> nat.
+-----
+Fixpoint E (s : state) (e : expr) {struct e} : nat :=\n  match e with\n  | Lit n => n\n  | Var v => s v\n  | Plus e1 e2 => E s e1 + E s e2\n  end.
+-----
+Inductive instr : Set :=\n  | LI : nat -> instr\n  | LOAD : nat -> instr\n  | STO : nat -> instr\n  | ADD : nat -> instr.
+-----
+Inductive cell : Set :=\n  | Acc : cell\n  | Reg : nat -> cell.
+-----
+Definition store := cell -> nat.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+
+*****
+
+*****
+forall c1 c2 : cell, sumbool (eq c1 c2) (not (eq c1 c2))
++++++
+simple destruct c1.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+
+*****
+c1 : cell
+*****
+forall c2 : cell, sumbool (eq Acc c2) (not (eq Acc c2))
++++++
+simple destruct c2.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+
+*****
+c1,c2 : cell
+*****
+sumbool (eq Acc Acc) (not (eq Acc Acc))
++++++
+intros.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+
+*****
+c1,c2 : cell
+*****
+sumbool (eq Acc Acc) (not (eq Acc Acc))
++++++
+try (right; discriminate).
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+
+*****
+c1,c2 : cell
+*****
+sumbool (eq Acc Acc) (not (eq Acc Acc))
++++++
+left.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+left.
+
+*****
+c1,c2 : cell
+*****
+eq Acc Acc
++++++
+trivial.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+
+*****
+c1,c2 : cell
+*****
+forall n : nat, sumbool (eq Acc (Reg n)) (not (eq Acc (Reg n)))
++++++
+intros.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+
+*****
+n : nat
+c1,c2 : cell
+*****
+sumbool (eq Acc (Reg n)) (not (eq Acc (Reg n)))
++++++
+try (right; discriminate).
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+
+*****
+c1 : cell
+*****
+forall (n : nat) (c2 : cell), sumbool (eq (Reg n) c2) (not (eq (Reg n) c2))
++++++
+simple destruct c2.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+
+*****
+c2 : cell
+n : nat
+c1 : cell
+*****
+sumbool (eq (Reg n) Acc) (not (eq (Reg n) Acc))
++++++
+intros.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+
+*****
+c2 : cell
+n : nat
+c1 : cell
+*****
+sumbool (eq (Reg n) Acc) (not (eq (Reg n) Acc))
++++++
+try (right; discriminate).
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+
+*****
+c2 : cell
+n : nat
+c1 : cell
+*****
+forall n0 : nat, sumbool (eq (Reg n) (Reg n0)) (not (eq (Reg n) (Reg n0)))
++++++
+intros.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+
+*****
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+sumbool (eq (Reg n) (Reg n0)) (not (eq (Reg n) (Reg n0)))
++++++
+try (right; discriminate).
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+
+*****
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+sumbool (eq (Reg n) (Reg n0)) (not (eq (Reg n) (Reg n0)))
++++++
+elim (eq_nat_dec n n0).
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+
+*****
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+forall _ : eq n n0, sumbool (eq (Reg n) (Reg n0)) (not (eq (Reg n) (Reg n0)))
++++++
+intuition.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+
+*****
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+forall _ : not (eq n n0), sumbool (eq (Reg n) (Reg n0)) (not (eq (Reg n) (Reg n0)))
++++++
+intuition.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+intuition.
+
+*****
+b : forall _ : eq n n0, False
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+sumbool (eq (Reg n) (Reg n0)) (forall _ : eq (Reg n) (Reg n0), False)
++++++
+right.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+intuition.
+right.
+
+*****
+b : forall _ : eq n n0, False
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+forall _ : eq (Reg n) (Reg n0), False
++++++
+intro.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+intuition.
+right.
+intro.
+
+*****
+H : eq (Reg n) (Reg n0)
+b : forall _ : eq n n0, False
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+False
++++++
+injection H.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+simple destruct c2.
+intros.
+try (right; discriminate).
+elim (eq_nat_dec n n0).
+intuition.
+right.
+intro.
+injection H.
+
+*****
+H : eq (Reg n) (Reg n0)
+b : forall _ : eq n n0, False
+n0 : nat
+c2 : cell
+n : nat
+c1 : cell
+*****
+forall _ : eq n n0, False
++++++
+trivial.
+-----
+Lemma cell_eq_dec : forall c1 c2 : cell, {c1 = c2} + {c1 <> c2}.
+simple destruct c1.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Definition update (s : store) (c : cell) (v : nat) : store :=\n  fun c' : cell =>\n  match cell_eq_dec c' c with\n  | left _ => v\n  | right _ => s c'\n  end.
+-----
+Definition Si (s : store) (i : instr) : store :=\n  match i with\n  | LI n => update s Acc n\n  | LOAD r => update s Acc (s (Reg r))\n  | STO r => update s (Reg r) (s Acc)\n  | ADD r => update s Acc (s (Reg r) + s Acc)\n  end.
+-----
+From Coq Require Import List.
+-----
+Definition list1 (i : instr) := i :: nil.
+-----
+Fixpoint Sl (s : store) (l : list instr) {struct l} : store :=\n  match l with\n  | nil => s\n  | i :: l' => Sl (Si s i) l'\n  end.
+-----
+Definition symt := string -> nat.
+-----
+Fixpoint C (m : symt) (r : nat) (e : expr) {struct e} : \n list instr :=\n  match e with\n  | Lit n => list1 (LI n)\n  | Var s => list1 (LOAD (m s))\n  | Plus e1 e2 =>\n      (C m r e1 ++ list1 (STO r)) ++ C m (S r) e2 ++ list1 (ADD r)\n  end.
+-----
+Lemma Sl_append :\n forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+
+*****
+
+*****
+forall (l1 l2 : list instr) (s : store), eq (Sl s (app l1 l2)) (Sl (Sl s l1) l2)
++++++
+Proof.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+
+*****
+
+*****
+forall (l1 l2 : list instr) (s : store), eq (Sl s (app l1 l2)) (Sl (Sl s l1) l2)
++++++
+simple induction l1.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+simple induction l1.
+
+*****
+l1 : list instr
+*****
+forall (l2 : list instr) (s : store), eq (Sl s (app nil l2)) (Sl (Sl s nil) l2)
++++++
+simpl in |- *.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+simple induction l1.
+simpl in |- *.
+
+*****
+l1 : list instr
+*****
+forall (l2 : list instr) (s : store), eq (Sl s l2) (Sl s l2)
++++++
+intuition.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+simple induction l1.
+
+*****
+l1 : list instr
+*****
+forall (a : instr) (l : list instr) (_ : forall (l2 : list instr) (s : store), eq (Sl s (app l l2)) (Sl (Sl s l) l2)) (l2 : list instr) (s : store), eq (Sl s (app (cons a l) l2)) (Sl (Sl s (cons a l)) l2)
++++++
+simpl in |- *.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+simple induction l1.
+simpl in |- *.
+
+*****
+l1 : list instr
+*****
+forall (a : instr) (l : list instr) (_ : forall (l2 : list instr) (s : store), eq (Sl s (app l l2)) (Sl (Sl s l) l2)) (l2 : list instr) (s : store), eq (Sl (Si s a) (app l l2)) (Sl (Sl (Si s a) l) l2)
++++++
+intuition.
+-----
+Lemma Sl_append : forall (l1 l2 : list instr) (s : store), Sl s (l1 ++ l2) = Sl (Sl s l1) l2.
+Proof.
+simple induction l1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Sl_invariant :\n forall (m : symt) (e : expr) (r r' : nat),\n r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+
+*****
+
+*****
+forall (m : symt) (e : expr) (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e) (Reg r')) (s (Reg r'))
++++++
+Proof.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+
+*****
+
+*****
+forall (m : symt) (e : expr) (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e) (Reg r')) (s (Reg r'))
++++++
+simple induction e.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+
+*****
+e : expr
+m : symt
+*****
+forall (n r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r (Lit n)) (Reg r')) (s (Reg r'))
++++++
+simpl in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+m : symt
+*****
+forall (n r r' : nat) (_ : lt r' r) (s : store), eq (update s Acc n (Reg r')) (s (Reg r'))
++++++
+intuition.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+
+*****
+e : expr
+m : symt
+*****
+forall (s : string) (r r' : nat) (_ : lt r' r) (s0 : store), eq (Sl s0 (C m r (Var s)) (Reg r')) (s0 (Reg r'))
++++++
+simpl in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+m : symt
+*****
+forall (s : string) (r r' : nat) (_ : lt r' r) (s0 : store), eq (update s0 Acc (s0 (Reg (m s))) (Reg r')) (s0 (Reg r'))
++++++
+intuition.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+
+*****
+e : expr
+m : symt
+*****
+forall (e : expr) (_ : forall (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e) (Reg r')) (s (Reg r'))) (e0 : expr) (_ : forall (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))) (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r (Plus e e0)) (Reg r')) (s (Reg r'))
++++++
+simpl in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+m : symt
+*****
+forall (e : expr) (_ : forall (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e) (Reg r')) (s (Reg r'))) (e0 : expr) (_ : forall (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))) (r r' : nat) (_ : lt r' r) (s : store), eq (Sl s (app (app (C m r e) (list1 (STO r))) (app (C m (S r) e0) (list1 (ADD r)))) (Reg r')) (s (Reg r'))
++++++
+intuition.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+
+*****
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl s (app (app (C m r e0) (list1 (STO r))) (app (C m (S r) e1) (list1 (ADD r)))) (Reg r')) (s (Reg r'))
++++++
+repeat rewrite Sl_append.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+
+*****
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+generalize (H r r' H1).
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+
+*****
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+forall _ : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r')), eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+intuition.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+
+*****
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+
+*****
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+assert (r' < S r).
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+
+*****
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+lt r' (S r)
++++++
+omega.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+
+*****
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+generalize (H0 (S r) r' H3).
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+
+*****
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+forall _ : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r')), eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+intuition.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (Sl (Sl (Sl s (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg r')) (s (Reg r'))
++++++
+simpl in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (update (Sl (update (Sl s (C m r e0)) (Reg r) (Sl s (C m r e0) Acc)) (C m (S r) e1)) Acc (Init.Nat.add (Sl (update (Sl s (C m r e0)) (Reg r) (Sl s (C m r e0) Acc)) (C m (S r) e1) (Reg r)) (Sl (update (Sl s (C m r e0)) (Reg r) (Sl s (C m r e0) Acc)) (C m (S r) e1) Acc)) (Reg r')) (s (Reg r'))
++++++
+unfold update in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (if cell_eq_dec (Reg r') Acc then Init.Nat.add (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then Sl s (C m r e0) Acc else Sl s (C m r e0) c') (C m (S r) e1) (Reg r)) (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then Sl s (C m r e0) Acc else Sl s (C m r e0) c') (C m (S r) e1) Acc) else Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then Sl s (C m r e0) Acc else Sl s (C m r e0) c') (C m (S r) e1) (Reg r')) (s (Reg r'))
++++++
+simpl in |- *.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then Sl s (C m r e0) Acc else Sl s (C m r e0) c') (C m (S r) e1) (Reg r')) (s (Reg r'))
++++++
+rewrite H4.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (if cell_eq_dec (Reg r') (Reg r) then Sl s (C m r e0) Acc else Sl s (C m r e0) (Reg r')) (s (Reg r'))
++++++
+case (cell_eq_dec (Reg r') (Reg r)).
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+forall _ : eq (Reg r') (Reg r), eq (Sl s (C m r e0) Acc) (s (Reg r'))
++++++
+intro.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+intro.
+
+*****
+e2 : eq (Reg r') (Reg r)
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl s (C m r e0) Acc) (s (Reg r'))
++++++
+injection e2.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+intro.
+injection e2.
+
+*****
+e2 : eq (Reg r') (Reg r)
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+forall _ : eq r' r, eq (Sl s (C m r e0) Acc) (s (Reg r'))
++++++
+omega.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+
+*****
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+forall _ : not (eq (Reg r') (Reg r)), eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
++++++
+intro.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+intro.
+
+*****
+n : not (eq (Reg r') (Reg r))
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
++++++
+rewrite H2.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+simpl in |- *.
+intuition.
+repeat rewrite Sl_append.
+generalize (H r r' H1).
+intuition.
+set (s' := Sl (Sl s (C m (S r) e0)) (list1 (STO (S r)))) in *.
+assert (r' < S r).
+generalize (H0 (S r) r' H3).
+intuition.
+simpl in |- *.
+unfold update in |- *.
+simpl in |- *.
+rewrite H4.
+case (cell_eq_dec (Reg r') (Reg r)).
+intro.
+rewrite H2.
+
+*****
+n : not (eq (Reg r') (Reg r))
+H4 : forall s : store, eq (Sl s (C m (S r) e1) (Reg r')) (s (Reg r'))
+H3 : lt r' (S r)
+s' : store
+H2 : forall s : store, eq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+s : store
+H1 : lt r' r
+r,r' : nat
+H0 : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e1) (Reg r')) (s (Reg r'))
+e1 : expr
+H : forall (r r' : nat) (_ : lt r' r) (s : store),\neq (Sl s (C m r e0) (Reg r')) (s (Reg r'))
+e,e0 : expr
+m : symt
+*****
+eq (s (Reg r')) (s (Reg r'))
++++++
+trivial.
+-----
+Lemma Sl_invariant : forall (m : symt) (e : expr) (r r' : nat), r' < r -> forall s : store, Sl s (C m r e) (Reg r') = s (Reg r').
+Proof.
+simple induction e.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem correctness :\n forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat),\n (forall v : string, m v < r) ->\n (forall v : string, s v = s' (Reg (m v))) ->\n Sl s' (C m r e) Acc = E s e /\\n (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+
+*****
+
+*****
+forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e) Acc) (E s e)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e) (Reg x)) (s' (Reg x)))
++++++
+Proof.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+
+*****
+
+*****
+forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e) Acc) (E s e)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e) (Reg x)) (s' (Reg x)))
++++++
+simple induction e.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+
+*****
+e : expr
+*****
+forall (n : nat) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r (Lit n)) Acc) (E s (Lit n))) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r (Lit n)) (Reg x)) (s' (Reg x)))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+*****
+forall (n : nat) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (update s' Acc n Acc) n) (forall (x : nat) (_ : lt x r), eq (update s' Acc n (Reg x)) (s' (Reg x)))
++++++
+intros.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+
+*****
+H0 : forall v : string, eq (s v) (s' (Reg (m v)))
+H : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+n : nat
+e : expr
+*****
+and (eq (update s' Acc n Acc) n) (forall (x : nat) (_ : lt x r), eq (update s' Acc n (Reg x)) (s' (Reg x)))
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+
+*****
+e : expr
+*****
+forall (s : string) (m : symt) (s0 : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s0 v) (s' (Reg (m v)))), and (eq (Sl s' (C m r (Var s)) Acc) (E s0 (Var s))) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r (Var s)) (Reg x)) (s' (Reg x)))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+*****
+forall (s : string) (m : symt) (s0 : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s0 v) (s' (Reg (m v)))), and (eq (update s' Acc (s' (Reg (m s))) Acc) (s0 s)) (forall (x : nat) (_ : lt x r), eq (update s' Acc (s' (Reg (m s))) (Reg x)) (s' (Reg x)))
++++++
+intros.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+
+*****
+H0 : forall v : string, eq (s0 v) (s' (Reg (m v)))
+H : forall v : string, lt (m v) r
+r : nat
+s' : store
+s0 : state
+m : symt
+s : string
+e : expr
+*****
+and (eq (update s' Acc (s' (Reg (m s))) Acc) (s0 s)) (forall (x : nat) (_ : lt x r), eq (update s' Acc (s' (Reg (m s))) (Reg x)) (s' (Reg x)))
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+intuition.
+
+*****
+H0 : forall v : string, eq (s0 v) (s' (Reg (m v)))
+H : forall v : string, lt (m v) r
+r : nat
+s' : store
+s0 : state
+m : symt
+s : string
+e : expr
+*****
+eq (update s' Acc (s' (Reg (m s))) Acc) (s0 s)
++++++
+unfold update in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+intuition.
+unfold update in |- *.
+
+*****
+H0 : forall v : string, eq (s0 v) (s' (Reg (m v)))
+H : forall v : string, lt (m v) r
+r : nat
+s' : store
+s0 : state
+m : symt
+s : string
+e : expr
+*****
+eq (if cell_eq_dec Acc Acc then s' (Reg (m s)) else s' Acc) (s0 s)
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+intuition.
+unfold update in |- *.
+simpl in |- *.
+
+*****
+H0 : forall v : string, eq (s0 v) (s' (Reg (m v)))
+H : forall v : string, lt (m v) r
+r : nat
+s' : store
+s0 : state
+m : symt
+s : string
+e : expr
+*****
+eq (s' (Reg (m s))) (s0 s)
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+
+*****
+e : expr
+*****
+forall (e : expr) (_ : forall (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e) Acc) (E s e)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e) (Reg x)) (s' (Reg x)))) (e0 : expr) (_ : forall (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e0) Acc) (E s e0)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r (Plus e e0)) Acc) (E s (Plus e e0))) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r (Plus e e0)) (Reg x)) (s' (Reg x)))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+
+*****
+e : expr
+*****
+forall (e : expr) (_ : forall (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e) Acc) (E s e)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e) (Reg x)) (s' (Reg x)))) (e0 : expr) (_ : forall (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (C m r e0) Acc) (E s e0)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))) (m : symt) (s : state) (s' : store) (r : nat) (_ : forall v : string, lt (m v) r) (_ : forall v : string, eq (s v) (s' (Reg (m v)))), and (eq (Sl s' (app (app (C m r e) (list1 (STO r))) (app (C m (S r) e0) (list1 (ADD r)))) Acc) (Init.Nat.add (E s e) (E s e0))) (forall (x : nat) (_ : lt x r), eq (Sl s' (app (app (C m r e) (list1 (STO r))) (app (C m (S r) e0) (list1 (ADD r)))) (Reg x)) (s' (Reg x)))
++++++
+intros.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+
+*****
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl s' (app (app (C m r e0) (list1 (STO r))) (app (C m (S r) e1) (list1 (ADD r)))) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl s' (app (app (C m r e0) (list1 (STO r))) (app (C m (S r) e1) (list1 (ADD r)))) (Reg x)) (s' (Reg x)))
++++++
+repeat rewrite Sl_append.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+
+*****
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+generalize (H m s s' r H1 H2).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+
+*****
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : and (eq (Sl s' (C m r e0) Acc) (E s e0)) (forall (x : nat) (_ : lt x r), eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))), and (eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+intros (H3, H4).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+
+*****
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+
+*****
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+assert (H01 : forall v : string, m v < S r).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+
+*****
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall v : string, lt (m v) (S r)
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+
+*****
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+
+*****
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall v : string, eq (s v) (s'' (Reg (m v)))
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (s'' (Reg (m v)))
++++++
+unfold s'' in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (Sl (Sl s' (C m r e0)) (list1 (STO r)) (Reg (m v)))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc) (Reg (m v)))
++++++
+unfold update in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (if cell_eq_dec (Reg (m v)) (Reg r) then Sl s' (C m r e0) Acc else Sl s' (C m r e0) (Reg (m v)))
++++++
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : eq (Reg (m v)) (Reg r), eq (s v) (Sl s' (C m r e0) Acc)
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+
+*****
+e2 : eq (Reg (m v)) (Reg r)
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (Sl s' (C m r e0) Acc)
++++++
+injection e2.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+injection e2.
+
+*****
+e2 : eq (Reg (m v)) (Reg r)
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : eq (m v) r, eq (s v) (Sl s' (C m r e0) Acc)
++++++
+generalize (H1 v).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+injection e2.
+generalize (H1 v).
+
+*****
+e2 : eq (Reg (m v)) (Reg r)
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall (_ : lt (m v) r) (_ : eq (m v) r), eq (s v) (Sl s' (C m r e0) Acc)
++++++
+omega.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+
+*****
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : not (eq (Reg (m v)) (Reg r)), eq (s v) (Sl s' (C m r e0) (Reg (m v)))
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+
+*****
+n : not (eq (Reg (m v)) (Reg r))
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s v) (Sl s' (C m r e0) (Reg (m v)))
++++++
+rewrite H2.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+rewrite H2.
+
+*****
+n : not (eq (Reg (m v)) (Reg r))
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s' (Reg (m v))) (Sl s' (C m r e0) (Reg (m v)))
++++++
+rewrite H4.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+rewrite H2.
+rewrite H4.
+
+*****
+n : not (eq (Reg (m v)) (Reg r))
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s' (Reg (m v))) (s' (Reg (m v)))
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+intro.
+unfold s'' in |- *.
+simpl in |- *.
+unfold update in |- *.
+case (cell_eq_dec (Reg (m v)) (Reg r)).
+intro.
+rewrite H2.
+rewrite H4.
+
+*****
+n : not (eq (Reg (m v)) (Reg r))
+v : string
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+lt (m v) r
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+
+*****
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+and (eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+generalize (H0 m s s'' (S r) H01 H02).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+
+*****
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : and (eq (Sl s'' (C m (S r) e1) Acc) (E s e1)) (forall (x : nat) (_ : lt x (S r)), eq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))), and (eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))) (forall (x : nat) (_ : lt x r), eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x)))
++++++
+intuition.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl s'' (C m (S r) e1)) Acc (Init.Nat.add (Sl s'' (C m (S r) e1) (Reg r)) (Sl s'' (C m (S r) e1) Acc)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+rewrite H6.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl s'' (C m (S r) e1)) Acc (Init.Nat.add (Sl s'' (C m (S r) e1) (Reg r)) (E s e1)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+unfold s'' in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) Acc (Init.Nat.add (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1) (Reg r)) (E s e1)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc)) (C m (S r) e1)) Acc (Init.Nat.add (Sl (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc)) (C m (S r) e1) (Reg r)) (E s e1)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+rewrite H3.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (update (Sl s' (C m r e0)) (Reg r) (E s e0)) (C m (S r) e1)) Acc (Init.Nat.add (Sl (update (Sl s' (C m r e0)) (Reg r) (E s e0)) (C m (S r) e1) (Reg r)) (E s e1)) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+unfold update in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (if cell_eq_dec Acc Acc then Init.Nat.add (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg r)) (E s e1) else Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) Acc) (Init.Nat.add (E s e0) (E s e1))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Init.Nat.add (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg r)) (E s e1)) (Init.Nat.add (E s e0) (E s e1))
++++++
+apply (f_equal2 plus).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg r)) (E s e0)
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg r)) (E s e0)
++++++
+rewrite Sl_invariant.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (if cell_eq_dec (Reg r) (Reg r) then E s e0 else Sl s' (C m r e0) (Reg r)) (E s e0)
++++++
+case (cell_eq_dec (Reg r) (Reg r)).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg r) (Reg r)).
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : eq (Reg r) (Reg r), eq (E s e0) (E s e0)
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg r) (Reg r)).
+intro.
+
+*****
+e2 : eq (Reg r) (Reg r)
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (E s e0) (E s e0)
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg r) (Reg r)).
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : not (eq (Reg r) (Reg r)), eq (Sl s' (C m r e0) (Reg r)) (E s e0)
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg r) (Reg r)).
+intro.
+
+*****
+n : not (eq (Reg r) (Reg r))
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl s' (C m r e0) (Reg r)) (E s e0)
++++++
+elim n.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg r) (Reg r)).
+intro.
+elim n.
+
+*****
+n : not (eq (Reg r) (Reg r))
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Reg r) (Reg r)
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+trivial.
+rewrite Sl_invariant.
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+lt r (S r)
++++++
+omega.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H6.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+apply (f_equal2 plus).
+
+*****
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (E s e1) (E s e1)
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl (Sl s'' (C m (S r) e1)) (list1 (ADD r)) (Reg x)) (s' (Reg x))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl s'' (C m (S r) e1)) Acc (Init.Nat.add (Sl s'' (C m (S r) e1) (Reg r)) (Sl s'' (C m (S r) e1) Acc)) (Reg x)) (s' (Reg x))
++++++
+rewrite H7.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl s'' (C m (S r) e1)) Acc (Init.Nat.add (s'' (Reg r)) (Sl s'' (C m (S r) e1) Acc)) (Reg x)) (s' (Reg x))
++++++
+unfold s'' in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1)) Acc (Init.Nat.add (Sl (Sl s' (C m r e0)) (list1 (STO r)) (Reg r)) (Sl (Sl (Sl s' (C m r e0)) (list1 (STO r))) (C m (S r) e1) Acc)) (Reg x)) (s' (Reg x))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc)) (C m (S r) e1)) Acc (Init.Nat.add (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc) (Reg r)) (Sl (update (Sl s' (C m r e0)) (Reg r) (Sl s' (C m r e0) Acc)) (C m (S r) e1) Acc)) (Reg x)) (s' (Reg x))
++++++
+rewrite H3.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (update (Sl (update (Sl s' (C m r e0)) (Reg r) (E s e0)) (C m (S r) e1)) Acc (Init.Nat.add (update (Sl s' (C m r e0)) (Reg r) (E s e0) (Reg r)) (Sl (update (Sl s' (C m r e0)) (Reg r) (E s e0)) (C m (S r) e1) Acc)) (Reg x)) (s' (Reg x))
++++++
+unfold update in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (if cell_eq_dec (Reg x) Acc then Init.Nat.add (if cell_eq_dec (Reg r) (Reg r) then E s e0 else Sl s' (C m r e0) (Reg r)) (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) Acc) else Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg x)) (s' (Reg x))
++++++
+simpl in |- *.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl (fun c' : cell => if cell_eq_dec c' (Reg r) then E s e0 else Sl s' (C m r e0) c') (C m (S r) e1) (Reg x)) (s' (Reg x))
++++++
+rewrite Sl_invariant.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (if cell_eq_dec (Reg x) (Reg r) then E s e0 else Sl s' (C m r e0) (Reg x)) (s' (Reg x))
++++++
+case (cell_eq_dec (Reg x) (Reg r)).
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : eq (Reg x) (Reg r), eq (E s e0) (s' (Reg x))
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+intro.
+
+*****
+e2 : eq (Reg x) (Reg r)
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (E s e0) (s' (Reg x))
++++++
+injection e2.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+intro.
+injection e2.
+
+*****
+e2 : eq (Reg x) (Reg r)
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : eq x r, eq (E s e0) (s' (Reg x))
++++++
+omega.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+forall _ : not (eq (Reg x) (Reg r)), eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
++++++
+intro.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+intro.
+
+*****
+n : not (eq (Reg x) (Reg r))
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
++++++
+rewrite H4.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+intro.
+rewrite H4.
+
+*****
+n : not (eq (Reg x) (Reg r))
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+eq (s' (Reg x)) (s' (Reg x))
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+case (cell_eq_dec (Reg x) (Reg r)).
+intro.
+rewrite H4.
+
+*****
+n : not (eq (Reg x) (Reg r))
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+lt x r
++++++
+trivial.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+unfold s'' in |- *.
+simpl in |- *.
+rewrite H3.
+unfold update in |- *.
+simpl in |- *.
+rewrite Sl_invariant.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+lt x (S r)
++++++
+omega.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+simpl in |- *.
+intros.
+repeat rewrite Sl_append.
+generalize (H m s s' r H1 H2).
+intros (H3, H4).
+set (s'' := Sl (Sl s' (C m r e0)) (list1 (STO r))) in *.
+assert (H01 : forall v : string, m v < S r).
+assert (H02 : forall v : string, s v = s'' (Reg (m v))).
+generalize (H0 m s s'' (S r) H01 H02).
+intuition.
+simpl in |- *.
+rewrite H7.
+
+*****
+H5 : lt x r
+x : nat
+H7 : forall (x : nat) (_ : lt x (S r)),\neq (Sl s'' (C m (S r) e1) (Reg x)) (s'' (Reg x))
+H6 : eq (Sl s'' (C m (S r) e1) Acc) (E s e1)
+H02 : forall v : string, eq (s v) (s'' (Reg (m v)))
+H01 : forall v : string, lt (m v) (S r)
+s'' : store
+H4 : forall (x : nat) (_ : lt x r),\neq (Sl s' (C m r e0) (Reg x)) (s' (Reg x))
+H3 : eq (Sl s' (C m r e0) Acc) (E s e0)
+H2 : forall v : string, eq (s v) (s' (Reg (m v)))
+H1 : forall v : string, lt (m v) r
+r : nat
+s' : store
+s : state
+m : symt
+H0 : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e1) Acc) (E s e1))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e1) (Reg x)) (s' (Reg x)))
+e1 : expr
+H : forall (m : symt) (s : state) (s' : store) (r : nat)\n (_ : forall v : string, lt (m v) r)\n (_ : forall v : string, eq (s v) (s' (Reg (m v)))),\nand (eq (Sl s' (C m r e0) Acc) (E s e0))\n (forall (x : nat) (_ : lt x r),\n eq (Sl s' (C m r e0) (Reg x)) (s' (Reg x)))
+e,e0 : expr
+*****
+lt r (S r)
++++++
+omega.
+-----
+Theorem correctness : forall (e : expr) (m : symt) (s : state) (s' : store) (r : nat), (forall v : string, m v < r) -> (forall v : string, s v = s' (Reg (m v))) -> Sl s' (C m r e) Acc = E s e /\\ (forall x : nat, x < r -> Sl s' (C m r e) (Reg x) = s' (Reg x)).
+Proof.
+simple induction e.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

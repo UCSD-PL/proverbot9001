@@ -1,0 +1,1731 @@
+Require Export GeoCoq.Elements.OriginalProofs.proposition_37.
+-----
+Section Euclid.
+-----
+Context `{Ax:area}.
+-----
+Lemma proposition_41 : \n   forall A B C D E, \n   PG A B C D -> Col A D E ->\n   ET A B C E B C.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+
+*****
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : PG A B C D) (_ : Col A D E), ET A B C E B C
++++++
+Proof.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+
+*****
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : PG A B C D) (_ : Col A D E), ET A B C E B C
++++++
+intros.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+
+*****
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par A B C D).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+
+*****
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par A B C D
++++++
+conclude_def PG .
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+
+*****
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+
+*****
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (nCol A B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+
+*****
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+nCol A B C
++++++
+forward_using lemma_parallelNC.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+
+*****
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+
+*****
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Triangle A B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+
+*****
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Triangle A B C
++++++
+conclude_def Triangle .
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+
+*****
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+
+*****
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (ET A B C E B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+by cases on (eq A E \/ neq A E).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+
+*****
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (ET A B C A B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+
+*****
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C A B C
++++++
+conclude lemma_ETreflexive.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+
+*****
+H4 : ET A B C A B C
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+idtac.
+
+*****
+H4 : ET A B C A B C
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (ET A B C E B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H4 : ET A B C A B C
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+conclude cn_equalitysub.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H6 : ET A B C E B C
+H4 : ET A B C A B C
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (ET A B C A B C).
+idtac.
+assert (ET A B C E B C).
+idtac.
+
+*****
+H6 : ET A B C E B C
+H4 : ET A B C A B C
+H5 : eq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+close.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+
+*****
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par A D B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+
+*****
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par A D B C
++++++
+conclude_def PG .
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+
+*****
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+
+*****
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Col D A E).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+
+*****
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col D A E
++++++
+forward_using lemma_collinearorder.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+
+*****
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+
+*****
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par B C A D).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+
+*****
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par B C A D
++++++
+conclude lemma_parallelsymmetric.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+
+*****
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+
+*****
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par B C D A).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+
+*****
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par B C D A
++++++
+forward_using lemma_parallelflip.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+
+*****
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+
+*****
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (neq E A).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+
+*****
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq E A
++++++
+conclude lemma_inequalitysymmetric.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+
+*****
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+
+*****
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par B C E A).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+
+*****
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par B C E A
++++++
+conclude lemma_collinearparallel.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+
+*****
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+
+*****
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par B C A E).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+
+*****
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par B C A E
++++++
+forward_using lemma_parallelflip.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+
+*****
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+
+*****
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (Par A E B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+
+*****
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Par A E B C
++++++
+conclude lemma_parallelsymmetric.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+
+*****
+H12 : Par A E B C
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+idtac.
+
+*****
+H12 : Par A E B C
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+assert (ET A B C E B C).
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H12 : Par A E B C
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+conclude proposition_37.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H13 : ET A B C E B C
+H12 : Par A E B C
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+idtac.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+by cases on (eq A E \\/ neq A E).
+assert (Par A D B C).
+idtac.
+assert (Col D A E).
+idtac.
+assert (Par B C A D).
+idtac.
+assert (Par B C D A).
+idtac.
+assert (neq E A).
+idtac.
+assert (Par B C E A).
+idtac.
+assert (Par B C A E).
+idtac.
+assert (Par A E B C).
+idtac.
+assert (ET A B C E B C).
+idtac.
+
+*****
+H13 : ET A B C E B C
+H12 : Par A E B C
+H11 : Par B C A E
+H10 : Par B C E A
+H9 : neq E A
+H8 : Par B C D A
+H7 : Par B C A D
+H6 : Col D A E
+H4 : Par A D B C
+H5 : neq A E
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+close.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+idtac.
+assert (nCol A B C).
+idtac.
+assert (Triangle A B C).
+idtac.
+assert (ET A B C E B C).
+
+*****
+H4 : ET A B C E B C
+H3 : Triangle A B C
+H2 : nCol A B C
+H1 : Par A B C D
+H0 : Col A D E
+H : PG A B C D
+A,B,C,D,E : Point
+Ax : area Ax2
+Ax2 : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ET A B C E B C
++++++
+close.
+-----
+Lemma proposition_41 : forall A B C D E, PG A B C D -> Col A D E -> ET A B C E B C.
+Proof.
+intros.
+assert (Par A B C D).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

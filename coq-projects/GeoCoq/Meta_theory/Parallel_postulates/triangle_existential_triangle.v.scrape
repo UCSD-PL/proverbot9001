@@ -1,0 +1,615 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Section triangle_existential_triangle.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : triangle_postulate, postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+Proof.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : triangle_postulate, postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+intro triangle.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+
+*****
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+destruct lower_dim_ex as [A [B [C]]].
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+assert(~ Col A B C).
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A B C)
++++++
+unfold Col.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+unfold Col.
+
+*****
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
++++++
+assumption.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+
+*****
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+idtac.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+
+*****
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+assert_diffs.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+
+*****
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+destruct (ex_trisuma A B C) as [D [E [F]]].
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+
+*****
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq A B)
++++++
+auto.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+
+*****
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq B C)
++++++
+auto.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+
+*****
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq A C)
++++++
+auto.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+auto.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights
++++++
+exists A.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B : Tpoint => ex (fun C : Tpoint => ex (fun D : Tpoint => ex (fun E : Tpoint => ex (fun F : Tpoint => and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F)))))))
++++++
+exists B.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun C : Tpoint => ex (fun D : Tpoint => ex (fun E : Tpoint => ex (fun F : Tpoint => and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F))))))
++++++
+exists C.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun D : Tpoint => ex (fun E : Tpoint => ex (fun F : Tpoint => and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F)))))
++++++
+exists D.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun E : Tpoint => ex (fun F : Tpoint => and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F))))
++++++
+exists E.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F : Tpoint => and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F)))
++++++
+exists F.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+exists F.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (not (Col A B C)) (and (TriSumA A B C D E F) (Bet D E F))
++++++
+repeat split.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+exists F.
+repeat split.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A B C)
++++++
+assumption.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+exists F.
+repeat split.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TriSumA A B C D E F
++++++
+assumption.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+exists F.
+repeat split.
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet D E F
++++++
+apply (triangle A B C).
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+idtac.
+assert_diffs.
+destruct (ex_trisuma A B C) as [D [E [F]]].
+auto.
+exists A.
+exists B.
+exists C.
+exists D.
+exists E.
+exists F.
+repeat split.
+apply (triangle A B C).
+
+*****
+H1 : TriSumA A B C D E F
+D,E,F : Tpoint
+H6 : not (eq A C)
+H3 : not (eq B C)
+H4 : not (eq A B)
+H0 : not (Col A B C)
+H : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+A,B,C : Tpoint
+triangle : triangle_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TriSumA A B C D E F
++++++
+assumption.
+-----
+Lemma triangle__existential_triangle : triangle_postulate -> postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights.
+Proof.
+intro triangle.
+destruct lower_dim_ex as [A [B [C]]].
+assert(~ Col A B C).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End triangle_existential_triangle.
+-----

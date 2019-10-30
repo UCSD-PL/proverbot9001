@@ -1,0 +1,22 @@
+Ltac ExistHyp t := match goal with\n                   | H1:t |- _ => idtac\n                   end.
+-----
+Ltac HypOfType t := match goal with\n                    | H1:t |- _ => H1\n                    end.
+-----
+Ltac CleanDuplicatedHyps :=\n  repeat match goal with\n         | H:?X1 |- _ => clear H; ExistHyp X1\n         end.
+-----
+Ltac not_exist_hyp t := match goal with\n  | H1:t |- _ => fail 2\n end || idtac.
+-----
+Ltac assert_if_not_exist H :=\n  not_exist_hyp H;assert H.
+-----
+Ltac suppose t := cut t;[intro|idtac].
+-----
+Ltac use H := decompose [and ex] H; clear H.
+-----
+Ltac print_goal := match goal with\n |- ?G => idtac G\nend.
+-----
+Ltac DecompEx H P := elim H;intro P;intro;clear H.
+-----
+Ltac DecompExAnd H P :=\n  elim H;intro P;\n  let id:=fresh in intro id;decompose [and] id;clear id;clear H.
+-----
+Ltac DecompAndAll :=\n repeat\n match goal with\n   | H:(?X1 /\ ?X2) |- _ => decompose [and] H;clear H\nend.
+-----

@@ -1,0 +1,198 @@
+Require Import Coq.Classes.EquivDec.
+-----
+Require Import ExtLib.Structures.EqDep.
+-----
+Require Coq.Logic.Eqdep_dec.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section Classes.
+-----
+Context {A : Type}.
+-----
+Context {dec : EqDec A (@eq A)}.
+-----
+Theorem UIP_refl : forall {x : A} (p1 : x = x), p1 = refl_equal _.
+-----
+Theorem UIP_refl : forall {x : A} (p1 : x = x), p1 = refl_equal _.
+
+*****
+dec : EqDec A eq
+A : Type
+*****
+forall (x : A) (p1 : eq x x), eq p1 eq_refl
++++++
+intros.
+-----
+Theorem UIP_refl : forall {x : A} (p1 : x = x), p1 = refl_equal _.
+intros.
+
+*****
+p1 : eq x x
+x : A
+dec : EqDec A eq
+A : Type
+*****
+eq p1 eq_refl
++++++
+eapply Eqdep_dec.UIP_dec.
+-----
+Theorem UIP_refl : forall {x : A} (p1 : x = x), p1 = refl_equal _.
+intros.
+eapply Eqdep_dec.UIP_dec.
+
+*****
+p1 : eq x x
+x : A
+dec : EqDec A eq
+A : Type
+*****
+forall x y : A, sumbool (eq x y) (not (eq x y))
++++++
+apply equiv_dec.
+-----
+Theorem UIP_refl : forall {x : A} (p1 : x = x), p1 = refl_equal _.
+intros.
+eapply Eqdep_dec.UIP_dec.
+apply equiv_dec.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem UIP_equal : forall {x y : A} (p1 p2 : x = y), p1 = p2.
+-----
+Theorem UIP_equal : forall {x y : A} (p1 p2 : x = y), p1 = p2.
+
+*****
+dec : EqDec A eq
+A : Type
+*****
+forall (x y : A) (p1 p2 : eq x y), eq p1 p2
++++++
+eapply Eqdep_dec.UIP_dec.
+-----
+Theorem UIP_equal : forall {x y : A} (p1 p2 : x = y), p1 = p2.
+eapply Eqdep_dec.UIP_dec.
+
+*****
+dec : EqDec A eq
+A : Type
+*****
+forall x y : A, sumbool (eq x y) (not (eq x y))
++++++
+apply equiv_dec.
+-----
+Theorem UIP_equal : forall {x y : A} (p1 p2 : x = y), p1 = p2.
+eapply Eqdep_dec.UIP_dec.
+apply equiv_dec.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma inj_pair2 :\n    forall (P:A -> Type) (p:A) (x y:P p),\n      existT P p x = existT P p y -> x = y.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+
+*****
+dec : EqDec A eq
+A : Type
+*****
+forall (P : forall _ : A, Type) (p : A) (x y : P p) (_ : eq (existT P p x) (existT P p y)), eq x y
++++++
+Proof.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+Proof.
+
+*****
+dec : EqDec A eq
+A : Type
+*****
+forall (P : forall _ : A, Type) (p : A) (x y : P p) (_ : eq (existT P p x) (existT P p y)), eq x y
++++++
+intros.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+Proof.
+intros.
+
+*****
+H : eq (existT P p x) (existT P p y)
+x,y : P p
+p : A
+P : forall _ : A, Type
+dec : EqDec A eq
+A : Type
+*****
+eq x y
++++++
+eapply Eqdep_dec.inj_pair2_eq_dec.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+Proof.
+intros.
+eapply Eqdep_dec.inj_pair2_eq_dec.
+
+*****
+H : eq (existT P p x) (existT P p y)
+x,y : P p
+p : A
+P : forall _ : A, Type
+dec : EqDec A eq
+A : Type
+*****
+forall x y : A, sumbool (eq x y) (not (eq x y))
++++++
+auto.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+Proof.
+intros.
+eapply Eqdep_dec.inj_pair2_eq_dec.
+
+*****
+H : eq (existT P p x) (existT P p y)
+x,y : P p
+p : A
+P : forall _ : A, Type
+dec : EqDec A eq
+A : Type
+*****
+eq (existT P p x) (existT P p y)
++++++
+auto.
+-----
+Lemma inj_pair2 : forall (P:A -> Type) (p:A) (x y:P p), existT P p x = existT P p y -> x = y.
+Proof.
+intros.
+eapply Eqdep_dec.inj_pair2_eq_dec.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Classes.
+-----
+Ltac notVar X :=\n  match X with\n    | _ _ => idtac\n    | _ _ _ => idtac\n    | _ _ _ _ => idtac\n    | _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ _ _ _ _ => idtac\n    | _ _ _ _ _ _ _ _ _ _ _ _ _ _ => idtac\n  end.
+-----
+Ltac gen_refl :=\n  repeat match goal with\n           | H : context [ @eq_refl ?X ?Y ] |- _ =>\n             generalize dependent (@eq_refl X Y)\n           | |- context [ @eq_refl ?X ?Y ] =>\n             generalize dependent (@eq_refl X Y)\n         end.
+-----
+Ltac uip_all :=\n  repeat match goal with\n           | [ H : _ = _ |- _ ] => rewrite H\n           | [ |- context [ match ?X in _ = t return _ with\n                              | refl_equal => _\n                            end ] ] => notVar X; generalize X\n           | [ |- context [ eq_rect_r _ _ ?X ] ] => notVar X; generalize X\n         end;\n  intros;\n    repeat match goal with\n             | [ H : ?X = ?X |- _ ] => rewrite (UIP_refl H) in *\n             | [ _ : context [ ?H ] |- _ ] =>\n               rewrite (UIP_refl H) in *\n             | [ |- context [ ?H ] ] =>\n               rewrite (UIP_refl H) in *\n           end.
+-----
+Ltac uip_all' :=\n  repeat match goal with\n           | [ H : _ = _ |- _ ] => rewrite H\n           | [ |- context [ match ?X in _ = t return _ with\n                              | refl_equal => _\n                            end ] ] => notVar X; generalize X\n           | [ |- context [ eq_rect_r _ _ ?X ] ] => notVar X; generalize X\n         end;\n  intros;\n    repeat match goal with\n             | [ H : ?X = ?X |- _ ] =>\n               generalize dependent H;\n                 let pf := fresh in\n                 intro pf; rewrite (UIP_refl pf) in * ;\n                 try clear pf\n           end.
+-----
+Export EquivDec.
+-----

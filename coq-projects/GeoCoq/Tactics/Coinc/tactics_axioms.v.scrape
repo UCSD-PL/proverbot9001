@@ -1,0 +1,10 @@
+Require Export GeoCoq.Utils.arity.
+-----
+Class Col_theory (COLTpoint : Type) (CTCol: COLTpoint -> COLTpoint -> COLTpoint -> Prop) :=\n{\n  CTcol_trivial : forall A B : COLTpoint, CTCol A A B;\n  CTcol_permutation_1 : forall A B C : COLTpoint, CTCol A B C -> CTCol B C A;\n  CTcol_permutation_2 : forall A B C : COLTpoint, CTCol A B C -> CTCol A C B;\n  CTcol3 : forall X Y A B C : COLTpoint,\n             X <> Y -> CTCol X Y A -> CTCol X Y B -> CTCol X Y C -> CTCol A B C\n}.
+-----
+Class Arity :=\n{\n  COINCpoint : Type;\n  n : nat\n}.
+-----
+Class Coinc_predicates (Ar : Arity) :=\n{\n  wd : arity COINCpoint (S (S n));\n  coinc : arity COINCpoint (S (S (S n)))\n}.
+-----
+Class Coinc_theory (Ar : Arity) (COP : Coinc_predicates Ar) :=\n{\n  wd_perm_1 : forall A : COINCpoint,\n              forall X : cartesianPower COINCpoint (S n),\n                app_1_n wd A X -> app_n_1 wd X A;\n  wd_perm_2 : forall A B : COINCpoint,\n              forall X : cartesianPower COINCpoint n,\n                app_2_n wd A B X -> app_2_n wd B A X;\n  coinc_perm_1 : forall A : COINCpoint,\n                 forall X : cartesianPower COINCpoint (S (S n)),\n                   app_1_n coinc A X -> app_n_1 coinc X A;\n  coinc_perm_2 : forall A B : COINCpoint,\n                 forall X : cartesianPower COINCpoint (S n),\n                   app_2_n coinc A B X -> app_2_n coinc B A X;\n  coinc_bd : forall A : COINCpoint,\n             forall X : cartesianPower COINCpoint (S n),\n              app_2_n coinc A A X;\n  coinc_n : forall COINC : cartesianPower COINCpoint (S (S (S n))),\n            forall WD : cartesianPower COINCpoint (S (S n)),\n              pred_conj coinc COINC WD ->\n              app wd WD ->\n              app coinc COINC\n}.
+-----

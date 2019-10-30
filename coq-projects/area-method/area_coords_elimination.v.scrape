@@ -1,0 +1,263 @@
+Require Export area_coords_constructions.
+-----
+Lemma elim_py_a_ratio_right : forall Y O U V A B ro ru rv,\n a_ratio Y O U V ro ru rv ->\n Py A B Y = ro * Py A B O + ru * Py A B U + rv * Py A B V.
+-----
+Lemma elim_py_a_ratio_right : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> Py A B Y = ro * Py A B O + ru * Py A B U + rv * Py A B V.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py A B Y) (Fplus (Fplus (Fmult ro (Py A B O)) (Fmult ru (Py A B U))) (Fmult rv (Py A B V)))
++++++
+Proof.
+-----
+Lemma elim_py_a_ratio_right : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> Py A B Y = ro * Py A B O + ru * Py A B U + rv * Py A B V.
+Proof.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py A B Y) (Fplus (Fplus (Fmult ro (Py A B O)) (Fmult ru (Py A B U))) (Fmult rv (Py A B V)))
++++++
+Admitted.
+-----
+Lemma elim_signed_area_a_ratio : forall Y O U V A B ro ru rv,\n a_ratio Y O U V ro ru rv ->\n S A B Y = ro * S A B O + ru * S A B U + rv * S A B V.
+-----
+Lemma elim_signed_area_a_ratio : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> S A B Y = ro * S A B O + ru * S A B U + rv * S A B V.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (S A B Y) (Fplus (Fplus (Fmult ro (S A B O)) (Fmult ru (S A B U))) (Fmult rv (S A B V)))
++++++
+Proof.
+-----
+Lemma elim_signed_area_a_ratio : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> S A B Y = ro * S A B O + ru * S A B U + rv * S A B V.
+Proof.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (S A B Y) (Fplus (Fplus (Fmult ro (S A B O)) (Fmult ru (S A B U))) (Fmult rv (S A B V)))
++++++
+intros.
+-----
+Lemma elim_signed_area_a_ratio : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> S A B Y = ro * S A B O + ru * S A B U + rv * S A B V.
+Proof.
+intros.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A,B : Point
+*****
+eq (S A B Y) (Fplus (Fplus (Fmult ro (S A B O)) (Fmult ru (S A B U))) (Fmult rv (S A B V)))
++++++
+Admitted.
+-----
+Lemma elim_py_a_ratio_middle : forall Y O U V A B ro ru rv,\n a_ratio Y O U V ro ru rv ->\n Py A Y B = ro * Py A O B + ru * Py A U B + rv * Py A V B \n     - ro*ru*Py O U O - ro*ru*Py O V O - ru*rv * Py U V U.
+-----
+Lemma elim_py_a_ratio_middle : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> Py A Y B = ro * Py A O B + ru * Py A U B + rv * Py A V B - ro*ru*Py O U O - ro*ru*Py O V O - ru*rv * Py U V U.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py A Y B) (Fminus (Fminus (Fminus (Fplus (Fplus (Fmult ro (Py A O B)) (Fmult ru (Py A U B))) (Fmult rv (Py A V B))) (Fmult (Fmult ro ru) (Py O U O))) (Fmult (Fmult ro ru) (Py O V O))) (Fmult (Fmult ru rv) (Py U V U)))
++++++
+Proof.
+-----
+Lemma elim_py_a_ratio_middle : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> Py A Y B = ro * Py A O B + ru * Py A U B + rv * Py A V B - ro*ru*Py O U O - ro*ru*Py O V O - ru*rv * Py U V U.
+Proof.
+
+*****
+
+*****
+forall (Y O U V A B : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py A Y B) (Fminus (Fminus (Fminus (Fplus (Fplus (Fmult ro (Py A O B)) (Fmult ru (Py A U B))) (Fmult rv (Py A V B))) (Fmult (Fmult ro ru) (Py O U O))) (Fmult (Fmult ro ru) (Py O V O))) (Fmult (Fmult ru rv) (Py U V U)))
++++++
+intros.
+-----
+Lemma elim_py_a_ratio_middle : forall Y O U V A B ro ru rv, a_ratio Y O U V ro ru rv -> Py A Y B = ro * Py A O B + ru * Py A U B + rv * Py A V B - ro*ru*Py O U O - ro*ru*Py O V O - ru*rv * Py U V U.
+Proof.
+intros.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A,B : Point
+*****
+eq (Py A Y B) (Fminus (Fminus (Fminus (Fplus (Fplus (Fmult ro (Py A O B)) (Fmult ru (Py A U B))) (Fmult rv (Py A V B))) (Fmult (Fmult ro ru) (Py O U O))) (Fmult (Fmult ro ru) (Py O V O))) (Fmult (Fmult ru rv) (Py U V U)))
++++++
+Admitted.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv,\n a_ratio Y O U V ro ru rv ->\n Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) +\n                   ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) +\n                   rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+
+*****
+
+*****
+forall (Y O U V A : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py Y A Y) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+Proof.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+
+*****
+
+*****
+forall (Y O U V A : Point) (ro ru rv : F) (_ : a_ratio Y O U V ro ru rv), eq (Py Y A Y) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+intros.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Py Y A Y) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Py Y A O)) (Fmult ru (Py Y A U))) (Fmult rv (Py Y A V))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Py O A Y)) (Fmult ru (Py Y A U))) (Fmult rv (Py Y A V))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Py O A Y)) (Fmult ru (Py U A Y))) (Fmult rv (Py Y A V))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Py O A Y)) (Fmult ru (Py U A Y))) (Fmult rv (Py V A Y))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+rewrite (elim_py_a_ratio_right Y O U V O A ro ru rv H).
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+rewrite (elim_py_a_ratio_right Y O U V O A ro ru rv H).
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Py U A Y))) (Fmult rv (Py V A Y))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+rewrite (elim_py_a_ratio_right Y O U V U A ro ru rv H).
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+rewrite (elim_py_a_ratio_right Y O U V O A ro ru rv H).
+rewrite (elim_py_a_ratio_right Y O U V U A ro ru rv H).
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Py V A Y))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+rewrite (elim_py_a_ratio_right Y O U V V A ro ru rv H).
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+rewrite (elim_py_a_ratio_right Y O U V O A ro ru rv H).
+rewrite (elim_py_a_ratio_right Y O U V U A ro ru rv H).
+rewrite (elim_py_a_ratio_right Y O U V V A ro ru rv H).
+
+*****
+H : a_ratio Y O U V ro ru rv
+ro,ru,rv : F
+Y,O,U,V,A : Point
+*****
+eq (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V))))) (Fplus (Fplus (Fmult ro (Fplus (Fplus (Fmult ro (Py O A O)) (Fmult ru (Py O A U))) (Fmult rv (Py O A V)))) (Fmult ru (Fplus (Fplus (Fmult ro (Py U A O)) (Fmult ru (Py U A U))) (Fmult rv (Py U A V))))) (Fmult rv (Fplus (Fplus (Fmult ro (Py V A O)) (Fmult ru (Py V A U))) (Fmult rv (Py V A V)))))
++++++
+auto.
+-----
+Lemma elim_py_a_ratio_left_right : forall Y O U V A ro ru rv, a_ratio Y O U V ro ru rv -> Py Y A Y = ro * (ro * Py O A O + ru * Py O A U + rv * Py O A V) + ru * (ro * Py U A O + ru * Py U A U + rv * Py U A V) + rv * (ro * Py V A O + ru * Py V A U + rv * Py V A V).
+Proof.
+intros.
+rewrite (elim_py_a_ratio_right Y O U V Y A ro ru rv H).
+replace (Py Y A O) with (Py O A Y) by auto with Geom.
+replace (Py Y A U) with (Py U A Y) by auto with Geom.
+replace (Py Y A V) with (Py V A Y) by auto with Geom.
+rewrite (elim_py_a_ratio_right Y O U V O A ro ru rv H).
+rewrite (elim_py_a_ratio_right Y O U V U A ro ru rv H).
+rewrite (elim_py_a_ratio_right Y O U V V A ro ru rv H).
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

@@ -1,0 +1,699 @@
+Require Export GeoCoq.Tarski_dev.Ch06_out_lines.
+-----
+Require Import GeoCoq.Tactics.Coinc.tactics_axioms.
+-----
+Section Tarski_is_a_Coinc_theory_for_col.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Definition diff : arity Tpoint 2 := fun A B : Tpoint => A <> B.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (B : cartesianPower Tpoint (S O)) (_ : app_1_n diff A B), app_n_1 diff B A
++++++
+Proof.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (B : cartesianPower Tpoint (S O)) (_ : app_1_n diff A B), app_n_1 diff B A
++++++
+unfold diff.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+Proof.
+unfold diff.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (B : cartesianPower Tpoint (S O)) (_ : app_1_n (fun A0 B0 : Tpoint => not (eq A0 B0)) A B), app_n_1 (fun A0 B0 : Tpoint => not (eq A0 B0)) B A
++++++
+simpl.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+Proof.
+unfold diff.
+simpl.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (B : cartesianPower Tpoint (S O)) (_ : not (eq A B)), not (eq B A)
++++++
+auto.
+-----
+Lemma diff_perm_1 : forall A B, app_1_n diff A B -> app_n_1 diff B A.
+Proof.
+unfold diff.
+simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint O) (_ : app_2_n diff A B X), app_2_n diff B A X
++++++
+Proof.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint O) (_ : app_2_n diff A B X), app_2_n diff B A X
++++++
+unfold diff.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+Proof.
+unfold diff.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint O) (_ : app_2_n (fun A0 B0 : Tpoint => not (eq A0 B0)) A B X), app_2_n (fun A0 B0 : Tpoint => not (eq A0 B0)) B A X
++++++
+unfold app_2_n.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+Proof.
+unfold diff.
+unfold app_2_n.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint O) (_ : app (not (eq A B)) X), app (not (eq B A)) X
++++++
+simpl.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+Proof.
+unfold diff.
+unfold app_2_n.
+simpl.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (_ : cartesianPower Tpoint O) (_ : not (eq A B)), not (eq B A)
++++++
+auto.
+-----
+Lemma diff_perm_2 : forall A B (X : cartesianPower Tpoint 0), app_2_n diff A B X -> app_2_n diff B A X.
+Proof.
+unfold diff.
+unfold app_2_n.
+simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition col : arity Tpoint 3 := Col.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S (S O))) (_ : app_1_n col A X), app_n_1 col X A
++++++
+Proof.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S (S O))) (_ : app_1_n col A X), app_n_1 col X A
++++++
+unfold col.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+Proof.
+unfold col.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S (S O))) (_ : app_1_n Col A X), app_n_1 Col X A
++++++
+simpl.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+Proof.
+unfold col.
+simpl.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S (S O))) (_ : Col A (fst X) (snd X)), Col (fst X) (snd X) A
++++++
+Col.
+-----
+Lemma col_perm_1 : forall A (X : cartesianPower Tpoint 2), app_1_n col A X -> app_n_1 col X A.
+Proof.
+unfold col.
+simpl.
+Col.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint (S O)) (_ : app_2_n col A B X), app_2_n col B A X
++++++
+Proof.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint (S O)) (_ : app_2_n col A B X), app_2_n col B A X
++++++
+unfold col.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+Proof.
+unfold col.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint (S O)) (_ : app_2_n Col A B X), app_2_n Col B A X
++++++
+unfold app_2_n.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+Proof.
+unfold col.
+unfold app_2_n.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint (S O)) (_ : app (Col A B) X), app (Col B A) X
++++++
+simpl.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+Proof.
+unfold col.
+unfold app_2_n.
+simpl.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B : Tpoint) (X : cartesianPower Tpoint (S O)) (_ : Col A B X), Col B A X
++++++
+Col.
+-----
+Lemma col_perm_2 : forall A B (X : cartesianPower Tpoint 1), app_2_n col A B X -> app_2_n col B A X.
+Proof.
+unfold col.
+unfold app_2_n.
+simpl.
+Col.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S O)), app_2_n col A A X
++++++
+Proof.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S O)), app_2_n col A A X
++++++
+unfold col.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+Proof.
+unfold col.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S O)), app_2_n Col A A X
++++++
+unfold app_2_n.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+Proof.
+unfold col.
+unfold app_2_n.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S O)), app (Col A A) X
++++++
+simpl.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+Proof.
+unfold col.
+unfold app_2_n.
+simpl.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A : Tpoint) (X : cartesianPower Tpoint (S O)), Col A A X
++++++
+Col.
+-----
+Lemma col_bd : forall A (X : cartesianPower Tpoint 1), app_2_n col A A X.
+Proof.
+unfold col.
+unfold app_2_n.
+simpl.
+Col.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2),\n  pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : pred_conj col COL DIFF) (_ : app diff DIFF), app col COL
++++++
+Proof.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : pred_conj col COL DIFF) (_ : app diff DIFF), app col COL
++++++
+unfold pred_conj.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : pred_conj_aux col (S (S O)) COL DIFF) (_ : app diff DIFF), app col COL
++++++
+unfold col.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : pred_conj_aux Col (S (S O)) COL DIFF) (_ : app diff DIFF), app Col COL
++++++
+unfold diff.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : pred_conj_aux Col (S (S O)) COL DIFF) (_ : app (fun A B : Tpoint => not (eq A B)) DIFF), app Col COL
++++++
+simpl in *.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (COL : cartesianPower Tpoint (S (S (S O)))) (DIFF : cartesianPower Tpoint (S (S O))) (_ : and (Col (fst COL) (fst DIFF) (snd DIFF)) (and (Col (fst (snd COL)) (fst DIFF) (snd DIFF)) (Col (snd (snd COL)) (fst DIFF) (snd DIFF)))) (_ : not (eq (fst DIFF) (snd DIFF))), Col (fst COL) (fst (snd COL)) (snd (snd COL))
++++++
+intros COL DIFF HCol HDiff.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol : and (Col (fst COL) (fst DIFF) (snd DIFF))\n (and (Col (fst (snd COL)) (fst DIFF) (snd DIFF))\n (Col (snd (snd COL)) (fst DIFF) (snd DIFF)))
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col (fst COL) (fst (snd COL)) (snd (snd COL))
++++++
+destruct HCol as [HCol1 [HCol2 HCol3]].
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol3 : Col (snd (snd COL)) (fst DIFF) (snd DIFF)
+HCol2 : Col (fst (snd COL)) (fst DIFF) (snd DIFF)
+HCol1 : Col (fst COL) (fst DIFF) (snd DIFF)
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col (fst COL) (fst (snd COL)) (snd (snd COL))
++++++
+apply col3 with (fst DIFF) (snd DIFF).
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+apply col3 with (fst DIFF) (snd DIFF).
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol3 : Col (snd (snd COL)) (fst DIFF) (snd DIFF)
+HCol2 : Col (fst (snd COL)) (fst DIFF) (snd DIFF)
+HCol1 : Col (fst COL) (fst DIFF) (snd DIFF)
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq (fst DIFF) (snd DIFF))
++++++
+Col.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+apply col3 with (fst DIFF) (snd DIFF).
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol3 : Col (snd (snd COL)) (fst DIFF) (snd DIFF)
+HCol2 : Col (fst (snd COL)) (fst DIFF) (snd DIFF)
+HCol1 : Col (fst COL) (fst DIFF) (snd DIFF)
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col (fst DIFF) (snd DIFF) (fst COL)
++++++
+Col.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+apply col3 with (fst DIFF) (snd DIFF).
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol3 : Col (snd (snd COL)) (fst DIFF) (snd DIFF)
+HCol2 : Col (fst (snd COL)) (fst DIFF) (snd DIFF)
+HCol1 : Col (fst COL) (fst DIFF) (snd DIFF)
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col (fst DIFF) (snd DIFF) (fst (snd COL))
++++++
+Col.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+apply col3 with (fst DIFF) (snd DIFF).
+
+*****
+HDiff : not (eq (fst DIFF) (snd DIFF))
+HCol3 : Col (snd (snd COL)) (fst DIFF) (snd DIFF)
+HCol2 : Col (fst (snd COL)) (fst DIFF) (snd DIFF)
+HCol1 : Col (fst COL) (fst DIFF) (snd DIFF)
+DIFF : cartesianPower Tpoint (S (S O))
+COL : cartesianPower Tpoint (S (S (S O)))
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col (fst DIFF) (snd DIFF) (snd (snd COL))
++++++
+Col.
+-----
+Lemma col_3 : forall (COL : cartesianPower Tpoint 3) (DIFF : cartesianPower Tpoint 2), pred_conj col COL DIFF -> app diff DIFF -> app col COL.
+Proof.
+unfold pred_conj.
+unfold col.
+unfold diff.
+simpl in *.
+intros COL DIFF HCol HDiff.
+destruct HCol as [HCol1 [HCol2 HCol3]].
+apply col3 with (fst DIFF) (snd DIFF).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Tarski_is_a_Arity_for_col : Arity.
+-----
+Global Instance Tarski_is_a_Arity_for_col : Arity.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Arity
++++++
+Proof.
+-----
+Global Instance Tarski_is_a_Arity_for_col : Arity.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Arity
++++++
+exact (Build_Arity Tpoint 0).
+-----
+Global Instance Tarski_is_a_Arity_for_col : Arity.
+Proof.
+exact (Build_Arity Tpoint 0).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Tarski_is_a_Coinc_predicates_for_col :\n  (Coinc_predicates Tarski_is_a_Arity_for_col).
+-----
+Global Instance Tarski_is_a_Coinc_predicates_for_col : (Coinc_predicates Tarski_is_a_Arity_for_col).
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coinc_predicates Tarski_is_a_Arity_for_col
++++++
+Proof.
+-----
+Global Instance Tarski_is_a_Coinc_predicates_for_col : (Coinc_predicates Tarski_is_a_Arity_for_col).
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coinc_predicates Tarski_is_a_Arity_for_col
++++++
+exact (Build_Coinc_predicates Tarski_is_a_Arity_for_col diff Col).
+-----
+Global Instance Tarski_is_a_Coinc_predicates_for_col : (Coinc_predicates Tarski_is_a_Arity_for_col).
+Proof.
+exact (Build_Coinc_predicates Tarski_is_a_Arity_for_col diff Col).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Global Instance Tarski_is_a_Coinc_theory_for_col :\n  (Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col).
+-----
+Global Instance Tarski_is_a_Coinc_theory_for_col : (Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col).
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col
++++++
+Proof.
+-----
+Global Instance Tarski_is_a_Coinc_theory_for_col : (Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col).
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col
++++++
+exact (Build_Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col diff_perm_1 diff_perm_2 col_perm_1 col_perm_2 col_bd col_3).
+-----
+Global Instance Tarski_is_a_Coinc_theory_for_col : (Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col).
+Proof.
+exact (Build_Coinc_theory Tarski_is_a_Arity_for_col Tarski_is_a_Coinc_predicates_for_col diff_perm_1 diff_perm_2 col_perm_1 col_perm_2 col_bd col_3).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Tarski_is_a_Coinc_theory_for_col.
+-----

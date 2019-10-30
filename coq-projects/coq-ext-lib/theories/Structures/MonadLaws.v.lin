@@ -1,0 +1,10 @@
+b73bb3443d99c9aaf82506f7200150ed
+From Coq Require Import Setoid.
+Require Import Coq.Classes.Morphisms.
+Require Import ExtLib.Core.Type.
+Require Import ExtLib.Structures.Monads.
+Require Import ExtLib.Structures.Proper.
+Require Import ExtLib.Data.Fun.
+Require Import ExtLib.Data.Unit.
+Set Implicit Arguments.
+Set Strict Implicit.

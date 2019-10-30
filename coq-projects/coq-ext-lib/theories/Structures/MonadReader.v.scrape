@@ -1,0 +1,16 @@
+Require Import ExtLib.Structures.Monad.
+-----
+Set Universe Polymorphism.
+-----
+Set Printing Universes.
+-----
+Class MonadReader@{d c} (T : Type@{d}) (m : Type@{d} -> Type@{c})\n: Type :=\n{ local : forall {t : Type@{d}}, (T -> T) -> m t -> m t\n; ask : m T\n}.
+-----
+Arguments local {T} {m} {_} {t} _ _ : rename.
+-----
+Arguments ask {T} {m} {_} : rename.
+-----
+Definition asks@{d c}\n           {m : Type@{d} -> Type@{c}}\n           {M : Monad m}\n           {T : Type@{d}}\n           {MR : MonadReader@{d c} T m}\n           {U : Type@{d}} (f : T -> U) : m U :=\n  bind ask (fun x => ret (f x)).
+-----
+Definition ReaderProd@{d c}\n           {m : Type@{d} -> Type@{c}}\n           {M : Monad m}\n           {T S : Type@{d}}\n           {MR : MonadReader T m}\n           (f : T -> S)\n           (g : S -> T -> T)\n: MonadReader@{d c} S m :=\n{| ask := @asks m M T MR S f\n ; local := fun _T up (c : m _T)  =>\n              @local T m MR _ (fun s => g (up (f s)) s) c\n |}.
+-----

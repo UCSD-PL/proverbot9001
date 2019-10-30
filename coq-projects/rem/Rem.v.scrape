@@ -1,0 +1,3001 @@
+From Coq Require Import Classical.
+-----
+Definition B := nat -> nat.
+-----
+Definition Top := B -> Prop.
+-----
+Definition inclusion (X Y : Top) := forall z : B, X z -> Y z.
+-----
+Definition equal (X Y : Top) := inclusion X Y /\ inclusion Y X.
+-----
+Definition complement (X : Top) (z : B) := ~ X z.
+-----
+Definition union (X Y : Top) (z : B) := X z \/ Y z.
+-----
+Definition inter (X Y : Top) (z : B) := X z /\ Y z.
+-----
+Definition neighbour (f : B) (n : nat) (g : B) :=\n  forall m : nat, m <= n -> f m = g m.
+-----
+Definition open (X : Top) :=\n  forall f : B, X f -> exists n : nat, inclusion (neighbour f n) X.
+-----
+Definition closed (X : Top) := open (complement X).
+-----
+Definition dense (X : Top) :=\n  forall (f : B) (n : nat), exists g : B, X g /\ neighbour f n g.
+-----
+Definition closure (X : Top) (f : B) :=\n  forall n : nat, exists g : B, X g /\ neighbour f n g.
+-----
+Lemma refl_neighbour : forall (n : nat) (x : B), neighbour x n x.
+-----
+Lemma refl_neighbour : forall (n : nat) (x : B), neighbour x n x.
+
+*****
+
+*****
+forall (n : nat) (x : B), neighbour x n x
++++++
+unfold neighbour in |- *.
+-----
+Lemma refl_neighbour : forall (n : nat) (x : B), neighbour x n x.
+unfold neighbour in |- *.
+
+*****
+
+*****
+forall (n : nat) (x : B) (m : nat) (_ : le m n), eq (x m) (x m)
++++++
+auto.
+-----
+Lemma refl_neighbour : forall (n : nat) (x : B), neighbour x n x.
+unfold neighbour in |- *.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve refl_neighbour.
+-----
+Lemma trans_neighbour :\n forall (n : nat) (f g h : B),\n neighbour f n g -> neighbour g n h -> neighbour f n h.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+
+*****
+
+*****
+forall (n : nat) (f g h : B) (_ : neighbour f n g) (_ : neighbour g n h), neighbour f n h
++++++
+unfold neighbour in |- *.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+
+*****
+
+*****
+forall (n : nat) (f g h : B) (_ : forall (m : nat) (_ : le m n), eq (f m) (g m)) (_ : forall (m : nat) (_ : le m n), eq (g m) (h m)) (m : nat) (_ : le m n), eq (f m) (h m)
++++++
+intros.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+
+*****
+H1 : le m n
+m : nat
+H0 : forall (m : nat) (_ : le m n), eq (g m) (h m)
+H : forall (m : nat) (_ : le m n), eq (f m) (g m)
+f,g,h : B
+n : nat
+*****
+eq (f m) (h m)
++++++
+rewrite (H m).
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+rewrite (H m).
+
+*****
+H1 : le m n
+m : nat
+H0 : forall (m : nat) (_ : le m n), eq (g m) (h m)
+H : forall (m : nat) (_ : le m n), eq (f m) (g m)
+f,g,h : B
+n : nat
+*****
+eq (g m) (h m)
++++++
+trivial.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+rewrite (H m).
+trivial.
+
+*****
+H1 : le m n
+m : nat
+H0 : forall (m : nat) (_ : le m n), eq (g m) (h m)
+H : forall (m : nat) (_ : le m n), eq (f m) (g m)
+f,g,h : B
+n : nat
+*****
+eq (g m) (h m)
++++++
+apply H0.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+rewrite (H m).
+trivial.
+apply H0.
+
+*****
+H1 : le m n
+m : nat
+H0 : forall (m : nat) (_ : le m n), eq (g m) (h m)
+H : forall (m : nat) (_ : le m n), eq (f m) (g m)
+f,g,h : B
+n : nat
+*****
+le m n
++++++
+trivial.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+rewrite (H m).
+
+*****
+H1 : le m n
+m : nat
+H0 : forall (m : nat) (_ : le m n), eq (g m) (h m)
+H : forall (m : nat) (_ : le m n), eq (f m) (g m)
+f,g,h : B
+n : nat
+*****
+le m n
++++++
+trivial.
+-----
+Lemma trans_neighbour : forall (n : nat) (f g h : B), neighbour f n g -> neighbour g n h -> neighbour f n h.
+unfold neighbour in |- *.
+intros.
+rewrite (H m).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+
+*****
+
+*****
+forall X : Top, closed (closure X)
++++++
+unfold closed in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+
+*****
+
+*****
+forall X : Top, open (complement (closure X))
++++++
+unfold closure in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+
+*****
+
+*****
+forall X : Top, open (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))))
++++++
+unfold open in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+
+*****
+
+*****
+forall (X : Top) (f : B) (_ : complement (fun f0 : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f0 n g))) f), ex (fun n : nat => inclusion (neighbour f n) (complement (fun f0 : B => forall n0 : nat, ex (fun g : B => and (X g) (neighbour f0 n0 g)))))
++++++
+unfold complement in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+
+*****
+
+*****
+forall (X : Top) (f : B) (_ : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))), ex (fun n : nat => inclusion (neighbour f n) (fun z : B => not (forall n0 : nat, ex (fun g : B => and (X g) (neighbour z n0 g)))))
++++++
+intros X f complement_clX.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+
+*****
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+ex (fun n : nat => inclusion (neighbour f n) (fun z : B => not (forall n0 : nat, ex (fun g : B => and (X g) (neighbour z n0 g)))))
++++++
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\ neighbour f n g) complement_clX).
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+
+*****
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall _ : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g)))), ex (fun n : nat => inclusion (neighbour f n) (fun z : B => not (forall n0 : nat, ex (fun g : B => and (X g) (neighbour z n0 g)))))
++++++
+simple induction 1.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+
+*****
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall (x : nat) (_ : not (ex (fun g : B => and (X g) (neighbour f x g)))), ex (fun n : nat => inclusion (neighbour f n) (fun z : B => not (forall n0 : nat, ex (fun g : B => and (X g) (neighbour z n0 g)))))
++++++
+intros n H1.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+
+*****
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+ex (fun n : nat => inclusion (neighbour f n) (fun z : B => not (forall n0 : nat, ex (fun g : B => and (X g) (neighbour z n0 g)))))
++++++
+exists n.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+
+*****
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+inclusion (neighbour f n) (fun z : B => not (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))))
++++++
+unfold inclusion in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+
+*****
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall (z : B) (_ : neighbour f n z), not (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))
++++++
+intros g fng.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+
+*****
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+not (forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0)))
++++++
+unfold not in |- *.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+
+*****
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall _ : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0)), False
++++++
+intro H2.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+
+*****
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+False
++++++
+apply H1.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+
+*****
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+ex (fun g : B => and (X g) (neighbour f n g))
++++++
+elim (H2 n).
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+
+*****
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall (x : B) (_ : and (X x) (neighbour g n x)), ex (fun g : B => and (X g) (neighbour f n g))
++++++
+simple induction 1.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+
+*****
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+forall (_ : X x) (_ : neighbour g n x), ex (fun g : B => and (X g) (neighbour f n g))
++++++
+intros.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+ex (fun g : B => and (X g) (neighbour f n g))
++++++
+exists x.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+and (X x) (neighbour f n x)
++++++
+split.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+X x
++++++
+trivial.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+neighbour f n x
++++++
+trivial.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+neighbour f n x
++++++
+apply trans_neighbour with g.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+apply trans_neighbour with g.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+neighbour f n g
++++++
+trivial.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+apply trans_neighbour with g.
+
+*****
+H4 : neighbour g n x
+H3 : X x
+H0 : and (X x) (neighbour g n x)
+x : B
+H2 : forall n : nat, ex (fun g0 : B => and (X g0) (neighbour g n g0))
+fng : neighbour f n g
+g : B
+H1 : not (ex (fun g : B => and (X g) (neighbour f n g)))
+n : nat
+H : ex (fun n : nat => not (ex (fun g : B => and (X g) (neighbour f n g))))
+complement_clX : not (forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))
+f : B
+X : Top
+*****
+neighbour g n x
++++++
+trivial.
+-----
+Lemma closedc_clX : forall X : Top, closed (closure X).
+unfold closed in |- *.
+unfold closure in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+intros X f complement_clX.
+generalize (not_all_ex_not nat (fun n : nat => exists g : B, X g /\\ neighbour f n g) complement_clX).
+simple induction 1.
+intros n H1.
+exists n.
+unfold inclusion in |- *.
+intros g fng.
+unfold not in |- *.
+intro H2.
+apply H1.
+elim (H2 n).
+simple induction 1.
+intros.
+exists x.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve closedc_clX.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+
+*****
+
+*****
+forall X : Top, inclusion X (closure X)
++++++
+unfold inclusion in |- *.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+
+*****
+
+*****
+forall (X : Top) (z : B) (_ : X z), closure X z
++++++
+intros X f Xf.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+
+*****
+Xf : X f
+f : B
+X : Top
+*****
+closure X f
++++++
+unfold closure in |- *.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+
+*****
+Xf : X f
+f : B
+X : Top
+*****
+forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))
++++++
+intro n.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+intro n.
+
+*****
+n : nat
+Xf : X f
+f : B
+X : Top
+*****
+ex (fun g : B => and (X g) (neighbour f n g))
++++++
+exists f.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+intro n.
+exists f.
+
+*****
+n : nat
+Xf : X f
+f : B
+X : Top
+*****
+and (X f) (neighbour f n f)
++++++
+split.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+intro n.
+exists f.
+split.
+
+*****
+n : nat
+Xf : X f
+f : B
+X : Top
+*****
+X f
++++++
+trivial.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+intro n.
+exists f.
+split.
+
+*****
+n : nat
+Xf : X f
+f : B
+X : Top
+*****
+neighbour f n f
++++++
+trivial.
+-----
+Lemma Xinc_clX : forall X : Top, inclusion X (closure X).
+unfold inclusion in |- *.
+intros X f Xf.
+unfold closure in |- *.
+intro n.
+exists f.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Lemma1 :\n forall X : Top,\n equal X (inter (closure X) (union X (complement (closure X)))).
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+
+*****
+
+*****
+forall X : Top, equal X (inter (closure X) (union X (complement (closure X))))
++++++
+unfold equal in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+
+*****
+
+*****
+forall X : Top, and (inclusion X (inter (closure X) (union X (complement (closure X))))) (inclusion (inter (closure X) (union X (complement (closure X)))) X)
++++++
+unfold inclusion in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+
+*****
+
+*****
+forall X : Top, and (forall (z : B) (_ : X z), inter (closure X) (union X (complement (closure X))) z) (forall (z : B) (_ : inter (closure X) (union X (complement (closure X))) z), X z)
++++++
+intro X.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+
+*****
+X : Top
+*****
+and (forall (z : B) (_ : X z), inter (closure X) (union X (complement (closure X))) z) (forall (z : B) (_ : inter (closure X) (union X (complement (closure X))) z), X z)
++++++
+split.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : X z), inter (closure X) (union X (complement (closure X))) z
++++++
+unfold inter.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : X z), and (closure X z) (union X (complement (closure X)) z)
++++++
+unfold union in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : X z), and (closure X z) (or (X z) (complement (closure X) z))
++++++
+unfold closure in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : X z), and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))) (or (X z) (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z))
++++++
+intros.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+
+*****
+H : X z
+z : B
+X : Top
+*****
+and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))) (or (X z) (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z))
++++++
+split.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+
+*****
+H : X z
+z : B
+X : Top
+*****
+forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
++++++
+intro n.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+intro n.
+
+*****
+n : nat
+H : X z
+z : B
+X : Top
+*****
+ex (fun g : B => and (X g) (neighbour z n g))
++++++
+exists z.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+intro n.
+exists z.
+
+*****
+n : nat
+H : X z
+z : B
+X : Top
+*****
+and (X z) (neighbour z n z)
++++++
+split.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+intro n.
+exists z.
+split.
+
+*****
+n : nat
+H : X z
+z : B
+X : Top
+*****
+X z
++++++
+auto.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+intro n.
+exists z.
+split.
+
+*****
+n : nat
+H : X z
+z : B
+X : Top
+*****
+neighbour z n z
++++++
+auto.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+
+*****
+H : X z
+z : B
+X : Top
+*****
+or (X z) (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
++++++
+left.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+split.
+left.
+
+*****
+H : X z
+z : B
+X : Top
+*****
+X z
++++++
+trivial.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : inter (closure X) (union X (complement (closure X))) z), X z
++++++
+unfold inter.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : and (closure X z) (union X (complement (closure X)) z)), X z
++++++
+unfold union in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : and (closure X z) (or (X z) (complement (closure X) z))), X z
++++++
+unfold closure in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+
+*****
+X : Top
+*****
+forall (z : B) (_ : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))) (or (X z) (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z))), X z
++++++
+intros.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+
+*****
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+X z
++++++
+elim H.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+
+*****
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+forall (_ : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))) (_ : or (X z) (complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)), X z
++++++
+intros.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+
+*****
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+X z
++++++
+elim H1.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+elim H1.
+
+*****
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+forall _ : X z, X z
++++++
+trivial.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+elim H1.
+
+*****
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+forall _ : complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z, X z
++++++
+trivial.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+elim H1.
+trivial.
+
+*****
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+forall _ : complement (fun f : B => forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z, X z
++++++
+unfold complement in |- *.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+elim H1.
+trivial.
+unfold complement in |- *.
+
+*****
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+forall _ : not (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))), X z
++++++
+intros.
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+unfold inter.
+unfold union in |- *.
+unfold closure in |- *.
+intros.
+elim H.
+intros.
+elim H1.
+trivial.
+unfold complement in |- *.
+intros.
+
+*****
+H2 : not (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))
+H1 : or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g))) z)
+H0 : forall n : nat, ex (fun g : B => and (X g) (neighbour z n g))
+H : and (forall n : nat, ex (fun g : B => and (X g) (neighbour z n g)))\n (or (X z)\n (complement\n (fun f : B =>\n forall n : nat, ex (fun g : B => and (X g) (neighbour f n g)))\n z))
+z : B
+X : Top
+*****
+X z
++++++
+elim (H2 H0).
+-----
+Lemma Lemma1 : forall X : Top, equal X (inter (closure X) (union X (complement (closure X)))).
+unfold equal in |- *.
+unfold inclusion in |- *.
+intro X.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+
+*****
+
+*****
+forall X : Top, dense (union X (complement (closure X)))
++++++
+unfold dense in |- *.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+
+*****
+
+*****
+forall (X : Top) (f : B) (n : nat), ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+intros X f n.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+
+*****
+n : nat
+f : B
+X : Top
+*****
+ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+elim (classic (closure X f)).
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+
+*****
+n : nat
+f : B
+X : Top
+*****
+forall _ : closure X f, ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+intro clXf.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+
+*****
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+elim (clXf n).
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+
+*****
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+forall (x : B) (_ : and (X x) (neighbour f n x)), ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+simple induction 1.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+
+*****
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+forall (_ : X x) (_ : neighbour f n x), ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+intros.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+exists x.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+and (union X (complement (closure X)) x) (neighbour f n x)
++++++
+split.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+split.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+union X (complement (closure X)) x
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+union X (complement (closure X)) x
++++++
+unfold union in |- *.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+unfold union in |- *.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+or (X x) (complement (closure X) x)
++++++
+left.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+split.
+trivial.
+unfold union in |- *.
+left.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+X x
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro clXf.
+elim (clXf n).
+simple induction 1.
+intros.
+exists x.
+split.
+
+*****
+H1 : neighbour f n x
+H0 : X x
+H : and (X x) (neighbour f n x)
+x : B
+clXf : closure X f
+n : nat
+f : B
+X : Top
+*****
+neighbour f n x
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+
+*****
+n : nat
+f : B
+X : Top
+*****
+forall _ : not (closure X f), ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+intro notclXf.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+ex (fun g : B => and (union X (complement (closure X)) g) (neighbour f n g))
++++++
+exists f.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+and (union X (complement (closure X)) f) (neighbour f n f)
++++++
+intros.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+and (union X (complement (closure X)) f) (neighbour f n f)
++++++
+split.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+split.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+union X (complement (closure X)) f
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+split.
+trivial.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+union X (complement (closure X)) f
++++++
+unfold union in |- *.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+split.
+trivial.
+unfold union in |- *.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+or (X f) (complement (closure X) f)
++++++
+right.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+split.
+trivial.
+unfold union in |- *.
+right.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+complement (closure X) f
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+intro notclXf.
+exists f.
+intros.
+split.
+
+*****
+notclXf : not (closure X f)
+n : nat
+f : B
+X : Top
+*****
+neighbour f n f
++++++
+trivial.
+-----
+Lemma density : forall X : Top, dense (union X (complement (closure X))).
+unfold dense in |- *.
+intros X f n.
+elim (classic (closure X f)).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve density.
+-----
+Theorem Rem :\n forall X : Top,\n exists Y : Top, (exists Z : Top, closed Y /\ dense Z /\ equal X (inter Y Z)).
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+
+*****
+
+*****
+forall X : Top, ex (fun Y : Top => ex (fun Z : Top => and (closed Y) (and (dense Z) (equal X (inter Y Z)))))
++++++
+intro X.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+
+*****
+X : Top
+*****
+ex (fun Y : Top => ex (fun Z : Top => and (closed Y) (and (dense Z) (equal X (inter Y Z)))))
++++++
+exists (closure X).
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+
+*****
+X : Top
+*****
+ex (fun Z : Top => and (closed (closure X)) (and (dense Z) (equal X (inter (closure X) Z))))
++++++
+exists (union X (complement (closure X))).
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+
+*****
+X : Top
+*****
+and (closed (closure X)) (and (dense (union X (complement (closure X)))) (equal X (inter (closure X) (union X (complement (closure X))))))
++++++
+split.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+
+*****
+X : Top
+*****
+closed (closure X)
++++++
+auto.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+
+*****
+X : Top
+*****
+and (dense (union X (complement (closure X)))) (equal X (inter (closure X) (union X (complement (closure X)))))
++++++
+auto.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+auto.
+
+*****
+X : Top
+*****
+and (dense (union X (complement (closure X)))) (equal X (inter (closure X) (union X (complement (closure X)))))
++++++
+split.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+auto.
+split.
+
+*****
+X : Top
+*****
+dense (union X (complement (closure X)))
++++++
+auto.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+auto.
+split.
+
+*****
+X : Top
+*****
+equal X (inter (closure X) (union X (complement (closure X))))
++++++
+auto.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+auto.
+split.
+auto.
+
+*****
+X : Top
+*****
+equal X (inter (closure X) (union X (complement (closure X))))
++++++
+apply Lemma1.
+-----
+Theorem Rem : forall X : Top, exists Y : Top, (exists Z : Top, closed Y /\\ dense Z /\\ equal X (inter Y Z)).
+intro X.
+exists (closure X).
+exists (union X (complement (closure X))).
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Require Import Lt.
+-----
+Definition nbh := neighbour.
+-----
+Definition clopen (X : Top) := open X /\ closed X.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+
+*****
+
+*****
+forall (f : B) (n : nat), clopen (nbh f n)
++++++
+intros f n.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+
+*****
+n : nat
+f : B
+*****
+clopen (nbh f n)
++++++
+unfold clopen in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+
+*****
+n : nat
+f : B
+*****
+and (open (nbh f n)) (closed (nbh f n))
++++++
+split.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+
+*****
+n : nat
+f : B
+*****
+open (nbh f n)
++++++
+unfold open in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+
+*****
+n : nat
+f : B
+*****
+forall (f0 : B) (_ : nbh f n f0), ex (fun n0 : nat => inclusion (neighbour f0 n0) (nbh f n))
++++++
+intro g.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+
+*****
+g : B
+n : nat
+f : B
+*****
+forall _ : nbh f n g, ex (fun n0 : nat => inclusion (neighbour g n0) (nbh f n))
++++++
+intro Ofng.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+
+*****
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+ex (fun n0 : nat => inclusion (neighbour g n0) (nbh f n))
++++++
+exists (S n).
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+
+*****
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+inclusion (neighbour g (S n)) (nbh f n)
++++++
+unfold inclusion in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+
+*****
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+forall (z : B) (_ : neighbour g (S n) z), nbh f n z
++++++
+intros h OhSnz.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+
+*****
+OhSnz : neighbour g (S n) h
+h : B
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+nbh f n h
++++++
+unfold nbh in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+
+*****
+OhSnz : neighbour g (S n) h
+h : B
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+neighbour f n h
++++++
+unfold neighbour in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+
+*****
+OhSnz : neighbour g (S n) h
+h : B
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+forall (m : nat) (_ : le m n), eq (f m) (h m)
++++++
+intros m lemn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+
+*****
+lemn : le m n
+m : nat
+OhSnz : neighbour g (S n) h
+h : B
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+eq (f m) (h m)
++++++
+unfold neighbour in OhSnz.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+
+*****
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : nbh f n g
+g : B
+n : nat
+f : B
+*****
+eq (f m) (h m)
++++++
+unfold nbh in Ofng.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+unfold nbh in Ofng.
+
+*****
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : neighbour f n g
+g : B
+n : nat
+f : B
+*****
+eq (f m) (h m)
++++++
+unfold neighbour in Ofng.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+unfold nbh in Ofng.
+unfold neighbour in Ofng.
+
+*****
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : forall (m : nat) (_ : le m n), eq (f m) (g m)
+g : B
+n : nat
+f : B
+*****
+eq (f m) (h m)
++++++
+generalize (Ofng m lemn).
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+unfold nbh in Ofng.
+unfold neighbour in Ofng.
+generalize (Ofng m lemn).
+
+*****
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : forall (m : nat) (_ : le m n), eq (f m) (g m)
+g : B
+n : nat
+f : B
+*****
+forall _ : eq (f m) (g m), eq (f m) (h m)
++++++
+intro E.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+unfold nbh in Ofng.
+unfold neighbour in Ofng.
+generalize (Ofng m lemn).
+intro E.
+
+*****
+E : eq (f m) (g m)
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : forall (m : nat) (_ : le m n), eq (f m) (g m)
+g : B
+n : nat
+f : B
+*****
+eq (f m) (h m)
++++++
+rewrite E.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold open in |- *.
+intro g.
+intro Ofng.
+exists (S n).
+unfold inclusion in |- *.
+intros h OhSnz.
+unfold nbh in |- *.
+unfold neighbour in |- *.
+intros m lemn.
+unfold neighbour in OhSnz.
+unfold nbh in Ofng.
+unfold neighbour in Ofng.
+generalize (Ofng m lemn).
+intro E.
+rewrite E.
+
+*****
+E : eq (f m) (g m)
+lemn : le m n
+m : nat
+OhSnz : forall (m : nat) (_ : le m (S n)), eq (g m) (h m)
+h : B
+Ofng : forall (m : nat) (_ : le m n), eq (f m) (g m)
+g : B
+n : nat
+f : B
+*****
+eq (g m) (h m)
++++++
+auto.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+
+*****
+n : nat
+f : B
+*****
+closed (nbh f n)
++++++
+unfold closed in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+
+*****
+n : nat
+f : B
+*****
+open (complement (nbh f n))
++++++
+unfold nbh in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+
+*****
+n : nat
+f : B
+*****
+open (complement (neighbour f n))
++++++
+unfold open in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+
+*****
+n : nat
+f : B
+*****
+forall (f0 : B) (_ : complement (neighbour f n) f0), ex (fun n0 : nat => inclusion (neighbour f0 n0) (complement (neighbour f n)))
++++++
+unfold complement in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+
+*****
+n : nat
+f : B
+*****
+forall (f0 : B) (_ : not (neighbour f n f0)), ex (fun n0 : nat => inclusion (neighbour f0 n0) (fun z : B => not (neighbour f n z)))
++++++
+unfold neighbour in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+
+*****
+n : nat
+f : B
+*****
+forall (f0 : B) (_ : not (forall (m : nat) (_ : le m n), eq (f m) (f0 m))), ex (fun n0 : nat => inclusion (fun g : B => forall (m : nat) (_ : le m n0), eq (f0 m) (g m)) (fun z : B => not (forall (m : nat) (_ : le m n), eq (f m) (z m))))
++++++
+intro g.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+
+*****
+g : B
+n : nat
+f : B
+*****
+forall _ : not (forall (m : nat) (_ : le m n), eq (f m) (g m)), ex (fun n0 : nat => inclusion (fun g0 : B => forall (m : nat) (_ : le m n0), eq (g m) (g0 m)) (fun z : B => not (forall (m : nat) (_ : le m n), eq (f m) (z m))))
++++++
+intro notgfn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+
+*****
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+ex (fun n0 : nat => inclusion (fun g0 : B => forall (m : nat) (_ : le m n0), eq (g m) (g0 m)) (fun z : B => not (forall (m : nat) (_ : le m n), eq (f m) (z m))))
++++++
+exists n.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+
+*****
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+inclusion (fun g0 : B => forall (m : nat) (_ : le m n), eq (g m) (g0 m)) (fun z : B => not (forall (m : nat) (_ : le m n), eq (f m) (z m)))
++++++
+unfold inclusion in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+
+*****
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+forall (z : B) (_ : forall (m : nat) (_ : le m n), eq (g m) (z m)), not (forall (m : nat) (_ : le m n), eq (f m) (z m))
++++++
+intro h.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+
+*****
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+forall _ : forall (m : nat) (_ : le m n), eq (g m) (h m), not (forall (m : nat) (_ : le m n), eq (f m) (h m))
++++++
+intro hgn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+
+*****
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+not (forall (m : nat) (_ : le m n), eq (f m) (h m))
++++++
+unfold not in |- *.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+
+*****
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+forall _ : forall (m : nat) (_ : le m n), eq (f m) (h m), False
++++++
+intros fhn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+intros fhn.
+
+*****
+fhn : forall (m : nat) (_ : le m n), eq (f m) (h m)
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+False
++++++
+apply notgfn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+intros fhn.
+apply notgfn.
+
+*****
+fhn : forall (m : nat) (_ : le m n), eq (f m) (h m)
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+forall (m : nat) (_ : le m n), eq (f m) (g m)
++++++
+intros p psn.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+intros fhn.
+apply notgfn.
+intros p psn.
+
+*****
+psn : le p n
+p : nat
+fhn : forall (m : nat) (_ : le m n), eq (f m) (h m)
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+eq (f p) (g p)
++++++
+rewrite (fhn p psn).
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+intros fhn.
+apply notgfn.
+intros p psn.
+rewrite (fhn p psn).
+
+*****
+psn : le p n
+p : nat
+fhn : forall (m : nat) (_ : le m n), eq (f m) (h m)
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+eq (h p) (g p)
++++++
+rewrite (hgn p psn).
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+unfold closed in |- *.
+unfold nbh in |- *.
+unfold open in |- *.
+unfold complement in |- *.
+unfold neighbour in |- *.
+intro g.
+intro notgfn.
+exists n.
+unfold inclusion in |- *.
+intro h.
+intro hgn.
+unfold not in |- *.
+intros fhn.
+apply notgfn.
+intros p psn.
+rewrite (fhn p psn).
+rewrite (hgn p psn).
+
+*****
+psn : le p n
+p : nat
+fhn : forall (m : nat) (_ : le m n), eq (f m) (h m)
+hgn : forall (m : nat) (_ : le m n), eq (g m) (h m)
+h : B
+notgfn : not (forall (m : nat) (_ : le m n), eq (f m) (g m))
+g : B
+n : nat
+f : B
+*****
+eq (h p) (h p)
++++++
+trivial.
+-----
+Lemma clopenbasis : forall (f : B) (n : nat), clopen (nbh f n).
+intros f n.
+unfold clopen in |- *.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

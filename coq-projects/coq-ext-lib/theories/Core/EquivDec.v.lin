@@ -1,0 +1,18 @@
+2cd3d0054be282d01cb2729a81d9c700
+Require Import Coq.Classes.EquivDec.
+Theorem EquivDec_refl_left {T : Type} {c : EqDec T (@eq T)} :
+  forall (n : T), equiv_dec n n = left (refl_equal _).
+Proof.
+  intros.
+  destruct (equiv_dec n n).
+  {
+    try congruence.
+    From Coq Require Eqdep_dec.
+    rewrite (Eqdep_dec.UIP_dec (A := T) (@equiv_dec _ _ _ c) e (refl_equal _)).
+    reflexivity.
+  }
+  {
+    try congruence.
+  }
+Qed.
+Export Coq.Classes.EquivDec.

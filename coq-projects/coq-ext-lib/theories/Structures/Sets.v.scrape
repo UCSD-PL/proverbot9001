@@ -1,0 +1,54 @@
+Require Import ExtLib.Structures.Monoid.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section Sets.
+-----
+Variable S : Type.
+-----
+Variable T : Type.
+-----
+Class DSet : Type :=\n  { contains   : T -> S -> bool\n  ; empty      : S\n  ; singleton  : T -> S \n  ; union      : S -> S -> S\n  ; filter     : (T -> bool) -> S -> S\n  ; intersect  : S -> S -> S\n  ; difference : S -> S -> S\n  ; subset     : S -> S -> bool\n    \n  ; add        : T -> S -> S\n  ; remove     : T -> S -> S\n  }.
+-----
+Variable DS : DSet.
+-----
+Variable eqT : T -> T -> Prop.
+-----
+Class DSet_Laws : Type :=\n  { DSet_WF : S -> Prop\n  ; empty_WF : DSet_WF empty\n  ; singleton_WF : forall x, DSet_WF (singleton x)\n  ; union_WF : forall s s', DSet_WF s -> DSet_WF s' -> DSet_WF (union s s')\n  ; filter_WF : forall s f, DSet_WF s -> DSet_WF (filter f s)\n  ; intersect_WF : forall s s', DSet_WF s -> DSet_WF s' -> DSet_WF (intersect s s')\n  ; difference_WF : forall s s', DSet_WF s -> DSet_WF s' -> DSet_WF (difference s s')\n  ; add_WF : forall s x, DSet_WF s -> DSet_WF (add x s)\n  ; remove_WF : forall s x, DSet_WF s -> DSet_WF (remove x s)\n\n  ; empty_not_contains : forall t, contains t empty = false\n  ; singleton_contains : forall t u, \n    contains t (singleton u) = true <-> eqT t u\n  ; union_contains     : forall s s',\n    DSet_WF s -> DSet_WF s' ->\n    forall x, orb (contains x s) (contains x s') = contains x (union s s')\n  ; intersect_contains : forall s s',\n    DSet_WF s -> DSet_WF s' ->\n    forall x, andb (contains x s) (contains x s') = contains x (intersect s s')\n  ; difference_contains : forall s s',\n    DSet_WF s -> DSet_WF s' ->\n    forall x, andb (contains x s) (negb (contains x s')) = contains x (difference s s')\n  ; subset_contains    : forall s s', \n    DSet_WF s -> DSet_WF s' ->\n    subset s s' = true <-> \n    (forall x, contains x s = true -> contains x s' = true)\n\n  ; add_contains       : forall s x, DSet_WF s -> \n    contains x (add x s) = true\n  ; add_contains_not   : forall s x y, DSet_WF s -> \n    ~eqT x y -> contains x (add y s) = contains x s \n  ; remove_contains    : forall s x, DSet_WF s -> \n    contains x (remove x s) = false\n  ; remove_contains_not : forall s x y, DSet_WF s -> \n    ~eqT x y -> contains x (remove y s) = contains x s\n  }.
+-----
+End Sets.
+-----
+Arguments contains {S} {T} {_} _ _.
+-----
+Arguments empty {S} {T} {_}.
+-----
+Arguments singleton {S} {T} {_} _.
+-----
+Arguments union {S} {T} {_} _ _.
+-----
+Arguments intersect {S} {T} {_} _ _.
+-----
+Arguments difference {S} {T} {_} _ _.
+-----
+Arguments subset {S} {T} {_} _ _.
+-----
+Arguments add {S} {T} {_} _ _.
+-----
+Arguments remove {S} {T} {_} _ _.
+-----
+Arguments filter {S} {T} {_} _ _.
+-----
+Section monoid.
+-----
+Variable S : Type.
+-----
+Context {T : Type}.
+-----
+Context {set : DSet S T}.
+-----
+Definition Monoid_set_union : Monoid S :=\n  {| monoid_plus := union\n   ; monoid_unit := empty\n  |}.
+-----
+End monoid.
+-----

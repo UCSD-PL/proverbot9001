@@ -1,0 +1,3503 @@
+Require Export c_completeness.
+-----
+Set Implicit Arguments.
+-----
+Module Type sequent_mod (B: base_mod) (S: sound_mod B) (C: complete_mod B S).
+-----
+Import B S C.
+-----
+Reserved Notation "Γ ⊃ A" (at level 80).
+-----
+Inductive G : list PropF->list PropF->Prop :=\n| Gax  : forall A Γ Δ      , In A Γ           -> In A Δ          -> Γ ⊃ Δ\n| GBot : forall Γ Δ        , In ⊥ Γ                              -> Γ ⊃ Δ\n| AndL : forall A B Γ1 Γ2 Δ, Γ1++A::B::Γ2 ⊃ Δ                    -> Γ1++A∧B::Γ2 ⊃ Δ\n| AndR : forall A B Γ Δ1 Δ2, Γ ⊃ Δ1++A::Δ2    -> Γ ⊃ Δ1++B::Δ2   -> Γ ⊃ Δ1++A∧B::Δ2\n| OrL  : forall A B Γ1 Γ2 Δ, Γ1++A::Γ2 ⊃ Δ    -> Γ1++B::Γ2 ⊃ Δ   -> Γ1++A∨B::Γ2 ⊃ Δ\n| OrR  : forall A B Γ Δ1 Δ2, Γ ⊃ Δ1++A::B::Δ2                     -> Γ ⊃ Δ1++A∨B::Δ2\n| ImpL : forall A B Γ1 Γ2 Δ, Γ1++B::Γ2 ⊃ Δ    -> Γ1++Γ2 ⊃ A::Δ   -> Γ1++A→B::Γ2 ⊃ Δ\n| ImpR : forall A B Γ Δ1 Δ2, A::Γ ⊃ Δ1++B::Δ2                     -> Γ ⊃ Δ1++A→B::Δ2\n| Cut  : forall A Γ Δ      , Γ ⊃ A::Δ         -> A::Γ ⊃ Δ        -> Γ ⊃ Δ\nwhere "Γ ⊃ Δ" := (G Γ Δ) : My_scope.
+-----
+Definition BigOr := fold_right Disj ⊥.
+-----
+Notation "⋁ Δ" := (BigOr Δ) (at level 19).
+-----
+Definition Ncl Γ := map_fold_right (Nc Γ) and True.
+-----
+Notation "Γ ⊢⊢ Δ" := (Ncl Γ Δ) (at level 80).
+-----
+Notation "¬l Γ" := (map Neg Γ) (at level 40).
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+
+*****
+
+*****
+forall (Γ : list PropF) (A B : PropF) (_ : Nc Γ (Neg (Conj A B))), Nc Γ (Disj (Neg A) (Neg B))
++++++
+do 3 intro.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+forall _ : Nc Γ (Neg (Conj A B)), Nc Γ (Disj (Neg A) (Neg B))
++++++
+apply prov_impl.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Provable (Impl (Neg (Conj A B)) (Disj (Neg A) (Neg B)))
++++++
+apply ImpI.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Conj A B)) nil) (Disj (Neg A) (Neg B))
++++++
+apply BotC.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil)) Bot
++++++
+apply ImpE with (A ∧ B).
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil)) (Impl (Conj A B) Bot)
++++++
+is_ass.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil)) (Conj A B)
++++++
+apply AndI.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil)) A
++++++
+apply BotC.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) Bot
++++++
+apply ImpE with (¬A ∨ ¬B).
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Impl (Disj (Neg A) (Neg B)) Bot)
++++++
+is_ass.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Disj (Neg A) (Neg B))
++++++
+idtac.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+idtac.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Disj (Neg A) (Neg B))
++++++
+apply OrI1.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+idtac.
+apply OrI1.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg A) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Neg A)
++++++
+is_ass.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil)) B
++++++
+apply BotC.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg B) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) Bot
++++++
+apply ImpE with (¬A ∨ ¬B).
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg B) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Impl (Disj (Neg A) (Neg B)) Bot)
++++++
+is_ass.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg B) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Disj (Neg A) (Neg B))
++++++
+idtac.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+idtac.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg B) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Disj (Neg A) (Neg B))
++++++
+apply OrI2.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+apply AndI.
+apply BotC.
+apply ImpE with (¬A ∨ ¬B).
+idtac.
+apply OrI2.
+
+*****
+Γ : list PropF
+A, B : PropF
+*****
+Nc (cons (Neg B) (cons (Neg (Disj (Neg A) (Neg B))) (cons (Neg (Conj A B)) nil))) (Neg B)
++++++
+is_ass.
+-----
+Lemma NegAnd_impl_OrNeg : forall Γ A B, Γ ⊢ ¬(A∧B) -> Γ ⊢ ¬A∨¬B.
+do 3 intro.
+apply prov_impl.
+apply ImpI.
+apply BotC.
+apply ImpE with (A ∧ B).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+
+*****
+
+*****
+forall (Γ1 Γ2 Δ : list PropF) (_ : forall (B : PropF) (_ : In B Γ1), In B Γ2) (_ : Ncl Γ1 Δ), Ncl Γ2 Δ
++++++
+intros.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+
+*****
+Γ1, Γ2, Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Ncl Γ1 Δ
+*****
+Ncl Γ2 Δ
++++++
+induction Δ.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+Γ1, Γ2 : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Ncl Γ1 nil
+*****
+Ncl Γ2 nil
++++++
+trivial.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Ncl Γ1 (cons a Δ)
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+Ncl Γ2 (cons a Δ)
++++++
+destruct H0.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+Ncl Γ2 (cons a Δ)
++++++
+split.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+split.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+Nc Γ2 a
++++++
+eapply weakening2.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+split.
+eapply weakening2.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+Nc ?Γ a
++++++
+eassumption.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+split.
+eapply weakening2.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+forall (B : PropF) (_ : In B Γ1), In B Γ2
++++++
+eassumption.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+split.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+map_fold_right (Nc Γ2) and True Δ
++++++
+apply IHΔ.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+destruct H0.
+split.
+apply IHΔ.
+
+*****
+Γ1, Γ2 : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B Γ1), In B Γ2
+H0 : Nc Γ1 a
+H1 : map_fold_right (Nc Γ1) and True Δ
+IHΔ : forall _ : Ncl Γ1 Δ, Ncl Γ2 Δ
+*****
+Ncl Γ1 Δ
++++++
+apply H1.
+-----
+Lemma Nc_list_weakening : forall Γ1 Γ2 Δ, (forall B, In B Γ1 -> In B Γ2) -> Γ1 ⊢⊢ Δ -> Γ2 ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Nc_list_impl : forall Γ A, Γ ⊢ A ->forall Δ, Δ ⊢⊢ Γ -> Δ ⊢ A.
+-----
+Lemma Nc_list_impl : forall Γ A, Γ ⊢ A ->forall Δ, Δ ⊢⊢ Γ -> Δ ⊢ A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF) (_ : Nc Γ A) (Δ : list PropF) (_ : Ncl Δ Γ), Nc Δ A
++++++
+induction 1;intros;[induction Γ;destruct H;[subst;apply H0|apply IHΓ;[assumption|apply H0]] |constructor 2|econstructor 3|constructor 4|constructor 5|econstructor 6 |econstructor 7|constructor 8|constructor 9|econstructor 10];try eauto; [apply IHNc..|apply IHNc2|try apply IHNc3]; (split;[is_ass|eapply Nc_list_weakening;[|eassumption];in_solve]).
+-----
+Lemma Nc_list_impl : forall Γ A, Γ ⊢ A ->forall Δ, Δ ⊢⊢ Γ -> Δ ⊢ A.
+induction 1;intros;[induction Γ;destruct H;[subst;apply H0|apply IHΓ;[assumption|apply H0]] |constructor 2|econstructor 3|constructor 4|constructor 5|econstructor 6 |econstructor 7|constructor 8|constructor 9|econstructor 10];try eauto; [apply IHNc..|apply IHNc2|try apply IHNc3]; (split;[is_ass|eapply Nc_list_weakening;[|eassumption];in_solve]).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+
+*****
+
+*****
+forall (Γ Δ : list PropF) (_ : forall (B : PropF) (_ : In B Δ), In B Γ), Ncl Γ Δ
++++++
+intros.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+
+*****
+Γ, Δ : list PropF
+H : forall (B : PropF) (_ : In B Δ), In B Γ
+*****
+Ncl Γ Δ
++++++
+induction Δ.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+Γ : list PropF
+H : forall (B : PropF) (_ : In B nil), In B Γ
+*****
+Ncl Γ nil
++++++
+exact I.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+Ncl Γ (cons a Δ)
++++++
+split.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+Nc Γ a
++++++
+constructor.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+constructor.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+In a Γ
++++++
+apply H.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+constructor.
+apply H.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+In a (cons a Δ)
++++++
+in_solve.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+map_fold_right (Nc Γ) and True Δ
++++++
+apply IHΔ.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+apply IHΔ.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+*****
+forall (B : PropF) (_ : In B Δ), In B Γ
++++++
+intros.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+apply IHΔ.
+intros.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+B : PropF
+H0 : In B Δ
+*****
+In B Γ
++++++
+apply H.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+split.
+apply IHΔ.
+intros.
+apply H.
+
+*****
+Γ : list PropF
+a : PropF
+Δ : list PropF
+H : forall (B : PropF) (_ : In B (cons a Δ)), In B Γ
+IHΔ : forall _ : forall (B : PropF) (_ : In B Δ), In B Γ, Ncl Γ Δ
+B : PropF
+H0 : In B Δ
+*****
+In B (cons a Δ)
++++++
+in_solve.
+-----
+Lemma Nc_list_contained : forall Γ Δ, (forall B, In B Δ -> In B Γ) -> Γ ⊢⊢ Δ.
+intros.
+induction Δ.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+
+*****
+
+*****
+forall (Γ Δ1 Δ2 : list PropF) (_ : Ncl Γ Δ1) (_ : Ncl Γ Δ2), Ncl Γ (app Δ1 Δ2)
++++++
+intros.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+
+*****
+Γ, Δ1, Δ2 : list PropF
+H : Ncl Γ Δ1
+H0 : Ncl Γ Δ2
+*****
+Ncl Γ (app Δ1 Δ2)
++++++
+induction Δ1.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+
+*****
+Γ, Δ2 : list PropF
+H : Ncl Γ nil
+H0 : Ncl Γ Δ2
+*****
+Ncl Γ (app nil Δ2)
++++++
+assumption.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+
+*****
+Γ : list PropF
+a : PropF
+Δ1, Δ2 : list PropF
+H : Ncl Γ (cons a Δ1)
+H0 : Ncl Γ Δ2
+IHΔ1 : forall _ : Ncl Γ Δ1, Ncl Γ (app Δ1 Δ2)
+*****
+Ncl Γ (app (cons a Δ1) Δ2)
++++++
+destruct H.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+destruct H.
+
+*****
+Γ : list PropF
+a : PropF
+Δ1, Δ2 : list PropF
+H : Nc Γ a
+H1 : map_fold_right (Nc Γ) and True Δ1
+H0 : Ncl Γ Δ2
+IHΔ1 : forall _ : Ncl Γ Δ1, Ncl Γ (app Δ1 Δ2)
+*****
+Ncl Γ (app (cons a Δ1) Δ2)
++++++
+split.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+destruct H.
+split.
+
+*****
+Γ : list PropF
+a : PropF
+Δ1, Δ2 : list PropF
+H : Nc Γ a
+H1 : map_fold_right (Nc Γ) and True Δ1
+H0 : Ncl Γ Δ2
+IHΔ1 : forall _ : Ncl Γ Δ1, Ncl Γ (app Δ1 Δ2)
+*****
+Nc Γ a
++++++
+assumption.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+destruct H.
+split.
+
+*****
+Γ : list PropF
+a : PropF
+Δ1, Δ2 : list PropF
+H : Nc Γ a
+H1 : map_fold_right (Nc Γ) and True Δ1
+H0 : Ncl Γ Δ2
+IHΔ1 : forall _ : Ncl Γ Δ1, Ncl Γ (app Δ1 Δ2)
+*****
+map_fold_right (Nc Γ) and True (app Δ1 Δ2)
++++++
+apply IHΔ1.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+destruct H.
+split.
+apply IHΔ1.
+
+*****
+Γ : list PropF
+a : PropF
+Δ1, Δ2 : list PropF
+H : Nc Γ a
+H1 : map_fold_right (Nc Γ) and True Δ1
+H0 : Ncl Γ Δ2
+IHΔ1 : forall _ : Ncl Γ Δ1, Ncl Γ (app Δ1 Δ2)
+*****
+Ncl Γ Δ1
++++++
+apply H1.
+-----
+Lemma Nc_list_app : forall Γ Δ1 Δ2, Γ ⊢⊢ Δ1 -> Γ ⊢⊢ Δ2 -> Γ ⊢⊢ Δ1++Δ2.
+intros.
+induction Δ1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac Ncl_solve := repeat match goal with\n| |- _ ⊢ _     => idtac\n| |- _ ⊢⊢ _::_ => split;[eassumption||(try (is_ass;fail))|]\n| |- _ ⊢⊢ _++_ => apply Nc_list_app\n| |- map_fold_right (Nc ?Γ) and True _ => change (map_fold_right (Nc Γ) and True) with (Ncl Γ)\n| _            => eassumption||(apply Nc_list_contained;in_solve)\nend.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+
+*****
+
+*****
+forall (Γ Δ : list PropF) (_ : G Γ Δ), Nc (app Γ (map Neg Δ)) Bot
++++++
+induction 1;try rewrite map_app in *;simpl in *.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : In A Γ
+H0 : In A Δ
+*****
+Nc (app Γ (map Neg Δ)) Bot
++++++
+mp;[|is_ass].
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : In A Γ
+H0 : In A Δ
+*****
+Nc (app Γ (map Neg Δ)) (Impl A Bot)
++++++
+constructor.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : In A Γ
+H0 : In A Δ
+*****
+In (Impl A Bot) (app Γ (map Neg Δ))
++++++
+apply in_app_iff;right.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : In A Γ
+H0 : In A Δ
+*****
+In (Impl A Bot) (map Neg Δ)
++++++
+change (A → ⊥) with (¬A).
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : In A Γ
+H0 : In A Δ
+*****
+In (Neg A) (map Neg Δ)
++++++
+apply in_map;assumption.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+
+*****
+Γ, Δ : list PropF
+H : In Bot Γ
+*****
+Nc (app Γ (map Neg Δ)) Bot
++++++
+is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons A (cons B Γ2))) Δ
+IHG : Nc (app (app Γ1 (cons A (cons B Γ2))) (map Neg Δ)) Bot
+*****
+Nc (app (app Γ1 (cons (Conj A B) Γ2)) (map Neg Δ)) Bot
++++++
+eapply Nc_list_impl;[eassumption|].
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons A (cons B Γ2))) Δ
+IHG : Nc (app (app Γ1 (cons A (cons B Γ2))) (map Neg Δ)) Bot
+*****
+Ncl (app (app Γ1 (cons (Conj A B) Γ2)) (map Neg Δ)) (app (app Γ1 (cons A (cons B Γ2))) (map Neg Δ))
++++++
+Ncl_solve.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons A (cons B Γ2))) Δ
+IHG : Nc (app (app Γ1 (cons A (cons B Γ2))) (map Neg Δ)) Bot
+*****
+Nc (app (app Γ1 (cons (Conj A B) Γ2)) (map Neg Δ)) A
++++++
+eapply AndE1;is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons A (cons B Γ2))) Δ
+IHG : Nc (app (app Γ1 (cons A (cons B Γ2))) (map Neg Δ)) Bot
+*****
+Nc (app (app Γ1 (cons (Conj A B) Γ2)) (map Neg Δ)) B
++++++
+eapply AndE2;is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G Γ (app Δ1 (cons A Δ2))
+H0 : G Γ (app Δ1 (cons B Δ2))
+IHG1 : Nc (app Γ (app (map Neg Δ1) (cons (Neg A) (map Neg Δ2)))) Bot
+IHG2 : Nc (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))) Bot
+*****
+Nc (app Γ (app (map Neg Δ1) (cons (Neg (Conj A B)) (map Neg Δ2)))) Bot
++++++
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons A Γ2)) Δ
+H0 : G (app Γ1 (cons B Γ2)) Δ
+IHG1 : Nc (app (app Γ1 (cons A Γ2)) (map Neg Δ)) Bot
+IHG2 : Nc (app (app Γ1 (cons B Γ2)) (map Neg Δ)) Bot
+*****
+Nc (app (app Γ1 (cons (Disj A B) Γ2)) (map Neg Δ)) Bot
++++++
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G Γ (app Δ1 (cons A (cons B Δ2)))
+IHG : Nc\n (app Γ\n (app (map Neg Δ1)\n (cons (Neg A) (cons (Neg B) (map Neg Δ2))))) Bot
+*****
+Nc (app Γ (app (map Neg Δ1) (cons (Neg (Disj A B)) (map Neg Δ2)))) Bot
++++++
+eapply Nc_list_impl;[eassumption|].
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G Γ (app Δ1 (cons A (cons B Δ2)))
+IHG : Nc\n (app Γ\n (app (map Neg Δ1)\n (cons (Neg A) (cons (Neg B) (map Neg Δ2))))) Bot
+*****
+Ncl (app Γ (app (map Neg Δ1) (cons (Neg (Disj A B)) (map Neg Δ2)))) (app Γ (app (map Neg Δ1) (cons (Neg A) (cons (Neg B) (map Neg Δ2)))))
++++++
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G Γ (app Δ1 (cons A (cons B Δ2)))
+IHG : Nc\n (app Γ\n (app (map Neg Δ1)\n (cons (Neg A) (cons (Neg B) (map Neg Δ2))))) Bot
+*****
+Nc (cons A (app Γ (app (map Neg Δ1) (cons (Neg (Disj A B)) (map Neg Δ2))))) (Disj A B)
++++++
+eapply OrI1;is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G Γ (app Δ1 (cons A (cons B Δ2)))
+IHG : Nc\n (app Γ\n (app (map Neg Δ1)\n (cons (Neg A) (cons (Neg B) (map Neg Δ2))))) Bot
+*****
+Nc (cons B (app Γ (app (map Neg Δ1) (cons (Neg (Disj A B)) (map Neg Δ2))))) (Disj A B)
++++++
+eapply OrI2;is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+
+*****
+A, B : PropF
+Γ1, Γ2, Δ : list PropF
+H : G (app Γ1 (cons B Γ2)) Δ
+H0 : G (app Γ1 Γ2) (cons A Δ)
+IHG1 : Nc (app (app Γ1 (cons B Γ2)) (map Neg Δ)) Bot
+IHG2 : Nc (app (app Γ1 Γ2) (cons (Neg A) (map Neg Δ))) Bot
+*****
+Nc (app (app Γ1 (cons (Impl A B) Γ2)) (map Neg Δ)) Bot
++++++
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G (cons A Γ) (app Δ1 (cons B Δ2))
+IHG : Nc\n (cons A\n (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))))\n Bot
+*****
+Nc (app Γ (app (map Neg Δ1) (cons (Neg (Impl A B)) (map Neg Δ2)))) Bot
++++++
+eapply Nc_list_impl;[eassumption|].
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+eapply Nc_list_impl;[eassumption|].
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G (cons A Γ) (app Δ1 (cons B Δ2))
+IHG : Nc\n (cons A\n (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))))\n Bot
+*****
+Ncl (app Γ (app (map Neg Δ1) (cons (Neg (Impl A B)) (map Neg Δ2)))) (cons A (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))))
++++++
+Ncl_solve.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G (cons A Γ) (app Δ1 (cons B Δ2))
+IHG : Nc\n (cons A\n (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))))\n Bot
+*****
+Nc (app Γ (app (map Neg Δ1) (cons (Neg (Impl A B)) (map Neg Δ2)))) A
++++++
+apply BotC;mp;[|apply ImpI;apply BotC;apply ImpE with A];is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+apply BotC;mp;[|apply ImpI;apply BotC;apply ImpE with A];is_ass.
+
+*****
+A, B : PropF
+Γ, Δ1, Δ2 : list PropF
+H : G (cons A Γ) (app Δ1 (cons B Δ2))
+IHG : Nc\n (cons A\n (app Γ (app (map Neg Δ1) (cons (Neg B) (map Neg Δ2)))))\n Bot
+*****
+Nc (app Γ (app (map Neg Δ1) (cons (Neg (Impl A B)) (map Neg Δ2)))) (Neg B)
++++++
+apply ImpI;mp;[|apply ImpI];is_ass.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+apply BotC;mp;[|apply ImpI;apply BotC;apply ImpE with A];is_ass.
+apply ImpI;mp;[|apply ImpI];is_ass.
+
+*****
+A : PropF
+Γ, Δ : list PropF
+H : G Γ (cons A Δ)
+H0 : G (cons A Γ) Δ
+IHG1 : Nc (app Γ (cons (Neg A) (map Neg Δ))) Bot
+IHG2 : Nc (cons A (app Γ (map Neg Δ))) Bot
+*****
+Nc (app Γ (map Neg Δ)) Bot
++++++
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG2| |apply IHG1|];Ncl_solve.
+-----
+Lemma G_to_Nc_Neg : forall Γ Δ, Γ ⊃ Δ -> Γ++¬l Δ ⊢ ⊥.
+induction 1;try rewrite map_app in *;simpl in *.
+mp;[|is_ass].
+constructor.
+apply in_app_iff;right.
+change (A → ⊥) with (¬A).
+apply in_map;assumption.
+is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+eapply AndE1;is_ass.
+eapply AndE2;is_ass.
+eapply OrE;[apply NegAnd_impl_OrNeg;is_ass|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|];Ncl_solve.
+eapply OrE;[is_ass|eapply Nc_list_impl..];[apply IHG1| |apply IHG2|];Ncl_solve.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve;(apply ImpI;mp;[is_ass|]).
+eapply OrI1;is_ass.
+eapply OrI2;is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG1| |apply IHG2|Ncl_solve];Ncl_solve;mp;is_ass.
+eapply Nc_list_impl;[eassumption|].
+Ncl_solve.
+apply BotC;mp;[|apply ImpI;apply BotC;apply ImpE with A];is_ass.
+apply ImpI;mp;[|apply ImpI];is_ass.
+eapply OrE;[apply Excluded_Middle|eapply Nc_list_impl..]; [apply IHG2| |apply IHG1|];Ncl_solve.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+
+*****
+
+*****
+forall (Δ Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot), Nc Γ (BigOr Δ)
++++++
+induction Δ.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+
+*****
+
+*****
+forall (Γ : list PropF) (_ : Nc (app Γ (map Neg nil)) Bot), Nc Γ (BigOr nil)
++++++
+simpl.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+
+*****
+
+*****
+forall (Γ : list PropF) (_ : Nc (app Γ nil) Bot), Nc Γ Bot
++++++
+intros.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+H : Nc (app Γ nil) Bot
+*****
+Nc Γ Bot
++++++
+rewrite app_nil_r in H.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+rewrite app_nil_r in H.
+
+*****
+Γ : list PropF
+H : Nc Γ Bot
+*****
+Nc Γ Bot
++++++
+trivial.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+*****
+forall (Γ : list PropF) (_ : Nc (app Γ (map Neg (cons a Δ))) Bot), Nc Γ (BigOr (cons a Δ))
++++++
+simpl.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+*****
+forall (Γ : list PropF) (_ : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot), Nc Γ (Disj a (BigOr Δ))
++++++
+intros.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc Γ (Disj a (BigOr Δ))
++++++
+eapply OrE.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc Γ (Disj ?A ?B)
++++++
+apply Excluded_Middle.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc (cons ?A Γ) (Disj a (BigOr Δ))
++++++
+apply OrI1.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+apply OrI1.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc (cons ?A Γ) a
++++++
+is_ass.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc (cons (Neg a) Γ) (Disj a (BigOr Δ))
++++++
+apply OrI2.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+apply OrI2.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc (cons (Neg a) Γ) (BigOr Δ)
++++++
+apply IHΔ.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+apply OrI2.
+apply IHΔ.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc (app (cons (Neg a) Γ) (map Neg Δ)) Bot
++++++
+eapply Nc_list_impl.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+apply OrI2.
+apply IHΔ.
+eapply Nc_list_impl.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Nc ?Γ Bot
++++++
+eassumption.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+simpl.
+intros.
+eapply OrE.
+apply OrI2.
+apply IHΔ.
+eapply Nc_list_impl.
+
+*****
+a : PropF
+Δ : list PropF
+IHΔ : forall (Γ : list PropF) (_ : Nc (app Γ (map Neg Δ)) Bot),\n Nc Γ (BigOr Δ)
+Γ : list PropF
+H : Nc (app Γ (cons (Neg a) (map Neg Δ))) Bot
+*****
+Ncl (app (cons (Neg a) Γ) (map Neg Δ)) (app Γ (cons (Neg a) (map Neg Δ)))
++++++
+Ncl_solve.
+-----
+Lemma ConjNeg_Disj : forall Δ Γ, Γ ++ ¬l Δ ⊢ ⊥ -> Γ ⊢ ⋁Δ.
+induction Δ.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+
+*****
+
+*****
+forall (Γ Δ : list PropF) (_ : G Γ Δ), Nc Γ (BigOr Δ)
++++++
+intros.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+intros.
+
+*****
+Γ, Δ : list PropF
+H : G Γ Δ
+*****
+Nc Γ (BigOr Δ)
++++++
+apply ConjNeg_Disj.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+intros.
+apply ConjNeg_Disj.
+
+*****
+Γ, Δ : list PropF
+H : G Γ Δ
+*****
+Nc (app Γ (map Neg Δ)) Bot
++++++
+apply G_to_Nc_Neg.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+intros.
+apply ConjNeg_Disj.
+apply G_to_Nc_Neg.
+
+*****
+Γ, Δ : list PropF
+H : G Γ Δ
+*****
+G Γ Δ
++++++
+assumption.
+-----
+Theorem G_to_Nc : forall Γ Δ, Γ ⊃ Δ -> Γ ⊢ ⋁Δ.
+intros.
+apply ConjNeg_Disj.
+apply G_to_Nc_Neg.
+assumption.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Local Ltac temp1 := econstructor;split;reflexivity||(rewrite app_comm_cons;reflexivity).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\l2=l++l4)\/\n                                                                      (exists l,l4=l++a::l2/\l1=l3++l)).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+
+*****
+
+*****
+forall (A : Type) (a : A) (l2 l4 l1 l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)), or (ex (fun l : list A => and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
++++++
+induction l1.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+
+*****
+l2,l4 : list A
+a : A
+A : Type
+*****
+forall (l3 : list A) (_ : eq (app nil (cons a l2)) (app l3 l4)), or (ex (fun l : list A => and (eq l3 (app nil (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq nil (app l3 l))))
++++++
+intros.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+
+*****
+H : eq (app nil (cons a l2)) (app l3 l4)
+l2,l4,l3 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app nil (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq nil (app l3 l))))
++++++
+destruct l3.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+
+*****
+H : eq (app nil (cons a l2)) (app nil l4)
+l2,l4 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq nil (app nil (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq nil (app nil l))))
++++++
+destruct l4;discriminate||(injection H;intros;subst).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+
+*****
+H : eq (app nil (cons a0 l4)) (app nil (cons a0 l4))
+l4 : list A
+a0 : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq nil (app nil (cons a0 l))) (eq l4 (app l (cons a0 l4))))) (ex (fun l : list A => and (eq (cons a0 l4) (app l (cons a0 l4))) (eq nil (app nil l))))
++++++
+right.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+right.
+
+*****
+H : eq (app nil (cons a0 l4)) (app nil (cons a0 l4))
+l4 : list A
+a0 : A
+A : Type
+*****
+ex (fun l : list A => and (eq (cons a0 l4) (app l (cons a0 l4))) (eq nil (app nil l)))
++++++
+exists [].
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+right.
+exists [].
+
+*****
+H : eq (app nil (cons a0 l4)) (app nil (cons a0 l4))
+l4 : list A
+a0 : A
+A : Type
+*****
+and (eq (cons a0 l4) (app nil (cons a0 l4))) (eq nil (app nil nil))
++++++
+split.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+right.
+exists [].
+split.
+
+*****
+H : eq (app nil (cons a0 l4)) (app nil (cons a0 l4))
+l4 : list A
+a0 : A
+A : Type
+*****
+eq (cons a0 l4) (app nil (cons a0 l4))
++++++
+reflexivity.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+right.
+exists [].
+split.
+
+*****
+H : eq (app nil (cons a0 l4)) (app nil (cons a0 l4))
+l4 : list A
+a0 : A
+A : Type
+*****
+eq nil (app nil nil)
++++++
+reflexivity.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+
+*****
+H : eq (app nil (cons a l2)) (app (cons a0 l3) l4)
+l3 : list A
+a0 : A
+l2,l4 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a0 l3) (app nil (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq nil (app (cons a0 l3) l))))
++++++
+idtac;discriminate||(injection H;intros;subst).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+
+*****
+H : eq (app nil (cons a0 (app l3 l4))) (app (cons a0 l3) l4)
+l3 : list A
+a0 : A
+l4 : list A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a0 l3) (app nil (cons a0 l))) (eq (app l3 l4) (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a0 (app l3 l4)))) (eq nil (app (cons a0 l3) l))))
++++++
+left.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+left.
+
+*****
+H : eq (app nil (cons a0 (app l3 l4))) (app (cons a0 l3) l4)
+l3 : list A
+a0 : A
+l4 : list A
+A : Type
+*****
+ex (fun l : list A => and (eq (cons a0 l3) (app nil (cons a0 l))) (eq (app l3 l4) (app l l4)))
++++++
+temp1.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+
+*****
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l1 : list A
+a0 : A
+l2,l4 : list A
+a : A
+A : Type
+*****
+forall (l3 : list A) (_ : eq (app (cons a0 l1) (cons a l2)) (app l3 l4)), or (ex (fun l : list A => and (eq l3 (app (cons a0 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a0 l1) (app l3 l))))
++++++
+intros.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+
+*****
+H : eq (app (cons a0 l1) (cons a l2)) (app l3 l4)
+l3 : list A
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l1 : list A
+a0 : A
+l2,l4 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (cons a0 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a0 l1) (app l3 l))))
++++++
+destruct l3.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+
+*****
+H : eq (app (cons a0 l1) (cons a l2)) (app nil l4)
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l1 : list A
+a0 : A
+l2,l4 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq nil (app (cons a0 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a0 l1) (app nil l))))
++++++
+destruct l4;discriminate||(injection H;intros;subst).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+
+*****
+IHl1 : forall (l3 : list A)\n (_ : eq (app l1 (cons a l2)) (app l3 (cons a1 (app l1 (cons a l2))))),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l)))\n (eq l2 (app l (cons a1 (app l1 (cons a l2)))))))\n (ex\n (fun l : list A =>\n and (eq (cons a1 (app l1 (cons a l2))) (app l (cons a l2)))\n (eq l1 (app l3 l))))
+H : eq (app (cons a1 l1) (cons a l2))\n (app nil (cons a1 (app l1 (cons a l2))))
+l1 : list A
+a1 : A
+l2 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq nil (app (cons a1 l1) (cons a l))) (eq l2 (app l (cons a1 (app l1 (cons a l2))))))) (ex (fun l : list A => and (eq (cons a1 (app l1 (cons a l2))) (app l (cons a l2))) (eq (cons a1 l1) (app nil l))))
++++++
+right.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+destruct l4;discriminate||(injection H;intros;subst).
+right.
+
+*****
+IHl1 : forall (l3 : list A)\n (_ : eq (app l1 (cons a l2)) (app l3 (cons a1 (app l1 (cons a l2))))),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l)))\n (eq l2 (app l (cons a1 (app l1 (cons a l2)))))))\n (ex\n (fun l : list A =>\n and (eq (cons a1 (app l1 (cons a l2))) (app l (cons a l2)))\n (eq l1 (app l3 l))))
+H : eq (app (cons a1 l1) (cons a l2))\n (app nil (cons a1 (app l1 (cons a l2))))
+l1 : list A
+a1 : A
+l2 : list A
+a : A
+A : Type
+*****
+ex (fun l : list A => and (eq (cons a1 (app l1 (cons a l2))) (app l (cons a l2))) (eq (cons a1 l1) (app nil l)))
++++++
+temp1.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+
+*****
+H : eq (app (cons a0 l1) (cons a l2)) (app (cons a1 l3) l4)
+l3 : list A
+a1 : A
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l1 : list A
+a0 : A
+l2,l4 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 l3) (app (cons a0 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a0 l1) (app (cons a1 l3) l))))
++++++
+idtac;discriminate||(injection H;intros;subst).
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+
+*****
+H0 : eq (app l1 (cons a l2)) (app l3 l4)
+H : eq (app (cons a1 l1) (cons a l2)) (app (cons a1 l3) l4)
+l3 : list A
+a1 : A
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l2,l4,l1 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 l3) (app (cons a1 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a1 l1) (app (cons a1 l3) l))))
++++++
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+
+*****
+H2 : eq l2 (app x l4)
+H1 : eq l3 (app l1 (cons a x))
+x : list A
+H0 : eq (app l1 (cons a l2)) (app l3 l4)
+H : eq (app (cons a1 l1) (cons a l2)) (app (cons a1 l3) l4)
+l3 : list A
+a1 : A
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l2,l4,l1 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 l3) (app (cons a1 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a1 l1) (app (cons a1 l3) l))))
++++++
+subst.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+subst.
+
+*****
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a (app x l4))) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq (app x l4) (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a (app x l4)))) (eq l1 (app l3 l))))
+H0 : eq (app l1 (cons a (app x l4))) (app (app l1 (cons a x)) l4)
+H : eq (app (cons a1 l1) (cons a (app x l4)))\n (app (cons a1 (app l1 (cons a x))) l4)
+a1 : A
+l4,l1,x : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 (app l1 (cons a x))) (app (cons a1 l1) (cons a l))) (eq (app x l4) (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a (app x l4)))) (eq (cons a1 l1) (app (cons a1 (app l1 (cons a x))) l))))
++++++
+left.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+subst.
+left.
+
+*****
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a (app x l4))) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq (app x l4) (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a (app x l4)))) (eq l1 (app l3 l))))
+H0 : eq (app l1 (cons a (app x l4))) (app (app l1 (cons a x)) l4)
+H : eq (app (cons a1 l1) (cons a (app x l4)))\n (app (cons a1 (app l1 (cons a x))) l4)
+a1 : A
+l4,l1,x : list A
+a : A
+A : Type
+*****
+ex (fun l : list A => and (eq (cons a1 (app l1 (cons a x))) (app (cons a1 l1) (cons a l))) (eq (app x l4) (app l l4)))
++++++
+temp1.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+
+*****
+H2 : eq l1 (app l3 x)
+H1 : eq l4 (app x (cons a l2))
+x : list A
+H0 : eq (app l1 (cons a l2)) (app l3 l4)
+H : eq (app (cons a1 l1) (cons a l2)) (app (cons a1 l3) l4)
+l3 : list A
+a1 : A
+IHl1 : forall (l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 l4)),\nor\n (ex\n (fun l : list A =>\n and (eq l3 (app l1 (cons a l))) (eq l2 (app l l4))))\n (ex\n (fun l : list A =>\n and (eq l4 (app l (cons a l2))) (eq l1 (app l3 l))))
+l2,l4,l1 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 l3) (app (cons a1 l1) (cons a l))) (eq l2 (app l l4)))) (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (cons a1 l1) (app (cons a1 l3) l))))
++++++
+subst.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+subst.
+
+*****
+IHl1 : forall (l4 : list A)\n (_ : eq (app (app l3 x) (cons a l2)) (app l4 (app x (cons a l2)))),\nor\n (ex\n (fun l : list A =>\n and (eq l4 (app (app l3 x) (cons a l)))\n (eq l2 (app l (app x (cons a l2))))))\n (ex\n (fun l : list A =>\n and (eq (app x (cons a l2)) (app l (cons a l2)))\n (eq (app l3 x) (app l4 l))))
+H0 : eq (app (app l3 x) (cons a l2)) (app l3 (app x (cons a l2)))
+H : eq (app (cons a1 (app l3 x)) (cons a l2))\n (app (cons a1 l3) (app x (cons a l2)))
+a1 : A
+l2,x,l3 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (cons a1 l3) (app (cons a1 (app l3 x)) (cons a l))) (eq l2 (app l (app x (cons a l2)))))) (ex (fun l : list A => and (eq (app x (cons a l2)) (app l (cons a l2))) (eq (cons a1 (app l3 x)) (app (cons a1 l3) l))))
++++++
+right.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+intros.
+destruct l3.
+idtac;discriminate||(injection H;intros;subst).
+destruct (IHl1 _ H0) as [(?&?&?)|(?&?&?)].
+subst.
+right.
+
+*****
+IHl1 : forall (l4 : list A)\n (_ : eq (app (app l3 x) (cons a l2)) (app l4 (app x (cons a l2)))),\nor\n (ex\n (fun l : list A =>\n and (eq l4 (app (app l3 x) (cons a l)))\n (eq l2 (app l (app x (cons a l2))))))\n (ex\n (fun l : list A =>\n and (eq (app x (cons a l2)) (app l (cons a l2)))\n (eq (app l3 x) (app l4 l))))
+H0 : eq (app (app l3 x) (cons a l2)) (app l3 (app x (cons a l2)))
+H : eq (app (cons a1 (app l3 x)) (cons a l2))\n (app (cons a1 l3) (app x (cons a l2)))
+a1 : A
+l2,x,l3 : list A
+a : A
+A : Type
+*****
+ex (fun l : list A => and (eq (app x (cons a l2)) (app l (cons a l2))) (eq (cons a1 (app l3 x)) (app (cons a1 l3) l)))
++++++
+temp1.
+-----
+Lemma in_split_app : forall A (a:A) l2 l4 l1 l3, l1++a::l2=l3++l4 -> ((exists l,l3=l1++a::l/\\l2=l++l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++l)).
+induction l1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\l2=l++b::l4)\/\n                                                                            (exists l,l4=l++a::l2/\l1=l3++b::l)\/\n                                                                            (a=b/\l1=l3/\l2=l4).
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+
+*****
+
+*****
+forall (A : Type) (a b : A) (l2 l4 l1 l3 : list A) (_ : eq (app l1 (cons a l2)) (app l3 (cons b l4))), or (ex (fun l : list A => and (eq l3 (app l1 (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq l1 (app l3 (cons b l))))) (and (eq a b) (and (eq l1 l3) (eq l2 l4))))
++++++
+intros.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+
+*****
+H : eq (app l1 (cons a l2)) (app l3 (cons b l4))
+l2,l4,l1,l3 : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app l1 (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq l1 (app l3 (cons b l))))) (and (eq a b) (and (eq l1 l3) (eq l2 l4))))
++++++
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+
+*****
+H0 : eq l2 (app x (cons b l4))
+H : eq l3 (app l1 (cons a x))
+l2,l4,l1,l3,x : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app l1 (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq l1 (app l3 (cons b l))))) (and (eq a b) (and (eq l1 l3) (eq l2 l4))))
++++++
+subst.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+
+*****
+l4,l1,x : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (app l1 (cons a x)) (app l1 (cons a l))) (eq (app x (cons b l4)) (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a (app x (cons b l4))))) (eq l1 (app (app l1 (cons a x)) (cons b l))))) (and (eq a b) (and (eq l1 (app l1 (cons a x))) (eq (app x (cons b l4)) l4))))
++++++
+left.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+left.
+
+*****
+l4,l1,x : list A
+a,b : A
+A : Type
+*****
+ex (fun l : list A => and (eq (app l1 (cons a x)) (app l1 (cons a l))) (eq (app x (cons b l4)) (app l (cons b l4))))
++++++
+econstructor.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+left.
+econstructor.
+
+*****
+l4,l1,x : list A
+a,b : A
+A : Type
+*****
+and (eq (app l1 (cons a x)) (app l1 (cons a ?l))) (eq (app x (cons b l4)) (app ?l (cons b l4)))
++++++
+split.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+left.
+econstructor.
+split.
+
+*****
+l4,l1,x : list A
+a,b : A
+A : Type
+*****
+eq (app l1 (cons a x)) (app l1 (cons a ?l))
++++++
+reflexivity.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+left.
+econstructor.
+split.
+
+*****
+l4,l1,x : list A
+a,b : A
+A : Type
+*****
+eq (app x (cons b l4)) (app x (cons b l4))
++++++
+reflexivity.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+
+*****
+H0 : eq l1 (app l3 x)
+H : eq (cons b l4) (app x (cons a l2))
+l2,l4,l1,l3,x : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app l1 (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq l1 (app l3 (cons b l))))) (and (eq a b) (and (eq l1 l3) (eq l2 l4))))
++++++
+subst.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+
+*****
+H : eq (cons b l4) (app x (cons a l2))
+l2,l4,l3,x : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 x) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 x) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 x) l3) (eq l2 l4))))
++++++
+destruct x.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+
+*****
+H : eq (cons b l4) (app nil (cons a l2))
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 nil) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 nil) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 nil) l3) (eq l2 l4))))
++++++
+injection H.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+
+*****
+H : eq (cons b l4) (app nil (cons a l2))
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+forall (_ : eq l4 l2) (_ : eq b a), or (ex (fun l : list A => and (eq l3 (app (app l3 nil) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 nil) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 nil) l3) (eq l2 l4))))
++++++
+intros.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+
+*****
+H1 : eq b a
+H0 : eq l4 l2
+H : eq (cons b l4) (app nil (cons a l2))
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 nil) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 nil) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 nil) l3) (eq l2 l4))))
++++++
+subst.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+
+*****
+H : eq (cons a l2) (app nil (cons a l2))
+l2,l3 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 nil) (cons a l))) (eq l2 (app l (cons a l2))))) (or (ex (fun l : list A => and (eq l2 (app l (cons a l2))) (eq (app l3 nil) (app l3 (cons a l))))) (and (eq a a) (and (eq (app l3 nil) l3) (eq l2 l2))))
++++++
+repeat (right||split||rewrite app_nil_r||reflexivity).
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+
+*****
+H : eq (cons b l4) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 (cons a0 x)) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 (cons a0 x)) l3) (eq l2 l4))))
++++++
+injection H.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+
+*****
+H : eq (cons b l4) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+forall (_ : eq l4 (app x (cons a l2))) (_ : eq b a0), or (ex (fun l : list A => and (eq l3 (app (app l3 (cons a0 x)) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 (cons a0 x)) l3) (eq l2 l4))))
++++++
+intros.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+
+*****
+H1 : eq b a0
+H0 : eq l4 (app x (cons a l2))
+H : eq (cons b l4) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l4,l3 : list A
+a,b : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 (cons a0 x)) (cons a l))) (eq l2 (app l (cons b l4))))) (or (ex (fun l : list A => and (eq l4 (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons b l))))) (and (eq a b) (and (eq (app l3 (cons a0 x)) l3) (eq l2 l4))))
++++++
+subst.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq l3 (app (app l3 (cons a0 x)) (cons a l))) (eq l2 (app l (cons a0 (app x (cons a l2))))))) (or (ex (fun l : list A => and (eq (app x (cons a l2)) (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons a0 l))))) (and (eq a a0) (and (eq (app l3 (cons a0 x)) l3) (eq l2 (app x (cons a l2))))))
++++++
+right.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+right.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+or (ex (fun l : list A => and (eq (app x (cons a l2)) (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons a0 l))))) (and (eq a a0) (and (eq (app l3 (cons a0 x)) l3) (eq l2 (app x (cons a l2)))))
++++++
+left.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+right.
+left.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+ex (fun l : list A => and (eq (app x (cons a l2)) (app l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons a0 l))))
++++++
+econstructor.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+right.
+left.
+econstructor.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+and (eq (app x (cons a l2)) (app ?l (cons a l2))) (eq (app l3 (cons a0 x)) (app l3 (cons a0 ?l)))
++++++
+split.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+right.
+left.
+econstructor.
+split.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+eq (app x (cons a l2)) (app ?l (cons a l2))
++++++
+reflexivity.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+subst.
+destruct x.
+injection H.
+intros.
+subst.
+right.
+left.
+econstructor.
+split.
+
+*****
+H : eq (cons a0 (app x (cons a l2))) (app (cons a0 x) (cons a l2))
+x : list A
+a0 : A
+l2,l3 : list A
+a : A
+A : Type
+*****
+eq (app l3 (cons a0 x)) (app l3 (cons a0 x))
++++++
+reflexivity.
+-----
+Lemma in_in_split_app : forall A (a:A) b l2 l4 l1 l3, l1++a::l2=l3++b::l4 -> (exists l,l3=l1++a::l/\\l2=l++b::l4)\\/ (exists l,l4=l++a::l2/\\l1=l3++b::l)\\/ (a=b/\\l1=l3/\\l2=l4).
+intros.
+apply in_split_app in H as [(?&?&?)|(?&?&?)].
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac rew1 := repeat rewrite <- app_assoc;repeat rewrite <- app_comm_cons.
+-----
+Ltac rew2 := repeat rewrite app_comm_cons;try rewrite app_assoc.
+-----
+Ltac constr := constructor 3||constructor 4||constructor 5||constructor 6||constructor 7||constructor 8.
+-----
+Local Ltac temp2 X Y Z := \n  (rew1;constr;rew2;eapply X;rew1;reflexivity)||\n  (rew2;constr;rew1;eapply X;rew2;reflexivity)||\n  (rew1;constr;rew2;[eapply Y|eapply Z];rew1;reflexivity)||\n  (rew2;constr;rew1;[eapply Y|eapply Z];rew2;reflexivity).
+-----
+Local Ltac temp3 H IHG IHG1 IHG2 Heql A0 := induction H;intros;subst;\n try apply in_split_app in Heql as [(?&?&?)|(?&?&?)];\n  subst;try (temp2 IHG IHG1 IHG2;fail);[is_ass|constructor 2;in_solve|\n   apply Cut with A0;[try rewrite app_comm_cons|rew2];auto..].
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+
+*****
+
+*****
+forall (Γ1 Γ2 Δ : list PropF) (A : PropF) (_ : G (app Γ1 Γ2) Δ), G (app Γ1 (cons A Γ2)) Δ
++++++
+intros.
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+intros.
+
+*****
+Γ1, Γ2, Δ : list PropF
+A : PropF
+H : G (app Γ1 Γ2) Δ
+*****
+G (app Γ1 (cons A Γ2)) Δ
++++++
+remember (Γ1++Γ2).
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+intros.
+remember (Γ1++Γ2).
+
+*****
+Γ1, Γ2, Δ : list PropF
+A : PropF
+l : list PropF
+Heql : eq l (app Γ1 Γ2)
+H : G l Δ
+*****
+G (app Γ1 (cons A Γ2)) Δ
++++++
+revert Γ1 Γ2 Heql.
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+intros.
+remember (Γ1++Γ2).
+revert Γ1 Γ2 Heql.
+
+*****
+Δ : list PropF
+A : PropF
+l : list PropF
+H : G l Δ
+*****
+forall (Γ1 Γ2 : list PropF) (_ : eq l (app Γ1 Γ2)), G (app Γ1 (cons A Γ2)) Δ
++++++
+temp3 H IHG IHG1 IHG2 Heql A0.
+-----
+Lemma WeakL : forall Γ1 Γ2 Δ A, Γ1++Γ2 ⊃ Δ -> Γ1++A::Γ2 ⊃ Δ.
+intros.
+remember (Γ1++Γ2).
+revert Γ1 Γ2 Heql.
+temp3 H IHG IHG1 IHG2 Heql A0.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+
+*****
+
+*****
+forall (Γ Δ1 Δ2 : list PropF) (A : PropF) (_ : G Γ (app Δ1 Δ2)), G Γ (app Δ1 (cons A Δ2))
++++++
+intros.
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+intros.
+
+*****
+Γ, Δ1, Δ2 : list PropF
+A : PropF
+H : G Γ (app Δ1 Δ2)
+*****
+G Γ (app Δ1 (cons A Δ2))
++++++
+remember (Δ1++Δ2).
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+intros.
+remember (Δ1++Δ2).
+
+*****
+Γ, Δ1, Δ2 : list PropF
+A : PropF
+l : list PropF
+Heql : eq l (app Δ1 Δ2)
+H : G Γ l
+*****
+G Γ (app Δ1 (cons A Δ2))
++++++
+revert Δ1 Δ2 Heql.
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+intros.
+remember (Δ1++Δ2).
+revert Δ1 Δ2 Heql.
+
+*****
+Γ : list PropF
+A : PropF
+l : list PropF
+H : G Γ l
+*****
+forall (Δ1 Δ2 : list PropF) (_ : eq l (app Δ1 Δ2)), G Γ (app Δ1 (cons A Δ2))
++++++
+temp3 H IHG IHG1 IHG2 Heql A0.
+-----
+Lemma WeakR : forall Γ Δ1 Δ2 A, Γ ⊃ Δ1++Δ2 -> Γ ⊃ Δ1++A::Δ2.
+intros.
+remember (Δ1++Δ2).
+revert Δ1 Δ2 Heql.
+temp3 H IHG IHG1 IHG2 Heql A0.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF) (_ : Nc Γ A), G Γ (cons A nil)
++++++
+induction 1.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+*****
+G Γ (cons A nil)
++++++
+is_ass.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc (cons A Γ) B
+IHNc : G (cons A Γ) (cons B nil)
+*****
+G Γ (cons (Impl A B) nil)
++++++
+apply ImpR with (Δ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply ImpR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc (cons A Γ) B
+IHNc : G (cons A Γ) (cons B nil)
+*****
+G (cons A Γ) (app nil (cons B nil))
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G Γ (cons B nil)
++++++
+apply Cut with (A→B).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G Γ (cons (Impl A B) (cons B nil))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G Γ (app (cons (Impl A B) nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G (cons (Impl A B) Γ) (cons B nil)
++++++
+apply ImpL with (Γ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+apply ImpL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G (app nil (cons B Γ)) (cons B nil)
++++++
+is_ass.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+apply ImpL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G (app nil Γ) (cons A (cons B nil))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A→B).
+apply ImpL with (Γ1:=[]).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Impl A B)
+H0 : Nc Γ A
+IHNc1 : G Γ (cons (Impl A B) nil)
+IHNc2 : G Γ (cons A nil)
+*****
+G (app nil Γ) (app (cons A nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G Γ (cons A nil)
++++++
+apply Cut with (¬A).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G Γ (cons (Neg A) (cons A nil))
++++++
+apply ImpR with (Δ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+apply ImpR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G (cons A Γ) (app nil (cons Bot (cons A nil)))
++++++
+is_ass.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G (cons (Neg A) Γ) (cons A nil)
++++++
+eapply Cut.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+eapply Cut.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G (cons (Neg A) Γ) (cons ?A (cons A nil))
++++++
+apply WeakR with (Δ1:=[⊥]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+eapply Cut.
+apply WeakR with (Δ1:=[⊥]).
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G (cons (Neg A) Γ) (app (cons Bot nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+eapply Cut.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+G (cons Bot (cons (Neg A) Γ)) (cons A nil)
++++++
+apply GBot.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (¬A).
+eapply Cut.
+apply GBot.
+
+*****
+Γ : list PropF
+A : PropF
+H : Nc (cons (Neg A) Γ) Bot
+IHNc : G (cons (Neg A) Γ) (cons Bot nil)
+*****
+In Bot (cons Bot (cons (Neg A) Γ))
++++++
+in_solve.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : G Γ (cons A nil)
+IHNc2 : G Γ (cons B nil)
+*****
+G Γ (cons (Conj A B) nil)
++++++
+apply AndR with (Δ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply AndR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : G Γ (cons A nil)
+IHNc2 : G Γ (cons B nil)
+*****
+G Γ (app nil (cons A nil))
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply AndR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+H0 : Nc Γ B
+IHNc1 : G Γ (cons A nil)
+IHNc2 : G Γ (cons B nil)
+*****
+G Γ (app nil (cons B nil))
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (cons A nil)
++++++
+apply Cut with (A ∧ B).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (cons (Conj A B) (cons A nil))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (app (cons (Conj A B) nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G (cons (Conj A B) Γ) (cons A nil)
++++++
+apply AndL with (Γ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply AndL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G (app nil (cons A (cons B Γ))) (cons A nil)
++++++
+is_ass.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (cons B nil)
++++++
+apply Cut with (A ∧ B).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (cons (Conj A B) (cons B nil))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G Γ (app (cons (Conj A B) nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G (cons (Conj A B) Γ) (cons B nil)
++++++
+apply AndL with (Γ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply AndL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+G (app nil (cons A (cons B Γ))) (cons B nil)
++++++
+constructor 1 with B.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply AndL with (Γ1:=[]).
+constructor 1 with B.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+In B (app nil (cons A (cons B Γ)))
++++++
+in_solve.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∧ B).
+apply AndL with (Γ1:=[]).
+constructor 1 with B.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ (Conj A B)
+IHNc : G Γ (cons (Conj A B) nil)
+*****
+In B (cons B nil)
++++++
+in_solve.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+IHNc : G Γ (cons A nil)
+*****
+G Γ (cons (Disj A B) nil)
++++++
+apply OrR with (Δ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply OrR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+IHNc : G Γ (cons A nil)
+*****
+G Γ (app nil (cons A (cons B nil)))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply OrR with (Δ1:=[]).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ A
+IHNc : G Γ (cons A nil)
+*****
+G Γ (app (cons A nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ B
+IHNc : G Γ (cons B nil)
+*****
+G Γ (cons (Disj A B) nil)
++++++
+apply OrR with (Δ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply OrR with (Δ1:=[]).
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ B
+IHNc : G Γ (cons B nil)
+*****
+G Γ (app nil (cons A (cons B nil)))
++++++
+apply WeakR.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply OrR with (Δ1:=[]).
+apply WeakR.
+
+*****
+Γ : list PropF
+A, B : PropF
+H : Nc Γ B
+IHNc : G Γ (cons B nil)
+*****
+G Γ (app nil (cons B nil))
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G Γ (cons C nil)
++++++
+apply Cut with (A ∨ B).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∨ B).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G Γ (cons (Disj A B) (cons C nil))
++++++
+apply WeakR with (Δ1:=[_]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∨ B).
+apply WeakR with (Δ1:=[_]).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G Γ (app (cons (Disj A B) nil) nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∨ B).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G (cons (Disj A B) Γ) (cons C nil)
++++++
+apply OrL with (Γ1:=[]).
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∨ B).
+apply OrL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G (app nil (cons A Γ)) (cons C nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+apply Cut with (A ∨ B).
+apply OrL with (Γ1:=[]).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H : Nc Γ (Disj A B)
+H0 : Nc (cons A Γ) C
+H1 : Nc (cons B Γ) C
+IHNc1 : G Γ (cons (Disj A B) nil)
+IHNc2 : G (cons A Γ) (cons C nil)
+IHNc3 : G (cons B Γ) (cons C nil)
+*****
+G (app nil (cons B Γ)) (cons C nil)
++++++
+assumption.
+-----
+Theorem Nc_to_G : forall Γ A, Γ ⊢ A -> Γ ⊃ [A].
+induction 1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End sequent_mod.
+-----

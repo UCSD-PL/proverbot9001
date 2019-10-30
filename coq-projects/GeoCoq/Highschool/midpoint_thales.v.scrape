@@ -1,0 +1,2878 @@
+Require Export GeoCoq.Tarski_dev.Annexes.midpoint_theorems.
+-----
+Section T_42.
+-----
+Context `{TE:Tarski_euclidean}.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint,\n   ~ Col A B C ->\n   Midpoint O A B ->\n   Cong O A O C ->\n   Per A C B.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (O A B C : Tpoint) (_ : not (Col A B C)) (_ : Midpoint O A B) (_ : Cong O A O C), Per A C B
++++++
+Proof.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (O A B C : Tpoint) (_ : not (Col A B C)) (_ : Midpoint O A B) (_ : Cong O A O C), Per A C B
++++++
+intros.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+
+*****
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+Name X the midpoint of C and A.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+
+*****
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert (Par_strict O X B C).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+
+*****
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par_strict O X B C
++++++
+perm_apply (triangle_mid_par_strict_cong_simp C B A O X).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+idtac.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert(Per O X A).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per O X A
++++++
+exists C.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+exists C.
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Midpoint X A C) (Cong O A O C)
++++++
+split.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+exists C.
+split.
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Midpoint X A C
++++++
+finish.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+exists C.
+split.
+
+*****
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong O A O C
++++++
+finish.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+
+*****
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+idtac.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+
+*****
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert_diffs.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+
+*****
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert_cols.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+
+*****
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert(Hid2 : Perp O X C A).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+
+*****
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp O X C A
++++++
+perm_apply (col_per_perp O X A C).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+idtac.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+assert (Perp B C C A).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp B C C A
++++++
+apply (cop_par_perp__perp O X B C C A).
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+apply (cop_par_perp__perp O X B C C A).
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par O X B C
++++++
+finish.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+apply (cop_par_perp__perp O X B C C A).
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp O X C A
++++++
+finish.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+apply (cop_par_perp__perp O X B C C A).
+
+*****
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar B C C A
++++++
+finish.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+
+*****
+H16 : Perp B C C A
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+apply perp_per_1.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+idtac.
+assert(Per O X A).
+idtac.
+assert_diffs.
+assert_cols.
+assert(Hid2 : Perp O X C A).
+idtac.
+assert (Perp B C C A).
+apply perp_per_1.
+
+*****
+H16 : Perp B C C A
+Hid2 : Perp O X C A
+H15 : Col O A B
+H11 : Col X C A
+H17 : not (eq X B)
+H14 : not (eq O X)
+H13 : not (eq X A)
+H12 : not (eq X C)
+H5 : not (eq O C)
+H9 : not (eq O B)
+H6 : not (eq O A)
+H10 : not (eq A C)
+H7 : not (eq B C)
+H8 : not (eq A B)
+H4 : Per O X A
+H2 : Par_strict O X B C
+H3 : Midpoint X C A
+X : Tpoint
+H1 : Cong O A O C
+H0 : Midpoint O A B
+H : not (Col A B C)
+O,A,B,C : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C A B C
++++++
+Perp.
+-----
+Lemma midpoint_thales : forall O A B C : Tpoint, ~ Col A B C -> Midpoint O A B -> Cong O A O C -> Per A C B.
+Proof.
+intros.
+Name X the midpoint of C and A.
+assert (Par_strict O X B C).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma midpoint_thales_reci :\n  forall a b c o: Tpoint,\n   Per a c b ->\n   Midpoint o a b ->\n   Cong o a o b /\ Cong o b o c.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (a b c o : Tpoint) (_ : Per a c b) (_ : Midpoint o a b), and (Cong o a o b) (Cong o b o c)
++++++
+Proof.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (a b c o : Tpoint) (_ : Per a c b) (_ : Midpoint o a b), and (Cong o a o b) (Cong o b o c)
++++++
+intros.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+
+*****
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+induction (col_dec a b c).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+
+*****
+H1 : Col a b c
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+induction (l8_9 a c b H).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+
+*****
+H2 : eq a c
+H1 : Col a b c
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+treat_equalities.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+
+*****
+H0 : Midpoint o a b
+H : Per a a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o a)
++++++
+assert_congs_perm.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o a)
++++++
+try split.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+try split.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o a o b
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+try split.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o a
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+
+*****
+H2 : eq b c
+H1 : Col a b c
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+treat_equalities.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+
+*****
+H0 : Midpoint o a b
+H : Per a b b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o b)
++++++
+assert_congs_perm.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o b)
++++++
+try split.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+try split.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o a o b
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+try split.
+
+*****
+H1 : Cong b o o a
+H : Midpoint o a b
+a,b,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o b
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+
+*****
+H1 : Col a b c
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col a c b
++++++
+treat_equalities.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+
+*****
+H1 : Col a b c
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col a c b
++++++
+assert_congs_perm.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+
+*****
+H9 : Cong b o o a
+H7 : Col c a b
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col a c b
++++++
+try split.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+induction (l8_9 a c b H).
+treat_equalities.
+assert_congs_perm.
+try split.
+
+*****
+H9 : Cong b o o a
+H7 : Col c a b
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col a c b
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+
+*****
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+assert_diffs.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+
+*****
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+assert_congs_perm.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+
+*****
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Cong o a o b) (Cong o b o c)
++++++
+split.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+
+*****
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o a o b
++++++
+Cong.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+
+*****
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(Hmid := midpoint_existence a c).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+
+*****
+Hmid : ex (fun X : Tpoint => Midpoint X a c)
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+destruct Hmid.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+
+*****
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(Hpar : Par c b x o).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+
+*****
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par c b x o
++++++
+apply (triangle_mid_par c b a o x).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+apply (triangle_mid_par c b a o x).
+
+*****
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq c b)
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+apply (triangle_mid_par c b a o x).
+
+*****
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Midpoint o b a
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+apply (triangle_mid_par c b a o x).
+
+*****
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Midpoint x c a
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(Hper : Perp c b c a).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp c b c a
++++++
+apply perp_left_comm.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+apply perp_left_comm.
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp b c c a
++++++
+apply per_perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+apply perp_left_comm.
+apply per_perp.
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq b c)
++++++
+Perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+apply perp_left_comm.
+apply per_perp.
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq c a)
++++++
+Perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+apply perp_left_comm.
+apply per_perp.
+
+*****
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per b c a
++++++
+Perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+
+*****
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+idtac.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+
+*****
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(Hcop : Coplanar x o c a).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+
+*****
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar x o c a
++++++
+Cop.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+
+*****
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+idtac.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+
+*****
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+
+*****
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(Hper2 : Perp c x o x).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+
+*****
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp c x o x
++++++
+apply (perp_col c a o x x).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+apply (perp_col c a o x x).
+
+*****
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq c x)
++++++
+assert_diffs.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+apply (perp_col c a o x x).
+assert_diffs.
+
+*****
+H14 : not (eq x o)
+H10 : not (eq x c)
+H9 : not (eq x a)
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq c x)
++++++
+finish.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+apply (perp_col c a o x x).
+
+*****
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp c a o x
++++++
+Perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+apply (perp_col c a o x x).
+
+*****
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col c a x
++++++
+assert_cols.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+apply (perp_col c a o x x).
+assert_cols.
+
+*****
+H9 : Col o a b
+H8 : Col x a c
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Col c a x
++++++
+Col.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+
+*****
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert_diffs.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+
+*****
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert (Per o x c).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+
+*****
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per o x c
++++++
+apply perp_per_2.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+apply perp_per_2.
+
+*****
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp x o x c
++++++
+Perp.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+
+*****
+H8 : Per o x c
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+idtac.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+
+*****
+H8 : Per o x c
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+unfold Per in H8.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+
+*****
+H8 : ex (fun C' : Tpoint => and (Midpoint x c C') (Cong o c o C'))
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+destruct H8.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+
+*****
+H8 : and (Midpoint x c x0) (Cong o c o x0)
+x0 : Tpoint
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+spliter.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+
+*****
+H11 : Cong o c o x0
+H8 : Midpoint x c x0
+x0 : Tpoint
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+apply l7_2 in H8.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+apply l7_2 in H8.
+
+*****
+H11 : Cong o c o x0
+H8 : Midpoint x x0 c
+x0 : Tpoint
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+assert(HmidU := l7_9 a x0 x c H2 H8).
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+apply l7_2 in H8.
+assert(HmidU := l7_9 a x0 x c H2 H8).
+
+*****
+HmidU : eq a x0
+H11 : Cong o c o x0
+H8 : Midpoint x x0 c
+x0 : Tpoint
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x a)
+Hper2 : Perp c x o x
+HH : forall _ : Coplanar x o c a, Perp x o c a
+Hcop : Coplanar x o c a
+Hper : Perp c b c a
+Hpar : Par c b x o
+H2 : Midpoint x a c
+x : Tpoint
+H19 : Cong b o o a
+H6 : not (eq o b)
+H3 : not (eq o a)
+H7 : not (eq a c)
+H4 : not (eq b c)
+H5 : not (eq a b)
+H1 : not (Col a b c)
+H0 : Midpoint o a b
+H : Per a c b
+a,b,c,o : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+subst.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+apply l7_2 in H8.
+assert(HmidU := l7_9 a x0 x c H2 H8).
+subst.
+
+*****
+H11 : Cong o c o x0
+H8 : Midpoint x x0 c
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x x0)
+Hper2 : Perp c x o x
+Hper : Perp c b c x0
+Hcop : Coplanar x o c x0
+HH : forall _ : Coplanar x o c x0, Perp x o c x0
+Hpar : Par c b x o
+H2 : Midpoint x x0 c
+x : Tpoint
+H19 : Cong b o o x0
+H6 : not (eq o b)
+H7 : not (eq x0 c)
+H3 : not (eq o x0)
+H4 : not (eq b c)
+H : Per x0 c b
+H0 : Midpoint o x0 b
+H1 : not (Col x0 b c)
+H5 : not (eq x0 b)
+b,c,o,x0 : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+unfold Midpoint in H2.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+apply l7_2 in H8.
+assert(HmidU := l7_9 a x0 x c H2 H8).
+subst.
+unfold Midpoint in H2.
+
+*****
+H11 : Cong o c o x0
+H8 : Midpoint x x0 c
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x x0)
+Hper2 : Perp c x o x
+Hper : Perp c b c x0
+Hcop : Coplanar x o c x0
+HH : forall _ : Coplanar x o c x0, Perp x o c x0
+Hpar : Par c b x o
+H2 : and (Bet x0 x c) (Cong x0 x x c)
+x : Tpoint
+H19 : Cong b o o x0
+H6 : not (eq o b)
+H7 : not (eq x0 c)
+H3 : not (eq o x0)
+H4 : not (eq b c)
+H : Per x0 c b
+H0 : Midpoint o x0 b
+H1 : not (Col x0 b c)
+H5 : not (eq x0 b)
+b,c,o,x0 : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+spliter.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+assert_diffs.
+assert_congs_perm.
+split.
+assert(Hmid := midpoint_existence a c).
+destruct Hmid.
+assert(Hpar : Par c b x o).
+assert(Hper : Perp c b c a).
+idtac.
+assert(Hcop : Coplanar x o c a).
+idtac.
+assert(HH := cop_par_perp__perp c b x o c a Hpar Hper).
+assert(Hper2 : Perp c x o x).
+assert_diffs.
+assert (Per o x c).
+idtac.
+unfold Per in H8.
+destruct H8.
+spliter.
+apply l7_2 in H8.
+assert(HmidU := l7_9 a x0 x c H2 H8).
+subst.
+unfold Midpoint in H2.
+spliter.
+
+*****
+H11 : Cong o c o x0
+H8 : Midpoint x x0 c
+H12 : not (eq o x)
+H10 : not (eq x c)
+H9 : not (eq x x0)
+Hper2 : Perp c x o x
+Hper : Perp c b c x0
+Hcop : Coplanar x o c x0
+HH : forall _ : Coplanar x o c x0, Perp x o c x0
+Hpar : Par c b x o
+H13 : Cong x0 x x c
+H2 : Bet x0 x c
+x : Tpoint
+H19 : Cong b o o x0
+H6 : not (eq o b)
+H7 : not (eq x0 c)
+H3 : not (eq o x0)
+H4 : not (eq b c)
+H : Per x0 c b
+H0 : Midpoint o x0 b
+H1 : not (Col x0 b c)
+H5 : not (eq x0 b)
+b,c,o,x0 : Tpoint
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong o b o c
++++++
+eCong.
+-----
+Lemma midpoint_thales_reci : forall a b c o: Tpoint, Per a c b -> Midpoint o a b -> Cong o a o b /\\ Cong o b o c.
+Proof.
+intros.
+induction (col_dec a b c).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End T_42.
+-----

@@ -1,0 +1,7477 @@
+From Coq Require Import ZArith.
+-----
+Require Import ZArithRing.
+-----
+Require Import Zcomplements.
+-----
+Unset Standard Proposition Elimination Names.
+-----
+Inductive divide (a b : Z) : Prop :=\n    divide_intro : forall q : Z, b = (q * a)%Z -> divide a b.
+-----
+Notation "( x | y )" := (divide x y) (at level 0) : Z_scope.
+-----
+Local Open Scope Z_scope.
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+
+*****
+
+*****
+forall a : Z, divide a a
++++++
+Proof.
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+Proof.
+
+*****
+
+*****
+forall a : Z, divide a a
++++++
+intros.
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+Proof.
+intros.
+
+*****
+a : Z
+*****
+divide a a
++++++
+apply divide_intro with 1.
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+Proof.
+intros.
+apply divide_intro with 1.
+
+*****
+a : Z
+*****
+eq a (Z.mul (Zpos xH) a)
++++++
+ring.
+-----
+Lemma divide_refl : forall a : Z, (a | a).
+Proof.
+intros.
+apply divide_intro with 1.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+
+*****
+
+*****
+forall a : Z, divide (Zpos xH) a
++++++
+Proof.
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+Proof.
+
+*****
+
+*****
+forall a : Z, divide (Zpos xH) a
++++++
+intros.
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+Proof.
+intros.
+
+*****
+a : Z
+*****
+divide (Zpos xH) a
++++++
+apply divide_intro with a.
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+Proof.
+intros.
+apply divide_intro with a.
+
+*****
+a : Z
+*****
+eq a (Z.mul a (Zpos xH))
++++++
+ring.
+-----
+Lemma one_divide : forall a : Z, (1 | a).
+Proof.
+intros.
+apply divide_intro with a.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+
+*****
+
+*****
+forall a : Z, divide a Z0
++++++
+Proof.
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+Proof.
+
+*****
+
+*****
+forall a : Z, divide a Z0
++++++
+intros.
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+Proof.
+intros.
+
+*****
+a : Z
+*****
+divide a Z0
++++++
+apply divide_intro with 0.
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+Proof.
+intros.
+apply divide_intro with 0.
+
+*****
+a : Z
+*****
+eq Z0 (Z.mul Z0 a)
++++++
+ring.
+-----
+Lemma divide_0 : forall a : Z, (a | 0).
+Proof.
+intros.
+apply divide_intro with 0.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve divide_refl one_divide divide_0.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide (Z.mul c a) (Z.mul c b)
++++++
+Proof.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide (Z.mul c a) (Z.mul c b)
++++++
+simple induction 1.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)), divide (Z.mul c a) (Z.mul c b)
++++++
+intros.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+simple induction 1.
+intros.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+divide (Z.mul c a) (Z.mul c b)
++++++
+apply divide_intro with q.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with q.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.mul c b) (Z.mul q (Z.mul c a))
++++++
+rewrite H0.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with q.
+rewrite H0.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.mul c (Z.mul q a)) (Z.mul q (Z.mul c a))
++++++
+ring.
+-----
+Lemma divide_mult_left : forall a b c : Z, (a | b) -> (c * a | c * b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with q.
+rewrite H0.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide (Z.mul a c) (Z.mul b c)
++++++
+Proof.
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide (Z.mul a c) (Z.mul b c)
++++++
+intros a b c.
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+Proof.
+intros a b c.
+
+*****
+a,b,c : Z
+*****
+forall _ : divide a b, divide (Z.mul a c) (Z.mul b c)
++++++
+rewrite (Zmult_comm a c).
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+Proof.
+intros a b c.
+rewrite (Zmult_comm a c).
+
+*****
+a,b,c : Z
+*****
+forall _ : divide a b, divide (Z.mul c a) (Z.mul b c)
++++++
+rewrite (Zmult_comm b c).
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+Proof.
+intros a b c.
+rewrite (Zmult_comm a c).
+rewrite (Zmult_comm b c).
+
+*****
+a,b,c : Z
+*****
+forall _ : divide a b, divide (Z.mul c a) (Z.mul c b)
++++++
+apply divide_mult_left.
+-----
+Lemma divide_mult_right : forall a b c : Z, (a | b) -> (a * c | b * c).
+Proof.
+intros a b c.
+rewrite (Zmult_comm a c).
+rewrite (Zmult_comm b c).
+apply divide_mult_left.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve divide_mult_left divide_mult_right.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b) (_ : divide a c), divide a (Z.add b c)
++++++
+Proof.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b) (_ : divide a c), divide a (Z.add b c)
++++++
+simple induction 1.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)) (_ : divide a c), divide a (Z.add b c)
++++++
+intros q Hq.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+
+*****
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+forall _ : divide a c, divide a (Z.add b c)
++++++
+simple induction 1.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+
+*****
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq c (Z.mul q a)), divide a (Z.add b c)
++++++
+intros q' Hq'.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+divide a (Z.add b c)
++++++
+apply divide_intro with (q + q').
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q + q').
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.add b c) (Z.mul (Z.add q q') a)
++++++
+rewrite Hq.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q + q').
+rewrite Hq.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.add (Z.mul q a) c) (Z.mul (Z.add q q') a)
++++++
+rewrite Hq'.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q + q').
+rewrite Hq.
+rewrite Hq'.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.add (Z.mul q a) (Z.mul q' a)) (Z.mul (Z.add q q') a)
++++++
+ring.
+-----
+Lemma divide_plus : forall a b c : Z, (a | b) -> (a | c) -> (a | b + c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q + q').
+rewrite Hq.
+rewrite Hq'.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b), divide a (Z.opp b)
++++++
+Proof.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b), divide a (Z.opp b)
++++++
+simple induction 1.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)), divide a (Z.opp b)
++++++
+intros.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+simple induction 1.
+intros.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+divide a (Z.opp b)
++++++
+apply divide_intro with (- q).
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.opp b) (Z.mul (Z.opp q) a)
++++++
+rewrite H0.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+rewrite H0.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.opp (Z.mul q a)) (Z.mul (Z.opp q) a)
++++++
+ring.
+-----
+Lemma divide_opp : forall a b : Z, (a | b) -> (a | - b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+rewrite H0.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a (Z.opp b)), divide a b
++++++
+Proof.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a (Z.opp b)), divide a b
++++++
+intros.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+intros.
+
+*****
+H : divide a (Z.opp b)
+a,b : Z
+*****
+divide a b
++++++
+replace b with (- - b).
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+intros.
+replace b with (- - b).
+
+*****
+H : divide a (Z.opp b)
+a,b : Z
+*****
+divide a (Z.opp (Z.opp b))
++++++
+apply divide_opp.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+intros.
+replace b with (- - b).
+apply divide_opp.
+
+*****
+H : divide a (Z.opp b)
+a,b : Z
+*****
+divide a (Z.opp b)
++++++
+trivial.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+intros.
+replace b with (- - b).
+
+*****
+H : divide a (Z.opp b)
+a,b : Z
+*****
+eq (Z.opp (Z.opp b)) b
++++++
+ring.
+-----
+Lemma divide_opp_rev : forall a b : Z, (a | - b) -> (a | b).
+Proof.
+intros.
+replace b with (- - b).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b), divide (Z.opp a) b
++++++
+Proof.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b), divide (Z.opp a) b
++++++
+simple induction 1.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)), divide (Z.opp a) b
++++++
+intros.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+simple induction 1.
+intros.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+divide (Z.opp a) b
++++++
+apply divide_intro with (- q).
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq b (Z.mul (Z.opp q) (Z.opp a))
++++++
+rewrite H0.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+rewrite H0.
+
+*****
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul q a) (Z.mul (Z.opp q) (Z.opp a))
++++++
+ring.
+-----
+Lemma divide_opp_left : forall a b : Z, (a | b) -> (- a | b).
+Proof.
+simple induction 1.
+intros.
+apply divide_intro with (- q).
+rewrite H0.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+
+*****
+
+*****
+forall (a b : Z) (_ : divide (Z.opp a) b), divide a b
++++++
+Proof.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide (Z.opp a) b), divide a b
++++++
+intros.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+intros.
+
+*****
+H : divide (Z.opp a) b
+a,b : Z
+*****
+divide a b
++++++
+replace a with (- - a).
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+intros.
+replace a with (- - a).
+
+*****
+H : divide (Z.opp a) b
+a,b : Z
+*****
+divide (Z.opp (Z.opp a)) b
++++++
+apply divide_opp_left.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+intros.
+replace a with (- - a).
+apply divide_opp_left.
+
+*****
+H : divide (Z.opp a) b
+a,b : Z
+*****
+divide (Z.opp a) b
++++++
+trivial.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+intros.
+replace a with (- - a).
+
+*****
+H : divide (Z.opp a) b
+a,b : Z
+*****
+eq (Z.opp (Z.opp a)) a
++++++
+ring.
+-----
+Lemma divide_opp_left_rev : forall a b : Z, (- a | b) -> (a | b).
+Proof.
+intros.
+replace a with (- - a).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b) (_ : divide a c), divide a (Z.sub b c)
++++++
+Proof.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b) (_ : divide a c), divide a (Z.sub b c)
++++++
+simple induction 1.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)) (_ : divide a c), divide a (Z.sub b c)
++++++
+intros q Hq.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+
+*****
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+forall _ : divide a c, divide a (Z.sub b c)
++++++
+simple induction 1.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+
+*****
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq c (Z.mul q a)), divide a (Z.sub b c)
++++++
+intros q' Hq'.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+divide a (Z.sub b c)
++++++
+apply divide_intro with (q - q').
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q - q').
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.sub b c) (Z.mul (Z.sub q q') a)
++++++
+rewrite Hq.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q - q').
+rewrite Hq.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.sub (Z.mul q a) c) (Z.mul (Z.sub q q') a)
++++++
+rewrite Hq'.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q - q').
+rewrite Hq.
+rewrite Hq'.
+
+*****
+Hq' : eq c (Z.mul q' a)
+q' : Z
+H0 : divide a c
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.sub (Z.mul q a) (Z.mul q' a)) (Z.mul (Z.sub q q') a)
++++++
+ring.
+-----
+Lemma divide_minus : forall a b c : Z, (a | b) -> (a | c) -> (a | b - c).
+Proof.
+simple induction 1.
+intros q Hq.
+simple induction 1.
+intros q' Hq'.
+apply divide_intro with (q - q').
+rewrite Hq.
+rewrite Hq'.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide a (Z.mul b c)
++++++
+Proof.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a b), divide a (Z.mul b c)
++++++
+simple induction 1.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)), divide a (Z.mul b c)
++++++
+intros q Hq.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+
+*****
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+divide a (Z.mul b c)
++++++
+apply divide_intro with (q * c).
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * c).
+
+*****
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.mul b c) (Z.mul (Z.mul q c) a)
++++++
+rewrite Hq.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * c).
+rewrite Hq.
+
+*****
+Hq : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b,c : Z
+*****
+eq (Z.mul (Z.mul q a) c) (Z.mul (Z.mul q c) a)
++++++
+ring.
+-----
+Lemma divide_left : forall a b c : Z, (a | b) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * c).
+rewrite Hq.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a c), divide a (Z.mul b c)
++++++
+Proof.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+
+*****
+
+*****
+forall (a b c : Z) (_ : divide a c), divide a (Z.mul b c)
++++++
+simple induction 1.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+simple induction 1.
+
+*****
+H : divide a c
+a,b,c : Z
+*****
+forall (q : Z) (_ : eq c (Z.mul q a)), divide a (Z.mul b c)
++++++
+intros q Hq.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+
+*****
+Hq : eq c (Z.mul q a)
+q : Z
+H : divide a c
+a,b,c : Z
+*****
+divide a (Z.mul b c)
++++++
+apply divide_intro with (q * b).
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * b).
+
+*****
+Hq : eq c (Z.mul q a)
+q : Z
+H : divide a c
+a,b,c : Z
+*****
+eq (Z.mul b c) (Z.mul (Z.mul q b) a)
++++++
+rewrite Hq.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * b).
+rewrite Hq.
+
+*****
+Hq : eq c (Z.mul q a)
+q : Z
+H : divide a c
+a,b,c : Z
+*****
+eq (Z.mul b (Z.mul q a)) (Z.mul (Z.mul q b) a)
++++++
+ring.
+-----
+Lemma divide_right : forall a b c : Z, (a | c) -> (a | b * c).
+Proof.
+simple induction 1.
+intros q Hq.
+apply divide_intro with (q * b).
+rewrite Hq.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+
+*****
+
+*****
+forall a b : Z, divide a (Z.mul a b)
++++++
+Proof.
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+Proof.
+
+*****
+
+*****
+forall a b : Z, divide a (Z.mul a b)
++++++
+intros.
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+Proof.
+intros.
+
+*****
+a,b : Z
+*****
+divide a (Z.mul a b)
++++++
+apply divide_intro with b.
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+Proof.
+intros.
+apply divide_intro with b.
+
+*****
+a,b : Z
+*****
+eq (Z.mul a b) (Z.mul b a)
++++++
+ring.
+-----
+Lemma divide_a_ab : forall a b : Z, (a | a * b).
+Proof.
+intros.
+apply divide_intro with b.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+
+*****
+
+*****
+forall a b : Z, divide a (Z.mul b a)
++++++
+Proof.
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+Proof.
+
+*****
+
+*****
+forall a b : Z, divide a (Z.mul b a)
++++++
+intros.
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+Proof.
+intros.
+
+*****
+a,b : Z
+*****
+divide a (Z.mul b a)
++++++
+apply divide_intro with b.
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+Proof.
+intros.
+apply divide_intro with b.
+
+*****
+a,b : Z
+*****
+eq (Z.mul b a) (Z.mul b a)
++++++
+ring.
+-----
+Lemma divide_a_ba : forall a b : Z, (a | b * a).
+Proof.
+intros.
+apply divide_intro with b.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve divide_plus divide_opp divide_opp_rev divide_opp_left\n  divide_opp_left_rev divide_minus divide_left divide_right divide_a_ab\n  divide_a_ba.
+-----
+Lemma z_case_0_1 :\n forall x : Z, x <= -2 \/ x = -1 \/ x = 0 \/ x = 1 \/ x >= 2.
+-----
+Lemma z_case_0_1 : forall x : Z, x <= -2 \\/ x = -1 \\/ x = 0 \\/ x = 1 \\/ x >= 2.
+
+*****
+
+*****
+forall x : Z, or (Z.le x (Zneg (xO xH))) (or (eq x (Zneg xH)) (or (eq x Z0) (or (eq x (Zpos xH)) (Z.ge x (Zpos (xO xH))))))
++++++
+Proof.
+-----
+Lemma z_case_0_1 : forall x : Z, x <= -2 \\/ x = -1 \\/ x = 0 \\/ x = 1 \\/ x >= 2.
+Proof.
+
+*****
+
+*****
+forall x : Z, or (Z.le x (Zneg (xO xH))) (or (eq x (Zneg xH)) (or (eq x Z0) (or (eq x (Zpos xH)) (Z.ge x (Zpos (xO xH))))))
++++++
+intro.
+-----
+Lemma z_case_0_1 : forall x : Z, x <= -2 \\/ x = -1 \\/ x = 0 \\/ x = 1 \\/ x >= 2.
+Proof.
+intro.
+
+*****
+x : Z
+*****
+or (Z.le x (Zneg (xO xH))) (or (eq x (Zneg xH)) (or (eq x Z0) (or (eq x (Zpos xH)) (Z.ge x (Zpos (xO xH))))))
++++++
+omega.
+-----
+Lemma z_case_0_1 : forall x : Z, x <= -2 \\/ x = -1 \\/ x = 0 \\/ x = 1 \\/ x >= 2.
+Proof.
+intro.
+omega.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma z_case_0 : forall x : Z, x <= -1 \/ x = 0 \/ x >= 1.
+-----
+Lemma z_case_0 : forall x : Z, x <= -1 \\/ x = 0 \\/ x >= 1.
+
+*****
+
+*****
+forall x : Z, or (Z.le x (Zneg xH)) (or (eq x Z0) (Z.ge x (Zpos xH)))
++++++
+Proof.
+-----
+Lemma z_case_0 : forall x : Z, x <= -1 \\/ x = 0 \\/ x >= 1.
+Proof.
+
+*****
+
+*****
+forall x : Z, or (Z.le x (Zneg xH)) (or (eq x Z0) (Z.ge x (Zpos xH)))
++++++
+intro.
+-----
+Lemma z_case_0 : forall x : Z, x <= -1 \\/ x = 0 \\/ x >= 1.
+Proof.
+intro.
+
+*****
+x : Z
+*****
+or (Z.le x (Zneg xH)) (or (eq x Z0) (Z.ge x (Zpos xH)))
++++++
+omega.
+-----
+Lemma z_case_0 : forall x : Z, x <= -1 \\/ x = 0 \\/ x >= 1.
+Proof.
+intro.
+omega.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \/ x = -1.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+
+*****
+
+*****
+forall (x : Z) (_ : divide x (Zpos xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+Proof.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+
+*****
+
+*****
+forall (x : Z) (_ : divide x (Zpos xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+simple induction 1.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+
+*****
+H : divide x (Zpos xH)
+x : Z
+*****
+forall (q : Z) (_ : eq (Zpos xH) (Z.mul q x)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intros.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+
+*****
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+elim (z_case_0_1 x).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+
+*****
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : Z.le x (Zneg (xO xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+
+*****
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : Z.le q (Zneg xH), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+assert (q * x >= 1 * 2).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul q x) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+replace (q * x) with (- q * - x).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul (Z.opp q) (Z.opp x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+try ring.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul (Z.opp q) (Z.opp x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp x) (Zpos (xO xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos (xO xH)) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+replace (q * x) with (- q * - x).
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+eq (Z.mul (Z.opp q) (Z.opp x)) (Z.mul q x)
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+
+*****
+H3 : Z.ge (Z.mul q x) (Z.mul (Zpos xH) (Zpos (xO xH)))
+H2 : Z.le q (Zneg xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : eq q Z0
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+rewrite H3 in H0.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+rewrite H3 in H0.
+
+*****
+H3 : eq q Z0
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul Z0 x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+assert (- (q * x) >= 1 * 2).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp (Z.mul q x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+replace (- (q * x)) with (q * - x).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul q (Z.opp x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+try ring.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul q (Z.opp x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp x) (Zpos (xO xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos (xO xH)) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (q * - x).
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+eq (Z.mul q (Z.opp x)) (Z.opp (Z.mul q x))
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+
+*****
+H2 : Z.ge (Z.opp (Z.mul q x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
+H3 : Z.ge q (Zpos xH)
+H1 : Z.le x (Zneg (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+
+*****
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : or (eq x (Zneg xH)) (or (eq x Z0) (or (eq x (Zpos xH)) (Z.ge x (Zpos (xO xH))))), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+
+*****
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : Z.le q (Zneg xH), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+rewrite H1 in H0.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+rewrite H1 in H0.
+
+*****
+H2 : Z.le q (Zneg xH)
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q Z0)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : eq q Z0
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+rewrite H1 in H0.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+rewrite H1 in H0.
+
+*****
+H3 : eq q Z0
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q Z0)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+rewrite H1 in H0.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+rewrite H1 in H0.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H1 : eq x Z0
+H0 : eq (Zpos xH) (Z.mul q Z0)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+
+*****
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : Z.le q (Zneg xH), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+assert (- (q * x) >= 1 * 2).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp (Z.mul q x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+replace (- (q * x)) with (- q * x).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul (Z.opp q) x) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+try ring.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul (Z.opp q) x) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge x (Zpos (xO xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+try ring.
+apply Zmult_ge_compat.
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos (xO xH)) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+replace (- (q * x)) with (- q * x).
+
+*****
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+eq (Z.mul (Z.opp q) x) (Z.opp (Z.mul q x))
++++++
+try ring.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (- (q * x) >= 1 * 2).
+
+*****
+H3 : Z.ge (Z.opp (Z.mul q x)) (Z.mul (Zpos xH) (Zpos (xO xH)))
+H1 : Z.le q (Zneg xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+
+*****
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+intuition.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : eq q Z0
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+rewrite H3 in H0.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+rewrite H3 in H0.
+
+*****
+H3 : eq q Z0
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul Z0 x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+assert (q * x >= 1 * 2).
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Z.mul q x) (Z.mul (Zpos xH) (Zpos (xO xH)))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge x (Zpos (xO xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+apply Zmult_ge_compat.
+
+*****
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+Z.ge (Zpos (xO xH)) Z0
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+intuition.
+elim (z_case_0 q).
+intuition.
+assert (q * x >= 1 * 2).
+
+*****
+H1 : Z.ge (Z.mul q x) (Z.mul (Zpos xH) (Zpos (xO xH)))
+H3 : Z.ge q (Zpos xH)
+H2 : Z.ge x (Zpos (xO xH))
+H0 : eq (Zpos xH) (Z.mul q x)
+q : Z
+H : divide x (Zpos xH)
+x : Z
+*****
+or (eq x (Zpos xH)) (eq x (Zneg xH))
++++++
+omega.
+-----
+Lemma divide_1 : forall x : Z, (x | 1) -> x = 1 \\/ x = -1.
+Proof.
+simple induction 1.
+intros.
+elim (z_case_0_1 x).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \/ a = - b.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b) (_ : divide b a), or (eq a b) (eq a (Z.opp b))
++++++
+Proof.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b) (_ : divide b a), or (eq a b) (eq a (Z.opp b))
++++++
+simple induction 1.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)) (_ : divide b a), or (eq a b) (eq a (Z.opp b))
++++++
+intros.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+
+*****
+H1 : divide b a
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+inversion H1.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+
+*****
+H2 : eq a (Z.mul q0 b)
+q0 : Z
+H1 : divide b a
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+rewrite H0 in H2.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+
+*****
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H1 : divide b a
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+clear H H1.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+
+*****
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+case (Z_zerop a).
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+
+*****
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+forall _ : eq a Z0, or (eq a b) (eq a (Z.opp b))
++++++
+intro.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+
+*****
+e : eq a Z0
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+left.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+left.
+
+*****
+e : eq a Z0
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq a b
++++++
+rewrite H0.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+left.
+rewrite H0.
+
+*****
+e : eq a Z0
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq a (Z.mul q a)
++++++
+rewrite e.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+left.
+rewrite H0.
+rewrite e.
+
+*****
+e : eq a Z0
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq Z0 (Z.mul q Z0)
++++++
+ring.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+
+*****
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+forall _ : not (eq a Z0), or (eq a b) (eq a (Z.opp b))
++++++
+intro.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+assert (Hqq0 : q0 * q = 1).
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq (Z.mul q0 q) (Zpos xH)
++++++
+apply Zmult_reg_l with a.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+apply Zmult_reg_l with a.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+not (eq a Z0)
++++++
+assumption.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+apply Zmult_reg_l with a.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq (Z.mul a (Z.mul q0 q)) (Z.mul a (Zpos xH))
++++++
+ring_simplify.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+apply Zmult_reg_l with a.
+ring_simplify.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq (Z.mul (Z.mul a q0) q) a
++++++
+pattern a at 2 in |- *.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+apply Zmult_reg_l with a.
+ring_simplify.
+pattern a at 2 in |- *.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+(fun z : Z => eq (Z.mul (Z.mul a q0) q) z) a
++++++
+rewrite H2.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+apply Zmult_reg_l with a.
+ring_simplify.
+pattern a at 2 in |- *.
+rewrite H2.
+
+*****
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+eq (Z.mul (Z.mul a q0) q) (Z.mul q0 (Z.mul q a))
++++++
+ring.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+
+*****
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+assert (q | 1).
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+
+*****
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+divide q (Zpos xH)
++++++
+rewrite <- Hqq0.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+rewrite <- Hqq0.
+
+*****
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+divide q (Z.mul q0 q)
++++++
+auto.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+
+*****
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+elim (divide_1 q H).
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+
+*****
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+forall _ : eq q (Zpos xH), or (eq a b) (eq a (Z.opp b))
++++++
+intros.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+
+*****
+H1 : eq q (Zpos xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+rewrite H1 in H0.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+rewrite H1 in H0.
+
+*****
+H1 : eq q (Zpos xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul (Zpos xH) a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+left.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+rewrite H1 in H0.
+left.
+
+*****
+H1 : eq q (Zpos xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul (Zpos xH) a)
+a,b,q : Z
+*****
+eq a b
++++++
+omega.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+
+*****
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+forall _ : eq q (Zneg xH), or (eq a b) (eq a (Z.opp b))
++++++
+intros.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+
+*****
+H1 : eq q (Zneg xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul q a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+rewrite H1 in H0.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+rewrite H1 in H0.
+
+*****
+H1 : eq q (Zneg xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul (Zneg xH) a)
+a,b,q : Z
+*****
+or (eq a b) (eq a (Z.opp b))
++++++
+right.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+intro.
+assert (Hqq0 : q0 * q = 1).
+assert (q | 1).
+elim (divide_1 q H).
+intros.
+rewrite H1 in H0.
+right.
+
+*****
+H1 : eq q (Zneg xH)
+H : divide q (Zpos xH)
+Hqq0 : eq (Z.mul q0 q) (Zpos xH)
+n : not (eq a Z0)
+H2 : eq a (Z.mul q0 (Z.mul q a))
+q0 : Z
+H0 : eq b (Z.mul (Zneg xH) a)
+a,b,q : Z
+*****
+eq a (Z.opp b)
++++++
+omega.
+-----
+Lemma divide_antisym : forall a b : Z, (a | b) -> (b | a) -> a = b \\/ a = - b.
+Proof.
+simple induction 1.
+intros.
+inversion H1.
+rewrite H0 in H2.
+clear H H1.
+case (Z_zerop a).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Zabs_ind :\n forall (P : Z -> Prop) (x : Z),\n (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+
+*****
+
+*****
+forall (P : forall _ : Z, Prop) (x : Z) (_ : forall _ : Z.ge x Z0, P x) (_ : forall _ : Z.le x Z0, P (Z.opp x)), P (Z.abs x)
++++++
+Proof.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+
+*****
+
+*****
+forall (P : forall _ : Z, Prop) (x : Z) (_ : forall _ : Z.ge x Z0, P x) (_ : forall _ : Z.le x Z0, P (Z.opp x)), P (Z.abs x)
++++++
+intros.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+
+*****
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+P (Z.abs x)
++++++
+elim (Z_lt_ge_dec x 0).
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+
+*****
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+forall _ : Z.lt x Z0, P (Z.abs x)
++++++
+intro.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+
+*****
+a : Z.lt x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+P (Z.abs x)
++++++
+rewrite Zabs_non_eq.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_non_eq.
+
+*****
+a : Z.lt x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+P (Z.opp x)
++++++
+apply H0.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_non_eq.
+apply H0.
+
+*****
+a : Z.lt x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+Z.le x Z0
++++++
+omega.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_non_eq.
+
+*****
+a : Z.lt x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+Z.le x Z0
++++++
+omega.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+
+*****
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+forall _ : Z.ge x Z0, P (Z.abs x)
++++++
+intro.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+
+*****
+b : Z.ge x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+P (Z.abs x)
++++++
+rewrite Zabs_eq.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_eq.
+
+*****
+b : Z.ge x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+P x
++++++
+apply H.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_eq.
+apply H.
+
+*****
+b : Z.ge x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+Z.ge x Z0
++++++
+assumption.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+intro.
+rewrite Zabs_eq.
+
+*****
+b : Z.ge x Z0
+H0 : forall _ : Z.le x Z0, P (Z.opp x)
+H : forall _ : Z.ge x Z0, P x
+x : Z
+P : forall _ : Z, Prop
+*****
+Z.le Z0 x
++++++
+omega.
+-----
+Lemma Zabs_ind : forall (P : Z -> Prop) (x : Z), (x >= 0 -> P x) -> (x <= 0 -> P (- x)) -> P (Zabs x).
+Proof.
+intros.
+elim (Z_lt_ge_dec x 0).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b) (_ : not (eq b Z0)), Z.le (Z.abs a) (Z.abs b)
++++++
+Proof.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+
+*****
+
+*****
+forall (a b : Z) (_ : divide a b) (_ : not (eq b Z0)), Z.le (Z.abs a) (Z.abs b)
++++++
+simple induction 1.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+
+*****
+H : divide a b
+a,b : Z
+*****
+forall (q : Z) (_ : eq b (Z.mul q a)) (_ : not (eq b Z0)), Z.le (Z.abs a) (Z.abs b)
++++++
+intros.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.abs a) (Z.abs b)
++++++
+pattern (Zabs a) in |- *.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+(fun z : Z => Z.le z (Z.abs b)) (Z.abs a)
++++++
+apply Zabs_ind.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.ge a Z0, Z.le a (Z.abs b)
++++++
+pattern (Zabs b) in |- *.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+(fun z : Z => forall _ : Z.ge a Z0, Z.le a z) (Z.abs b)
++++++
+apply Zabs_ind.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall (_ : Z.ge b Z0) (_ : Z.ge a Z0), Z.le a b
++++++
+intros.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.le q (Zneg xH), Z.le a b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+assert (- b >= 1 * 0).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) (Z.mul (Zpos xH) Z0)
++++++
+replace (- b) with (- q * a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul (Z.opp q) a) (Z.mul (Zpos xH) Z0)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge Z0 Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Z.opp q) a) (Z.opp b)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+replace (- b) with (- q * a).
+rewrite H0.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Z.opp q) a) (Z.opp (Z.mul q a))
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (- b >= 1 * 0).
+
+*****
+H5 : Z.ge (Z.opp b) (Z.mul (Zpos xH) Z0)
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), Z.le a b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+elim H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : eq q Z0, Z.le a b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : eq q Z0
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : eq q Z0
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+rewrite H5 in H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+rewrite H5 in H0.
+
+*****
+H5 : eq q Z0
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul Z0 a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.ge q (Zpos xH), Z.le a b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a b
++++++
+apply Zge_le.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b a
++++++
+replace a with (1 * a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b (Z.mul (Zpos xH) a)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q a) (Z.mul (Zpos xH) a)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a a
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace a with (1 * a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Zpos xH) a) a
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall (_ : Z.le b Z0) (_ : Z.ge a Z0), Z.le a (Z.opp b)
++++++
+intros.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.le q (Zneg xH), Z.le a (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+apply Zge_le.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) a
++++++
+replace a with (1 * a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) (Z.mul (Zpos xH) a)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp (Z.mul q a)) (Z.mul (Zpos xH) a)
++++++
+replace (- (q * a)) with (- q * a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul (Z.opp q) a) (Z.mul (Zpos xH) a)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a a
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+rewrite H0.
+replace (- (q * a)) with (- q * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Z.opp q) a) (Z.opp (Z.mul q a))
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace a with (1 * a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Zpos xH) a) a
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), Z.le a (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+elim H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : eq q Z0, Z.le a (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : eq q Z0
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : eq q Z0
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+rewrite H5 in H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+rewrite H5 in H0.
+
+*****
+H5 : eq q Z0
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul Z0 a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.ge q (Zpos xH), Z.le a (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+assert (b >= 1 * 0).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b (Z.mul (Zpos xH) Z0)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+rewrite H0.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q a) (Z.mul (Zpos xH) Z0)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge a Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+rewrite H0.
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge Z0 Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (b >= 1 * 0).
+
+*****
+H4 : Z.ge b (Z.mul (Zpos xH) Z0)
+H5 : Z.ge q (Zpos xH)
+H3 : Z.ge a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le a (Z.opp b)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.le a Z0, Z.le (Z.opp a) (Z.abs b)
++++++
+pattern (Zabs b) in |- *.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+(fun z : Z => forall _ : Z.le a Z0, Z.le (Z.opp a) z) (Z.abs b)
++++++
+apply Zabs_ind.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall (_ : Z.ge b Z0) (_ : Z.le a Z0), Z.le (Z.opp a) b
++++++
+intros.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+
+*****
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.le q (Zneg xH), Z.le (Z.opp a) b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+apply Zge_le.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b (Z.opp a)
++++++
+replace (- a) with (1 * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b (Z.mul (Zpos xH) (Z.opp a))
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q a) (Z.mul (Zpos xH) (Z.opp a))
++++++
+replace (q * a) with (- q * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul (Z.opp q) (Z.opp a)) (Z.mul (Zpos xH) (Z.opp a))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) (Z.opp a)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (q * a) with (- q * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Z.opp q) (Z.opp a)) (Z.mul q a)
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+apply Zge_le.
+replace (- a) with (1 * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Zpos xH) (Z.opp a)) (Z.opp a)
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), Z.le (Z.opp a) b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+elim H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : eq q Z0, Z.le (Z.opp a) b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : eq q Z0
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : eq q Z0
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+rewrite H5 in H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+rewrite H5 in H0.
+
+*****
+H5 : eq q Z0
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul Z0 a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.ge q (Zpos xH), Z.le (Z.opp a) b
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+assert (- b >= 1 * 0).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) (Z.mul (Zpos xH) Z0)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp (Z.mul q a)) (Z.mul (Zpos xH) Z0)
++++++
+replace (- (q * a)) with (q * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q (Z.opp a)) (Z.mul (Zpos xH) Z0)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge Z0 Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul q (Z.opp a)) (Z.opp (Z.mul q a))
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+assert (- b >= 1 * 0).
+
+*****
+H4 : Z.ge (Z.opp b) (Z.mul (Zpos xH) Z0)
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.ge b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) b
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+
+*****
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall (_ : Z.le b Z0) (_ : Z.le a Z0), Z.le (Z.opp a) (Z.opp b)
++++++
+intros.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+
+*****
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+elim (z_case_0 q).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.le q (Zneg xH), Z.le (Z.opp a) (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+assert (b >= 1 * 0).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge b (Z.mul (Zpos xH) Z0)
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q a) (Z.mul (Zpos xH) Z0)
++++++
+replace (q * a) with (- q * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul (Z.opp q) (Z.opp a)) (Z.mul (Zpos xH) Z0)
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp q) (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+apply Zmult_ge_compat.
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge Z0 Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+rewrite H0.
+replace (q * a) with (- q * - a).
+
+*****
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Z.opp q) (Z.opp a)) (Z.mul q a)
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+assert (b >= 1 * 0).
+
+*****
+H5 : Z.ge b (Z.mul (Zpos xH) Z0)
+H4 : Z.le q (Zneg xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+
+*****
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : or (eq q Z0) (Z.ge q (Zpos xH)), Z.le (Z.opp a) (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+elim H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : eq q Z0, Z.le (Z.opp a) (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : eq q Z0
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : eq q Z0
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+rewrite H5 in H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+rewrite H5 in H0.
+
+*****
+H5 : eq q Z0
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul Z0 a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+
+*****
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+forall _ : Z.ge q (Zpos xH), Z.le (Z.opp a) (Z.opp b)
++++++
+intro.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H4 : or (eq q Z0) (Z.ge q (Zpos xH))
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+clear H4.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.le (Z.opp a) (Z.opp b)
++++++
+apply Zge_le.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) (Z.opp a)
++++++
+replace (- a) with (1 * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp b) (Z.mul (Zpos xH) (Z.opp a))
++++++
+rewrite H0.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp (Z.mul q a)) (Z.mul (Zpos xH) (Z.opp a))
++++++
+replace (- (q * a)) with (q * - a).
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.mul q (Z.opp a)) (Z.mul (Zpos xH) (Z.opp a))
++++++
+apply Zmult_ge_compat.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge q (Zpos xH)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) (Z.opp a)
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Zpos xH) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+apply Zmult_ge_compat.
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+Z.ge (Z.opp a) Z0
++++++
+omega.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+rewrite H0.
+replace (- (q * a)) with (q * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul q (Z.opp a)) (Z.opp (Z.mul q a))
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+pattern (Zabs b) in |- *.
+apply Zabs_ind.
+intros.
+elim (z_case_0 q).
+intro.
+elim H4.
+intro.
+clear H4.
+apply Zge_le.
+replace (- a) with (1 * - a).
+
+*****
+H5 : Z.ge q (Zpos xH)
+H3 : Z.le a Z0
+H2 : Z.le b Z0
+H1 : not (eq b Z0)
+H0 : eq b (Z.mul q a)
+q : Z
+H : divide a b
+a,b : Z
+*****
+eq (Z.mul (Zpos xH) (Z.opp a)) (Z.opp a)
++++++
+ring.
+-----
+Lemma divide_bounds : forall a b : Z, (a | b) -> b <> 0 -> Zabs a <= Zabs b.
+Proof.
+simple induction 1.
+intros.
+pattern (Zabs a) in |- *.
+apply Zabs_ind.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

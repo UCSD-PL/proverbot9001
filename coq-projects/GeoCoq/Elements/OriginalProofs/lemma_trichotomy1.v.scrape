@@ -1,0 +1,776 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_congruenceflip.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_lessthancongruence.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_outerconnectivity.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_trichotomy1 : \n   forall A B C D, \n   ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D ->\n   Cong A B C D.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : not (Lt A B C D)) (_ : not (Lt C D A B)) (_ : neq A B) (_ : neq C D), Cong A B C D
++++++
+Proof.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : not (Lt A B C D)) (_ : not (Lt C D A B)) (_ : neq A B) (_ : neq C D), Cong A B C D
++++++
+intros.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+
+*****
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+
+*****
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+
+*****
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+
+*****
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (neq A P) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+
+*****
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+
+*****
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+
+*****
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (~ BetS A B E).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+
+*****
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (BetS A B E)
++++++
+intro.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+intro.
+
+*****
+H11 : BetS A B E
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+intro.
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+
+*****
+H12 : Cong A B A B
+H11 : BetS A B E
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Lt A B A E) by (conclude_def Lt ).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+intro.
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+assert (Lt A B A E) by (conclude_def Lt ).
+
+*****
+H13 : Lt A B A E
+H12 : Cong A B A B
+H11 : BetS A B E
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Lt A B C D) by (conclude lemma_lessthancongruence).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+intro.
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+assert (Lt A B A E) by (conclude_def Lt ).
+assert (Lt A B C D) by (conclude lemma_lessthancongruence).
+
+*****
+H14 : Lt A B C D
+H13 : Lt A B A E
+H12 : Cong A B A B
+H11 : BetS A B E
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+
+*****
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (~ BetS A E B).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+
+*****
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (BetS A E B)
++++++
+intro.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+intro.
+
+*****
+H12 : BetS A E B
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Lt C D A B) by (conclude_def Lt ).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+intro.
+assert (Lt C D A B) by (conclude_def Lt ).
+
+*****
+H13 : Lt C D A B
+H12 : BetS A E B
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+
+*****
+H12 : not (BetS A E B)
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (eq E B) by (conclude lemma_outerconnectivity).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+assert (eq E B) by (conclude lemma_outerconnectivity).
+
+*****
+H13 : eq E B
+H12 : not (BetS A E B)
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+assert (eq E B) by (conclude lemma_outerconnectivity).
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+
+*****
+H14 : Cong A B A B
+H13 : eq E B
+H12 : not (BetS A E B)
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (Cong A B A E) by (conclude cn_equalitysub).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+assert (eq E B) by (conclude lemma_outerconnectivity).
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+assert (Cong A B A E) by (conclude cn_equalitysub).
+
+*****
+H15 : Cong A B A E
+H14 : Cong A B A B
+H13 : eq E B
+H12 : not (BetS A E B)
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+assert (Cong A B C D) by (conclude lemma_congruencetransitive).
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+assert (eq E B) by (conclude lemma_outerconnectivity).
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+assert (Cong A B A E) by (conclude cn_equalitysub).
+assert (Cong A B C D) by (conclude lemma_congruencetransitive).
+
+*****
+H16 : Cong A B C D
+H15 : Cong A B A E
+H14 : Cong A B A B
+H13 : eq E B
+H12 : not (BetS A E B)
+H11 : not (BetS A B E)
+H10 : Cong A E C D
+H9 : BetS P A E
+E : Point
+H8 : neq P A
+H7 : neq A P
+H6 : BetS P A B
+H5 : Cong A P A B
+H4 : BetS B A P
+P : Point
+H3 : neq B A
+H2 : neq C D
+H1 : neq A B
+H0 : not (Lt C D A B)
+H : not (Lt A B C D)
+A,B,C,D : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B C D
++++++
+close.
+-----
+Lemma lemma_trichotomy1 : forall A B C D, ~ Lt A B C D -> ~ Lt C D A B -> neq A B -> neq C D -> Cong A B C D.
+Proof.
+intros.
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists P, (BetS B A P /\\ Cong A P A B)) by (conclude lemma_extension);destruct Tf as [P];spliter.
+assert (BetS P A B) by (conclude axiom_betweennesssymmetry).
+assert (neq A P) by (forward_using lemma_betweennotequal).
+assert (neq P A) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS P A E /\\ Cong A E C D)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (~ BetS A B E).
+assert (~ BetS A E B).
+assert (eq E B) by (conclude lemma_outerconnectivity).
+assert (Cong A B A B) by (conclude cn_congruencereflexive).
+assert (Cong A B A E) by (conclude cn_equalitysub).
+assert (Cong A B C D) by (conclude lemma_congruencetransitive).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

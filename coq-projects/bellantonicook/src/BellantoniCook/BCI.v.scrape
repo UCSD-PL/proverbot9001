@@ -1,0 +1,3749 @@
+From Coq Require Import Bool.
+-----
+From Coq Require Import List.
+-----
+From Coq Require Import Arith.
+-----
+Require Import BellantoniCook.Lib BellantoniCook.Bitstring BellantoniCook.BC.
+-----
+Inductive BCI : Set :=\n| zeroI  : BCI\n| projIn : nat -> BCI\n| projIs : nat -> BCI\n| succI  : bool -> BCI\n| predI  : BCI\n| condI  : BCI\n| recI   : BCI -> BCI -> BCI -> BCI\n| compI  : BCI -> list BCI -> list BCI -> BCI.
+-----
+Lemma BCI_ind2' :\n  forall P : BCI -> Prop,\n  forall Q : list BCI -> Prop,\n  Q nil ->\n  (forall e l, P e -> Q l -> Q (e :: l)) ->\n  P zeroI ->\n  (forall i, P (projIn i)) ->\n  (forall i, P (projIs i)) -> \n  (forall b, P (succI b)) ->\n  P predI ->\n  P condI ->\n  (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) ->\n  (forall h rl tl, P h -> Q rl -> Q tl ->\n    P (compI h rl tl)) ->\n  forall e, P e.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+
+*****
+
+*****
+forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop) (_ : Q nil) (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i)) (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b)) (_ : P predI) (_ : P condI) (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)) (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)) (e : BCI), P e
++++++
+Proof.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+
+*****
+
+*****
+forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop) (_ : Q nil) (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i)) (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b)) (_ : P predI) (_ : P condI) (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)) (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)) (e : BCI), P e
++++++
+fix BCI_ind2' 13.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+
+*****
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop) (_ : Q nil) (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i)) (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b)) (_ : P predI) (_ : P condI) (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)) (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)) (e : BCI), P e
++++++
+intros.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+
+*****
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P e
++++++
+destruct e.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+n : nat
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (projIn n)
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+n : nat
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (projIs n)
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+b : bool
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (succI b)
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (recI e1 e2 e3)
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (recI e1 e2 e3)
++++++
+apply H7.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P e1
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P e2
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P e3
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H7.
+eapply BCI_ind2'.
+
+*****
+e1,e2,e3 : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (compI e l l0)
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P (compI e l l0)
++++++
+apply H8.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P e
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+eapply BCI_ind2'.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l
++++++
+revert l.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+
+*****
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall l : list BCI, Q l
++++++
+fix BCI_ind2'0 1.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+
+*****
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall l : list BCI, Q l
++++++
+intro.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+
+*****
+l : list BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l
++++++
+destruct l.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+
+*****
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q nil
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q (cons b l)
++++++
+apply H0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P b
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l.
+fix BCI_ind2'0 1.
+intro.
+destruct l.
+apply H0.
+
+*****
+l : list BCI
+b : BCI
+BCI_ind2'0 : forall l : list BCI, Q l
+l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l
++++++
+apply BCI_ind2'0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+
+*****
+l,l0 : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l0
++++++
+revert l0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+
+*****
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall l0 : list BCI, Q l0
++++++
+fix BCI_ind2'0 1.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+
+*****
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall l0 : list BCI, Q l0
++++++
+intro.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+
+*****
+l0 : list BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l0
++++++
+destruct l0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+
+*****
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q nil
++++++
+auto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q (cons b l0)
++++++
+apply H0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P b
++++++
+eapply BCI_ind2'.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+?Q nil
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P zeroI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIn i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall i : nat, P (projIs i)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall b : bool, P (succI b)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P predI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+P condI
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+eapply BCI_ind2'.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl), P (compI h rl tl)
++++++
+eauto.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+auto.
+apply H8.
+revert l0.
+fix BCI_ind2'0 1.
+intro.
+destruct l0.
+apply H0.
+
+*****
+l0 : list BCI
+b : BCI
+BCI_ind2'0 : forall l0 : list BCI, Q l0
+l : list BCI
+e : BCI
+H8 : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : Q rl) (_ : Q tl),\nP (compI h rl tl)
+H7 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H6 : P condI
+H5 : P predI
+H4 : forall b : bool, P (succI b)
+H3 : forall i : nat, P (projIs i)
+H2 : forall i : nat, P (projIn i)
+H1 : P zeroI
+H0 : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l), Q (cons e l)
+H : Q nil
+Q : forall _ : list BCI, Prop
+P : forall _ : BCI, Prop
+BCI_ind2' : forall (P : forall _ : BCI, Prop) (Q : forall _ : list BCI, Prop)\n (_ : Q nil)\n (_ : forall (e : BCI) (l : list BCI) (_ : P e) (_ : Q l),\n Q (cons e l)) (_ : P zeroI) (_ : forall i : nat, P (projIn i))\n (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b))\n (_ : P predI) (_ : P condI)\n (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\n P (recI g h0 h1))\n (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) \n (_ : Q rl) (_ : Q tl), P (compI h rl tl)) \n (e : BCI), P e
+*****
+Q l0
++++++
+apply BCI_ind2'0.
+-----
+Lemma BCI_ind2' : forall P : BCI -> Prop, forall Q : list BCI -> Prop, Q nil -> (forall e l, P e -> Q l -> Q (e :: l)) -> P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> Q rl -> Q tl -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+fix BCI_ind2' 13.
+intros.
+destruct e.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma BCI_ind2 :\n  forall P : BCI -> Prop,\n  P zeroI ->\n  (forall i, P (projIn i)) ->\n  (forall i, P (projIs i)) ->\n  (forall b, P (succI b)) ->\n  P predI ->\n  P condI ->\n  (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) ->\n  (forall h rl tl, P h -> (forall r, In r rl -> P r) -> \n    (forall s, In s tl -> P s) ->\n    P (compI h rl tl)) ->\n  forall e, P e.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+
+*****
+
+*****
+forall (P : forall _ : BCI, Prop) (_ : P zeroI) (_ : forall i : nat, P (projIn i)) (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b)) (_ : P predI) (_ : P condI) (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)) (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : forall (r : BCI) (_ : In r rl), P r) (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)) (e : BCI), P e
++++++
+Proof.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+
+*****
+
+*****
+forall (P : forall _ : BCI, Prop) (_ : P zeroI) (_ : forall i : nat, P (projIn i)) (_ : forall i : nat, P (projIs i)) (_ : forall b : bool, P (succI b)) (_ : P predI) (_ : P condI) (_ : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1), P (recI g h0 h1)) (_ : forall (h : BCI) (rl tl : list BCI) (_ : P h) (_ : forall (r : BCI) (_ : In r rl), P r) (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)) (e : BCI), P e
++++++
+intros.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+
+*****
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e
++++++
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e : BCI) (_ : In e nil), P e
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e : BCI) (_ : In e nil), P e
++++++
+simpl.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e : BCI) (_ : False), P e
++++++
+intros.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros.
+
+*****
+H7 : False
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e
++++++
+tauto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e0 : BCI) (_ : In e0 (cons e l)), P e0
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+
+*****
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e0 : BCI) (_ : In e0 (cons e l)), P e0
++++++
+simpl.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+
+*****
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+forall (e0 : BCI) (_ : or (eq e e0) (In e0 l)), P e0
++++++
+intros e' [ | ].
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+
+*****
+H7 : eq e e'
+e' : BCI
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+intros.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+intros.
+
+*****
+H7 : eq e e'
+e' : BCI
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+subst.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+intros.
+subst.
+
+*****
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e'
+e' : BCI
+l : list BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+
+*****
+H7 : In e' l
+e' : BCI
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+intros.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+intros.
+
+*****
+H7 : In e' l
+e' : BCI
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+subst.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+auto.
+simpl.
+intros e' [ | ].
+intros.
+subst.
+
+*****
+H7 : In e' l
+e' : BCI
+IHe0 : forall (e : BCI) (_ : In e l), P e
+IHe : P e
+l : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P e'
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P zeroI
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+i : nat
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P (projIn i)
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+i : nat
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P (projIs i)
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+b : bool
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P (succI b)
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P predI
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P condI
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+IHe3 : P e3
+IHe2 : P e2
+IHe1 : P e1
+e1,e2,e3 : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P (recI e1 e2 e3)
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+IHe1 : forall (e : BCI) (_ : In e tl), P e
+IHe0 : forall (e : BCI) (_ : In e rl), P e
+IHe : P e
+rl,tl : list BCI
+e : BCI
+H6 : forall (h : BCI) (rl tl : list BCI) (_ : P h)\n (_ : forall (r : BCI) (_ : In r rl), P r)\n (_ : forall (s : BCI) (_ : In s tl), P s), P (compI h rl tl)
+H5 : forall (g h0 h1 : BCI) (_ : P g) (_ : P h0) (_ : P h1),\nP (recI g h0 h1)
+H4 : P condI
+H3 : P predI
+H2 : forall b : bool, P (succI b)
+H1 : forall i : nat, P (projIs i)
+H0 : forall i : nat, P (projIn i)
+H : P zeroI
+P : forall _ : BCI, Prop
+*****
+P (compI e rl tl)
++++++
+auto.
+-----
+Lemma BCI_ind2 : forall P : BCI -> Prop, P zeroI -> (forall i, P (projIn i)) -> (forall i, P (projIs i)) -> (forall b, P (succI b)) -> P predI -> P condI -> (forall g h0 h1, P g -> P h0 -> P h1 -> P (recI g h0 h1)) -> (forall h rl tl, P h -> (forall r, In r rl -> P r) -> (forall s, In s tl -> P s) -> P (compI h rl tl)) -> forall e, P e.
+Proof.
+intros.
+induction e using BCI_ind2' with (Q := fun l => forall e, In e l -> P e).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive TypeI :=\n  | I : nat -> nat -> TypeI\n  | E : ErrorI -> TypeI\n    with ErrorI  :=\n        | Enat : nat -> ErrorI\n        | Epair : TypeI -> TypeI -> ErrorI.
+-----
+Definition eq_t (e1 e2 : TypeI) : bool :=\n  match e1, e2 with\n    | I n1 s1, I n2 s2 => beq_nat n1 n2 && beq_nat s1 s2\n    | _, _ => false\n  end.
+-----
+Definition unionI (e1 e2 : TypeI) :=\n  match e1, e2 with\n    | I n1 s1, I n2 s2 => I (max n1 n2) (max s1 s2)\n    | _, _ => E (Enat 3)\n  end.
+-----
+Fixpoint inf_list (l : list TypeI) : TypeI :=\n  match l with\n    | nil => I 0 0\n    | e :: l' => unionI e (inf_list l')\n  end.
+-----
+Fixpoint inf (e : BCI) : TypeI :=\n  match e with\n    | zeroI => I 0 0\n    | projIn i => I (S i) 0\n    | projIs i => I 0 (S i) \n    | succI b => I 0 1\n    | predI => I 0 1\n    | condI => I 0 4  \n    | recI g h0 h1 => \n      match inf g, inf h0, inf h1 with\n        | I gn gs, I h0n h0s, I h1n h1s =>\n          I (maxl [S gn; h0n; h1n]) (maxl [gs; h0s-1; h1s-1])\n        | _, _, _ => E (Enat 1)\n      end\n    | compI h nl sl => \n      match inf h with\n        | I hn hs =>\n          if leb hn (length nl) && leb hs (length sl)\n            then \n              match inf_list (map inf nl), \n                    inf_list (map inf sl) with\n                   | I nnl snl, I nsl ssl =>\n                     if beq_nat snl 0 then\n                       I (max nnl nsl) ssl\n                       else E (Enat 4)\n                   | _, _ => E (Enat 5)\n                 end\n            else E (Enat 6)\n        | E e => E e \n      end \nend.
+-----
+Fixpoint semI (e:BCI) (vnl vsl:list bs) : bs :=\n  match e with\n  | zeroI => nil\n  | projIn i => nth i vnl nil\n  | projIs i => nth i vsl nil\n  | succI b => b :: hd nil vsl\n  | predI => tail (hd nil vsl)\n  | condI =>\n      match vsl with\n      | a :: b :: c :: d :: _ => \n        match a with \n          | nil => b\n          | true :: _ => c\n          | false :: _ => d\n        end\n      | a :: b :: c :: _ => \n        match a with \n          | nil => b\n          | true :: _ => c\n          | false :: _ => nil\n        end\n      | a :: b :: _ => \n        match a with \n          | nil => b\n          | _ => nil\n        end\n      | _ => nil\n      end\n  | recI g h0 h1 => \n    sem_rec (semI g) (semI h0) (semI h1) \n            (hd nil vnl) (tail vnl) vsl\n  | compI h nl sl => \n    semI h (map (fun ne => semI ne vnl nil) nl) \n           (map (fun se => semI se vnl vsl) sl)\n  end.
+-----
+Definition invI (e : BCI) : BCI :=\n  compI e [projIn 1; projIn 0] nil.
+-----
+Definition from_11_to_20I e := \n  compI e [projIn 0] [projIn 1].
+-----
+Lemma from_11_to_20I_correct e v1 v2 :\n  semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+-----
+Lemma from_11_to_20I_correct e v1 v2 : semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+
+*****
+v1,v2 : list bool
+e : BCI
+*****
+eq (semI e (cons v1 nil) (cons v2 nil)) (semI (from_11_to_20I e) (cons v1 (cons v2 nil)) nil)
++++++
+Proof.
+-----
+Lemma from_11_to_20I_correct e v1 v2 : semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+Proof.
+
+*****
+v1,v2 : list bool
+e : BCI
+*****
+eq (semI e (cons v1 nil) (cons v2 nil)) (semI (from_11_to_20I e) (cons v1 (cons v2 nil)) nil)
++++++
+intros.
+-----
+Lemma from_11_to_20I_correct e v1 v2 : semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+Proof.
+intros.
+
+*****
+v1,v2 : list bool
+e : BCI
+*****
+eq (semI e (cons v1 nil) (cons v2 nil)) (semI (from_11_to_20I e) (cons v1 (cons v2 nil)) nil)
++++++
+simpl.
+-----
+Lemma from_11_to_20I_correct e v1 v2 : semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+Proof.
+intros.
+simpl.
+
+*****
+v1,v2 : list bool
+e : BCI
+*****
+eq (semI e (cons v1 nil) (cons v2 nil)) (semI e (cons v1 nil) (cons v2 nil))
++++++
+trivial.
+-----
+Lemma from_11_to_20I_correct e v1 v2 : semI e [v1] [v2] = semI (from_11_to_20I e) [v1 ; v2] nil.
+Proof.
+intros.
+simpl.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition appI : BCI :=\n  recI (projIs 0)\n       (compI (succI false) nil [projIs 0])\n       (compI (succI true)  nil [projIs 0]).
+-----
+Lemma appI_correct v1 v2 :\n  semI appI [v1] [v2] = v1 ++ v2.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+
+*****
+v1,v2 : list bool
+*****
+eq (semI appI (cons v1 nil) (cons v2 nil)) (app v1 v2)
++++++
+Proof.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+
+*****
+v1,v2 : list bool
+*****
+eq (semI appI (cons v1 nil) (cons v2 nil)) (app v1 v2)
++++++
+induction v1.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+
+*****
+v2 : list bool
+*****
+eq (semI appI (cons nil nil) (cons v2 nil)) (app nil v2)
++++++
+simpl in *.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+
+*****
+v2 : list bool
+*****
+eq v2 v2
++++++
+trivial.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+
+*****
+IHv1 : eq (semI appI (cons v1 nil) (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (semI appI (cons (cons a v1) nil) (cons v2 nil)) (app (cons a v1) v2)
++++++
+simpl in *.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (if a then cons true (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil)) else cons false (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil))) (cons a (app v1 v2))
++++++
+trivial.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+trivial.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (if a then cons true (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil)) else cons false (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil))) (cons a (app v1 v2))
++++++
+intros.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+trivial.
+intros.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (if a then cons true (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil)) else cons false (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil) (fun _ vsl : list (list bool) => cons false (nth O vsl nil)) (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil (cons v2 nil))) (cons a (app v1 v2))
++++++
+rewrite IHv1.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+trivial.
+intros.
+rewrite IHv1.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (if a then cons true (app v1 v2) else cons false (app v1 v2)) (cons a (app v1 v2))
++++++
+case a.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+trivial.
+intros.
+rewrite IHv1.
+case a.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (cons true (app v1 v2)) (cons true (app v1 v2))
++++++
+trivial.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+simpl in *.
+trivial.
+intros.
+rewrite IHv1.
+case a.
+
+*****
+IHv1 : eq\n (sem_rec (fun _ vsl : list (list bool) => nth O vsl nil)\n (fun _ vsl : list (list bool) => cons false (nth O vsl nil))\n (fun _ vsl : list (list bool) => cons true (nth O vsl nil)) v1 nil\n (cons v2 nil)) (app v1 v2)
+v1,v2 : list bool
+a : bool
+*****
+eq (cons false (app v1 v2)) (cons false (app v1 v2))
++++++
+trivial.
+-----
+Lemma appI_correct v1 v2 : semI appI [v1] [v2] = v1 ++ v2.
+Proof.
+induction v1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Notation O := zeroI.
+-----
+Notation S0 := (succI false).
+-----
+Notation S1 := (succI true).
+-----
+Notation P := predI.
+-----
+Notation "'If' e 'Nil' e0 'Then' e1 'Else' e2" :=\n  (compI condI nil [e; e0; e1; e2]) (at level 65).
+-----
+Notation "h ( nl , sl )" := (compI h nl sl) (at level 50).
+-----
+Notation "'#' n" := (projIn n) (at level 0).
+-----
+Notation "'$' n" := (projIs n) (at level 0).
+-----

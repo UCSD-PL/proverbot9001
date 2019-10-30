@@ -1,0 +1,2955 @@
+From Coq Require Import ZArith.
+-----
+Require Import ZArithRing.
+-----
+Require Import Zdiv.
+-----
+From Coq Require Import Omega.
+-----
+Require Import divide.
+-----
+Inductive gcd (a b d : Z) : Prop :=\n    gcd_intro :\n      (d | a)%Z ->\n      (d | b)%Z ->\n      (forall x : Z, (x | a)%Z -> (x | b)%Z -> (x | d)%Z) -> gcd a b d.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), gcd b a d
++++++
+Proof.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), gcd b a d
++++++
+simple induction 1.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+simple induction 1.
+
+*****
+H : gcd a b d
+a,b,d : Z
+*****
+forall (_ : divide d a) (_ : divide d b) (_ : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d), gcd b a d
++++++
+constructor.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+divide d b
++++++
+intuition.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+divide d a
++++++
+intuition.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+forall (x : Z) (_ : divide x b) (_ : divide x a), divide x d
++++++
+intuition.
+-----
+Lemma gcd_sym : forall a b d : Z, gcd a b d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+
+*****
+
+*****
+forall a : Z, gcd a Z0 a
++++++
+Proof.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+Proof.
+
+*****
+
+*****
+forall a : Z, gcd a Z0 a
++++++
+constructor.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+Proof.
+constructor.
+
+*****
+a : Z
+*****
+divide a a
++++++
+auto.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+Proof.
+constructor.
+
+*****
+a : Z
+*****
+divide a Z0
++++++
+auto.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+Proof.
+constructor.
+
+*****
+a : Z
+*****
+forall (x : Z) (_ : divide x a) (_ : divide x Z0), divide x a
++++++
+auto.
+-----
+Lemma gcd_0 : forall a : Z, gcd a 0 a.
+Proof.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a (Z.opp b) d), gcd b a d
++++++
+Proof.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a (Z.opp b) d), gcd b a d
++++++
+simple induction 1.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+simple induction 1.
+
+*****
+H : gcd a (Z.opp b) d
+a,b,d : Z
+*****
+forall (_ : divide d a) (_ : divide d (Z.opp b)) (_ : forall (x : Z) (_ : divide x a) (_ : divide x (Z.opp b)), divide x d), gcd b a d
++++++
+constructor.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x (Z.opp b)), divide x d
+H1 : divide d (Z.opp b)
+H0 : divide d a
+H : gcd a (Z.opp b) d
+a,b,d : Z
+*****
+divide d b
++++++
+intuition.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x (Z.opp b)), divide x d
+H1 : divide d (Z.opp b)
+H0 : divide d a
+H : gcd a (Z.opp b) d
+a,b,d : Z
+*****
+divide d a
++++++
+intuition.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x (Z.opp b)), divide x d
+H1 : divide d (Z.opp b)
+H0 : divide d a
+H : gcd a (Z.opp b) d
+a,b,d : Z
+*****
+forall (x : Z) (_ : divide x b) (_ : divide x a), divide x d
++++++
+intuition.
+-----
+Lemma gcd_minus : forall a b d : Z, gcd a (- b) d -> gcd b a d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), gcd b a (Z.opp d)
++++++
+Proof.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), gcd b a (Z.opp d)
++++++
+simple induction 1.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+simple induction 1.
+
+*****
+H : gcd a b d
+a,b,d : Z
+*****
+forall (_ : divide d a) (_ : divide d b) (_ : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d), gcd b a (Z.opp d)
++++++
+constructor.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+divide (Z.opp d) b
++++++
+intuition.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+divide (Z.opp d) a
++++++
+intuition.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,d : Z
+*****
+forall (x : Z) (_ : divide x b) (_ : divide x a), divide x (Z.opp d)
++++++
+intuition.
+-----
+Lemma gcd_opp : forall a b d : Z, gcd a b d -> gcd b a (- d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve gcd_sym gcd_0 gcd_minus gcd_opp.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+
+*****
+
+*****
+forall (a b d q : Z) (_ : gcd b (Z.sub a (Z.mul q b)) d), gcd a b d
++++++
+Proof.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+
+*****
+
+*****
+forall (a b d q : Z) (_ : gcd b (Z.sub a (Z.mul q b)) d), gcd a b d
++++++
+simple induction 1.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+
+*****
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+forall (_ : divide d b) (_ : divide d (Z.sub a (Z.mul q b))) (_ : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))), divide x d), gcd a b d
++++++
+constructor.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+divide d a
++++++
+intuition.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+intuition.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+divide d a
++++++
+replace a with (a - q * b + q * b)%Z.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+intuition.
+replace a with (a - q * b + q * b)%Z.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+divide d (Z.add (Z.sub a (Z.mul q b)) (Z.mul q b))
++++++
+auto.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+intuition.
+replace a with (a - q * b + q * b)%Z.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+eq (Z.add (Z.sub a (Z.mul q b)) (Z.mul q b)) a
++++++
+ring.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+divide d b
++++++
+intuition.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x b) (_ : divide x (Z.sub a (Z.mul q b))),\ndivide x d
+H1 : divide d (Z.sub a (Z.mul q b))
+H0 : divide d b
+H : gcd b (Z.sub a (Z.mul q b)) d
+a,b,d,q : Z
+*****
+forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
++++++
+intuition.
+-----
+Lemma gcd_for_euclid : forall a b d q : Z, gcd b (a - q * b) d -> gcd a b d.
+Proof.
+simple induction 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Section extended_euclid_algorithm.
+-----
+Variable a b : Z.
+-----
+Inductive Euclid : Set :=\n    Euclid_intro :\n      forall u v d : Z, (u * a + v * b)%Z = d -> gcd a b d -> Euclid.
+-----
+Lemma euclid_rec :\n forall v3 : Z,\n (0 <= v3)%Z ->\n forall u1 u2 u3 v1 v2 : Z,\n (u1 * a + u2 * b)%Z = u3 ->\n (v1 * a + v2 * b)%Z = v3 ->\n (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+
+*****
+a,b : Z
+*****
+forall (v3 : Z) (_ : Z.le Z0 v3) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) v3) (_ : forall (d : Z) (_ : gcd u3 v3 d), gcd a b d), Euclid
++++++
+Proof.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+
+*****
+a,b : Z
+*****
+forall (v3 : Z) (_ : Z.le Z0 v3) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) v3) (_ : forall (d : Z) (_ : gcd u3 v3 d), gcd a b d), Euclid
++++++
+intros v3 Hv3.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+
+*****
+Hv3 : Z.le Z0 v3
+a,b,v3 : Z
+*****
+forall (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) v3) (_ : forall (d : Z) (_ : gcd u3 v3 d), gcd a b d), Euclid
++++++
+generalize Hv3.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+
+*****
+Hv3 : Z.le Z0 v3
+a,b,v3 : Z
+*****
+forall (_ : Z.le Z0 v3) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) v3) (_ : forall (d : Z) (_ : gcd u3 v3 d), gcd a b d), Euclid
++++++
+pattern v3 in |- *.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+
+*****
+Hv3 : Z.le Z0 v3
+a,b,v3 : Z
+*****
+(fun z : Z => forall (_ : Z.le Z0 z) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) z) (_ : forall (d : Z) (_ : gcd u3 z d), gcd a b d), Euclid) v3
++++++
+apply Z_lt_rec.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+
+*****
+Hv3 : Z.le Z0 v3
+a,b,v3 : Z
+*****
+forall (x : Z) (_ : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y) (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid) (_ : Z.le Z0 x) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x) (_ : forall (d : Z) (_ : gcd u3 x d), gcd a b d), Euclid
++++++
+clear v3 Hv3.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+
+*****
+a,b : Z
+*****
+forall (x : Z) (_ : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y) (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid) (_ : Z.le Z0 x) (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3) (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x) (_ : forall (d : Z) (_ : gcd u3 x d), gcd a b d), Euclid
++++++
+intros.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+
+*****
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Euclid
++++++
+elim (Z_zerop x).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+
+*****
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+forall _ : eq x Z0, Euclid
++++++
+intro.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+
+*****
+a0 : eq x Z0
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Euclid
++++++
+apply Euclid_intro with (u := u1) (v := u2) (d := u3).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+apply Euclid_intro with (u := u1) (v := u2) (d := u3).
+
+*****
+a0 : eq x Z0
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
++++++
+assumption.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+apply Euclid_intro with (u := u1) (v := u2) (d := u3).
+
+*****
+a0 : eq x Z0
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd a b u3
++++++
+apply H2.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+apply Euclid_intro with (u := u1) (v := u2) (d := u3).
+apply H2.
+
+*****
+a0 : eq x Z0
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd u3 x u3
++++++
+rewrite a0.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+apply Euclid_intro with (u := u1) (v := u2) (d := u3).
+apply H2.
+rewrite a0.
+
+*****
+a0 : eq x Z0
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd u3 Z0 u3
++++++
+auto.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+
+*****
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+forall _ : not (eq x Z0), Euclid
++++++
+intro.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+
+*****
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Euclid
++++++
+set (q := (u3 / x)%Z) in *.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Euclid
++++++
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
++++++
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+and (Z.le Z0 (Z.modulo u3 x)) (Z.lt (Z.modulo u3 x) x)
++++++
+apply Z_mod_lt.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+apply Z_mod_lt.
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Z.gt x Z0
++++++
+omega.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.modulo u3 x) (Z.sub u3 (Z.mul q x))
++++++
+assert (xpos : (x > 0)%Z).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+
+*****
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Z.gt x Z0
++++++
+omega.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+
+*****
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.modulo u3 x) (Z.sub u3 (Z.mul q x))
++++++
+generalize (Z_div_mod_eq u3 x xpos).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+generalize (Z_div_mod_eq u3 x xpos).
+
+*****
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+forall _ : eq u3 (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x)), eq (Z.modulo u3 x) (Z.sub u3 (Z.mul q x))
++++++
+unfold q in |- *.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+generalize (Z_div_mod_eq u3 x xpos).
+unfold q in |- *.
+
+*****
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+forall _ : eq u3 (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x)), eq (Z.modulo u3 x) (Z.sub u3 (Z.mul (Z.div u3 x) x))
++++++
+intro eq.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+generalize (Z_div_mod_eq u3 x xpos).
+unfold q in |- *.
+intro eq.
+
+*****
+eq : Logic.eq u3 (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x))
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Logic.eq (Z.modulo u3 x) (Z.sub u3 (Z.mul (Z.div u3 x) x))
++++++
+pattern u3 at 2 in |- *.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+generalize (Z_div_mod_eq u3 x xpos).
+unfold q in |- *.
+intro eq.
+pattern u3 at 2 in |- *.
+
+*****
+eq : Logic.eq u3 (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x))
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+(fun z : Z => Logic.eq (Z.modulo u3 x) (Z.sub z (Z.mul (Z.div u3 x) x))) u3
++++++
+rewrite eq.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+replace (u3 - q * x)%Z with (u3 mod x)%Z.
+assert (xpos : (x > 0)%Z).
+generalize (Z_div_mod_eq u3 x xpos).
+unfold q in |- *.
+intro eq.
+pattern u3 at 2 in |- *.
+rewrite eq.
+
+*****
+eq : Logic.eq u3 (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x))
+xpos : Z.gt x Z0
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Logic.eq (Z.modulo u3 x) (Z.sub (Z.add (Z.mul x (Z.div u3 x)) (Z.modulo u3 x)) (Z.mul (Z.div u3 x) x))
++++++
+ring.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+Euclid
++++++
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
++++++
+tauto.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.add (Z.mul (Z.sub u1 (Z.mul q v1)) a) (Z.mul (Z.sub u2 (Z.mul q v2)) b)) (Z.sub u3 (Z.mul q x))
++++++
+replace ((u1 - q * v1) * a + (u2 - q * v2) * b)%Z with (u1 * a + u2 * b - q * (v1 * a + v2 * b))%Z.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+replace ((u1 - q * v1) * a + (u2 - q * v2) * b)%Z with (u1 * a + u2 * b - q * (v1 * a + v2 * b))%Z.
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.sub (Z.add (Z.mul u1 a) (Z.mul u2 b)) (Z.mul q (Z.add (Z.mul v1 a) (Z.mul v2 b)))) (Z.sub u3 (Z.mul q x))
++++++
+rewrite H0.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+replace ((u1 - q * v1) * a + (u2 - q * v2) * b)%Z with (u1 * a + u2 * b - q * (v1 * a + v2 * b))%Z.
+rewrite H0.
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.sub u3 (Z.mul q (Z.add (Z.mul v1 a) (Z.mul v2 b)))) (Z.sub u3 (Z.mul q x))
++++++
+rewrite H1.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+replace ((u1 - q * v1) * a + (u2 - q * v2) * b)%Z with (u1 * a + u2 * b - q * (v1 * a + v2 * b))%Z.
+rewrite H0.
+rewrite H1.
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.sub u3 (Z.mul q x)) (Z.sub u3 (Z.mul q x))
++++++
+trivial.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+replace ((u1 - q * v1) * a + (u2 - q * v2) * b)%Z with (u1 * a + u2 * b - q * (v1 * a + v2 * b))%Z.
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+eq (Z.sub (Z.add (Z.mul u1 a) (Z.mul u2 b)) (Z.mul q (Z.add (Z.mul v1 a) (Z.mul v2 b)))) (Z.add (Z.mul (Z.sub u1 (Z.mul q v1)) a) (Z.mul (Z.sub u2 (Z.mul q v2)) b))
++++++
+ring.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+
+*****
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+forall (d : Z) (_ : gcd x (Z.sub u3 (Z.mul q x)) d), gcd a b d
++++++
+intros.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+intros.
+
+*****
+H3 : gcd x (Z.sub u3 (Z.mul q x)) d
+d : Z
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd a b d
++++++
+apply H2.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+intros.
+apply H2.
+
+*****
+H3 : gcd x (Z.sub u3 (Z.mul q x)) d
+d : Z
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd u3 x d
++++++
+apply gcd_for_euclid with q.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+clear v3 Hv3.
+intros.
+elim (Z_zerop x).
+intro.
+set (q := (u3 / x)%Z) in *.
+assert (Hq : (0 <= u3 - q * x < x)%Z).
+apply (H (u3 - q * x)%Z Hq (proj1 Hq) v1 v2 x (u1 - q * v1)%Z (u2 - q * v2)%Z).
+intros.
+apply H2.
+apply gcd_for_euclid with q.
+
+*****
+H3 : gcd x (Z.sub u3 (Z.mul q x)) d
+d : Z
+Hq : and (Z.le Z0 (Z.sub u3 (Z.mul q x))) (Z.lt (Z.sub u3 (Z.mul q x)) x)
+q : Z
+b0 : not (eq x Z0)
+H2 : forall (d : Z) (_ : gcd u3 x d), gcd a b d
+H1 : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) x
+H0 : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3
+u1,u2,u3,v1,v2 : Z
+Hv3 : Z.le Z0 x
+H : forall (y : Z) (_ : and (Z.le Z0 y) (Z.lt y x)) (_ : Z.le Z0 y)\n (u1 u2 u3 v1 v2 : Z) (_ : eq (Z.add (Z.mul u1 a) (Z.mul u2 b)) u3)\n (_ : eq (Z.add (Z.mul v1 a) (Z.mul v2 b)) y)\n (_ : forall (d : Z) (_ : gcd u3 y d), gcd a b d), Euclid
+a,b,x : Z
+*****
+gcd x (Z.sub u3 (Z.mul q x)) d
++++++
+assumption.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+
+*****
+Hv3 : Z.le Z0 v3
+a,b,v3 : Z
+*****
+Z.le Z0 v3
++++++
+assumption.
+-----
+Lemma euclid_rec : forall v3 : Z, (0 <= v3)%Z -> forall u1 u2 u3 v1 v2 : Z, (u1 * a + u2 * b)%Z = u3 -> (v1 * a + v2 * b)%Z = v3 -> (forall d : Z, gcd u3 v3 d -> gcd a b d) -> Euclid.
+Proof.
+intros v3 Hv3.
+generalize Hv3.
+pattern v3 in |- *.
+apply Z_lt_rec.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma euclid : Euclid.
+-----
+Lemma euclid : Euclid.
+
+*****
+a,b : Z
+*****
+Euclid
++++++
+Proof.
+-----
+Lemma euclid : Euclid.
+Proof.
+
+*****
+a,b : Z
+*****
+Euclid
++++++
+case (Z_le_gt_dec 0 b).
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+
+*****
+a,b : Z
+*****
+forall _ : Z.le Z0 b, Euclid
++++++
+intro.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+Euclid
++++++
+intros.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+Euclid
++++++
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+Z.le Z0 b
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul (Zpos xH) a) (Z.mul Z0 b)) a
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+auto.
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul (Zpos xH) a) (Z.mul Z0 b)) a
++++++
+ring.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul Z0 a) (Z.mul (Zpos xH) b)) b
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+auto.
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul Z0 a) (Z.mul (Zpos xH) b)) b
++++++
+ring.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := 1%Z) (v3 := b).
+
+*****
+l : Z.le Z0 b
+a,b : Z
+*****
+forall (d : Z) (_ : gcd a b d), gcd a b d
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+
+*****
+a,b : Z
+*****
+forall _ : Z.gt Z0 b, Euclid
++++++
+intro.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+Euclid
++++++
+intros.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+Euclid
++++++
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+Z.le Z0 (Z.opp b)
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+auto.
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+Z.le Z0 (Z.opp b)
++++++
+try ring.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+auto.
+try ring.
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+Z.le Z0 (Z.opp b)
++++++
+omega.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul (Zpos xH) a) (Z.mul Z0 b)) a
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+auto.
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul (Zpos xH) a) (Z.mul Z0 b)) a
++++++
+try ring.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+eq (Z.add (Z.mul Z0 a) (Z.mul (Zneg xH) b)) (Z.opp b)
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+intro.
+intros.
+apply euclid_rec with (u1 := 1%Z) (u2 := 0%Z) (u3 := a) (v1 := 0%Z) (v2 := (-1)%Z) (v3 := (- b)%Z).
+
+*****
+g : Z.gt Z0 b
+a,b : Z
+*****
+forall (d : Z) (_ : gcd a (Z.opp b) d), gcd a b d
++++++
+auto.
+-----
+Lemma euclid : Euclid.
+Proof.
+case (Z_le_gt_dec 0 b).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End extended_euclid_algorithm.
+-----
+Theorem gcd_uniqueness_apart_sign :\n forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \/ d = (- d')%Z.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+
+*****
+
+*****
+forall (a b d d' : Z) (_ : gcd a b d) (_ : gcd a b d'), or (eq d d') (eq d (Z.opp d'))
++++++
+Proof.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+
+*****
+
+*****
+forall (a b d d' : Z) (_ : gcd a b d) (_ : gcd a b d'), or (eq d d') (eq d (Z.opp d'))
++++++
+simple induction 1.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+
+*****
+H : gcd a b d
+a,b,d,d' : Z
+*****
+forall (_ : divide d a) (_ : divide d b) (_ : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d) (_ : gcd a b d'), or (eq d d') (eq d (Z.opp d'))
++++++
+intros H1 H2 H3.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+
+*****
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+forall _ : gcd a b d', or (eq d d') (eq d (Z.opp d'))
++++++
+simple induction 1.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+
+*****
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+forall (_ : divide d' a) (_ : divide d' b) (_ : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'), or (eq d d') (eq d (Z.opp d'))
++++++
+intros.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+
+*****
+H6 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'
+H5 : divide d' b
+H4 : divide d' a
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+or (eq d d') (eq d (Z.opp d'))
++++++
+generalize (H3 d' H4 H5).
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+generalize (H3 d' H4 H5).
+
+*****
+H6 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'
+H5 : divide d' b
+H4 : divide d' a
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+forall _ : divide d' d, or (eq d d') (eq d (Z.opp d'))
++++++
+intro Hd'd.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+generalize (H3 d' H4 H5).
+intro Hd'd.
+
+*****
+Hd'd : divide d' d
+H6 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'
+H5 : divide d' b
+H4 : divide d' a
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+or (eq d d') (eq d (Z.opp d'))
++++++
+generalize (H6 d H1 H2).
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+generalize (H3 d' H4 H5).
+intro Hd'd.
+generalize (H6 d H1 H2).
+
+*****
+Hd'd : divide d' d
+H6 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'
+H5 : divide d' b
+H4 : divide d' a
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+forall _ : divide d d', or (eq d d') (eq d (Z.opp d'))
++++++
+intro Hdd'.
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+generalize (H3 d' H4 H5).
+intro Hd'd.
+generalize (H6 d H1 H2).
+intro Hdd'.
+
+*****
+Hdd' : divide d d'
+Hd'd : divide d' d
+H6 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d'
+H5 : divide d' b
+H4 : divide d' a
+H0 : gcd a b d'
+H3 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H2 : divide d b
+H1 : divide d a
+H : gcd a b d
+a,b,d,d' : Z
+*****
+or (eq d d') (eq d (Z.opp d'))
++++++
+exact (divide_antisym d d' Hdd' Hd'd).
+-----
+Theorem gcd_uniqueness_apart_sign : forall a b d d' : Z, gcd a b d -> gcd a b d' -> d = d' \\/ d = (- d')%Z.
+Proof.
+simple induction 1.
+intros H1 H2 H3.
+simple induction 1.
+intros.
+generalize (H3 d' H4 H5).
+intro Hd'd.
+generalize (H6 d H1 H2).
+intro Hdd'.
+exact (divide_antisym d d' Hdd' Hd'd).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive Bezout (a b d : Z) : Prop :=\n    Bezout_intro : forall u v : Z, (u * a + v * b)%Z = d -> Bezout a b d.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), Bezout a b d
++++++
+Proof.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+
+*****
+
+*****
+forall (a b d : Z) (_ : gcd a b d), Bezout a b d
++++++
+intros a b d Hgcd.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+
+*****
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+Bezout a b d
++++++
+elim (euclid a b).
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+
+*****
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall (u v d0 : Z) (_ : eq (Z.add (Z.mul u a) (Z.mul v b)) d0) (_ : gcd a b d0), Bezout a b d
++++++
+intros.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+
+*****
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+Bezout a b d
++++++
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+
+*****
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall _ : or (eq d d0) (eq d (Z.opp d0)), Bezout a b d
++++++
+intro H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+
+*****
+H : or (eq d d0) (eq d (Z.opp d0))
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+Bezout a b d
++++++
+elim H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+
+*****
+H : or (eq d d0) (eq d (Z.opp d0))
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall _ : eq d d0, Bezout a b d
++++++
+clear H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+
+*****
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall _ : eq d d0, Bezout a b d
++++++
+intros.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+
+*****
+H : eq d d0
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+Bezout a b d
++++++
+apply Bezout_intro with u v.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+apply Bezout_intro with u v.
+
+*****
+H : eq d d0
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+eq (Z.add (Z.mul u a) (Z.mul v b)) d
++++++
+rewrite H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+apply Bezout_intro with u v.
+rewrite H.
+
+*****
+H : eq d d0
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+eq (Z.add (Z.mul u a) (Z.mul v b)) d0
++++++
+assumption.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+
+*****
+H : or (eq d d0) (eq d (Z.opp d0))
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall _ : eq d (Z.opp d0), Bezout a b d
++++++
+clear H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+
+*****
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+forall _ : eq d (Z.opp d0), Bezout a b d
++++++
+intros.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+
+*****
+H : eq d (Z.opp d0)
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+Bezout a b d
++++++
+apply Bezout_intro with (- u)%Z (- v)%Z.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+apply Bezout_intro with (- u)%Z (- v)%Z.
+
+*****
+H : eq d (Z.opp d0)
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+eq (Z.add (Z.mul (Z.opp u) a) (Z.mul (Z.opp v) b)) d
++++++
+rewrite H.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+apply Bezout_intro with (- u)%Z (- v)%Z.
+rewrite H.
+
+*****
+H : eq d (Z.opp d0)
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+eq (Z.add (Z.mul (Z.opp u) a) (Z.mul (Z.opp v) b)) (Z.opp d0)
++++++
+rewrite <- e.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+clear H.
+intros.
+apply Bezout_intro with (- u)%Z (- v)%Z.
+rewrite H.
+rewrite <- e.
+
+*****
+H : eq d (Z.opp d0)
+g : gcd a b d0
+e : eq (Z.add (Z.mul u a) (Z.mul v b)) d0
+u,v,d0 : Z
+Hgcd : gcd a b d
+a,b,d : Z
+*****
+eq (Z.add (Z.mul (Z.opp u) a) (Z.mul (Z.opp v) b)) (Z.opp (Z.add (Z.mul u a) (Z.mul v b)))
++++++
+ring.
+-----
+Lemma gcd_bezout : forall a b d : Z, gcd a b d -> Bezout a b d.
+Proof.
+intros a b d Hgcd.
+elim (euclid a b).
+intros.
+generalize (gcd_uniqueness_apart_sign a b d d0 Hgcd g).
+intro H.
+elim H.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+
+*****
+
+*****
+forall (a b c d : Z) (_ : gcd a b d), gcd (Z.mul c a) (Z.mul c b) (Z.mul c d)
++++++
+Proof.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+
+*****
+
+*****
+forall (a b c d : Z) (_ : gcd a b d), gcd (Z.mul c a) (Z.mul c b) (Z.mul c d)
++++++
+simple induction 1.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+
+*****
+H : gcd a b d
+a,b,c,d : Z
+*****
+forall (_ : divide d a) (_ : divide d b) (_ : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d), gcd (Z.mul c a) (Z.mul c b) (Z.mul c d)
++++++
+constructor.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide (Z.mul c d) (Z.mul c a)
++++++
+intuition.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide (Z.mul c d) (Z.mul c b)
++++++
+intuition.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+forall (x : Z) (_ : divide x (Z.mul c a)) (_ : divide x (Z.mul c b)), divide x (Z.mul c d)
++++++
+intuition.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+
+*****
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide x (Z.mul c d)
++++++
+elim (gcd_bezout a b d H).
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+
+*****
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+forall (u v : Z) (_ : eq (Z.add (Z.mul u a) (Z.mul v b)) d), divide x (Z.mul c d)
++++++
+intros.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+
+*****
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide x (Z.mul c d)
++++++
+elim H3.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+
+*****
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+forall (q : Z) (_ : eq (Z.mul c a) (Z.mul q x)), divide x (Z.mul c d)
++++++
+intros.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+
+*****
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide x (Z.mul c d)
++++++
+elim H4.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+
+*****
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+forall (q : Z) (_ : eq (Z.mul c b) (Z.mul q x)), divide x (Z.mul c d)
++++++
+intros.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+divide x (Z.mul c d)
++++++
+apply divide_intro with (u * q + v * q0)%Z.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.mul c d) (Z.mul (Z.add (Z.mul u q) (Z.mul v q0)) x)
++++++
+rewrite <- H5.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+rewrite <- H5.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.mul c (Z.add (Z.mul u a) (Z.mul v b))) (Z.mul (Z.add (Z.mul u q) (Z.mul v q0)) x)
++++++
+replace (c * (u * a + v * b))%Z with (u * (c * a) + v * (c * b))%Z.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+rewrite <- H5.
+replace (c * (u * a + v * b))%Z with (u * (c * a) + v * (c * b))%Z.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.add (Z.mul u (Z.mul c a)) (Z.mul v (Z.mul c b))) (Z.mul (Z.add (Z.mul u q) (Z.mul v q0)) x)
++++++
+rewrite H6.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+rewrite <- H5.
+replace (c * (u * a + v * b))%Z with (u * (c * a) + v * (c * b))%Z.
+rewrite H6.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.add (Z.mul u (Z.mul q x)) (Z.mul v (Z.mul c b))) (Z.mul (Z.add (Z.mul u q) (Z.mul v q0)) x)
++++++
+rewrite H7.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+rewrite <- H5.
+replace (c * (u * a + v * b))%Z with (u * (c * a) + v * (c * b))%Z.
+rewrite H6.
+rewrite H7.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.add (Z.mul u (Z.mul q x)) (Z.mul v (Z.mul q0 x))) (Z.mul (Z.add (Z.mul u q) (Z.mul v q0)) x)
++++++
+ring.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+intuition.
+elim (gcd_bezout a b d H).
+intros.
+elim H3.
+intros.
+elim H4.
+intros.
+apply divide_intro with (u * q + v * q0)%Z.
+rewrite <- H5.
+replace (c * (u * a + v * b))%Z with (u * (c * a) + v * (c * b))%Z.
+
+*****
+H7 : eq (Z.mul c b) (Z.mul q0 x)
+q0 : Z
+H6 : eq (Z.mul c a) (Z.mul q x)
+q : Z
+H5 : eq (Z.add (Z.mul u a) (Z.mul v b)) d
+u,v : Z
+H4 : divide x (Z.mul c b)
+H3 : divide x (Z.mul c a)
+x : Z
+H2 : forall (x : Z) (_ : divide x a) (_ : divide x b), divide x d
+H1 : divide d b
+H0 : divide d a
+H : gcd a b d
+a,b,c,d : Z
+*****
+eq (Z.add (Z.mul u (Z.mul c a)) (Z.mul v (Z.mul c b))) (Z.mul c (Z.add (Z.mul u a) (Z.mul v b)))
++++++
+ring.
+-----
+Lemma gcd_mult : forall a b c d : Z, gcd a b d -> gcd (c * a) (c * b) (c * d).
+Proof.
+simple induction 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

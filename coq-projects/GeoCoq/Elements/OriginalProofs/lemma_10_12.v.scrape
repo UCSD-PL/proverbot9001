@@ -1,0 +1,3322 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_linereflectionisometry.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_10_12 : \n   forall A B C H, \n   Per A B C -> Per A B H -> Cong B C B H ->\n   Cong A C A H.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C H : Point) (_ : Per A B C) (_ : Per A B H) (_ : Cong B C B H), Cong A C A H
++++++
+Proof.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C H : Point) (_ : Per A B C) (_ : Per A B H) (_ : Cong B C B H), Cong A C A H
++++++
+intros.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+
+*****
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\ Cong A B D B /\ Cong A C D C /\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+
+*****
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (neq B H) by (conclude_def Per ).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+
+*****
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\ Cong A B F B /\ Cong A H F H /\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+
+*****
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (neq A B) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+
+*****
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+
+*****
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+
+*****
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+
+*****
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (eq F D) by (conclude lemma_extensionunique).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+
+*****
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A H D H) by (conclude cn_equalitysub).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+
+*****
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A H).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+
+*****
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+by cases on (eq C H \/ neq C H).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+
+*****
+H19 : eq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A C) by (conclude cn_congruencereflexive).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+assert (Cong A C A C) by (conclude cn_congruencereflexive).
+
+*****
+H18 : Cong A C A C
+H19 : eq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A H) by (conclude cn_equalitysub).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+assert (Cong A C A C) by (conclude cn_congruencereflexive).
+assert (Cong A C A H) by (conclude cn_equalitysub).
+
+*****
+H20 : Cong A C A H
+H18 : Cong A C A C
+H19 : eq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+close.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+
+*****
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+
+*****
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+
+*****
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A H).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+
+*****
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+by cases on (eq B M \/ neq B M).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+
+*****
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Per C B A) by (conclude lemma_8_2).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+
+*****
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (BetS C B H) by (conclude cn_equalitysub).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+assert (BetS C B H) by (conclude cn_equalitysub).
+
+*****
+H24 : BetS C B H
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong B C B H) by (conclude cn_equalitysub).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+assert (BetS C B H) by (conclude cn_equalitysub).
+assert (Cong B C B H) by (conclude cn_equalitysub).
+
+*****
+H25 : Cong B C B H
+H24 : BetS C B H
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C B B H) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+assert (BetS C B H) by (conclude cn_equalitysub).
+assert (Cong B C B H) by (conclude cn_equalitysub).
+assert (Cong C B B H) by (forward_using lemma_congruenceflip).
+
+*****
+H26 : Cong C B B H
+H25 : Cong B C B H
+H24 : BetS C B H
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C A H A) by (conclude lemma_rightreverse).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+assert (BetS C B H) by (conclude cn_equalitysub).
+assert (Cong B C B H) by (conclude cn_equalitysub).
+assert (Cong C B B H) by (forward_using lemma_congruenceflip).
+assert (Cong C A H A) by (conclude lemma_rightreverse).
+
+*****
+H27 : Cong C A H A
+H26 : Cong C B B H
+H25 : Cong B C B H
+H24 : BetS C B H
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A H) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (Per C B A) by (conclude lemma_8_2).
+assert (BetS C B H) by (conclude cn_equalitysub).
+assert (Cong B C B H) by (conclude cn_equalitysub).
+assert (Cong C B B H) by (forward_using lemma_congruenceflip).
+assert (Cong C A H A) by (conclude lemma_rightreverse).
+assert (Cong A C A H) by (forward_using lemma_congruenceflip).
+
+*****
+H28 : Cong A C A H
+H27 : Cong C A H A
+H26 : Cong C B B H
+H25 : Cong B C B H
+H24 : BetS C B H
+H22 : Per C B A
+H23 : eq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+close.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+
+*****
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+
+*****
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+
+*****
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Per C M B) by (conclude_def Per ).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+
+*****
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Per B M C) by (conclude lemma_8_2).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+
+*****
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+
+*****
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+
+*****
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+
+*****
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+
+*****
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong M A M D) by (conclude lemma_interior5).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+
+*****
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+
+*****
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+
+*****
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Per A B M) by (conclude_def Per ).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+
+*****
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+
+*****
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Per M B A) by (conclude lemma_8_2).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+
+*****
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+
+*****
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+
+*****
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+
+*****
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+
+*****
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+
+*****
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+
+*****
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+
+*****
+H43 : Cong D H A H
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C A H D) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+assert (Cong C A H D) by (forward_using lemma_congruenceflip).
+
+*****
+H44 : Cong C A H D
+H43 : Cong D H A H
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong H D H A) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+assert (Cong C A H D) by (forward_using lemma_congruenceflip).
+assert (Cong H D H A) by (forward_using lemma_congruenceflip).
+
+*****
+H45 : Cong H D H A
+H44 : Cong C A H D
+H43 : Cong D H A H
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong C A H A) by (conclude lemma_congruencetransitive).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+assert (Cong C A H D) by (forward_using lemma_congruenceflip).
+assert (Cong H D H A) by (forward_using lemma_congruenceflip).
+assert (Cong C A H A) by (conclude lemma_congruencetransitive).
+
+*****
+H46 : Cong C A H A
+H45 : Cong H D H A
+H44 : Cong C A H D
+H43 : Cong D H A H
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+assert (Cong A C A H) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+assert (neq M B) by (conclude lemma_inequalitysymmetric).
+assert (Cong C M H M) by (forward_using lemma_congruenceflip).
+assert (Per C M B) by (conclude_def Per ).
+assert (Per B M C) by (conclude lemma_8_2).
+assert (Cong C A C D) by (forward_using lemma_congruenceflip).
+assert (Cong H A H D) by (forward_using lemma_congruenceflip).
+assert (Cong C M C M) by (conclude cn_congruencereflexive).
+assert (Cong M H M H) by (conclude cn_congruencereflexive).
+assert (Cong M A M D) by (conclude lemma_interior5).
+assert (Cong A M D M) by (forward_using lemma_congruenceflip).
+assert (neq B M) by (conclude lemma_inequalitysymmetric).
+assert (Per A B M) by (conclude_def Per ).
+assert (Cong B A B D) by (forward_using lemma_congruenceflip).
+assert (Per M B A) by (conclude lemma_8_2).
+assert (Cong C A H D) by (conclude lemma_linereflectionisometry).
+assert (Cong A C D H) by (forward_using lemma_congruenceflip).
+assert (BetS D B A) by (conclude axiom_betweennesssymmetry).
+assert (Cong B D B A) by (forward_using lemma_congruenceflip).
+assert (Cong A B B D) by (forward_using lemma_congruenceflip).
+assert (Cong A H D H) by (conclude lemma_rightreverse).
+assert (Cong D H A H) by (conclude lemma_congruencesymmetric).
+assert (Cong C A H D) by (forward_using lemma_congruenceflip).
+assert (Cong H D H A) by (forward_using lemma_congruenceflip).
+assert (Cong C A H A) by (conclude lemma_congruencetransitive).
+assert (Cong A C A H) by (forward_using lemma_congruenceflip).
+
+*****
+H47 : Cong A C A H
+H46 : Cong C A H A
+H45 : Cong H D H A
+H44 : Cong C A H D
+H43 : Cong D H A H
+H42 : Cong A H D H
+H41 : Cong A B B D
+H40 : Cong B D B A
+H39 : BetS D B A
+H38 : Cong A C D H
+H37 : Cong C A H D
+H36 : Per M B A
+H35 : Cong B A B D
+H34 : Per A B M
+H33 : neq B M
+H32 : Cong A M D M
+H31 : Cong M A M D
+H30 : Cong M H M H
+H29 : Cong C M C M
+H28 : Cong H A H D
+H27 : Cong C A C D
+H26 : Per B M C
+H25 : Per C M B
+H24 : Cong C M H M
+H22 : neq M B
+H23 : neq B M
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+close.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+let Tf:=fresh in assert (Tf:exists M, (BetS C M H /\\ Cong M C M H)) by (conclude proposition_10);destruct Tf as [M];spliter.
+assert (Cong C B H B) by (forward_using lemma_doublereverse).
+assert (Cong A C A H).
+by cases on (eq B M \\/ neq B M).
+
+*****
+H22 : Cong A C A H
+H21 : Cong C B H B
+H20 : Cong M C M H
+H18 : BetS C M H
+M : Point
+H19 : neq C H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+close.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+
+*****
+H18 : Cong A C A H
+H17 : Cong A H D H
+H16 : eq F D
+H15 : Cong B F B D
+H14 : Cong D B F B
+H13 : Cong D B A B
+H12 : neq A B
+H11 : neq B H
+H10 : Cong A H F H
+H9 : Cong A B F B
+H8 : BetS A B F
+F : Point
+H7 : neq B H
+H6 : neq B C
+H5 : Cong A C D C
+H4 : Cong A B D B
+H3 : BetS A B D
+D : Point
+H2 : Cong B C B H
+H1 : Per A B H
+H0 : Per A B C
+A,B,C,H : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A C A H
++++++
+close.
+-----
+Lemma lemma_10_12 : forall A B C H, Per A B C -> Per A B H -> Cong B C B H -> Cong A C A H.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists D, (BetS A B D /\\ Cong A B D B /\\ Cong A C D C /\\ neq B C)) by (conclude_def Per );destruct Tf as [D];spliter.
+assert (neq B H) by (conclude_def Per ).
+let Tf:=fresh in assert (Tf:exists F, (BetS A B F /\\ Cong A B F B /\\ Cong A H F H /\\ neq B H)) by (conclude_def Per );destruct Tf as [F];spliter.
+assert (neq A B) by (forward_using lemma_betweennotequal).
+assert (Cong D B A B) by (conclude lemma_congruencesymmetric).
+assert (Cong D B F B) by (conclude lemma_congruencetransitive).
+assert (Cong B F B D) by (forward_using lemma_doublereverse).
+assert (eq F D) by (conclude lemma_extensionunique).
+assert (Cong A H D H) by (conclude cn_equalitysub).
+assert (Cong A C A H).
+by cases on (eq C H \\/ neq C H).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

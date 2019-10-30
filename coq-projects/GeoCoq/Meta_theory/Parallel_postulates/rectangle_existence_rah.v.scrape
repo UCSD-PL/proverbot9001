@@ -1,0 +1,109 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Section rectangle_existence_rah.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_existence_of_a_right_lambert_quadrilateral, postulate_of_right_saccheri_quadrilaterals
++++++
+Proof.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_existence_of_a_right_lambert_quadrilateral, postulate_of_right_saccheri_quadrilaterals
++++++
+intros HABCD.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+intros HABCD.
+
+*****
+HABCD : postulate_of_existence_of_a_right_lambert_quadrilateral
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_right_saccheri_quadrilaterals
++++++
+destruct HABCD as [A [B [C [D []]]]].
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+intros HABCD.
+destruct HABCD as [A [B [C [D []]]]].
+
+*****
+H0 : Per B C D
+H : Lambert A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_right_saccheri_quadrilaterals
++++++
+apply (lam_per__rah A B C D).
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+intros HABCD.
+destruct HABCD as [A [B [C [D []]]]].
+apply (lam_per__rah A B C D).
+
+*****
+H0 : Per B C D
+H : Lambert A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Lambert A B C D
++++++
+assumption.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+intros HABCD.
+destruct HABCD as [A [B [C [D []]]]].
+apply (lam_per__rah A B C D).
+
+*****
+H0 : Per B C D
+H : Lambert A B C D
+A,B,C,D : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per B C D
++++++
+assumption.
+-----
+Lemma rectangle_existence__rah : postulate_of_existence_of_a_right_lambert_quadrilateral -> postulate_of_right_saccheri_quadrilaterals.
+Proof.
+intros HABCD.
+destruct HABCD as [A [B [C [D []]]]].
+apply (lam_per__rah A B C D).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End rectangle_existence_rah.
+-----

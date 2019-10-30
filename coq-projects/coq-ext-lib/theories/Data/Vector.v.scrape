@@ -1,0 +1,1040 @@
+Require Import ExtLib.Data.Fin.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Set Asymmetric Patterns.
+-----
+Section parametric.
+-----
+Variable T : Type.
+-----
+Inductive vector : nat -> Type :=\n  | Vnil : vector 0\n  | Vcons : forall {n}, T -> vector n -> vector (S n).
+-----
+Definition vector_hd n (v : vector (S n)) : T :=\n    match v in vector n' return match n' with\n                                  | 0 => unit\n                                  | S _ => T\n                                end with\n      | Vnil => tt\n      | Vcons _ x _ => x\n    end.
+-----
+Definition vector_tl n (v : vector (S n)) : vector n :=\n    match v in vector n' return match n' with\n                                  | 0 => unit\n                                  | S n => vector n\n                                end with\n      | Vnil => tt\n      | Vcons _ _ x => x\n    end.
+-----
+Theorem vector_eta : forall n (v : vector n),\n                         v = match n as n return vector n -> vector n with\n                               | 0 => fun _ => Vnil\n                               | S n => fun v => Vcons (vector_hd v) (vector_tl v)\n                             end v.
+-----
+Theorem vector_eta : forall n (v : vector n), v = match n as n return vector n -> vector n with | 0 => fun _ => Vnil | S n => fun v => Vcons (vector_hd v) (vector_tl v) end v.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n), eq v (match n as n0 return (forall _ : vector n0, vector n0) with | O => fun _ : vector O => Vnil | S n0 => fun v0 : vector (S n0) => Vcons (vector_hd v0) (vector_tl v0) end v)
++++++
+Proof.
+-----
+Theorem vector_eta : forall n (v : vector n), v = match n as n return vector n -> vector n with | 0 => fun _ => Vnil | S n => fun v => Vcons (vector_hd v) (vector_tl v) end v.
+Proof.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n), eq v (match n as n0 return (forall _ : vector n0, vector n0) with | O => fun _ : vector O => Vnil | S n0 => fun v0 : vector (S n0) => Vcons (vector_hd v0) (vector_tl v0) end v)
++++++
+destruct v.
+-----
+Theorem vector_eta : forall n (v : vector n), v = match n as n return vector n -> vector n with | 0 => fun _ => Vnil | S n => fun v => Vcons (vector_hd v) (vector_tl v) end v.
+Proof.
+destruct v.
+
+*****
+T : Type
+*****
+eq Vnil Vnil
++++++
+auto.
+-----
+Theorem vector_eta : forall n (v : vector n), v = match n as n return vector n -> vector n with | 0 => fun _ => Vnil | S n => fun v => Vcons (vector_hd v) (vector_tl v) end v.
+Proof.
+destruct v.
+
+*****
+v : vector n
+t : T
+n : nat
+T : Type
+*****
+eq (Vcons t v) (Vcons (vector_hd (Vcons t v)) (vector_tl (Vcons t v)))
++++++
+auto.
+-----
+Theorem vector_eta : forall n (v : vector n), v = match n as n return vector n -> vector n with | 0 => fun _ => Vnil | S n => fun v => Vcons (vector_hd v) (vector_tl v) end v.
+Proof.
+destruct v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint get {n : nat} (f : fin n) : vector n -> T :=\n    match f in fin n return vector n -> T with\n      | F0 n => @vector_hd _\n      | FS n f => fun v => get f (vector_tl v)\n    end.
+-----
+Fixpoint put {n : nat} (f : fin n) (t : T) : vector n -> vector n :=\n    match f in fin n return vector n -> vector n with\n      | F0 _ => fun v => Vcons t (vector_tl v)\n      | FS _ f => fun v => Vcons (vector_hd v) (put f t (vector_tl v))\n    end.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val,\n                         get f (put f val v) = val.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n) (f : fin n) (val : T), eq (get f (put f val v)) val
++++++
+Proof.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n) (f : fin n) (val : T), eq (get f (put f val v)) val
++++++
+induction n.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (v : vector O) (f : fin O) (val : T), eq (get f (put f val v)) val
++++++
+inversion f.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+
+*****
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall (v : vector (S n)) (f : fin (S n)) (val : T), eq (get f (put f val v)) val
++++++
+remember (S n).
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+
+*****
+Heqn0 : eq n0 (S n)
+n0 : nat
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall (v : vector n0) (f : fin n0) (val : T), eq (get f (put f val v)) val
++++++
+destruct f.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+
+*****
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get F0 (put F0 val v)) val
++++++
+inversion Heqn0.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+
+*****
+H0 : eq n0 n
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get F0 (put F0 val v)) val
++++++
+subst.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+
+*****
+Heqn0 : eq (S n) (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get F0 (put F0 val v)) val
++++++
+intros.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+intros.
+
+*****
+val : T
+Heqn0 : eq (S n) (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+eq (get F0 (put F0 val v)) val
++++++
+reflexivity.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+
+*****
+f : fin n0
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get (FS f) (put (FS f) val v)) val
++++++
+inversion Heqn0.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+
+*****
+H0 : eq n0 n
+f : fin n0
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get (FS f) (put (FS f) val v)) val
++++++
+subst.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+
+*****
+Heqn0 : eq (S n) (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get (FS f) (put (FS f) val v)) val
++++++
+simpl.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+simpl.
+
+*****
+Heqn0 : eq (S n) (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f : fin n) (val : T),\neq (get f (put f val v)) val
+n : nat
+T : Type
+*****
+forall val : T, eq (get f (put f val (vector_tl v))) val
++++++
+auto.
+-----
+Theorem get_put_eq : forall {n} (v : vector n) (f : fin n) val, get f (put f val v) = val.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val,\n                          f <> f' ->\n                          get f (put f' val v) = get f v.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')), eq (get f (put f' val v)) (get f v)
++++++
+Proof.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+
+*****
+T : Type
+*****
+forall (n : nat) (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')), eq (get f (put f' val v)) (get f v)
++++++
+induction n.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+
+*****
+T : Type
+*****
+forall (v : vector O) (f f' : fin O) (val : T) (_ : not (eq f f')), eq (get f (put f' val v)) (get f v)
++++++
+inversion f.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+
+*****
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (v : vector (S n)) (f f' : fin (S n)) (val : T) (_ : not (eq f f')), eq (get f (put f' val v)) (get f v)
++++++
+remember (S n).
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+
+*****
+Heqn0 : eq n0 (S n)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (v : vector n0) (f f' : fin n0) (val : T) (_ : not (eq f f')), eq (get f (put f' val v)) (get f v)
++++++
+destruct f.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+
+*****
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq F0 f')), eq (get F0 (put f' val v)) (get F0 v)
++++++
+inversion Heqn0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+
+*****
+H0 : eq n0 n
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq F0 f')), eq (get F0 (put f' val v)) (get F0 v)
++++++
+clear Heqn0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+
+*****
+H0 : eq n0 n
+v : vector (S n0)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq F0 f')), eq (get F0 (put f' val v)) (get F0 v)
++++++
+subst.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+
+*****
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n)) (val : T) (_ : not (eq F0 f')), eq (get F0 (put f' val v)) (get F0 v)
++++++
+intros.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+
+*****
+H : not (eq F0 f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put f' val v)) (get F0 v)
++++++
+destruct (fin_case f').
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+
+*****
+H0 : eq f' F0
+H : not (eq F0 f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put f' val v)) (get F0 v)
++++++
+try congruence.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+
+*****
+H0 : ex (fun f'0 : fin n => eq f' (FS f'0))
+H : not (eq F0 f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put f' val v)) (get F0 v)
++++++
+try congruence.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+try congruence.
+
+*****
+H0 : ex (fun f'0 : fin n => eq f' (FS f'0))
+H : not (eq F0 f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put f' val v)) (get F0 v)
++++++
+destruct H0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+try congruence.
+destruct H0.
+
+*****
+H0 : eq f' (FS x)
+x : fin n
+H : not (eq F0 f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put f' val v)) (get F0 v)
++++++
+subst.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+try congruence.
+destruct H0.
+subst.
+
+*****
+H : not (eq F0 (FS x))
+x : fin n
+val : T
+v : vector (S n)
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get F0 (put (FS x) val v)) (get F0 v)
++++++
+auto.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+
+*****
+f : fin n0
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq (FS f) f')), eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+inversion Heqn0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+
+*****
+H0 : eq n0 n
+f : fin n0
+v : vector (S n0)
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq (FS f) f')), eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+clear Heqn0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+
+*****
+H0 : eq n0 n
+f : fin n0
+v : vector (S n0)
+n0 : nat
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n0)) (val : T) (_ : not (eq (FS f) f')), eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+subst.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+
+*****
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+forall (f' : fin (S n)) (val : T) (_ : not (eq (FS f) f')), eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+intros.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+
+*****
+H : not (eq (FS f) f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+destruct (fin_case f').
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+
+*****
+H0 : eq f' F0
+H : not (eq (FS f) f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+subst.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+subst.
+
+*****
+H : not (eq (FS f) F0)
+val : T
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put F0 val v)) (get (FS f) v)
++++++
+auto.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+
+*****
+H0 : ex (fun f'0 : fin n => eq f' (FS f'0))
+H : not (eq (FS f) f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+destruct H0.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+destruct H0.
+
+*****
+H0 : eq f' (FS x)
+x : fin n
+H : not (eq (FS f) f')
+val : T
+f' : fin (S n)
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put f' val v)) (get (FS f) v)
++++++
+subst.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+destruct H0.
+subst.
+
+*****
+H : not (eq (FS f) (FS x))
+x : fin n
+val : T
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get (FS f) (put (FS x) val v)) (get (FS f) v)
++++++
+simpl.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+destruct H0.
+subst.
+simpl.
+
+*****
+H : not (eq (FS f) (FS x))
+x : fin n
+val : T
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+eq (get f (put x val (vector_tl v))) (get f (vector_tl v))
++++++
+eapply IHn.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+remember (S n).
+destruct f.
+inversion Heqn0.
+clear Heqn0.
+subst.
+intros.
+destruct (fin_case f').
+destruct H0.
+subst.
+simpl.
+eapply IHn.
+
+*****
+H : not (eq (FS f) (FS x))
+x : fin n
+val : T
+v : vector (S n)
+f : fin n
+IHn : forall (v : vector n) (f f' : fin n) (val : T) (_ : not (eq f f')),\neq (get f (put f' val v)) (get f v)
+n : nat
+T : Type
+*****
+not (eq f x)
++++++
+congruence.
+-----
+Theorem get_put_neq : forall {n} (v : vector n) (f f' : fin n) val, f <> f' -> get f (put f' val v) = get f v.
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Section ForallV.
+-----
+Variable P : T -> Prop.
+-----
+Inductive ForallV  : forall n, vector n -> Prop :=\n    | ForallV_nil : ForallV Vnil\n    | ForallV_cons : forall n e es, P e -> @ForallV n es -> ForallV (Vcons e es).
+-----
+Definition ForallV_vector_hd n (v : vector (S n)) (f : ForallV v) : P (vector_hd v) :=\n      match f in @ForallV n v return match n as n return vector n -> Prop with\n                                       | 0 => fun _ => True\n                                       | S _ => fun v => P (vector_hd v)\n                                     end v\n      with\n        | ForallV_nil => I\n        | ForallV_cons _ _ _ pf _ => pf\n      end.
+-----
+Definition ForallV_vector_tl n (v : vector (S n)) (f : ForallV v) : ForallV (vector_tl v) :=\n      match f in @ForallV n v return match n as n return vector n -> Prop with\n                                       | 0 => fun _ => True\n                                       | S _ => fun v => ForallV (vector_tl v)\n                                     end v\n      with\n        | ForallV_nil => I\n        | ForallV_cons _ _ _ _ pf => pf\n      end.
+-----
+End ForallV.
+-----
+Section vector_dec.
+-----
+Variable Tdec : forall a b : T, {a = b} + {a <> b}.
+-----
+Fixpoint vector_dec {n} (a : vector n)\n      : forall b : vector n, {a = b} + {a <> b} :=\n      match a in vector n\n            return forall b : vector n, {a = b} + {a <> b}\n      with\n      | Vnil => fun b => left match b in vector 0 with\n                                | Vnil => eq_refl\n                                end\n      | Vcons _ a a' => fun b =>\n        match b as b in vector (S n)\n              return forall a',\n                (forall a : vector n, {a' = a} + {a' <> a}) ->\n                {Vcons a a' = b} + {Vcons a a' <> b}\n        with\n        | Vcons _ b b' => fun a' rec =>\n                            match Tdec a b , rec b' with\n                            | left pf , left pf' =>\n                              left match pf , pf' with\n                                   | eq_refl , eq_refl => eq_refl\n                                   end\n                            | right pf , _ =>\n                              right (fun x : Vcons a a' = Vcons b b' =>\n                                       pf match x in _ = z\n                                                return a = vector_hd z\n                                          with\n                                          | eq_refl => eq_refl\n                                          end)\n                            | left _ , right pf =>\n                              right (fun x : Vcons a a' = Vcons b b' =>\n                                       pf match x in _ = z\n                                                return a' = vector_tl z\n                                          with\n                                          | eq_refl => eq_refl\n                                          end)\n                            end\n        end a' (@vector_dec _ a')\n      end.
+-----
+End vector_dec.
+-----
+Section vector_in.
+-----
+Variable a : T.
+-----
+Inductive vector_In : forall {n}, vector n -> Prop :=\n    | vHere : forall n rst, @vector_In (S n) (Vcons a rst)\n    | vNext : forall n rst b, @vector_In n rst ->\n                              @vector_In (S n) (Vcons b rst).
+-----
+End vector_in.
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P,\n      ForallV P vs ->\n      vector_In t vs -> P t.
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+
+*****
+T : Type
+*****
+forall (n : nat) (t : T) (vs : vector n) (P : forall _ : T, Prop) (_ : ForallV P vs) (_ : vector_In t vs), P t
++++++
+Proof.
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+Proof.
+
+*****
+T : Type
+*****
+forall (n : nat) (t : T) (vs : vector n) (P : forall _ : T, Prop) (_ : ForallV P vs) (_ : vector_In t vs), P t
++++++
+induction 2.
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+Proof.
+induction 2.
+
+*****
+H : ForallV P (Vcons t rst)
+rst : vector n
+n : nat
+P : forall _ : T, Prop
+t : T
+T : Type
+*****
+P t
++++++
+eapply (ForallV_vector_hd H).
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+Proof.
+induction 2.
+
+*****
+IHvector_In : forall _ : ForallV P rst, P t
+H0 : vector_In t rst
+H : ForallV P (Vcons b rst)
+b : T
+rst : vector n
+n : nat
+P : forall _ : T, Prop
+t : T
+T : Type
+*****
+P t
++++++
+eapply IHvector_In.
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+Proof.
+induction 2.
+eapply IHvector_In.
+
+*****
+IHvector_In : forall _ : ForallV P rst, P t
+H0 : vector_In t rst
+H : ForallV P (Vcons b rst)
+b : T
+rst : vector n
+n : nat
+P : forall _ : T, Prop
+t : T
+T : Type
+*****
+ForallV P rst
++++++
+eapply (ForallV_vector_tl H).
+-----
+Lemma ForallV_vector_In : forall {n} t (vs : vector n) P, ForallV P vs -> vector_In t vs -> P t.
+Proof.
+induction 2.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End parametric.
+-----
+Section vector_map.
+-----
+Context {T U : Type}.
+-----
+Variable f : T -> U.
+-----
+Fixpoint vector_map {n} (v : vector T n) : vector U n :=\n    match v with\n    | Vnil => Vnil _\n    | Vcons _ v vs => Vcons (f v) (vector_map vs)\n    end.
+-----
+End vector_map.
+-----
+Arguments vector T n.
+-----
+Arguments vector_hd {T n} _.
+-----
+Arguments vector_tl {T n} _.
+-----

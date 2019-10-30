@@ -1,0 +1,218 @@
+7d803a7590231e212a519ca49c4ac754
+Require Import ExtLib.Structures.Monads.
+Require Import ExtLib.Data.Monads.OptionMonad.
+Require Import ExtLib.Programming.Extras.
+Import FunNotation.
+Set Implicit Arguments.
+Set Maximal Implicit Insertion.
+Import MonadNotation.
+Import MonadPlusNotation.
+Open Scope monad_scope.
+Section tree.
+Variable E:Type.
+Variable comp : E -> E -> comparison.
+Inductive tree :=
+  
+  | Null_t : tree
+  
+  | Two_t : tree -> E -> tree -> tree
+  
+  | Three_t : tree -> E -> tree -> E -> tree -> tree.
+Fixpoint height_t (t:tree) : nat :=
+  match t with
+  | Null_t => O
+  | Two_t tl _ tr => max (height_t tl) (height_t tr)
+  | Three_t tl _ tm _ tr => max (max (height_t tl) (height_t tm)) (height_t tr)
+  end.
+Inductive context :=
+  
+  | Top_c : context
+  
+  | TwoLeftHole_c : E -> tree -> context -> context
+  
+  | TwoRightHole_c : tree -> E -> context -> context
+  
+  | ThreeLeftHole_c : E -> tree -> E -> tree -> context -> context
+  
+  | ThreeMiddleHole_c : tree -> E -> E -> tree -> context -> context
+  
+  | ThreeRightHole_c : tree -> E -> tree -> E -> context -> context.
+Fixpoint zip (t:tree) (c:context) : tree :=
+  match c with
+  | Top_c => t
+  | TwoLeftHole_c em tr c' => zip (Two_t t em tr) c'
+  | TwoRightHole_c tl em c' => zip (Two_t tl em t) c'
+  | ThreeLeftHole_c el em er tr c' => zip (Three_t t el em er tr) c'
+  | ThreeMiddleHole_c tl el er tr c' => zip (Three_t tl el t er tr) c'
+  | ThreeRightHole_c tl el em er c' => zip (Three_t tl el em er t) c'
+  end.
+Fixpoint fuse (c1:context) (c2:context) : context :=
+  match c1 with
+  | Top_c => c2
+  | TwoLeftHole_c em tr c1' => TwoLeftHole_c em tr (fuse c1' c2)
+  | TwoRightHole_c tl em c1' => TwoRightHole_c tl em (fuse c1' c2)
+  | ThreeLeftHole_c el em er tr c1' => ThreeLeftHole_c el em er tr (fuse c1' c2)
+  | ThreeMiddleHole_c tl el er tr c1' => ThreeMiddleHole_c tl el er tr (fuse c1' c2)
+  | ThreeRightHole_c tl el em er c1' => ThreeRightHole_c tl el em er (fuse c1' c2)
+  end.
+Inductive location :=
+  
+  | TwoHole_l : tree -> tree -> context -> location
+  
+  | ThreeLeftHole_l : tree -> tree -> E -> tree -> context -> location
+  
+  | ThreeRightHole_l : tree -> E -> tree -> tree -> context -> location.
+Definition fillLocation (e:E) (l:location) : tree :=
+  match l with
+  | TwoHole_l tl tr c => zip (Two_t tl e tr) c
+  | ThreeLeftHole_l tl tm vr tr c => zip (Three_t tl e tm vr tr) c
+  | ThreeRightHole_l tl el tm tr c => zip (Three_t tl el tm e tr) c
+  end.
+Fixpoint locate (e:E) (t:tree) (c:context) : context + E * location :=
+  match t with
+  | Null_t => inl c
+  | Two_t tl em tr =>
+      match comp e em with
+      | Lt => locate e tl $ TwoLeftHole_c em tr c
+      | Eq => inr (em, TwoHole_l tl tr c)
+      | Gt => locate e tr $ TwoRightHole_c tl em c
+      end
+  | Three_t tl el tm er tr =>
+      match comp e el, comp e er with
+      | Lt, _ => locate e tl $ ThreeLeftHole_c el tm er tr c
+      | Eq, _ => inr (el, ThreeLeftHole_l tl tm er tr c)
+      | Gt, Lt => locate e tm $ ThreeMiddleHole_c tl el er tr c
+      | _, Eq => inr (er, ThreeRightHole_l tl el tm tr c)
+      | _, Gt => locate e tr $ ThreeRightHole_c tl el tm er c
+      end
+  end.
+Fixpoint locateGreatest (t:tree) (c:context)
+    : option (E * (context + E * context)) :=
+  match t with
+  | Null_t => None
+  | Two_t tl em tr => liftM sum_tot $
+      locateGreatest tr (TwoRightHole_c tl em c)
+      <+>
+      ret (em, inl c)
+  | Three_t tl el tm er tr => liftM sum_tot $
+      locateGreatest tr (ThreeRightHole_c tl el tm er c)
+      <+>
+      ret (er, inr (el, c))
+  end.
+Definition single e := Two_t Null_t e Null_t.
+Fixpoint insertUp (tet:tree * E * tree) (c:context) : tree :=
+  let '(tl,em,tr) := tet in
+  match c with
+  
+  | Top_c => Two_t tl em tr
+  
+  | TwoLeftHole_c em' tr' c' =>
+      zip (Three_t tl em tr em' tr') c'
+  
+  | TwoRightHole_c tl' em' c' =>
+      zip (Three_t  tl' em' tl em tr ) c'
+  
+  | ThreeLeftHole_c el tm er tr' c' =>
+      insertUp (Two_t tl em tr, el, Two_t tm er tr') c'
+  
+  | ThreeMiddleHole_c tl' el er tr' c' =>
+      insertUp (Two_t tl' el tl, em, Two_t tr er tr') c'
+  
+  | ThreeRightHole_c tl' el tm er c' =>
+      insertUp (Two_t tl' el tm, er, Two_t tl em tr) c'
+  end.
+Definition insert (e:E) (t:tree) : tree :=
+  match locate e t Top_c with
+  | inl c => insertUp (Null_t, e, Null_t) c
+  | inr (_, l) => fillLocation e l
+  end.
+Fixpoint removeUp (t:tree) (c:context) : tree :=
+  match c with
+  
+  | Top_c => t
+  
+  | TwoLeftHole_c em (Three_t tl' el' tm' er' tr') c' =>
+      zip (Two_t (Two_t t em tl') el' (Two_t tm' er' tr')) c'
+  
+  | TwoLeftHole_c em (Two_t tl' em' tr') c' =>
+      removeUp (Three_t t em tl' em' tr') c'
+  
+  | TwoRightHole_c (Three_t tl' el' tm' er' tr') em c' =>
+      zip (Two_t (Two_t tl' el' tm') er' (Two_t tr' em t)) c'
+  
+  | TwoRightHole_c (Two_t tl' em' tr') em c' =>
+      removeUp (Three_t tl' em' tr' em t) c'
+  
+  | ThreeLeftHole_c el (Three_t tl' el' tm' er' tr') er tr c' =>
+      zip (Three_t (Two_t t el' tl') el (Two_t tm' er' tr') er tr) c'
+  
+  | ThreeLeftHole_c el (Two_t tl' em' tr') er tr c' =>
+      zip (Two_t (Three_t t el tl' em' tr') er tr) c'
+  
+  | ThreeMiddleHole_c (Three_t tl' el' tm' er' tr') el er tr c' =>
+      zip (Three_t (Two_t tl' el' tm') er' (Two_t tr' el t) er tr) c'
+  
+  | ThreeMiddleHole_c tl el er (Three_t tl' el' tm' er' tr') c' =>
+      zip (Three_t tl el (Two_t t er tl') el' (Two_t tm' er' tr')) c'
+  
+  | ThreeMiddleHole_c (Two_t tl' em' tr') el er tr c' =>
+      zip (Two_t (Three_t tl' em' tr' el t) er tr) c'
+  
+  | ThreeMiddleHole_c tl el er (Two_t tl' em' tr') c' =>
+      zip (Two_t tl el (Three_t t er tl' em' tr')) c'
+  
+  | ThreeRightHole_c tl el (Three_t tl' el' tm' er' tr') er c' =>
+      zip (Three_t tl el (Two_t tl' el' tm') er' (Two_t tr' er t)) c'
+  
+  | ThreeRightHole_c tl el (Two_t tl' em' tr') er c' =>
+      zip (Two_t tl el (Three_t tl' em' tr' er t)) c'
+  | TwoLeftHole_c _ Null_t _ => Null_t 
+  | TwoRightHole_c Null_t _ _ => Null_t 
+  | ThreeLeftHole_c _ Null_t _ _ _ => Null_t 
+  | ThreeMiddleHole_c Null_t _ _ _ _ => Null_t 
+  | ThreeRightHole_c _ _ Null_t _ _ => Null_t 
+  end.
+Definition remove (e:E) (t:tree) : tree :=
+  match locate e t Top_c with
+  
+  | inl _ => t
+  
+  | inr (_, loc) =>
+      match loc with
+      
+      | TwoHole_l tl tr c =>
+          let mkContext g c' := TwoLeftHole_c g tr c' in
+          match locateGreatest tl Top_c with
+          
+          | None => removeUp Null_t c
+          
+          | Some (g, inl c') => removeUp Null_t $ fuse (mkContext g c') c
+          
+          | Some (g, inr (el, c')) => zip (single el) $ fuse (mkContext g c') c
+          end
+      
+      | ThreeLeftHole_l tl tm er tr c =>
+          let mkContext g c' := ThreeLeftHole_c g tm er tr c' in
+          match locateGreatest tl Top_c with
+          
+          | None => zip (single er) c
+          
+          | Some (g, inl c') => removeUp Null_t $ fuse (mkContext g c') c
+          
+          | Some (g, inr (el, c')) => zip (single el) $ fuse (mkContext g c') c
+          end
+      
+      | ThreeRightHole_l tl el tm tr c =>
+          let mkContext g c' := ThreeMiddleHole_c tl el g tr c' in
+          match locateGreatest tm Top_c with
+          
+          | None => zip (single el) c
+          
+          | Some (g, inl c') => removeUp Null_t $ fuse (mkContext g c') c
+          
+          | Some (g, inr (el, c')) => zip (single el) $ fuse (mkContext g c') c
+          end
+      end
+  end.
+End tree.
+Arguments Null_t {E}.

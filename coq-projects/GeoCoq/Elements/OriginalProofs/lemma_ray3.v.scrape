@@ -1,0 +1,652 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_outerconnectivity.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_ray3 : \n   forall B C D V, \n   Out B C D -> Out B C V ->\n   Out B D V.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (B C D V : Point) (_ : Out B C D) (_ : Out B C V), Out B D V
++++++
+Proof.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (B C D V : Point) (_ : Out B C D) (_ : Out B C V), Out B D V
++++++
+intros.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+
+*****
+H0 : Out B C V
+H : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B D V
++++++
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+
+*****
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B D V
++++++
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+
+*****
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B D V
++++++
+assert (~ ~ BetS E B V).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+
+*****
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (not (BetS E B V))
++++++
+intro.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+
+*****
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (~ BetS B E H).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+
+*****
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (BetS B E H)
++++++
+intro.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+intro.
+
+*****
+H7 : BetS B E H
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS H E B) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+intro.
+assert (BetS H E B) by (conclude axiom_betweennesssymmetry).
+
+*****
+H8 : BetS H E B
+H7 : BetS B E H
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E B V) by (conclude lemma_3_6a).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+intro.
+assert (BetS H E B) by (conclude axiom_betweennesssymmetry).
+assert (BetS E B V) by (conclude lemma_3_6a).
+
+*****
+H9 : BetS E B V
+H8 : BetS H E B
+H7 : BetS B E H
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+
+*****
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (~ BetS B H E).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+
+*****
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (BetS B H E)
++++++
+intro.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+intro.
+
+*****
+H8 : BetS B H E
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E H B) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+intro.
+assert (BetS E H B) by (conclude axiom_betweennesssymmetry).
+
+*****
+H9 : BetS E H B
+H8 : BetS B H E
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E B V) by (conclude lemma_3_7a).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+intro.
+assert (BetS E H B) by (conclude axiom_betweennesssymmetry).
+assert (BetS E B V) by (conclude lemma_3_7a).
+
+*****
+H10 : BetS E B V
+H9 : BetS E H B
+H8 : BetS B H E
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+
+*****
+H8 : not (BetS B H E)
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS C B E) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+assert (BetS C B E) by (conclude axiom_betweennesssymmetry).
+
+*****
+H9 : BetS C B E
+H8 : not (BetS B H E)
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS C B H) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+assert (BetS C B E) by (conclude axiom_betweennesssymmetry).
+assert (BetS C B H) by (conclude axiom_betweennesssymmetry).
+
+*****
+H10 : BetS C B H
+H9 : BetS C B E
+H8 : not (BetS B H E)
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq H E) by (conclude lemma_outerconnectivity).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+assert (BetS C B E) by (conclude axiom_betweennesssymmetry).
+assert (BetS C B H) by (conclude axiom_betweennesssymmetry).
+assert (eq H E) by (conclude lemma_outerconnectivity).
+
+*****
+H11 : eq H E
+H10 : BetS C B H
+H9 : BetS C B E
+H8 : not (BetS B H E)
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E B V) by (conclude cn_equalitysub).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+intro.
+assert (~ BetS B E H).
+assert (~ BetS B H E).
+assert (BetS C B E) by (conclude axiom_betweennesssymmetry).
+assert (BetS C B H) by (conclude axiom_betweennesssymmetry).
+assert (eq H E) by (conclude lemma_outerconnectivity).
+assert (BetS E B V) by (conclude cn_equalitysub).
+
+*****
+H12 : BetS E B V
+H11 : eq H E
+H10 : BetS C B H
+H9 : BetS C B E
+H8 : not (BetS B H E)
+H7 : not (BetS B E H)
+H6 : not (BetS E B V)
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+
+*****
+H6 : not (not (BetS E B V))
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B D V
++++++
+assert (Out B D V) by (conclude_def Out ).
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+assert (Out B D V) by (conclude_def Out ).
+
+*****
+H7 : Out B D V
+H6 : not (not (BetS E B V))
+H5 : BetS H B C
+H4 : BetS H B V
+H : Point
+H2 : BetS E B C
+H1 : BetS E B D
+E : Point
+H0 : Out B C V
+H3 : Out B C D
+B,C,D,V : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out B D V
++++++
+close.
+-----
+Lemma lemma_ray3 : forall B C D V, Out B C D -> Out B C V -> Out B D V.
+Proof.
+intros.
+let Tf:=fresh in assert (Tf:exists E, (BetS E B D /\\ BetS E B C)) by (conclude_def Out );destruct Tf as [E];spliter.
+rename_H H;let Tf:=fresh in assert (Tf:exists H, (BetS H B V /\\ BetS H B C)) by (conclude_def Out );destruct Tf as [H];spliter.
+assert (~ ~ BetS E B V).
+assert (Out B D V) by (conclude_def Out ).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

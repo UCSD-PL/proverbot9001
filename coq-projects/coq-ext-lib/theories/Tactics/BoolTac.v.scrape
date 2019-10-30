@@ -1,0 +1,122 @@
+Require Import Coq.Bool.Bool.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Hint Rewrite negb_orb negb_andb negb_involutive if_negb : bool_rw.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+
+*****
+
+*****
+forall (a : bool) (_ : eq (negb a) true), eq a false
++++++
+Proof.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+Proof.
+
+*****
+
+*****
+forall (a : bool) (_ : eq (negb a) true), eq a false
++++++
+destruct a.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+Proof.
+destruct a.
+
+*****
+
+*****
+forall _ : eq (negb true) true, eq true false
++++++
+auto.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+Proof.
+destruct a.
+
+*****
+
+*****
+forall _ : eq (negb false) true, eq false false
++++++
+auto.
+-----
+Lemma negb_true : forall a, negb a = true -> a = false.
+Proof.
+destruct a.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+
+*****
+
+*****
+forall (a : bool) (_ : eq (negb a) false), eq a true
++++++
+Proof.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+Proof.
+
+*****
+
+*****
+forall (a : bool) (_ : eq (negb a) false), eq a true
++++++
+destruct a.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+Proof.
+destruct a.
+
+*****
+
+*****
+forall _ : eq (negb true) false, eq true true
++++++
+auto.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+Proof.
+destruct a.
+
+*****
+
+*****
+forall _ : eq (negb false) false, eq false true
++++++
+auto.
+-----
+Lemma negb_false : forall a, negb a = false -> a = true.
+Proof.
+destruct a.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac do_bool' runner :=\n  ( autorewrite with bool_rw in * );\n  repeat match goal with\n           | [ H : negb _ = true |- _ ] => apply negb_true in H\n           | [ H : negb _ = false |- _ ] => apply negb_false in H\n           | [ H : andb _ _ = true |- _ ] =>\n             apply andb_true_iff in H; destruct H\n           | [ H : orb _ _ = false |- _ ] =>\n             apply orb_false_iff in H; destruct H\n           | [ H : true = andb _ _ |- _ ] =>\n             symmetry in H; apply andb_true_iff in H; destruct H\n           | [ H : false = orb _ _ |- _ ] =>\n             symmetry in H; apply orb_false_iff in H; destruct H\n           | [ H : andb _ _ = false |- _ ] =>\n             apply andb_false_iff in H; runner H\n           | [ H : orb _ _ = true |- _ ] =>\n             apply orb_true_iff in H; runner H\n           | [ H : false = andb _ _ |- _ ] =>\n             symmetry in H; apply andb_false_iff in H; runner H\n           | [ H : true = orb _ _ |- _ ] =>\n             symmetry in H; apply orb_true_iff in H; runner H\n         end.
+-----
+Ltac do_bool_case :=\n  let t H := (destruct H) in do_bool' t.
+-----
+Ltac do_bool :=\n  let t _ := idtac in do_bool' t.
+-----

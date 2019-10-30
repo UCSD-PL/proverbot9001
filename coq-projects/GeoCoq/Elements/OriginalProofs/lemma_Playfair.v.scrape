@@ -1,0 +1,687 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_Playfairhelper2.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_euclidean}.
+-----
+Lemma lemma_Playfair : \n   forall A B C D E, \n   Par A B C D -> Par A B C E ->\n   Col C D E.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+
+*****
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : Par A B C D) (_ : Par A B C E), Col C D E
++++++
+Proof.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+
+*****
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : Par A B C D) (_ : Par A B C E), Col C D E
++++++
+intros.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+
+*****
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (neq A B) by (conclude_def Par ).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+
+*****
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (neq C D) by (conclude_def Par ).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+
+*****
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (~ ~ (CR A D B C \/ CR A C B D)).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+
+*****
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (not (or (CR A D B C) (CR A C B D)))
++++++
+intro.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+
+*****
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+
+*****
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CR A C D B) by (conclude lemma_crisscross).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+
+*****
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+
+*****
+H7 : BetS D p B
+H6 : BetS A p C
+p : Point
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq D B) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (neq D B) by (forward_using lemma_betweennotequal).
+
+*****
+H8 : neq D B
+H7 : BetS D p B
+H6 : BetS A p C
+p : Point
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq B D) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (neq D B) by (forward_using lemma_betweennotequal).
+assert (neq B D) by (conclude lemma_inequalitysymmetric).
+
+*****
+H9 : neq B D
+H8 : neq D B
+H7 : BetS D p B
+H6 : BetS A p C
+p : Point
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS B p D) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (neq D B) by (forward_using lemma_betweennotequal).
+assert (neq B D) by (conclude lemma_inequalitysymmetric).
+assert (BetS B p D) by (conclude axiom_betweennesssymmetry).
+
+*****
+H10 : BetS B p D
+H9 : neq B D
+H8 : neq D B
+H7 : BetS D p B
+H6 : BetS A p C
+p : Point
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (CR A C B D) by (conclude_def CR ).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+intro.
+assert (Par A B D C) by (forward_using lemma_parallelflip).
+assert (CR A C D B) by (conclude lemma_crisscross).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS D p B)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (neq D B) by (forward_using lemma_betweennotequal).
+assert (neq B D) by (conclude lemma_inequalitysymmetric).
+assert (BetS B p D) by (conclude axiom_betweennesssymmetry).
+assert (CR A C B D) by (conclude_def CR ).
+
+*****
+H11 : CR A C B D
+H10 : BetS B p D
+H9 : neq B D
+H8 : neq D B
+H7 : BetS D p B
+H6 : BetS A p C
+p : Point
+H5 : CR A C D B
+H4 : Par A B D C
+H3 : not (or (CR A D B C) (CR A C B D))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+
+*****
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (Col C D E).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+
+*****
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+by cases on (CR A D B C \/ CR A C B D).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+
+*****
+H5 : CR A D B C
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (Col C D E) by (conclude lemma_Playfairhelper2).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+assert (Col C D E) by (conclude lemma_Playfairhelper2).
+
+*****
+H4 : Col C D E
+H5 : CR A D B C
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+close.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+
+*****
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+
+*****
+H6 : BetS B p D
+H4 : BetS A p C
+p : Point
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (CR B D A C) by (conclude_def CR ).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (CR B D A C) by (conclude_def CR ).
+
+*****
+H7 : CR B D A C
+H6 : BetS B p D
+H4 : BetS A p C
+p : Point
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (Par B A C D) by (forward_using lemma_parallelflip).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (CR B D A C) by (conclude_def CR ).
+assert (Par B A C D) by (forward_using lemma_parallelflip).
+
+*****
+H8 : Par B A C D
+H7 : CR B D A C
+H6 : BetS B p D
+H4 : BetS A p C
+p : Point
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (Par B A C E) by (forward_using lemma_parallelflip).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (CR B D A C) by (conclude_def CR ).
+assert (Par B A C D) by (forward_using lemma_parallelflip).
+assert (Par B A C E) by (forward_using lemma_parallelflip).
+
+*****
+H9 : Par B A C E
+H8 : Par B A C D
+H7 : CR B D A C
+H6 : BetS B p D
+H4 : BetS A p C
+p : Point
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+assert (Col C D E) by (conclude lemma_Playfairhelper2).
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+let Tf:=fresh in assert (Tf:exists p, (BetS A p C /\\ BetS B p D)) by (conclude_def CR );destruct Tf as [p];spliter.
+assert (CR B D A C) by (conclude_def CR ).
+assert (Par B A C D) by (forward_using lemma_parallelflip).
+assert (Par B A C E) by (forward_using lemma_parallelflip).
+assert (Col C D E) by (conclude lemma_Playfairhelper2).
+
+*****
+H10 : Col C D E
+H9 : Par B A C E
+H8 : Par B A C D
+H7 : CR B D A C
+H6 : BetS B p D
+H4 : BetS A p C
+p : Point
+H5 : CR A C B D
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+close.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+
+*****
+H4 : Col C D E
+H3 : not (not (or (CR A D B C) (CR A C B D)))
+H2 : neq C D
+H1 : neq A B
+H0 : Par A B C E
+H : Par A B C D
+A,B,C,D,E : Point
+Ax : euclidean_euclidean Ax1
+Ax1 : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col C D E
++++++
+close.
+-----
+Lemma lemma_Playfair : forall A B C D E, Par A B C D -> Par A B C E -> Col C D E.
+Proof.
+intros.
+assert (neq A B) by (conclude_def Par ).
+assert (neq C D) by (conclude_def Par ).
+assert (~ ~ (CR A D B C \\/ CR A C B D)).
+assert (Col C D E).
+by cases on (CR A D B C \\/ CR A C B D).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

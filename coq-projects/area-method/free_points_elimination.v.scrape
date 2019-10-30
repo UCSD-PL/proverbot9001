@@ -1,0 +1,249 @@
+Require Export freepoints.
+-----
+Ltac freepoints_independant A B C H D E F :=\n  rewrite (free_points_area_elimination A B C D E F H) in *.
+-----
+Ltac iter_coord_expr A B C H E :=\n  match constr:(E) with\n  | (?X1 = ?X2) =>\n      iter_coord_expr A B C H X1; iter_coord_expr A B C H X2\n  | (?X1 + ?X2) =>\n      iter_coord_expr A B C H X1; iter_coord_expr A B C H X2\n  | (?X1 * ?X2) =>\n      iter_coord_expr A B C H X1; iter_coord_expr A B C H X2\n  | (?X1 / ?X2) =>\n      iter_coord_expr A B C H X1; iter_coord_expr A B C H X2\n  | (?X1 - ?X2) =>\n      iter_coord_expr A B C H X1; iter_coord_expr A B C H X2\n  | (- ?X1) => iter_coord_expr A B C H X1\n  | (/ ?X1) => iter_coord_expr A B C H X1\n  | ?X5 =>\n      match constr:(X5) with\n      | (S ?X1 ?X2 ?X3) =>\n          match constr:(X1) with\n          | A =>\n              match constr:(X2) with\n              | B => idtac\n              | C => idtac\n              | _ =>\n                  match constr:(X3) with\n                  | B => idtac\n                  | C => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              end\n          | B =>\n              match constr:(X2) with\n              | A => idtac\n              | _ =>\n                  match constr:(X3) with\n                  | A => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              end\n          | C =>\n              match constr:(X2) with\n              | A => idtac\n              | _ =>\n                  match constr:(X3) with\n                  | A => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              end\n          | _ =>\n              match constr:(X2) with\n              | A =>\n                  match constr:(X3) with\n                  | C => idtac\n                  | B => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              | B =>\n                  match constr:(X3) with\n                  | A => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              | C =>\n                  match constr:(X3) with\n                  | A => idtac\n                  | _ => freepoints_independant A B C H X1 X2 X3\n                  end\n              | _ => freepoints_independant A B C H X1 X2 X3\n              end\n          end\n      | _ => idtac\n      end\n  end.
+-----
+Ltac only_use_area_coordinates :=\n  unfold Det3,Col in *;\n   match goal with\n   | H:(S ?X1 ?X2 ?X3 <> 0) |- ?X4 =>\n       \n       iter_coord_expr X1 X2 X3 H X4; unfold Det3 in *; basic_simpl;\n        uniformize_signed_areas; basic_simpl\n   | A:Point, B:Point, H:?A<>?B |- ?X4 =>\n       \n       let T := fresh in \n       (assert (T:=(build_point_not_collinear_1 A B H));\n       decompose [ex] T;clear T);only_use_area_coordinates  \n    | A:Point |- ?X4 =>\n       let T := fresh in \n       (assert (T:=(build_point_not_collinear_2 A));\n       decompose [ex] T;clear T);only_use_area_coordinates  \n   end.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C  + S A B D = S A B C.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : not (eq (S A B C) F0)), eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+Proof.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : not (eq (S A B C) F0)), eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+intros.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+
+*****
+H : not (eq (S A B C) F0)
+A,B,C,D : Point
+*****
+eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+only_use_area_coordinates.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+
+*****
+H : not (eq (S A B C) F0)
+A,B,C,D : Point
+*****
+eq (Fplus (Fminus (Fdiv (Fminus (Fplus (Fopp (Fmult (S A B D) (S A B C))) (Fmult (S A C D) (S A B C))) (Fopp (Fmult (S A B C) (S A B C)))) (S A B C)) (S A C D)) (S A B D)) (S A B C)
++++++
+uniformize_signed_areas.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+uniformize_signed_areas.
+
+*****
+H : not (eq (S A B C) F0)
+A,B,C,D : Point
+*****
+eq (Fplus (Fminus (Fdiv (Fminus (Fplus (Fopp (Fmult (S A B D) (S A B C))) (Fmult (S A C D) (S A B C))) (Fopp (Fmult (S A B C) (S A B C)))) (S A B C)) (S A C D)) (S A B D)) (S A B C)
++++++
+field.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+uniformize_signed_areas.
+field.
+
+*****
+H : not (eq (S A B C) F0)
+A,B,C,D : Point
+*****
+not (eq (S A B C) F0)
++++++
+auto.
+-----
+Lemma test_only_use_area_coordinates_1 : forall A B C D, S A B C <> 0 -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+uniformize_signed_areas.
+field.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D,  A<> B -> S D B C + S A D C  + S A B D = S A B C.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : not (eq A B)), eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+Proof.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : not (eq A B)), eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+intros.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+
+*****
+H : not (eq A B)
+A,B,C,D : Point
+*****
+eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+only_use_area_coordinates.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+
+*****
+H1 : not (eq (S A B x) F0)
+x : Point
+H : not (eq A B)
+A,B,C,D : Point
+*****
+eq (Fplus (Fplus (Fdiv (Fminus (Fplus (Fminus (Fopp (Fmult (S A B D) (S A B x))) (Fmult (S A B D) (S A x C))) (Fmult (S A x D) (S A B C))) (Fopp (Fmult (S A B x) (S A B C)))) (S A B x)) (Fdiv (Fminus (Fmult (S A B D) (S A x C)) (Fmult (S A x D) (S A B C))) (S A B x))) (S A B D)) (S A B C)
++++++
+field.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+field.
+
+*****
+H1 : not (eq (S A B x) F0)
+x : Point
+H : not (eq A B)
+A,B,C,D : Point
+*****
+not (eq (S A B x) F0)
++++++
+auto.
+-----
+Lemma test_only_use_area_coordinates_2 : forall A B C D, A<> B -> S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+field.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D,   S D B C + S A D C  + S A B D = S A B C.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+Proof.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+intros.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fplus (Fplus (S D B C) (S A D C)) (S A B D)) (S A B C)
++++++
+only_use_area_coordinates.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+
+*****
+H1 : not (eq (S D x x0) F0)
+A,B,C,D,x,x0 : Point
+*****
+eq (Fplus (Fplus (Fdiv (Fminus (Fmult (S D x B) (S D x0 C)) (Fmult (S D x0 B) (S D x C))) (S D x x0)) (Fdiv (Fplus (Fminus F0 (Fmult (S D x A) (S D x0 C))) (Fmult (S D x0 A) (S D x C))) (S D x x0))) (Fdiv (Fminus (Fmult (S D x A) (S D x0 B)) (Fmult (S D x0 A) (S D x B))) (S D x x0))) (Fdiv (Fminus (Fplus (Fplus (Fminus (Fminus (Fmult (S D x A) (S D x0 B)) (Fmult (S D x A) (S D x0 C))) (Fmult (S D x0 A) (S D x B))) (Fmult (S D x0 A) (S D x C))) (Fmult (S D x B) (S D x0 C))) (Fmult (S D x0 B) (S D x C))) (S D x x0))
++++++
+field.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+field.
+
+*****
+H1 : not (eq (S D x x0) F0)
+A,B,C,D,x,x0 : Point
+*****
+not (eq (S D x x0) F0)
++++++
+auto.
+-----
+Lemma test_only_use_area_coordinates_3 : forall A B C D, S D B C + S A D C + S A B D = S A B C.
+Proof.
+intros.
+only_use_area_coordinates.
+field.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

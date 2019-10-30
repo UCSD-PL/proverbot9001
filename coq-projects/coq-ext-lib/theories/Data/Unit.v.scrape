@@ -1,0 +1,256 @@
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Structures.Proper.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Global Instance RelDec_eq_unit : RelDec (@eq unit) :=\n{ rel_dec := fun _ _ => true }.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+
+*****
+
+*****
+RelDec_Correct RelDec_eq_unit
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+
+*****
+
+*****
+forall x y : unit, iff (eq (rel_dec x y) true) (eq x y)
++++++
+destruct x.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+destruct x.
+
+*****
+
+*****
+forall y : unit, iff (eq (rel_dec tt y) true) (eq tt y)
++++++
+destruct y.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+destruct x.
+destruct y.
+
+*****
+
+*****
+iff (eq (rel_dec tt tt) true) (eq tt tt)
++++++
+auto.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+destruct x.
+destruct y.
+auto.
+
+*****
+
+*****
+iff (eq (rel_dec tt tt) true) (eq tt tt)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+destruct x.
+destruct y.
+auto.
+simpl.
+
+*****
+
+*****
+iff (eq true true) (eq tt tt)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_eq_unit : RelDec_Correct RelDec_eq_unit.
+constructor.
+destruct x.
+destruct y.
+auto.
+simpl.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance type_unit : type unit :=\n{ equal := fun _ _ => True \n; proper := fun _ => True\n}.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+
+*****
+
+*****
+typeOk type_unit
++++++
+Proof.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+
+*****
+
+*****
+typeOk type_unit
++++++
+constructor.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+
+*****
+
+*****
+forall (x y : unit) (_ : equal x y), and (proper x) (proper y)
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (_ : unit) (_ : unit) (_ : True), and True True
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+
+*****
+
+*****
+PReflexive proper equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (_ : unit) (_ : True), True
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+
+*****
+
+*****
+RelationClasses.Symmetric equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (_ : unit) (_ : unit) (_ : True), True
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+
+*****
+
+*****
+RelationClasses.Transitive equal
++++++
+compute.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+compute.
+
+*****
+
+*****
+forall (_ : unit) (_ : unit) (_ : unit) (_ : True) (_ : True), True
++++++
+auto.
+-----
+Global Instance typeOk_N : typeOk type_unit.
+Proof.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance proper_tt (x : unit) : proper x.
+-----
+Global Instance proper_tt (x : unit) : proper x.
+
+*****
+x : unit
+*****
+proper x
++++++
+Proof.
+-----
+Global Instance proper_tt (x : unit) : proper x.
+Proof.
+
+*****
+x : unit
+*****
+proper x
++++++
+exact I.
+-----
+Global Instance proper_tt (x : unit) : proper x.
+Proof.
+exact I.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

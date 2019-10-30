@@ -1,0 +1,134 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Section rah_thales_postulate.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_saccheri_quadrilaterals, thales_postulate
++++++
+Proof.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_saccheri_quadrilaterals, thales_postulate
++++++
+intros rah A B C M HNCol HM HCong.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+
+*****
+HCong : Cong M A M C
+HM : Midpoint M A B
+HNCol : not (Col A B C)
+A,B,C,M : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A C B
++++++
+apply (t22_17__rah _ _ _ M).
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+apply (t22_17__rah _ _ _ M).
+
+*****
+HCong : Cong M A M C
+HM : Midpoint M A B
+HNCol : not (Col A B C)
+A,B,C,M : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col A B C)
++++++
+assumption.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+apply (t22_17__rah _ _ _ M).
+
+*****
+HCong : Cong M A M C
+HM : Midpoint M A B
+HNCol : not (Col A B C)
+A,B,C,M : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Midpoint M A B
++++++
+assumption.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+apply (t22_17__rah _ _ _ M).
+
+*****
+HCong : Cong M A M C
+HM : Midpoint M A B
+HNCol : not (Col A B C)
+A,B,C,M : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong M A M C
++++++
+assumption.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+apply (t22_17__rah _ _ _ M).
+
+*****
+HCong : Cong M A M C
+HM : Midpoint M A B
+HNCol : not (Col A B C)
+A,B,C,M : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+hypothesis_of_right_saccheri_quadrilaterals
++++++
+assumption.
+-----
+Lemma rah__thales_postulate : postulate_of_right_saccheri_quadrilaterals -> thales_postulate.
+Proof.
+intros rah A B C M HNCol HM HCong.
+apply (t22_17__rah _ _ _ M).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End rah_thales_postulate.
+-----

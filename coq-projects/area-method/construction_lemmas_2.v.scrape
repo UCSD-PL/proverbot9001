@@ -1,0 +1,2986 @@
+Require Export area_elimination_lemmas.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point,\n ~(parallel P Q U V) -> \n exists Y:Point, (parallel Y R P Q) /\ (Col Y U V).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+
+*****
+
+*****
+forall (P Q R U V : Point) (_ : not (parallel P Q U V)), ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+Proof.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+
+*****
+
+*****
+forall (P Q R U V : Point) (_ : not (parallel P Q U V)), ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+intros.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+assert (P<>Q).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (eq P Q)
++++++
+unfold not.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+forall _ : eq P Q, False
++++++
+intro.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+
+*****
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+False
++++++
+assert (parallel P Q U V).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel P Q U V
++++++
+subst P.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+subst P.
+
+*****
+H : not (parallel Q Q U V)
+Q,R,U,V : Point
+*****
+parallel Q Q U V
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H1 : parallel P Q U V
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+cases_col R P Q.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+
+*****
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+assert {Y : Point | Col Y P Q /\ Col Y U V}.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+
+*****
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+sig (fun Y : Point => and (Col Y P Q) (Col Y U V))
++++++
+apply inter_llex.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+apply inter_llex.
+
+*****
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (parallel P Q U V)
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+
+*****
+H2 : sig (fun Y : Point => and (Col Y P Q) (Col Y U V))
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+DecompEx H2 Y.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+
+*****
+p : and (Col Y P Q) (Col Y U V)
+Y : Point
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+exists Y.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+
+*****
+p : and (Col Y P Q) (Col Y U V)
+Y : Point
+H1 : Col R P Q
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+and (parallel Y R P Q) (Col Y U V)
++++++
+intuition idtac.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+parallel Y R P Q
++++++
+cut (parallel P Q R Y).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+forall _ : parallel P Q R Y, parallel Y R P Q
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+parallel P Q R Y
++++++
+unfold parallel.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (S4 P R Q Y) F0
++++++
+unfold S4.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fplus (S P R Q) (S P Q Y)) F0
++++++
+replace (S P R Q) with (- S R P Q).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fplus (Fopp (S R P Q)) (S P Q Y)) F0
++++++
+replace (S P Q Y) with (S Y P Q).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+replace (S P Q Y) with (S Y P Q).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fplus (Fopp (S R P Q)) (S Y P Q)) F0
++++++
+rewrite H1.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+replace (S P Q Y) with (S Y P Q).
+rewrite H1.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fplus (Fopp F0) (S Y P Q)) F0
++++++
+rewrite H2.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+replace (S P Q Y) with (S Y P Q).
+rewrite H1.
+rewrite H2.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fplus (Fopp F0) F0) F0
++++++
+ring.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+replace (S P Q Y) with (S Y P Q).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (S Y P Q) (S P Q Y)
++++++
+symmetry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+replace (S P Q Y) with (S Y P Q).
+symmetry.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (S P Q Y) (S Y P Q)
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (Fopp (S R P Q)) (S P R Q)
++++++
+symmetry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert {Y : Point | Col Y P Q /\\ Col Y U V}.
+DecompEx H2 Y.
+exists Y.
+intuition idtac.
+cut (parallel P Q R Y).
+unfold parallel.
+unfold S4.
+replace (S P R Q) with (- S R P Q).
+symmetry.
+
+*****
+H3 : Col Y U V
+H2 : Col Y P Q
+Y : Point
+H1 : Col R P Q
+H0 : forall _ : eq P Q, False
+H : forall _ : parallel P Q U V, False
+P,Q,R,U,V : Point
+*****
+eq (S P R Q) (Fopp (S R P Q))
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+
+*****
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+assert ({Y':Point | (parallel P Q R Y') /\ R<>Y'}).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+
+*****
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+sig (fun Y' : Point => and (parallel P Q R Y') (not (eq R Y')))
++++++
+apply euclid_parallel_existence_strong.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+apply euclid_parallel_existence_strong.
+
+*****
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (eq P Q)
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+
+*****
+H2 : sig (fun Y' : Point => and (parallel P Q R Y') (not (eq R Y')))
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+DecompExAnd H2 Y'.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+
+*****
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+suppose (~ parallel Y' R U V).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+
+*****
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+assert {Y:Point | (Col Y Y' R) /\ (Col Y U V) }.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+
+*****
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+sig (fun Y : Point => and (Col Y Y' R) (Col Y U V))
++++++
+eapply inter_llex.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+eapply inter_llex.
+
+*****
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (parallel Y' R U V)
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+
+*****
+H3 : sig (fun Y : Point => and (Col Y Y' R) (Col Y U V))
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+DecompExAnd H3 Y.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+ex (fun Y : Point => and (parallel Y R P Q) (Col Y U V))
++++++
+exists Y.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+and (parallel Y R P Q) (Col Y U V)
++++++
+split.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel Y R P Q
++++++
+try assumption.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel Y R P Q
++++++
+cut (parallel P Q R Y).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+cut (parallel P Q R Y).
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+forall _ : parallel P Q R Y, parallel Y R P Q
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+cut (parallel P Q R Y).
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel P Q R Y
++++++
+eapply col_par_par.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (eq R ?D)
++++++
+apply H5.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel P Q R Y'
++++++
+assumption.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+try assumption.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+Col R Y' Y
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+assert {Y:Point | (Col Y Y' R) /\\ (Col Y U V) }.
+DecompExAnd H3 Y.
+exists Y.
+split.
+
+*****
+H8 : Col Y U V
+H7 : Col Y Y' R
+Y : Point
+H2 : not (parallel Y' R U V)
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+Col Y U V
++++++
+try assumption.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+
+*****
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (parallel Y' R U V)
++++++
+unfold not.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+
+*****
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+forall _ : parallel Y' R U V, False
++++++
+intro.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+False
++++++
+assert (parallel P Q U V).
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel P Q U V
++++++
+eapply parallel_transitivity.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+not (eq ?C ?D)
++++++
+eauto.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel P Q R Y'
++++++
+eauto.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel R Y' U V
++++++
+eauto.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+eapply parallel_transitivity.
+eauto.
+
+*****
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+parallel R Y' U V
++++++
+Geometry.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+cases_col R P Q.
+assert ({Y':Point | (parallel P Q R Y') /\\ R<>Y'}).
+DecompExAnd H2 Y'.
+suppose (~ parallel Y' R U V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H3 : parallel P Q U V
+H2 : parallel Y' R U V
+H5 : not (eq R Y')
+H4 : parallel P Q R Y'
+Y' : Point
+H1 : not (Col R P Q)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Theorem on_inter_line_parallel_ex: forall P Q R U V:Point, ~(parallel P Q U V) -> exists Y:Point, (parallel Y R P Q) /\\ (Col Y U V).
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point,\n ~(parallel P Q U V) -> \n{Y:Point | (parallel Y R P Q) /\ (parallel Y W U V)}.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+
+*****
+
+*****
+forall (P Q R U V W : Point) (_ : not (parallel P Q U V)), sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+Proof.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+
+*****
+
+*****
+forall (P Q R U V W : Point) (_ : not (parallel P Q U V)), sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+intros.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+assert (P<>Q).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq P Q)
++++++
+unfold not.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+
+*****
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall _ : eq P Q, False
++++++
+intro.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+
+*****
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+assert (parallel P Q U V).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel P Q U V
++++++
+subst P.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+subst P.
+
+*****
+H : not (parallel Q Q U V)
+Q,R,U,V,W : Point
+*****
+parallel Q Q U V
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H1 : parallel P Q U V
+H0 : eq P Q
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+intuition.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+assert (U<>V).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+
+*****
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq U V)
++++++
+unfold not.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+unfold not.
+
+*****
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall _ : eq U V, False
++++++
+intro.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+unfold not.
+intro.
+
+*****
+H1 : eq U V
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+assert (parallel P Q U V).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H1 : eq U V
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel P Q U V
++++++
+subst U.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+subst U.
+
+*****
+H0 : not (eq P Q)
+H : not (parallel P Q V V)
+P,Q,R,V,W : Point
+*****
+parallel P Q V V
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+unfold not.
+intro.
+assert (parallel P Q U V).
+
+*****
+H2 : parallel P Q U V
+H1 : eq U V
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+intuition.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+
+*****
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+assert ({R':Point | (parallel P Q R R') /\ R<>R'}).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+
+*****
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun R' : Point => and (parallel P Q R R') (not (eq R R')))
++++++
+apply euclid_parallel_existence_strong.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+apply euclid_parallel_existence_strong.
+
+*****
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq P Q)
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+
+*****
+H2 : sig (fun R' : Point => and (parallel P Q R R') (not (eq R R')))
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+DecompExAnd H2 R'.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+
+*****
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+assert ({W':Point | (parallel U V W W') /\ W<>W'}).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+
+*****
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun W' : Point => and (parallel U V W W') (not (eq W W')))
++++++
+apply euclid_parallel_existence_strong.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+apply euclid_parallel_existence_strong.
+
+*****
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq U V)
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+
+*****
+H2 : sig (fun W' : Point => and (parallel U V W W') (not (eq W W')))
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+DecompExAnd H2 W'.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+
+*****
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+assert {Y : Point | Col Y R R' /\ Col Y W W'}.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+
+*****
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (Col Y R R') (Col Y W W'))
++++++
+apply inter_llex.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+
+*****
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (parallel R R' W W')
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+
+*****
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (parallel R R' W W')
++++++
+unfold not.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+
+*****
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall _ : parallel R R' W W', False
++++++
+intro.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+
+*****
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+assert (parallel R R' U V).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+
+*****
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel R R' U V
++++++
+eapply parallel_transitivity.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq ?C ?D)
++++++
+apply H7.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel R R' W W'
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+eapply parallel_transitivity.
+
+*****
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel W W' U V
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+
+*****
+H3 : parallel R R' U V
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+assert (parallel P Q U V).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+assert (parallel P Q U V).
+
+*****
+H3 : parallel R R' U V
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel P Q U V
++++++
+eapply parallel_transitivity;apply H5 || Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+apply inter_llex.
+Geometry.
+unfold not.
+intro.
+assert (parallel R R' U V).
+assert (parallel P Q U V).
+
+*****
+H8 : parallel P Q U V
+H3 : parallel R R' U V
+H2 : parallel R R' W W'
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+False
++++++
+intuition.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+
+*****
+H2 : sig (fun Y : Point => and (Col Y R R') (Col Y W W'))
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+DecompExAnd H2 Y.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+exists Y.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+and (parallel Y R P Q) (parallel Y W U V)
++++++
+split.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel Y R P Q
++++++
+cut (parallel P Q R Y).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel P Q R Y).
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall _ : parallel P Q R Y, parallel Y R P Q
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel P Q R Y).
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel P Q R Y
++++++
+eapply col_par_par.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq R ?D)
++++++
+apply H5.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel P Q R R'
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel P Q R Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+Col R R' Y
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel Y W U V
++++++
+cut (parallel U V W Y).
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel U V W Y).
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall _ : parallel U V W Y, parallel Y W U V
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel U V W Y).
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel U V W Y
++++++
+eapply col_par_par.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel U V W Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (eq W ?D)
++++++
+apply H7.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel U V W Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel U V W W'
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+assert (U<>V).
+assert ({R':Point | (parallel P Q R R') /\\ R<>R'}).
+DecompExAnd H2 R'.
+assert ({W':Point | (parallel U V W W') /\\ W<>W'}).
+DecompExAnd H2 W'.
+assert {Y : Point | Col Y R R' /\\ Col Y W W'}.
+DecompExAnd H2 Y.
+exists Y.
+split.
+cut (parallel U V W Y).
+eapply col_par_par.
+
+*****
+H9 : Col Y W W'
+H8 : Col Y R R'
+Y : Point
+H7 : not (eq W W')
+H6 : parallel U V W W'
+W' : Point
+H5 : not (eq R R')
+H4 : parallel P Q R R'
+R' : Point
+H1 : not (eq U V)
+H0 : not (eq P Q)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+Col W W' Y
++++++
+Geometry.
+-----
+Theorem on_inter_parallel_parallel_ex_aux: forall P Q R U V W:Point, ~(parallel P Q U V) -> {Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}.
+Proof.
+intros.
+assert (P<>Q).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point,\n ~ parallel P Q U V -> ~ Col R U V ->\n {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+
+*****
+
+*****
+forall (P Q R U V W : Point) (_ : not (parallel P Q U V)) (_ : not (Col R U V)), sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+Proof.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+
+*****
+
+*****
+forall (P Q R U V W : Point) (_ : not (parallel P Q U V)) (_ : not (Col R U V)), sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+intros.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+
+*****
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+assert ({Y:Point | (parallel Y R P Q) /\ (parallel Y W U V)}).
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+
+*****
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
++++++
+apply on_inter_parallel_parallel_ex_aux.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+apply on_inter_parallel_parallel_ex_aux.
+
+*****
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (parallel P Q U V)
++++++
+auto.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+
+*****
+H1 : sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+elim H1.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+
+*****
+H1 : sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+forall (x : Point) (_ : and (parallel x R P Q) (parallel x W U V)), sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+intros Y HY.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+
+*****
+HY : and (parallel Y R P Q) (parallel Y W U V)
+Y : Point
+H1 : sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+use HY.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H1 : sig (fun Y : Point => and (parallel Y R P Q) (parallel Y W U V))
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+clear H1.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+sig (fun Y : Point => on_inter_parallel_parallel Y R P Q W U V)
++++++
+exists Y.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+on_inter_parallel_parallel Y R P Q W U V
++++++
+unfold on_inter_parallel_parallel.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+unfold on_inter_parallel_parallel.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+and (not (Col R U V)) (and (parallel Y R P Q) (and (parallel Y W U V) (not (parallel U V P Q))))
++++++
+repeat split.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+unfold on_inter_parallel_parallel.
+repeat split.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (Col R U V)
++++++
+auto with Geom.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+unfold on_inter_parallel_parallel.
+repeat split.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel Y R P Q
++++++
+auto with Geom.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+unfold on_inter_parallel_parallel.
+repeat split.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+parallel Y W U V
++++++
+auto with Geom.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+elim H1.
+intros Y HY.
+use HY.
+clear H1.
+exists Y.
+unfold on_inter_parallel_parallel.
+repeat split.
+
+*****
+H3 : parallel Y W U V
+H2 : parallel Y R P Q
+Y : Point
+H0 : not (Col R U V)
+H : not (parallel P Q U V)
+P,Q,R,U,V,W : Point
+*****
+not (parallel U V P Q)
++++++
+auto with Geom.
+-----
+Lemma on_inter_parallel_parallel_ex : forall P Q R U V W:Point, ~ parallel P Q U V -> ~ Col R U V -> {Y :Point | (on_inter_parallel_parallel Y R P Q W U V)}.
+Proof.
+intros.
+assert ({Y:Point | (parallel Y R P Q) /\\ (parallel Y W U V)}).
+
+*****
+
+*****
+
++++++
+Qed.
+-----

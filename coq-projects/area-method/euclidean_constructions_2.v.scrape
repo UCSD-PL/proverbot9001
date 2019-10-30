@@ -1,0 +1,8674 @@
+Require Export pythagoras_difference_lemmas.
+-----
+Lemma on_perp_d_ex : forall U V r,\n U<>V -> r<> 0 ->\n exists Y, on_perp_d Y U V r.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+
+*****
+
+*****
+forall (U V : Point) (r : F) (_ : not (eq U V)) (_ : not (eq r F0)), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+Proof.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+
+*****
+
+*****
+forall (U V : Point) (r : F) (_ : not (eq U V)) (_ : not (eq r F0)), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+intros.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+
+*****
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+assert (exists M: Point, ~ Col U V M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+
+*****
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun M : Point => not (Col U V M))
++++++
+apply build_point_not_collinear_1.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+apply build_point_not_collinear_1.
+
+*****
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U V)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+
+*****
+H1 : ex (fun M : Point => not (Col U V M))
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+elim H1.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+
+*****
+H1 : ex (fun M : Point => not (Col U V M))
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+forall (x : Point) (_ : not (Col U V x)), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+intros M HM.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+
+*****
+HM : not (Col U V M)
+M : Point
+H1 : ex (fun M : Point => not (Col U V M))
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+clear H1.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+
+*****
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+elim (proj_ex M U V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+
+*****
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+forall (x : Point) (_ : on_foot x M U V), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+intros N Hn.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+
+*****
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+cases_equality U N.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+
+*****
+H1 : eq U N
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+
+*****
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+Hn : on_foot N M N V
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+unfold on_foot in *.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+
+*****
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+Hn : and (perp N M N V) (and (Col N N V) (not (eq N V)))
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+use Hn.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+
+*****
+H4 : not (eq N V)
+H3 : Col N N V
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+clear H3 H4.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+
+*****
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+assert (N<> M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+
+*****
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq N M)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+intro.
+
+*****
+H2 : eq N M
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+False
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+intro.
+subst.
+
+*****
+HM : not (Col M V M)
+H1 : perp M M M V
+H0 : not (eq r F0)
+H : not (eq M V)
+M : Point
+r : F
+V : Point
+*****
+False
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+
+*****
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+
+*****
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+
+*****
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+forall (x : Point) (_ : and (Col x N M) (eq (DSeg N x) (Fmult (Fdiv (Fmult r (Py N V N)) (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))) (DSeg N M)))), ex (fun Y : Point => on_perp_d Y N V r)
++++++
+intros Y HY.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+ex (fun Y : Point => on_perp_d Y N V r)
++++++
+exists Y.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+on_perp_d Y N V r
++++++
+unfold on_perp_d.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+and (not (eq N V)) (and (perp Y N N V) (and (eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))) (not (eq r F0))))
++++++
+repeat split.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq N V)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+perp Y N N V
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+perp Y N N V
++++++
+use HY.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+perp Y N N V
++++++
+apply (perp_para_perp N M N V Y N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+apply (perp_para_perp N M N V Y N).
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq N M)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+apply (perp_para_perp N M N V Y N).
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+perp N M N V
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+apply (perp_para_perp N M N V Y N).
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+parallel N M Y N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+use HY.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+assert (~ Col V N M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+
+*****
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (Col V N M)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+
+*****
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+
+*****
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+assert (Col N Y M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+
+*****
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+Col N Y M
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+
+*****
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+
+*****
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+IsoleVar r H4.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (DSeg N Y) (DSeg N M))) (Py N V N))
+H9 : not (eq (Py N V N) F0)
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (S V N M))) (Py N V N))
+H9 : not (eq (Py N V N) F0)
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult r (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+rewrite H4.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (S V N M))) (Py N V N))
+H9 : not (eq (Py N V N) F0)
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult (Fdiv (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) (Fdiv (S V N Y) (S V N M))) (Py N V N)) (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S N V Y))
++++++
+uniformize_signed_areas.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+eq (Fmult (Fdiv (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N)) (Py N V N)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (Fopp (S V N Y)))
++++++
+field.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+and (not (eq (Fopp (S V M N)) F0)) (not (eq (Py N V N) F0))
++++++
+split.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Fopp (S V M N)) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Fopp (S V M N)) F0)
++++++
+cut (S V M N <> 0).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+cut (S V M N <> 0).
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+forall _ : not (eq (S V M N) F0), not (eq (Fopp (S V M N)) F0)
++++++
+auto with field_hints.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+cut (S V M N <> 0).
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (S V M N) F0)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+cut (S V M N <> 0).
+intro.
+
+*****
+H10 : eq (S V M N) F0
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+False
++++++
+rewrite H10 in H8.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+cut (S V M N <> 0).
+intro.
+rewrite H10 in H8.
+
+*****
+H10 : eq (S V M N) F0
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) F0) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+False
++++++
+basic_simpl.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+auto with Geom.
+cut (S V M N <> 0).
+intro.
+rewrite H10 in H8.
+basic_simpl.
+
+*****
+H10 : eq (S V M N) F0
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq F0 F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+rewrite (A6 N Y M V H2 H5 H6) in H4.
+rewrite H4.
+uniformize_signed_areas.
+field.
+split.
+
+*****
+H4 : eq r\n (Fdiv\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N))\n (Fdiv (S V N Y) (Fopp (S V M N)))) (Py N V N))
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H9 : not (eq (Py N V N) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Py N V N) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+
+*****
+H8 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Py N V N) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+
+*****
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)) F0)
++++++
+repeat apply nonzeromult.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+repeat apply nonzeromult.
+
+*****
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+repeat apply nonzeromult.
+
+*****
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+repeat apply nonzeromult.
+
+*****
+H7 : not (eq (DSeg N M) F0)
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (S V M N) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+use HY.
+assert (~ Col V N M).
+idtac.
+assert (Col N Y M).
+idtac.
+IsoleVar r H4.
+
+*****
+H6 : Col N Y M
+H5 : not (Col V N M)
+H4 : eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M))
+H3 : Col Y N M
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq (DSeg N M) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+subst.
+unfold on_foot in *.
+use Hn.
+clear H3 H4.
+assert (N<> M).
+idtac.
+elim (on_line_dex N M (r * Py N V N / (2*2*S V M N)) H2).
+intros Y HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+HY : and (Col Y N M)\n (eq (DSeg N Y)\n (Fmult\n (Fdiv (Fmult r (Py N V N))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S V M N)))\n (DSeg N M)))
+Y : Point
+H2 : not (eq N M)
+H1 : perp N M N V
+HM : not (Col N V M)
+H0 : not (eq r F0)
+H : not (eq N V)
+N,M : Point
+r : F
+V : Point
+*****
+not (eq r F0)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+
+*****
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+assert (U<>M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+
+*****
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U M)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+intro.
+
+*****
+H2 : eq U M
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+intro.
+subst.
+
+*****
+Hn : on_foot N M M V
+H1 : not (eq M N)
+N : Point
+H0 : not (eq r F0)
+H : not (eq M V)
+HM : not (Col M V M)
+M : Point
+r : F
+V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+
+*****
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+
+*****
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+assert (~ Col U M N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+
+*****
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U M N)
++++++
+unfold on_foot in *.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+
+*****
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : and (perp N M U V) (and (Col N U V) (not (eq U V)))
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U M N)
++++++
+use Hn.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+
+*****
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U M N)
++++++
+assert (N<>M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+
+*****
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq N M)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+intro.
+
+*****
+H4 : eq N M
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+intro.
+subst.
+
+*****
+H6 : not (eq U V)
+H3 : perp M M U V
+H5 : Col M U V
+H1,H2 : not (eq U M)
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+
+*****
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U M N)
++++++
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+
+*****
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U M N)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+
+*****
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col N M V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+
+*****
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col N M V
++++++
+apply (col_trans_1 N U M V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+apply (col_trans_1 N U M V).
+
+*****
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq N U)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+apply (col_trans_1 N U M V).
+
+*****
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col N U M
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+apply (col_trans_1 N U M V).
+
+*****
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col N U V
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+
+*****
+H8 : Col N M V
+H7 : Col U M N
+T : not (parallel N M U V)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold parallel in T.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+
+*****
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (S4 N U M V) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold S4 in T.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+
+*****
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus (S N U M) (S N M V)) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+rewrite H8 in T.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+
+*****
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus (S N U M) F0) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col N U M).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+assert (Col N U M).
+
+*****
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus (S N U M) F0) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col N U M
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+assert (Col N U M).
+
+*****
+H9 : Col N U M
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus (S N U M) F0) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+assert (Col N U M).
+idtac.
+
+*****
+H9 : Col N U M
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus (S N U M) F0) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+rewrite H9 in T.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+assert (Col N U M).
+idtac.
+rewrite H9 in T.
+
+*****
+H9 : Col N U M
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq (Fplus F0 F0) F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+basic_simpl.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+unfold on_foot in *.
+use Hn.
+assert (N<>M).
+assert (T:=perp_not_parallel N M U V H3 H4 H6).
+intro.
+assert (Col N M V).
+unfold parallel in T.
+unfold S4 in T.
+rewrite H8 in T.
+assert (Col N U M).
+idtac.
+rewrite H9 in T.
+basic_simpl.
+
+*****
+H9 : Col N U M
+H8 : Col N M V
+H7 : Col U M N
+T : not (eq F0 F0)
+H4 : not (eq N M)
+H6 : not (eq U V)
+H5 : Col N U V
+H3 : perp N M U V
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+
+*****
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+assert (M<>N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+
+*****
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq M N)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+intro.
+
+*****
+H4 : eq M N
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+intro.
+subst.
+
+*****
+H2 : not (eq U N)
+H3 : not (Col U N N)
+H1 : not (eq U N)
+HM : not (Col U V N)
+Hn : on_foot N N U V
+N : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+
+*****
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+
+*****
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+elim (on_parallel_d_ex M N U (-(1)) H4).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+
+*****
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+forall (x : Point) (_ : on_parallel_d x U M N (Fopp F1)), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+intros B HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+
+*****
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+assert (U<>B).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+
+*****
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U B)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+
+*****
+H5 : eq U B
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+subst.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+
+*****
+H4 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+HB : on_parallel_d B B M N (Fopp F1)
+B,M,N : Point
+r : F
+V : Point
+*****
+False
++++++
+unfold on_parallel_d in *.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+unfold on_parallel_d in *.
+
+*****
+H4 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+HB : and (not (eq M N))\n (and (parallel B B M N) (eq (DSeg B B) (Fmult (Fopp F1) (DSeg M N))))
+B,M,N : Point
+r : F
+V : Point
+*****
+False
++++++
+use HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+unfold on_parallel_d in *.
+use HB.
+
+*****
+H8 : eq (DSeg B B) (Fmult (Fopp F1) (DSeg M N))
+H7 : parallel B B M N
+H4,H5 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+B,M,N : Point
+r : F
+V : Point
+*****
+False
++++++
+basic_simpl.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+unfold on_parallel_d in *.
+use HB.
+basic_simpl.
+
+*****
+H8 : eq F0 (Fopp (DSeg M N))
+H7 : parallel B B M N
+H4,H5 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+B,M,N : Point
+r : F
+V : Point
+*****
+False
++++++
+assert (M=N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+unfold on_parallel_d in *.
+use HB.
+basic_simpl.
+assert (M=N).
+
+*****
+H8 : eq F0 (Fopp (DSeg M N))
+H7 : parallel B B M N
+H4,H5 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+B,M,N : Point
+r : F
+V : Point
+*****
+eq M N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+intro.
+subst.
+unfold on_parallel_d in *.
+use HB.
+basic_simpl.
+assert (M=N).
+
+*****
+H6 : eq M N
+H8 : eq F0 (Fopp (DSeg M N))
+H7 : parallel B B M N
+H4,H5 : not (eq M N)
+Hn : on_foot N M B V
+H1 : not (eq B N)
+H2 : not (eq B M)
+H3 : not (Col B M N)
+HM : not (Col B V M)
+H0 : not (eq r F0)
+H : not (eq B V)
+B,M,N : Point
+r : F
+V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+
+*****
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+
+*****
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+forall (x : Point) (_ : and (Col x U B) (eq (DSeg U x) (Fmult (Fdiv (Fmult r (Py U V U)) (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))) (DSeg U B)))), ex (fun Y : Point => on_perp_d Y U V r)
++++++
+intros Y HY.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+
+*****
+HY : and (Col Y U B)\n (eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B)))
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+use HY.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+ex (fun Y : Point => on_perp_d Y U V r)
++++++
+exists Y.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+on_perp_d Y U V r
++++++
+unfold on_perp_d.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+and (not (eq U V)) (and (perp Y U U V) (and (eq (Fmult r (Py U V U)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))) (not (eq r F0))))
++++++
+repeat split.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U V)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+unfold on_parallel_d in HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : and (not (eq M N))\n (and (parallel B U M N) (eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))))
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+use HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+
+*****
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+unfold on_foot in *.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+
+*****
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : and (perp N M U V) (and (Col N U V) (not (eq U V)))
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+use Hn.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+
+*****
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+assert (perp B U U V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+
+*****
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp B U U V
++++++
+apply (perp_para_perp M N U V B U H8).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+apply (perp_para_perp M N U V B U H8).
+
+*****
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp M N U V
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+apply (perp_para_perp M N U V B U H8).
+
+*****
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+parallel M N B U
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+
+*****
+H12 : perp B U U V
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp Y U U V
++++++
+apply (perp_para_perp U B U V Y U H5).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+apply (perp_para_perp U B U V Y U H5).
+
+*****
+H12 : perp B U U V
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+perp U B U V
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (perp B U U V).
+apply (perp_para_perp U B U V Y U H5).
+
+*****
+H12 : perp B U U V
+H14 : not (eq U V)
+H13 : Col N U V
+H9 : perp N M U V
+H11 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H10 : parallel B U M N
+H8 : not (eq M N)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+parallel U B Y U
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult r (Py U V U)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult r (Py U V U)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+assert (~ Col U V B).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col U V B)
++++++
+intro.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+
+*****
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold on_parallel_d in HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+
+*****
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : and (not (eq M N))\n (and (parallel B U M N) (eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))))
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+use HB.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+
+*****
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold on_foot in *.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+
+*****
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : and (perp N M U V) (and (Col N U V) (not (eq U V)))
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+use Hn.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+
+*****
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col U Y V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+
+*****
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U Y V
++++++
+apply (col_trans_1 U B Y V).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+apply (col_trans_1 U B Y V).
+
+*****
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U B)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+apply (col_trans_1 U B Y V).
+
+*****
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U B Y
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+apply (col_trans_1 U B Y V).
+
+*****
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U B V
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col U Y N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U Y N
++++++
+apply (col_trans_1 U V Y N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+apply (col_trans_1 U V Y N).
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U V)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+apply (col_trans_1 U V Y N).
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U V Y
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+apply (col_trans_1 U V Y N).
+
+*****
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U V N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : parallel B U M N
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold parallel in H11.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (S4 B M U N) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+unfold S4 in H11.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col U B N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U B N
++++++
+apply (col_trans_1 U V B N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+apply (col_trans_1 U V B N).
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U V)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+apply (col_trans_1 U V B N).
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U V B
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+apply (col_trans_1 U V B N).
+
+*****
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U V N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+
+*****
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col B U N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+
+*****
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col B U N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+
+*****
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+
+*****
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) (S B U N)) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+rewrite H18 in H11.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+
+*****
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fmult (Fopp F1) (DSeg M N))
+H11 : eq (Fplus (S B M U) F0) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+basic_simpl.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+
+*****
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col B M U).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+
+*****
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col B M U
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+idtac.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+assert (Col U M N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+assert (Col U M N).
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U M N
++++++
+apply (col_trans_1 U B M N).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+assert (Col U M N).
+apply (col_trans_1 U B M N).
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U B)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+assert (Col U M N).
+apply (col_trans_1 U B M N).
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U B M
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+assert (Col U M N).
+apply (col_trans_1 U B M N).
+
+*****
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U B N
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+intro.
+unfold on_parallel_d in HB.
+use HB.
+unfold on_foot in *.
+use Hn.
+assert (Col U Y V).
+idtac.
+assert (Col U Y N).
+idtac.
+unfold parallel in H11.
+unfold S4 in H11.
+assert (Col U B N).
+assert (Col B U N).
+idtac.
+rewrite H18 in H11.
+basic_simpl.
+assert (Col B M U).
+idtac.
+assert (Col U M N).
+
+*****
+H20 : Col U M N
+H19 : Col B M U
+H18 : Col B U N
+H17 : Col U B N
+H16 : Col U Y N
+H13 : Col U Y V
+H15 : not (eq U V)
+H14 : Col N U V
+H10 : perp N M U V
+H12 : eq (DSeg U B) (Fopp (DSeg M N))
+H11 : eq (S B M U) F0
+H9 : not (eq M N)
+H8 : Col U V B
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+False
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+
+*****
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult r (Py U V U)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+IsoleVar (r * Py U V U) H7.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult r (Py U V U)) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+rewrite H7.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) (Fdiv (DSeg U Y) (DSeg U B))) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+rewrite (A6 U Y B V H5).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) (Fdiv (S V U Y) (S V U B))) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (S U V Y))
++++++
+uniformize_signed_areas.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+uniformize_signed_areas.
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) (Fdiv (S V U Y) (Fopp (S U V B)))) (Fmult (Fplus (Fplus F1 F1) (Fplus F1 F1)) (Fopp (S V U Y)))
++++++
+field.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+uniformize_signed_areas.
+field.
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (Fopp (S U V B)) F0)
++++++
+cut (S U V B <> 0).
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+uniformize_signed_areas.
+field.
+cut (S U V B <> 0).
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+forall _ : not (eq (S U V B) F0), not (eq (Fopp (S U V B)) F0)
++++++
+auto with field_hints.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+uniformize_signed_areas.
+field.
+cut (S U V B <> 0).
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (S U V B) F0)
++++++
+intuition.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col V U B)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+rewrite H7.
+rewrite (A6 U Y B V H5).
+
+*****
+H7 : eq (Fmult r (Py U V U))\n (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B))\n (Fdiv (DSeg U Y) (DSeg U B)))
+H10 : not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+Col U Y B
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+
+*****
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)) F0)
++++++
+repeat apply nonzeromult.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+repeat apply nonzeromult.
+
+*****
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+repeat apply nonzeromult.
+
+*****
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+repeat apply nonzeromult.
+
+*****
+H9 : not (eq (DSeg U B) F0)
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (S U V B) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+auto.
+assert (~ Col U V B).
+IsoleVar (r * Py U V U) H7.
+
+*****
+H8 : not (Col U V B)
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq (DSeg U B) F0)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+intros B HB.
+assert (U<>B).
+elim (on_line_dex U B (r*Py U V U / (2*2*S U V B)) H5).
+intros Y HY.
+use HY.
+exists Y.
+unfold on_perp_d.
+repeat split.
+
+*****
+H7 : eq (DSeg U Y)\n (Fmult\n (Fdiv (Fmult r (Py U V U))\n (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S U V B)))\n (DSeg U B))
+H6 : Col Y U B
+Y : Point
+H5 : not (eq U B)
+HB : on_parallel_d B U M N (Fopp F1)
+B : Point
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq r F0)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+intros N Hn.
+cases_equality U N.
+assert (U<>M).
+idtac.
+assert (~ Col U M N).
+assert (M<>N).
+idtac.
+elim (on_parallel_d_ex M N U (-(1)) H4).
+
+*****
+H4 : not (eq M N)
+H3 : not (Col U M N)
+H2 : not (eq U M)
+H1 : not (eq U N)
+Hn : on_foot N M U V
+N : Point
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (Col M N U)
++++++
+auto with Geom.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+elim H1.
+intros M HM.
+clear H1.
+elim (proj_ex M U V).
+
+*****
+HM : not (Col U V M)
+M : Point
+H0 : not (eq r F0)
+H : not (eq U V)
+r : F
+U,V : Point
+*****
+not (eq U V)
++++++
+auto.
+-----
+Lemma on_perp_d_ex : forall U V r, U<>V -> r<> 0 -> exists Y, on_perp_d Y U V r.
+Proof.
+intros.
+assert (exists M: Point, ~ Col U V M).
+
+*****
+
+*****
+
++++++
+Qed.
+-----

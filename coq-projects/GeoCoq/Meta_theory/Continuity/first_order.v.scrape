@@ -1,0 +1,1266 @@
+Require Import GeoCoq.Axioms.continuity_axioms.
+-----
+Require Import GeoCoq.Tarski_dev.Definitions.
+-----
+Require Import Logic.ChoiceFacts.
+-----
+Section first_order.
+-----
+Context `{Tn:Tarski_neutral_dimensionless}.
+-----
+Lemma dedekind__fod : dedekind_s_axiom -> first_order_dedekind.
+-----
+Lemma dedekind__fod : dedekind_s_axiom -> first_order_dedekind.
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : dedekind_s_axiom, first_order_dedekind
++++++
+Proof.
+-----
+Lemma dedekind__fod : dedekind_s_axiom -> first_order_dedekind.
+Proof.
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : dedekind_s_axiom, first_order_dedekind
++++++
+intros dedekind Alpha Beta HAlpha HBeta HA.
+-----
+Lemma dedekind__fod : dedekind_s_axiom -> first_order_dedekind.
+Proof.
+intros dedekind Alpha Beta HAlpha HBeta HA.
+
+*****
+HA : ex\n (fun A : Tpoint =>\n forall (X Y : Tpoint) (_ : Alpha X) (_ : Beta Y), Bet A X Y)
+HBeta : forall Y : Tpoint, FOF (Beta Y)
+HAlpha : forall X : Tpoint, FOF (Alpha X)
+Alpha,Beta : forall _ : Tpoint, Prop
+dedekind : dedekind_s_axiom
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B : Tpoint => forall (X Y : Tpoint) (_ : Alpha X) (_ : Beta Y), Bet X B Y)
++++++
+apply dedekind, HA.
+-----
+Lemma dedekind__fod : dedekind_s_axiom -> first_order_dedekind.
+Proof.
+intros dedekind Alpha Beta HAlpha HBeta HA.
+apply dedekind, HA.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Inductive tFOF :=\n  eq_fof1 : Tpoint -> Tpoint -> tFOF\n| bet_fof1 : Tpoint -> Tpoint -> Tpoint -> tFOF\n| cong_fof1 : Tpoint -> Tpoint -> Tpoint -> Tpoint -> tFOF\n| not_fof1 : tFOF -> tFOF\n| and_fof1 : tFOF -> tFOF -> tFOF\n| or_fof1 : tFOF -> tFOF -> tFOF\n| implies_fof1 : tFOF -> tFOF -> tFOF\n| forall_fof1 : (Tpoint -> tFOF) -> tFOF\n| exists_fof1 : (Tpoint -> tFOF) -> tFOF.
+-----
+Fixpoint fof1_prop (F:tFOF) := match F with\n  eq_fof1 A B => A = B\n| bet_fof1 A B C => Bet A B C\n| cong_fof1 A B C D => Cong A B C D\n| not_fof1 F1 => ~ fof1_prop F1\n| and_fof1 F1 F2 => fof1_prop F1 /\ fof1_prop F2\n| or_fof1 F1 F2 => fof1_prop F1 \/ fof1_prop F2\n| implies_fof1 F1 F2 => fof1_prop F1 -> fof1_prop F2\n| forall_fof1 P => forall A, fof1_prop (P A)\n| exists_fof1 P => exists A, fof1_prop (P A) end.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF ->\n  forall F, FOF F -> exists F1,  F <-> fof1_prop F1.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : FunctionalChoice_on Tpoint tFOF) (F : Prop) (_ : FOF F), ex (fun F1 : tFOF => iff F (fof1_prop F1))
++++++
+Proof.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : FunctionalChoice_on Tpoint tFOF) (F : Prop) (_ : FOF F), ex (fun F1 : tFOF => iff F (fof1_prop F1))
++++++
+intros choice F HFOF.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+
+*****
+HFOF : FOF F
+F : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff F (fof1_prop F1))
++++++
+induction HFOF.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+A,B : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (eq A B) (fof1_prop F1))
++++++
+exists (eq_fof1 A B).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+exists (eq_fof1 A B).
+
+*****
+A,B : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (eq A B) (fof1_prop (eq_fof1 A B))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+A,B,C : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (Bet A B C) (fof1_prop F1))
++++++
+exists (bet_fof1 A B C).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+exists (bet_fof1 A B C).
+
+*****
+A,B,C : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (Bet A B C) (fof1_prop (bet_fof1 A B C))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+A,B,C,D : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (Cong A B C D) (fof1_prop F1))
++++++
+exists (cong_fof1 A B C D).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+exists (cong_fof1 A B C D).
+
+*****
+A,B,C,D : Tpoint
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (Cong A B C D) (fof1_prop (cong_fof1 A B C D))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+IHHFOF : ex (fun F1 : tFOF => iff P (fof1_prop F1))
+HFOF : FOF P
+P : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (not P) (fof1_prop F1))
++++++
+destruct IHHFOF as [F1].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF as [F1].
+
+*****
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF : FOF P
+P : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (not P) (fof1_prop F1))
++++++
+exists (not_fof1 F1).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF as [F1].
+exists (not_fof1 F1).
+
+*****
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF : FOF P
+P : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (not P) (fof1_prop (not_fof1 F1))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF as [F1].
+exists (not_fof1 F1).
+simpl.
+
+*****
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF : FOF P
+P : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (not P) (not (fof1_prop F1))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+IHHFOF1 : ex (fun F1 : tFOF => iff P (fof1_prop F1))
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (and P Q) (fof1_prop F1))
++++++
+destruct IHHFOF1 as [F1].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (and P Q) (fof1_prop F1))
++++++
+destruct IHHFOF2 as [F2].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (and P Q) (fof1_prop F1))
++++++
+exists (and_fof1 F1 F2).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (and_fof1 F1 F2).
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (and P Q) (fof1_prop (and_fof1 F1 F2))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (and_fof1 F1 F2).
+simpl.
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (and P Q) (and (fof1_prop F1) (fof1_prop F2))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+IHHFOF1 : ex (fun F1 : tFOF => iff P (fof1_prop F1))
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (or P Q) (fof1_prop F1))
++++++
+destruct IHHFOF1 as [F1].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (or P Q) (fof1_prop F1))
++++++
+destruct IHHFOF2 as [F2].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (or P Q) (fof1_prop F1))
++++++
+exists (or_fof1 F1 F2).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (or_fof1 F1 F2).
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (or P Q) (fof1_prop (or_fof1 F1 F2))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (or_fof1 F1 F2).
+simpl.
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (or P Q) (or (fof1_prop F1) (fof1_prop F2))
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+IHHFOF1 : ex (fun F1 : tFOF => iff P (fof1_prop F1))
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (forall _ : P, Q) (fof1_prop F1))
++++++
+destruct IHHFOF1 as [F1].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+
+*****
+IHHFOF2 : ex (fun F1 : tFOF => iff Q (fof1_prop F1))
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (forall _ : P, Q) (fof1_prop F1))
++++++
+destruct IHHFOF2 as [F2].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (forall _ : P, Q) (fof1_prop F1))
++++++
+exists (implies_fof1 F1 F2).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (implies_fof1 F1 F2).
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (forall _ : P, Q) (fof1_prop (implies_fof1 F1 F2))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct IHHFOF1 as [F1].
+destruct IHHFOF2 as [F2].
+exists (implies_fof1 F1 F2).
+simpl.
+
+*****
+H0 : iff Q (fof1_prop F2)
+F2 : tFOF
+H : iff P (fof1_prop F1)
+F1 : tFOF
+HFOF2 : FOF Q
+HFOF1 : FOF P
+P,Q : Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (forall _ : P, Q) (forall _ : fof1_prop F1, fof1_prop F2)
++++++
+intuition.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (forall A : Tpoint, P A) (fof1_prop F1))
++++++
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (forall A : Tpoint, P A) (fof1_prop F1))
++++++
+exists (forall_fof1 f).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (forall A : Tpoint, P A) (fof1_prop (forall_fof1 f))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+simpl.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (forall A : Tpoint, P A) (forall A : Tpoint, fof1_prop (f A))
++++++
+split.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+simpl.
+split.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall A : Tpoint, P A) (A : Tpoint), fof1_prop (f A)
++++++
+intros HH A.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+simpl.
+split.
+intros HH A.
+
+*****
+A : Tpoint
+HH : forall A : Tpoint, P A
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+fof1_prop (f A)
++++++
+apply H1, HH.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+simpl.
+split.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall A : Tpoint, fof1_prop (f A)) (A : Tpoint), P A
++++++
+intros HH A.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (forall_fof1 f).
+simpl.
+split.
+intros HH A.
+
+*****
+A : Tpoint
+HH : forall A : Tpoint, fof1_prop (f A)
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+P A
++++++
+apply H1, HH.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (ex (fun A : Tpoint => P A)) (fof1_prop F1))
++++++
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun F1 : tFOF => iff (ex (fun A : Tpoint => P A)) (fof1_prop F1))
++++++
+exists (exists_fof1 f).
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (ex (fun A : Tpoint => P A)) (fof1_prop (exists_fof1 f))
++++++
+simpl.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+iff (ex (fun A : Tpoint => P A)) (ex (fun A : Tpoint => fof1_prop (f A)))
++++++
+split.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : ex (fun A : Tpoint => P A), ex (fun A : Tpoint => fof1_prop (f A))
++++++
+intros [A HA].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+intros [A HA].
+
+*****
+HA : P A
+A : Tpoint
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun A : Tpoint => fof1_prop (f A))
++++++
+exists A.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+intros [A HA].
+exists A.
+
+*****
+HA : P A
+A : Tpoint
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+fof1_prop (f A)
++++++
+apply H1, HA.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+
+*****
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : ex (fun A : Tpoint => fof1_prop (f A)), ex (fun A : Tpoint => P A)
++++++
+intros [A HA].
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+intros [A HA].
+
+*****
+HA : fof1_prop (f A)
+A : Tpoint
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun A : Tpoint => P A)
++++++
+exists A.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+destruct (choice (fun A => (fun F1 => P A <-> fof1_prop F1)) H0) as [f].
+exists (exists_fof1 f).
+simpl.
+split.
+intros [A HA].
+exists A.
+
+*****
+HA : fof1_prop (f A)
+A : Tpoint
+H1 : forall x : Tpoint, iff (P x) (fof1_prop (f x))
+f : forall _ : Tpoint, tFOF
+H0 : forall A : Tpoint, ex (fun F1 : tFOF => iff (P A) (fof1_prop F1))
+H : forall A : Tpoint, FOF (P A)
+P : forall _ : Tpoint, Prop
+choice : FunctionalChoice_on Tpoint tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+P A
++++++
+apply H1, HA.
+-----
+Lemma fof__fof1 : FunctionalChoice_on Tpoint tFOF -> forall F, FOF F -> exists F1, F <-> fof1_prop F1.
+Proof.
+intros choice F HFOF.
+induction HFOF.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall F1 : tFOF, FOF (fof1_prop F1)
++++++
+Proof.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+
+*****
+Tn : Tarski_neutral_dimensionless
+*****
+forall F1 : tFOF, FOF (fof1_prop F1)
++++++
+induction F1.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+t,t0 : Tpoint
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (eq_fof1 t t0))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+t,t0,t1 : Tpoint
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (bet_fof1 t t0 t1))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+t,t0,t1,t2 : Tpoint
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (cong_fof1 t t0 t1 t2))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+IHF1 : FOF (fof1_prop F1)
+F1 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (not_fof1 F1))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1 : FOF (fof1_prop F1)
+F1 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (and_fof1 F1_1 F1_2))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_1)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_2)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (or_fof1 F1_1 F1_2))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_1)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_2)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (implies_fof1 F1_1 F1_2))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_1)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+IHF1_2 : FOF (fof1_prop F1_2)
+IHF1_1 : FOF (fof1_prop F1_1)
+F1_1,F1_2 : tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A B => eq A B | bet_fof1 A B C => Bet A B C | cong_fof1 A B C D => Cong A B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A : Tpoint, fof1_prop (P A) | exists_fof1 P => ex (fun A : Tpoint => fof1_prop (P A)) end) F1_2)
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+H : forall t0 : Tpoint, FOF (fof1_prop (t t0))
+t : forall _ : Tpoint, tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (forall_fof1 t))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+H : forall t0 : Tpoint, FOF (fof1_prop (t t0))
+t : forall _ : Tpoint, tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall A : Tpoint, FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A0 B => eq A0 B | bet_fof1 A0 B C => Bet A0 B C | cong_fof1 A0 B C D => Cong A0 B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A0 : Tpoint, fof1_prop (P A0) | exists_fof1 P => ex (fun A0 : Tpoint => fof1_prop (P A0)) end) (t A))
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+H : forall t0 : Tpoint, FOF (fof1_prop (t t0))
+t : forall _ : Tpoint, tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+FOF (fof1_prop (exists_fof1 t))
++++++
+constructor.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+constructor.
+
+*****
+H : forall t0 : Tpoint, FOF (fof1_prop (t t0))
+t : forall _ : Tpoint, tFOF
+Tn : Tarski_neutral_dimensionless
+*****
+forall A : Tpoint, FOF ((fix fof1_prop (F : tFOF) : Prop := match F with | eq_fof1 A0 B => eq A0 B | bet_fof1 A0 B C => Bet A0 B C | cong_fof1 A0 B C D => Cong A0 B C D | not_fof1 F1 => not (fof1_prop F1) | and_fof1 F1 F2 => and (fof1_prop F1) (fof1_prop F2) | or_fof1 F1 F2 => or (fof1_prop F1) (fof1_prop F2) | implies_fof1 F1 F2 => forall _ : fof1_prop F1, fof1_prop F2 | forall_fof1 P => forall A0 : Tpoint, fof1_prop (P A0) | exists_fof1 P => ex (fun A0 : Tpoint => fof1_prop (P A0)) end) (t A))
++++++
+assumption.
+-----
+Lemma fof1__fof : forall F1, FOF (fof1_prop F1).
+Proof.
+induction F1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End first_order.
+-----

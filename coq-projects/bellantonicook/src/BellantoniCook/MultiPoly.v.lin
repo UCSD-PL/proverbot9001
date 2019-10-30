@@ -1,0 +1,1376 @@
+9ac442a93440531688469e394b032a19
+From Coq Require Import List.
+From Coq Require Import Arith.
+Require Import BellantoniCook.Lib.
+Definition pow : Type := (nat*nat)%type.
+Definition mon : Type := (nat * list pow)%type.
+Definition pol : Type := (nat * list mon)%type.
+Definition peval_pow (xn:pow)(l:list nat) : nat :=
+  power (nth (fst xn) l 0) (snd xn).
+Definition peval_mon (m:mon)(l:list nat) : nat :=
+  (fst m) * multl (map (fun x => peval_pow x l) (snd m)).
+Definition peval (p:pol)(l:list nat) :=
+  plusl (map (fun m => peval_mon m l) (snd p)).
+Lemma peval_parity : forall ar p l,
+  peval (ar, snd p) l = peval p l.
+Proof.
+  intros ar [ar0 ml] l.
+  simpl.
+  trivial.
+Qed.
+Lemma peval_pow_monotonic : forall xn l1 l2, 
+  (forall i, nth i l1 0 <= nth i l2 0) ->
+  peval_pow xn l1 <= peval_pow xn l2.
+Proof.
+  intros [x n] l1 l2 H.
+  simpl.
+  apply power_le_l.
+  trivial.
+Qed.
+Lemma peval_mon_monotonic : forall m l1 l2, 
+  (forall i, nth i l1 0 <= nth i l2 0) ->
+  peval_mon m l1 <= peval_mon m l2.
+Proof.
+  unfold peval_mon.
+  intros [a xl] l1 l2 H.
+  induction xl.
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+    rewrite !mult_assoc.
+    rewrite  !(mult_comm a).
+    rewrite   <- !mult_assoc.
+    apply mult_le_compat.
+    {
+      trivial.
+      apply peval_pow_monotonic.
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Lemma peval_monotonic : forall p l1 l2, 
+  (forall i, nth i l1 0 <= nth i l2 0) ->
+  peval p l1 <= peval p l2.
+Proof.
+  unfold peval.
+  intros [ar ml] l1 l2 H.
+  induction ml.
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+    apply plus_le_compat.
+    {
+      trivial.
+      apply peval_mon_monotonic.
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Lemma peval_nth i pl p l :
+  peval (nth i pl p) l =
+  nth i (map (fun p => peval p l) pl) (peval p l).
+Proof.
+  intros.
+  revert i.
+  induction pl.
+  {
+    intros [ | i].
+    {
+      simpl.
+      intros.
+      trivial.
+    }
+    {
+      simpl.
+      intros.
+      trivial.
+    }
+  }
+  {
+    intros [ | i].
+    {
+      simpl.
+      intros.
+      trivial.
+    }
+    {
+      simpl.
+      intros.
+      trivial.
+    }
+  }
+Qed.
+Notation parity := (@fst nat (list mon)).
+Definition pWF_pow (ar:nat)(xn:pow) : Prop :=
+  fst xn < ar.
+Definition pWF_mon (ar:nat)(m:mon) : Prop :=
+  andl (pWF_pow ar) (snd m).
+Definition pWF' (ar:nat)(ml:list mon) : Prop :=
+  andl (pWF_mon ar) ml.
+Definition pWF (p:pol) : Prop :=
+  pWF' (fst p) (snd p).
+Lemma pWF_mon_le : forall ar1 ar2 m,
+  ar1 <= ar2 -> 
+  pWF_mon ar1 m -> pWF_mon ar2 m.
+Proof.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros ar1 ar2 [a xl].
+  induction xl as [ | xn xl' IH].
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    destruct xn as [x n].
+    simpl in *.
+    split.
+    {
+      omega.
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pWF'_le ar1 ar2 ml :
+  ar1 <= ar2 -> pWF' ar1 ml -> pWF' ar2 ml.
+Proof.
+  induction ml.
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    split.
+    {
+      idtac.
+      apply pWF_mon_le with ar1.
+      {
+        trivial.
+      }
+      {
+        trivial.
+        tauto.
+      }
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pWF_mon_app : forall ar a1 xl1 a2 xl2,
+  pWF_mon ar (a1, xl1) -> pWF_mon ar (a2, xl2) ->
+  pWF_mon ar (a1*a2, xl1++xl2).
+Proof.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  induction xl1 as [ | [x n] xl1' IH].
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    split.
+    {
+      tauto.
+    }
+    {
+      idtac.
+      apply IH with a1.
+      {
+        tauto.
+      }
+      {
+        tauto.
+      }
+    }
+  }
+Qed.
+Lemma pWF'_app ar ml1 ml2 :
+  pWF' ar ml1 -> pWF' ar ml2 -> pWF' ar (ml1++ml2).
+Proof.
+  induction ml1 as [ | m1 ml1' IH].
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    split.
+    {
+      tauto.
+    }
+    {
+      idtac.
+      apply IH.
+      {
+        tauto.
+      }
+      {
+        tauto.
+      }
+    }
+  }
+Qed.
+Lemma pWF_nth i pl p0 :
+  andl pWF pl -> pWF p0 -> pWF (nth i pl p0).
+Proof.
+  intros.
+  revert i.
+  induction pl.
+  {
+    simpl in *.
+    intros.
+    case i.
+    {
+      intros.
+      trivial.
+    }
+    {
+      intros.
+      trivial.
+    }
+  }
+  {
+    simpl in *.
+    intros.
+    case i.
+    {
+      intros.
+      trivial.
+      tauto.
+    }
+    {
+      intros.
+      trivial.
+      apply IHpl.
+      tauto.
+    }
+  }
+Qed.
+Lemma parity_mon_correct : forall ar m l l1 l2,
+  pWF_mon ar m -> length l = ar -> peval_mon m (l++l1) = peval_mon m (l++l2).
+Proof.
+  unfold peval_mon.
+  unfold peval_pow.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros ar [a xl] l l1 l2 H1 H2.
+  simpl in *.
+  f_equal.
+  f_equal.
+  induction xl as [ | [x n] xl' IH].
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    f_equal.
+    {
+      idtac.
+      f_equal.
+      rewrite !app_nth1.
+      {
+        trivial.
+      }
+      {
+        trivial.
+        omega.
+      }
+      {
+        trivial.
+        omega.
+      }
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma parity_correct : forall p l l1 l2,
+  pWF p -> length l = parity p -> peval p (l++l1) = peval p (l++l2).
+Proof.
+  unfold peval.
+  unfold peval_mon.
+  unfold peval_pow.
+  unfold pWF.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros [ar ml] l l1 l2 H1 H2.
+  simpl in *.
+  f_equal.
+  induction ml as [ | m ml' IH].
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    f_equal.
+    {
+      idtac.
+      apply parity_mon_correct with ar.
+      {
+        tauto.
+      }
+      {
+        tauto.
+      }
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Definition pcst (ar a:nat) : pol :=
+  (ar, [(a,nil)]).
+Lemma parity_pcst ar a :
+  parity (pcst ar a) = ar.
+Proof.
+  trivial.
+Qed.
+Lemma pWF_pcst ar a : pWF (pcst ar a).
+Proof.
+  compute.
+  intros.
+  tauto.
+Qed.
+Lemma pcst_correct : forall ar k l, peval (pcst ar k) l = k.
+Proof.
+  unfold peval.
+  unfold peval_mon.
+  unfold peval_pow.
+  simpl.
+  intros.
+  omega.
+Qed.
+Definition pproj (ar i:nat) : pol :=
+  (ar,[(1,[(i,1)])]).
+Lemma parity_pproj n i :
+  parity (pproj n i) = n.
+Proof.
+  trivial.
+Qed.
+Lemma pWF_pproj ar i : i < ar -> pWF (pproj ar i).
+Proof.
+  compute.
+  intros.
+  tauto.
+Qed.
+Lemma pproj_correct : forall ar i l,
+ peval (pproj ar i) l = nth i l 0.
+Proof.
+  unfold peval.
+  unfold peval_mon.
+  unfold peval_pow.
+  simpl.
+  intros.
+  omega.
+Qed.
+Definition pscalar_mon (n:nat)(m:mon) : mon :=
+  (n * fst m, snd m).
+Definition pscalar (n:nat)(p:pol) : pol :=
+  (fst p, map (pscalar_mon n) (snd p)).
+Lemma parity_pscalar n p :
+  parity (pscalar n p) = parity p.
+Proof.
+  trivial.
+Qed.
+Lemma pWF_pscalar : forall n p,
+  pWF p -> pWF (pscalar n p).
+Proof.
+  unfold pWF.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros n [ar ml] H.
+  induction ml.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    tauto.
+  }
+Qed.
+Lemma pscalar_mon_correct : forall n m l,
+  peval_mon (pscalar_mon n m) l = n * peval_mon m l.
+Proof.
+  unfold peval_mon.
+  intros n [a xl] l.
+  simpl.
+  ring.
+Qed.
+Lemma map_pscalar_mon n ml l :
+  plusl (map (fun m => peval_mon (pscalar_mon n m) l) ml) =
+  n * plusl (map (fun m => peval_mon m l) ml).
+Proof.
+  induction ml.
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+    rewrite pscalar_mon_correct.
+    rewrite  IHml.
+    ring.
+  }
+Qed.
+Lemma pscalar_correct : forall n p l,
+  peval (pscalar n p) l = n * peval p l.
+Proof.
+  unfold peval.
+  unfold pscalar.
+  intros n [ar pl] l.
+  induction pl.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    rewrite map_map in *.
+    rewrite pscalar_mon_correct.
+    simpl in IHpl.
+    rewrite IHpl.
+    ring.
+  }
+Qed.
+Definition pplus (p1 p2:pol) : pol :=
+  (max (fst p1) (fst p2), snd p1 ++ snd p2).
+Lemma parity_pplus : forall p1 p2,
+  parity (pplus p1 p2) = max (parity p1) (parity p2).
+Proof.
+  intros [ar1 ml1] [ar2 ml2].
+  trivial.
+Qed.
+Lemma pWF_pplus : forall p1 p2,
+  pWF p1 -> pWF p2 -> pWF (pplus p1 p2).
+Proof.
+  unfold pWF.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros [ar1 ml1] [ar2 ml2] H1 H2.
+  simpl in *.
+  induction ml1 as [ | m1 ml1' IH].
+  {
+    simpl in *.
+    apply pWF'_le with ar2.
+    {
+      auto with arith.
+    }
+    {
+      auto with arith.
+    }
+  }
+  {
+    simpl in *.
+    split.
+    {
+      idtac.
+      apply pWF_mon_le with ar1.
+      {
+        auto with arith.
+      }
+      {
+        auto with arith.
+        tauto.
+      }
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pplus_correct : forall p1 p2 l,
+ peval (pplus p1 p2) l = peval p1 l + peval p2 l.
+Proof.
+  unfold peval.
+  unfold peval_mon.
+  unfold peval_pow.
+  intros [ar1 ml1] [ar2 ml2] l.
+  induction ml1 as [ | m1 ml1' IH].
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    unfold peval  in IH.
+    unfold pplus in IH.
+    rewrite IH.
+    ring.
+  }
+Qed.
+Definition pplusl (pl:list pol) : pol :=
+  fold_right pplus (pcst 0 0) pl.
+Lemma parity_pplusl : forall pl,
+  parity (pplusl pl) = maxl (map parity pl).
+Proof.
+  induction pl.
+  {
+    trivial.
+  }
+  {
+    trivial.
+    simpl pplusl.
+    rewrite parity_pplus.
+    rewrite  IHpl.
+    trivial.
+  }
+Qed.
+Definition pWF_pplusl : forall pl,
+  andl pWF pl -> pWF (pplusl pl).
+Proof.
+unfold pWF, pWF_mon, pWF_pow.
+induction pl; intros;[ simpl; tauto |].
+apply pWF_pplus; simpl in *; tauto.
+Qed.
+Lemma pplusl_correct : forall pl l,
+  peval (pplusl pl) l = plusl (map (fun p => peval p l) pl).
+Proof.
+  induction pl.
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    rewrite pplus_correct.
+    rewrite  IHpl.
+    trivial.
+  }
+Qed.
+Lemma peval_nth_pplus : forall pl l i n,
+  peval (nth i pl (pcst n 0)) l <=
+  peval (pplusl pl) l.
+Proof.
+induction pl; simpl; intros; case i; trivial; rewrite pplus_correct; [ omega | ].
+intros; eapply le_trans;[ apply IHpl | ].
+omega.
+Qed.
+Definition pmult_mon (m12:mon*mon) : mon :=
+  (fst (fst m12) * fst (snd m12), snd (fst m12) ++  snd (snd m12)).
+Definition pmult (p1 p2:pol) : pol :=
+  (max (fst p1) (fst p2), map pmult_mon (list_prod (snd p1) (snd p2))).
+Lemma parity_pmult : forall p1 p2,
+  parity (pmult p1 p2) = max (parity p1) (parity p2).
+Proof.
+  intros [ar1 ml1] [ar2 ml2].
+  trivial.
+Qed.
+Lemma pWF_pmult_mon : forall ar1 m1 ar2 m2,
+  pWF_mon ar1 m1 -> pWF_mon ar2 m2 ->
+  pWF_mon (max ar1 ar2) (pmult_mon (m1, m2)).
+Proof.
+  intros ar1 [a1 xl1] ar2 [a2 xl2].
+  simpl pmult_mon.
+  intros.
+  apply pWF_mon_app.
+  {
+    apply pWF_mon_le with ar1.
+    {
+      auto with arith.
+    }
+    {
+      auto with arith.
+    }
+  }
+  {
+    apply pWF_mon_le with ar2.
+    {
+      auto with arith.
+    }
+    {
+      auto with arith.
+    }
+  }
+Qed.
+Lemma pWF_pmult : forall p1 p2,
+  pWF p1 -> pWF p2 -> pWF (pmult p1 p2).
+Proof.
+  unfold pWF.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros [ar1 ml1] [ar2 ml2] H1 H2.
+  simpl in *.
+  induction ml1 as [ | m1 ml1' IH1].
+  {
+    simpl in *.
+    intros.
+    trivial.
+  }
+  {
+    simpl in *.
+    intros.
+    trivial.
+    rewrite map_app.
+    rewrite  map_map.
+    apply pWF'_app.
+    {
+      idtac.
+      clear IH1.
+      induction ml2 as [ | m2 ml2' IH2].
+      {
+        simpl in *.
+        intros.
+        trivial.
+      }
+      {
+        simpl in *.
+        intros.
+        trivial.
+        split.
+        {
+          idtac.
+          apply pWF_pmult_mon.
+          {
+            tauto.
+          }
+          {
+            tauto.
+          }
+        }
+        {
+          tauto.
+        }
+      }
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pmult_mon_correct : forall m12 l,
+  peval_mon (pmult_mon m12) l =
+  peval_mon (fst m12) l * peval_mon (snd m12) l.
+Proof.
+unfold peval_mon, peval_pow.
+intros [[a1 xl1] [a2 xl2]] l; simpl.
+induction xl1 as [ | x1 xl1' IH]; simpl;[ ring | ring [IH] ].
+Qed.
+Lemma map_pmult_mon : forall m1 ml2 l,
+ map (fun m2 => peval_mon (pmult_mon (m1, m2)) l) ml2 =
+ map (fun m2 => peval_mon m1 l * peval_mon m2 l) ml2.
+Proof.
+  unfold peval_mon.
+  unfold peval_pow.
+  intros [a1 xl1] ml2 l.
+  simpl.
+  induction ml2 as [ | [a2 xl2] ml2' IH].
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+    rewrite IH.
+    rewrite  map_app.
+    rewrite   multl_app.
+    f_equal.
+    ring.
+  }
+Qed.
+Lemma pmult_correct : forall p1 p2 l,
+ peval (pmult p1 p2) l = peval p1 l * peval p2 l.
+Proof.
+  unfold peval.
+  intros [ar1 ml1] [ar2 ml2] l.
+  simpl.
+  induction ml1 as [ | m1 ml1' IH].
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+    rewrite !map_app.
+    rewrite  !map_map.
+    rewrite   map_pmult_mon.
+    rewrite    plusl_app.
+    rewrite map_map in IH.
+    rewrite IH.
+    rewrite mult_plus_distr_r.
+    f_equal.
+    rewrite multl_plus_distr_l.
+    rewrite  map_map.
+    trivial.
+  }
+Qed.
+Definition pmultl (pl:list pol) : pol :=
+  fold_right pmult (pcst 0 1) pl.
+Lemma parity_pmultl pl :
+  parity (pmultl pl) = maxl (map parity pl).
+Proof.
+  induction pl.
+  {
+    simpl pmultl.
+    trivial.
+  }
+  {
+    simpl pmultl.
+    trivial.
+    rewrite parity_pmult.
+    rewrite  IHpl.
+    trivial.
+  }
+Qed.
+Definition pWF_pmultl pl :
+  andl pWF pl -> pWF (pmultl pl).
+Proof.
+  induction pl.
+  {
+    simpl pmultl.
+    intros.
+    apply pWF_pcst.
+  }
+  {
+    simpl pmultl.
+    intros.
+    apply pWF_pmult.
+    {
+      simpl in *.
+      tauto.
+    }
+    {
+      simpl in *.
+      tauto.
+    }
+  }
+Qed.
+Lemma pmultl_correct pl l :
+  peval (pmultl pl) l = multl (map (fun p => peval p l) pl).
+Proof.
+  induction pl.
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    rewrite pmult_correct.
+    rewrite  IHpl.
+    trivial.
+  }
+Qed.
+Fixpoint ppower (p:pol)(n:nat) : pol :=
+  match n with
+  | 0 => pcst (fst p) 1
+  | S n' => pmult p (ppower p n')
+  end.
+Lemma parity_ppower p n :
+  parity (ppower p n) = parity p.
+Proof.
+  induction n.
+  {
+    simpl ppower.
+    trivial.
+  }
+  {
+    simpl ppower.
+    trivial.
+    rewrite parity_pmult.
+    rewrite  IHn.
+    auto with arith.
+  }
+Qed.
+Lemma pWF_ppower p n :
+  pWF p -> pWF (ppower p n).
+Proof.
+  induction n.
+  {
+    simpl ppower.
+    intros.
+    apply pWF_pcst.
+  }
+  {
+    simpl ppower.
+    intros.
+    apply pWF_pmult.
+    {
+      tauto.
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma ppower_correct p n l :
+  peval (ppower p n) l = power (peval p l) n.
+Proof.
+  induction n.
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    rewrite pmult_correct.
+    rewrite  IHn.
+    trivial.
+  }
+Qed.
+Definition pcomp_pow' (xn:pow)(pl:list pol) : pol :=
+  ppower (nth (fst xn) pl (pcst 0 0)) (snd xn).
+Definition pcomp_pow (xn:pow)(pl:list pol) : pol :=
+  (maxl (map parity pl), snd (pcomp_pow' xn pl)).
+Definition pcomp_mon' (m:mon)(pl:list pol) : pol :=
+  pscalar (fst m) (pmultl (map (fun xn => pcomp_pow xn pl) (snd m))).
+Definition pcomp_mon (m:mon)(pl:list pol) : pol :=
+  (maxl (map parity pl), snd (pcomp_mon' m pl)).
+Definition pcomp' (p:pol)(pl:list pol) : pol :=
+  pplusl (map (fun m => pcomp_mon m pl) (snd p)).
+Definition pcomp (p:pol)(pl:list pol) : pol :=
+  (maxl (map parity pl), snd (pcomp' p pl)).
+Lemma parity_pcomp_pow : forall xn pl,
+  parity (pcomp_pow xn pl) = maxl (map parity pl).
+Proof.
+  unfold pcomp_pow.
+  intros [x n] pl.
+  simpl.
+  case_eq (ppower (nth x pl (pcst 0 0)) n).
+  trivial.
+Qed.
+Lemma map_parity_pcomp_pow xl pl :
+  map (fun xn => parity (pcomp_pow xn pl)) xl = map (fun _ => maxl (map parity pl)) xl.
+Proof.
+  destruct xl.
+  {
+    simpl.
+    trivial.
+  }
+  {
+    simpl.
+    trivial.
+  }
+Qed.
+Lemma parity_pcomp_mon' : forall m pl,
+  parity (pcomp_mon' m pl) <= maxl (map parity pl).
+Proof.
+  intros [a xl] pl.
+  simpl.
+  rewrite parity_pmultl.
+  induction xl.
+  {
+    simpl.
+    omega.
+  }
+  {
+    simpl.
+    apply Nat.max_lub.
+    {
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Lemma parity_pcomp_mon : forall m pl,
+  parity (pcomp_mon m pl) = maxl (map parity pl).
+Proof.
+  unfold pcomp_mon.
+  intros [a xl] pl.
+  simpl.
+  trivial.
+Qed.
+Lemma parity_pcomp p pl :
+  parity (pcomp p pl) = maxl (map parity pl).
+Proof.
+  unfold pcomp.
+  intros.
+  case (pcomp' p pl).
+  trivial.
+Qed.
+Lemma pWF_pcomp_pow' : forall xn pl,
+  andl pWF pl -> pWF (pcomp_pow' xn pl).
+Proof.
+  intros [x n] pl H.
+  simpl.
+  apply pWF_ppower.
+  apply pWF_nth.
+  {
+    trivial.
+  }
+  {
+    trivial.
+    apply pWF_pcst.
+  }
+Qed.
+Lemma pWF_pcomp_pow : forall xn pl,
+  andl pWF pl -> pWF (pcomp_pow xn pl).
+Proof.
+  intros [x n] pl H.
+  apply pWF'_le with (ar1 := fst (pcomp_pow' (x, n) pl)).
+  {
+    rewrite parity_pcomp_pow.
+    unfold pcomp_pow'.
+    rewrite parity_ppower.
+    destruct (le_lt_dec (length pl) x).
+    {
+      rewrite nth_overflow.
+      {
+        auto with arith.
+      }
+      {
+        auto with arith.
+      }
+    }
+    {
+      apply in_le_maxl.
+      apply in_map.
+      apply nth_In.
+      trivial.
+    }
+  }
+  {
+    apply pWF_pcomp_pow'.
+    trivial.
+  }
+Qed.
+Lemma pWF_pcomp_mon' : forall m pl,
+  andl pWF pl -> pWF (pcomp_mon' m pl).
+Proof.
+  unfold pWF.
+  unfold pWF'.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros [a xl] pl H.
+  induction xl as [ | [x n]  xl' IH].
+  {
+    simpl.
+    tauto.
+  }
+  {
+    apply pWF_pscalar.
+    apply pWF_pmultl.
+    clear IH.
+    induction xl'.
+    {
+      simpl in *.
+      split.
+      {
+        trivial.
+        apply pWF_pcomp_pow.
+        trivial.
+      }
+      {
+        trivial.
+      }
+    }
+    {
+      simpl in *.
+      split.
+      {
+        tauto.
+      }
+      {
+        split.
+        {
+          apply pWF_pcomp_pow.
+          trivial.
+        }
+        {
+          apply IHxl'.
+        }
+      }
+    }
+  }
+Qed.
+Lemma pWF_pcomp_mon : forall m pl,
+  andl pWF pl -> pWF (pcomp_mon m pl).
+Proof.
+  intros [a xl] pl H.
+  apply pWF'_le with (ar1 := fst (pcomp_mon' (a, xl) pl)).
+  {
+    apply parity_pcomp_mon'.
+  }
+  {
+    apply pWF_pcomp_mon'.
+    trivial.
+  }
+Qed.
+Lemma pWF_pcomp' : forall p pl,
+  andl pWF pl -> pWF (pcomp' p pl).
+Proof.
+  intros [ar ml] pl H.
+  simpl.
+  apply pWF_pplusl.
+  induction ml.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    split.
+    {
+      trivial.
+      apply pWF_pcomp_mon.
+      trivial.
+    }
+    {
+      trivial.
+    }
+  }
+Qed.
+Lemma pWF_pcomp : forall p pl,
+  andl pWF pl -> pWF (pcomp p pl).
+Proof.
+  intros [ar ml] pl H.
+  apply pWF'_le with (ar1 := fst (pcomp' (ar, ml) pl)).
+  {
+    rewrite parity_pcomp.
+    unfold pcomp'.
+    rewrite parity_pplusl.
+    rewrite  map_map.
+    induction ml.
+    {
+      simpl.
+      omega.
+    }
+    {
+      simpl.
+      apply Nat.max_lub.
+      {
+        trivial.
+      }
+      {
+        trivial.
+      }
+    }
+  }
+  {
+    apply pWF_pcomp'.
+    trivial.
+  }
+Qed.
+Lemma pcomp_pow'_correct : forall xn pl l,
+  peval (pcomp_pow' xn pl) l =
+  power (peval (nth (fst xn) pl (pcst 0 0)) l) (snd xn).
+Proof.
+  intros [x n] pl l.
+  simpl.
+  apply ppower_correct.
+Qed.
+Lemma pcomp_pow_correct xn pl l :
+  peval (pcomp_pow xn pl) l =
+  power (peval (nth (fst xn) pl (pcst 0 0)) l) (snd xn).
+Proof.
+  intros.
+  unfold pcomp_pow.
+  apply pcomp_pow'_correct.
+Qed.
+Lemma pcomp_mon'_correct : forall m pl l,
+  peval (pcomp_mon' m pl) l = peval_mon m (map (fun p => peval p l) pl).
+Proof.
+  intros [a xl] pl l.
+  induction xl.
+  {
+    unfold peval.
+    unfold peval_mon.
+    simpl.
+    ring.
+  }
+  {
+    unfold pcomp_mon' in *.
+    simpl in *.
+    rewrite pscalar_correct  in *.
+    rewrite  pmult_correct  in *.
+    rewrite   pmultl_correct in *.
+    rewrite mult_assoc.
+    rewrite  (mult_comm a).
+    rewrite   <- mult_assoc.
+    rewrite    IHxl.
+    rewrite     pcomp_pow_correct.
+    rewrite      peval_nth.
+    destruct a0 as [x n].
+    unfold peval_mon.
+    unfold peval_pow.
+    rewrite pcst_correct.
+    simpl.
+    ring.
+  }
+Qed.
+Lemma pcomp_mon_correct : forall m pl l,
+  peval (pcomp_mon m pl) l = peval_mon m (map (fun p => peval p l) pl).
+Proof.
+  intros [a xl] pl l.
+  unfold pcomp_mon.
+  rewrite peval_parity.
+  apply pcomp_mon'_correct.
+Qed.
+Lemma pcomp'_correct : forall p pl l,
+  peval (pcomp' p pl) l = peval p (map (fun p' => peval p' l) pl).
+Proof.
+  unfold pcomp'.
+  intros [ar ml] pl l.
+  induction ml.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    rewrite pplus_correct.
+    rewrite  pcomp_mon_correct.
+    rewrite   IHml.
+    trivial.
+  }
+Qed.
+Lemma pcomp_correct p pl l :
+  peval (pcomp p pl) l = peval p (map (fun p => peval p l) pl).
+Proof.
+  intros.
+  unfold pcomp.
+  rewrite peval_parity.
+  apply pcomp'_correct.
+Qed.
+Definition pshift_pow (xn:pow) : pow :=
+  (S (fst xn), snd xn).
+Definition pshift_mon (m:mon) : mon :=
+  (fst m, map pshift_pow (snd m)).
+Definition pshift (p:pol) : pol :=
+  (S (fst p), map pshift_mon (snd p)).
+Lemma parity_pshift : forall p,
+  parity (pshift p) = S (parity p).
+Proof.
+  intros [ar ml].
+  trivial.
+Qed.
+Lemma pWF_pshift_mon : forall ar m,
+  pWF_mon ar m -> pWF_mon (S ar) (pshift_mon m).
+Proof.
+  unfold pWF_mon.
+  unfold pWF_pow.
+  intros ar [a xl] H.
+  simpl.
+  induction xl as [ | [x n]  xl' IH].
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    split.
+    {
+      omega.
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pWF_pshift : forall p, pWF p -> pWF (pshift p).
+Proof.
+  unfold pWF.
+  intros [ar ml] H.
+  simpl.
+  induction ml.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    split.
+    {
+      idtac.
+      apply pWF_pshift_mon.
+      tauto.
+    }
+    {
+      tauto.
+    }
+  }
+Qed.
+Lemma pshift_pow_correct : forall xn l,
+  peval_pow (pshift_pow xn) l = peval_pow xn (tl l).
+Proof.
+  unfold peval_pow.
+  intros [x n] l.
+  simpl.
+  f_equal.
+  rewrite nth_S_tl.
+  trivial.
+Qed.
+Lemma pshift_mon_correct : forall m l,
+  peval_mon (pshift_mon m) l = peval_mon m (tl l).
+Proof.
+  unfold peval_mon.
+  intros [a xl] l.
+  induction xl.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    rewrite mult_assoc.
+    rewrite  (mult_comm a).
+    rewrite   <- mult_assoc.
+    rewrite    pshift_pow_correct.
+    rewrite     IHxl.
+    ring.
+  }
+Qed.
+Lemma pshift_correct : forall p l,
+  peval (pshift p) l = peval p (tl l).
+Proof.
+  unfold peval.
+  intros [ar ml] l.
+  induction ml.
+  {
+    simpl in *.
+    trivial.
+  }
+  {
+    simpl in *.
+    trivial.
+    rewrite pshift_mon_correct.
+    rewrite  IHml.
+    trivial.
+  }
+Qed.
+Definition psum (start len : nat) : pol :=
+  pplus (pcst (start+len) 0) (pplusl (map (pproj (start+len)) (seq start len))).
+Lemma psum_correct start len l :
+  peval (psum start len) l = 
+  plusl (map (fun i => nth i l 0) (seq start len)).
+Proof.
+  intros.
+  unfold psum.
+  rewrite pplus_correct.
+  rewrite  pcst_correct.
+  rewrite   pplusl_correct.
+  simpl.
+  f_equal.
+  induction (seq start len).
+  {
+    simpl.
+    intros.
+    trivial.
+  }
+  {
+    simpl.
+    intros.
+    trivial.
+    rewrite pproj_correct.
+    congruence.
+  }
+Qed.
+Lemma pWF_psum start len : pWF (psum start len).
+Proof.
+  intros.
+  unfold psum.
+  apply pWF_pplus.
+  {
+    apply pWF_pcst.
+  }
+  {
+    apply pWF_pplusl.
+    rewrite <- forall_andl.
+    intros.
+    rewrite in_map_iff in H.
+    destruct H as (y & H1 & H2).
+    subst.
+    apply pWF_pproj.
+    rewrite in_seq_iff in H2.
+    tauto.
+  }
+Qed.
+Lemma parity_psum start len : 
+  parity (psum start len) = start + len.
+Proof.
+  intros.
+  unfold psum.
+  rewrite parity_pplus.
+  rewrite  parity_pcst.
+  rewrite   parity_pplusl.
+  rewrite    max_l.
+  {
+    trivial.
+  }
+  {
+    trivial.
+    apply maxl_map.
+    intros p H.
+    rewrite in_map_iff in H.
+    destruct H as (x & H & _).
+    subst.
+    trivial.
+  }
+Qed.
+Ltac pWF :=
+  match goal with
+  | |- pWF (pcst _ _) => apply pWF_pcst
+  | |- pWF (pproj _ _) => apply pWF_pproj; try omega
+  | |- pWF (pscalar _ _) => apply pWF_pscalar; pWF
+  | |- pWF (pplus _ _) => apply pWF_pplus; pWF
+  | |- pWF (pplusl _) => apply pWF_pplusl; rewrite <- forall_andl; intros; pWF
+  | |- pWF (pmult _ _) => apply pWF_pmult; pWF
+  | |- pWF (pmultl _) => apply pWF_pmultl; rewrite <- forall_andl; intros; pWF
+  | |- pWF (ppower _ _) => apply pWF_ppower; pWF
+  | |- pWF (pcomp _ _) => apply pWF_pcomp; rewrite <- forall_andl; intros; pWF
+  | |- pWF (pshift _) => apply pWF_pshift; pWF
+  | |- pWF (psum _ _) => apply pWF_psum
+  | |- _ => idtac
+  end.
+Definition deg_mon (m:mon) : nat :=
+  plusl (map (@snd _ _) (snd m)).
+Definition deg (p:pol) : nat :=
+  maxl (map deg_mon (snd p)).

@@ -1,0 +1,267 @@
+29944cb494cb72a6b016cf8580428219
+From Coq Require Import ZArith.
+Require Import ZArithRing.
+Require Import divide.
+Require Import gcd.
+Definition rel_prime (a b : Z) : Prop := gcd a b 1.
+Lemma rel_prime_bezout : forall a b : Z, rel_prime a b -> Bezout a b 1.
+Proof.
+  intros a b.
+  exact (gcd_bezout a b 1).
+Qed.
+Lemma bezout_rel_prime : forall a b : Z, Bezout a b 1 -> rel_prime a b.
+Proof.
+  simple induction 1.
+  constructor.
+  {
+    auto.
+  }
+  {
+    auto.
+  }
+  {
+    auto.
+    intros.
+    rewrite <- H0.
+    auto.
+  }
+Qed.
+Theorem Gauss : forall a b c : Z, (a | b * c)%Z -> rel_prime a b -> (a | c)%Z.
+Proof.
+  intros.
+  elim (rel_prime_bezout a b H0).
+  intros.
+  replace c with (c * 1)%Z.
+  {
+    idtac.
+    rewrite <- H1.
+    replace (c * (u * a + v * b))%Z with (c * u * a + v * (b * c))%Z.
+    {
+      eauto.
+    }
+    {
+      ring.
+    }
+  }
+  {
+    ring.
+  }
+Qed.
+Lemma rel_prime_mult :
+ forall a b c : Z, rel_prime a b -> rel_prime a c -> rel_prime a (b * c).
+Proof.
+  intros a b c Hb Hc.
+  elim (rel_prime_bezout a b Hb).
+  intros.
+  elim (rel_prime_bezout a c Hc).
+  intros.
+  apply bezout_rel_prime.
+  apply
+ Bezout_intro
+  with (u := (u * u0 * a + v0 * c * u + u0 * v * b)%Z) (v := (v * v0)%Z).
+  rewrite <- H.
+  replace (u * a + v * b)%Z with ((u * a + v * b) * 1)%Z.
+  {
+    idtac.
+    rewrite <- H0.
+    ring.
+  }
+  {
+    ring.
+  }
+Qed.
+Inductive prime (p : Z) : Prop :=
+    prime_intro :
+      (1 < p)%Z -> (forall n : Z, (1 <= n < p)%Z -> rel_prime n p) -> prime p.
+Lemma prime_divisors :
+ forall p : Z,
+ prime p ->
+ forall a : Z, (a | p)%Z -> a = (-1)%Z \/ a = 1%Z \/ a = p \/ a = (- p)%Z.
+Proof.
+  simple induction 1.
+  intros.
+  assert
+ (a = (- p)%Z \/
+  (- p < a < -1)%Z \/
+  a = (-1)%Z \/ a = 0%Z \/ a = 1%Z \/ (1 < a < p)%Z \/ a = p).
+  {
+    assert (Zabs a <= Zabs p)%Z.
+    {
+      apply divide_bounds.
+      {
+        assumption.
+      }
+      {
+        omega.
+      }
+    }
+    {
+      generalize H3.
+      pattern (Zabs a) in |- *.
+      apply Zabs_ind.
+      {
+        pattern (Zabs p) in |- *.
+        apply Zabs_ind.
+        {
+          intros.
+          omega.
+        }
+        {
+          intros.
+          omega.
+        }
+      }
+      {
+        pattern (Zabs p) in |- *.
+        apply Zabs_ind.
+        {
+          intros.
+          omega.
+        }
+        {
+          intros.
+          omega.
+        }
+      }
+    }
+  }
+  {
+    intuition.
+    {
+      absurd (rel_prime (- a) p).
+      {
+        intuition.
+        inversion H3.
+        assert (- a | - a)%Z.
+        {
+          auto.
+        }
+        {
+          auto.
+          assert (- a | p)%Z.
+          {
+            auto.
+          }
+          {
+            auto.
+            generalize (H8 (- a)%Z H9 H10).
+            intuition.
+            generalize (divide_1 (- a) H11).
+            intuition.
+          }
+        }
+      }
+      {
+        intuition.
+      }
+    }
+    {
+      inversion H2.
+      subst a.
+      omega.
+    }
+    {
+      absurd (rel_prime a p).
+      {
+        intuition.
+        inversion H3.
+        assert (a | a)%Z.
+        {
+          auto.
+        }
+        {
+          auto.
+          assert (a | p)%Z.
+          {
+            auto.
+          }
+          {
+            auto.
+            generalize (H8 a H9 H10).
+            intuition.
+            generalize (divide_1 a H11).
+            intuition.
+          }
+        }
+      }
+      {
+        intuition.
+      }
+    }
+  }
+Qed.
+Lemma prime_rel_prime :
+ forall p : Z, prime p -> forall a : Z, ~ (p | a)%Z -> rel_prime p a.
+Proof.
+  simple induction 1.
+  intros.
+  constructor.
+  {
+    intuition.
+  }
+  {
+    intuition.
+  }
+  {
+    intuition.
+    elim (prime_divisors p H x H3).
+    {
+      intuition.
+      subst.
+      auto.
+    }
+    {
+      intuition.
+      {
+        subst.
+        auto.
+      }
+      {
+        subst.
+        auto.
+        absurd (p | a)%Z.
+        {
+          auto.
+        }
+        {
+          auto.
+        }
+      }
+      {
+        subst.
+        auto.
+        absurd (p | a)%Z.
+        {
+          intuition.
+        }
+        {
+          intuition.
+        }
+      }
+    }
+  }
+Qed.
+Hint Resolve prime_rel_prime.
+Axiom divide_dec : forall a b : Z, {(a | b)%Z} + {~ (a | b)%Z}.
+Lemma prime_mult :
+ forall p : Z,
+ prime p -> forall a b : Z, (p | a * b)%Z -> (p | a)%Z \/ (p | b)%Z.
+Proof.
+  simple induction 1.
+  intros.
+  case (divide_dec p a).
+  {
+    intuition.
+  }
+  {
+    intuition.
+    right.
+    apply Gauss with a.
+    {
+      auto.
+    }
+    {
+      auto.
+    }
+  }
+Qed.

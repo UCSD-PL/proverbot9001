@@ -1,0 +1,341 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Section rectangle_principle_rectangle_existence.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_lambert_quadrilaterals, postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+Proof.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_lambert_quadrilaterals, postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+intros rectangle.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+
+*****
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+destruct (midpoint_existence B C) as [M HM].
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+
+*****
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+destruct (midpoint_existence A D) as [N HN].
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+
+*****
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_lambert_quadrilateral
++++++
+exists N.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B : Tpoint => ex (fun C : Tpoint => ex (fun D : Tpoint => and (Lambert N B C D) (Per B C D))))
++++++
+exists M.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun C : Tpoint => ex (fun D : Tpoint => and (Lambert N M C D) (Per M C D)))
++++++
+exists B.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun D : Tpoint => and (Lambert N M B D) (Per M B D))
++++++
+exists A.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+exists A.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Lambert N M B A) (Per M B A)
++++++
+split.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+exists A.
+split.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Lambert N M B A
++++++
+assumption.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+exists A.
+split.
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per M B A
++++++
+apply (rectangle N).
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+exists A.
+split.
+apply (rectangle N).
+
+*****
+HLam : Lambert N M B A
+HN : Midpoint N A D
+N : Tpoint
+HM : Midpoint M B C
+M : Tpoint
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rectangle : postulate_of_right_lambert_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Lambert N M B A
++++++
+assumption.
+-----
+Lemma rectangle_principle__rectangle_existence : postulate_of_right_lambert_quadrilaterals -> postulate_of_existence_of_a_right_lambert_quadrilateral.
+Proof.
+intros rectangle.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+destruct (midpoint_existence B C) as [M HM].
+destruct (midpoint_existence A D) as [N HN].
+assert(HLam := mid2_sac__lam6521 A B C D M N HSac HM HN).
+exists N.
+exists M.
+exists B.
+exists A.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End rectangle_principle_rectangle_existence.
+-----

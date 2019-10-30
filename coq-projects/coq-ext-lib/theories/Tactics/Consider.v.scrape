@@ -1,0 +1,1248 @@
+Inductive reflect (P Q : Prop) : bool -> Type :=\n| reflect_true : P -> reflect P Q true\n| reflect_false : Q -> reflect P Q false.
+-----
+Inductive semi_reflect (P : Prop) : bool -> Type :=\n| semi_reflect_true : P -> semi_reflect P true\n| semi_reflect_false : semi_reflect P false.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool)  :\n  (forall x y, T x y = true <-> P x y) ->\n  (forall x y, reflect (P x y) (~P x y) (T x y)).
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+
+*****
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall (_ : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)) (x : A) (y : B), reflect (P x y) (not (P x y)) (T x y)
++++++
+Proof.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+
+*****
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall (_ : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)) (x : A) (y : B), reflect (P x y) (not (P x y)) (T x y)
++++++
+intros.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+reflect (P x y) (not (P x y)) (T x y)
++++++
+case_eq (T x y).
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall _ : eq (T x y) true, reflect (P x y) (not (P x y)) true
++++++
+intros Hxy.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+reflect (P x y) (not (P x y)) true
++++++
+constructor.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+P x y
++++++
+apply H.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+apply H.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+eq (T x y) true
++++++
+assumption.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall _ : eq (T x y) false, reflect (P x y) (not (P x y)) false
++++++
+intros Hxy.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+
+*****
+Hxy : eq (T x y) false
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+reflect (P x y) (not (P x y)) false
++++++
+constructor.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+
+*****
+Hxy : eq (T x y) false
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+not (P x y)
++++++
+intros Hf.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+intros Hf.
+
+*****
+Hf : P x y
+Hxy : eq (T x y) false
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+False
++++++
+apply H in Hf.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+intros Hf.
+apply H in Hf.
+
+*****
+Hf : eq (T x y) true
+Hxy : eq (T x y) false
+y : B
+x : A
+H : forall (x : A) (y : B), iff (eq (T x y) true) (P x y)
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+False
++++++
+congruence.
+-----
+Lemma iff_to_reflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true <-> P x y) -> (forall x y, reflect (P x y) (~P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool)  :\n  (forall x y, T x y = true -> P x y) ->\n  (forall x y, semi_reflect (P x y) (T x y)).
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+
+*****
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall (_ : forall (x : A) (y : B) (_ : eq (T x y) true), P x y) (x : A) (y : B), semi_reflect (P x y) (T x y)
++++++
+Proof.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+
+*****
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall (_ : forall (x : A) (y : B) (_ : eq (T x y) true), P x y) (x : A) (y : B), semi_reflect (P x y) (T x y)
++++++
+intros.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+semi_reflect (P x y) (T x y)
++++++
+case_eq (T x y).
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall _ : eq (T x y) true, semi_reflect (P x y) true
++++++
+intros Hxy.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+semi_reflect (P x y) true
++++++
+constructor.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+P x y
++++++
+apply H.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+constructor.
+apply H.
+
+*****
+Hxy : eq (T x y) true
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+eq (T x y) true
++++++
+auto.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+forall _ : eq (T x y) false, semi_reflect (P x y) false
++++++
+intros Hxy.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+intros Hxy.
+
+*****
+Hxy : eq (T x y) false
+y : B
+x : A
+H : forall (x : A) (y : B) (_ : eq (T x y) true), P x y
+T : forall (_ : A) (_ : B), bool
+P : forall (_ : A) (_ : B), Prop
+B : Type
+A : Type
+*****
+semi_reflect (P x y) false
++++++
+constructor.
+-----
+Lemma impl_to_semireflect {A B} (P : A -> B -> Prop) (T : A -> B -> bool) : (forall x y, T x y = true -> P x y) -> (forall x y, semi_reflect (P x y) (T x y)).
+Proof.
+intros.
+case_eq (T x y).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma reflect_true_inv P Q : reflect P Q true -> P.
+-----
+Lemma reflect_true_inv P Q : reflect P Q true -> P.
+
+*****
+P,Q : Prop
+*****
+forall _ : reflect P Q true, P
++++++
+Proof.
+-----
+Lemma reflect_true_inv P Q : reflect P Q true -> P.
+Proof.
+
+*****
+P,Q : Prop
+*****
+forall _ : reflect P Q true, P
++++++
+exact (fun x => match x in reflect _ _ b return if b then P else ID with | reflect_true _ _ H => H | reflect_false _ _ H => (fun _ x => x) end).
+-----
+Lemma reflect_true_inv P Q : reflect P Q true -> P.
+Proof.
+exact (fun x => match x in reflect _ _ b return if b then P else ID with | reflect_true _ _ H => H | reflect_false _ _ H => (fun _ x => x) end).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma reflect_false_inv P Q : reflect P Q false -> Q.
+-----
+Lemma reflect_false_inv P Q : reflect P Q false -> Q.
+
+*****
+P,Q : Prop
+*****
+forall _ : reflect P Q false, Q
++++++
+Proof.
+-----
+Lemma reflect_false_inv P Q : reflect P Q false -> Q.
+Proof.
+
+*****
+P,Q : Prop
+*****
+forall _ : reflect P Q false, Q
++++++
+exact (fun x => match x in reflect _ _ b return if b then ID else Q with | reflect_true _ _ H => fun _ x => x | reflect_false _ _ H => H end).
+-----
+Lemma reflect_false_inv P Q : reflect P Q false -> Q.
+Proof.
+exact (fun x => match x in reflect _ _ b return if b then ID else Q with | reflect_true _ _ H => fun _ x => x | reflect_false _ _ H => H end).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma semi_reflect_true_inv P : semi_reflect P true -> P.
+-----
+Lemma semi_reflect_true_inv P : semi_reflect P true -> P.
+
+*****
+P : Prop
+*****
+forall _ : semi_reflect P true, P
++++++
+Proof.
+-----
+Lemma semi_reflect_true_inv P : semi_reflect P true -> P.
+Proof.
+
+*****
+P : Prop
+*****
+forall _ : semi_reflect P true, P
++++++
+exact (fun x => match x in semi_reflect _ b return if b then P else ID with | semi_reflect_true _ H => H | semi_reflect_false _ => (fun _ x => x) end).
+-----
+Lemma semi_reflect_true_inv P : semi_reflect P true -> P.
+Proof.
+exact (fun x => match x in semi_reflect _ b return if b then P else ID with | semi_reflect_true _ H => H | semi_reflect_false _ => (fun _ x => x) end).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Class Reflect (T : bool) (P Q : Prop) := _Reflect : reflect P Q T.
+-----
+Class SemiReflect (T : bool) (P : Prop) := _SemiReflect : semi_reflect P T.
+-----
+Section boolean_logic.
+-----
+Ltac t :=\n    repeat match goal with\n           | H: Reflect true ?P ?Q |- _ => apply (reflect_true_inv P Q) in H\n           | H: Reflect false ?P ?Q |- _ => apply (reflect_false_inv P Q) in H\n           end.
+-----
+Context {T1 T2 P1 Q1 P2 Q2} {R1 : Reflect T1 P1 Q1} {R2: Reflect T2 P2 Q2}.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\ P2) (Q1 \/ Q2).
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb T1 T2) (and P1 P2) (or Q1 Q2)
++++++
+Proof.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb T1 T2) (and P1 P2) (or Q1 Q2)
++++++
+destruct T1.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb true T2) (and P1 P2) (or Q1 Q2)
++++++
+destruct T2.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect true P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb true true) (and P1 P2) (or Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : P2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb true true) (and P1 P2) (or Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : P2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+and P1 P2
++++++
+tauto.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect false P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb true false) (and P1 P2) (or Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb true false) (and P1 P2) (or Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or Q1 Q2
++++++
+tauto.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb false T2) (and P1 P2) (or Q1 Q2)
++++++
+destruct T2.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect true P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb false true) (and P1 P2) (or Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : P2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb false true) (and P1 P2) (or Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : P2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or Q1 Q2
++++++
+tauto.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect false P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb false false) (and P1 P2) (or Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (andb false false) (and P1 P2) (or Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or Q1 Q2
++++++
+tauto.
+-----
+Global Instance Reflect_andb : Reflect (T1 && T2)%bool (P1 /\\ P2) (Q1 \\/ Q2).
+Proof.
+destruct T1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \/ P2) (Q1 /\ Q2).
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb T1 T2) (or P1 P2) (and Q1 Q2)
++++++
+Proof.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb T1 T2) (or P1 P2) (and Q1 Q2)
++++++
+destruct T1.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb true T2) (or P1 P2) (and Q1 Q2)
++++++
+destruct T2.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect true P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb true true) (or P1 P2) (and Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : P2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb true true) (or P1 P2) (and Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : P2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or P1 P2
++++++
+tauto.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect false P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb true false) (or P1 P2) (and Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb true false) (or P1 P2) (and Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or P1 P2
++++++
+tauto.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb false T2) (or P1 P2) (and Q1 Q2)
++++++
+destruct T2.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect true P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb false true) (or P1 P2) (and Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : P2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb false true) (or P1 P2) (and Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : P2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+or P1 P2
++++++
+tauto.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+
+*****
+R2 : Reflect false P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb false false) (or P1 P2) (and Q1 Q2)
++++++
+t.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+
+*****
+R2 : Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (orb false false) (or P1 P2) (and Q1 Q2)
++++++
+constructor.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+destruct T2.
+t.
+constructor.
+
+*****
+R2 : Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+and Q1 Q2
++++++
+tauto.
+-----
+Global Instance Reflect_orb : Reflect (T1 || T2)%bool (P1 \\/ P2) (Q1 /\\ Q2).
+Proof.
+destruct T1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb T1) Q1 P1
++++++
+Proof.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect T1 P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb T1) Q1 P1
++++++
+destruct T1.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect true P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb true) Q1 P1
++++++
+t.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+t.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb true) Q1 P1
++++++
+constructor.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+t.
+constructor.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : P1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+P1
++++++
+tauto.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Reflect false P1 Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb false) Q1 P1
++++++
+t.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+t.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Reflect (negb false) Q1 P1
++++++
+constructor.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+t.
+constructor.
+
+*****
+R2 : Reflect T2 P2 Q2
+R1 : Q1
+P1,Q1,P2,Q2 : Prop
+T1,T2 : bool
+*****
+Q1
++++++
+tauto.
+-----
+Global Instance Reflect_negb : Reflect (negb T1)%bool Q1 P1.
+Proof.
+destruct T1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End boolean_logic.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Section from_rel_dec.
+-----
+Variable T : Type.
+-----
+Variable eqt : T -> T -> Prop.
+-----
+Variable rd : RelDec eqt.
+-----
+Variable rdc : RelDec_Correct rd.
+-----
+Global Instance Reflect_RelDecCorrect (a b : T)\n  : Reflect (rel_dec a b) (eqt a b) (~(eqt a b)).
+-----
+Global Instance Reflect_RelDecCorrect (a b : T) : Reflect (rel_dec a b) (eqt a b) (~(eqt a b)).
+
+*****
+a,b : T
+rdc : RelDec_Correct rd
+rd : RelDec eqt
+eqt : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Reflect (rel_dec a b) (eqt a b) (not (eqt a b))
++++++
+Proof.
+-----
+Global Instance Reflect_RelDecCorrect (a b : T) : Reflect (rel_dec a b) (eqt a b) (~(eqt a b)).
+Proof.
+
+*****
+a,b : T
+rdc : RelDec_Correct rd
+rd : RelDec eqt
+eqt : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Reflect (rel_dec a b) (eqt a b) (not (eqt a b))
++++++
+eapply iff_to_reflect.
+-----
+Global Instance Reflect_RelDecCorrect (a b : T) : Reflect (rel_dec a b) (eqt a b) (~(eqt a b)).
+Proof.
+eapply iff_to_reflect.
+
+*****
+a,b : T
+rdc : RelDec_Correct rd
+rd : RelDec eqt
+eqt : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+forall x y : T, iff (eq (rel_dec x y) true) (eqt x y)
++++++
+eapply rel_dec_correct.
+-----
+Global Instance Reflect_RelDecCorrect (a b : T) : Reflect (rel_dec a b) (eqt a b) (~(eqt a b)).
+Proof.
+eapply iff_to_reflect.
+eapply rel_dec_correct.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End from_rel_dec.
+-----
+Hint Extern 10 (@Reflect (?f ?a ?b) _ _) =>\n  eapply (@Reflect_RelDecCorrect _ _ (@Build_RelDec _ _ f) _) : typeclass_instances.
+-----
+Ltac consider f :=\n  let rec clean :=\n    match goal with\n      | |- true = true -> _ => intros _ ; clean\n      | |- false = true -> _ => discriminate\n      | |- ?P1 -> ?P2 =>\n        let H := fresh in intros H ; clean; revert H\n      | |- _ => idtac\n    end\n  in\n  (repeat match goal with\n            | [ H : context [ f ] |- _ ] =>\n              revert H\n          end) ;\n  match type of f with\n    | sumbool _ _ =>\n      destruct f\n    | _ =>\n      match goal with\n        | _ =>\n          ((let c := constr:(_ : Reflect f _ _) in\n            case c)) \n        | _ =>\n          ((let c := constr:(_ : SemiReflect f _) in\n            case c)) \n        | _ =>\n          \n          case_eq f\n      end\n  end ; clean.
+-----

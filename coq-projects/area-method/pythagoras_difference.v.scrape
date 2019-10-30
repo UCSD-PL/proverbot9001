@@ -1,0 +1,3410 @@
+Require Export advanced_parallel_lemmas.
+-----
+Definition Py A B C := A**B * A**B + B**C * B**C - A**C * A**C.
+-----
+Definition Py4 A B C D := Py A B D - Py C B D.
+-----
+Definition per A B C := Py A B C = 0.
+-----
+Definition perp A B C D := Py4 A C B D = 0.
+-----
+Definition on_foot (Y P U V : Point) := perp Y P U V /\ Col Y U V /\ U<>V.
+-----
+Axiom perp_perp_para : forall A B C D E F,\n C<>D ->\n perp A B C D -> perp E F C D -> parallel A B E F.
+-----
+Axiom perp_para_perp : forall A B C D E F, \n  A<>B ->\n  perp A B C D -> parallel A B E F -> perp E F C D.
+-----
+Axiom on_foot_area : forall A B C F, \n  on_foot F A B C ->\n  2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+-----
+Lemma on_foot_area_paper : forall A B C F, \n  perp F A B C -> Col F B C ->\n  2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+
+*****
+
+*****
+forall (A B C F0 : Point) (_ : perp F0 A B C) (_ : Col F0 B C), eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A B C)) (S A B C)) (Fmult (Fmult (Fmult (DSeg A F0) (DSeg A F0)) (DSeg B C)) (DSeg B C))
++++++
+Proof.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+
+*****
+
+*****
+forall (A B C F0 : Point) (_ : perp F0 A B C) (_ : Col F0 B C), eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A B C)) (S A B C)) (Fmult (Fmult (Fmult (DSeg A F0) (DSeg A F0)) (DSeg B C)) (DSeg B C))
++++++
+intros.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+
+*****
+H0 : Col F B C
+H : perp F A B C
+A,B,C,F : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A B C)) (S A B C)) (Fmult (Fmult (Fmult (DSeg A F) (DSeg A F)) (DSeg B C)) (DSeg B C))
++++++
+cases_equality B C.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+
+*****
+H1 : eq B C
+H0 : Col F B C
+H : perp F A B C
+A,B,C,F : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A B C)) (S A B C)) (Fmult (Fmult (Fmult (DSeg A F) (DSeg A F)) (DSeg B C)) (DSeg B C))
++++++
+subst.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+subst.
+
+*****
+H : perp F A C C
+H0 : Col F C C
+A,C,F : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A C C)) (S A C C)) (Fmult (Fmult (Fmult (DSeg A F) (DSeg A F)) (DSeg C C)) (DSeg C C))
++++++
+basic_simpl.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+subst.
+basic_simpl.
+
+*****
+H : perp F A C C
+H0 : Col F C C
+A,C,F : Point
+*****
+eq F0 F0
++++++
+trivial.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+
+*****
+H1 : not (eq B C)
+H0 : Col F B C
+H : perp F A B C
+A,B,C,F : Point
+*****
+eq (Fmult (Fmult (Fmult (Fplus F1 F1) (Fplus F1 F1)) (S A B C)) (S A B C)) (Fmult (Fmult (Fmult (DSeg A F) (DSeg A F)) (DSeg B C)) (DSeg B C))
++++++
+apply on_foot_area.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+apply on_foot_area.
+
+*****
+H1 : not (eq B C)
+H0 : Col F B C
+H : perp F A B C
+A,B,C,F : Point
+*****
+on_foot F A B C
++++++
+unfold on_foot.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+apply on_foot_area.
+unfold on_foot.
+
+*****
+H1 : not (eq B C)
+H0 : Col F B C
+H : perp F A B C
+A,B,C,F : Point
+*****
+and (perp F A B C) (and (Col F B C) (not (eq B C)))
++++++
+auto.
+-----
+Lemma on_foot_area_paper : forall A B C F, perp F A B C -> Col F B C -> 2 * 2 * S A B C * S A B C = A**F * A**F * B**C * B**C.
+Proof.
+intros.
+cases_equality B C.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Py A A B) F0
++++++
+Proof.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Py A A B) F0
++++++
+intros.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Py A A B) F0
++++++
+unfold Py.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+Proof.
+intros.
+unfold Py.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A A) (DSeg A A)) (Fmult (DSeg A B) (DSeg A B))) (Fmult (DSeg A B) (DSeg A B))) F0
++++++
+basic_simpl.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+Proof.
+intros.
+unfold Py.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+reflexivity.
+-----
+Lemma pyth_simpl_1 : forall A B, Py A A B = 0.
+Proof.
+intros.
+unfold Py.
+basic_simpl.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B B) F0
++++++
+Proof.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B B) F0
++++++
+intros.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Py A B B) F0
++++++
+unfold Py.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+Proof.
+intros.
+unfold Py.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B B) (DSeg B B))) (Fmult (DSeg A B) (DSeg A B))) F0
++++++
+basic_simpl.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+Proof.
+intros.
+unfold Py.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+reflexivity.
+-----
+Lemma pyth_simpl_2 : forall A B, Py A B B = 0.
+Proof.
+intros.
+unfold Py.
+basic_simpl.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Rewrite pyth_simpl_1  pyth_simpl_2 : seg_simplifications.
+-----
+Hint Resolve pyth_simpl_1 pyth_simpl_2 : Geom.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+
+*****
+
+*****
+forall A B : Point, eq (Py A A B) F0
++++++
+Proof.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Py A A B) F0
++++++
+intros.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Py A A B) F0
++++++
+basic_simpl.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+Proof.
+intros.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq F0 F0
++++++
+reflexivity.
+-----
+Lemma test_basic_simpl : forall A B, Py A A B = 0.
+Proof.
+intros.
+basic_simpl.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+
+*****
+
+*****
+forall A B C : Point, eq (Py A B C) (Py C B A)
++++++
+Proof.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py A B C) (Py C B A)
++++++
+intros.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py A B C) (Py C B A)
++++++
+unfold Py.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+Proof.
+intros.
+unfold Py.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B C) (DSeg B C))) (Fmult (DSeg A C) (DSeg A C))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B A) (DSeg B A))) (Fmult (DSeg C A) (DSeg C A)))
++++++
+uniformize_dir_seg.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B C) (DSeg B C))) (Fmult (DSeg A C) (DSeg A C))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))) (Fmult (Fopp (DSeg A C)) (Fopp (DSeg A C))))
++++++
+ring.
+-----
+Lemma pyth_sym : forall A B C, Py A B C = Py C B A.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve pyth_sym : Geom.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B A) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+Proof.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B A) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+intros.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Py A B A) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+unfold Py.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+intros.
+unfold Py.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B A) (DSeg B A))) (Fmult (DSeg A A) (DSeg A A))) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+uniformize_dir_seg.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))) (Fmult (DSeg A A) (DSeg A A))) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+basic_simpl.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B))) (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B))
++++++
+ring.
+-----
+Lemma pyth_simpl_3 : forall A B, Py A B A = 2 * A**B * A**B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B A) (Py B A B)
++++++
+Proof.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Py A B A) (Py B A B)
++++++
+intros.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Py A B A) (Py B A B)
++++++
+unfold Py.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+intros.
+unfold Py.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B A) (DSeg B A))) (Fmult (DSeg A A) (DSeg A A))) (Fminus (Fplus (Fmult (DSeg B A) (DSeg B A)) (Fmult (DSeg A B) (DSeg A B))) (Fmult (DSeg B B) (DSeg B B)))
++++++
+uniformize_dir_seg.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))) (Fmult (DSeg A A) (DSeg A A))) (Fminus (Fplus (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B))) (Fmult (DSeg A B) (DSeg A B))) (Fmult (DSeg B B) (DSeg B B)))
++++++
+basic_simpl.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+
+*****
+A,B : Point
+*****
+eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B))) (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B)))
++++++
+ring.
+-----
+Lemma pyth_simpl_4 : forall A B, Py A B A = Py B A B.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Immediate pyth_simpl_4 : Geom.
+-----
+Ltac uniformize_pys :=\n  repeat (rewrite pyth_simpl_1);\n  repeat (rewrite pyth_simpl_2);\n  repeat\n   match goal with\n   |  |- context [(Py ?A ?B ?C)] =>\n    (match goal with\n       |  |- context [(Py C B A)] => rewrite (pyth_sym A B C) in *   \n       end)\n   |  |- context [(Py ?A ?B ?A)] =>\n    (match goal with\n       |  |- context [(Py B A B)] => rewrite (pyth_simpl_4 A B) in *   \n       end)\n   end.
+-----
+Lemma test_uniformize_pys : forall A B C, \n Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+-----
+Lemma test_uniformize_pys : forall A B C, Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Fminus (Fplus (Fplus (Fplus (Fminus (Py A B C) (Py C B A)) (Py A A C)) (Py A C C)) (Py A B A)) (Py B A B)) F0
++++++
+Proof.
+-----
+Lemma test_uniformize_pys : forall A B C, Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Fminus (Fplus (Fplus (Fplus (Fminus (Py A B C) (Py C B A)) (Py A A C)) (Py A C C)) (Py A B A)) (Py B A B)) F0
++++++
+intros.
+-----
+Lemma test_uniformize_pys : forall A B C, Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fplus (Fplus (Fminus (Py A B C) (Py C B A)) (Py A A C)) (Py A C C)) (Py A B A)) (Py B A B)) F0
++++++
+uniformize_pys.
+-----
+Lemma test_uniformize_pys : forall A B C, Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+Proof.
+intros.
+uniformize_pys.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fplus (Fplus (Fminus (Py C B A) (Py C B A)) F0) F0) (Py B A B)) (Py B A B)) F0
++++++
+ring.
+-----
+Lemma test_uniformize_pys : forall A B C, Py A B C - Py C B A + Py A A C + Py A C C + Py A B A - Py B A B = 0.
+Proof.
+intros.
+uniformize_pys.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+
+*****
+
+*****
+forall A B : Point, eq (Fmult (DSeg A B) (DSeg A B)) (Fdiv (Py A B A) (Fplus F1 F1))
++++++
+Proof.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+Proof.
+
+*****
+
+*****
+forall A B : Point, eq (Fmult (DSeg A B) (DSeg A B)) (Fdiv (Py A B A) (Fplus F1 F1))
++++++
+intros.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+Proof.
+intros.
+
+*****
+A,B : Point
+*****
+eq (Fmult (DSeg A B) (DSeg A B)) (Fdiv (Py A B A) (Fplus F1 F1))
++++++
+rewrite pyth_simpl_3.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+Proof.
+intros.
+rewrite pyth_simpl_3.
+
+*****
+A,B : Point
+*****
+eq (Fmult (DSeg A B) (DSeg A B)) (Fdiv (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) (Fplus F1 F1))
++++++
+field.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+Proof.
+intros.
+rewrite pyth_simpl_3.
+field.
+
+*****
+A,B : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma square_to_py : forall A B, A**B * A**B = Py A B A / 2.
+Proof.
+intros.
+rewrite pyth_simpl_3.
+field.
+auto with Geom.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+
+*****
+
+*****
+forall (A B C : Point) (_ : Col A B C), eq (Py A B C) (Fmult (Fmult (Fplus F1 F1) (DSeg B A)) (DSeg B C))
++++++
+Proof.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : Col A B C), eq (Py A B C) (Fmult (Fmult (Fplus F1 F1) (DSeg B A)) (DSeg B C))
++++++
+intros.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+intros.
+
+*****
+H : Col A B C
+A,B,C : Point
+*****
+eq (Py A B C) (Fmult (Fmult (Fplus F1 F1) (DSeg B A)) (DSeg B C))
++++++
+unfold Py.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+intros.
+unfold Py.
+
+*****
+H : Col A B C
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B C) (DSeg B C))) (Fmult (DSeg A C) (DSeg A C))) (Fmult (Fmult (Fplus F1 F1) (DSeg B A)) (DSeg B C))
++++++
+replace (A**C) with (A**B + B**C) by (apply chasles;auto).
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+intros.
+unfold Py.
+replace (A**C) with (A**B + B**C) by (apply chasles;auto).
+
+*****
+H : Col A B C
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B C) (DSeg B C))) (Fmult (Fplus (DSeg A B) (DSeg B C)) (Fplus (DSeg A B) (DSeg B C)))) (Fmult (Fmult (Fplus F1 F1) (DSeg B A)) (DSeg B C))
++++++
+uniformize_dir_seg.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+intros.
+unfold Py.
+replace (A**C) with (A**B + B**C) by (apply chasles;auto).
+uniformize_dir_seg.
+
+*****
+H : Col A B C
+A,B,C : Point
+*****
+eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B C) (DSeg B C))) (Fmult (Fplus (DSeg A B) (DSeg B C)) (Fplus (DSeg A B) (DSeg B C)))) (Fmult (Fmult (Fplus F1 F1) (Fopp (DSeg A B))) (DSeg B C))
++++++
+ring.
+-----
+Lemma col_pyth : forall A B C, Col A B C -> Py A B C = 2 * B**A * B**C.
+Proof.
+intros.
+unfold Py.
+replace (A**C) with (A**B + B**C) by (apply chasles;auto).
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 A D C B))
++++++
+Proof.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 A D C B))
++++++
+intros.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Fopp (Py4 A D C B))
++++++
+unfold Py4.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fopp (Fminus (Py A D B) (Py C D B)))
++++++
+unfold Py.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg A D) (DSeg A D)) (Fmult (DSeg D B) (DSeg D B))) (Fmult (DSeg A B) (DSeg A B))) (Fminus (Fplus (Fmult (DSeg C D) (DSeg C D)) (Fmult (DSeg D B) (DSeg D B))) (Fmult (DSeg C B) (DSeg C B)))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg A D) (DSeg A D)) (Fmult (Fopp (DSeg B D)) (Fopp (DSeg B D)))) (Fmult (DSeg A B) (DSeg A B))) (Fminus (Fplus (Fmult (DSeg C D) (DSeg C D)) (Fmult (Fopp (DSeg B D)) (Fopp (DSeg B D)))) (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))))))
++++++
+ring.
+-----
+Lemma py4_1 : forall A B C D, Py4 A B C D = - Py4 A D C B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 B A D C)
++++++
+Proof.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 B A D C)
++++++
+intros.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Py4 B A D C)
++++++
+unfold Py4.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fminus (Py B A C) (Py D A C))
++++++
+unfold Py.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (DSeg B A) (DSeg B A)) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg B C) (DSeg B C))) (Fminus (Fplus (Fmult (DSeg D A) (DSeg D A)) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg D C) (DSeg D C))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B))) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg B C) (DSeg B C))) (Fminus (Fplus (Fmult (Fopp (DSeg A D)) (Fopp (DSeg A D))) (Fmult (DSeg A C) (DSeg A C))) (Fmult (Fopp (DSeg C D)) (Fopp (DSeg C D)))))
++++++
+ring.
+-----
+Lemma py4_2 : forall A B C D, Py4 A B C D = Py4 B A D C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 B C D A))
++++++
+Proof.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 B C D A))
++++++
+intros.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Fopp (Py4 B C D A))
++++++
+unfold Py4.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fopp (Fminus (Py B C A) (Py D C A)))
++++++
+unfold Py.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg B C) (DSeg B C)) (Fmult (DSeg C A) (DSeg C A))) (Fmult (DSeg B A) (DSeg B A))) (Fminus (Fplus (Fmult (DSeg D C) (DSeg D C)) (Fmult (DSeg C A) (DSeg C A))) (Fmult (DSeg D A) (DSeg D A)))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg B C) (DSeg B C)) (Fmult (Fopp (DSeg A C)) (Fopp (DSeg A C)))) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))) (Fminus (Fplus (Fmult (Fopp (DSeg C D)) (Fopp (DSeg C D))) (Fmult (Fopp (DSeg A C)) (Fopp (DSeg A C)))) (Fmult (Fopp (DSeg A D)) (Fopp (DSeg A D))))))
++++++
+ring.
+-----
+Lemma py4_3 : forall A B C D, Py4 A B C D = - Py4 B C D A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 C D A B)
++++++
+Proof.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 C D A B)
++++++
+intros.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Py4 C D A B)
++++++
+unfold Py4.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fminus (Py C D B) (Py A D B))
++++++
+unfold Py.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (DSeg C D) (DSeg C D)) (Fmult (DSeg D B) (DSeg D B))) (Fmult (DSeg C B) (DSeg C B))) (Fminus (Fplus (Fmult (DSeg A D) (DSeg A D)) (Fmult (DSeg D B) (DSeg D B))) (Fmult (DSeg A B) (DSeg A B))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (DSeg C D) (DSeg C D)) (Fmult (Fopp (DSeg B D)) (Fopp (DSeg B D)))) (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C)))) (Fminus (Fplus (Fmult (DSeg A D) (DSeg A D)) (Fmult (Fopp (DSeg B D)) (Fopp (DSeg B D)))) (Fmult (DSeg A B) (DSeg A B))))
++++++
+ring.
+-----
+Lemma py4_4 : forall A B C D, Py4 A B C D = Py4 C D A B.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 C B A D))
++++++
+Proof.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 C B A D))
++++++
+intros.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Fopp (Py4 C B A D))
++++++
+unfold Py4.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fopp (Fminus (Py C B D) (Py A B D)))
++++++
+unfold Py.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D))) (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D)))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D))) (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D)))))
++++++
+ring.
+-----
+Lemma py4_5 : forall A B C D, Py4 A B C D = - Py4 C B A D.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 D C B A)
++++++
+Proof.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Py4 D C B A)
++++++
+intros.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Py4 D C B A)
++++++
+unfold Py4.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fminus (Py D C A) (Py B C A))
++++++
+unfold Py.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (DSeg D C) (DSeg D C)) (Fmult (DSeg C A) (DSeg C A))) (Fmult (DSeg D A) (DSeg D A))) (Fminus (Fplus (Fmult (DSeg B C) (DSeg B C)) (Fmult (DSeg C A) (DSeg C A))) (Fmult (DSeg B A) (DSeg B A))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fminus (Fminus (Fplus (Fmult (Fopp (DSeg C D)) (Fopp (DSeg C D))) (Fmult (Fopp (DSeg A C)) (Fopp (DSeg A C)))) (Fmult (Fopp (DSeg A D)) (Fopp (DSeg A D)))) (Fminus (Fplus (Fmult (DSeg B C) (DSeg B C)) (Fmult (Fopp (DSeg A C)) (Fopp (DSeg A C)))) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))))
++++++
+ring.
+-----
+Lemma py4_6 : forall A B C D, Py4 A B C D = Py4 D C B A.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 D A B C))
++++++
+Proof.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+
+*****
+
+*****
+forall A B C D : Point, eq (Py4 A B C D) (Fopp (Py4 D A B C))
++++++
+intros.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+intros.
+
+*****
+A,B,C,D : Point
+*****
+eq (Py4 A B C D) (Fopp (Py4 D A B C))
++++++
+unfold Py4.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Py A B D) (Py C B D)) (Fopp (Fminus (Py D A C) (Py B A C)))
++++++
+unfold Py.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (DSeg C B) (DSeg C B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (DSeg D A) (DSeg D A)) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg D C) (DSeg D C))) (Fminus (Fplus (Fmult (DSeg B A) (DSeg B A)) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg B C) (DSeg B C)))))
++++++
+uniformize_dir_seg.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+A,B,C,D : Point
+*****
+eq (Fminus (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg A D) (DSeg A D))) (Fminus (Fplus (Fmult (Fopp (DSeg B C)) (Fopp (DSeg B C))) (Fmult (DSeg B D) (DSeg B D))) (Fmult (DSeg C D) (DSeg C D)))) (Fopp (Fminus (Fminus (Fplus (Fmult (Fopp (DSeg A D)) (Fopp (DSeg A D))) (Fmult (DSeg A C) (DSeg A C))) (Fmult (Fopp (DSeg C D)) (Fopp (DSeg C D)))) (Fminus (Fplus (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B))) (Fmult (DSeg A C) (DSeg A C))) (Fmult (DSeg B C) (DSeg B C)))))
++++++
+ring.
+-----
+Lemma py4_7 : forall A B C D, Py4 A B C D = - Py4 D A B C.
+Proof.
+intros.
+unfold Py4.
+unfold Py.
+uniformize_dir_seg.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve py4_1 py4_2 py4_3 py4_4 py4_5 py4_6 py4_7 : Geom.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A A B C) (Fopp (Py B A C))
++++++
+Proof.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A A B C) (Fopp (Py B A C))
++++++
+intros.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 A A B C) (Fopp (Py B A C))
++++++
+unfold Py4.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Py A A C) (Py B A C)) (Fopp (Py B A C))
++++++
+rewrite pyth_simpl_1.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+Proof.
+intros.
+unfold Py4.
+rewrite pyth_simpl_1.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus F0 (Py B A C)) (Fopp (Py B A C))
++++++
+ring.
+-----
+Lemma py4_simpl_1 : forall A B C, Py4 A A B C = - Py B A C.
+Proof.
+intros.
+unfold Py4.
+rewrite pyth_simpl_1.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B A A C) (Py B A C)
++++++
+Proof.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B A A C) (Py B A C)
++++++
+intros.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 B A A C) (Py B A C)
++++++
+unfold Py4.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Py B A C) (Py A A C)) (Py B A C)
++++++
+rewrite pyth_simpl_1.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+Proof.
+intros.
+unfold Py4.
+rewrite pyth_simpl_1.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Py B A C) F0) (Py B A C)
++++++
+ring.
+-----
+Lemma py4_simpl_2 : forall A B C, Py4 B A A C = Py B A C.
+Proof.
+intros.
+unfold Py4.
+rewrite pyth_simpl_1.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A B A C) F0
++++++
+Proof.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A B A C) F0
++++++
+intros.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 A B A C) F0
++++++
+unfold Py4.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Py A B C) (Py A B C)) F0
++++++
+ring.
+-----
+Lemma py4_simpl_3 : forall A B C, Py4 A B A C = 0.
+Proof.
+intros.
+unfold Py4.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B A C A) F0
++++++
+Proof.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B A C A) F0
++++++
+intros.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 B A C A) F0
++++++
+unfold Py4.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+Proof.
+intros.
+unfold Py4.
+
+*****
+A,B,C : Point
+*****
+eq (Fminus (Py B A A) (Py C A A)) F0
++++++
+repeat (rewrite pyth_simpl_2).
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+Proof.
+intros.
+unfold Py4.
+repeat (rewrite pyth_simpl_2).
+
+*****
+A,B,C : Point
+*****
+eq (Fminus F0 F0) F0
++++++
+ring.
+-----
+Lemma py4_simpl_4 : forall A B C, Py4 B A C A = 0.
+Proof.
+intros.
+unfold Py4.
+repeat (rewrite pyth_simpl_2).
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B C A A) (Fopp (Py B A C))
++++++
+Proof.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 B C A A) (Fopp (Py B A C))
++++++
+intros.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 B C A A) (Fopp (Py B A C))
++++++
+rewrite py4_6.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+intros.
+rewrite py4_6.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 A A C B) (Fopp (Py B A C))
++++++
+rewrite py4_simpl_1.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+intros.
+rewrite py4_6.
+rewrite py4_simpl_1.
+
+*****
+A,B,C : Point
+*****
+eq (Fopp (Py C A B)) (Fopp (Py B A C))
++++++
+rewrite pyth_sym.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+intros.
+rewrite py4_6.
+rewrite py4_simpl_1.
+rewrite pyth_sym.
+
+*****
+A,B,C : Point
+*****
+eq (Fopp (Py B A C)) (Fopp (Py B A C))
++++++
+ring.
+-----
+Lemma py4_simpl_5 : forall A B C, Py4 B C A A = - Py B A C.
+Proof.
+intros.
+rewrite py4_6.
+rewrite py4_simpl_1.
+rewrite pyth_sym.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A B C A) (Py B A C)
++++++
+Proof.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+
+*****
+
+*****
+forall A B C : Point, eq (Py4 A B C A) (Py B A C)
++++++
+intros.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+intros.
+
+*****
+A,B,C : Point
+*****
+eq (Py4 A B C A) (Py B A C)
++++++
+rewrite py4_5.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+intros.
+rewrite py4_5.
+
+*****
+A,B,C : Point
+*****
+eq (Fopp (Py4 C B A A)) (Py B A C)
++++++
+rewrite py4_simpl_5.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+intros.
+rewrite py4_5.
+rewrite py4_simpl_5.
+
+*****
+A,B,C : Point
+*****
+eq (Fopp (Fopp (Py C A B))) (Py B A C)
++++++
+rewrite pyth_sym.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+intros.
+rewrite py4_5.
+rewrite py4_simpl_5.
+rewrite pyth_sym.
+
+*****
+A,B,C : Point
+*****
+eq (Fopp (Fopp (Py B A C))) (Py B A C)
++++++
+ring.
+-----
+Lemma py4_simpl_6 : forall A B C, Py4 A B C A = Py B A C.
+Proof.
+intros.
+rewrite py4_5.
+rewrite py4_simpl_5.
+rewrite pyth_sym.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve \npy4_simpl_1 \npy4_simpl_2 \npy4_simpl_3 \npy4_simpl_4 \npy4_simpl_5 \npy4_simpl_6 : Geom.
+-----
+Hint Rewrite\npyth_simpl_1\npyth_simpl_2\npy4_simpl_1 \npy4_simpl_2 \npy4_simpl_3 \npy4_simpl_4 \npy4_simpl_5 \npy4_simpl_6 : py_simplifications.
+-----
+Ltac py_simpl := autorewrite with py_simplifications in *.
+-----
+Lemma test_py_simpl : forall A B C, Py A A B = 0 -> Py A A B + Py B A A + Py4 B A C A = 0.
+-----
+Lemma test_py_simpl : forall A B C, Py A A B = 0 -> Py A A B + Py B A A + Py4 B A C A = 0.
+
+*****
+
+*****
+forall (A B C : Point) (_ : eq (Py A A B) F0), eq (Fplus (Fplus (Py A A B) (Py B A A)) (Py4 B A C A)) F0
++++++
+intros.
+-----
+Lemma test_py_simpl : forall A B C, Py A A B = 0 -> Py A A B + Py B A A + Py4 B A C A = 0.
+intros.
+
+*****
+H : eq (Py A A B) F0
+A,B,C : Point
+*****
+eq (Fplus (Fplus (Py A A B) (Py B A A)) (Py4 B A C A)) F0
++++++
+py_simpl.
+-----
+Lemma test_py_simpl : forall A B C, Py A A B = 0 -> Py A A B + Py B A A + Py4 B A C A = 0.
+intros.
+py_simpl.
+
+*****
+H : eq F0 F0
+A,B,C : Point
+*****
+eq (Fplus (Fplus F0 F0) F0) F0
++++++
+ring.
+-----
+Lemma test_py_simpl : forall A B C, Py A A B = 0 -> Py A A B + Py B A A + Py4 B A C A = 0.
+intros.
+py_simpl.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_1 : forall A B C D,\nperp A B C D -> perp A B D C.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp A B D C
++++++
+Proof.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp A B D C
++++++
+unfold perp.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 A D B C) F0
++++++
+intros.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 A D B C) F0
++++++
+replace (Py4 A D B C) with (- Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 A D B C) with (- Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp (Py4 A C B D)) F0
++++++
+rewrite H.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 A D B C) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp F0) F0
++++++
+ring.
+-----
+Lemma perp_1 : forall A B C D, perp A B C D -> perp A B D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 A D B C) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_2 : forall A B C D,\nperp A B C D -> perp B A C D.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp B A C D
++++++
+Proof.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp B A C D
++++++
+unfold perp.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 B C A D) F0
++++++
+intros.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 B C A D) F0
++++++
+replace (Py4 B C A D) with (- Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B C A D) with (- Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp (Py4 A C B D)) F0
++++++
+rewrite H.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B C A D) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp F0) F0
++++++
+ring.
+-----
+Lemma perp_2 : forall A B C D, perp A B C D -> perp B A C D.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B C A D) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_3 : forall A B C D,\nperp A B C D -> perp B A D C.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp B A D C
++++++
+Proof.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp B A D C
++++++
+unfold perp.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 B D A C) F0
++++++
+intros.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 B D A C) F0
++++++
+replace (Py4 B D A C) with (Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B D A C) with (Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 A C B D) F0
++++++
+rewrite H.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B D A C) with (Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma perp_3 : forall A B C D, perp A B C D -> perp B A D C.
+Proof.
+unfold perp.
+intros.
+replace (Py4 B D A C) with (Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_4 : forall A B C D,\nperp A B C D -> perp C D A B.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp C D A B
++++++
+Proof.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp C D A B
++++++
+unfold perp.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 C A D B) F0
++++++
+intros.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 C A D B) F0
++++++
+replace (Py4 C A D B) with (Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C A D B) with (Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 A C B D) F0
++++++
+rewrite H.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C A D B) with (Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma perp_4 : forall A B C D, perp A B C D -> perp C D A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C A D B) with (Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_5 : forall A B C D,\nperp A B C D -> perp C D B A.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp C D B A
++++++
+Proof.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp C D B A
++++++
+unfold perp.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 C B D A) F0
++++++
+intros.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 C B D A) F0
++++++
+replace (Py4 C B D A) with (- Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C B D A) with (- Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp (Py4 A C B D)) F0
++++++
+rewrite H.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C B D A) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp F0) F0
++++++
+ring.
+-----
+Lemma perp_5 : forall A B C D, perp A B C D -> perp C D B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 C B D A) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_6 : forall A B C D,\nperp A B C D -> perp D C A B.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp D C A B
++++++
+Proof.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp D C A B
++++++
+unfold perp.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 D A C B) F0
++++++
+intros.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 D A C B) F0
++++++
+replace (Py4 D A C B) with (- Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D A C B) with (- Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp (Py4 A C B D)) F0
++++++
+rewrite H.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D A C B) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Fopp F0) F0
++++++
+ring.
+-----
+Lemma perp_6 : forall A B C D, perp A B C D -> perp D C A B.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D A C B) with (- Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_7 : forall A B C D,\nperp A B C D -> perp D C B A.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp D C B A
++++++
+Proof.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : perp A B C D), perp D C B A
++++++
+unfold perp.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+unfold perp.
+
+*****
+
+*****
+forall (A B C D : Point) (_ : eq (Py4 A C B D) F0), eq (Py4 D B C A) F0
++++++
+intros.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+unfold perp.
+intros.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 D B C A) F0
++++++
+replace (Py4 D B C A) with ( Py4 A C B D) by auto with Geom.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D B C A) with ( Py4 A C B D) by auto with Geom.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq (Py4 A C B D) F0
++++++
+rewrite H.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D B C A) with ( Py4 A C B D) by auto with Geom.
+rewrite H.
+
+*****
+H : eq (Py4 A C B D) F0
+A,B,C,D : Point
+*****
+eq F0 F0
++++++
+ring.
+-----
+Lemma perp_7 : forall A B C D, perp A B C D -> perp D C B A.
+Proof.
+unfold perp.
+intros.
+replace (Py4 D B C A) with ( Py4 A C B D) by auto with Geom.
+rewrite H.
+ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_8 : forall A B C,\nperp A B B C -> per A B C.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+
+*****
+
+*****
+forall (A B C : Point) (_ : perp A B B C), per A B C
++++++
+Proof.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : perp A B B C), per A B C
++++++
+intros.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+intros.
+
+*****
+H : perp A B B C
+A,B,C : Point
+*****
+per A B C
++++++
+unfold perp in *.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+intros.
+unfold perp in *.
+
+*****
+H : eq (Py4 A B B C) F0
+A,B,C : Point
+*****
+per A B C
++++++
+unfold Py4 in *.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+
+*****
+H : eq (Fminus (Py A B C) (Py B B C)) F0
+A,B,C : Point
+*****
+per A B C
++++++
+basic_simpl.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+basic_simpl.
+
+*****
+H : eq (Py A B C) F0
+A,B,C : Point
+*****
+per A B C
++++++
+auto.
+-----
+Lemma perp_8 : forall A B C, perp A B B C -> per A B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma perp_9 : forall A B C,\nper A B C -> perp A B B C.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+
+*****
+
+*****
+forall (A B C : Point) (_ : per A B C), perp A B B C
++++++
+Proof.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+
+*****
+
+*****
+forall (A B C : Point) (_ : per A B C), perp A B B C
++++++
+intros.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+intros.
+
+*****
+H : per A B C
+A,B,C : Point
+*****
+perp A B B C
++++++
+unfold perp in *.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+intros.
+unfold perp in *.
+
+*****
+H : per A B C
+A,B,C : Point
+*****
+eq (Py4 A B B C) F0
++++++
+unfold Py4 in *.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+
+*****
+H : per A B C
+A,B,C : Point
+*****
+eq (Fminus (Py A B C) (Py B B C)) F0
++++++
+basic_simpl.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+basic_simpl.
+
+*****
+H : per A B C
+A,B,C : Point
+*****
+eq (Py A B C) F0
++++++
+auto.
+-----
+Lemma perp_9 : forall A B C, per A B C -> perp A B B C.
+Proof.
+intros.
+unfold perp in *.
+unfold Py4 in *.
+basic_simpl.
+auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve \nperp_1\nperp_2\nperp_3\nperp_4\nperp_5\nperp_6\nperp_7 : Geom.
+-----
+Hint Immediate perp_8 perp_9 : Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+
+*****
+
+*****
+forall (A B : Point) (_ : not (eq A B)), not (eq (Py A B A) F0)
++++++
+Proof.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+
+*****
+
+*****
+forall (A B : Point) (_ : not (eq A B)), not (eq (Py A B A) F0)
++++++
+intros.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+
+*****
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (Py A B A) F0)
++++++
+unfold Py.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+
+*****
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B A) (DSeg B A))) (Fmult (DSeg A A) (DSeg A A))) F0)
++++++
+uniformize_dir_seg.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+
+*****
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (Fminus (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B)))) (Fmult (DSeg A A) (DSeg A A))) F0)
++++++
+basic_simpl.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+
+*****
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B))) F0)
++++++
+unfold not.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+
+*****
+H : not (eq A B)
+A,B : Point
+*****
+forall _ : eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B))) F0, False
++++++
+intro.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+
+*****
+H0 : eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B)))\n F0
+H : not (eq A B)
+A,B : Point
+*****
+False
++++++
+apply H.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+
+*****
+H0 : eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B)))\n F0
+H : not (eq A B)
+A,B : Point
+*****
+eq A B
++++++
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+
+*****
+H0 : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+H : not (eq A B)
+A,B : Point
+*****
+eq A B
++++++
+IsoleVar (A ** B ) H0.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+
+*****
+H0 : eq (DSeg A B) (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+eq A B
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+auto with Geom.
+
+*****
+H0 : eq (DSeg A B) (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+eq A B
++++++
+replace (0 / A ** B / 2) with 0 in H0.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+auto with Geom.
+replace (0 / A ** B / 2) with 0 in H0.
+
+*****
+H0 : eq (DSeg A B) F0
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+eq A B
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+auto with Geom.
+replace (0 / A ** B / 2) with 0 in H0.
+
+*****
+H0 : eq (DSeg A B) (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+eq F0 (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+auto with Geom.
+replace (0 / A ** B / 2) with 0 in H0.
+auto with Geom.
+
+*****
+H0 : eq (DSeg A B) (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+eq F0 (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
++++++
+field.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+auto with Geom.
+replace (0 / A ** B / 2) with 0 in H0.
+auto with Geom.
+field.
+
+*****
+H0 : eq (DSeg A B) (Fdiv (Fdiv F0 (DSeg A B)) (Fplus F1 F1))
+H2 : not (eq (Fplus F1 F1) F0)
+H1 : not (eq (DSeg A B) F0)
+H : not (eq A B)
+A,B : Point
+*****
+and (not (eq (DSeg A B) F0)) (not (eq (Fplus F1 F1) F0))
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+
+*****
+H0 : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+H : not (eq A B)
+A,B : Point
+*****
+not (eq (DSeg A B) F0)
++++++
+auto with Geom.
+-----
+Lemma not_eq_py_not_zero : forall A B, A<>B -> Py A B A <> 0.
+Proof.
+intros.
+unfold Py.
+uniformize_dir_seg.
+basic_simpl.
+unfold not.
+intro.
+apply H.
+replace (A ** B * A ** B + A ** B * A ** B) with (2* A ** B * A ** B) in H0 by ring.
+IsoleVar (A ** B ) H0.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve not_eq_py_not_zero : Geom.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (Py A B A) F0), eq A B
++++++
+Proof.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+
+*****
+
+*****
+forall (A B : Point) (_ : eq (Py A B A) F0), eq A B
++++++
+intros.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+
+*****
+H : eq (Py A B A) F0
+A,B : Point
+*****
+eq A B
++++++
+cases_equality A B.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+
+*****
+H0 : eq A B
+H : eq (Py A B A) F0
+A,B : Point
+*****
+eq A B
++++++
+auto.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+
+*****
+H0 : not (eq A B)
+H : eq (Py A B A) F0
+A,B : Point
+*****
+eq A B
++++++
+unfold Py in H.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+
+*****
+H0 : not (eq A B)
+H : eq\n (Fminus\n (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg B A) (DSeg B A)))\n (Fmult (DSeg A A) (DSeg A A))) F0
+A,B : Point
+*****
+eq A B
++++++
+uniformize_dir_seg.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+
+*****
+H0 : not (eq A B)
+H : eq\n (Fminus\n (Fplus (Fmult (DSeg A B) (DSeg A B))\n (Fmult (Fopp (DSeg A B)) (Fopp (DSeg A B))))\n (Fmult (DSeg A A) (DSeg A A))) F0
+A,B : Point
+*****
+eq A B
++++++
+basic_simpl.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+
+*****
+H0 : not (eq A B)
+H : eq (Fplus (Fmult (DSeg A B) (DSeg A B)) (Fmult (DSeg A B) (DSeg A B)))\n F0
+A,B : Point
+*****
+eq A B
++++++
+ring_simplify in H.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+
+*****
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+eq A B
++++++
+assert (A**B<>0).
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+
+*****
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+not (eq (DSeg A B) F0)
++++++
+auto with Geom.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+eq A B
++++++
+idtac.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+eq A B
++++++
+assert (2 * A ** B * A ** B <>0).
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+assert (2 * A ** B * A ** B <>0).
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+not (eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0)
++++++
+repeat apply nonzeromult.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+assert (2 * A ** B * A ** B <>0).
+repeat apply nonzeromult.
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+not (eq (Fplus F1 F1) F0)
++++++
+auto with Geom.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+assert (2 * A ** B * A ** B <>0).
+repeat apply nonzeromult.
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+not (eq (DSeg A B) F0)
++++++
+auto with Geom.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+assert (2 * A ** B * A ** B <>0).
+repeat apply nonzeromult.
+
+*****
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+not (eq (DSeg A B) F0)
++++++
+auto with Geom.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+unfold Py in H.
+uniformize_dir_seg.
+basic_simpl.
+ring_simplify in H.
+assert (A**B<>0).
+idtac.
+assert (2 * A ** B * A ** B <>0).
+
+*****
+H2 : not (eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0)
+H1 : not (eq (DSeg A B) F0)
+H0 : not (eq A B)
+H : eq (Fmult (Fmult (Fplus F1 F1) (DSeg A B)) (DSeg A B)) F0
+A,B : Point
+*****
+eq A B
++++++
+intuition.
+-----
+Lemma py_zero_eq : forall A B, Py A B A = 0 -> A = B.
+Proof.
+intros.
+cases_equality A B.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Hint Resolve py_zero_eq : Geom.
+-----

@@ -1,0 +1,26 @@
+Require Import ExtLib.Core.Any.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Polymorphic Class Functor@{d c} (F : Type@{d} -> Type@{c}) : Type :=\n{ fmap : forall {A B : Type@{d}}, (A -> B) -> F A -> F B }.
+-----
+Polymorphic Definition ID@{d} {T : Type@{d}} (f : T -> T) : Prop :=\n  forall x : T, f x = x.
+-----
+Polymorphic Class PFunctor@{d c p} (F : Type@{d} -> Type@{c}) : Type :=\n{ FunP : Type@{d} -> Type@{p}\n; pfmap : forall {A B : Type@{d}} {P : FunP B}, (A -> B) -> F A -> F B\n}.
+-----
+Existing Class FunP.
+-----
+Hint Extern 0 (@FunP _ _ _) => progress (simpl FunP) : typeclass_instances.
+-----
+Polymorphic Definition PFunctor_From_Functor@{d c p}\n       (F : Type@{d} -> Type@{c}) (FunF : Functor@{d c} F) : PFunctor@{d c p} F :=\n{| FunP := Any\n; pfmap := fun _ _ _ f x => fmap f x\n|}.
+-----
+Global Existing Instance PFunctor_From_Functor.
+-----
+Module FunctorNotation.
+-----
+Notation "f <$> x" := (@pfmap _ _ _ _ _ f x) (at level 51, right associativity).
+-----
+End FunctorNotation.
+-----

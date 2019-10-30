@@ -1,0 +1,28 @@
+Require Import Coq.Lists.List.
+-----
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Structures.Monoid.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section foldable.
+-----
+Variable T A : Type.
+-----
+Class Foldable : Type :=\n  { fold_mon : forall m {M : Monoid m}, (A -> m) -> T -> m }.
+-----
+Variable Foldable_T : Foldable.
+-----
+Definition fold (R : Type) (f : A -> R -> R) (init : R) (s : T) : R :=\n    @fold_mon Foldable_T (R -> R)\n              {| monoid_plus := fun f g x => f (g x)\n               ; monoid_unit := fun x => x\n               |} f s init.
+-----
+Definition toList : T -> list A :=\n    fold_mon (M := {| monoid_plus := @List.app A\n                    ; monoid_unit := nil |}) (fun x => x :: nil).
+-----
+Variable Add : A -> T -> T -> Prop.
+-----
+Class FoldableOk : Type :=\n  { fold_ind : forall m (M : Monoid m) (t : type m) (ML : MonoidLaws M) (P : m -> Prop) f u,\n                 P (monoid_unit M) ->\n                 (forall x y z,\n                    Add x y z ->\n                    P (@fold_mon Foldable_T m M f y) ->\n                    P (monoid_plus M (f x) (@fold_mon Foldable_T m M f z))) ->\n                 P (@fold_mon Foldable_T m M f u)\n  }.
+-----
+End foldable.
+-----

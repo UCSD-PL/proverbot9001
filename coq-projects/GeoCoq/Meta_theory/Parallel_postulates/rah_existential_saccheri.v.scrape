@@ -1,0 +1,195 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Annexes.saccheri.
+-----
+Section rah_existential_saccheri.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_saccheri_quadrilaterals, postulate_of_existence_of_a_right_saccheri_quadrilateral
++++++
+Proof.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : postulate_of_right_saccheri_quadrilaterals, postulate_of_existence_of_a_right_saccheri_quadrilateral
++++++
+intro rah.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+
+*****
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_saccheri_quadrilateral
++++++
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_existence_of_a_right_saccheri_quadrilateral
++++++
+exists A.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B : Tpoint => ex (fun C : Tpoint => ex (fun D : Tpoint => and (Saccheri A B C D) (Per A B C))))
++++++
+exists B.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun C : Tpoint => ex (fun D : Tpoint => and (Saccheri A B C D) (Per A B C)))
++++++
+exists C.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+exists C.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun D : Tpoint => and (Saccheri A B C D) (Per A B C))
++++++
+exists D.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+exists C.
+exists D.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Saccheri A B C D) (Per A B C)
++++++
+split.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+exists C.
+exists D.
+split.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Saccheri A B C D
++++++
+assumption.
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+exists C.
+exists D.
+split.
+
+*****
+HSac : Saccheri A B C D
+A,B,C,D : Tpoint
+rah : postulate_of_right_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Per A B C
++++++
+apply (rah A B C D HSac).
+-----
+Lemma rah__existential_saccheri : postulate_of_right_saccheri_quadrilaterals -> postulate_of_existence_of_a_right_saccheri_quadrilateral.
+Proof.
+intro rah.
+destruct ex_saccheri as [A [B [C [D HSac]]]].
+exists A.
+exists B.
+exists C.
+exists D.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End rah_existential_saccheri.
+-----

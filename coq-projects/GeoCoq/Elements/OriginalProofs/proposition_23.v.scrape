@@ -1,0 +1,3138 @@
+Require Export GeoCoq.Elements.OriginalProofs.proposition_20.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_TGsymmetric.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_TGflip.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.proposition_22.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma proposition_23 : \n   forall A B C D E, \n   neq A B -> nCol D C E ->\n   exists X Y, Out A B Y /\ CongA X A Y D C E.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : neq A B) (_ : nCol D C E), ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+Proof.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C D E : Point) (_ : neq A B) (_ : nCol D C E), ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+intros.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+
+*****
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ Col E C D).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+
+*****
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (Col E C D)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+intro.
+
+*****
+H1 : Col E C D
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col D C E) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+intro.
+assert (Col D C E) by (forward_using lemma_collinearorder).
+
+*****
+H2 : Col D C E
+H1 : Col E C D
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+
+*****
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ Col C E D).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+
+*****
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (Col C E D)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+intro.
+
+*****
+H2 : Col C E D
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col D C E) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+intro.
+assert (Col D C E) by (forward_using lemma_collinearorder).
+
+*****
+H3 : Col D C E
+H2 : Col C E D
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+
+*****
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Triangle D C E) by (conclude_def Triangle ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+
+*****
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Triangle C E D) by (conclude_def Triangle ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+
+*****
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Triangle E C D) by (conclude_def Triangle ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+
+*****
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG C D D E C E) by (conclude proposition_20).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+
+*****
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG C E E D C D) by (conclude proposition_20).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+
+*****
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG E C C D E D) by (conclude proposition_20).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+
+*****
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+
+*****
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+
+*****
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+
+*****
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+
+*****
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+
+*****
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+
+*****
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\ Cong A F C D /\ Cong G F E D /\ Out A B G /\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+
+*****
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+
+*****
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+
+*****
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (eq E E) by (conclude cn_equalityreflexive).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+
+*****
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (eq D D) by (conclude cn_equalityreflexive).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+
+*****
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (eq F F) by (conclude cn_equalityreflexive).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+
+*****
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (eq G G) by (conclude cn_equalityreflexive).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+
+*****
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ eq C E).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+
+*****
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq C E)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+intro.
+
+*****
+H26 : eq C E
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col D C E) by (conclude_def Col ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+intro.
+assert (Col D C E) by (conclude_def Col ).
+
+*****
+H27 : Col D C E
+H26 : eq C E
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+
+*****
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ eq C D).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+
+*****
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq C D)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+intro.
+
+*****
+H27 : eq C D
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col C D E) by (conclude_def Col ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+intro.
+assert (Col C D E) by (conclude_def Col ).
+
+*****
+H28 : Col C D E
+H27 : eq C D
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col D C E) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+intro.
+assert (Col C D E) by (conclude_def Col ).
+assert (Col D C E) by (forward_using lemma_collinearorder).
+
+*****
+H29 : Col D C E
+H28 : Col C D E
+H27 : eq C D
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+
+*****
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Out C E E) by (conclude lemma_ray4).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+
+*****
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Out C D D) by (conclude lemma_ray4).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+
+*****
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ Col F A G).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+
+*****
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (Col F A G)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+intro.
+
+*****
+H30 : Col F A G
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A G F) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+intro.
+assert (Col A G F) by (forward_using lemma_collinearorder).
+
+*****
+H31 : Col A G F
+H30 : Col F A G
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (nCol A G F) by (conclude_def Triangle ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+intro.
+assert (Col A G F) by (forward_using lemma_collinearorder).
+assert (nCol A G F) by (conclude_def Triangle ).
+
+*****
+H32 : nCol A G F
+H31 : Col A G F
+H30 : Col F A G
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+
+*****
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ eq A F).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+
+*****
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq A F)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+intro.
+
+*****
+H31 : eq A F
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A F G) by (conclude_def Col ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+intro.
+assert (Col A F G) by (conclude_def Col ).
+
+*****
+H32 : Col A F G
+H31 : eq A F
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col F A G) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+intro.
+assert (Col A F G) by (conclude_def Col ).
+assert (Col F A G) by (forward_using lemma_collinearorder).
+
+*****
+H33 : Col F A G
+H32 : Col A F G
+H31 : eq A F
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+
+*****
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Out A F F) by (conclude lemma_ray4).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+
+*****
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (~ eq A G).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+
+*****
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq A G)
++++++
+intro.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+intro.
+
+*****
+H33 : eq A G
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A G F) by (conclude_def Col ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+intro.
+assert (Col A G F) by (conclude_def Col ).
+
+*****
+H34 : Col A G F
+H33 : eq A G
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col F A G) by (forward_using lemma_collinearorder).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+intro.
+assert (Col A G F) by (conclude_def Col ).
+assert (Col F A G) by (forward_using lemma_collinearorder).
+
+*****
+H35 : Col F A G
+H34 : Col A G F
+H33 : eq A G
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+
+*****
+H33 : not (eq A G)
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (Out A G G) by (conclude lemma_ray4).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+assert (Out A G G) by (conclude lemma_ray4).
+
+*****
+H34 : Out A G G
+H33 : not (eq A G)
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+assert (CongA F A G D C E) by (conclude_def CongA ).
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+assert (Out A G G) by (conclude lemma_ray4).
+assert (CongA F A G D C E) by (conclude_def CongA ).
+
+*****
+H35 : CongA F A G D C E
+H34 : Out A G G
+H33 : not (eq A G)
+H32 : Out A F F
+H31 : not (eq A F)
+H30 : not (Col F A G)
+H29 : Out C D D
+H28 : Out C E E
+H27 : not (eq C D)
+H26 : not (eq C E)
+H25 : eq G G
+H24 : eq F F
+H23 : eq D D
+H22 : eq E E
+H21 : Cong F G D E
+H20 : Cong A G C E
+H19 : Triangle A G F
+H18 : Out A B G
+H17 : Cong G F E D
+H16 : Cong A F C D
+H15 : Cong A G E C
+G,F : Point
+H14 : TG E C E D C D
+H13 : TG C D E D E C
+H12 : TG E D C D E C
+H11 : TG D E C D E C
+H10 : TG C D D E E C
+H9 : TG C D E C E D
+H8 : TG E C C D E D
+H7 : TG C E E D C D
+H6 : TG C D D E C E
+H5 : Triangle E C D
+H4 : Triangle C E D
+H3 : Triangle D C E
+H2 : not (Col C E D)
+H1 : not (Col E C D)
+H0 : nCol D C E
+H : neq A B
+A,B,C,D,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+ex (fun X : Point => ex (fun Y : Point => and (Out A B Y) (CongA X A Y D C E)))
++++++
+close.
+-----
+Lemma proposition_23 : forall A B C D E, neq A B -> nCol D C E -> exists X Y, Out A B Y /\\ CongA X A Y D C E.
+Proof.
+intros.
+assert (~ Col E C D).
+assert (~ Col C E D).
+assert (Triangle D C E) by (conclude_def Triangle ).
+assert (Triangle C E D) by (conclude_def Triangle ).
+assert (Triangle E C D) by (conclude_def Triangle ).
+assert (TG C D D E C E) by (conclude proposition_20).
+assert (TG C E E D C D) by (conclude proposition_20).
+assert (TG E C C D E D) by (conclude proposition_20).
+assert (TG C D E C E D) by (conclude lemma_TGsymmetric).
+assert (TG C D D E E C) by (forward_using lemma_TGflip).
+assert (TG D E C D E C) by (conclude lemma_TGsymmetric).
+assert (TG E D C D E C) by (forward_using lemma_TGflip).
+assert (TG C D E D E C) by (conclude lemma_TGsymmetric).
+assert (TG E C E D C D) by (forward_using lemma_TGflip).
+let Tf:=fresh in assert (Tf:exists G F, (Cong A G E C /\\ Cong A F C D /\\ Cong G F E D /\\ Out A B G /\\ Triangle A G F)) by (conclude proposition_22);destruct Tf as [G[F]];spliter.
+assert (Cong A G C E) by (forward_using lemma_congruenceflip).
+assert (Cong F G D E) by (forward_using lemma_congruenceflip).
+assert (eq E E) by (conclude cn_equalityreflexive).
+assert (eq D D) by (conclude cn_equalityreflexive).
+assert (eq F F) by (conclude cn_equalityreflexive).
+assert (eq G G) by (conclude cn_equalityreflexive).
+assert (~ eq C E).
+assert (~ eq C D).
+assert (Out C E E) by (conclude lemma_ray4).
+assert (Out C D D) by (conclude lemma_ray4).
+assert (~ Col F A G).
+assert (~ eq A F).
+assert (Out A F F) by (conclude lemma_ray4).
+assert (~ eq A G).
+assert (Out A G G) by (conclude lemma_ray4).
+assert (CongA F A G D C E) by (conclude_def CongA ).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

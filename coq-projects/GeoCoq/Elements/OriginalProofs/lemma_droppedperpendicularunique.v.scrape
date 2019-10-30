@@ -1,0 +1,2082 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_collinearright.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_rightreverse.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_altitudebisectsbase.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_droppedperpendicularunique : \n   forall A J M P, \n   Per A M P -> Per A J P -> Col A M J ->\n   eq M J.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A J M P : Point) (_ : Per A M P) (_ : Per A J P) (_ : Col A M J), eq M J
++++++
+Proof.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A J M P : Point) (_ : Per A M P) (_ : Per A J P) (_ : Col A M J), eq M J
++++++
+intros.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+
+*****
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq M J
++++++
+assert (~ neq M J).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+
+*****
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (neq M J)
++++++
+intro.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+
+*****
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+
+*****
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+
+*****
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq M E) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+
+*****
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+
+*****
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+
+*****
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E J F) by (conclude lemma_3_7b).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+
+*****
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+
+*****
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS E M F) by (conclude lemma_3_7a).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+
+*****
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq J F) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+
+*****
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+
+*****
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col J M F) by (conclude_def Col ).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+
+*****
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col M J F) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+
+*****
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col M J A) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+
+*****
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq J M) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+
+*****
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+
+*****
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col J F A) by (conclude lemma_collinear4).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+
+*****
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A J F) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+
+*****
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Per F J P) by (conclude lemma_collinearright).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+
+*****
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col J M F) by (conclude_def Col ).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+
+*****
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col J M A) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+
+*****
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col M F A) by (conclude lemma_collinear4).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+
+*****
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Col A M F) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+
+*****
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq M F) by (forward_using lemma_betweennotequal).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+
+*****
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+
+*****
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Per F M P) by (conclude lemma_collinearright).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+
+*****
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+
+*****
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Per F M P) by (conclude lemma_collinearright).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+
+*****
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+
+*****
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+
+*****
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+
+*****
+H34 : Midpoint F J E
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+
+*****
+H35 : BetS F M E
+H34 : Midpoint F J E
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+
+*****
+H36 : Cong F M M E
+H35 : BetS F M E
+H34 : Midpoint F J E
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (Midpoint F M E) by (conclude_def Midpoint ).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Midpoint F M E) by (conclude_def Midpoint ).
+
+*****
+H37 : Midpoint F M E
+H36 : Cong F M M E
+H35 : BetS F M E
+H34 : Midpoint F J E
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq J M) by (conclude lemma_midpointunique).
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+intro.
+assert (neq J M) by (conclude lemma_inequalitysymmetric).
+let Tf:=fresh in assert (Tf:exists E, (BetS M J E /\\ Cong J E M J)) by (conclude lemma_extension);destruct Tf as [E];spliter.
+assert (neq M E) by (forward_using lemma_betweennotequal).
+let Tf:=fresh in assert (Tf:exists F, (BetS J M F /\\ Cong M F M E)) by (conclude lemma_extension);destruct Tf as [F];spliter.
+assert (BetS E J M) by (conclude axiom_betweennesssymmetry).
+assert (BetS E J F) by (conclude lemma_3_7b).
+assert (BetS F J E) by (conclude axiom_betweennesssymmetry).
+assert (BetS E M F) by (conclude lemma_3_7a).
+assert (neq J F) by (forward_using lemma_betweennotequal).
+assert (neq F J) by (conclude lemma_inequalitysymmetric).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col M J F) by (forward_using lemma_collinearorder).
+assert (Col M J A) by (forward_using lemma_collinearorder).
+assert (neq J M) by (forward_using lemma_betweennotequal).
+assert (neq M J) by (conclude lemma_inequalitysymmetric).
+assert (Col J F A) by (conclude lemma_collinear4).
+assert (Col A J F) by (forward_using lemma_collinearorder).
+assert (Per F J P) by (conclude lemma_collinearright).
+assert (Col J M F) by (conclude_def Col ).
+assert (Col J M A) by (forward_using lemma_collinearorder).
+assert (Col M F A) by (conclude lemma_collinear4).
+assert (Col A M F) by (forward_using lemma_collinearorder).
+assert (neq M F) by (forward_using lemma_betweennotequal).
+assert (neq F M) by (conclude lemma_inequalitysymmetric).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Per F M P) by (conclude lemma_collinearright).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F P E P) by (conclude lemma_rightreverse).
+assert (Midpoint F J E) by (conclude lemma_altitudebisectsbase).
+assert (BetS F M E) by (conclude axiom_betweennesssymmetry).
+assert (Cong F M M E) by (forward_using lemma_congruenceflip).
+assert (Midpoint F M E) by (conclude_def Midpoint ).
+assert (eq J M) by (conclude lemma_midpointunique).
+
+*****
+H38 : eq J M
+H37 : Midpoint F M E
+H36 : Cong F M M E
+H35 : BetS F M E
+H34 : Midpoint F J E
+H33 : Cong F P E P
+H32 : BetS F M E
+H31 : Per F M P
+H30 : Cong F M M E
+H29 : Per F M P
+H28 : neq F M
+H27 : neq M F
+H26 : Col A M F
+H25 : Col M F A
+H24 : Col J M A
+H23 : Col J M F
+H22 : Per F J P
+H21 : Col A J F
+H20 : Col J F A
+H19 : neq M J
+H18 : neq J M
+H17 : Col M J A
+H16 : Col M J F
+H15 : Col J M F
+H14 : neq F J
+H13 : neq J F
+H12 : BetS E M F
+H11 : BetS F J E
+H10 : BetS E J F
+H9 : BetS E J M
+H8 : Cong M F M E
+H7 : BetS J M F
+F : Point
+H6 : neq M E
+H5 : Cong J E M J
+H4 : BetS M J E
+E : Point
+H3 : neq J M
+H2 : neq M J
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+
+*****
+H2 : not (neq M J)
+H1 : Col A M J
+H0 : Per A J P
+H : Per A M P
+A,J,M,P : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq M J
++++++
+close.
+-----
+Lemma lemma_droppedperpendicularunique : forall A J M P, Per A M P -> Per A J P -> Col A M J -> eq M J.
+Proof.
+intros.
+assert (~ neq M J).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

@@ -1,0 +1,937 @@
+From Coq Require Import ZArith.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Global Instance RelDec_zeq : RelDec (@eq Z) :=\n{ rel_dec := Z.eqb }.
+-----
+Global Instance RelDec_zlt : RelDec (Z.lt) :=\n{ rel_dec := Z.ltb }.
+-----
+Global Instance RelDec_zle : RelDec (Z.le) :=\n{ rel_dec := Z.leb }.
+-----
+Global Instance RelDec_zgt : RelDec (Z.gt) :=\n{ rel_dec := Z.gtb }.
+-----
+Global Instance RelDec_zge : RelDec (Z.ge) :=\n{ rel_dec := Z.geb }.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+
+*****
+
+*****
+RelDec_Correct RelDec_zeq
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+Proof.
+
+*****
+
+*****
+RelDec_Correct RelDec_zeq
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+Proof.
+constructor.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (eq x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+Proof.
+constructor.
+simpl.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (eq x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+Proof.
+constructor.
+simpl.
+intros.
+
+*****
+x,y : Z
+*****
+iff (eq (rel_dec x y) true) (eq x y)
++++++
+apply Z.eqb_eq.
+-----
+Global Instance RelDec_Correct_zeq : RelDec_Correct RelDec_zeq.
+Proof.
+constructor.
+simpl.
+intros.
+apply Z.eqb_eq.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+
+*****
+
+*****
+RelDec_Correct RelDec_zlt
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+
+*****
+
+*****
+RelDec_Correct RelDec_zlt
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.lt x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.lt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+
+*****
+x,y : Z
+*****
+iff (eq (rel_dec x y) true) (Z.lt x y)
++++++
+generalize (Zlt_cases x y).
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+
+*****
+x,y : Z
+*****
+forall _ : if Z.ltb x y then Z.lt x y else Z.ge x y, iff (eq (rel_dec x y) true) (Z.lt x y)
++++++
+unfold rel_dec.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.ltb x y then Z.lt x y else Z.ge x y, iff (eq ((let (rel_dec) := RelDec_zlt in rel_dec) x y) true) (Z.lt x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.ltb x y then Z.lt x y else Z.ge x y, iff (eq (Z.ltb x y) true) (Z.lt x y)
++++++
+destruct ((x <? y)%Z).
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.lt x y, iff (eq true true) (Z.lt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+intros.
+
+*****
+H : Z.lt x y
+x,y : Z
+*****
+iff (eq true true) (Z.lt x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.ge x y, iff (eq false true) (Z.lt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+intros.
+
+*****
+H : Z.ge x y
+x,y : Z
+*****
+iff (eq false true) (Z.lt x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+intros.
+intuition.
+
+*****
+H0 : eq false true
+H : Z.ge x y
+x,y : Z
+*****
+Z.lt x y
++++++
+try congruence.
+-----
+Global Instance RelDec_Correct_zlt : RelDec_Correct RelDec_zlt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zlt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <? y)%Z).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+
+*****
+
+*****
+RelDec_Correct RelDec_zle
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+
+*****
+
+*****
+RelDec_Correct RelDec_zle
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.le x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.le x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+
+*****
+x,y : Z
+*****
+iff (eq (rel_dec x y) true) (Z.le x y)
++++++
+generalize (Zle_cases x y).
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+
+*****
+x,y : Z
+*****
+forall _ : if Z.leb x y then Z.le x y else Z.gt x y, iff (eq (rel_dec x y) true) (Z.le x y)
++++++
+unfold rel_dec.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.leb x y then Z.le x y else Z.gt x y, iff (eq ((let (rel_dec) := RelDec_zle in rel_dec) x y) true) (Z.le x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.leb x y then Z.le x y else Z.gt x y, iff (eq (Z.leb x y) true) (Z.le x y)
++++++
+destruct ((x <=? y)%Z).
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.le x y, iff (eq true true) (Z.le x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+intros.
+
+*****
+H : Z.le x y
+x,y : Z
+*****
+iff (eq true true) (Z.le x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.gt x y, iff (eq false true) (Z.le x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+intros.
+
+*****
+H : Z.gt x y
+x,y : Z
+*****
+iff (eq false true) (Z.le x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+intros.
+intuition.
+
+*****
+H0 : eq false true
+H : Z.gt x y
+x,y : Z
+*****
+Z.le x y
++++++
+congruence.
+-----
+Global Instance RelDec_Correct_zle : RelDec_Correct RelDec_zle.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zle_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x <=? y)%Z).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+
+*****
+
+*****
+RelDec_Correct RelDec_zgt
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+
+*****
+
+*****
+RelDec_Correct RelDec_zgt
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.gt x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.gt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+
+*****
+x,y : Z
+*****
+iff (eq (rel_dec x y) true) (Z.gt x y)
++++++
+generalize (Zgt_cases x y).
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+
+*****
+x,y : Z
+*****
+forall _ : if Z.gtb x y then Z.gt x y else Z.le x y, iff (eq (rel_dec x y) true) (Z.gt x y)
++++++
+unfold rel_dec.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.gtb x y then Z.gt x y else Z.le x y, iff (eq ((let (rel_dec) := RelDec_zgt in rel_dec) x y) true) (Z.gt x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.gtb x y then Z.gt x y else Z.le x y, iff (eq (Z.gtb x y) true) (Z.gt x y)
++++++
+destruct ((x >? y)%Z).
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.gt x y, iff (eq true true) (Z.gt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+intros.
+
+*****
+H : Z.gt x y
+x,y : Z
+*****
+iff (eq true true) (Z.gt x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.le x y, iff (eq false true) (Z.gt x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+intros.
+
+*****
+H : Z.le x y
+x,y : Z
+*****
+iff (eq false true) (Z.gt x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+intros.
+intuition.
+
+*****
+H0 : eq false true
+H : Z.le x y
+x,y : Z
+*****
+Z.gt x y
++++++
+congruence.
+-----
+Global Instance RelDec_Correct_zgt : RelDec_Correct RelDec_zgt.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zgt_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >? y)%Z).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+
+*****
+
+*****
+RelDec_Correct RelDec_zge
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+
+*****
+
+*****
+RelDec_Correct RelDec_zge
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.ge x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+
+*****
+
+*****
+forall x y : Z, iff (eq (rel_dec x y) true) (Z.ge x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+
+*****
+x,y : Z
+*****
+iff (eq (rel_dec x y) true) (Z.ge x y)
++++++
+generalize (Zge_cases x y).
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+
+*****
+x,y : Z
+*****
+forall _ : if Z.geb x y then Z.ge x y else Z.lt x y, iff (eq (rel_dec x y) true) (Z.ge x y)
++++++
+unfold rel_dec.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.geb x y then Z.ge x y else Z.lt x y, iff (eq ((let (rel_dec) := RelDec_zge in rel_dec) x y) true) (Z.ge x y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+
+*****
+x,y : Z
+*****
+forall _ : if Z.geb x y then Z.ge x y else Z.lt x y, iff (eq (Z.geb x y) true) (Z.ge x y)
++++++
+destruct ((x >=? y)%Z).
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.ge x y, iff (eq true true) (Z.ge x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+intros.
+
+*****
+H : Z.ge x y
+x,y : Z
+*****
+iff (eq true true) (Z.ge x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+
+*****
+x,y : Z
+*****
+forall _ : Z.lt x y, iff (eq false true) (Z.ge x y)
++++++
+intros.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+intros.
+
+*****
+H : Z.lt x y
+x,y : Z
+*****
+iff (eq false true) (Z.ge x y)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+intros.
+intuition.
+
+*****
+H0 : eq false true
+H : Z.lt x y
+x,y : Z
+*****
+Z.ge x y
++++++
+congruence.
+-----
+Global Instance RelDec_Correct_zge : RelDec_Correct RelDec_zge.
+Proof.
+constructor.
+simpl.
+intros.
+generalize (Zge_cases x y).
+unfold rel_dec.
+simpl.
+destruct ((x >=? y)%Z).
+
+*****
+
+*****
+
++++++
+Qed.
+-----

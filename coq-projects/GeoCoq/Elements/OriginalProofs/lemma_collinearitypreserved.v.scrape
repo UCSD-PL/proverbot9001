@@ -1,0 +1,6027 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_congruencetransitive.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_betweennesspreserved.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_collinearitypreserved : \n   forall A B C a b c, \n   Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c ->\n   Col a b c.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C a b c : Point) (_ : Col A B C) (_ : Cong A B a b) (_ : Cong A C a c) (_ : Cong B C b c), Col a b c
++++++
+Proof.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B C a b c : Point) (_ : Col A B C) (_ : Cong A B a b) (_ : Cong A C a c) (_ : Cong B C b c), Col a b c
++++++
+intros.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+
+*****
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong C B B C).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+
+*****
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong C B B C
++++++
+conclude cn_equalityreverse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+
+*****
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+
+*****
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong C B b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+
+*****
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong C B b c
++++++
+conclude lemma_congruencetransitive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+
+*****
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+
+*****
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong b c c b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+
+*****
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong b c c b
++++++
+conclude cn_equalityreverse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+
+*****
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+
+*****
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong C B c b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+
+*****
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong C B c b
++++++
+conclude lemma_congruencetransitive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+
+*****
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+
+*****
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong a b b a).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+
+*****
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong a b b a
++++++
+conclude cn_equalityreverse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+
+*****
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+
+*****
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong A B b a).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+
+*****
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B b a
++++++
+conclude lemma_congruencetransitive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+
+*****
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+
+*****
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong A B B A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+
+*****
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A B B A
++++++
+conclude cn_equalityreverse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+
+*****
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+
+*****
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong B A A B).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+
+*****
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong B A A B
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+
+*****
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+
+*****
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong B A b a).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+
+*****
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong B A b a
++++++
+conclude lemma_congruencetransitive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+
+*****
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+
+*****
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert ((eq A B \/ eq A C \/ eq B C \/ BetS B A C \/ BetS A B C \/ BetS A C B)).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+
+*****
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+or (eq A B) (or (eq A C) (or (eq B C) (or (BetS B A C) (or (BetS A B C) (BetS A C B)))))
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+
+*****
+H12 : or (eq A B)\n (or (eq A C)\n (or (eq B C) (or (BetS B A C) (or (BetS A B C) (BetS A C B)))))
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+
+*****
+H12 : or (eq A B)\n (or (eq A C)\n (or (eq B C) (or (BetS B A C) (or (BetS A B C) (BetS A C B)))))
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+
+*****
+H12 : or (eq A B)\n (or (eq A C)\n (or (eq B C) (or (BetS B A C) (or (BetS A B C) (BetS A C B)))))
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+by cases on (eq A B \/ eq A C \/ eq B C \/ BetS B A C \/ BetS A B C \/ BetS A C B).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong A A a b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+
+*****
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A A a b
++++++
+conclude cn_equalitysub.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+
+*****
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+
+*****
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong a b A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+
+*****
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong a b A A
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+
+*****
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+
+*****
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (~ neq a b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+
+*****
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (neq a b)
++++++
+intro.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+
+*****
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+
+*****
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq A A
++++++
+conclude axiom_nocollapse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+
+*****
+H16 : neq A A
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+idtac.
+
+*****
+H16 : neq A A
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+
+*****
+H16 : neq A A
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq A A
++++++
+conclude cn_equalityreflexive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+
+*****
+H17 : eq A A
+H16 : neq A A
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+idtac.
+
+*****
+H17 : eq A A
+H16 : neq A A
+H15 : neq a b
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+
+*****
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (eq a b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+
+*****
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq a b
++++++
+conclude cn_stability.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+
+*****
+H16 : eq a b
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+idtac.
+
+*****
+H16 : eq a b
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+idtac.
+assert (Col a b c).
+
+*****
+H16 : eq a b
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+idtac.
+assert (Col a b c).
+
+*****
+H17 : Col a b c
+H16 : eq a b
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a b).
+idtac.
+assert (Cong a b A A).
+idtac.
+assert (~ neq a b).
+assert (eq a b).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H17 : Col a b c
+H16 : eq a b
+H15 : not (neq a b)
+H14 : Cong a b A A
+H12 : Cong A A a b
+H13 : eq A B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong A A a c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+
+*****
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong A A a c
++++++
+conclude cn_equalitysub.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+
+*****
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+
+*****
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong a c A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+
+*****
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong a c A A
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+
+*****
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+
+*****
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (~ neq a c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+
+*****
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (neq a c)
++++++
+intro.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+
+*****
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+
+*****
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq A A
++++++
+conclude axiom_nocollapse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+
+*****
+H16 : neq A A
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+idtac.
+
+*****
+H16 : neq A A
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq A A).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+
+*****
+H16 : neq A A
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq A A
++++++
+conclude cn_equalityreflexive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+
+*****
+H17 : eq A A
+H16 : neq A A
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+intro.
+assert (neq A A).
+idtac.
+assert (eq A A).
+idtac.
+
+*****
+H17 : eq A A
+H16 : neq A A
+H15 : neq a c
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+
+*****
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (eq a c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+
+*****
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq a c
++++++
+conclude cn_stability.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+
+*****
+H16 : eq a c
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+idtac.
+
+*****
+H16 : eq a c
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+idtac.
+assert (Col a b c).
+
+*****
+H16 : eq a c
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+idtac.
+assert (Col a b c).
+
+*****
+H17 : Col a b c
+H16 : eq a c
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong A A a c).
+idtac.
+assert (Cong a c A A).
+idtac.
+assert (~ neq a c).
+assert (eq a c).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H17 : Col a b c
+H16 : eq a c
+H15 : not (neq a c)
+H13 : Cong a c A A
+H12 : Cong A A a c
+H14 : eq A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong B B b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+
+*****
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong B B b c
++++++
+conclude cn_equalitysub.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+
+*****
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+
+*****
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Cong b c B B).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+
+*****
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Cong b c B B
++++++
+conclude lemma_congruencesymmetric.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+
+*****
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+
+*****
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (~ neq b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+
+*****
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (neq b c)
++++++
+intro.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+
+*****
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (neq B B).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+
+*****
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+neq B B
++++++
+conclude axiom_nocollapse.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+
+*****
+H16 : neq B B
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+idtac.
+
+*****
+H16 : neq B B
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq B B).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+idtac.
+assert (eq B B).
+
+*****
+H16 : neq B B
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq B B
++++++
+conclude cn_equalityreflexive.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+idtac.
+assert (eq B B).
+
+*****
+H17 : eq B B
+H16 : neq B B
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+intro.
+assert (neq B B).
+idtac.
+assert (eq B B).
+idtac.
+
+*****
+H17 : eq B B
+H16 : neq B B
+H15 : neq b c
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+
+*****
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (eq b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+
+*****
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+eq b c
++++++
+conclude cn_stability.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+
+*****
+H16 : eq b c
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+idtac.
+
+*****
+H16 : eq b c
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+idtac.
+assert (Col a b c).
+
+*****
+H16 : eq b c
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+idtac.
+assert (Col a b c).
+
+*****
+H17 : Col a b c
+H16 : eq b c
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (Cong B B b c).
+idtac.
+assert (Cong b c B B).
+idtac.
+assert (~ neq b c).
+assert (eq b c).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H17 : Col a b c
+H16 : eq b c
+H15 : not (neq b c)
+H14 : Cong b c B B
+H12 : Cong B B b c
+H13 : eq B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (BetS b a c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+
+*****
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+BetS b a c
++++++
+conclude lemma_betweennesspreserved.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+
+*****
+H12 : BetS b a c
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+idtac.
+
+*****
+H12 : BetS b a c
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+idtac.
+assert (Col a b c).
+
+*****
+H12 : BetS b a c
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+idtac.
+assert (Col a b c).
+
+*****
+H13 : Col a b c
+H12 : BetS b a c
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS b a c).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H13 : Col a b c
+H12 : BetS b a c
+H14 : BetS B A C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (BetS a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+
+*****
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+BetS a b c
++++++
+conclude lemma_betweennesspreserved.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+
+*****
+H12 : BetS a b c
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+idtac.
+
+*****
+H12 : BetS a b c
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+idtac.
+assert (Col a b c).
+
+*****
+H12 : BetS a b c
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+idtac.
+assert (Col a b c).
+
+*****
+H14 : Col a b c
+H12 : BetS a b c
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a b c).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H14 : Col a b c
+H12 : BetS a b c
+H13 : BetS A B C
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+
+*****
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (BetS a c b).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+
+*****
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+BetS a c b
++++++
+conclude lemma_betweennesspreserved.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+
+*****
+H12 : BetS a c b
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+idtac.
+
+*****
+H12 : BetS a c b
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+assert (Col a b c).
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+idtac.
+assert (Col a b c).
+
+*****
+H12 : BetS a c b
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+conclude_def Col .
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+idtac.
+assert (Col a b c).
+
+*****
+H14 : Col a b c
+H12 : BetS a c b
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+idtac.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+by cases on (eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B).
+assert (BetS a c b).
+idtac.
+assert (Col a b c).
+idtac.
+
+*****
+H14 : Col a b c
+H12 : BetS a c b
+H13 : BetS A C B
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+idtac.
+assert (Cong C B b c).
+idtac.
+assert (Cong b c c b).
+idtac.
+assert (Cong C B c b).
+idtac.
+assert (Cong a b b a).
+idtac.
+assert (Cong A B b a).
+idtac.
+assert (Cong A B B A).
+idtac.
+assert (Cong B A A B).
+idtac.
+assert (Cong B A b a).
+idtac.
+assert ((eq A B \\/ eq A C \\/ eq B C \\/ BetS B A C \\/ BetS A B C \\/ BetS A C B)).
+idtac.
+assert (Col a b c).
+
+*****
+H13 : Col a b c
+H12 : or (eq A B)\n (or (eq A C)\n (or (eq B C) (or (BetS B A C) (or (BetS A B C) (BetS A C B)))))
+H11 : Cong B A b a
+H10 : Cong B A A B
+H9 : Cong A B B A
+H8 : Cong A B b a
+H7 : Cong a b b a
+H6 : Cong C B c b
+H5 : Cong b c c b
+H4 : Cong C B b c
+H3 : Cong C B B C
+H2 : Cong B C b c
+H1 : Cong A C a c
+H0 : Cong A B a b
+H : Col A B C
+A,B,C,a,b,c : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Col a b c
++++++
+close.
+-----
+Lemma lemma_collinearitypreserved : forall A B C a b c, Col A B C -> Cong A B a b -> Cong A C a c -> Cong B C b c -> Col a b c.
+Proof.
+intros.
+assert (Cong C B B C).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

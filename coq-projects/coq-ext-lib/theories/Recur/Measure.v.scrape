@@ -1,0 +1,36 @@
+Require Import Coq.Classes.RelationClasses.
+-----
+Require Coq.Arith.Wf_nat.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section parametric.
+-----
+Context {T U : Type}.
+-----
+Variable f : T -> U.
+-----
+Variable R : U -> U -> Prop.
+-----
+Hypothesis well_founded_R : well_founded R.
+-----
+Definition compose (a b : T) : Prop :=\n    R (f a) (f b).
+-----
+Definition well_founded_compose : well_founded compose :=\n    (fun t =>\n       (@Fix _ R well_founded_R (fun x => forall y, f y = x -> Acc compose y)\n             (fun x recur y pf =>\n                @Acc_intro _ compose y (fun y' (pf' : R (f y') (f y)) =>\n                                          recur _ match pf in _ = t return R (f y') t with\n                                                    | eq_refl => pf'\n                                                  end _ eq_refl))\n             (f t) t eq_refl)).
+-----
+End parametric.
+-----
+Section measure.
+-----
+Context {T : Type}.
+-----
+Variable m : T -> nat.
+-----
+Definition mlt : T -> T -> Prop :=\n    compose m lt.
+-----
+Definition well_founded_mlt : well_founded mlt :=\n    @well_founded_compose T nat m lt Wf_nat.lt_wf.
+-----
+End measure.
+-----

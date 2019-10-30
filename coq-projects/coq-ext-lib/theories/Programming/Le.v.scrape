@@ -1,0 +1,759 @@
+Require Import Coq.Bool.Bool.
+-----
+From Coq Require Import Equivalence.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Class Lte T := { lte : T -> T -> Prop }.
+-----
+Definition neg_lte {T} {L:Lte T} (x:T) (y:T) : Prop := not (lte x y).
+-----
+Definition lt {T} {L:Lte T} x y := lte x y /\ ~lte y x.
+-----
+Definition neg_lt {T} {L:Lte T} x y := not (lt x y).
+-----
+Instance lt_RelDec {T} {L:Lte T} {RD:RelDec lte} : RelDec lt :=\n  { rel_dec x y := (rel_dec x y && negb (rel_dec y x))%bool }.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD}\n  : RelDec_Correct lt_RelDec.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+
+*****
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+RelDec_Correct lt_RelDec
++++++
+Proof.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+
+*****
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+RelDec_Correct lt_RelDec
++++++
+constructor.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+
+*****
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+forall x y : T, iff (eq (rel_dec x y) true) (lt x y)
++++++
+intros.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+
+*****
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+iff (eq (rel_dec x y) true) (lt x y)
++++++
+constructor.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+
+*****
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+forall _ : eq (rel_dec x y) true, lt x y
++++++
+intros.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+
+*****
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lt x y
++++++
+unfold rel_dec in H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+
+*****
+H : eq ((let (rel_dec) := lt_RelDec in rel_dec) x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lt x y
++++++
+simpl in H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+
+*****
+H : eq (andb (rel_dec x y) (negb (rel_dec y x))) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lt x y
++++++
+apply andb_true_iff in H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+
+*****
+H : and (eq (rel_dec x y) true) (eq (negb (rel_dec y x)) true)
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lt x y
++++++
+destruct H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lt x y
++++++
+unfold lt.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+and (lte x y) (not (lte y x))
++++++
+constructor.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lte x y
++++++
+apply rel_dec_correct.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+apply rel_dec_correct.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+auto.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+not (lte y x)
++++++
+apply neg_rel_dec_correct.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+apply neg_rel_dec_correct.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec y x) false
++++++
+simpl in H0.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+apply neg_rel_dec_correct.
+simpl in H0.
+
+*****
+H0 : eq (negb (rel_dec y x)) true
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec y x) false
++++++
+apply negb_true_iff in H0.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold rel_dec in H.
+simpl in H.
+apply andb_true_iff in H.
+destruct H.
+unfold lt.
+constructor.
+apply neg_rel_dec_correct.
+simpl in H0.
+apply negb_true_iff in H0.
+
+*****
+H0 : eq (rel_dec y x) false
+H : eq (rel_dec x y) true
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec y x) false
++++++
+auto.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+
+*****
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+forall _ : lt x y, eq (rel_dec x y) true
++++++
+intros.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+
+*****
+H : lt x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+unfold lt in H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+
+*****
+H : and (lte x y) (not (lte y x))
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+destruct H.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+unfold rel_dec.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq ((let (rel_dec) := lt_RelDec in rel_dec) x y) true
++++++
+simpl.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (andb (rel_dec x y) (negb (rel_dec y x))) true
++++++
+apply andb_true_iff.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+and (eq (rel_dec x y) true) (eq (negb (rel_dec y x)) true)
++++++
+constructor.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+constructor.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec x y) true
++++++
+apply rel_dec_correct.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+constructor.
+apply rel_dec_correct.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+lte x y
++++++
+auto.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+constructor.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (negb (rel_dec y x)) true
++++++
+apply negb_true_iff.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+constructor.
+apply negb_true_iff.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+eq (rel_dec y x) false
++++++
+apply neg_rel_dec_correct.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+intros.
+unfold lt in H.
+destruct H.
+unfold rel_dec.
+simpl.
+apply andb_true_iff.
+constructor.
+apply negb_true_iff.
+apply neg_rel_dec_correct.
+
+*****
+H0 : not (lte y x)
+H : lte x y
+x,y : T
+RDC : RelDec_Correct RD
+RD : RelDec lte
+L : Lte T
+T : Type
+*****
+not (lte y x)
++++++
+auto.
+-----
+Instance lt_RelDecCorrect {T} {L:Lte T} {RD:RelDec lte} {RDC:RelDec_Correct RD} : RelDec_Correct lt_RelDec.
+Proof.
+constructor.
+intros.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Class LteWF T :=\n{ lteWFLte :> Lte T\n; lteWFPreOrder :> PreOrder lte\n}.
+-----
+Instance LteWF_Build {T} {L:Lte T} {PO:PreOrder lte} : LteWF T :=\n  { lteWFLte := L ; lteWFPreOrder := PO }.
+-----
+Definition lte_dec {T} {L:Lte T} {R:RelDec lte} := rel_dec.
+-----
+Definition neg_lte_dec {T} {L:Lte T} {R:RelDec lte} x y := negb (lte_dec x y).
+-----
+Definition lt_dec {T} {L:Lte T} {R:RelDec lte} := rel_dec.
+-----
+Definition neg_lt_dec {T} {L:Lte T} {R:RelDec lte} x y := negb (lt_dec x y).
+-----
+Section dec_p.
+-----
+Context {T} {L:Lte T} {RD:RelDec lte} {DC:RelDec_Correct RD}.
+-----
+Definition lte_dec_p (x:T) (y:T) : {lte x y} + {~lte x y} := rel_dec_p x y.
+-----
+Definition neg_lte_dec_p (x:T) (y:T) : {~lte x y} + {lte x y} := neg_rel_dec_p x y.
+-----
+Definition lt_dec_p (x:T) (y:T) : {lt x y} + {~lt x y} := rel_dec_p x y.
+-----
+Definition neg_lt_dec_p (x:T) (y:T) : {~lt x y} + {lt x y} := neg_rel_dec_p x y.
+-----
+End dec_p.
+-----
+Module LteNotation.
+-----
+Notation "x <=! y"       := (lte_dec x y)\n    (at level 35, no associativity).
+-----
+Notation "x <=! y <=! z" := (lte_dec x y /\ lte_dec y z)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x >=! y"       := (lte_dec y x)\n    (at level 35, no associativity, only parsing).
+-----
+Notation "x >=! y >=! z" := (lte_dec z y /\ lte_dec y x)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x <! y"       := (lt_dec x y)\n    (at level 35, no associativity).
+-----
+Notation "x <! y <! z"  := (lt_dec x y /\ lt_dec y z)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x >! y"       := (lt_dec y x)\n    (at level 35, no associativity, only parsing).
+-----
+Notation "x >! y >! z"  := (lt_dec z y /\ lt_dec y x)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x <=? y"       := (lte_dec_p y x)\n    (at level 35, no associativity).
+-----
+Notation "x <=? y <=? z" := (lte_dec_p x y /\ lte_dec_p y z)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x >=? y"       := (lte_dec_p y x)\n    (at level 35, no associativity, only parsing).
+-----
+Notation "x >=? y >=? z" := (lte_dec_p z y /\ lte_dec_p y x)\n    (at level 35, y at next level, no associativity, only parsing).
+-----
+Notation "x <? y"       := (lt_dec_p y x)\n    (at level 35, no associativity).
+-----
+Notation "x <? y <? z"  := (lt_dec_p x y /\ lt_dec_p y z)\n    (at level 35, y at next level, no associativity).
+-----
+Notation "x >? y"       := (lt_dec_p y x)\n    (at level 35, no associativity, only parsing).
+-----
+Notation "x >? y >? z"  := (lt_dec_p z y /\ lt_dec_p y x)\n    (at level 35, y at next level, no associativity, only parsing).
+-----
+Notation "x <=. y"       := (lte x y)\n    (at level 70, no associativity).
+-----
+Notation "x <=. y <=. z" := (lte x y /\ lte y z)\n    (at level 70, y at next level, no associativity).
+-----
+Notation "x >=. y"       := (lte y x)\n    (at level 70, no associativity, only parsing).
+-----
+Notation "x >=. y >=. z" := (lte z y /\ lte y x)\n    (at level 70, y at next level, no associativity, only parsing).
+-----
+Notation "x <. y"       := (lt x y)\n    (at level 70, no associativity).
+-----
+Notation "x <. y <. z" := (lt x y /\ lt y z)\n    (at level 70, y at next level, no associativity).
+-----
+Notation "x >. y"       := (lt y x)\n    (at level 70, no associativity, only parsing).
+-----
+Notation "x >. y >. z" := (lt z y /\ lt y x)\n    (at level 70, y at next level, no associativity, only parsing).
+-----
+End LteNotation.
+-----

@@ -1,0 +1,408 @@
+Require Import GeoCoq.Axioms.parallel_postulates.
+-----
+Require Import GeoCoq.Tarski_dev.Ch12_parallel.
+-----
+Section par_perp_perp_par_perp_2_par.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par :\n  perpendicular_transversal_postulate ->\n  postulate_of_parallelism_of_perpendicular_transversals.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : perpendicular_transversal_postulate, postulate_of_parallelism_of_perpendicular_transversals
++++++
+Proof.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : perpendicular_transversal_postulate, postulate_of_parallelism_of_perpendicular_transversals
++++++
+intros HPPP.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+
+*****
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+postulate_of_parallelism_of_perpendicular_transversals
++++++
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+
+*****
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : Coplanar A1 A2 C1 D1) (_ : Coplanar A1 A2 C1 D2) (_ : Coplanar A1 A2 C2 D1) (_ : Coplanar A1 A2 C2 D2), Par C1 C2 D1 D2
++++++
+intros HCop1 HCop2 HCop3 HCop4.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par C1 C2 D1 D2
++++++
+apply l12_9 with A1 A2.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 C1 D1
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 C1 D2
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 C2 D1
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 C2 D2
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp C1 C2 A1 A2
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp D1 D2 A1 A2
++++++
+Perp.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Perp D1 D2 A1 A2
++++++
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 D1 D2
++++++
+elim (perp_not_col2 _ _ _ _ HPerpAC).
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+elim (perp_not_col2 _ _ _ _ HPerpAC).
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : not (Col A1 A2 C1), Coplanar A1 A2 D1 D2
++++++
+intro.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+elim (perp_not_col2 _ _ _ _ HPerpAC).
+intro.
+
+*****
+H : not (Col A1 A2 C1)
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 D1 D2
++++++
+CopR.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+elim (perp_not_col2 _ _ _ _ HPerpAC).
+
+*****
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : not (Col A1 A2 C2), Coplanar A1 A2 D1 D2
++++++
+intro.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+Perp.
+try (apply perp_sym, HPPP with B1 B2; Par; Perp).
+elim (perp_not_col2 _ _ _ _ HPerpAC).
+intro.
+
+*****
+H : not (Col A1 A2 C2)
+HCop4 : Coplanar A1 A2 C2 D2
+HCop3 : Coplanar A1 A2 C2 D1
+HCop2 : Coplanar A1 A2 C1 D2
+HCop1 : Coplanar A1 A2 C1 D1
+HPerpBD : Perp B1 B2 D1 D2
+HPerpAC : Perp A1 A2 C1 C2
+HParAB : Par A1 A2 B1 B2
+A1,A2,B1,B2,C1,C2,D1,D2 : Tpoint
+HPPP : perpendicular_transversal_postulate
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Coplanar A1 A2 D1 D2
++++++
+CopR.
+-----
+Lemma par_perp_perp_implies_par_perp_2_par : perpendicular_transversal_postulate -> postulate_of_parallelism_of_perpendicular_transversals.
+Proof.
+intros HPPP.
+intros A1 A2 B1 B2 C1 C2 D1 D2 HParAB HPerpAC HPerpBD.
+intros HCop1 HCop2 HCop3 HCop4.
+apply l12_9 with A1 A2.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End par_perp_perp_par_perp_2_par.
+-----

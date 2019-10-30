@@ -1,0 +1,1084 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_samesidesymmetric.
+-----
+Require Export GeoCoq.Elements.OriginalProofs.lemma_inequalitysymmetric.
+-----
+Section Euclid.
+-----
+Context `{Ax1:euclidean_neutral}.
+-----
+Lemma lemma_tarskiparallelflip : \n   forall A B C D, \n   TP A B C D ->\n   TP B A C D /\ TP A B D C /\ TP B A D C.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+
+*****
+Ax1 : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : TP A B C D), and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+Proof.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+
+*****
+Ax1 : euclidean_neutral
+*****
+forall (A B C D : Point) (_ : TP A B C D), and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+intros.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+
+*****
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert ((neq A B /\ neq C D /\ ~ Meet A B C D /\ OS C D A B)) by (conclude_def TP ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+
+*****
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+
+*****
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+
+*****
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (~ Meet A B D C).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+
+*****
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+not (Meet A B D C)
++++++
+intro.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+intro.
+
+*****
+H3 : Meet A B D C
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists T, (neq A B /\ neq D C /\ Col A B T /\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq A B /\\ neq D C /\\ Col A B T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+
+*****
+H7 : Col D C T
+H6 : Col A B T
+H5 : neq D C
+H4 : neq A B
+T : Point
+H3 : Meet A B D C
+H2 : neq D C
+H1 : OS D C A B
+H10 : OS C D A B
+H9 : not (Meet A B C D)
+H8 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Col C D T) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq A B /\\ neq D C /\\ Col A B T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col C D T) by (forward_using lemma_collinearorder).
+
+*****
+H11 : Col C D T
+H7 : Col D C T
+H6 : Col A B T
+H5 : neq D C
+H4 : neq A B
+T : Point
+H3 : Meet A B D C
+H2 : neq D C
+H1 : OS D C A B
+H10 : OS C D A B
+H9 : not (Meet A B C D)
+H8 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (neq C D) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq A B /\\ neq D C /\\ Col A B T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col C D T) by (forward_using lemma_collinearorder).
+assert (neq C D) by (conclude lemma_inequalitysymmetric).
+
+*****
+H12 : neq C D
+H11 : Col C D T
+H7 : Col D C T
+H6 : Col A B T
+H5 : neq D C
+H4 : neq A B
+T : Point
+H3 : Meet A B D C
+H2 : neq D C
+H1 : OS D C A B
+H10 : OS C D A B
+H9 : not (Meet A B C D)
+H8 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Meet A B C D) by (conclude_def Meet ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq A B /\\ neq D C /\\ Col A B T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col C D T) by (forward_using lemma_collinearorder).
+assert (neq C D) by (conclude lemma_inequalitysymmetric).
+assert (Meet A B C D) by (conclude_def Meet ).
+
+*****
+H13 : Meet A B C D
+H12 : neq C D
+H11 : Col C D T
+H7 : Col D C T
+H6 : Col A B T
+H5 : neq D C
+H4 : neq A B
+T : Point
+H3 : Meet A B D C
+H2 : neq D C
+H1 : OS D C A B
+H10 : OS C D A B
+H9 : not (Meet A B C D)
+H8 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+
+*****
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (TP A B D C) by (conclude_def TP ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+
+*****
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (~ Meet B A C D).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+
+*****
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+not (Meet B A C D)
++++++
+intro.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+intro.
+
+*****
+H5 : Meet B A C D
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\ neq C D /\ Col B A T /\ Col C D T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq C D /\\ Col B A T /\\ Col C D T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+
+*****
+H9 : Col C D T
+H8 : Col B A T
+H7 : neq C D
+H6 : neq B A
+T : Point
+H5 : Meet B A C D
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H12 : OS C D A B
+H11 : not (Meet A B C D)
+H10 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Col A B T) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq C D /\\ Col B A T /\\ Col C D T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col A B T) by (forward_using lemma_collinearorder).
+
+*****
+H13 : Col A B T
+H9 : Col C D T
+H8 : Col B A T
+H7 : neq C D
+H6 : neq B A
+T : Point
+H5 : Meet B A C D
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H12 : OS C D A B
+H11 : not (Meet A B C D)
+H10 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Meet A B C D) by (conclude_def Meet ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq C D /\\ Col B A T /\\ Col C D T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col A B T) by (forward_using lemma_collinearorder).
+assert (Meet A B C D) by (conclude_def Meet ).
+
+*****
+H14 : Meet A B C D
+H13 : Col A B T
+H9 : Col C D T
+H8 : Col B A T
+H7 : neq C D
+H6 : neq B A
+T : Point
+H5 : Meet B A C D
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H12 : OS C D A B
+H11 : not (Meet A B C D)
+H10 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+
+*****
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+
+*****
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+
+*****
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+
+*****
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+
+*****
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (TP B A C D) by (conclude_def TP ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+
+*****
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (~ Meet B A D C).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+
+*****
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+not (Meet B A D C)
++++++
+intro.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+intro.
+
+*****
+H11 : Meet B A D C
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\ neq D C /\ Col B A T /\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq D C /\\ Col B A T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+
+*****
+H15 : Col D C T
+H14 : Col B A T
+H13 : neq D C
+H12 : neq B A
+T : Point
+H11 : Meet B A D C
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H18 : OS C D A B
+H17 : not (Meet A B C D)
+H16 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Col A B T) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq D C /\\ Col B A T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col A B T) by (forward_using lemma_collinearorder).
+
+*****
+H19 : Col A B T
+H15 : Col D C T
+H14 : Col B A T
+H13 : neq D C
+H12 : neq B A
+T : Point
+H11 : Meet B A D C
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H18 : OS C D A B
+H17 : not (Meet A B C D)
+H16 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Col C D T) by (forward_using lemma_collinearorder).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq D C /\\ Col B A T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col A B T) by (forward_using lemma_collinearorder).
+assert (Col C D T) by (forward_using lemma_collinearorder).
+
+*****
+H20 : Col C D T
+H19 : Col A B T
+H15 : Col D C T
+H14 : Col B A T
+H13 : neq D C
+H12 : neq B A
+T : Point
+H11 : Meet B A D C
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H18 : OS C D A B
+H17 : not (Meet A B C D)
+H16 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+assert (Meet A B C D) by (conclude_def Meet ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+intro.
+let Tf:=fresh in assert (Tf:exists T, (neq B A /\\ neq D C /\\ Col B A T /\\ Col D C T)) by (conclude_def Meet );destruct Tf as [T];spliter.
+assert (Col A B T) by (forward_using lemma_collinearorder).
+assert (Col C D T) by (forward_using lemma_collinearorder).
+assert (Meet A B C D) by (conclude_def Meet ).
+
+*****
+H21 : Meet A B C D
+H20 : Col C D T
+H19 : Col A B T
+H15 : Col D C T
+H14 : Col B A T
+H13 : neq D C
+H12 : neq B A
+T : Point
+H11 : Meet B A D C
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H18 : OS C D A B
+H17 : not (Meet A B C D)
+H16 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+
+*****
+H11 : not (Meet B A D C)
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+assert (TP B A D C) by (conclude_def TP ).
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+assert (TP B A D C) by (conclude_def TP ).
+
+*****
+H12 : TP B A D C
+H11 : not (Meet B A D C)
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H0 : and (neq A B) (and (neq C D) (and (not (Meet A B C D)) (OS C D A B)))
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+let Tf:=fresh in assert (Tf:exists Q P R, (Col A B P /\ Col A B R /\ BetS C P Q /\ BetS D R Q /\ nCol A B C /\ nCol A B D)) by (conclude_def OS );destruct Tf as [P[Q[R]]];spliter.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+assert (TP B A D C) by (conclude_def TP ).
+let Tf:=fresh in assert (Tf:exists Q P R, (Col A B P /\\ Col A B R /\\ BetS C P Q /\\ BetS D R Q /\\ nCol A B C /\\ nCol A B D)) by (conclude_def OS );destruct Tf as [P[Q[R]]];spliter.
+
+*****
+H18 : nCol A B D
+H17 : nCol A B C
+H16 : BetS D R P
+H15 : BetS C Q P
+H14 : Col A B R
+H13 : Col A B Q
+P,Q,R : Point
+H12 : TP B A D C
+H11 : not (Meet B A D C)
+H10 : TP B A C D
+H9 : OS D C B A
+H8 : OS C D B A
+H7 : OS D C A B
+H6 : neq B A
+H5 : not (Meet B A C D)
+H4 : TP A B D C
+H3 : not (Meet A B D C)
+H2 : neq D C
+H1 : OS D C A B
+H21 : OS C D A B
+H20 : not (Meet A B C D)
+H19 : neq C D
+H0 : neq A B
+H : TP A B C D
+A,B,C,D : Point
+Ax1 : euclidean_neutral
+*****
+and (TP B A C D) (and (TP A B D C) (TP B A D C))
++++++
+close.
+-----
+Lemma lemma_tarskiparallelflip : forall A B C D, TP A B C D -> TP B A C D /\\ TP A B D C /\\ TP B A D C.
+Proof.
+intros.
+assert ((neq A B /\\ neq C D /\\ ~ Meet A B C D /\\ OS C D A B)) by (conclude_def TP ).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (neq D C) by (conclude lemma_inequalitysymmetric).
+assert (~ Meet A B D C).
+assert (TP A B D C) by (conclude_def TP ).
+assert (~ Meet B A C D).
+assert (neq B A) by (conclude lemma_inequalitysymmetric).
+assert (OS D C A B) by (forward_using lemma_samesidesymmetric).
+assert (OS C D B A) by (forward_using lemma_samesidesymmetric).
+assert (OS D C B A) by (forward_using lemma_samesidesymmetric).
+assert (TP B A C D) by (conclude_def TP ).
+assert (~ Meet B A D C).
+assert (TP B A D C) by (conclude_def TP ).
+let Tf:=fresh in assert (Tf:exists Q P R, (Col A B P /\\ Col A B R /\\ BetS C P Q /\\ BetS D R Q /\\ nCol A B C /\\ nCol A B D)) by (conclude_def OS );destruct Tf as [P[Q[R]]];spliter.
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

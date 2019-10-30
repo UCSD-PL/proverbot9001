@@ -1,0 +1,18 @@
+Ch01_tarski_axioms.vo Ch01_tarski_axioms.glob Ch01_tarski_axioms.v.beautified: Ch01_tarski_axioms.v general_tactics.vo
+Ch01_tarski_axioms.vio: Ch01_tarski_axioms.v general_tactics.vio
+Ch02_congruence_properties.vo Ch02_congruence_properties.glob Ch02_congruence_properties.v.beautified: Ch02_congruence_properties.v Ch01_tarski_axioms.vo
+Ch02_congruence_properties.vio: Ch02_congruence_properties.v Ch01_tarski_axioms.vio
+Ch03_between_properties.vo Ch03_between_properties.glob Ch03_between_properties.v.beautified: Ch03_between_properties.v Ch02_congruence_properties.vo
+Ch03_between_properties.vio: Ch03_between_properties.v Ch02_congruence_properties.vio
+Ch04_congruence_between_properties.vo Ch04_congruence_between_properties.glob Ch04_congruence_between_properties.v.beautified: Ch04_congruence_between_properties.v Ch03_between_properties.vo
+Ch04_congruence_between_properties.vio: Ch04_congruence_between_properties.v Ch03_between_properties.vio
+Ch05_between_transitivity_le.vo Ch05_between_transitivity_le.glob Ch05_between_transitivity_le.v.beautified: Ch05_between_transitivity_le.v Ch04_congruence_between_properties.vo
+Ch05_between_transitivity_le.vio: Ch05_between_transitivity_le.v Ch04_congruence_between_properties.vio
+Ch06_out_lines.vo Ch06_out_lines.glob Ch06_out_lines.v.beautified: Ch06_out_lines.v Ch05_between_transitivity_le.vo
+Ch06_out_lines.vio: Ch06_out_lines.v Ch05_between_transitivity_le.vio
+Ch07_midpoint.vo Ch07_midpoint.glob Ch07_midpoint.v.beautified: Ch07_midpoint.v Ch06_out_lines.vo
+Ch07_midpoint.vio: Ch07_midpoint.v Ch06_out_lines.vio
+Ch08_orthogonality.vo Ch08_orthogonality.glob Ch08_orthogonality.v.beautified: Ch08_orthogonality.v Ch07_midpoint.vo
+Ch08_orthogonality.vio: Ch08_orthogonality.v Ch07_midpoint.vio
+general_tactics.vo general_tactics.glob general_tactics.v.beautified: general_tactics.v
+general_tactics.vio: general_tactics.v

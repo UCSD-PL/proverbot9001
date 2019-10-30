@@ -1,0 +1,7135 @@
+From Coq Require Import Bool.
+-----
+Require Import Coq.Bool.Sumbool.
+-----
+From Coq Require Import Arith.
+-----
+Require Import Coq.NArith.NArith.
+-----
+Require Import Map.
+-----
+Require Import Mapaxioms.
+-----
+Require Import Fset.
+-----
+Require Import Mapiter.
+-----
+Require Import Mapsubset.
+-----
+From Coq Require Import List.
+-----
+Require Import Lsort.
+-----
+Require Import Mapcard.
+-----
+Require Import Mapcanon.
+-----
+Section MapC.
+-----
+Variables A B C : Type.
+-----
+Lemma MapPut_as_Merge_c :\n   forall m:Map A,\n     mapcanon A m ->\n     forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : A), eq (MapPut A m a y) (MapMerge A m (M1 A a y))
++++++
+Proof.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : A), eq (MapPut A m a y) (MapMerge A m (M1 A a y))
++++++
+intros.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapPut A m a y) (MapMerge A m (M1 A a y))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapPut A m a y)
++++++
+exact (MapPut_canon A m H a y).
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m (M1 A a y))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M1 A a y)
++++++
+apply M1_canon.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapPut A m a y) (MapMerge A m (M1 A a y))
++++++
+apply MapPut_as_Merge.
+-----
+Lemma MapPut_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut A m a y = MapMerge A m (M1 A a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapPut_behind_as_Merge_c :\n   forall m:Map A,\n     mapcanon A m ->\n     forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : A), eq (MapPut_behind A m a y) (MapMerge A (M1 A a y) m)
++++++
+Proof.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : A), eq (MapPut_behind A m a y) (MapMerge A (M1 A a y) m)
++++++
+intros.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapPut_behind A m a y) (MapMerge A (M1 A a y) m)
++++++
+apply mapcanon_unique.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapPut_behind A m a y)
++++++
+exact (MapPut_behind_canon A m H a y).
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (M1 A a y) m)
++++++
+apply MapMerge_canon.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M1 A a y)
++++++
+apply M1_canon.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : A
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapPut_behind A m a y) (MapMerge A (M1 A a y) m)
++++++
+apply MapPut_behind_as_Merge.
+-----
+Lemma MapPut_behind_as_Merge_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:A), MapPut_behind A m a y = MapMerge A (M1 A a y) m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_empty_m_c : forall m:Map A, MapMerge A (M0 A) m = m.
+-----
+Lemma MapMerge_empty_m_c : forall m:Map A, MapMerge A (M0 A) m = m.
+
+*****
+A,B,C : Type
+*****
+forall m : Map A, eq (MapMerge A (M0 A) m) m
++++++
+Proof.
+-----
+Lemma MapMerge_empty_m_c : forall m:Map A, MapMerge A (M0 A) m = m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall m : Map A, eq (MapMerge A (M0 A) m) m
++++++
+trivial.
+-----
+Lemma MapMerge_empty_m_c : forall m:Map A, MapMerge A (M0 A) m = m.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_assoc_c :\n   forall m m' m'':Map A,\n     mapcanon A m ->\n     mapcanon A m' ->\n     mapcanon A m'' ->\n     MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m m' m'' : Map A) (_ : mapcanon A m) (_ : mapcanon A m') (_ : mapcanon A m''), eq (MapMerge A (MapMerge A m m') m'') (MapMerge A m (MapMerge A m' m''))
++++++
+Proof.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' m'' : Map A) (_ : mapcanon A m) (_ : mapcanon A m') (_ : mapcanon A m''), eq (MapMerge A (MapMerge A m m') m'') (MapMerge A m (MapMerge A m' m''))
++++++
+intros.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+eq (MapMerge A (MapMerge A m m') m'') (MapMerge A m (MapMerge A m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapMerge A m m') m'')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m''
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m (MapMerge A m' m''))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m' m'')
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m' m'')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+try assumption.
+apply MapMerge_canon.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m''
++++++
+try assumption.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : mapcanon A m''
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+eqmap A (MapMerge A (MapMerge A m m') m'') (MapMerge A m (MapMerge A m' m''))
++++++
+apply MapMerge_assoc.
+-----
+Lemma MapMerge_assoc_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m' -> mapcanon A m'' -> MapMerge A (MapMerge A m m') m'' = MapMerge A m (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_idempotent_c :\n   forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapMerge A m m) m
++++++
+Proof.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapMerge A m m) m
++++++
+intros.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapMerge A m m) m
++++++
+apply mapcanon_unique.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m)
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapMerge A m m) m
++++++
+apply MapMerge_idempotent.
+-----
+Lemma MapMerge_idempotent_c : forall m:Map A, mapcanon A m -> MapMerge A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_RestrTo_l_c :\n   forall m m' m'':Map A,\n     mapcanon A m ->\n     mapcanon A m'' ->\n     MapMerge A (MapDomRestrTo A A m m') m'' =\n     MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m m' m'' : Map A) (_ : mapcanon A m) (_ : mapcanon A m''), eq (MapMerge A (MapDomRestrTo A A m m') m'') (MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m''))
++++++
+Proof.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' m'' : Map A) (_ : mapcanon A m) (_ : mapcanon A m''), eq (MapMerge A (MapDomRestrTo A A m m') m'') (MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m''))
++++++
+intros.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+eq (MapMerge A (MapDomRestrTo A A m m') m'') (MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrTo A A m m') m'')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A A m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m''
++++++
+assumption.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m'')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+mapcanon A m''
++++++
+assumption.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m''
+H : mapcanon A m
+m,m',m'' : Map A
+A,B,C : Type
+*****
+eqmap A (MapMerge A (MapDomRestrTo A A m m') m'') (MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m''))
++++++
+apply MapMerge_RestrTo_l.
+-----
+Lemma MapMerge_RestrTo_l_c : forall m m' m'':Map A, mapcanon A m -> mapcanon A m'' -> MapMerge A (MapDomRestrTo A A m m') m'' = MapDomRestrTo A A (MapMerge A m m'') (MapMerge A m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapRemove_as_RestrBy_c :\n   forall m:Map A,\n     mapcanon A m ->\n     forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : B), eq (MapRemove A m a) (MapDomRestrBy A B m (M1 B a y))
++++++
+Proof.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (a : ad) (y : B), eq (MapRemove A m a) (MapDomRestrBy A B m (M1 B a y))
++++++
+intros.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapRemove A m a) (MapDomRestrBy A B m (M1 B a y))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapRemove A m a)
++++++
+apply MapRemove_canon.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapRemove_canon.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m (M1 B a y))
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+y : B
+a : ad
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapRemove A m a) (MapDomRestrBy A B m (M1 B a y))
++++++
+apply MapRemove_as_RestrBy.
+-----
+Lemma MapRemove_as_RestrBy_c : forall m:Map A, mapcanon A m -> forall (a:ad) (y:B), MapRemove A m a = MapDomRestrBy A B m (M1 B a y).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_assoc_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrTo A C (MapDomRestrTo A B m m') m'' =\n     MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrTo B C m' m''))
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrTo B C m' m''))
++++++
+intros.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrTo B C m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C (MapDomRestrTo A B m m') m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+try assumption.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+try assumption.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+try assumption.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m (MapDomRestrTo B C m' m''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrTo B C m' m''))
++++++
+apply MapDomRestrTo_assoc.
+-----
+Lemma MapDomRestrTo_assoc_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrTo B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_idempotent_c :\n   forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapDomRestrTo A A m m) m
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapDomRestrTo A A m m) m
++++++
+intros.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A A m m) m
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A A m m)
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A A m m) m
++++++
+apply MapDomRestrTo_idempotent.
+-----
+Lemma MapDomRestrTo_idempotent_c : forall m:Map A, mapcanon A m -> MapDomRestrTo A A m m = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_Dom_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrTo A B m m') (MapDomRestrTo A unit m (MapDom B m'))
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrTo A B m m') (MapDomRestrTo A unit m (MapDom B m'))
++++++
+intros.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A B m m') (MapDomRestrTo A unit m (MapDom B m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A unit m (MapDom B m'))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A B m m') (MapDomRestrTo A unit m (MapDom B m'))
++++++
+apply MapDomRestrTo_Dom.
+-----
+Lemma MapDomRestrTo_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A B m m' = MapDomRestrTo A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrBy_Dom_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrBy A B m m') (MapDomRestrBy A unit m (MapDom B m'))
++++++
+Proof.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrBy A B m m') (MapDomRestrBy A unit m (MapDom B m'))
++++++
+intros.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A B m m') (MapDomRestrBy A unit m (MapDom B m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A unit m (MapDom B m'))
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A B m m') (MapDomRestrBy A unit m (MapDom B m'))
++++++
+apply MapDomRestrBy_Dom.
+-----
+Lemma MapDomRestrBy_Dom_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrBy A B m m' = MapDomRestrBy A unit m (MapDom B m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrBy_By_c :\n   forall (m:Map A) (m' m'':Map B),\n     mapcanon A m ->\n     MapDomRestrBy A B (MapDomRestrBy A B m m') m'' =\n     MapDomRestrBy A B m (MapMerge B m' m'').
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' m'' : Map B) (_ : mapcanon A m), eq (MapDomRestrBy A B (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B m (MapMerge B m' m''))
++++++
+Proof.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' m'' : Map B) (_ : mapcanon A m), eq (MapDomRestrBy A B (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B m (MapMerge B m' m''))
++++++
+intros.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A B (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B m (MapMerge B m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B (MapDomRestrBy A B m m') m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+try assumption.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+try assumption.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+try assumption.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m (MapMerge B m' m''))
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m',m'' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A B (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B m (MapMerge B m' m''))
++++++
+apply MapDomRestrBy_By.
+-----
+Lemma MapDomRestrBy_By_c : forall (m:Map A) (m' m'':Map B), mapcanon A m -> MapDomRestrBy A B (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B m (MapMerge B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrBy_By_comm_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrBy A C (MapDomRestrBy A B m m') m'' =\n     MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrBy A C m m'') m')
++++++
+Proof.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrBy A C m m'') m')
++++++
+intros.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrBy A C m m'') m')
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A C (MapDomRestrBy A B m m') m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B (MapDomRestrBy A C m m'') m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A C m m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrBy A C m m'') m')
++++++
+apply MapDomRestrBy_By_comm.
+-----
+Lemma MapDomRestrBy_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrBy_To_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrBy A C (MapDomRestrTo A B m m') m'' =\n     MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrBy B C m' m''))
++++++
+Proof.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrBy B C m' m''))
++++++
+intros.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrBy B C m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A C (MapDomRestrTo A B m m') m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m (MapDomRestrBy B C m' m''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B m (MapDomRestrBy B C m' m''))
++++++
+apply MapDomRestrBy_To.
+-----
+Lemma MapDomRestrBy_To_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B m (MapDomRestrBy B C m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrBy_To_comm_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrBy A C (MapDomRestrTo A B m m') m'' =\n     MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrBy A C m m'') m')
++++++
+Proof.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrBy A C m m'') m')
++++++
+intros.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrBy A C m m'') m')
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A C (MapDomRestrTo A B m m') m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B (MapDomRestrBy A C m m'') m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A C m m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrBy A C m m'') m')
++++++
+apply MapDomRestrBy_To_comm.
+-----
+Lemma MapDomRestrBy_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrBy A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrBy A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_By_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrTo A C (MapDomRestrBy A B m m') m'' =\n     MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrTo A C m (MapDomRestrBy C B m'' m'))
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrTo A C m (MapDomRestrBy C B m'' m'))
++++++
+intros.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrTo A C m (MapDomRestrBy C B m'' m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C (MapDomRestrBy A B m m') m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C m (MapDomRestrBy C B m'' m'))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrTo A C m (MapDomRestrBy C B m'' m'))
++++++
+apply MapDomRestrTo_By.
+-----
+Lemma MapDomRestrTo_By_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrTo A C m (MapDomRestrBy C B m'' m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_By_comm_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrTo A C (MapDomRestrBy A B m m') m'' =\n     MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrTo A C m m'') m')
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrTo A C m m'') m')
++++++
+intros.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrTo A C m m'') m')
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C (MapDomRestrBy A B m m') m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B (MapDomRestrTo A C m m'') m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C m m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A C (MapDomRestrBy A B m m') m'') (MapDomRestrBy A B (MapDomRestrTo A C m m'') m')
++++++
+apply MapDomRestrTo_By_comm.
+-----
+Lemma MapDomRestrTo_By_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrBy A B m m') m'' = MapDomRestrBy A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDomRestrTo_To_comm_c :\n   forall (m:Map A) (m':Map B) (m'':Map C),\n     mapcanon A m ->\n     MapDomRestrTo A C (MapDomRestrTo A B m m') m'' =\n     MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrTo A C m m'') m')
++++++
+Proof.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (m'' : Map C) (_ : mapcanon A m), eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrTo A C m m'') m')
++++++
+intros.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrTo A C m m'') m')
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C (MapDomRestrTo A B m m') m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B (MapDomRestrTo A C m m'') m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A C m m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m'' : Map C
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A C (MapDomRestrTo A B m m') m'') (MapDomRestrTo A B (MapDomRestrTo A C m m'') m')
++++++
+apply MapDomRestrTo_To_comm.
+-----
+Lemma MapDomRestrTo_To_comm_c : forall (m:Map A) (m':Map B) (m'':Map C), mapcanon A m -> MapDomRestrTo A C (MapDomRestrTo A B m m') m'' = MapDomRestrTo A B (MapDomRestrTo A C m m'') m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_DomRestrTo_c :\n   forall (m m':Map A) (m'':Map B),\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDomRestrTo A B (MapMerge A m m') m'' =\n     MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (m'' : Map B) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDomRestrTo A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m''))
++++++
+Proof.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (m'' : Map B) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDomRestrTo A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m''))
++++++
+intros.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B (MapMerge A m m') m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m''))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m' m'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m''))
++++++
+apply MapMerge_DomRestrTo.
+-----
+Lemma MapMerge_DomRestrTo_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrTo A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrTo A B m m'') (MapDomRestrTo A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapMerge_DomRestrBy_c :\n   forall (m m':Map A) (m'':Map B),\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDomRestrBy A B (MapMerge A m m') m'' =\n     MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (m'' : Map B) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDomRestrBy A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m''))
++++++
+Proof.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (m'' : Map B) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDomRestrBy A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m''))
++++++
+intros.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrBy A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m''))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B (MapMerge A m m') m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m''))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m' m'')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m'' : Map B
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrBy A B (MapMerge A m m') m'') (MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m''))
++++++
+apply MapMerge_DomRestrBy.
+-----
+Lemma MapMerge_DomRestrBy_c : forall (m m':Map A) (m'':Map B), mapcanon A m -> mapcanon A m' -> MapDomRestrBy A B (MapMerge A m m') m'' = MapMerge A (MapDomRestrBy A B m m'') (MapDomRestrBy A B m' m'').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_nilpotent_c :\n   forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapDelta A m m) (M0 A)
++++++
+Proof.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (MapDelta A m m) (M0 A)
++++++
+intros.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m) (M0 A)
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m)
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M0 A)
++++++
+apply M0_canon.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m) (M0 A)
++++++
+apply MapDelta_nilpotent.
+-----
+Lemma MapDelta_nilpotent_c : forall m:Map A, mapcanon A m -> MapDelta A m m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_as_Merge_c :\n   forall m m':Map A,\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDelta A m m' =\n     MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m))
++++++
+Proof.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m))
++++++
+intros.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m') (MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m')
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A A m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A A m' m)
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m') (MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m))
++++++
+apply MapDelta_as_Merge.
+-----
+Lemma MapDelta_as_Merge_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapMerge A (MapDomRestrBy A A m m') (MapDomRestrBy A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_as_DomRestrBy_c :\n   forall m m':Map A,\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDelta A m m' =\n     MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m'))
++++++
+Proof.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m'))
++++++
+intros.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m')
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m'))
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m'))
++++++
+apply MapDelta_as_DomRestrBy.
+-----
+Lemma MapDelta_as_DomRestrBy_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c :\n   forall m m':Map A,\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDelta A m m' =\n     MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m))
++++++
+Proof.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m))
++++++
+intros.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m')
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m))
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrBy_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m') (MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m))
++++++
+apply MapDelta_as_DomRestrBy_2.
+-----
+Lemma MapDelta_as_DomRestrBy_2_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDomRestrBy A A (MapMerge A m m') (MapDomRestrTo A A m' m).
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_sym_c :\n   forall m m':Map A,\n     mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDelta A m' m)
++++++
+Proof.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m'), eq (MapDelta A m m') (MapDelta A m' m)
++++++
+intros.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m') (MapDelta A m' m)
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m')
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m' m)
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m') (MapDelta A m' m)
++++++
+apply MapDelta_sym.
+-----
+Lemma MapDelta_sym_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDelta A m m' = MapDelta A m' m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDom_Split_1_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq m (MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+Proof.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq m (MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+intros.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq m (MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A m (MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+apply MapDom_Split_1.
+-----
+Lemma MapDom_Split_1_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDom_Split_2_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq m (MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m'))
++++++
+Proof.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq m (MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m'))
++++++
+intros.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq m (MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m'))
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m'))
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrBy A B m m')
++++++
+apply MapDomRestrBy_canon.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrBy_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A m (MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m'))
++++++
+apply MapDom_Split_2.
+-----
+Lemma MapDom_Split_2_c : forall (m:Map A) (m':Map B), mapcanon A m -> m = MapMerge A (MapDomRestrBy A B m m') (MapDomRestrTo A B m m').
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDom_Split_3_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') =\n     M0 A.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m')) (M0 A)
++++++
+Proof.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m), eq (MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m')) (M0 A)
++++++
+intros.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m')) (M0 A)
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m'))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDomRestrTo A B m m')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDomRestrTo_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M0 A)
++++++
+apply M0_canon.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap A (MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m')) (M0 A)
++++++
+apply MapDom_Split_3.
+-----
+Lemma MapDom_Split_3_c : forall (m:Map A) (m':Map B), mapcanon A m -> MapDomRestrTo A A (MapDomRestrTo A B m m') (MapDomRestrBy A B m m') = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Map_of_alist_of_Map_c :\n   forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (Map_of_alist A (alist_of_Map A m)) m
++++++
+Proof.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m), eq (Map_of_alist A (alist_of_Map A m)) m
++++++
+intros.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq (Map_of_alist A (alist_of_Map A m)) m
++++++
+apply mapcanon_unique.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (Map_of_alist A (alist_of_Map A m))
++++++
+try assumption.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (Map_of_alist A (alist_of_Map A m))
++++++
+apply Map_of_alist_canon.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (Map_of_alist A (alist_of_Map A m)) m
++++++
+try assumption.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+
+*****
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A (Map_of_alist A (alist_of_Map A m)) m
++++++
+apply Map_of_alist_of_Map.
+-----
+Lemma Map_of_alist_of_Map_c : forall m:Map A, mapcanon A m -> Map_of_alist A (alist_of_Map A m) = m.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma alist_of_Map_of_alist_c :\n   forall l:alist A,\n     alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+
+*****
+A,B,C : Type
+*****
+forall (l : alist A) (_ : alist_sorted_2 A l), eq (alist_of_Map A (Map_of_alist A l)) l
++++++
+Proof.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (l : alist A) (_ : alist_sorted_2 A l), eq (alist_of_Map A (Map_of_alist A l)) l
++++++
+intros.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+intros.
+
+*****
+H : alist_sorted_2 A l
+l : alist A
+A,B,C : Type
+*****
+eq (alist_of_Map A (Map_of_alist A l)) l
++++++
+apply alist_canonical.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+intros.
+apply alist_canonical.
+
+*****
+H : alist_sorted_2 A l
+l : alist A
+A,B,C : Type
+*****
+eqm A (alist_semantics A (alist_of_Map A (Map_of_alist A l))) (alist_semantics A l)
++++++
+apply alist_of_Map_of_alist.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+intros.
+apply alist_canonical.
+
+*****
+H : alist_sorted_2 A l
+l : alist A
+A,B,C : Type
+*****
+alist_sorted_2 A (alist_of_Map A (Map_of_alist A l))
++++++
+apply alist_of_Map_sorts2.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+intros.
+apply alist_canonical.
+
+*****
+H : alist_sorted_2 A l
+l : alist A
+A,B,C : Type
+*****
+alist_sorted_2 A l
++++++
+assumption.
+-----
+Lemma alist_of_Map_of_alist_c : forall l:alist A, alist_sorted_2 A l -> alist_of_Map A (Map_of_alist A l) = l.
+Proof.
+intros.
+apply alist_canonical.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapSubset_antisym_c :\n   forall (m:Map A) (m':Map B),\n     mapcanon A m ->\n     mapcanon B m' ->\n     MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m) (_ : mapcanon B m') (_ : MapSubset A B m m') (_ : MapSubset B A m' m), eq (MapDom A m) (MapDom B m')
++++++
+Proof.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (m' : Map B) (_ : mapcanon A m) (_ : mapcanon B m') (_ : MapSubset A B m m') (_ : MapSubset B A m' m), eq (MapDom A m) (MapDom B m')
++++++
+intros.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eq (MapDom A m) (MapDom B m')
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon unit (MapDom A m)
++++++
+apply MapDom_canon.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDom_canon.
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon unit (MapDom B m')
++++++
+apply MapDom_canon.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDom_canon.
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+mapcanon B m'
++++++
+assumption.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+eqmap unit (MapDom A m) (MapDom B m')
++++++
+apply MapSubset_antisym.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapSubset_antisym.
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+MapSubset A B m m'
++++++
+assumption.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapSubset_antisym.
+
+*****
+H2 : MapSubset B A m' m
+H1 : MapSubset A B m m'
+H0 : mapcanon B m'
+H : mapcanon A m
+m' : Map B
+m : Map A
+A,B,C : Type
+*****
+MapSubset B A m' m
++++++
+assumption.
+-----
+Lemma MapSubset_antisym_c : forall (m:Map A) (m':Map B), mapcanon A m -> mapcanon B m' -> MapSubset A B m m' -> MapSubset B A m' m -> MapDom A m = MapDom B m'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSubset_antisym_c :\n   forall s s':FSet,\n     mapcanon unit s ->\n     mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+
+*****
+A,B,C : Type
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : MapSubset unit unit s s') (_ : MapSubset unit unit s' s), eq s s'
++++++
+Proof.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : MapSubset unit unit s s') (_ : MapSubset unit unit s' s), eq s s'
++++++
+intros.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+eq s s'
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+mapcanon unit s
++++++
+try assumption.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+mapcanon unit s'
++++++
+try assumption.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+eqmap unit s s'
++++++
+try assumption.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try assumption.
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+eqmap unit s s'
++++++
+apply FSubset_antisym.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try assumption.
+apply FSubset_antisym.
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+MapSubset unit unit s s'
++++++
+assumption.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try assumption.
+apply FSubset_antisym.
+
+*****
+H2 : MapSubset unit unit s' s
+H1 : MapSubset unit unit s s'
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+A,B,C : Type
+*****
+MapSubset unit unit s' s
++++++
+assumption.
+-----
+Lemma FSubset_antisym_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> MapSubset _ _ s s' -> MapSubset _ _ s' s -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDisjoint_empty_c :\n   forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (_ : MapDisjoint A A m m), eq m (M0 A)
++++++
+Proof.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m : Map A) (_ : mapcanon A m) (_ : MapDisjoint A A m m), eq m (M0 A)
++++++
+intros.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eq m (M0 A)
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+try assumption.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M0 A)
++++++
+try assumption.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+mapcanon A (M0 A)
++++++
+try apply M0_canon.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A m (M0 A)
++++++
+try assumption.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A m (M0 A)
++++++
+try apply M0_canon.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+try apply M0_canon.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+eqmap A m (M0 A)
++++++
+apply MapDisjoint_empty.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+try assumption.
+try apply M0_canon.
+apply MapDisjoint_empty.
+
+*****
+H0 : MapDisjoint A A m m
+H : mapcanon A m
+m : Map A
+A,B,C : Type
+*****
+MapDisjoint A A m m
++++++
+assumption.
+-----
+Lemma MapDisjoint_empty_c : forall m:Map A, mapcanon A m -> MapDisjoint A A m m -> m = M0 A.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma MapDelta_disjoint_c :\n   forall m m':Map A,\n     mapcanon A m ->\n     mapcanon A m' ->\n     MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m') (_ : MapDisjoint A A m m'), eq (MapDelta A m m') (MapMerge A m m')
++++++
+Proof.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+
+*****
+A,B,C : Type
+*****
+forall (m m' : Map A) (_ : mapcanon A m) (_ : mapcanon A m') (_ : MapDisjoint A A m m'), eq (MapDelta A m m') (MapMerge A m m')
++++++
+intros.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eq (MapDelta A m m') (MapMerge A m m')
++++++
+apply mapcanon_unique.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapDelta A m m')
++++++
+apply MapDelta_canon.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_canon.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A (MapMerge A m m')
++++++
+apply MapMerge_canon.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m
++++++
+assumption.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapMerge_canon.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+mapcanon A m'
++++++
+assumption.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+eqmap A (MapDelta A m m') (MapMerge A m m')
++++++
+apply MapDelta_disjoint.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+apply MapDelta_disjoint.
+
+*****
+H1 : MapDisjoint A A m m'
+H0 : mapcanon A m'
+H : mapcanon A m
+m,m' : Map A
+A,B,C : Type
+*****
+MapDisjoint A A m m'
++++++
+assumption.
+-----
+Lemma MapDelta_disjoint_c : forall m m':Map A, mapcanon A m -> mapcanon A m' -> MapDisjoint A A m m' -> MapDelta A m m' = MapMerge A m m'.
+Proof.
+intros.
+apply mapcanon_unique.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End MapC.
+-----
+Lemma FSetDelta_assoc_c :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' ->\n   mapcanon unit s'' ->\n   MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : mapcanon unit s''), eq (MapDelta unit (MapDelta unit s s') s'') (MapDelta unit s (MapDelta unit s' s''))
++++++
+Proof.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : mapcanon unit s''), eq (MapDelta unit (MapDelta unit s s') s'') (MapDelta unit s (MapDelta unit s' s''))
++++++
+intros.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eq (MapDelta unit (MapDelta unit s s') s'') (MapDelta unit s (MapDelta unit s' s''))
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDelta unit (MapDelta unit s s') s'')
++++++
+apply MapDelta_canon.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDelta unit s s')
++++++
+apply MapDelta_canon.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s''
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDelta unit s (MapDelta unit s' s''))
++++++
+apply MapDelta_canon.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDelta unit s' s'')
++++++
+apply MapDelta_canon.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+apply MapDelta_canon.
+apply MapDelta_canon.
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s''
++++++
+assumption.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : mapcanon unit s''
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eqmap unit (MapDelta unit (MapDelta unit s s') s'') (MapDelta unit s (MapDelta unit s' s''))
++++++
+apply FSetDelta_assoc.
+-----
+Lemma FSetDelta_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> MapDelta _ (MapDelta _ s s') s'' = MapDelta _ s (MapDelta _ s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSet_ext_c :\n forall s s':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : forall a : ad, eq (in_FSet a s) (in_FSet a s')), eq s s'
++++++
+Proof.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : forall a : ad, eq (in_FSet a s) (in_FSet a s')), eq s s'
++++++
+intros.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eq s s'
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit s
++++++
+try assumption.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit s'
++++++
+try assumption.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit s s'
++++++
+try assumption.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try assumption.
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit s s'
++++++
+apply FSet_ext.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try assumption.
+apply FSet_ext.
+
+*****
+H1 : forall a : ad, eq (in_FSet a s) (in_FSet a s')
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+forall a : ad, eq (in_FSet a s) (in_FSet a s')
++++++
+assumption.
+-----
+Lemma FSet_ext_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> (forall a:ad, in_FSet a s = in_FSet a s') -> s = s'.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_comm_c :\n forall s s':FSet,\n   mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetUnion s s') (FSetUnion s' s)
++++++
+Proof.
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetUnion s s') (FSetUnion s' s)
++++++
+intros.
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eq (FSetUnion s s') (FSetUnion s' s)
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit (FSetUnion s s')
++++++
+try (unfold FSetUnion in |- *; apply MapMerge_canon; assumption).
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit (FSetUnion s' s)
++++++
+try (unfold FSetUnion in |- *; apply MapMerge_canon; assumption).
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit (FSetUnion s s') (FSetUnion s' s)
++++++
+try (unfold FSetUnion in |- *; apply MapMerge_canon; assumption).
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try (unfold FSetUnion in |- *; apply MapMerge_canon; assumption).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit (FSetUnion s s') (FSetUnion s' s)
++++++
+apply FSetUnion_comm.
+-----
+Lemma FSetUnion_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s s' = FSetUnion s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_assoc_c :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' ->\n   mapcanon unit s'' ->\n   FSetUnion (FSetUnion s s') s'' = FSetUnion s (FSetUnion s' s'').
+-----
+Lemma FSetUnion_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> FSetUnion (FSetUnion s s') s'' = FSetUnion s (FSetUnion s' s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : mapcanon unit s''), eq (FSetUnion (FSetUnion s s') s'') (FSetUnion s (FSetUnion s' s''))
++++++
+Proof.
+-----
+Lemma FSetUnion_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> FSetUnion (FSetUnion s s') s'' = FSetUnion s (FSetUnion s' s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s') (_ : mapcanon unit s''), eq (FSetUnion (FSetUnion s s') s'') (FSetUnion s (FSetUnion s' s''))
++++++
+exact (MapMerge_assoc_c unit).
+-----
+Lemma FSetUnion_assoc_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> mapcanon unit s'' -> FSetUnion (FSetUnion s s') s'' = FSetUnion s (FSetUnion s' s'').
+Proof.
+exact (MapMerge_assoc_c unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_M0_s_c : forall s:FSet, FSetUnion (M0 unit) s = s.
+-----
+Lemma FSetUnion_M0_s_c : forall s:FSet, FSetUnion (M0 unit) s = s.
+
+*****
+
+*****
+forall s : FSet, eq (FSetUnion (M0 unit) s) s
++++++
+Proof.
+-----
+Lemma FSetUnion_M0_s_c : forall s:FSet, FSetUnion (M0 unit) s = s.
+Proof.
+
+*****
+
+*****
+forall s : FSet, eq (FSetUnion (M0 unit) s) s
++++++
+exact (MapMerge_empty_m_c unit).
+-----
+Lemma FSetUnion_M0_s_c : forall s:FSet, FSetUnion (M0 unit) s = s.
+Proof.
+exact (MapMerge_empty_m_c unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_s_M0_c : forall s:FSet, FSetUnion s (M0 unit) = s.
+-----
+Lemma FSetUnion_s_M0_c : forall s:FSet, FSetUnion s (M0 unit) = s.
+
+*****
+
+*****
+forall s : FSet, eq (FSetUnion s (M0 unit)) s
++++++
+Proof.
+-----
+Lemma FSetUnion_s_M0_c : forall s:FSet, FSetUnion s (M0 unit) = s.
+Proof.
+
+*****
+
+*****
+forall s : FSet, eq (FSetUnion s (M0 unit)) s
++++++
+exact (MapMerge_m_empty_1 unit).
+-----
+Lemma FSetUnion_s_M0_c : forall s:FSet, FSetUnion s (M0 unit) = s.
+Proof.
+exact (MapMerge_m_empty_1 unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_idempotent :\n forall s:FSet, mapcanon unit s -> FSetUnion s s = s.
+-----
+Lemma FSetUnion_idempotent : forall s:FSet, mapcanon unit s -> FSetUnion s s = s.
+
+*****
+
+*****
+forall (s : FSet) (_ : mapcanon unit s), eq (FSetUnion s s) s
++++++
+Proof.
+-----
+Lemma FSetUnion_idempotent : forall s:FSet, mapcanon unit s -> FSetUnion s s = s.
+Proof.
+
+*****
+
+*****
+forall (s : FSet) (_ : mapcanon unit s), eq (FSetUnion s s) s
++++++
+exact (MapMerge_idempotent_c unit).
+-----
+Lemma FSetUnion_idempotent : forall s:FSet, mapcanon unit s -> FSetUnion s s = s.
+Proof.
+exact (MapMerge_idempotent_c unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_comm_c :\n forall s s':FSet,\n   mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter s s') (FSetInter s' s)
++++++
+Proof.
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+
+*****
+
+*****
+forall (s s' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter s s') (FSetInter s' s)
++++++
+intros.
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eq (FSetInter s s') (FSetInter s' s)
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit (FSetInter s s')
++++++
+try (unfold FSetInter in |- *; apply MapDomRestrTo_canon; assumption).
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+mapcanon unit (FSetInter s' s)
++++++
+try (unfold FSetInter in |- *; apply MapDomRestrTo_canon; assumption).
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit (FSetInter s s') (FSetInter s' s)
++++++
+try (unfold FSetInter in |- *; apply MapDomRestrTo_canon; assumption).
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+try (unfold FSetInter in |- *; apply MapDomRestrTo_canon; assumption).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s' : FSet
+*****
+eqmap unit (FSetInter s s') (FSetInter s' s)
++++++
+apply FSetInter_comm.
+-----
+Lemma FSetInter_comm_c : forall s s':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s s' = FSetInter s' s.
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_assoc_c :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   FSetInter (FSetInter s s') s'' = FSetInter s (FSetInter s' s'').
+-----
+Lemma FSetInter_assoc_c : forall s s' s'':FSet, mapcanon unit s -> FSetInter (FSetInter s s') s'' = FSetInter s (FSetInter s' s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s), eq (FSetInter (FSetInter s s') s'') (FSetInter s (FSetInter s' s''))
++++++
+Proof.
+-----
+Lemma FSetInter_assoc_c : forall s s' s'':FSet, mapcanon unit s -> FSetInter (FSetInter s s') s'' = FSetInter s (FSetInter s' s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s), eq (FSetInter (FSetInter s s') s'') (FSetInter s (FSetInter s' s''))
++++++
+exact (MapDomRestrTo_assoc_c unit unit unit).
+-----
+Lemma FSetInter_assoc_c : forall s s' s'':FSet, mapcanon unit s -> FSetInter (FSetInter s s') s'' = FSetInter s (FSetInter s' s'').
+Proof.
+exact (MapDomRestrTo_assoc_c unit unit unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_M0_s_c : forall s:FSet, FSetInter (M0 unit) s = M0 unit.
+-----
+Lemma FSetInter_M0_s_c : forall s:FSet, FSetInter (M0 unit) s = M0 unit.
+
+*****
+
+*****
+forall s : FSet, eq (FSetInter (M0 unit) s) (M0 unit)
++++++
+Proof.
+-----
+Lemma FSetInter_M0_s_c : forall s:FSet, FSetInter (M0 unit) s = M0 unit.
+Proof.
+
+*****
+
+*****
+forall s : FSet, eq (FSetInter (M0 unit) s) (M0 unit)
++++++
+trivial.
+-----
+Lemma FSetInter_M0_s_c : forall s:FSet, FSetInter (M0 unit) s = M0 unit.
+Proof.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_s_M0_c : forall s:FSet, FSetInter s (M0 unit) = M0 unit.
+-----
+Lemma FSetInter_s_M0_c : forall s:FSet, FSetInter s (M0 unit) = M0 unit.
+
+*****
+
+*****
+forall s : FSet, eq (FSetInter s (M0 unit)) (M0 unit)
++++++
+Proof.
+-----
+Lemma FSetInter_s_M0_c : forall s:FSet, FSetInter s (M0 unit) = M0 unit.
+Proof.
+
+*****
+
+*****
+forall s : FSet, eq (FSetInter s (M0 unit)) (M0 unit)
++++++
+exact (MapDomRestrTo_m_empty_1 unit unit).
+-----
+Lemma FSetInter_s_M0_c : forall s:FSet, FSetInter s (M0 unit) = M0 unit.
+Proof.
+exact (MapDomRestrTo_m_empty_1 unit unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_idempotent :\n forall s:FSet, mapcanon unit s -> FSetInter s s = s.
+-----
+Lemma FSetInter_idempotent : forall s:FSet, mapcanon unit s -> FSetInter s s = s.
+
+*****
+
+*****
+forall (s : FSet) (_ : mapcanon unit s), eq (FSetInter s s) s
++++++
+Proof.
+-----
+Lemma FSetInter_idempotent : forall s:FSet, mapcanon unit s -> FSetInter s s = s.
+Proof.
+
+*****
+
+*****
+forall (s : FSet) (_ : mapcanon unit s), eq (FSetInter s s) s
++++++
+exact (MapDomRestrTo_idempotent_c unit).
+-----
+Lemma FSetInter_idempotent : forall s:FSet, mapcanon unit s -> FSetInter s s = s.
+Proof.
+exact (MapDomRestrTo_idempotent_c unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_Inter_l_c :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s'' ->\n   FSetUnion (FSetInter s s') s'' =\n   FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s''), eq (FSetUnion (FSetInter s s') s'') (FSetInter (FSetUnion s s'') (FSetUnion s' s''))
++++++
+Proof.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s''), eq (FSetUnion (FSetInter s s') s'') (FSetInter (FSetUnion s s'') (FSetUnion s' s''))
++++++
+intros.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eq (FSetUnion (FSetInter s s') s'') (FSetInter (FSetUnion s s'') (FSetUnion s' s''))
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion (FSetInter s s') s'')
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit (FSetInter s s') s'')
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s s')
++++++
+try assumption.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s s')
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s s')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s''
++++++
+try assumption.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter (FSetUnion s s'') (FSetUnion s' s''))
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit (FSetUnion s s'') (FSetUnion s' s''))
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit (MapMerge unit s s'') (MapMerge unit s' s''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit s s'')
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s''
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s''
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eqmap unit (FSetUnion (FSetInter s s') s'') (FSetInter (FSetUnion s s'') (FSetUnion s' s''))
++++++
+apply FSetUnion_Inter_l.
+-----
+Lemma FSetUnion_Inter_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s'' -> FSetUnion (FSetInter s s') s'' = FSetInter (FSetUnion s s'') (FSetUnion s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetUnion_Inter_r :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' ->\n   FSetUnion s (FSetInter s' s'') =\n   FSetInter (FSetUnion s s') (FSetUnion s s'').
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetUnion s (FSetInter s' s'')) (FSetInter (FSetUnion s s') (FSetUnion s s''))
++++++
+Proof.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetUnion s (FSetInter s' s'')) (FSetInter (FSetUnion s s') (FSetUnion s s''))
++++++
+intros.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eq (FSetUnion s (FSetInter s' s'')) (FSetInter (FSetUnion s s') (FSetUnion s s''))
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion s (FSetInter s' s''))
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit s (FSetInter s' s''))
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+try assumption.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s' s'')
++++++
+try assumption.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s' s'')
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s' s'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+try assumption.
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter (FSetUnion s s') (FSetUnion s s''))
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit (FSetUnion s s') (FSetUnion s s''))
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit (MapMerge unit s s') (MapMerge unit s s''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit s s')
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+unfold FSetUnion in |- *.
+apply MapDomRestrTo_canon.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eqmap unit (FSetUnion s (FSetInter s' s'')) (FSetInter (FSetUnion s s') (FSetUnion s s''))
++++++
+apply FSetUnion_Inter_r.
+-----
+Lemma FSetUnion_Inter_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetUnion s (FSetInter s' s'') = FSetInter (FSetUnion s s') (FSetUnion s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_Union_l_c :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' ->\n   FSetInter (FSetUnion s s') s'' =\n   FSetUnion (FSetInter s s'') (FSetInter s' s'').
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter (FSetUnion s s') s'') (FSetUnion (FSetInter s s'') (FSetInter s' s''))
++++++
+Proof.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter (FSetUnion s s') s'') (FSetUnion (FSetInter s s'') (FSetInter s' s''))
++++++
+intros.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eq (FSetInter (FSetUnion s s') s'') (FSetUnion (FSetInter s s'') (FSetInter s' s''))
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter (FSetUnion s s') s'')
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit (FSetUnion s s') s'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion s s')
++++++
+try assumption.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+try assumption.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion s s')
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+try assumption.
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit s s')
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+try assumption.
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+try assumption.
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion (FSetInter s s'') (FSetInter s' s''))
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit (FSetInter s s'') (FSetInter s' s''))
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit (MapDomRestrTo unit unit s s'') (MapDomRestrTo unit unit s' s''))
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+unfold FSetInter in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s s'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+unfold FSetInter in |- *.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+unfold FSetInter in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s' s'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+unfold FSetInter in |- *.
+apply MapMerge_canon.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s'
++++++
+assumption.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eqmap unit (FSetInter (FSetUnion s s') s'') (FSetUnion (FSetInter s s'') (FSetInter s' s''))
++++++
+apply FSetInter_Union_l.
+-----
+Lemma FSetInter_Union_l_c : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter (FSetUnion s s') s'' = FSetUnion (FSetInter s s'') (FSetInter s' s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma FSetInter_Union_r :\n forall s s' s'':FSet,\n   mapcanon unit s ->\n   mapcanon unit s' ->\n   FSetInter s (FSetUnion s' s'') =\n   FSetUnion (FSetInter s s') (FSetInter s s'').
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter s (FSetUnion s' s'')) (FSetUnion (FSetInter s s') (FSetInter s s''))
++++++
+Proof.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+
+*****
+
+*****
+forall (s s' s'' : FSet) (_ : mapcanon unit s) (_ : mapcanon unit s'), eq (FSetInter s (FSetUnion s' s'')) (FSetUnion (FSetInter s s') (FSetInter s s''))
++++++
+intros.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eq (FSetInter s (FSetUnion s' s'')) (FSetUnion (FSetInter s s') (FSetInter s s''))
++++++
+apply (mapcanon_unique unit).
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s (FSetUnion s' s''))
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s (FSetUnion s' s''))
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+try assumption.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetUnion (FSetInter s s') (FSetInter s s''))
++++++
+unfold FSetUnion in |- *.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapMerge unit (FSetInter s s') (FSetInter s s''))
++++++
+apply MapMerge_canon.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s s')
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s s')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (FSetInter s s'')
++++++
+unfold FSetInter in |- *.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+unfold FSetInter in |- *.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit (MapDomRestrTo unit unit s s'')
++++++
+apply MapDomRestrTo_canon.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+unfold FSetUnion in |- *.
+apply MapMerge_canon.
+unfold FSetInter in |- *.
+apply MapDomRestrTo_canon.
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+mapcanon unit s
++++++
+assumption.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+H0 : mapcanon unit s'
+H : mapcanon unit s
+s,s',s'' : FSet
+*****
+eqmap unit (FSetInter s (FSetUnion s' s'')) (FSetUnion (FSetInter s s') (FSetInter s s''))
++++++
+apply FSetInter_Union_r.
+-----
+Lemma FSetInter_Union_r : forall s s' s'':FSet, mapcanon unit s -> mapcanon unit s' -> FSetInter s (FSetUnion s' s'') = FSetUnion (FSetInter s s') (FSetInter s s'').
+Proof.
+intros.
+apply (mapcanon_unique unit).
+
+*****
+
+*****
+
++++++
+Qed.
+-----

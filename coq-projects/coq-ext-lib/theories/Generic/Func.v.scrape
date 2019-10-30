@@ -1,0 +1,34 @@
+Require Import Coq.Lists.List.
+-----
+Require Import ExtLib.Data.Member.
+-----
+Fixpoint asFunc (domain : list Type) (range : Type) : Type :=\n  match domain with\n    | nil => range\n    | d :: ds => d -> asFunc ds range\n  end.
+-----
+Fixpoint asPi (ps : list Type) {struct ps} :\n         ((forall U, asFunc ps U -> U) -> Type) -> Type :=\n  match ps as ps return ((forall U, asFunc ps U -> U) -> Type) -> Type with\n    | nil => fun f => f (fun _ x => x)\n    | p :: ps => fun f => forall x : p, asPi ps (fun App => f (fun _ f' => App _ (f' x)))\n  end.
+-----
+Fixpoint asTuple (domain : list Type) : Type :=\n  match domain with\n    | nil => unit\n    | d :: ds => prod d (asTuple ds)\n  end.
+-----
+Fixpoint applyF {domain : list Type} {range : Type}\n  : asFunc domain range -> asTuple domain -> range :=\n  match domain as domain\n    return asFunc domain range -> asTuple domain -> range\n    with\n    | nil => fun x _ => x\n    | d :: ds => fun f x_xs => applyF (f (fst x_xs)) (snd x_xs)\n  end.
+-----
+Fixpoint const {D R} (r : R) : asFunc D R :=\n  match D with\n    | nil => r\n    | _ :: D => fun _ => const r\n  end.
+-----
+Fixpoint uncurry {D R} {struct D} : (asTuple D -> R) -> asFunc D R :=\n  match D as D return (asTuple D -> R) -> asFunc D R with\n    | nil => fun x => x tt\n    | d :: D => fun f d => uncurry (fun x => f (d, x))\n  end.
+-----
+Fixpoint curry {D R} {struct D} : asFunc D R -> (asTuple D -> R) :=\n  match D as D return asFunc D R -> (asTuple D -> R) with\n    | nil => fun x _ => x\n    | d :: D => fun f x => curry (f (fst x)) (snd x)\n  end.
+-----
+Fixpoint get (domain : list Type) (range : Type) T (m : member T domain)\n: (T -> asFunc domain range) -> asFunc domain range :=\n  match m in member _ domain\n        return (T -> asFunc domain range) -> asFunc domain range\n  with\n    | MZ _ _ => fun F x => F x x\n    | MN _ m => fun F x => @get _ _ _ m (fun y => F y x)\n  end.
+-----
+Fixpoint under (domain : list Type) (range : Type)\n         {struct domain}\n: ((forall U, asFunc domain U -> U) -> range)\n  -> asFunc domain range :=\n  match domain as domain\n        return ((forall U, asFunc domain U -> U) -> range)\n               -> asFunc domain range\n  with\n    | nil => fun F => F (fun _ x => x)\n    | d :: ds => fun F x =>\n                   under ds range (fun App => F (fun U f => App U (f x)))\n  end%type.
+-----
+Fixpoint replace {ps} {T U : Type} (m : member T ps) (v : T) {struct m}\n: asFunc ps U -> asFunc ps U :=\n  match m in member _ ps return asFunc ps U -> asFunc ps U with\n    | MZ _ _ => fun f _ => f v\n    | MN _ m => fun f x => replace m v (f x)\n  end.
+-----
+Section combine.
+-----
+Context {T U V : Type}.
+-----
+Variable (join : T -> U -> V).
+-----
+Definition combine (domain : list Type)\n             (a : asFunc domain T) (b : asFunc domain U)\n  : asFunc domain V :=\n    under domain _ (fun App => join (App _ a) (App _ b)).
+-----
+End combine.
+-----

@@ -1,0 +1,49 @@
+6b1c1b0da214e47aeca9ac4543bdfd81
+Require Export GeoCoq.Elements.OriginalProofs.lemma_collinear2.
+Require Export GeoCoq.Elements.OriginalProofs.lemma_collinear1.
+Section Euclid.
+Context `{Ax1:euclidean_neutral}.
+Lemma lemma_collinearorder : 
+   forall A B C, 
+   Col A B C ->
+   Col B A C /\ Col B C A /\ Col C A B /\ Col A C B /\ Col C B A.
+Proof.
+  intros.
+  assert (Col B C A).
+  {
+    conclude lemma_collinear2.
+  }
+  {
+    idtac.
+    assert (Col C A B).
+    {
+      conclude lemma_collinear2.
+    }
+    {
+      idtac.
+      assert (Col B A C).
+      {
+        conclude lemma_collinear1.
+      }
+      {
+        idtac.
+        assert (Col A C B).
+        {
+          conclude lemma_collinear2.
+        }
+        {
+          idtac.
+          assert (Col C B A).
+          {
+            conclude lemma_collinear2.
+          }
+          {
+            idtac.
+            close.
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Euclid.

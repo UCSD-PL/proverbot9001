@@ -1,0 +1,78 @@
+bff811fa2642f9233954eb6440dd84c1
+Require Import GeoCoq.Axioms.tarski_axioms.
+Require Import GeoCoq.Axioms.makarios_variant_axioms.
+Section Tarski83_to_Makarios_variant.
+Context `{TnEQD:Tarski_neutral_dimensionless}.
+Lemma five_segment' : forall A A' B B' C C' D D',
+  Cong A B A' B' ->
+  Cong B C B' C' ->
+  Cong A D A' D' ->
+  Cong B D B' D' ->
+  Bet A B C -> Bet A' B' C' -> A <> B ->
+  Cong D C C' D'.
+Proof.
+  intros.
+  assert(Cong C D C' D').
+  {
+    intros.
+    eapply five_segment with A A' B B'.
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+    {
+      assumption.
+    }
+  }
+  {
+    assert(Cong C D D C).
+    {
+      eapply cong_pseudo_reflexivity.
+    }
+    {
+      apply cong_inner_transitivity with C D.
+      {
+        assumption.
+      }
+      {
+        assumption.
+      }
+    }
+  }
+Qed.
+Lemma lower_dim_ex :
+  exists A B C, ~ (Bet A B C \/ Bet B C A \/ Bet C A B).
+Proof.
+  exists PA.
+  exists PB.
+  exists PC.
+  apply lower_dim.
+Qed.
+Instance Makarios_Variant_follows_from_Tarski : Tarski_neutral_dimensionless_variant.
+Proof.
+  exact (Build_Tarski_neutral_dimensionless_variant
+ Tpoint Bet Cong
+ cong_identity
+ cong_inner_transitivity
+ segment_construction
+ five_segment'
+ between_identity
+ inner_pasch
+ PA PB PC
+ lower_dim).
+Qed.
+End Tarski83_to_Makarios_variant.

@@ -1,0 +1,1767 @@
+Require Import Coq.Relations.Relation_Definitions.
+-----
+Require Import Coq.Classes.RelationClasses.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Tactics.Consider.
+-----
+Require Import ExtLib.Tactics.Injection.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section Eqpair.
+-----
+Context {T U} (rT : relation T) (rU : relation U).
+-----
+Inductive Eqpair : relation (T * U) :=\n  | Eqpair_both : forall a b c d, rT a b -> rU c d -> Eqpair (a,c) (b,d).
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU}\n  : Reflexive Eqpair.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+
+*****
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Reflexive Eqpair
++++++
+Proof.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+
+*****
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Reflexive Eqpair
++++++
+red.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+red.
+
+*****
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+forall x : prod T U, Eqpair x x
++++++
+destruct x.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+red.
+destruct x.
+
+*****
+u : U
+t : T
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Eqpair (pair t u) (pair t u)
++++++
+constructor.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+red.
+destruct x.
+constructor.
+
+*****
+u : U
+t : T
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT t t
++++++
+reflexivity.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+red.
+destruct x.
+constructor.
+
+*****
+u : U
+t : T
+RrU : Reflexive rU
+RrT : Reflexive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU u u
++++++
+reflexivity.
+-----
+Global Instance Reflexive_Eqpair {RrT : Reflexive rT} {RrU : Reflexive rU} : Reflexive Eqpair.
+Proof.
+red.
+destruct x.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU}\n  : Symmetric Eqpair.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+
+*****
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Symmetric Eqpair
++++++
+Proof.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+
+*****
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Symmetric Eqpair
++++++
+red.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+
+*****
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+forall (x y : prod T U) (_ : Eqpair x y), Eqpair y x
++++++
+inversion 1.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y : prod T U
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Eqpair (pair b d) (pair a c)
++++++
+constructor.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+constructor.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y : prod T U
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT b a
++++++
+symmetry.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+constructor.
+symmetry.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y : prod T U
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT a b
++++++
+assumption.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+constructor.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y : prod T U
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU d c
++++++
+symmetry.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+constructor.
+symmetry.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y : prod T U
+RrU : Symmetric rU
+RrT : Symmetric rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU c d
++++++
+assumption.
+-----
+Global Instance Symmetric_Eqpair {RrT : Symmetric rT} {RrU : Symmetric rU} : Symmetric Eqpair.
+Proof.
+red.
+inversion 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU}\n  : Transitive Eqpair.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+
+*****
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Transitive Eqpair
++++++
+Proof.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+
+*****
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Transitive Eqpair
++++++
+red.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+
+*****
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+forall (x y z : prod T U) (_ : Eqpair x y) (_ : Eqpair y z), Eqpair x z
++++++
+inversion 1.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+
+*****
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+forall _ : Eqpair (pair b d) z, Eqpair (pair a c) z
++++++
+inversion 1.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Eqpair (pair a c) (pair b0 d0)
++++++
+constructor.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT a b0
++++++
+etransitivity.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+etransitivity.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT a ?y
++++++
+eauto.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+etransitivity.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rT b b0
++++++
+eauto.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU c d0
++++++
+etransitivity.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+etransitivity.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU c ?y
++++++
+eauto.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+etransitivity.
+
+*****
+H8 : eq (pair b0 d0) z
+H6 : eq c0 d
+H5 : eq a0 b
+H9 : rU d d0
+H7 : rT b b0
+c0,d0 : U
+a0,b0 : T
+H4 : Eqpair (pair b d) z
+H3 : eq (pair b d) y
+H2 : eq (pair a c) x
+H1 : rU c d
+H0 : rT a b
+c,d : U
+a,b : T
+H : Eqpair x y
+x,y,z : prod T U
+RrU : Transitive rU
+RrT : Transitive rT
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+rU d d0
++++++
+eauto.
+-----
+Global Instance Transitive_Eqpair {RrT : Transitive rT} {RrU : Transitive rU} : Transitive Eqpair.
+Proof.
+red.
+inversion 1.
+inversion 1.
+constructor.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance Injective_Eqpair a b c d : Injective (Eqpair (a,b) (c,d)).
+-----
+Global Instance Injective_Eqpair a b c d : Injective (Eqpair (a,b) (c,d)).
+
+*****
+d : U
+c : T
+b : U
+a : T
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+Injective (Eqpair (pair a b) (pair c d))
++++++
+refine {| result := rT a c /\ rU b d |}.
+-----
+Global Instance Injective_Eqpair a b c d : Injective (Eqpair (a,b) (c,d)).
+refine {| result := rT a c /\\ rU b d |}.
+
+*****
+d : U
+c : T
+b : U
+a : T
+rU : relation U
+rT : relation T
+U : Type
+T : Type
+*****
+forall _ : Eqpair (pair a b) (pair c d), and (rT a c) (rU b d)
++++++
+abstract (inversion 1; auto).
+-----
+Global Instance Injective_Eqpair a b c d : Injective (Eqpair (a,b) (c,d)).
+refine {| result := rT a c /\\ rU b d |}.
+abstract (inversion 1; auto).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Eqpair.
+-----
+Section PairWF.
+-----
+Variables T U : Type.
+-----
+Variable RT : T -> T -> Prop.
+-----
+Variable RU : U -> U -> Prop.
+-----
+Inductive R_pair : T * U -> T * U -> Prop :=\n  | L : forall l l' r r',\n    RT l l' -> R_pair (l,r) (l',r')\n  | R : forall l r r',\n    RU r r' -> R_pair (l,r) (l,r').
+-----
+Hypothesis wf_RT : well_founded RT.
+-----
+Hypothesis wf_RU : well_founded RU.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+
+*****
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+well_founded R_pair
++++++
+Proof.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+
+*****
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+well_founded R_pair
++++++
+red.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+
+*****
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall a : prod T U, Acc R_pair a
++++++
+intro x.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+
+*****
+x : prod T U
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair x
++++++
+destruct x.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+
+*****
+u : U
+t : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair t u)
++++++
+generalize dependent u.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+
+*****
+t : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall u : U, Acc R_pair (pair t u)
++++++
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+
+*****
+t : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall (x : T) (_ : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)) (u : U), Acc R_pair (pair x u)
++++++
+do 2 intro.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+
+*****
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall u : U, Acc R_pair (pair x u)
++++++
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+
+*****
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall (x0 : U) (_ : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)), Acc R_pair (pair x x0)
++++++
+intros.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+
+*****
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair x x0)
++++++
+constructor.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+
+*****
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall (y : prod T U) (_ : R_pair y (pair x x0)), Acc R_pair y
++++++
+destruct y.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+
+*****
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall _ : R_pair (pair t0 u) (pair x x0), Acc R_pair (pair t0 u)
++++++
+remember (t0,u).
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+
+*****
+Heqp : eq p (pair t0 u)
+p : prod T U
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall _ : R_pair p (pair x x0), Acc R_pair p
++++++
+remember (x,x0).
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+
+*****
+Heqp0 : eq p0 (pair x x0)
+p0 : prod T U
+Heqp : eq p (pair t0 u)
+p : prod T U
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+forall _ : R_pair p p0, Acc R_pair p
++++++
+inversion 1.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+
+*****
+H4 : eq (pair l' r') p0
+H3 : eq (pair l r) p
+H2 : RT l l'
+r,r' : U
+l,l' : T
+H1 : R_pair p p0
+Heqp0 : eq p0 (pair x x0)
+p0 : prod T U
+Heqp : eq p (pair t0 u)
+p : prod T U
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair l r)
++++++
+subst.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+
+*****
+H4 : eq (pair l' r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RT l l'
+r,r' : U
+l,l' : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair l r)
++++++
+inversion H4.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+
+*****
+H7 : eq r' x0
+H6 : eq l' x
+H4 : eq (pair l' r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RT l l'
+r,r' : U
+l,l' : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair l r)
++++++
+inversion H3.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+
+*****
+H9 : eq r u
+H8 : eq l t0
+H7 : eq r' x0
+H6 : eq l' x
+H4 : eq (pair l' r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RT l l'
+r,r' : U
+l,l' : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair t0 u)
++++++
+clear H4 H3.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+clear H4 H3.
+
+*****
+H9 : eq r u
+H8 : eq l t0
+H7 : eq r' x0
+H6 : eq l' x
+H2 : RT l l'
+r,r' : U
+l,l' : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair t0 u)
++++++
+subst.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+clear H4 H3.
+subst.
+
+*****
+H2 : RT t0 x
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair t0 u)
++++++
+eauto.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+
+*****
+H4 : eq (pair l r') p0
+H3 : eq (pair l r) p
+H2 : RU r r'
+r,r' : U
+l : T
+H1 : R_pair p p0
+Heqp0 : eq p0 (pair x x0)
+p0 : prod T U
+Heqp : eq p (pair t0 u)
+p : prod T U
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair l r)
++++++
+subst.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+
+*****
+H4 : eq (pair l r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RU r r'
+r,r' : U
+l : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair l r)
++++++
+inversion H4.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+
+*****
+H7 : eq r' x0
+H6 : eq l x
+H4 : eq (pair l r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RU r r'
+r,r' : U
+l : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair x r)
++++++
+inversion H3.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+
+*****
+H9 : eq r u
+H8 : eq l t0
+H7 : eq r' x0
+H6 : eq l x
+H4 : eq (pair l r') (pair x x0)
+H3 : eq (pair l r) (pair t0 u)
+H2 : RU r r'
+r,r' : U
+l : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair x u)
++++++
+clear H4 H3.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+clear H4 H3.
+
+*****
+H9 : eq r u
+H8 : eq l t0
+H7 : eq r' x0
+H6 : eq l x
+H2 : RU r r'
+r,r' : U
+l : T
+H1 : R_pair (pair t0 u) (pair x x0)
+u : U
+t0 : T
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair x y)
+x0 : U
+H : forall (y : T) (_ : RT y x) (u : U), Acc R_pair (pair y u)
+t,x : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair x u)
++++++
+subst.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+subst.
+inversion H4.
+inversion H3.
+clear H4 H3.
+subst.
+
+*****
+H2 : RU u x0
+H1 : R_pair (pair t0 u) (pair t0 x0)
+u : U
+H0 : forall (y : U) (_ : RU y x0), Acc R_pair (pair t0 y)
+x0 : U
+H : forall (y : T) (_ : RT y t0) (u : U), Acc R_pair (pair y u)
+t,t0 : T
+wf_RU : well_founded RU
+wf_RT : well_founded RT
+RU : forall (_ : U) (_ : U), Prop
+RT : forall (_ : T) (_ : T), Prop
+T,U : Type
+*****
+Acc R_pair (pair t0 u)
++++++
+eauto.
+-----
+Theorem wf_R_pair : well_founded R_pair.
+Proof.
+red.
+intro x.
+destruct x.
+generalize dependent u.
+apply (well_founded_ind wf_RT (fun t => forall u : U, Acc R_pair (t, u))).
+do 2 intro.
+apply (well_founded_ind wf_RU (fun u => Acc R_pair (x,u))).
+intros.
+constructor.
+destruct y.
+remember (t0,u).
+remember (x,x0).
+inversion 1.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End PairWF.
+-----
+Section PairParam.
+-----
+Variable T : Type.
+-----
+Variable eqT : T -> T -> Prop.
+-----
+Variable U : Type.
+-----
+Variable eqU : U -> U -> Prop.
+-----
+Variable EDT : RelDec eqT.
+-----
+Variable EDU : RelDec eqU.
+-----
+Global Instance RelDec_equ_pair : RelDec (fun x y => eqT (fst x) (fst y) /\ eqU (snd x) (snd y)) :=\n  { rel_dec := fun x y =>\n    if rel_dec (fst x) (fst y) then\n      rel_dec (snd x) (snd y)\n    else false }.
+-----
+Variable EDCT : RelDec_Correct EDT.
+-----
+Variable EDCU : RelDec_Correct EDU.
+-----
+Global Instance RelDec_Correct_equ_pair : RelDec_Correct RelDec_equ_pair.
+-----
+Global Instance RelDec_Correct_equ_pair : RelDec_Correct RelDec_equ_pair.
+
+*****
+EDCU : RelDec_Correct EDU
+EDCT : RelDec_Correct EDT
+EDU : RelDec eqU
+EDT : RelDec eqT
+eqU : forall (_ : U) (_ : U), Prop
+U : Type
+eqT : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+RelDec_Correct RelDec_equ_pair
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_equ_pair : RelDec_Correct RelDec_equ_pair.
+Proof.
+
+*****
+EDCU : RelDec_Correct EDU
+EDCT : RelDec_Correct EDT
+EDU : RelDec eqU
+EDT : RelDec eqT
+eqU : forall (_ : U) (_ : U), Prop
+U : Type
+eqT : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+RelDec_Correct RelDec_equ_pair
++++++
+constructor; destruct x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; intuition.
+-----
+Global Instance RelDec_Correct_equ_pair : RelDec_Correct RelDec_equ_pair.
+Proof.
+constructor; destruct x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End PairParam.
+-----
+Section PairEq.
+-----
+Variable T : Type.
+-----
+Variable U : Type.
+-----
+Variable EDT : RelDec (@eq T).
+-----
+Variable EDU : RelDec (@eq U).
+-----
+Global Instance RelDec_eq_pair : RelDec (@eq (T * U)) :=\n  { rel_dec := fun x y =>\n    if rel_dec (fst x) (fst y) then\n      rel_dec (snd x) (snd y)\n    else false }.
+-----
+Variable EDCT : RelDec_Correct EDT.
+-----
+Variable EDCU : RelDec_Correct EDU.
+-----
+Global Instance RelDec_Correct_eq_pair : RelDec_Correct RelDec_eq_pair.
+-----
+Global Instance RelDec_Correct_eq_pair : RelDec_Correct RelDec_eq_pair.
+
+*****
+EDCU : RelDec_Correct EDU
+EDCT : RelDec_Correct EDT
+EDU : RelDec eq
+EDT : RelDec eq
+U : Type
+T : Type
+*****
+RelDec_Correct RelDec_eq_pair
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_eq_pair : RelDec_Correct RelDec_eq_pair.
+Proof.
+
+*****
+EDCU : RelDec_Correct EDU
+EDCT : RelDec_Correct EDT
+EDU : RelDec eq
+EDT : RelDec eq
+U : Type
+T : Type
+*****
+RelDec_Correct RelDec_eq_pair
++++++
+constructor; destruct x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; congruence.
+-----
+Global Instance RelDec_Correct_eq_pair : RelDec_Correct RelDec_eq_pair.
+Proof.
+constructor; destruct x; destruct y; split; simpl in *; intros; repeat match goal with | [ H : context [ rel_dec ?X ?Y ] |- _ ] => consider (rel_dec X Y); intros; subst | [ |- context [ rel_dec ?X ?Y ] ] => consider (rel_dec X Y); intros; subst end; congruence.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End PairEq.
+-----
+Global Instance Injective_pair T U (a :T) (b:U) c d : Injective ((a,b) = (c,d)).
+-----
+Global Instance Injective_pair T U (a :T) (b:U) c d : Injective ((a,b) = (c,d)).
+
+*****
+d : U
+c : T
+b : U
+a : T
+U : Type
+T : Type
+*****
+Injective (eq (pair a b) (pair c d))
++++++
+refine {| result := a = c /\ b = d |}.
+-----
+Global Instance Injective_pair T U (a :T) (b:U) c d : Injective ((a,b) = (c,d)).
+refine {| result := a = c /\\ b = d |}.
+
+*****
+d : U
+c : T
+b : U
+a : T
+U : Type
+T : Type
+*****
+forall _ : eq (pair a b) (pair c d), and (eq a c) (eq b d)
++++++
+Proof.
+-----
+Global Instance Injective_pair T U (a :T) (b:U) c d : Injective ((a,b) = (c,d)).
+refine {| result := a = c /\\ b = d |}.
+Proof.
+
+*****
+d : U
+c : T
+b : U
+a : T
+U : Type
+T : Type
+*****
+forall _ : eq (pair a b) (pair c d), and (eq a c) (eq b d)
++++++
+abstract (inversion 1; intuition).
+-----
+Global Instance Injective_pair T U (a :T) (b:U) c d : Injective ((a,b) = (c,d)).
+refine {| result := a = c /\\ b = d |}.
+Proof.
+abstract (inversion 1; intuition).
+
+*****
+
+*****
+
++++++
+Defined.
+-----

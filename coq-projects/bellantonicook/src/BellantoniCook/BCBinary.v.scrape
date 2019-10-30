@@ -1,0 +1,1976 @@
+From Coq Require Import Bool.
+-----
+From Coq Require Import Arith.
+-----
+Require Import   Coq.Arith.Div2.
+-----
+Require Import BellantoniCook.Lib BellantoniCook.Bitstring BellantoniCook.BC.
+-----
+Definition zero_e (n s:nat) : BC :=\n  comp n s zero nil nil.
+-----
+Lemma zero_correct n s l1 l2: \n bs2nat (sem (zero_e n s) l1 l2) = 0.
+-----
+Lemma zero_correct n s l1 l2: bs2nat (sem (zero_e n s) l1 l2) = 0.
+
+*****
+l1,l2 : list (list bool)
+n,s : nat
+*****
+eq (bs2nat (sem (zero_e n s) l1 l2)) O
++++++
+Proof.
+-----
+Lemma zero_correct n s l1 l2: bs2nat (sem (zero_e n s) l1 l2) = 0.
+Proof.
+
+*****
+l1,l2 : list (list bool)
+n,s : nat
+*****
+eq (bs2nat (sem (zero_e n s) l1 l2)) O
++++++
+intros.
+-----
+Lemma zero_correct n s l1 l2: bs2nat (sem (zero_e n s) l1 l2) = 0.
+Proof.
+intros.
+
+*****
+l1,l2 : list (list bool)
+n,s : nat
+*****
+eq (bs2nat (sem (zero_e n s) l1 l2)) O
++++++
+simpl.
+-----
+Lemma zero_correct n s l1 l2: bs2nat (sem (zero_e n s) l1 l2) = 0.
+Proof.
+intros.
+simpl.
+
+*****
+l1,l2 : list (list bool)
+n,s : nat
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma zero_correct n s l1 l2: bs2nat (sem (zero_e n s) l1 l2) = 0.
+Proof.
+intros.
+simpl.
+trivial.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition one_e n s :=\n  comp n s (comp 0 0 (succ true) nil [zero]) nil nil.
+-----
+Definition succ_e : BC :=\n  rec (one_e 0 0)\n      (comp 1 1 (succ true) nil [proj 1 1 0])\n      (comp 1 1 (succ false) nil [proj 1 1 1]).
+-----
+Lemma succ_correct :\n  forall n, bs2nat (sem succ_e [n] nil) = S (bs2nat n).
+-----
+Lemma succ_correct : forall n, bs2nat (sem succ_e [n] nil) = S (bs2nat n).
+
+*****
+
+*****
+forall n : list bool, eq (bs2nat (sem succ_e (cons n nil) nil)) (S (bs2nat n))
++++++
+Proof.
+-----
+Lemma succ_correct : forall n, bs2nat (sem succ_e [n] nil) = S (bs2nat n).
+Proof.
+
+*****
+
+*****
+forall n : list bool, eq (bs2nat (sem succ_e (cons n nil) nil)) (S (bs2nat n))
++++++
+induction n; simpl in *; trivial.
+-----
+Lemma succ_correct : forall n, bs2nat (sem succ_e [n] nil) = S (bs2nat n).
+Proof.
+induction n; simpl in *; trivial.
+
+*****
+IHn : eq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun vnl _ : list (list bool) => cons true (List.nth O vnl nil))\n (fun _ vsl : list (list bool) =>\n cons false (List.nth O vsl nil)) n nil nil)) \n (S (bs2nat n))
+n : list bool
+a : bool
+*****
+eq (bs2nat (if a then cons false (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun vnl _ : list (list bool) => cons true (List.nth O vnl nil)) (fun _ vsl : list (list bool) => cons false (List.nth O vsl nil)) n nil nil) else cons true n)) (S (if a then S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) else Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+case a; simpl; [rewrite IHn | ]; ring.
+-----
+Lemma succ_correct : forall n, bs2nat (sem succ_e [n] nil) = S (bs2nat n).
+Proof.
+induction n; simpl in *; trivial.
+case a; simpl; [rewrite IHn | ]; ring.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Opaque succ_e.
+-----
+Definition is_zero_e : BC :=\n  rec (one_e 0 0) (proj 1 1 1) (zero_e 1 1).
+-----
+Lemma is_zero_correct v :\n  bs2bool (sem is_zero_e [v] nil) = true <->\n  bs2nat v = 0.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) true) (eq (bs2nat v) O)
++++++
+Proof.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) true) (eq (bs2nat v) O)
++++++
+intros.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) true) (eq (bs2nat v) O)
++++++
+split.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+
+*****
+v : list bool
+*****
+forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true, eq (bs2nat v) O
++++++
+induction v.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+
+*****
+
+*****
+forall _ : eq (bs2bool (sem is_zero_e (cons nil nil) nil)) true, eq (bs2nat nil) O
++++++
+simpl.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+
+*****
+
+*****
+forall _ : eq true true, eq O O
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+
+*****
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2bool (sem is_zero_e (cons (cons a v) nil) nil)) true, eq (bs2nat (cons a v)) O
++++++
+simpl.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+
+*****
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2bool (if a then nil else sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true, eq (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+
+*****
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2bool (if a then nil else sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true, eq (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
++++++
+case a.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2bool nil) true, eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O
++++++
+intros.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+
+*****
+H : eq (bs2bool nil) true
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O
++++++
+simpl in *.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+
+*****
+H : eq false true
+IHv : forall\n _ : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O
++++++
+discriminate.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2bool (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true, eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
++++++
+intros.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+
+*****
+H : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+IHv : forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
++++++
+simpl in *.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+
+*****
+H : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+IHv : forall\n _ : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
++++++
+rewrite IHv.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+rewrite IHv.
+
+*****
+H : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+IHv : forall\n _ : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (Init.Nat.add O (Init.Nat.add O O)) O
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+rewrite IHv.
+
+*****
+H : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+IHv : forall\n _ : eq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true,\neq (bs2nat v) O
+v : list bool
+a : bool
+*****
+eq (bs2bool (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+
+*****
+v : list bool
+*****
+forall _ : eq (bs2nat v) O, eq (bs2bool (sem is_zero_e (cons v nil) nil)) true
++++++
+induction v.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+
+*****
+
+*****
+forall _ : eq (bs2nat nil) O, eq (bs2bool (sem is_zero_e (cons nil nil) nil)) true
++++++
+simpl.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+
+*****
+
+*****
+forall _ : eq O O, eq true true
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+forall _ : eq (bs2nat (cons a v)) O, eq (bs2bool (sem is_zero_e (cons (cons a v) nil) nil)) true
++++++
+simpl.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+forall _ : eq (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O, eq (bs2bool (if a then nil else sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+trivial.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+forall _ : eq (if a then S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) else Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O, eq (bs2bool (if a then nil else sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+case a.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+forall _ : eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O, eq (bs2bool nil) true
++++++
+intros.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+
+*****
+H : eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+eq (bs2bool nil) true
++++++
+simpl in *.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+
+*****
+H : eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O
+IHv : forall _ : eq (bs2nat v) O,\neq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+v : list bool
+a : bool
+*****
+eq false true
++++++
+contradict H.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+contradict H.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+v : list bool
+a : bool
+*****
+not (eq (S (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O))) O)
++++++
+omega.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+
+*****
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+forall _ : eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O, eq (bs2bool (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+intros.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+
+*****
+H : eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
+IHv : forall _ : eq (bs2nat v) O,\neq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+v : list bool
+a : bool
+*****
+eq (bs2bool (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+simpl in *.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+
+*****
+H : eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
+IHv : forall _ : eq (bs2nat v) O,\neq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+v : list bool
+a : bool
+*****
+eq (bs2bool (sem_rec (fun _ _ : list (list bool) => cons true nil) (fun _ vsl : list (list bool) => List.nth O vsl nil) (fun _ _ : list (list bool) => nil) v nil nil)) true
++++++
+apply IHv.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+induction v.
+simpl.
+trivial.
+case a.
+intros.
+simpl in *.
+apply IHv.
+
+*****
+H : eq (Init.Nat.add (bs2nat v) (Init.Nat.add (bs2nat v) O)) O
+IHv : forall _ : eq (bs2nat v) O,\neq\n (bs2bool\n (sem_rec (fun _ _ : list (list bool) => cons true nil)\n (fun _ vsl : list (list bool) => List.nth O vsl nil)\n (fun _ _ : list (list bool) => nil) v nil nil)) true
+v : list bool
+a : bool
+*****
+eq (bs2nat v) O
++++++
+omega.
+-----
+Lemma is_zero_correct v : bs2bool (sem is_zero_e [v] nil) = true <-> bs2nat v = 0.
+Proof.
+intros.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma is_zero_correct_conv v :\n  bs2bool (sem is_zero_e [v] nil) = false <->\n  bs2nat v <> 0.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) false) (not (eq (bs2nat v) O))
++++++
+Proof.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) false) (not (eq (bs2nat v) O))
++++++
+intros.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+
+*****
+v : list bool
+*****
+iff (eq (bs2bool (sem is_zero_e (cons v nil) nil)) false) (not (eq (bs2nat v) O))
++++++
+split.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+
+*****
+v : list bool
+*****
+forall _ : eq (bs2bool (sem is_zero_e (cons v nil) nil)) false, not (eq (bs2nat v) O)
++++++
+intros.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+
+*****
+H : eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
+v : list bool
+*****
+not (eq (bs2nat v) O)
++++++
+intro.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+intro.
+
+*****
+H0 : eq (bs2nat v) O
+H : eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
+v : list bool
+*****
+False
++++++
+apply is_zero_correct in H0.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+intro.
+apply is_zero_correct in H0.
+
+*****
+H0 : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+H : eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
+v : list bool
+*****
+False
++++++
+rewrite H in H0.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+intro.
+apply is_zero_correct in H0.
+rewrite H in H0.
+
+*****
+H0 : eq false true
+H : eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
+v : list bool
+*****
+False
++++++
+discriminate.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+
+*****
+v : list bool
+*****
+forall _ : not (eq (bs2nat v) O), eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
++++++
+intros.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+
+*****
+H : not (eq (bs2nat v) O)
+v : list bool
+*****
+eq (bs2bool (sem is_zero_e (cons v nil) nil)) false
++++++
+apply not_true_is_false.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+apply not_true_is_false.
+
+*****
+H : not (eq (bs2nat v) O)
+v : list bool
+*****
+not (eq (bs2bool (sem is_zero_e (cons v nil) nil)) true)
++++++
+intro.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+apply not_true_is_false.
+intro.
+
+*****
+H0 : eq (bs2bool (sem is_zero_e (cons v nil) nil)) true
+H : not (eq (bs2nat v) O)
+v : list bool
+*****
+False
++++++
+apply is_zero_correct in H0.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+apply not_true_is_false.
+intro.
+apply is_zero_correct in H0.
+
+*****
+H0 : eq (bs2nat v) O
+H : not (eq (bs2nat v) O)
+v : list bool
+*****
+False
++++++
+rewrite H0 in H.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+intros.
+apply not_true_is_false.
+intro.
+apply is_zero_correct in H0.
+rewrite H0 in H.
+
+*****
+H0 : eq (bs2nat v) O
+H : not (eq O O)
+v : list bool
+*****
+False
++++++
+auto.
+-----
+Lemma is_zero_correct_conv v : bs2bool (sem is_zero_e [v] nil) = false <-> bs2nat v <> 0.
+Proof.
+intros.
+split.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Opaque is_zero_e.
+-----
+Definition pred_pos_e : BC :=\n  rec (zero_e 0 0)\n      (comp 1 1 (succ true) nil [proj 1 1 1])\n      (comp 1 1 (succ false) nil [proj 1 1 0]).
+-----
+Lemma pred_pos_correct n :\n  bs2nat n <> 0 ->  \n  bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+
+*****
+n : list bool
+*****
+forall _ : not (eq (bs2nat n) O), eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+Proof.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+
+*****
+n : list bool
+*****
+forall _ : not (eq (bs2nat n) O), eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+intros.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+
+*****
+H : not (eq (bs2nat n) O)
+n : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+induction n.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+
+*****
+H : not (eq (bs2nat nil) O)
+*****
+eq (bs2nat (sem pred_pos_e (cons nil nil) nil)) (Init.Nat.pred (bs2nat nil))
++++++
+simpl in *.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+
+*****
+H : not (eq O O)
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq (bs2nat (sem pred_pos_e (cons n nil) nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (bs2nat (cons a n)) O)
+n : list bool
+a : bool
+*****
+eq (bs2nat (sem pred_pos_e (cons (cons a n) nil) nil)) (Init.Nat.pred (bs2nat (cons a n)))
++++++
+simpl in *.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not\n (eq\n (if a\n then S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))\n else Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+a : bool
+*****
+eq (bs2nat (if a then cons false n else cons true (sem_rec (fun _ _ : list (list bool) => nil) (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil)) (fun vnl _ : list (list bool) => cons false (List.nth O vnl nil)) n nil nil))) (Init.Nat.pred (if a then S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) else Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+trivial.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not\n (eq\n (if a\n then S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))\n else Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+a : bool
+*****
+eq (bs2nat (if a then cons false n else cons true (sem_rec (fun _ _ : list (list bool) => nil) (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil)) (fun vnl _ : list (list bool) => cons false (List.nth O vnl nil)) n nil nil))) (Init.Nat.pred (if a then S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) else Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+destruct a.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))) O)
+n : list bool
+*****
+eq (bs2nat (cons false n)) (Init.Nat.pred (S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))))
++++++
+simpl.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (S (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))) O)
+n : list bool
+*****
+eq (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O))
++++++
+trivial.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+*****
+eq (bs2nat (cons true (sem_rec (fun _ _ : list (list bool) => nil) (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil)) (fun vnl _ : list (list bool) => cons false (List.nth O vnl nil)) n nil nil))) (Init.Nat.pred (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+simpl.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+*****
+eq (S (Init.Nat.add (bs2nat (sem_rec (fun _ _ : list (list bool) => nil) (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil)) (fun vnl _ : list (list bool) => cons false (List.nth O vnl nil)) n nil nil)) (Init.Nat.add (bs2nat (sem_rec (fun _ _ : list (list bool) => nil) (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil)) (fun vnl _ : list (list bool) => cons false (List.nth O vnl nil)) n nil nil)) O))) (Init.Nat.pred (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+rewrite IHn.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+*****
+eq (S (Init.Nat.add (Init.Nat.pred (bs2nat n)) (Init.Nat.add (Init.Nat.pred (bs2nat n)) O))) (Init.Nat.pred (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)))
++++++
+destruct (bs2nat n).
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+destruct (bs2nat n).
+
+*****
+IHn : forall _ : not (eq O O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil)) \n (Init.Nat.pred O)
+H : not (eq (Init.Nat.add O (Init.Nat.add O O)) O)
+n : list bool
+*****
+eq (S (Init.Nat.add (Init.Nat.pred O) (Init.Nat.add (Init.Nat.pred O) O))) (Init.Nat.pred (Init.Nat.add O (Init.Nat.add O O)))
++++++
+elim H.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+destruct (bs2nat n).
+elim H.
+
+*****
+IHn : forall _ : not (eq O O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil)) \n (Init.Nat.pred O)
+H : not (eq (Init.Nat.add O (Init.Nat.add O O)) O)
+n : list bool
+*****
+eq (Init.Nat.add O (Init.Nat.add O O)) O
++++++
+trivial.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+destruct (bs2nat n).
+
+*****
+IHn : forall _ : not (eq (S n0) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (S n0))
+H : not (eq (Init.Nat.add (S n0) (Init.Nat.add (S n0) O)) O)
+n0 : nat
+n : list bool
+*****
+eq (S (Init.Nat.add (Init.Nat.pred (S n0)) (Init.Nat.add (Init.Nat.pred (S n0)) O))) (Init.Nat.pred (Init.Nat.add (S n0) (Init.Nat.add (S n0) O)))
++++++
+simpl.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+destruct (bs2nat n).
+simpl.
+
+*****
+IHn : forall _ : not (eq (S n0) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (S n0))
+H : not (eq (Init.Nat.add (S n0) (Init.Nat.add (S n0) O)) O)
+n0 : nat
+n : list bool
+*****
+eq (S (Init.Nat.add n0 (Init.Nat.add n0 O))) (Init.Nat.add n0 (S (Init.Nat.add n0 O)))
++++++
+ring.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+simpl in *.
+trivial.
+destruct a.
+simpl.
+rewrite IHn.
+
+*****
+IHn : forall _ : not (eq (bs2nat n) O),\neq\n (bs2nat\n (sem_rec (fun _ _ : list (list bool) => nil)\n (fun _ vsl : list (list bool) => cons true (List.nth O vsl nil))\n (fun vnl _ : list (list bool) =>\n cons false (List.nth O vnl nil)) n nil nil))\n (Init.Nat.pred (bs2nat n))
+H : not (eq (Init.Nat.add (bs2nat n) (Init.Nat.add (bs2nat n) O)) O)
+n : list bool
+*****
+not (eq (bs2nat n) O)
++++++
+omega.
+-----
+Lemma pred_pos_correct n : bs2nat n <> 0 -> bs2nat (sem pred_pos_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+intros.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Opaque pred_pos_e.
+-----
+Definition pred_e : BC :=\n  comp 1 0 cond \n       nil [is_zero_e; pred_pos_e; zero_e 1 0; pred_pos_e].
+-----
+Lemma pred_correct n :\n  bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+
+*****
+n : list bool
+*****
+eq (bs2nat (sem pred_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+Proof.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+
+*****
+n : list bool
+*****
+eq (bs2nat (sem pred_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+simpl.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+
+*****
+n : list bool
+*****
+eq (bs2nat match sem is_zero_e (cons n nil) nil with | cons true _ => nil | _ => sem pred_pos_e (cons n nil) nil end) (Init.Nat.pred (bs2nat n))
++++++
+intros.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+
+*****
+n : list bool
+*****
+eq (bs2nat match sem is_zero_e (cons n nil) nil with | cons true _ => nil | _ => sem pred_pos_e (cons n nil) nil end) (Init.Nat.pred (bs2nat n))
++++++
+case_eq (sem is_zero_e [n] nil).
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+
+*****
+n : list bool
+*****
+forall _ : eq (sem is_zero_e (cons n nil) nil) nil, eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+intros.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq (bs2bool (sem is_zero_e (cons n nil) nil)) false
++++++
+rewrite H.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+rewrite H.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq (bs2bool nil) false
++++++
+simpl.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+rewrite H.
+simpl.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq false false
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+
+*****
+H0 : eq (bs2bool (sem is_zero_e (cons n nil) nil)) false
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+apply is_zero_correct_conv in H0.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+apply is_zero_correct_conv in H0.
+
+*****
+H0 : not (eq (bs2nat n) O)
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+apply pred_pos_correct.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+apply is_zero_correct_conv in H0.
+apply pred_pos_correct.
+
+*****
+H0 : not (eq (bs2nat n) O)
+H : eq (sem is_zero_e (cons n nil) nil) nil
+n : list bool
+*****
+not (eq (bs2nat n) O)
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+
+*****
+n : list bool
+*****
+forall (b : bool) (l : list bool) (_ : eq (sem is_zero_e (cons n nil) nil) (cons b l)), eq (bs2nat (if b then nil else sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+intros.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons b l)
+l : list bool
+b : bool
+n : list bool
+*****
+eq (bs2nat (if b then nil else sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+destruct b.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2nat nil) (Init.Nat.pred (bs2nat n))
++++++
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2bool (sem is_zero_e (cons n nil) nil)) true
++++++
+rewrite H.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+rewrite H.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2bool (cons true l)) true
++++++
+simpl.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+rewrite H.
+simpl.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq true true
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+
+*****
+H0 : eq (bs2bool (sem is_zero_e (cons n nil) nil)) true
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2nat nil) (Init.Nat.pred (bs2nat n))
++++++
+apply is_zero_correct in H0.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+apply is_zero_correct in H0.
+
+*****
+H0 : eq (bs2nat n) O
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2nat nil) (Init.Nat.pred (bs2nat n))
++++++
+rewrite H0.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+apply is_zero_correct in H0.
+rewrite H0.
+
+*****
+H0 : eq (bs2nat n) O
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq (bs2nat nil) (Init.Nat.pred O)
++++++
+simpl.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = true).
+apply is_zero_correct in H0.
+rewrite H0.
+simpl.
+
+*****
+H0 : eq (bs2nat n) O
+H : eq (sem is_zero_e (cons n nil) nil) (cons true l)
+n,l : list bool
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq (bs2bool (sem is_zero_e (cons n nil) nil)) false
++++++
+rewrite H.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+rewrite H.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq (bs2bool (cons false l)) false
++++++
+simpl.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+rewrite H.
+simpl.
+
+*****
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq false false
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+
+*****
+H0 : eq (bs2bool (sem is_zero_e (cons n nil) nil)) false
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+apply is_zero_correct_conv in H0.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+apply is_zero_correct_conv in H0.
+
+*****
+H0 : not (eq (bs2nat n) O)
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+eq (bs2nat (sem pred_pos_e (cons n nil) nil)) (Init.Nat.pred (bs2nat n))
++++++
+apply pred_pos_correct.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+intros.
+destruct b.
+assert (bs2bool (sem is_zero_e [n] nil) = false).
+apply is_zero_correct_conv in H0.
+apply pred_pos_correct.
+
+*****
+H0 : not (eq (bs2nat n) O)
+H : eq (sem is_zero_e (cons n nil) nil) (cons false l)
+n,l : list bool
+*****
+not (eq (bs2nat n) O)
++++++
+trivial.
+-----
+Lemma pred_correct n : bs2nat (sem pred_e [n] nil) = Peano.pred (bs2nat n).
+Proof.
+simpl.
+intros.
+case_eq (sem is_zero_e [n] nil).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Opaque pred_e.
+-----
+Notation div2_e := pred.
+-----
+Lemma div2_correct : forall v,\n  bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+
+*****
+
+*****
+forall v : list bool, eq (bs2nat (sem pred nil (cons v nil))) (Nat.div2 (bs2nat v))
++++++
+Proof.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+
+*****
+
+*****
+forall v : list bool, eq (bs2nat (sem pred nil (cons v nil))) (Nat.div2 (bs2nat v))
++++++
+intros v.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+
+*****
+v : list bool
+*****
+eq (bs2nat (sem pred nil (cons v nil))) (Nat.div2 (bs2nat v))
++++++
+case v.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+
+*****
+v : list bool
+*****
+eq (bs2nat (sem pred nil (cons nil nil))) (Nat.div2 (bs2nat nil))
++++++
+simpl.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+eq O O
++++++
+trivial.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool), eq (bs2nat (sem pred nil (cons (cons b l) nil))) (Nat.div2 (bs2nat (cons b l)))
++++++
+simpl.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool), eq (bs2nat l) (Nat.div2 (if b then S (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)) else Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)))
++++++
+trivial.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+
+*****
+v : list bool
+*****
+forall (b : bool) (l : list bool), eq (bs2nat l) (Nat.div2 (if b then S (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)) else Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)))
++++++
+intros.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (Nat.div2 (if b then S (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)) else Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)))
++++++
+case b.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (Nat.div2 (S (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O))))
++++++
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (Nat.div2 (S (Init.Nat.mul (S (S O)) (bs2nat l))))
++++++
+rewrite div2_double_plus_one.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+rewrite div2_double_plus_one.
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (bs2nat l)
++++++
+trivial.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (Init.Nat.mul (S (S O)) (bs2nat l)) (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O))
++++++
+ring.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (Nat.div2 (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O)))
++++++
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (Nat.div2 (Init.Nat.mul (S (S O)) (bs2nat l)))
++++++
+rewrite div2_double.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+rewrite div2_double.
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (bs2nat l) (bs2nat l)
++++++
+trivial.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+simpl.
+trivial.
+intros.
+case b.
+replace (bs2nat l + (bs2nat l + 0)) with (2 * (bs2nat l)).
+
+*****
+l : list bool
+b : bool
+v : list bool
+*****
+eq (Init.Nat.mul (S (S O)) (bs2nat l)) (Init.Nat.add (bs2nat l) (Init.Nat.add (bs2nat l) O))
++++++
+omega.
+-----
+Lemma div2_correct : forall v, bs2nat (sem pred nil [v]) = div2 (bs2nat v).
+Proof.
+intros v.
+case v.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

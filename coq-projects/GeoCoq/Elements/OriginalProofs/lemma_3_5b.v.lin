@@ -1,0 +1,27 @@
+b147f2d725b45e5df46f72e0d80264c8
+Require Export GeoCoq.Elements.OriginalProofs.lemma_3_7a.
+Section Euclid.
+Context `{Ax:euclidean_neutral_ruler_compass}.
+Lemma lemma_3_5b : 
+   forall A B C D, 
+   BetS A B D -> BetS B C D ->
+   BetS A C D.
+Proof.
+  intros.
+  assert (BetS A B C).
+  {
+    conclude axiom_innertransitivity.
+  }
+  {
+    idtac.
+    assert (BetS A C D).
+    {
+      conclude lemma_3_7a.
+    }
+    {
+      idtac.
+      close.
+    }
+  }
+Qed.
+End Euclid.

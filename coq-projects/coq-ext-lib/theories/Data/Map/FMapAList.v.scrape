@@ -1,0 +1,3482 @@
+Require Import Coq.Classes.RelationClasses.
+-----
+Require Import Coq.Lists.List.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Tactics.Consider.
+-----
+Require Import ExtLib.Structures.Maps.
+-----
+Require Import ExtLib.Structures.Monad.
+-----
+Require Import ExtLib.Structures.Reducible.
+-----
+Require Import ExtLib.Structures.Functor.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Section keyed.
+-----
+Variable K : Type.
+-----
+Variable R : K -> K -> Prop.
+-----
+Variable RD_K : RelDec R.
+-----
+Variable V : Type.
+-----
+Definition alist : Type := list (K * V).
+-----
+Definition alist_remove (k : K) (m : alist) : alist :=\n    List.filter (fun x => negb (k ?[ R ] (fst x))) m.
+-----
+Definition alist_add (k : K) (v : V) (m : alist) : alist :=\n    (k, v) :: alist_remove k m.
+-----
+Fixpoint alist_find (k : K) (m : alist) : option V :=\n    match m with\n      | nil => None\n      | (k',v) :: ms =>\n        if k ?[ R ] k' then\n          Some v\n        else\n          alist_find k ms\n    end.
+-----
+Section fold.
+-----
+Import MonadNotation.
+-----
+Local Open Scope monad_scope.
+-----
+Variables T : Type.
+-----
+Variable f : K -> V -> T -> T.
+-----
+Fixpoint fold_alist (acc : T) (map : alist) : T :=\n      match map with\n        | nil => acc\n        | (k,v) :: m =>\n          let acc := f k v acc in\n          fold_alist acc m\n      end.
+-----
+End fold.
+-----
+Definition alist_union (m1 m2 : alist) : alist :=\n    fold_alist alist_add m2 m1.
+-----
+Global Instance Map_alist : Map K V alist :=\n  { empty  := nil\n  ; add    := @alist_add\n  ; remove := alist_remove\n  ; lookup := alist_find\n  ; union  := @alist_union\n  }.
+-----
+Section proofs.
+-----
+Hypothesis RDC_K : RelDec_Correct RD_K.
+-----
+Hypothesis Refl : Reflexive R.
+-----
+Hypothesis Sym : Symmetric R.
+-----
+Hypothesis Trans : Transitive R.
+-----
+Definition mapsto_alist (m : alist) k v : Prop :=\n      alist_find k m = Some v.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v',\n                                mapsto_alist ((k',v') :: m) k v <->\n                                (   (mapsto_alist m k v /\ ~R k k')\n                                 \/ (R k k' /\ v = v')).
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : list (prod K V)) (k' : K) (v' : V), iff (mapsto_alist (cons (pair k' v') m) k v) (or (and (mapsto_alist m k v) (not (R k k'))) (and (R k k') (eq v v')))
++++++
+Proof.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : list (prod K V)) (k' : K) (v' : V), iff (mapsto_alist (cons (pair k' v') m) k v) (or (and (mapsto_alist m k v) (not (R k k'))) (and (R k k') (eq v v')))
++++++
+unfold mapsto_alist.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : list (prod K V)) (k' : K) (v' : V), iff (eq (alist_find k (cons (pair k' v') m)) (Some v)) (or (and (eq (alist_find k m) (Some v)) (not (R k k'))) (and (R k k') (eq v v')))
++++++
+intuition.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+
+*****
+H : eq (alist_find k (cons (pair k' v') m)) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+simpl in *.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+
+*****
+H : eq (if rel_dec k k' then Some v' else alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+consider (k ?[ R ] k').
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (_ : R k k') (_ : eq (Some v') (Some v)), or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : eq (Some v') (Some v)
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+right.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+right.
+
+*****
+H0 : eq (Some v') (Some v)
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+and (R k k') (eq v v')
++++++
+inversion H0.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+right.
+inversion H0.
+
+*****
+H2 : eq v' v
+H0 : eq (Some v') (Some v)
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+and (R k k') (eq v v)
++++++
+auto.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (_ : not (R k k')) (_ : eq (alist_find k m) (Some v)), or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : eq (alist_find k m) (Some v)
+H : not (R k k')
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+or (and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)) (and (R k k') (eq v v'))
++++++
+left.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+left.
+
+*****
+H0 : eq (alist_find k m) (Some v)
+H : not (R k k')
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+and (eq (alist_find k m) (Some v)) (forall _ : R k k', False)
++++++
+auto.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+
+*****
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (alist_find k (cons (pair k' v') m)) (Some v)
++++++
+simpl in *.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+
+*****
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (if rel_dec k k' then Some v' else alist_find k m) (Some v)
++++++
+consider (k ?[ R ] k').
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k', eq (Some v') (Some v)
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : R k k'
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (Some v') (Some v)
++++++
+intuition.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k'), eq (alist_find k m) (Some v)
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : not (R k k')
+H1 : forall _ : R k k', False
+H : eq (alist_find k m) (Some v)
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (alist_find k m) (Some v)
++++++
+intuition.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+
+*****
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (alist_find k (cons (pair k' v') m)) (Some v)
++++++
+simpl in *.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+
+*****
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (if rel_dec k k' then Some v' else alist_find k m) (Some v)
++++++
+consider (k ?[ R ] k').
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k', eq (Some v') (Some v)
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : R k k'
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (Some v') (Some v)
++++++
+intuition.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+intuition.
+
+*****
+H0 : R k k'
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (Some v') (Some v)
++++++
+congruence.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+
+*****
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k'), eq (alist_find k m) (Some v)
++++++
+intros.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+simpl in *.
+consider (k ?[ R ] k').
+intros.
+
+*****
+H0 : not (R k k')
+H1 : eq v v'
+H : R k k'
+v' : V
+k' : K
+m : list (prod K V)
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (alist_find k m) (Some v)
++++++
+intuition.
+-----
+Lemma mapsto_alist_cons : forall k v m k' v', mapsto_alist ((k',v') :: m) k v <-> ( (mapsto_alist m k v /\\ ~R k k') \\/ (R k k' /\\ v = v')).
+Proof.
+unfold mapsto_alist.
+intuition.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem mapsto_lookup_alist : forall (k : K) (v : V) (m : list (K * V)),\n                                   lookup k m = Some v <-> mapsto_alist m k v.
+-----
+Theorem mapsto_lookup_alist : forall (k : K) (v : V) (m : list (K * V)), lookup k m = Some v <-> mapsto_alist m k v.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : list (prod K V)), iff (eq (lookup k m) (Some v)) (mapsto_alist m k v)
++++++
+Proof.
+-----
+Theorem mapsto_lookup_alist : forall (k : K) (v : V) (m : list (K * V)), lookup k m = Some v <-> mapsto_alist m k v.
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : list (prod K V)), iff (eq (lookup k m) (Some v)) (mapsto_alist m k v)
++++++
+reflexivity.
+-----
+Theorem mapsto_lookup_alist : forall (k : K) (v : V) (m : list (K * V)), lookup k m = Some v <-> mapsto_alist m k v.
+Proof.
+reflexivity.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V),\n                                       ~mapsto_alist (remove k m) k v.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (mapsto_alist (remove k m) k v)
++++++
+Proof.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (mapsto_alist (remove k m) k v)
++++++
+unfold mapsto_alist.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (eq (alist_find k (remove k m)) (Some v))
++++++
+unfold remove.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (eq (alist_find k ((let (_, _, remove, _, _) := Map_alist in remove) k m)) (Some v))
++++++
+unfold alist_remove.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (eq (alist_find k ((let (_, _, remove, _, _) := Map_alist in remove) k m)) (Some v))
++++++
+simpl.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), not (eq (alist_find k (alist_remove k m)) (Some v))
++++++
+intros.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+
+*****
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (alist_remove k m)) (Some v))
++++++
+induction m.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+
+*****
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (alist_remove k nil)) (Some v))
++++++
+simpl.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+
+*****
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq None (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+
+*****
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq None (Some v))
++++++
+congruence.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+a : prod K V
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (alist_remove k (cons a m))) (Some v))
++++++
+simpl.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+a : prod K V
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (if negb (rel_dec k (fst a)) then cons a (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+a : prod K V
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (if negb (rel_dec k (fst a)) then cons a (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+destruct a.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (if negb (rel_dec k (fst (pair k0 v0))) then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+simpl in *.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (if negb (rel_dec k k0) then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+consider (k ?[ R ] k0).
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k0, not (eq (alist_find k (if negb true then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), not (eq (alist_find k (if negb false then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+auto.
+
+*****
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), not (eq (alist_find k (if negb false then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+intros.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+auto.
+intros.
+
+*****
+H : not (R k k0)
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (alist_find k (if negb false then cons (pair k0 v0) (alist_remove k m) else alist_remove k m)) (Some v))
++++++
+simpl.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+auto.
+intros.
+simpl.
+
+*****
+H : not (R k k0)
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (eq (if rel_dec k k0 then Some v0 else alist_find k (alist_remove k m)) (Some v))
++++++
+consider (k ?[ R ] k0).
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+auto.
+intros.
+simpl.
+consider (k ?[ R ] k0).
+
+*****
+H : not (R k k0)
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k0, not (eq (Some v0) (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+simpl.
+auto.
+destruct a.
+simpl in *.
+consider (k ?[ R ] k0).
+auto.
+intros.
+simpl.
+consider (k ?[ R ] k0).
+
+*****
+H : not (R k k0)
+IHm : not (eq (alist_find k (alist_remove k m)) (Some v))
+v : V
+k : K
+m : list (prod K V)
+v0 : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), not (eq (alist_find k (alist_remove k m)) (Some v))
++++++
+auto.
+-----
+Theorem mapsto_remove_eq_alist : forall (m : list (K * V)) (k : K) (v : V), ~mapsto_alist (remove k m) k v.
+Proof.
+unfold mapsto_alist.
+unfold remove.
+unfold alist_remove.
+simpl.
+intros.
+induction m.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K),\n                                      forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k k' : K) (_ : not (R k k')) (v' : V), iff (mapsto_alist m k' v') (mapsto_alist (remove k m) k' v')
++++++
+Proof.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k k' : K) (_ : not (R k k')) (v' : V), iff (mapsto_alist m k' v') (mapsto_alist (remove k m) k' v')
++++++
+unfold mapsto_alist.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k k' : K) (_ : not (R k k')) (v' : V), iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (remove k m)) (Some v'))
++++++
+unfold add.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k k' : K) (_ : not (R k k')) (v' : V), iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (remove k m)) (Some v'))
++++++
+simpl.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k k' : K) (_ : not (R k k')) (v' : V), iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+
+*****
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+induction m.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+
+*****
+v' : V
+H : not (R k k')
+k,k' : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' nil) (Some v')) (eq (alist_find k' (alist_remove k nil)) (Some v'))
++++++
+simpl in *.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+
+*****
+v' : V
+H : not (R k k')
+k,k' : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq None (Some v')) (eq None (Some v'))
++++++
+intuition.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+a : prod K V
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (cons a m)) (Some v')) (eq (alist_find k' (alist_remove k (cons a m))) (Some v'))
++++++
+simpl in *.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+a : prod K V
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (let (k'0, v) := a in if rel_dec k' k'0 then Some v else alist_find k' m) (Some v')) (eq (alist_find k' (if negb (rel_dec k (fst a)) then cons a (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+destruct a.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (if rel_dec k' k0 then Some v else alist_find k' m) (Some v')) (eq (alist_find k' (if negb (rel_dec k (fst (pair k0 v))) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+simpl in *.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (if rel_dec k' k0 then Some v else alist_find k' m) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+consider (k' ?[ R ] k0).
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k' k0, iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+consider (k ?[ R ] k0).
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+
+*****
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k0, iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb true then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+
+*****
+H1 : R k k0
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb true then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+exfalso.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+exfalso.
+
+*****
+H1 : R k k0
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+False
++++++
+eauto.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+
+*****
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb false then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+
+*****
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (alist_find k' (if negb false then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+simpl.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+
+*****
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (if rel_dec k' k0 then Some v else alist_find k' (alist_remove k m)) (Some v'))
++++++
+consider (k' ?[ R ] k0).
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+consider (k' ?[ R ] k0).
+
+*****
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k' k0, iff (eq (Some v) (Some v')) (eq (Some v) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H2 : R k' k0
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (Some v) (Some v'))
++++++
+intuition.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+consider (k' ?[ R ] k0).
+
+*****
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k' k0), iff (eq (Some v) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H2 : not (R k' k0)
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (Some v) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+exfalso.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+consider (k ?[ R ] k0).
+intros.
+simpl.
+consider (k' ?[ R ] k0).
+intros.
+exfalso.
+
+*****
+H2 : not (R k' k0)
+H1 : not (R k k0)
+H0 : R k' k0
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+False
++++++
+auto.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+
+*****
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k' k0), iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+rewrite IHm.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (if negb (rel_dec k k0) then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+consider (k ?[ R ] k0).
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k0, iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (if negb true then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+simpl.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k0, iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+
+*****
+H1 : R k k0
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intuition.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (if negb false then cons (pair k0 v) (alist_remove k m) else alist_remove k m)) (Some v'))
++++++
+simpl.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+
+*****
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k0), iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (if rel_dec k' k0 then Some v else alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+
+*****
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (if rel_dec k' k0 then Some v else alist_find k' (alist_remove k m)) (Some v'))
++++++
+consider (k' ?[ R ] k0).
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+consider (k' ?[ R ] k0).
+
+*****
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k' k0, iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (Some v) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H2 : R k' k0
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (Some v) (Some v'))
++++++
+exfalso.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+consider (k' ?[ R ] k0).
+intros.
+exfalso.
+
+*****
+H2 : R k' k0
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+False
++++++
+auto.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+consider (k' ?[ R ] k0).
+
+*****
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k' k0), iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+simpl in *.
+destruct a.
+simpl in *.
+consider (k' ?[ R ] k0).
+intros.
+rewrite IHm.
+consider (k ?[ R ] k0).
+simpl.
+intros.
+consider (k' ?[ R ] k0).
+intros.
+
+*****
+H2 : not (R k' k0)
+H1 : not (R k k0)
+H0 : not (R k' k0)
+IHm : iff (eq (alist_find k' m) (Some v'))\n (eq (alist_find k' (alist_remove k m)) (Some v'))
+v' : V
+H : not (R k k')
+k,k' : K
+m : list (prod K V)
+v : V
+k0 : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' (alist_remove k m)) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intuition.
+-----
+Theorem mapsto_remove_neq_alist : forall (m : list (K * V)) (k : K), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (remove k m) k' v').
+Proof.
+unfold mapsto_alist.
+unfold add.
+simpl.
+intros.
+induction m.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V),\n                                 mapsto_alist (add k v m) k v.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), mapsto_alist (add k v m) k v
++++++
+Proof.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), mapsto_alist (add k v m) k v
++++++
+unfold mapsto_alist.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), eq (alist_find k (add k v m)) (Some v)
++++++
+unfold add.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), eq (alist_find k ((let (_, add, _, _, _) := Map_alist in add) k v m)) (Some v)
++++++
+unfold alist_add.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), eq (alist_find k ((let (_, add, _, _, _) := Map_alist in add) k v m)) (Some v)
++++++
+simpl.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V), eq (if rel_dec k k then Some v else alist_find k (alist_remove k m)) (Some v)
++++++
+intros.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+
+*****
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (if rel_dec k k then Some v else alist_find k (alist_remove k m)) (Some v)
++++++
+consider (k ?[ R ] k).
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+
+*****
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : R k k, eq (Some v) (Some v)
++++++
+auto.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+
+*****
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k), eq (alist_find k (alist_remove k m)) (Some v)
++++++
+auto.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+auto.
+
+*****
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k k), eq (alist_find k (alist_remove k m)) (Some v)
++++++
+intro.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+auto.
+intro.
+
+*****
+H : not (R k k)
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+eq (alist_find k (alist_remove k m)) (Some v)
++++++
+exfalso.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+auto.
+intro.
+exfalso.
+
+*****
+H : not (R k k)
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+False
++++++
+apply H.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+auto.
+intro.
+exfalso.
+apply H.
+
+*****
+H : not (R k k)
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+R k k
++++++
+reflexivity.
+-----
+Theorem mapsto_add_eq_alist : forall (m : list (K * V)) (k : K) (v : V), mapsto_alist (add k v m) k v.
+Proof.
+unfold mapsto_alist.
+unfold add.
+unfold alist_add.
+simpl.
+intros.
+consider (k ?[ R ] k).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V),\n                                     forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V) (k' : K) (_ : not (R k k')) (v' : V), iff (mapsto_alist m k' v') (mapsto_alist (add k v m) k' v')
++++++
+Proof.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V) (k' : K) (_ : not (R k k')) (v' : V), iff (mapsto_alist m k' v') (mapsto_alist (add k v m) k' v')
++++++
+unfold mapsto_alist, add; simpl.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : list (prod K V)) (k : K) (v : V) (k' : K) (_ : not (R k k')) (v' : V), iff (eq (alist_find k' m) (Some v')) (eq (if rel_dec k' k then Some v else alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+intros.
+
+*****
+v' : V
+H : not (R k k')
+k' : K
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' m) (Some v')) (eq (if rel_dec k' k then Some v else alist_find k' (alist_remove k m)) (Some v'))
++++++
+consider (k' ?[ R ] k); try solve [ intros; exfalso; auto ].
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+intros.
+consider (k' ?[ R ] k); try solve [ intros; exfalso; auto ].
+
+*****
+v' : V
+H : not (R k k')
+k' : K
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall _ : not (R k' k), iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+intros.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+intros.
+consider (k' ?[ R ] k); try solve [ intros; exfalso; auto ].
+intros.
+
+*****
+H0 : not (R k' k)
+v' : V
+H : not (R k k')
+k' : K
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+eapply mapsto_remove_neq_alist in H.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+intros.
+consider (k' ?[ R ] k); try solve [ intros; exfalso; auto ].
+intros.
+eapply mapsto_remove_neq_alist in H.
+
+*****
+H : iff (mapsto_alist ?m k' ?v') (mapsto_alist (remove k ?m) k' ?v')
+H0 : not (R k' k)
+v' : V
+k' : K
+v : V
+k : K
+m : list (prod K V)
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+iff (eq (alist_find k' m) (Some v')) (eq (alist_find k' (alist_remove k m)) (Some v'))
++++++
+eapply H.
+-----
+Theorem mapsto_add_neq_alist : forall (m : list (K * V)) (k : K) (v : V), forall k', ~ R k k' -> forall v', (mapsto_alist m k' v' <-> mapsto_alist (add k v m) k' v').
+Proof.
+unfold mapsto_alist, add; simpl.
+intros.
+consider (k' ?[ R ] k); try solve [ intros; exfalso; auto ].
+intros.
+eapply mapsto_remove_neq_alist in H.
+eapply H.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+MapOk R Map_alist
++++++
+Proof.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+MapOk R Map_alist
++++++
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V), not (mapsto_alist empty k v)
++++++
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V), not (mapsto_alist empty k v)
++++++
+intros.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+intros.
+
+*****
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+not (mapsto_alist empty k v)
++++++
+intro.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+intros.
+intro.
+
+*****
+H : mapsto_alist empty k v
+v : V
+k : K
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+False
++++++
+inversion H.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (k : K) (v : V) (m : alist), iff (eq (lookup k m) (Some v)) (mapsto_alist m k v)
++++++
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : alist) (k : K) (v : V), mapsto_alist (add k v m) k v
++++++
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+
+*****
+Trans : Transitive R
+Sym : Symmetric R
+Refl : Reflexive R
+RDC_K : RelDec_Correct RD_K
+V : Type
+RD_K : RelDec R
+R : forall (_ : K) (_ : K), Prop
+K : Type
+*****
+forall (m : alist) (k : K) (v : V) (k' : K) (_ : not (R k k')) (v' : V), iff (mapsto_alist m k' v') (mapsto_alist (add k v m) k' v')
++++++
+eauto using mapsto_lookup_alist, mapsto_add_eq_alist, mapsto_add_neq_alist.
+-----
+Global Instance MapLaws_alist : MapOk R Map_alist.
+Proof.
+refine {| mapsto := fun k v m => mapsto_alist m k v |}.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End proofs.
+-----
+Global Instance Foldable_alist : Foldable alist (K * V) :=\n    fun _ f b => fold_alist (fun k v => f (k,v)) b.
+-----
+End keyed.
+-----
+Global Instance Functor_alist K : Functor (alist K) :=\n{ fmap := fun T U f => map (fun x => (fst x, f (snd x))) }.
+-----

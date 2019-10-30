@@ -1,0 +1,471 @@
+Require Export GeoCoq.Elements.OriginalProofs.lemma_extension.
+-----
+Section Euclid.
+-----
+Context `{Ax:euclidean_neutral_ruler_compass}.
+-----
+Lemma lemma_ray4 : \n   forall A B E, \n   (BetS A E B \/ eq E B \/ BetS A B E) -> neq A B ->\n   Out A B E.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B E : Point) (_ : or (BetS A E B) (or (eq E B) (BetS A B E))) (_ : neq A B), Out A B E
++++++
+Proof.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+
+*****
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+forall (A B E : Point) (_ : or (BetS A E B) (or (eq E B) (BetS A B E))) (_ : neq A B), Out A B E
++++++
+intros.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+
+*****
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (~ eq B A).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+
+*****
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+not (eq B A)
++++++
+intro.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+intro.
+
+*****
+H1 : eq B A
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+assert (eq A B) by (conclude lemma_equalitysymmetric).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+intro.
+assert (eq A B) by (conclude lemma_equalitysymmetric).
+
+*****
+H2 : eq A B
+H1 : eq B A
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+False
++++++
+contradict.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+
+*****
+H1 : not (eq B A)
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+
+*****
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+
+*****
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (Out A B E).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+
+*****
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+by cases on (BetS A E B \/ eq E B \/ BetS A B E).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+
+*****
+H5 : BetS A E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (BetS J A E) by (conclude axiom_innertransitivity).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude axiom_innertransitivity).
+
+*****
+H : BetS J A E
+H5 : BetS A E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (Out A B E) by (conclude_def Out ).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude axiom_innertransitivity).
+assert (Out A B E) by (conclude_def Out ).
+
+*****
+H6 : Out A B E
+H : BetS J A E
+H5 : BetS A E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+close.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+
+*****
+H6 : eq E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (BetS J A E) by (conclude cn_equalitysub).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude cn_equalitysub).
+
+*****
+H : BetS J A E
+H6 : eq E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (Out A B E) by (conclude_def Out ).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude cn_equalitysub).
+assert (Out A B E) by (conclude_def Out ).
+
+*****
+H5 : Out A B E
+H : BetS J A E
+H6 : eq E B
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+close.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+
+*****
+H6 : BetS A B E
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (BetS J A E) by (conclude lemma_3_7b).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude lemma_3_7b).
+
+*****
+H : BetS J A E
+H6 : BetS A B E
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+assert (Out A B E) by (conclude_def Out ).
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+assert (BetS J A E) by (conclude lemma_3_7b).
+assert (Out A B E) by (conclude_def Out ).
+
+*****
+H5 : Out A B E
+H : BetS J A E
+H6 : BetS A B E
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+close.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+
+*****
+H5 : Out A B E
+H4 : BetS J A B
+H3 : Cong A J A B
+H2 : BetS B A J
+J : Point
+H1 : not (eq B A)
+H0 : neq A B
+H : or (BetS A E B) (or (eq E B) (BetS A B E))
+A,B,E : Point
+Ax : euclidean_neutral_ruler_compass Ax0
+Ax0 : euclidean_neutral
+*****
+Out A B E
++++++
+close.
+-----
+Lemma lemma_ray4 : forall A B E, (BetS A E B \\/ eq E B \\/ BetS A B E) -> neq A B -> Out A B E.
+Proof.
+intros.
+assert (~ eq B A).
+let Tf:=fresh in assert (Tf:exists J, (BetS B A J /\\ Cong A J A B)) by (conclude lemma_extension);destruct Tf as [J];spliter.
+assert (BetS J A B) by (conclude axiom_betweennesssymmetry).
+assert (Out A B E).
+by cases on (BetS A E B \\/ eq E B \\/ BetS A B E).
+close.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Euclid.
+-----

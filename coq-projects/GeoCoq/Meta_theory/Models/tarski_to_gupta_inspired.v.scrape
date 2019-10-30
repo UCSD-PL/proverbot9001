@@ -1,0 +1,688 @@
+Require Import GeoCoq.Axioms.tarski_axioms.
+-----
+Require Import GeoCoq.Axioms.gupta_inspired_variant_axioms.
+-----
+Require Import GeoCoq.Tarski_dev.Ch05_bet_le.
+-----
+Section Tarski_neutral_dimensionless_to_Gupta_inspired_variant_of_Tarski_neutral_dimensionless.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C D E F : Tpoint) (_ : Cong A B E F) (_ : Cong C D E F), Cong A B C D
++++++
+Proof.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C D E F : Tpoint) (_ : Cong A B E F) (_ : Cong C D E F), Cong A B C D
++++++
+intros A B C D E F H1 H2.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+
+*****
+H2 : Cong C D E F
+H1 : Cong A B E F
+A,B,C,D,E,F : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A B C D
++++++
+apply (cong_inner_transitivity E F).
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+apply (cong_inner_transitivity E F).
+
+*****
+H2 : Cong C D E F
+H1 : Cong A B E F
+A,B,C,D,E,F : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong E F A B
++++++
+apply cong_symmetry.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+apply (cong_inner_transitivity E F).
+apply cong_symmetry.
+
+*****
+H2 : Cong C D E F
+H1 : Cong A B E F
+A,B,C,D,E,F : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong A B E F
++++++
+assumption.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+apply (cong_inner_transitivity E F).
+
+*****
+H2 : Cong C D E F
+H1 : Cong A B E F
+A,B,C,D,E,F : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong E F C D
++++++
+apply cong_symmetry.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+apply (cong_inner_transitivity E F).
+apply cong_symmetry.
+
+*****
+H2 : Cong C D E F
+H1 : Cong A B E F
+A,B,C,D,E,F : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Cong C D E F
++++++
+assumption.
+-----
+Lemma cong_inner_transitivity' : forall A B C D E F, Cong A B E F -> Cong C D E F -> Cong A B C D.
+Proof.
+intros A B C D E F H1 H2.
+apply (cong_inner_transitivity E F).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma inner_pasch' : forall A B C P Q,\n  Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C ->\n  ~ (Bet A B C \/ Bet B C A \/ Bet C A B) ->\n  exists x : Tpoint, Bet P x B /\ Bet Q x A.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C P Q : Tpoint) (_ : Bet A P C) (_ : Bet B Q C) (_ : not (eq A P)) (_ : not (eq P C)) (_ : not (eq B Q)) (_ : not (eq Q C)) (_ : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))), ex (fun x : Tpoint => and (Bet P x B) (Bet Q x A))
++++++
+Proof.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C P Q : Tpoint) (_ : Bet A P C) (_ : Bet B Q C) (_ : not (eq A P)) (_ : not (eq P C)) (_ : not (eq B Q)) (_ : not (eq Q C)) (_ : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))), ex (fun x : Tpoint => and (Bet P x B) (Bet Q x A))
++++++
+intros A B C P Q.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+intros A B C P Q.
+
+*****
+A,B,C,P,Q : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : Bet A P C) (_ : Bet B Q C) (_ : not (eq A P)) (_ : not (eq P C)) (_ : not (eq B Q)) (_ : not (eq Q C)) (_ : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))), ex (fun x : Tpoint => and (Bet P x B) (Bet Q x A))
++++++
+intros.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+intros A B C P Q.
+intros.
+
+*****
+H5 : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+H4 : not (eq Q C)
+H3 : not (eq B Q)
+H2 : not (eq P C)
+H1 : not (eq A P)
+H0 : Bet B Q C
+H : Bet A P C
+A,B,C,P,Q : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun x : Tpoint => and (Bet P x B) (Bet Q x A))
++++++
+apply inner_pasch with C.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+intros A B C P Q.
+intros.
+apply inner_pasch with C.
+
+*****
+H5 : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+H4 : not (eq Q C)
+H3 : not (eq B Q)
+H2 : not (eq P C)
+H1 : not (eq A P)
+H0 : Bet B Q C
+H : Bet A P C
+A,B,C,P,Q : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A P C
++++++
+assumption.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+intros A B C P Q.
+intros.
+apply inner_pasch with C.
+
+*****
+H5 : not (or (Bet A B C) (or (Bet B C A) (Bet C A B)))
+H4 : not (eq Q C)
+H3 : not (eq B Q)
+H2 : not (eq P C)
+H1 : not (eq A P)
+H0 : Bet B Q C
+H : Bet A P C
+A,B,C,P,Q : Tpoint
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet B Q C
++++++
+assumption.
+-----
+Lemma inner_pasch' : forall A B C P Q, Bet A P C -> Bet B Q C -> A <> P -> P <> C -> B <> Q -> Q <> C -> ~ (Bet A B C \\/ Bet B C A \\/ Bet C A B) -> exists x : Tpoint, Bet P x B /\\ Bet Q x A.
+Proof.
+intros A B C P Q.
+intros.
+apply inner_pasch with C.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Instance T_to_TG : Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality.
+-----
+Instance T_to_TG : Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality
++++++
+Proof.
+-----
+Instance T_to_TG : Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality
++++++
+exact (Build_Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality Tpoint Bet Cong eq_dec_points cong_pseudo_reflexivity cong_inner_transitivity' cong_identity segment_construction five_segment between_symmetry between_inner_transitivity inner_pasch' PA PB PC lower_dim).
+-----
+Instance T_to_TG : Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality.
+Proof.
+exact (Build_Gupta_inspired_variant_of_Tarski_neutral_dimensionless_with_decidable_point_equality Tpoint Bet Cong eq_dec_points cong_pseudo_reflexivity cong_inner_transitivity' cong_identity segment_construction five_segment between_symmetry between_inner_transitivity inner_pasch' PA PB PC lower_dim).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Tarski_neutral_dimensionless_to_Gupta_inspired_variant_of_Tarski_neutral_dimensionless.
+-----
+Section Tarski_2D_to_Gupta_inspired_variant_of_Tarski_2D.
+-----
+Context `{T2D:Tarski_2D}.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+
+*****
+T2D : Tarski_2D TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_2D T_to_TG
++++++
+Proof.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+Proof.
+
+*****
+T2D : Tarski_2D TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_2D T_to_TG
++++++
+split.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+Proof.
+split.
+
+*****
+T2D : Tarski_2D TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C P Q : TpointG) (_ : not (eq P Q)) (_ : not (eq A B)) (_ : not (eq A C)) (_ : not (eq B C)) (_ : CongG A P A Q) (_ : CongG B P B Q) (_ : CongG C P C Q), or (BetG A B C) (or (BetG B C A) (BetG C A B))
++++++
+intros A B C P Q HPQ HAB HAC HBC.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+Proof.
+split.
+intros A B C P Q HPQ HAB HAC HBC.
+
+*****
+HBC : not (eq B C)
+HAC : not (eq A C)
+HAB : not (eq A B)
+HPQ : not (eq P Q)
+A,B,C,P,Q : TpointG
+T2D : Tarski_2D TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : CongG A P A Q) (_ : CongG B P B Q) (_ : CongG C P C Q), or (BetG A B C) (or (BetG B C A) (BetG C A B))
++++++
+apply upper_dim, HPQ.
+-----
+Instance T2D_to_TG2D : Gupta_inspired_variant_of_Tarski_2D T_to_TG.
+Proof.
+split.
+intros A B C P Q HPQ HAB HAC HBC.
+apply upper_dim, HPQ.
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Tarski_2D_to_Gupta_inspired_variant_of_Tarski_2D.
+-----
+Section Tarski_euclidean_to_Gupta_inspired_variant_of_Tarski_euclidean.
+-----
+Context `{TE:Tarski_euclidean}.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_euclidean T_to_TG
++++++
+Proof.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Gupta_inspired_variant_of_Tarski_euclidean T_to_TG
++++++
+split.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+
+*****
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C D T : TpointG) (_ : BetG A D T) (_ : BetG B D C) (_ : not (eq B D)) (_ : not (eq D C)) (_ : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))), ex (fun x : TpointG => ex (fun y : TpointG => and (BetG A B x) (and (BetG A C y) (BetG x T y))))
++++++
+intros A B C D T H1 H2 HBD HDC HNCol.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+
+*****
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun x : TpointG => ex (fun y : TpointG => and (BetG A B x) (and (BetG A C y) (BetG x T y))))
++++++
+assert (A <> D).
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+
+*****
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq A D)
++++++
+intro.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+intro.
+
+*****
+H : eq A D
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+subst.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+intro.
+subst.
+
+*****
+HNCol : not (or (BetG D B C) (or (BetG B C D) (BetG C D B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG D D T
+B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HNCol.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+intro.
+subst.
+apply HNCol.
+
+*****
+HNCol : not (or (BetG D B C) (or (BetG B C D) (BetG C D B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG D D T
+B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (BetG D B C) (or (BetG B C D) (BetG C D B))
++++++
+right.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+intro.
+subst.
+apply HNCol.
+right.
+
+*****
+HNCol : not (or (BetG D B C) (or (BetG B C D) (BetG C D B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG D D T
+B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (BetG B C D) (BetG C D B)
++++++
+right.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+intro.
+subst.
+apply HNCol.
+right.
+right.
+
+*****
+HNCol : not (or (BetG D B C) (or (BetG B C D) (BetG C D B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG D D T
+B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+BetG C D B
++++++
+apply between_symmetry, H2.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+
+*****
+H : not (eq A D)
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun x : TpointG => ex (fun y : TpointG => and (BetG A B x) (and (BetG A C y) (BetG x T y))))
++++++
+idtac.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+idtac.
+
+*****
+H : not (eq A D)
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun x : TpointG => ex (fun y : TpointG => and (BetG A B x) (and (BetG A C y) (BetG x T y))))
++++++
+apply euclid with D.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+idtac.
+apply euclid with D.
+
+*****
+H : not (eq A D)
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A D T
++++++
+assumption.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+idtac.
+apply euclid with D.
+
+*****
+H : not (eq A D)
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet B D C
++++++
+assumption.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+idtac.
+apply euclid with D.
+
+*****
+H : not (eq A D)
+HNCol : not (or (BetG A B C) (or (BetG B C A) (BetG C A B)))
+HDC : not (eq D C)
+HBD : not (eq B D)
+H2 : BetG B D C
+H1 : BetG A D T
+A,B,C,D,T : TpointG
+TE : Tarski_euclidean TnEQD
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq A D)
++++++
+assumption.
+-----
+Instance T_euclidean_to_TG_euclidean : Gupta_inspired_variant_of_Tarski_euclidean T_to_TG.
+Proof.
+split.
+intros A B C D T H1 H2 HBD HDC HNCol.
+assert (A <> D).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+End Tarski_euclidean_to_Gupta_inspired_variant_of_Tarski_euclidean.
+-----

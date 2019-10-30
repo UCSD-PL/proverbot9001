@@ -1,0 +1,942 @@
+1476845fcdfb7a51a6e26fd0286ebf10
+Require Export GeoCoq.Highschool.circumcenter.
+Section Orthocenter.
+Context `{TE:Tarski_euclidean}.
+Definition is_orthocenter H A B C :=
+ ~ Col A B C /\ Perp A H B C /\ Perp B H A C /\ Perp C H A B.
+Lemma construct_intersection : forall A B C X1 X2 X3,
+ ~ Col A B C ->
+ Par A C B X1 -> Par A B C X2 ->  Par B C A X3 ->
+ exists E, Col E A X3 /\ Col E B X1.
+Proof.
+  intros A B C X1 X2 X3 HNC HPar1 HPar2 HPar3.
+  apply cop_npar__inter_exists.
+  {
+    apply coplanar_perm_2, coplanar_trans_1 with C.
+    {
+      Col.
+    }
+    {
+      Col.
+      Cop.
+    }
+    {
+      Col.
+      Cop.
+    }
+  }
+  {
+    intro HNPar.
+    apply HNC.
+    assert (HFalsePar : Par B C A C).
+    {
+      apply (par_trans B C B X1 A C).
+      {
+        finish.
+        apply (par_trans B C A X3 B).
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+      }
+      {
+        finish.
+      }
+    }
+    {
+      idtac.
+      apply par_id_2.
+      finish.
+    }
+  }
+Qed.
+Lemma not_col_par_col2_diff : forall A B C D E F,
+  ~ Col A B C -> Par A B C D -> Col C D E -> Col A E F -> A <> E.
+Proof.
+  intros A B C D E F HNC HPar HC1 HC2.
+  intro.
+  subst.
+  apply HNC.
+  apply not_strict_par1 with D E.
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+Qed.
+Lemma construct_triangle : forall A B C,
+  ~ Col A B C -> exists D, exists E, exists F,
+  Col B D F /\ Col A E F /\ Col C D E /\
+  Par A B C D /\ Par A C B D /\ Par B C A E /\
+  Par A B C E /\ Par A C B F /\ Par B C A F /\
+  D <> E /\ D <> F /\ E <> F.
+Proof.
+intros A B C HNC.
+assert_diffs; rename H2 into HAB; rename H1 into HBC; rename H4 into HAC.
+elim (parallel_existence1 A B C HAB);intros X1 HX1.
+elim (parallel_existence1 A C B HAC);intros X2 HX2.
+elim (parallel_existence1 B C A HBC);intros X3 HX3.
+assert (T : exists D, Col D B X2 /\ Col D C X1) by (apply construct_intersection with A X3; finish); DecompExAnd T D.
+assert (T : exists E, Col E A X3 /\ Col E C X1) by (apply construct_intersection with B X2; finish); DecompExAnd T E.
+assert (T : exists F, Col F A X3 /\ Col F B X2) by (apply construct_intersection with C X1; finish); DecompExAnd T F.
+assert (A <> E) by (apply not_col_par_col2_diff with B C X1 X3; finish).
+assert (A <> F) by (apply not_col_par_col2_diff with C B X2 X3; finish).
+assert (B <> D) by (apply not_col_par_col2_diff with A C X1 X2; finish).
+assert (B <> F) by (apply not_col_par_col2_diff with C A X3 X2; finish).
+assert (C <> D) by (apply not_col_par_col2_diff with A B X2 X1; finish).
+assert (C <> E) by (apply not_col_par_col2_diff with B A X3 X1; finish).
+assert (Par A B C D) by (apply par_col_par with X1; finish).
+assert (Par A C B D) by (apply par_col_par with X2; finish).
+assert (Par B C A E) by (apply par_col_par with X3; finish).
+assert (Par A B C E) by (apply par_col_par with X1; finish).
+assert (Par A C B F) by (apply par_col_par with X2; finish).
+assert (Par B C A F) by (apply par_col_par with X3; finish).
+assert (~ (D = E /\ D = F)).
+intro; spliter; treat_equalities.
+assert_paras_perm.
+assert_nparas_perm.
+permutation_intro_in_hyps.
+contradiction.
+exists D; exists E; exists F.
+assert_diffs.
+repeat split; finish; try ColR.
+intro; subst.
+assert (E <> F) by (intro; subst; intuition).
+apply HNC; apply col_permutation_1; apply not_strict_par1 with E A; sfinish.
+intro; subst.
+assert (E <> F) by (intro; subst; intuition).
+apply HNC; apply col_permutation_2; apply not_strict_par1 with E C; sfinish.
+intro; subst.
+assert (D <> F) by (intro; subst; intuition).
+apply HNC; apply not_strict_par1 with D B; sfinish.
+Qed.
+Lemma diff_not_col_col_par4_mid: forall A B C D E,
+  D <> E -> ~ Col A B C -> Col C D E -> Par A B C D ->
+  Par A B C E -> Par A E B C -> Par A C B D -> Midpoint C D E.
+Proof.
+  intros A B C D E HD HNC HC HPar1 HPar2 HPar3 HPar4.
+  assert (HPara1 : Parallelogram_strict A B C E).
+  {
+    apply parallel_2_plg.
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    idtac.
+    assert (HPara2 : Parallelogram_strict C A B D).
+    {
+      apply parallel_2_plg.
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+    }
+    {
+      idtac.
+      assert_congs_perm.
+      apply cong_col_mid.
+      {
+        Col.
+      }
+      {
+        Col.
+      }
+      {
+        Col.
+        eCong.
+      }
+    }
+  }
+Qed.
+Lemma altitude_is_perp_bisect : forall A B C O A1 E F,
+  A <> O -> E <> F -> Perp A A1 B C -> Col O A1 A -> Col A E F -> Par B C A E -> Midpoint A E F ->
+  Perp_bisect A O E F.
+Proof.
+  intros.
+  apply perp_mid_perp_bisect.
+  {
+    finish.
+  }
+  {
+    finish.
+    apply perp_sym.
+    apply cop_par_perp__perp with B C.
+    {
+      finish.
+      apply par_col_par with A.
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+    }
+    {
+      finish.
+      apply perp_col1 with A1.
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+    }
+    {
+      finish.
+    }
+  }
+Qed.
+Lemma altitude_intersect:
+ forall A  A1 B B1 C C1 O: Tpoint,
+ ~ Col A B C ->
+ Perp A A1 B C  -> Perp B B1 A C -> Perp C C1 A B ->
+ Col O A A1 -> Col O B B1 ->
+ Col O C C1.
+Proof.
+  intros A A1 B B1 C C1 O HNC HPerp1 HPerp2 HPerp3 HC1 HC2.
+  assert (HT := HNC).
+  apply construct_triangle in HT.
+  destruct HT as [D [E [F HT]]].
+  spliter.
+  assert (Midpoint A E F).
+  {
+    apply diff_not_col_col_par4_mid with B C.
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    idtac.
+    assert (Midpoint B D F).
+    {
+      apply diff_not_col_col_par4_mid with A C.
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+      {
+        finish.
+      }
+    }
+    {
+      idtac.
+      assert (Midpoint C D E).
+      {
+        apply diff_not_col_col_par4_mid with A B.
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+      }
+      {
+        idtac.
+        assert_diffs.
+        elim (eq_dec_points A O).
+        {
+          intro.
+          treat_equalities.
+          apply col_permutation_4.
+          apply cop_perp2__col with A B.
+          {
+            finish.
+          }
+          {
+            finish.
+            apply perp_right_comm.
+            apply perp_col1 with B1.
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+          }
+          {
+            finish.
+          }
+        }
+        {
+          intro.
+          elim (eq_dec_points B O).
+          {
+            intro.
+            treat_equalities.
+            apply col_permutation_4.
+            apply cop_perp2__col with A B.
+            {
+              finish.
+            }
+            {
+              finish.
+              apply perp_col1 with A1.
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+            }
+            {
+              finish.
+            }
+          }
+          {
+            intro.
+            elim (eq_dec_points C O).
+            {
+              intro.
+              subst.
+              Col.
+            }
+            {
+              intro.
+              assert (Perp_bisect A O E F).
+              {
+                apply altitude_is_perp_bisect with B C A1.
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+                {
+                  finish.
+                }
+              }
+              {
+                idtac.
+                assert (Perp_bisect B O D F).
+                {
+                  apply altitude_is_perp_bisect with A C B1.
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                  {
+                    finish.
+                  }
+                }
+                {
+                  idtac.
+                  assert (Perp O C D E).
+                  {
+                    apply circumcenter_intersect with F A B.
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                    }
+                    {
+                      finish.
+                      apply perp_bisect_sym_1.
+                      assumption.
+                    }
+                    {
+                      finish.
+                      apply perp_bisect_sym_1.
+                      assumption.
+                    }
+                  }
+                  {
+                    assert (Perp C1 C D E).
+                    {
+                      apply perp_sym.
+                      apply cop_par_perp__perp with A B.
+                      {
+                        finish.
+                        apply par_symmetry.
+                        apply par_col_par_2 with C.
+                        {
+                          finish.
+                        }
+                        {
+                          finish.
+                        }
+                        {
+                          finish.
+                        }
+                      }
+                      {
+                        finish.
+                      }
+                      {
+                        finish.
+                      }
+                    }
+                    {
+                      apply col_permutation_2.
+                      apply cop_perp2__col with D E.
+                      {
+                        Perp.
+                        apply coplanar_pseudo_trans with A B C.
+                        {
+                          assumption.
+                        }
+                        {
+                          Cop.
+                        }
+                        {
+                          apply col_cop__cop with D.
+                          {
+                            Col.
+                            Cop.
+                          }
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                          }
+                        }
+                        {
+                          Cop.
+                        }
+                        {
+                          apply coplanar_perm_2, col_cop__cop with B1.
+                          {
+                            Col.
+                            Cop.
+                          }
+                          {
+                            Col.
+                          }
+                          {
+                            Col.
+                          }
+                        }
+                      }
+                      {
+                        Perp.
+                      }
+                      {
+                        Perp.
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Lemma is_orthocenter_cases :
+  forall A B C G,
+  is_orthocenter G A B C \/
+  is_orthocenter G A C B \/
+  is_orthocenter G B A C \/
+  is_orthocenter G B C A \/
+  is_orthocenter G C A B \/
+  is_orthocenter G C B A ->
+  is_orthocenter G A B C.
+Proof.
+  intros.
+  decompose [or] H.
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+  {
+    clear H.
+    unfold is_orthocenter in *.
+    spliter.
+    repeat (split; finish).
+  }
+Qed.
+Lemma is_orthocenter_perm : forall A B C G,
+ is_orthocenter G A B C ->
+ is_orthocenter G A B C /\ is_orthocenter G A C B /\
+ is_orthocenter G B A C /\ is_orthocenter G B C A /\
+ is_orthocenter G C A B /\ is_orthocenter G C B A.
+Proof.
+  intros.
+  unfold is_orthocenter in *.
+  spliter.
+  repeat split.
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+  {
+    finish.
+  }
+Qed.
+Lemma is_orthocenter_perm_1 : forall A B C G,
+ is_orthocenter G A B C -> is_orthocenter G A C B.
+Proof.
+  intros.
+  apply is_orthocenter_perm in H.
+  intuition.
+Qed.
+Lemma is_orthocenter_perm_2 : forall A B C G,
+ is_orthocenter G A B C -> is_orthocenter G B A C.
+Proof.
+  intros.
+  apply is_orthocenter_perm in H.
+  intuition.
+Qed.
+Lemma is_orthocenter_perm_3 : forall A B C G,
+ is_orthocenter G A B C -> is_orthocenter G B C A.
+Proof.
+  intros.
+  apply is_orthocenter_perm in H.
+  intuition.
+Qed.
+Lemma is_orthocenter_perm_4 : forall A B C G,
+ is_orthocenter G A B C -> is_orthocenter G C A B.
+Proof.
+  intros.
+  apply is_orthocenter_perm in H.
+  intuition.
+Qed.
+Lemma is_orthocenter_perm_5 : forall A B C G,
+ is_orthocenter G A B C -> is_orthocenter G C B A.
+Proof.
+  intros.
+  apply is_orthocenter_perm in H.
+  intuition.
+Qed.
+Lemma orthocenter_per :
+ forall A B C H,
+ Per A B C ->
+ is_orthocenter H A B C ->
+ H=B.
+Proof.
+  intros.
+  unfold is_orthocenter in *.
+  spliter.
+  assert_diffs.
+  assert (Perp A B B C).
+  {
+    apply per_perp.
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    idtac.
+    assert (Par A H A B).
+    {
+      apply l12_9 with B C.
+      {
+        Cop.
+      }
+      {
+        Cop.
+      }
+      {
+        Cop.
+      }
+      {
+        Cop.
+      }
+      {
+        Cop.
+      }
+      {
+        Cop.
+      }
+    }
+    {
+      idtac.
+      assert (Col A B H).
+      {
+        perm_apply (par_id A B H).
+      }
+      {
+        idtac.
+        assert (Par C H B C).
+        {
+          apply l12_9 with A B.
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+        }
+        {
+          idtac.
+          assert (Col B C H).
+          {
+            perm_apply (par_id C B H).
+          }
+          {
+            idtac.
+            apply l6_21 with A B C B.
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+            {
+              finish.
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+Lemma orthocenter_col :
+ forall A B C H,
+ Col H B C ->
+ is_orthocenter H A B C ->
+ H = B \/ H = C.
+Proof.
+  intros.
+  unfold is_orthocenter in *.
+  spliter.
+  assert (Perp_at H B C A H).
+  {
+    apply l8_14_2_1b_bis.
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+    {
+      finish.
+    }
+  }
+  {
+    induction (eq_dec_points B H).
+    {
+      subst.
+      auto.
+    }
+    {
+      assert (Perp A H B H).
+      {
+        apply (perp_col1 A H B C H).
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+        {
+          finish.
+        }
+      }
+      {
+        idtac.
+        assert (Par A H A C).
+        {
+          apply l12_9 with B H.
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+          {
+            finish.
+          }
+        }
+        {
+          idtac.
+          assert (Col H A C).
+          {
+            perm_apply (par_id A C H).
+          }
+          {
+            idtac.
+            assert (H=C).
+            {
+              assert_diffs.
+              apply l6_21 with B C A C.
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+              {
+                finish.
+              }
+            }
+            {
+              subst.
+              auto.
+            }
+          }
+        }
+      }
+    }
+  }
+Qed.
+End Orthocenter.
+Hint Resolve
+     is_orthocenter_perm_1
+     is_orthocenter_perm_2
+     is_orthocenter_perm_3
+     is_orthocenter_perm_4
+     is_orthocenter_perm_5 : Orthocenter.

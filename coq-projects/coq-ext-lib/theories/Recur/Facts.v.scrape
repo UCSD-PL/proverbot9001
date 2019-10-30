@@ -1,0 +1,38 @@
+Require Import Coq.Classes.RelationClasses.
+-----
+Lemma wf_anti_sym T (R : T -> T -> Prop) (wf : well_founded R)\n: Irreflexive R.
+-----
+Lemma wf_anti_sym T (R : T -> T -> Prop) (wf : well_founded R) : Irreflexive R.
+
+*****
+wf : well_founded R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Irreflexive R
++++++
+Proof.
+-----
+Lemma wf_anti_sym T (R : T -> T -> Prop) (wf : well_founded R) : Irreflexive R.
+Proof.
+
+*****
+wf : well_founded R
+R : forall (_ : T) (_ : T), Prop
+T : Type
+*****
+Irreflexive R
++++++
+refine (fun a => (@Fix _ _ wf (fun x => x = a -> R x a ->False) (fun x rec pf pfr => rec _ match eq_sym pf in _ = t return R x t with | eq_refl => pfr end pf pfr)) a eq_refl).
+-----
+Lemma wf_anti_sym T (R : T -> T -> Prop) (wf : well_founded R) : Irreflexive R.
+Proof.
+refine (fun a => (@Fix _ _ wf (fun x => x = a -> R x a ->False) (fun x rec pf pfr => rec _ match eq_sym pf in _ = t return R x t with | eq_refl => pfr end pf pfr)) a eq_refl).
+
+*****
+
+*****
+
++++++
+Qed.
+-----

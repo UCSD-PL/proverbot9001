@@ -1,0 +1,1580 @@
+Require Import Coq.Lists.List.
+-----
+From Coq Require Import Relations.
+-----
+From Coq Require Import RelationClasses.
+-----
+Require Import ExtLib.Core.Type.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Data.SigT.
+-----
+Require Import ExtLib.Data.ListNth.
+-----
+Require Import ExtLib.Data.Option.
+-----
+Require Import ExtLib.Structures.Proper.
+-----
+Require Import ExtLib.Tactics.Injection.
+-----
+Require Import ExtLib.Tactics.EqDep.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Set Asymmetric Patterns.
+-----
+Section member.
+-----
+Context {T : Type}.
+-----
+Inductive member (a : T) : list T -> Type :=\n  | MZ : forall ls, member a (a :: ls)\n  | MN : forall l ls, member a ls -> member a (l :: ls).
+-----
+Section to_nat.
+-----
+Variable a : T.
+-----
+Fixpoint to_nat {ls} (m : member a ls) : nat :=\n      match m with\n        | MZ _ => 0\n        | MN _ _ m => S (to_nat m)\n      end.
+-----
+End to_nat.
+-----
+Lemma member_eta\n  : forall x ls (m : member x ls),\n      m = match m in member _ ls\n                return member x ls\n          with\n            | MZ ls => MZ x ls\n            | MN _ _ n => MN _ n\n          end.
+-----
+Lemma member_eta : forall x ls (m : member x ls), m = match m in member _ ls return member x ls with | MZ ls => MZ x ls | MN _ _ n => MN _ n end.
+
+*****
+T : Type
+*****
+forall (x : T) (ls : list T) (m : member x ls), eq m match m in (member _ ls0) return (member x ls0) with | @MZ _ ls0 => MZ x ls0 | @MN _ l ls0 n => MN l n end
++++++
+Proof.
+-----
+Lemma member_eta : forall x ls (m : member x ls), m = match m in member _ ls return member x ls with | MZ ls => MZ x ls | MN _ _ n => MN _ n end.
+Proof.
+
+*****
+T : Type
+*****
+forall (x : T) (ls : list T) (m : member x ls), eq m match m in (member _ ls0) return (member x ls0) with | @MZ _ ls0 => MZ x ls0 | @MN _ l ls0 n => MN l n end
++++++
+destruct m.
+-----
+Lemma member_eta : forall x ls (m : member x ls), m = match m in member _ ls return member x ls with | MZ ls => MZ x ls | MN _ _ n => MN _ n end.
+Proof.
+destruct m.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+eq (MZ x ls) (MZ x ls)
++++++
+auto.
+-----
+Lemma member_eta : forall x ls (m : member x ls), m = match m in member _ ls return member x ls with | MZ ls => MZ x ls | MN _ _ n => MN _ n end.
+Proof.
+destruct m.
+
+*****
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (MN l m) (MN l m)
++++++
+auto.
+-----
+Lemma member_eta : forall x ls (m : member x ls), m = match m in member _ ls return member x ls with | MZ ls => MZ x ls | MN _ _ n => MN _ n end.
+Proof.
+destruct m.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma member_case\n  : forall x ls (m : member x ls),\n      match ls as ls return member x ls -> Prop with\n        | nil => fun _ => False\n        | l :: ls' => fun m =>\n                        (exists (pf : l = x),\n                           m = match pf in _ = z return member z (l :: ls') with\n                                 | eq_refl => MZ _ ls'\n                               end)\n                        \/ exists m' : member x ls',\n                             m = MN _ m'\n      end m.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+
+*****
+T : Type
+*****
+forall (x : T) (ls : list T) (m : member x ls), match ls as ls0 return (forall _ : member x ls0, Prop) with | nil => fun _ : member x nil => False | cons l ls' => fun m0 : member x (cons l ls') => or (ex (fun pf : eq l x => eq m0 match pf in (eq _ z) return (member z (cons l ls')) with | eq_refl => MZ l ls' end)) (ex (fun m' : member x ls' => eq m0 (MN l m'))) end m
++++++
+Proof.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+
+*****
+T : Type
+*****
+forall (x : T) (ls : list T) (m : member x ls), match ls as ls0 return (forall _ : member x ls0, Prop) with | nil => fun _ : member x nil => False | cons l ls' => fun m0 : member x (cons l ls') => or (ex (fun pf : eq l x => eq m0 match pf in (eq _ z) return (member z (cons l ls')) with | eq_refl => MZ l ls' end)) (ex (fun m' : member x ls' => eq m0 (MN l m'))) end m
++++++
+induction m.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+or (ex (fun pf : eq x x => eq (MZ x ls) match pf in (eq _ z) return (member z (cons x ls)) with | eq_refl => MZ x ls end)) (ex (fun m' : member x ls => eq (MZ x ls) (MN x m')))
++++++
+left.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+left.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+ex (fun pf : eq x x => eq (MZ x ls) match pf in (eq _ z) return (member z (cons x ls)) with | eq_refl => MZ x ls end)
++++++
+exists eq_refl.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+left.
+exists eq_refl.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+eq (MZ x ls) (MZ x ls)
++++++
+reflexivity.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+
+*****
+IHm : match ls return (forall _ : member x ls, Prop) with\n| nil => fun _ : member x nil => False\n| cons l ls' =>\n fun m : member x (cons l ls') =>\n or\n (ex\n (fun pf : eq l x =>\n eq m\n match pf in (eq _ z) return (member z (cons l ls')) with\n | eq_refl => MZ l ls'\n end)) (ex (fun m' : member x ls' => eq m (MN l m')))\nend m
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+or (ex (fun pf : eq l x => eq (MN l m) match pf in (eq _ z) return (member z (cons l ls)) with | eq_refl => MZ l ls end)) (ex (fun m' : member x ls => eq (MN l m) (MN l m')))
++++++
+right.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+right.
+
+*****
+IHm : match ls return (forall _ : member x ls, Prop) with\n| nil => fun _ : member x nil => False\n| cons l ls' =>\n fun m : member x (cons l ls') =>\n or\n (ex\n (fun pf : eq l x =>\n eq m\n match pf in (eq _ z) return (member z (cons l ls')) with\n | eq_refl => MZ l ls'\n end)) (ex (fun m' : member x ls' => eq m (MN l m')))\nend m
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+ex (fun m' : member x ls => eq (MN l m) (MN l m'))
++++++
+eauto.
+-----
+Lemma member_case : forall x ls (m : member x ls), match ls as ls return member x ls -> Prop with | nil => fun _ => False | l :: ls' => fun m => (exists (pf : l = x), m = match pf in _ = z return member z (l :: ls') with | eq_refl => MZ _ ls' end) \\/ exists m' : member x ls', m = MN _ m' end m.
+Proof.
+induction m.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma to_nat_eq_member_eq\n  : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls),\n      to_nat a = to_nat b ->\n      a = b.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+
+*****
+T : Type
+*****
+forall (_ : EqDec T eq) (x : T) (ls : list T) (a b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
++++++
+Proof.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+
+*****
+T : Type
+*****
+forall (_ : EqDec T eq) (x : T) (ls : list T) (a b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
++++++
+induction a.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+
+*****
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+forall (b : member x (cons x ls)) (_ : eq (to_nat (MZ x ls)) (to_nat b)), eq (MZ x ls) b
++++++
+intros.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+
+*****
+H : eq (to_nat (MZ x ls)) (to_nat b)
+b : member x (cons x ls)
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) b
++++++
+destruct (member_case b).
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+
+*****
+H0 : ex\n (fun pf : eq x x =>\n eq b\n match pf in (eq _ z) return (member z (cons x ls)) with\n | eq_refl => MZ x ls\n end)
+H : eq (to_nat (MZ x ls)) (to_nat b)
+b : member x (cons x ls)
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) b
++++++
+destruct H0.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+
+*****
+H0 : eq b\n match x0 in (eq _ z) return (member z (cons x ls)) with\n | eq_refl => MZ x ls\n end
+x0 : eq x x
+H : eq (to_nat (MZ x ls)) (to_nat b)
+b : member x (cons x ls)
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) b
++++++
+subst.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+
+*****
+H : eq (to_nat (MZ x ls))\n (to_nat\n match x0 in (eq _ z) return (member z (cons x ls)) with\n | eq_refl => MZ x ls\n end)
+x0 : eq x x
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) match x0 in (eq _ z) return (member z (cons x ls)) with | eq_refl => MZ x ls end
++++++
+rewrite (UIP_refl x0).
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+rewrite (UIP_refl x0).
+
+*****
+H : eq (to_nat (MZ x ls))\n (to_nat\n match x0 in (eq _ z) return (member z (cons x ls)) with\n | eq_refl => MZ x ls\n end)
+x0 : eq x x
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) (MZ x ls)
++++++
+reflexivity.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+
+*****
+H0 : ex (fun m' : member x ls => eq b (MN x m'))
+H : eq (to_nat (MZ x ls)) (to_nat b)
+b : member x (cons x ls)
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) b
++++++
+destruct H0.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+
+*****
+H0 : eq b (MN x x0)
+x0 : member x ls
+H : eq (to_nat (MZ x ls)) (to_nat b)
+b : member x (cons x ls)
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) b
++++++
+subst.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+
+*****
+H : eq (to_nat (MZ x ls)) (to_nat (MN x x0))
+x0 : member x ls
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) (MN x x0)
++++++
+simpl in *.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+
+*****
+H : eq O (S (to_nat x0))
+x0 : member x ls
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+eq (MZ x ls) (MN x x0)
++++++
+congruence.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+
+*****
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+forall (b : member x (cons l ls)) (_ : eq (to_nat (MN l a)) (to_nat b)), eq (MN l a) b
++++++
+intros.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+
+*****
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) b
++++++
+destruct (member_case b).
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+
+*****
+H0 : ex\n (fun pf : eq l x =>\n eq b\n match pf in (eq _ z) return (member z (cons l ls)) with\n | eq_refl => MZ l ls\n end)
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) b
++++++
+exfalso.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+exfalso.
+
+*****
+H0 : ex\n (fun pf : eq l x =>\n eq b\n match pf in (eq _ z) return (member z (cons l ls)) with\n | eq_refl => MZ l ls\n end)
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+False
++++++
+destruct H0.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+exfalso.
+destruct H0.
+
+*****
+H0 : eq b\n match x0 in (eq _ z) return (member z (cons l ls)) with\n | eq_refl => MZ l ls\n end
+x0 : eq l x
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+False
++++++
+subst.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+exfalso.
+destruct H0.
+subst.
+
+*****
+H : eq (to_nat (MN x a)) (to_nat (MZ x ls))
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+False
++++++
+simpl in *.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+exfalso.
+destruct H0.
+subst.
+simpl in *.
+
+*****
+H : eq (S (to_nat a)) O
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x : T
+X : EqDec T eq
+T : Type
+*****
+False
++++++
+congruence.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+
+*****
+H0 : ex (fun m' : member x ls => eq b (MN l m'))
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) b
++++++
+destruct H0.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+
+*****
+H0 : eq b (MN l x0)
+x0 : member x ls
+H : eq (to_nat (MN l a)) (to_nat b)
+b : member x (cons l ls)
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) b
++++++
+subst.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+
+*****
+H : eq (to_nat (MN l a)) (to_nat (MN l x0))
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+simpl in *.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+
+*****
+H : eq (S (to_nat a)) (S (to_nat x0))
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+inversion H.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+inversion H.
+
+*****
+H1 : eq (to_nat a) (to_nat x0)
+H : eq (S (to_nat a)) (S (to_nat x0))
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+clear H.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+inversion H.
+clear H.
+
+*****
+H1 : eq (to_nat a) (to_nat x0)
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+subst.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+inversion H.
+clear H.
+subst.
+
+*****
+H1 : eq (to_nat a) (to_nat x0)
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+eapply IHa in H1.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+inversion H.
+clear H.
+subst.
+eapply IHa in H1.
+
+*****
+H1 : eq a x0
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq (MN l a) (MN l x0)
++++++
+f_equal.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+intros.
+destruct (member_case b).
+destruct H0.
+subst.
+simpl in *.
+inversion H.
+clear H.
+subst.
+eapply IHa in H1.
+f_equal.
+
+*****
+H1 : eq a x0
+x0 : member x ls
+IHa : forall (b : member x ls) (_ : eq (to_nat a) (to_nat b)), eq a b
+a : member x ls
+ls : list T
+x,l : T
+X : EqDec T eq
+T : Type
+*****
+eq a x0
++++++
+assumption.
+-----
+Lemma to_nat_eq_member_eq : forall {_ : EqDec T (@eq T)} x ls (a b : member x ls), to_nat a = to_nat b -> a = b.
+Proof.
+induction a.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Fixpoint nth_member (ls : list T) (n : nat) {struct n}\n  : option { x : T & member x ls } :=\n    match ls as ls return option { x : T & member x ls } with\n      | nil => None\n      | l :: ls =>\n        match n with\n          | 0 => Some (@existT _ (fun x => member x (l :: ls)) l (MZ _ _))\n          | S n =>\n            match nth_member ls n with\n              | Some (existT v m) => Some (@existT _ _ v (MN _ m))\n              | None => None\n            end\n        end\n    end.
+-----
+Definition get_next ls y x (m : member x (y :: ls))\n  : option (member x ls) :=\n    match m in member _ ls'\n          return match ls' with\n                   | nil => unit\n                   | l' :: ls' => option (member x ls')\n                 end\n    with\n      | MZ _ => None\n      | MN _ _ m => Some m\n    end.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+
+*****
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+Injective (eq (MN y m) (MN y m'))
++++++
+Proof.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+
+*****
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+Injective (eq (MN y m) (MN y m'))
++++++
+refine {| result := m = m' |}.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+
+*****
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+forall _ : eq (MN y m) (MN y m'), eq m m'
++++++
+intro.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+
+*****
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq m m'
++++++
+assert (get_next (MN y m) = get_next (MN y m')).
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+
+*****
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq (get_next (MN y m)) (get_next (MN y m'))
++++++
+rewrite H.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+rewrite H.
+
+*****
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq (get_next (MN y m')) (get_next (MN y m'))
++++++
+reflexivity.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+
+*****
+H0 : eq (get_next (MN y m)) (get_next (MN y m'))
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq m m'
++++++
+simpl in *.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+simpl in *.
+
+*****
+H0 : eq (Some m) (Some m')
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq m m'
++++++
+inversion H0.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+simpl in *.
+inversion H0.
+
+*****
+H2 : eq m m'
+H0 : eq (Some m) (Some m')
+H : eq (MN y m) (MN y m')
+m,m' : member x ls
+ls : list T
+x,y : T
+T : Type
+*****
+eq m' m'
++++++
+reflexivity.
+-----
+Instance Injective_MN x y ls m m' : Injective (@MN x y ls m = @MN x y ls m').
+Proof.
+refine {| result := m = m' |}.
+intro.
+assert (get_next (MN y m) = get_next (MN y m')).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Lemma nth_member_nth_error\n  : forall ls p,\n      nth_member ls (to_nat (projT2 p)) = Some p <->\n      nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+
+*****
+T : Type
+*****
+forall (ls : list T) (p : sigT (fun x : T => member x ls)), iff (eq (nth_member ls (to_nat (projT2 p))) (Some p)) (eq (nth_error ls (to_nat (projT2 p))) (Some (projT1 p)))
++++++
+Proof.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+
+*****
+T : Type
+*****
+forall (ls : list T) (p : sigT (fun x : T => member x ls)), iff (eq (nth_member ls (to_nat (projT2 p))) (Some p)) (eq (nth_error ls (to_nat (projT2 p))) (Some (projT1 p)))
++++++
+destruct p.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+
+*****
+m : member x ls
+x : T
+ls : list T
+T : Type
+*****
+iff (eq (nth_member ls (to_nat (projT2 (existT (fun x : T => member x ls) x m)))) (Some (existT (fun x : T => member x ls) x m))) (eq (nth_error ls (to_nat (projT2 (existT (fun x : T => member x ls) x m)))) (Some (projT1 (existT (fun x : T => member x ls) x m))))
++++++
+simpl in *.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+
+*****
+m : member x ls
+x : T
+ls : list T
+T : Type
+*****
+iff (eq (nth_member ls (to_nat m)) (Some (existT (fun x : T => member x ls) x m))) (eq (nth_error ls (to_nat m)) (Some x))
++++++
+induction m.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+iff (eq (nth_member (cons x ls) (to_nat (MZ x ls))) (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls)))) (eq (nth_error (cons x ls) (to_nat (MZ x ls))) (Some x))
++++++
+simpl.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+iff (eq (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls))) (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls)))) (eq (Some x) (Some x))
++++++
+split.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+forall _ : eq (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls))) (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls))), eq (Some x) (Some x)
++++++
+auto.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+
+*****
+ls : list T
+x : T
+T : Type
+*****
+forall _ : eq (Some x) (Some x), eq (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls))) (Some (existT (fun x0 : T => member x0 (cons x ls)) x (MZ x ls)))
++++++
+auto.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+
+*****
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+iff (eq (nth_member (cons l ls) (to_nat (MN l m))) (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))) (eq (nth_error (cons l ls) (to_nat (MN l m))) (Some x))
++++++
+simpl.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+
+*****
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+iff (eq match nth_member ls (to_nat m) with | Some (@existT _ _ v m) => Some (existT (fun x : T => member x (cons l ls)) v (MN l m)) | None => None end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))) (eq (nth_error ls (to_nat m)) (Some x))
++++++
+split.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+
+*****
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+forall _ : eq match nth_member ls (to_nat m) with | Some (@existT _ _ v m) => Some (existT (fun x : T => member x (cons l ls)) v (MN l m)) | None => None end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m))), eq (nth_error ls (to_nat m)) (Some x)
++++++
+intros.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+
+*****
+H : eq\n match nth_member ls (to_nat m) with\n | Some (@existT _ _ v m) =>\n Some (existT (fun x : T => member x (cons l ls)) v (MN l m))\n | None => None\n end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+destruct (nth_member ls (to_nat m)).
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+
+*****
+H : eq\n (let (v, m) := s in\n Some (existT (fun x : T => member x (cons l ls)) v (MN l m)))\n (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
+IHm : iff (eq (Some s) (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+s : sigT (fun x : T => member x ls)
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+try congruence.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+
+*****
+H : eq\n (let (v, m) := s in\n Some (existT (fun x : T => member x (cons l ls)) v (MN l m)))\n (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
+IHm : iff (eq (Some s) (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+s : sigT (fun x : T => member x ls)
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+destruct s.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+
+*****
+H : eq (Some (existT (fun x : T => member x (cons l ls)) x0 (MN l m0)))\n (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m0))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m0 : member x0 ls
+x0 : T
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+inv_all.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+inv_all.
+
+*****
+H0 : eq (MN l m0)\n match x1 in (eq _ t) return (member t (cons l ls)) with\n | eq_refl => MN l m\n end
+x1 : eq x x0
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m0))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m0 : member x0 ls
+x0 : T
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+subst.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+inv_all.
+subst.
+
+*****
+H0 : eq (MN l m0) (MN l m)
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m0))\n (Some (existT (fun x : T => member x ls) x0 m)))\n (eq (nth_error ls (to_nat m)) (Some x0))
+m,m0 : member x0 ls
+x0 : T
+ls : list T
+l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x0)
++++++
+inv_all.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+inv_all.
+subst.
+inv_all.
+
+*****
+H0 : eq m0 m
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m0))\n (Some (existT (fun x : T => member x ls) x0 m)))\n (eq (nth_error ls (to_nat m)) (Some x0))
+m,m0 : member x0 ls
+x0 : T
+ls : list T
+l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x0)
++++++
+subst.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+inv_all.
+subst.
+inv_all.
+subst.
+
+*****
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m))\n (Some (existT (fun x : T => member x ls) x0 m)))\n (eq (nth_error ls (to_nat m)) (Some x0))
+m : member x0 ls
+x0 : T
+ls : list T
+l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x0)
++++++
+apply IHm.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+try congruence.
+destruct s.
+inv_all.
+subst.
+inv_all.
+subst.
+apply IHm.
+
+*****
+IHm : iff\n (eq (Some (existT (fun x : T => member x ls) x0 m))\n (Some (existT (fun x : T => member x ls) x0 m)))\n (eq (nth_error ls (to_nat m)) (Some x0))
+m : member x0 ls
+x0 : T
+ls : list T
+l : T
+T : Type
+*****
+eq (Some (existT (fun x : T => member x ls) x0 m)) (Some (existT (fun x : T => member x ls) x0 m))
++++++
+reflexivity.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+destruct (nth_member ls (to_nat m)).
+
+*****
+H : eq None (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
+IHm : iff (eq None (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (nth_error ls (to_nat m)) (Some x)
++++++
+try congruence.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+
+*****
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+forall _ : eq (nth_error ls (to_nat m)) (Some x), eq match nth_member ls (to_nat m) with | Some (@existT _ _ v m) => Some (existT (fun x : T => member x (cons l ls)) v (MN l m)) | None => None end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
++++++
+intros.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+
+*****
+H : eq (nth_error ls (to_nat m)) (Some x)
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq match nth_member ls (to_nat m) with | Some (@existT _ _ v m) => Some (existT (fun x : T => member x (cons l ls)) v (MN l m)) | None => None end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
++++++
+eapply IHm in H.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+eapply IHm in H.
+
+*****
+H : eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m))
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq match nth_member ls (to_nat m) with | Some (@existT _ _ v m) => Some (existT (fun x : T => member x (cons l ls)) v (MN l m)) | None => None end (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
++++++
+rewrite H.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+simpl.
+split.
+intros.
+eapply IHm in H.
+rewrite H.
+
+*****
+H : eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m))
+IHm : iff\n (eq (nth_member ls (to_nat m))\n (Some (existT (fun x : T => member x ls) x m)))\n (eq (nth_error ls (to_nat m)) (Some x))
+m : member x ls
+ls : list T
+x,l : T
+T : Type
+*****
+eq (Some (existT (fun x : T => member x (cons l ls)) x (MN l m))) (Some (existT (fun x : T => member x (cons l ls)) x (MN l m)))
++++++
+reflexivity.
+-----
+Lemma nth_member_nth_error : forall ls p, nth_member ls (to_nat (projT2 p)) = Some p <-> nth_error ls (to_nat (projT2 p)) = Some (projT1 p).
+Proof.
+destruct p.
+simpl in *.
+induction m.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+
+*****
+T : Type
+*****
+forall (ls : list T) (t : T) (_ : member t ls), In t ls
++++++
+Proof.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+
+*****
+T : Type
+*****
+forall (ls : list T) (t : T) (_ : member t ls), In t ls
++++++
+induction 1.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+induction 1.
+
+*****
+ls : list T
+t : T
+T : Type
+*****
+In t (cons t ls)
++++++
+simpl.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+induction 1.
+simpl.
+
+*****
+ls : list T
+t : T
+T : Type
+*****
+or (eq t t) (In t ls)
++++++
+auto.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+induction 1.
+
+*****
+IHX : In t ls
+X : member t ls
+ls : list T
+t,l : T
+T : Type
+*****
+In t (cons l ls)
++++++
+simpl.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+induction 1.
+simpl.
+
+*****
+IHX : In t ls
+X : member t ls
+ls : list T
+t,l : T
+T : Type
+*****
+or (eq l t) (In t ls)
++++++
+auto.
+-----
+Lemma member_In : forall ls (t : T), member t ls -> List.In t ls.
+Proof.
+induction 1.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End member.
+-----

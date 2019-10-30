@@ -1,0 +1,1226 @@
+Require Coq.Lists.List.
+-----
+Require Import ExtLib.Core.RelDec.
+-----
+Require Import ExtLib.Tactics.EqDep.
+-----
+Require Import ExtLib.Tactics.Injection.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Set Asymmetric Patterns.
+-----
+Inductive fin : nat -> Type :=\n| F0 : forall {n}, fin (S n)\n| FS : forall {n}, fin n -> fin (S n).
+-----
+Fixpoint fin_all (n : nat) : list (fin n) :=\n  match n as n return list (fin n) with\n    | 0 => nil\n    | S n => @F0 n :: List.map (@FS _) (fin_all n)\n  end%list.
+-----
+Theorem fin_all_In : forall {n} (f : fin n),\n  List.In f (fin_all n).
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+
+*****
+
+*****
+forall (n : nat) (f : fin n), List.In f (fin_all n)
++++++
+Proof.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+
+*****
+
+*****
+forall (n : nat) (f : fin n), List.In f (fin_all n)
++++++
+induction n.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+
+*****
+
+*****
+forall f : fin O, List.In f (fin_all O)
++++++
+intros.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+
+*****
+f : fin O
+*****
+List.In f (fin_all O)
++++++
+inversion f.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+
+*****
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+forall f : fin (S n), List.In f (fin_all (S n))
++++++
+intros.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+
+*****
+f : fin (S n)
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In f (fin_all (S n))
++++++
+remember (S n).
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+
+*****
+f : fin n0
+Heqn0 : eq n0 (S n)
+n0 : nat
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In f (fin_all n0)
++++++
+destruct f.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+
+*****
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In F0 (fin_all (S n0))
++++++
+simpl.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+simpl.
+
+*****
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+or (eq F0 F0) (List.In F0 (List.map FS (fin_all n0)))
++++++
+firstorder.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+
+*****
+f : fin n0
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In (FS f) (fin_all (S n0))
++++++
+inversion Heqn0.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+inversion Heqn0.
+
+*****
+H0 : eq n0 n
+f : fin n0
+Heqn0 : eq (S n0) (S n)
+n0 : nat
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In (FS f) (fin_all (S n0))
++++++
+subst.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+
+*****
+Heqn0 : eq (S n) (S n)
+f : fin n
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In (FS f) (fin_all (S n))
++++++
+simpl.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+simpl.
+
+*****
+Heqn0 : eq (S n) (S n)
+f : fin n
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+or (eq F0 (FS f)) (List.In (FS f) (List.map FS (fin_all n)))
++++++
+right.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+simpl.
+right.
+
+*****
+Heqn0 : eq (S n) (S n)
+f : fin n
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In (FS f) (List.map FS (fin_all n))
++++++
+apply List.in_map.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+intros.
+remember (S n).
+destruct f.
+inversion Heqn0.
+subst.
+simpl.
+right.
+apply List.in_map.
+
+*****
+Heqn0 : eq (S n) (S n)
+f : fin n
+IHn : forall f : fin n, List.In f (fin_all n)
+n : nat
+*****
+List.In f (fin_all n)
++++++
+auto.
+-----
+Theorem fin_all_In : forall {n} (f : fin n), List.In f (fin_all n).
+Proof.
+induction n.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem fin_case : forall n (f : fin (S n)),\n  f = F0 \/ exists f', f = FS f'.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+
+*****
+
+*****
+forall (n : nat) (f : fin (S n)), or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+Proof.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+
+*****
+
+*****
+forall (n : nat) (f : fin (S n)), or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+intros.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+
+*****
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+generalize (fin_all_In f).
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+
+*****
+f : fin (S n)
+n : nat
+*****
+forall _ : List.In f (fin_all (S n)), or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+intros.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+
+*****
+H : List.In f (fin_all (S n))
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+destruct H.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+
+*****
+H : eq F0 f
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+auto.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+
+*****
+H : List.In f (List.map FS (fin_all n))
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+auto.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+auto.
+
+*****
+H : List.In f (List.map FS (fin_all n))
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+eapply List.in_map_iff in H.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+auto.
+eapply List.in_map_iff in H.
+
+*****
+H : ex (fun x : fin n => and (eq (FS x) f) (List.In x (fin_all n)))
+f : fin (S n)
+n : nat
+*****
+or (eq f F0) (ex (fun f' : fin n => eq f (FS f')))
++++++
+right.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+auto.
+eapply List.in_map_iff in H.
+right.
+
+*****
+H : ex (fun x : fin n => and (eq (FS x) f) (List.In x (fin_all n)))
+f : fin (S n)
+n : nat
+*****
+ex (fun f' : fin n => eq f (FS f'))
++++++
+destruct H.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+auto.
+eapply List.in_map_iff in H.
+right.
+destruct H.
+
+*****
+H : and (eq (FS x) f) (List.In x (fin_all n))
+x : fin n
+f : fin (S n)
+n : nat
+*****
+ex (fun f' : fin n => eq f (FS f'))
++++++
+exists x.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+auto.
+eapply List.in_map_iff in H.
+right.
+destruct H.
+exists x.
+
+*****
+H : and (eq (FS x) f) (List.In x (fin_all n))
+x : fin n
+f : fin (S n)
+n : nat
+*****
+eq f (FS x)
++++++
+intuition.
+-----
+Theorem fin_case : forall n (f : fin (S n)), f = F0 \\/ exists f', f = FS f'.
+Proof.
+intros.
+generalize (fin_all_In f).
+intros.
+destruct H.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Definition fin0_elim (f : fin 0) : forall T, T :=\n  match f in fin n return match n with\n                            | 0 => forall T, T\n                            | _ => unit\n                          end with\n    | F0 _ => tt\n    | FS _ _ => tt\n  end.
+-----
+Fixpoint pf_lt (n m : nat) : Prop :=\n  match n , m with\n    | 0 , S _ => True\n    | S n , S m => pf_lt n m\n    | _ , _ => False\n  end.
+-----
+Fixpoint make (m n : nat) {struct m} : pf_lt n m -> fin m :=\n  match n as n , m as m return pf_lt n m -> fin m with\n    | 0 , 0 => @False_rect _\n    | 0 , S n => fun _ => F0\n    | S n , 0 => @False_rect _\n    | S n , S m => fun pf => FS (make m n pf)\n  end.
+-----
+Notation "'##' n" := (@make _ n I) (at level 0).
+-----
+Global Instance Injective_FS {n : nat} (a b : fin n)\n  : Injective (FS a = FS b).
+-----
+Global Instance Injective_FS {n : nat} (a b : fin n) : Injective (FS a = FS b).
+
+*****
+a,b : fin n
+n : nat
+*****
+Injective (eq (FS a) (FS b))
++++++
+refine {| result := a = b |}.
+-----
+Global Instance Injective_FS {n : nat} (a b : fin n) : Injective (FS a = FS b).
+refine {| result := a = b |}.
+
+*****
+a,b : fin n
+n : nat
+*****
+forall _ : eq (FS a) (FS b), eq a b
++++++
+abstract (intro ; inversion H ; eapply inj_pair2 in H1 ; assumption).
+-----
+Global Instance Injective_FS {n : nat} (a b : fin n) : Injective (FS a = FS b).
+refine {| result := a = b |}.
+abstract (intro ; inversion H ; eapply inj_pair2 in H1 ; assumption).
+
+*****
+
+*****
+
++++++
+Defined.
+-----
+Fixpoint fin_eq_dec {n} (x : fin n) {struct x} : fin n -> bool :=\n  match x in fin n' return fin n' -> bool with\n    | F0 _ => fun y => match y with\n                         | F0 _ => true\n                         | _ => false\n                       end\n    | FS n' x' => fun y : fin (S n') =>\n      match y in fin n'' return (match n'' with\n                                   | 0 => unit\n                                   | S n'' => fin n''\n                                 end -> bool) -> bool with\n        | F0 _ => fun _ => false\n        | FS _ y' => fun f => f y'\n      end (fun y => fin_eq_dec x' y)\n    end.
+-----
+Global Instance RelDec_fin_eq (n : nat) : RelDec (@eq (fin n)) :=\n{ rel_dec := fin_eq_dec }.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat)\n  : RelDec_Correct (RelDec_fin_eq n).
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+
+*****
+n : nat
+*****
+RelDec_Correct (RelDec_fin_eq n)
++++++
+Proof.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+
+*****
+n : nat
+*****
+RelDec_Correct (RelDec_fin_eq n)
++++++
+constructor.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+
+*****
+n : nat
+*****
+forall x y : fin n, iff (eq (rel_dec x y) true) (eq x y)
++++++
+induction x.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+
+*****
+n : nat
+*****
+forall y : fin (S n), iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+
+*****
+n : nat
+*****
+forall y : fin (S n), iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+intro.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+
+*****
+y : fin (S n)
+n : nat
+*****
+iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+destruct (fin_case y).
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+
+*****
+H : eq y F0
+y : fin (S n)
+n : nat
+*****
+iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+subst.
+
+*****
+n : nat
+*****
+iff (eq (rel_dec F0 F0) true) (eq F0 F0)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+
+*****
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+n : nat
+*****
+iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+subst.
+
+*****
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+n : nat
+*****
+iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+destruct H.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+subst.
+destruct H.
+
+*****
+H : eq y (FS x)
+x : fin n
+y : fin (S n)
+n : nat
+*****
+iff (eq (rel_dec F0 y) true) (eq F0 y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+subst.
+destruct H.
+subst.
+
+*****
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec F0 (FS x)) true) (eq F0 (FS x))
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+simpl.
+intro.
+destruct (fin_case y).
+subst.
+destruct H.
+subst.
+intuition.
+
+*****
+H : eq F0 (FS x)
+x : fin n
+n : nat
+*****
+eq (rel_dec F0 (FS x)) true
++++++
+try congruence.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+
+*****
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+forall y : fin (S n), iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+intro.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+
+*****
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+destruct (fin_case y).
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+
+*****
+H : eq y F0
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+
+*****
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) F0) true) (eq (FS x) F0)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+
+*****
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq false true) (eq (FS x) F0)
++++++
+intuition.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+intuition.
+
+*****
+H : eq (FS x) F0
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq false true
++++++
+try congruence.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+
+*****
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+
+*****
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+simpl.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+
+*****
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+inversion H.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+
+*****
+H0 : eq y (FS x0)
+x0 : fin n
+H : ex (fun f' : fin n => eq y (FS f'))
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+destruct H.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+
+*****
+H0 : eq y (FS x0)
+x0 : fin n
+H : eq y (FS x1)
+x1 : fin n
+y : fin (S n)
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) y) true) (eq (FS x) y)
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+
+*****
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+iff (eq (rel_dec (FS x) (FS x1)) true) (eq (FS x) (FS x1))
++++++
+split.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+
+*****
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+forall _ : eq (rel_dec (FS x) (FS x1)) true, eq (FS x) (FS x1)
++++++
+intro.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+
+*****
+H : eq (rel_dec (FS x) (FS x1)) true
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq (FS x) (FS x1)
++++++
+f_equal.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+f_equal.
+
+*****
+H : eq (rel_dec (FS x) (FS x1)) true
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq x x1
++++++
+eauto.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+f_equal.
+eauto.
+
+*****
+H : eq (rel_dec (FS x) (FS x1)) true
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq x x1
++++++
+eapply IHx.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+f_equal.
+eauto.
+eapply IHx.
+
+*****
+H : eq (rel_dec (FS x) (FS x1)) true
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq (rel_dec x x1) true
++++++
+eapply H.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+
+*****
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+forall _ : eq (FS x) (FS x1), eq (rel_dec (FS x) (FS x1)) true
++++++
+intro.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+
+*****
+H : eq (FS x) (FS x1)
+H0 : eq (FS x1) (FS x0)
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq (rel_dec (FS x) (FS x1)) true
++++++
+inv_all.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+inv_all.
+
+*****
+H : eq x x1
+H0 : eq x1 x0
+x1,x0 : fin n
+IHx : forall y : fin n, iff (eq (rel_dec x y) true) (eq x y)
+x : fin n
+n : nat
+*****
+eq (rel_dec (FS x) (FS x1)) true
++++++
+subst.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+inv_all.
+subst.
+
+*****
+IHx : forall y : fin n, iff (eq (rel_dec x0 y) true) (eq x0 y)
+x0 : fin n
+n : nat
+*****
+eq (rel_dec (FS x0) (FS x0)) true
++++++
+apply IHx.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+intro.
+destruct (fin_case y).
+subst.
+simpl.
+inversion H.
+destruct H.
+subst.
+split.
+intro.
+inv_all.
+subst.
+apply IHx.
+
+*****
+IHx : forall y : fin n, iff (eq (rel_dec x0 y) true) (eq x0 y)
+x0 : fin n
+n : nat
+*****
+eq x0 x0
++++++
+reflexivity.
+-----
+Global Instance RelDec_Correct_fin_eq (n : nat) : RelDec_Correct (RelDec_fin_eq n).
+Proof.
+constructor.
+induction x.
+
+*****
+
+*****
+
++++++
+Qed.
+-----

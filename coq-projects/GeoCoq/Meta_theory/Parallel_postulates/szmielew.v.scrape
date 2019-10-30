@@ -1,0 +1,2997 @@
+Require Export GeoCoq.Axioms.continuity_axioms.
+-----
+Require Export GeoCoq.Meta_theory.Parallel_postulates.parallel_postulates.
+-----
+Section Szmielew.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Definition hyperbolic_plane_postulate := forall A1 A2 P,\n  ~ Col A1 A2 P -> exists B1 B2 C1 C2,\n    Par A1 A2 B1 B2 /\ Col P B1 B2 /\\n    Par A1 A2 C1 C2 /\ Col P C1 C2 /\\n    ~ Col C1 B1 B2.
+-----
+Lemma aah__hpp :\n  hypothesis_of_acute_saccheri_quadrilaterals ->\n  hyperbolic_plane_postulate.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : hypothesis_of_acute_saccheri_quadrilaterals, hyperbolic_plane_postulate
++++++
+Proof.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : hypothesis_of_acute_saccheri_quadrilaterals, hyperbolic_plane_postulate
++++++
+intros aah A1 A2 P HNCol.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+
+*****
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+
+*****
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+
+*****
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+
+*****
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+assert_diffs.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+
+*****
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+assert (HCol3 : Col A1 A2 Y) by ColR.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+
+*****
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+assert (HInt : Per P Q X /\ Per P Q Y).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+
+*****
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Per P Q X) (Per P Q Y)
++++++
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+
+*****
+HInt : and (Per P Q X) (Per P Q Y)
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct HInt as [HPer HPer'].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+
+*****
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+
+*****
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+
+*****
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun B1 : Tpoint => ex (fun B2 : Tpoint => ex (fun C1 : Tpoint => ex (fun C2 : Tpoint => and (Par A1 A2 B1 B2) (and (Col P B1 B2) (and (Par A1 A2 C1 C2) (and (Col P C1 C2) (not (Col C1 B1 B2)))))))))
++++++
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+
+*****
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par A1 A2 B1 P
++++++
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+
+*****
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Par A1 A2 C1 P
++++++
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+
+*****
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Col C1 B1 P)
++++++
+intro HCol.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+
+*****
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HBet0 : Bet B1 P C1).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+
+*****
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet B1 P C1
++++++
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+
+*****
+HCol : Col C1 B1 P
+HSac' : Par_strict Q P C1 Y
+C1 : Tpoint
+HSac : Par_strict Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet B1 P C1
++++++
+apply col_two_sides_bet with Q; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+apply col_two_sides_bet with Q; Col.
+
+*****
+HCol : Col C1 B1 P
+HSac' : Par_strict Q P C1 Y
+C1 : Tpoint
+HSac : Par_strict Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS P Q B1 C1
++++++
+apply l9_8_2 with X; [|apply l12_6; Par].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+apply col_two_sides_bet with Q; Col.
+apply l9_8_2 with X; [|apply l12_6; Par].
+
+*****
+HCol : Col C1 B1 P
+HSac' : Par_strict Q P C1 Y
+C1 : Tpoint
+HSac : Par_strict Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS P Q X C1
++++++
+apply l9_2, l9_8_2 with Y; [|apply l12_6; Par].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+apply col_two_sides_bet with Q; Col.
+apply l9_8_2 with X; [|apply l12_6; Par].
+apply l9_2, l9_8_2 with Y; [|apply l12_6; Par].
+
+*****
+HCol : Col C1 B1 P
+HSac' : Par_strict Q P C1 Y
+C1 : Tpoint
+HSac : Par_strict Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+TS P Q Y X
++++++
+repeat split; auto; try (intro; apply HNCol; ColR).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply sac__par_strict1234 in HSac; apply sac__par_strict1234 in HSac'.
+apply col_two_sides_bet with Q; Col.
+apply l9_8_2 with X; [|apply l12_6; Par].
+apply l9_2, l9_8_2 with Y; [|apply l12_6; Par].
+repeat split; auto; try (intro; apply HNCol; ColR).
+
+*****
+HCol : Col C1 B1 P
+HSac' : Par_strict Q P C1 Y
+C1 : Tpoint
+HSac : Par_strict Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun T : Tpoint => and (Col T P Q) (Bet Y T X))
++++++
+exists Q; split; Col; Between.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+
+*****
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply (nlta B1 P C1).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+
+*****
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+
+*****
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+
+*****
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+
+*****
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+
+*****
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+
+*****
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P C1 B1 P C1
++++++
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P Q P Q X
++++++
+-
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA B1 P Q P Q X
++++++
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+LtA Q P C1 P Q X
++++++
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS P Q X P Q X
++++++
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SAMS X Q P P Q Y
++++++
+repeat split; auto.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (Out Q P Y) (not (Bet X Q P))
++++++
+right; intro; apply HNCol1; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun J : Tpoint => and (CongA P Q J P Q Y) (and (not (OS Q P X J)) (and (not (TS X Q P J)) (Coplanar X Q P J))))
++++++
+exists Y; split; CongA; repeat split; Side; Cop.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (TS X Q P Y)
++++++
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA B1 P Q Q P C1 B1 P C1
++++++
+assert_diffs; apply inangle__suma; repeat split; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+
+*****
+H3 : not (eq B1 C1)
+H15 : not (eq P X)
+H14 : not (eq P Y)
+H12 : not (eq Q B1)
+H8 : not (eq P B1)
+H10 : not (eq Q C1)
+H7 : not (eq P C1)
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun X : Tpoint => and (Bet B1 X C1) (or (eq X P) (Out P X Q)))
++++++
+exists P; split; auto.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+exists P; split; auto.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+exists P; split; auto.
+-
+
+*****
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA P Q X P Q X B1 P C1
++++++
+assert_diffs; apply (conga3_suma__suma X Q P P Q Y X Q Y); CongA; [|apply conga_line; auto].
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+exists P; split; auto.
+-
+assert_diffs; apply (conga3_suma__suma X Q P P Q Y X Q Y); CongA; [|apply conga_line; auto].
+
+*****
+H3 : not (eq B1 C1)
+H15 : not (eq P X)
+H14 : not (eq P Y)
+H12 : not (eq Q B1)
+H8 : not (eq P B1)
+H10 : not (eq Q C1)
+H7 : not (eq P C1)
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+SumA X Q P P Q Y X Q Y
++++++
+apply inangle__suma; repeat split; Col.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+exists P; split; auto.
+-
+assert_diffs; apply (conga3_suma__suma X Q P P Q Y X Q Y); CongA; [|apply conga_line; auto].
+apply inangle__suma; repeat split; Col.
+
+*****
+H3 : not (eq B1 C1)
+H15 : not (eq P X)
+H14 : not (eq P Y)
+H12 : not (eq Q B1)
+H8 : not (eq P B1)
+H10 : not (eq Q C1)
+H7 : not (eq P C1)
+HTS : TS Q P X Y
+HNCol4 : not (Col Q P C1)
+HNCol3 : not (Col Q P B1)
+HNCol2 : not (Col P Q Y)
+HNCol1 : not (Col P Q X)
+HConga : CongA P Q X P Q Y
+HBet0 : Bet B1 P C1
+HCol : Col C1 B1 P
+HSac' : Saccheri Q P C1 Y
+C1 : Tpoint
+HSac : Saccheri Q P B1 X
+B1 : Tpoint
+HPer' : Per P Q Y
+HPer : Per P Q X
+HCol3 : Col A1 A2 Y
+H6 : not (eq P Q)
+H0 : not (eq Q Y)
+H : not (eq X Y)
+H4 : not (eq A1 P)
+H1 : not (eq A2 P)
+H2 : not (eq A1 A2)
+HCong : Cong X Q Q Y
+HBet : Bet X Q Y
+Y : Tpoint
+HCol2 : Col A1 A2 X
+HXQ : not (eq Q X)
+HXA2 : not (eq A2 X)
+HXA1 : not (eq A1 X)
+X : Tpoint
+HPerp : Perp A1 A2 P Q
+HCol1 : Col A1 A2 Q
+Q : Tpoint
+HNCol : not (Col A1 A2 P)
+A1,A2,P : Tpoint
+aah : hypothesis_of_acute_saccheri_quadrilaterals
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun X0 : Tpoint => and (Bet X X0 Y) (or (eq X0 Q) (Out Q X0 P)))
++++++
+exists Q; split; auto.
+-----
+Lemma aah__hpp : hypothesis_of_acute_saccheri_quadrilaterals -> hyperbolic_plane_postulate.
+Proof.
+intros aah A1 A2 P HNCol.
+destruct (l8_18_existence A1 A2 P HNCol) as [Q [HCol1 HPerp]].
+destruct (diff_col_ex3 A1 A2 Q HCol1) as [X [HXA1 [HXA2 [HXQ HCol2]]]].
+destruct (symmetric_point_construction X Q) as [Y [HBet HCong]].
+assert_diffs.
+assert (HCol3 : Col A1 A2 Y) by ColR.
+assert (HInt : Per P Q X /\\ Per P Q Y).
+split; apply perp_per_1; auto; apply perp_sym, perp_col2 with A1 A2; Perp.
+destruct HInt as [HPer HPer'].
+destruct (per__ex_saccheri Q P X) as [B1 HSac]; auto.
+destruct (per__ex_saccheri Q P Y) as [C1 HSac']; auto.
+exists B1; exists P; exists C1; exists P; repeat split; Col.
+apply sac__par1423 in HSac; apply par_symmetry, par_col2_par_bis with Q X; Col; Par.
+apply sac__par1423 in HSac'; apply par_symmetry, par_col2_par_bis with Q Y; Col; Par.
+intro HCol.
+assert (HBet0 : Bet B1 P C1).
+apply (nlta B1 P C1).
+assert (HConga: CongA P Q X P Q Y) by (apply l11_16; auto).
+assert (HNCol1 : ~ Col P Q X) by (apply per_not_col; auto).
+assert (HNCol2 : ~ Col P Q Y) by (apply per_not_col; auto).
+assert (HNCol3 : ~ Col Q P B1) by (apply sac__ncol123 with X; trivial).
+assert (HNCol4 : ~ Col Q P C1) by (apply sac__ncol123 with Y; trivial).
+assert (HTS : TS Q P X Y) by (repeat split; Col; exists Q; split; Col).
+apply sams_lta2_suma2__lta with B1 P Q Q P C1 P Q X P Q X.
+-
+apply acute_per__lta; auto; apply acute_sym, (aah Q P B1 X HSac).
+-
+apply acute_per__lta; auto; apply (aah Q P C1 Y HSac').
+-
+apply (conga2_sams__sams X Q P P Q Y); CongA.
+repeat split; auto.
+right; intro; apply HNCol1; Col.
+exists Y; split; CongA; repeat split; Side; Cop.
+intro HTS1; destruct HTS1 as [_ []]; assert_cols; Col.
+-
+assert_diffs; apply inangle__suma; repeat split; Col.
+exists P; split; auto.
+-
+assert_diffs; apply (conga3_suma__suma X Q P P Q Y X Q Y); CongA; [|apply conga_line; auto].
+apply inangle__suma; repeat split; Col.
+exists Q; split; auto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem szmielew_s_theorem :\n  aristotle_s_axiom ->\n  (forall P : Prop,\n    (playfair_s_postulate -> P) ->\n    (hyperbolic_plane_postulate -> ~ P)->\n    (P <-> playfair_s_postulate)).
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : aristotle_s_axiom) (P : Prop) (_ : forall _ : playfair_s_postulate, P) (_ : forall _ : hyperbolic_plane_postulate, not P), iff P playfair_s_postulate
++++++
+Proof.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : aristotle_s_axiom) (P : Prop) (_ : forall _ : playfair_s_postulate, P) (_ : forall _ : hyperbolic_plane_postulate, not P), iff P playfair_s_postulate
++++++
+intro H.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+
+*****
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (P : Prop) (_ : forall _ : playfair_s_postulate, P) (_ : forall _ : hyperbolic_plane_postulate, not P), iff P playfair_s_postulate
++++++
+intros.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+
+*****
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+iff P playfair_s_postulate
++++++
+assert (L := aah__hpp).
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+
+*****
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+iff P playfair_s_postulate
++++++
+assert (HE := aristotle__acute_or_right H).
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+
+*****
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+iff P playfair_s_postulate
++++++
+assert (HG := aristotle__greenberg H).
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+iff P playfair_s_postulate
++++++
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall _ : playfair_s_postulate, postulate_of_right_saccheri_quadrilaterals) (_ : forall _ : postulate_of_right_saccheri_quadrilaterals, playfair_s_postulate), iff P playfair_s_postulate
++++++
+unfold List.In.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+unfold List.In.
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall _ : playfair_s_postulate, postulate_of_right_saccheri_quadrilaterals) (_ : forall _ : postulate_of_right_saccheri_quadrilaterals, playfair_s_postulate), iff P playfair_s_postulate
++++++
+tauto.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+List.In playfair_s_postulate (cons alternate_interior_angles_postulate (cons alternative_playfair_s_postulate (cons alternative_proclus_postulate (cons alternative_strong_parallel_postulate (cons consecutive_interior_angles_postulate (cons euclid_5 (cons euclid_s_parallel_postulate (cons existential_playfair_s_postulate (cons existential_thales_postulate (cons inverse_projection_postulate (cons midpoint_converse_postulate (cons perpendicular_transversal_postulate (cons postulate_of_transitivity_of_parallelism (cons playfair_s_postulate (cons posidonius_postulate (cons universal_posidonius_postulate (cons postulate_of_existence_of_a_right_lambert_quadrilateral (cons postulate_of_existence_of_a_right_saccheri_quadrilateral (cons postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights (cons postulate_of_existence_of_similar_triangles (cons postulate_of_parallelism_of_perpendicular_transversals (cons postulate_of_right_lambert_quadrilaterals (cons postulate_of_right_saccheri_quadrilaterals (cons postulate_of_transitivity_of_parallelism (cons proclus_postulate (cons strong_parallel_postulate (cons tarski_s_parallel_postulate (cons thales_postulate (cons thales_converse_postulate (cons triangle_circumscription_principle (cons triangle_postulate nil)))))))))))))))))))))))))))))))
++++++
+unfold List.In.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+unfold List.In.
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (eq alternate_interior_angles_postulate playfair_s_postulate) (or (eq alternative_playfair_s_postulate playfair_s_postulate) (or (eq alternative_proclus_postulate playfair_s_postulate) (or (eq alternative_strong_parallel_postulate playfair_s_postulate) (or (eq consecutive_interior_angles_postulate playfair_s_postulate) (or (eq euclid_5 playfair_s_postulate) (or (eq euclid_s_parallel_postulate playfair_s_postulate) (or (eq existential_playfair_s_postulate playfair_s_postulate) (or (eq existential_thales_postulate playfair_s_postulate) (or (eq inverse_projection_postulate playfair_s_postulate) (or (eq midpoint_converse_postulate playfair_s_postulate) (or (eq perpendicular_transversal_postulate playfair_s_postulate) (or (eq postulate_of_transitivity_of_parallelism playfair_s_postulate) (or (eq playfair_s_postulate playfair_s_postulate) (or (eq posidonius_postulate playfair_s_postulate) (or (eq universal_posidonius_postulate playfair_s_postulate) (or (eq postulate_of_existence_of_a_right_lambert_quadrilateral playfair_s_postulate) (or (eq postulate_of_existence_of_a_right_saccheri_quadrilateral playfair_s_postulate) (or (eq postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights playfair_s_postulate) (or (eq postulate_of_existence_of_similar_triangles playfair_s_postulate) (or (eq postulate_of_parallelism_of_perpendicular_transversals playfair_s_postulate) (or (eq postulate_of_right_lambert_quadrilaterals playfair_s_postulate) (or (eq postulate_of_right_saccheri_quadrilaterals playfair_s_postulate) (or (eq postulate_of_transitivity_of_parallelism playfair_s_postulate) (or (eq proclus_postulate playfair_s_postulate) (or (eq strong_parallel_postulate playfair_s_postulate) (or (eq tarski_s_parallel_postulate playfair_s_postulate) (or (eq thales_postulate playfair_s_postulate) (or (eq thales_converse_postulate playfair_s_postulate) (or (eq triangle_circumscription_principle playfair_s_postulate) (or (eq triangle_postulate playfair_s_postulate) False))))))))))))))))))))))))))))))
++++++
+tauto.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+List.In postulate_of_right_saccheri_quadrilaterals (cons alternate_interior_angles_postulate (cons alternative_playfair_s_postulate (cons alternative_proclus_postulate (cons alternative_strong_parallel_postulate (cons consecutive_interior_angles_postulate (cons euclid_5 (cons euclid_s_parallel_postulate (cons existential_playfair_s_postulate (cons existential_thales_postulate (cons inverse_projection_postulate (cons midpoint_converse_postulate (cons perpendicular_transversal_postulate (cons postulate_of_transitivity_of_parallelism (cons playfair_s_postulate (cons posidonius_postulate (cons universal_posidonius_postulate (cons postulate_of_existence_of_a_right_lambert_quadrilateral (cons postulate_of_existence_of_a_right_saccheri_quadrilateral (cons postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights (cons postulate_of_existence_of_similar_triangles (cons postulate_of_parallelism_of_perpendicular_transversals (cons postulate_of_right_lambert_quadrilaterals (cons postulate_of_right_saccheri_quadrilaterals (cons postulate_of_transitivity_of_parallelism (cons proclus_postulate (cons strong_parallel_postulate (cons tarski_s_parallel_postulate (cons thales_postulate (cons thales_converse_postulate (cons triangle_circumscription_principle (cons triangle_postulate nil)))))))))))))))))))))))))))))))
++++++
+unfold List.In.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+unfold List.In.
+
+*****
+HG : greenberg_s_axiom
+HE : or hypothesis_of_acute_saccheri_quadrilaterals\n hypothesis_of_right_saccheri_quadrilaterals
+L : forall _ : hypothesis_of_acute_saccheri_quadrilaterals,\nhyperbolic_plane_postulate
+H1 : forall _ : hyperbolic_plane_postulate, not P
+H0 : forall _ : playfair_s_postulate, P
+P : Prop
+H : aristotle_s_axiom
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+or (eq alternate_interior_angles_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq alternative_playfair_s_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq alternative_proclus_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq alternative_strong_parallel_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq consecutive_interior_angles_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq euclid_5 postulate_of_right_saccheri_quadrilaterals) (or (eq euclid_s_parallel_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq existential_playfair_s_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq existential_thales_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq inverse_projection_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq midpoint_converse_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq perpendicular_transversal_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_transitivity_of_parallelism postulate_of_right_saccheri_quadrilaterals) (or (eq playfair_s_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq posidonius_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq universal_posidonius_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_existence_of_a_right_lambert_quadrilateral postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_existence_of_a_right_saccheri_quadrilateral postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_existence_of_a_triangle_whose_angles_sum_to_two_rights postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_existence_of_similar_triangles postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_parallelism_of_perpendicular_transversals postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_right_lambert_quadrilaterals postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_right_saccheri_quadrilaterals postulate_of_right_saccheri_quadrilaterals) (or (eq postulate_of_transitivity_of_parallelism postulate_of_right_saccheri_quadrilaterals) (or (eq proclus_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq strong_parallel_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq tarski_s_parallel_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq thales_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq thales_converse_postulate postulate_of_right_saccheri_quadrilaterals) (or (eq triangle_circumscription_principle postulate_of_right_saccheri_quadrilaterals) (or (eq triangle_postulate postulate_of_right_saccheri_quadrilaterals) False))))))))))))))))))))))))))))))
++++++
+tauto.
+-----
+Theorem szmielew_s_theorem : aristotle_s_axiom -> (forall P : Prop, (playfair_s_postulate -> P) -> (hyperbolic_plane_postulate -> ~ P)-> (P <-> playfair_s_postulate)).
+Proof.
+intro H.
+intros.
+assert (L := aah__hpp).
+assert (HE := aristotle__acute_or_right H).
+assert (HG := aristotle__greenberg H).
+elim (equivalent_postulates_assuming_greenberg_s_axiom HG playfair_s_postulate postulate_of_right_saccheri_quadrilaterals).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Szmielew.
+-----

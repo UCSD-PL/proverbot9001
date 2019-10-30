@@ -1,0 +1,36 @@
+Remakefile : Remakefile.in config.status
+all : theories/AutoDerive.vo theories/Compactness.vo theories/Complex.vo theories/Continuity.vo theories/Coquelicot.vo theories/Derive.vo theories/Derive_2d.vo theories/ElemFct.vo theories/Equiv.vo theories/Hierarchy.vo theories/Iter.vo theories/KHInt.vo theories/Lim_seq.vo theories/Lub.vo theories/Markov.vo theories/PSeries.vo theories/RInt.vo theories/RInt_analysis.vo theories/RInt_gen.vo theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.vo theories/Seq_fct.vo theories/Series.vo
+check : examples/BacS2013.vo examples/BacS2013_bonus.vo examples/Bessel.vo examples/DAlembert.vo
+clean : examples/clean theories/clean
+configure config.status : configure.in
+deps.dot : theories/AutoDerive.v theories/Compactness.v theories/Complex.v theories/Continuity.v theories/Coquelicot.v theories/Derive.v theories/Derive_2d.v theories/ElemFct.v theories/Equiv.v theories/Hierarchy.v theories/Iter.v theories/KHInt.v theories/Lim_seq.v theories/Lub.v theories/Markov.v theories/PSeries.v theories/RInt.v theories/RInt_analysis.v theories/RInt_gen.v theories/Rbar.v theories/Rcomplements.v theories/SF_seq.v theories/Seq_fct.v theories/Series.v
+dist : configure
+doc : deps.dot html/index.html
+examples/clean :
+html/index.html : theories/AutoDerive.vo theories/Compactness.vo theories/Complex.vo theories/Continuity.vo theories/Coquelicot.vo theories/Derive.vo theories/Derive_2d.vo theories/ElemFct.vo theories/Equiv.vo theories/Hierarchy.vo theories/Iter.vo theories/KHInt.vo theories/Lim_seq.vo theories/Lub.vo theories/Markov.vo theories/PSeries.vo theories/RInt.vo theories/RInt_analysis.vo theories/RInt_gen.vo theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.vo theories/Seq_fct.vo theories/Series.vo
+install :
+theories/AutoDerive.vo : theories/AutoDerive.v theories/Continuity.vo theories/Derive.vo theories/Derive_2d.vo theories/ElemFct.vo theories/Hierarchy.vo theories/RInt.vo theories/RInt_analysis.vo theories/Rcomplements.vo
+theories/Compactness.vo : theories/Compactness.v theories/Rcomplements.vo
+theories/Complex.vo : theories/Complex.v theories/Continuity.vo theories/Derive.vo theories/Hierarchy.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Continuity.vo : theories/Compactness.vo theories/Continuity.v theories/Hierarchy.vo theories/Lim_seq.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Coquelicot.vo : theories/AutoDerive.vo theories/Compactness.vo theories/Complex.vo theories/Continuity.vo theories/Coquelicot.v theories/Derive.vo theories/Derive_2d.vo theories/ElemFct.vo theories/Equiv.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/Lub.vo theories/Markov.vo theories/PSeries.vo theories/RInt.vo theories/RInt_analysis.vo theories/RInt_gen.vo theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.vo theories/Seq_fct.vo theories/Series.vo
+theories/Derive.vo : theories/Continuity.vo theories/Derive.v theories/Equiv.vo theories/Hierarchy.vo theories/Iter.vo theories/Lim_seq.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Derive_2d.vo : theories/Continuity.vo theories/Derive.vo theories/Derive_2d.v theories/Hierarchy.vo theories/Rcomplements.vo
+theories/ElemFct.vo : theories/Continuity.vo theories/Derive.vo theories/ElemFct.v theories/Hierarchy.vo theories/Lim_seq.vo theories/PSeries.vo theories/RInt.vo theories/RInt_analysis.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Equiv.vo : theories/Equiv.v theories/Hierarchy.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Hierarchy.vo : theories/Hierarchy.v theories/Iter.vo theories/Lub.vo theories/Markov.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Iter.vo : theories/Iter.v theories/Rcomplements.vo
+theories/KHInt.vo : theories/Hierarchy.vo theories/KHInt.v theories/RInt.vo theories/Rcomplements.vo theories/SF_seq.vo
+theories/Lim_seq.vo : theories/Hierarchy.vo theories/Lim_seq.v theories/Lub.vo theories/Markov.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Lub.vo : theories/Lub.v theories/Markov.vo theories/Rbar.vo theories/Rcomplements.vo
+theories/Markov.vo : theories/Markov.v theories/Rcomplements.vo
+theories/PSeries.vo : theories/Continuity.vo theories/Derive.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/Lub.vo theories/PSeries.v theories/Rbar.vo theories/Rcomplements.vo theories/Seq_fct.vo theories/Series.vo
+theories/RInt.vo : theories/Continuity.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/Lub.vo theories/Markov.vo theories/RInt.v theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.vo
+theories/RInt_analysis.vo : theories/Continuity.vo theories/Derive.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/Lub.vo theories/Markov.vo theories/PSeries.vo theories/RInt.vo theories/RInt_analysis.v theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.vo theories/Seq_fct.vo
+theories/RInt_gen.vo : theories/Continuity.vo theories/Derive.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/RInt.vo theories/RInt_analysis.vo theories/RInt_gen.v theories/Rbar.vo theories/Rcomplements.vo
+theories/Rbar.vo : theories/Rbar.v theories/Rcomplements.vo
+theories/Rcomplements.vo : theories/Rcomplements.v
+theories/SF_seq.vo : theories/Hierarchy.vo theories/Lub.vo theories/Rbar.vo theories/Rcomplements.vo theories/SF_seq.v
+theories/Seq_fct.vo : theories/Continuity.vo theories/Derive.vo theories/Hierarchy.vo theories/Lim_seq.vo theories/Lub.vo theories/Rbar.vo theories/Rcomplements.vo theories/Seq_fct.v theories/Series.vo
+theories/Series.vo : theories/Hierarchy.vo theories/Lim_seq.vo theories/Rbar.vo theories/Rcomplements.vo theories/Series.v
+theories/clean :

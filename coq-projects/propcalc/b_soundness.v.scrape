@@ -1,0 +1,2894 @@
+From Coq Require Export Bool.
+-----
+Require Export a_base .
+-----
+Export ListNotations.
+-----
+Set Implicit Arguments.
+-----
+Module Type sound_mod (X: base_mod).
+-----
+Import X.
+-----
+Inductive PropF : Set :=\n | Var : PropVars -> PropF\n | Bot : PropF\n | Conj : PropF -> PropF -> PropF\n | Disj : PropF -> PropF -> PropF\n | Impl : PropF -> PropF -> PropF.
+-----
+Notation "# P" := (Var P) (at level 1) : My_scope.
+-----
+Notation "A ∨ B" := (Disj A B) (at level 15, right associativity) : My_scope.
+-----
+Notation "A ∧ B" := (Conj A B) (at level 15, right associativity) : My_scope.
+-----
+Notation "A → B" := (Impl A B) (at level 16, right associativity) : My_scope.
+-----
+Notation "⊥" := Bot (at level 0)  : My_scope.
+-----
+Definition Neg A := A → ⊥.
+-----
+Notation "¬ A" := (Neg A) (at level 5) : My_scope.
+-----
+Definition Top := ¬⊥.
+-----
+Notation "⊤" := Top (at level 0) : My_scope.
+-----
+Definition BiImpl A B := (A→B)∧(B→A).
+-----
+Notation "A ↔ B" := (BiImpl A B) (at level 17, right associativity) : My_scope.
+-----
+Fixpoint TrueQ v A : bool := match A with\n | # P   => v P\n | ⊥     => false\n | B ∨ C => (TrueQ v B) || (TrueQ v C)\n | B ∧ C => (TrueQ v B) && (TrueQ v C)\n | B → C => (negb (TrueQ v B)) || (TrueQ v C)\nend.
+-----
+Definition Satisfies v Γ := forall A, In A Γ -> Is_true (TrueQ v A).
+-----
+Definition Models Γ A := forall v,Satisfies v Γ->Is_true (TrueQ v A).
+-----
+Notation "Γ ⊨ A" := (Models Γ A) (at level 80).
+-----
+Definition Valid A := [] ⊨ A.
+-----
+Reserved Notation "Γ ⊢ A" (at level 80).
+-----
+Inductive Nc : list PropF-> PropF->Prop :=\n| Nax   : forall Γ A  ,    In A Γ                           -> Γ ⊢ A\n| ImpI  : forall Γ A B,  A::Γ ⊢ B                           -> Γ ⊢ A → B\n| ImpE  : forall Γ A B,     Γ ⊢ A → B -> Γ ⊢ A              -> Γ ⊢ B\n| BotC  : forall Γ A  , ¬A::Γ ⊢ ⊥                              -> Γ ⊢ A\n| AndI  : forall Γ A B,     Γ ⊢ A     -> Γ ⊢ B              -> Γ ⊢ A∧B\n| AndE1 : forall Γ A B,     Γ ⊢ A∧B                        -> Γ ⊢ A\n| AndE2 : forall Γ A B,     Γ ⊢ A∧B                        -> Γ ⊢ B\n| OrI1  : forall Γ A B,     Γ ⊢ A                           -> Γ ⊢ A∨B\n| OrI2  : forall Γ A B,     Γ ⊢ B                           -> Γ ⊢ A∨B\n| OrE   : forall Γ A B C,   Γ ⊢ A∨B -> A::Γ ⊢ C -> B::Γ ⊢ C -> Γ ⊢ C\nwhere "Γ ⊢ A" := (Nc Γ A) : My_scope.
+-----
+Definition Provable A := [] ⊢ A.
+-----
+Definition Prop_Soundness := forall A,Provable A->Valid A.
+-----
+Definition Prop_Completeness := forall A,Valid A->Provable A.
+-----
+Ltac mp := eapply ImpE.
+-----
+Ltac AddnilL := match goal with \n| |- _ ?Γ _ => change Γ with ([]++Γ)\nend.
+-----
+Ltac in_solve := intros;repeat \n (eassumption\n||match goal with \n   | H:In _ (_::_) |- _ => destruct H;[subst;try discriminate|]\n   | H:In _ (_++_) |- _ => apply in_app_iff in H as [];subst\n   | |- In _ (_++_) => apply in_app_iff;(left;in_solve;fail)||(right;in_solve;fail) \n  end\n||(once constructor;reflexivity)\n||constructor 2).
+-----
+Ltac is_ass := once econstructor;in_solve.
+-----
+Ltac case_bool v A := let HA := fresh "H" in\n(case_eq (TrueQ v A);intro HA;try rewrite HA in *;simpl in *;try trivial;try contradiction).
+-----
+Local Ltac prove_satisfaction :=\nintros ? K;destruct K;[subst;simpl;\nmatch goal with\n| [ H : TrueQ _ _ = _  |-  _ ] => rewrite H\nend;exact I|auto].
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+
+*****
+
+*****
+forall x y : PropF, sumbool (eq x y) (not (eq x y))
++++++
+induction x.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+p : PropVars
+*****
+forall y : PropF, sumbool (eq (Var p) y) (not (eq (Var p) y))
++++++
+destruct y.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p, p0 : PropVars
+*****
+sumbool (eq (Var p) (Var p0)) (not (eq (Var p) (Var p0)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+
+*****
+p, p0 : PropVars
+*****
+sumbool (eq (Var p) (Var p0)) (not (eq (Var p) (Var p0)))
++++++
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+
+*****
+p, p0 : PropVars
+*****
+sumbool (eq (Var p) (Var p0)) (not (eq (Var p) (Var p0)))
++++++
+destruct (Varseq_dec p p0).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+
+*****
+p, p0 : PropVars
+e : eq p p0
+*****
+sumbool (eq (Var p) (Var p0)) (not (eq (Var p) (Var p0)))
++++++
+left.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+left.
+
+*****
+p, p0 : PropVars
+e : eq p p0
+*****
+eq (Var p) (Var p0)
++++++
+f_equal.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+left.
+f_equal.
+
+*****
+p, p0 : PropVars
+e : eq p p0
+*****
+eq p p0
++++++
+assumption.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+
+*****
+p, p0 : PropVars
+n : not (eq p p0)
+*****
+sumbool (eq (Var p) (Var p0)) (not (eq (Var p) (Var p0)))
++++++
+right.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+right.
+
+*****
+p, p0 : PropVars
+n : not (eq p p0)
+*****
+not (eq (Var p) (Var p0))
++++++
+injection.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+right.
+injection.
+
+*****
+p, p0 : PropVars
+n : not (eq p p0)
+H : eq (Var p) (Var p0)
+*****
+forall _ : eq p p0, False
++++++
+intro.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+destruct (Varseq_dec p p0).
+right.
+injection.
+intro.
+
+*****
+p, p0 : PropVars
+n : not (eq p p0)
+H : eq (Var p) (Var p0)
+H0 : eq p p0
+*****
+False
++++++
+contradiction.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p : PropVars
+*****
+sumbool (eq (Var p) Bot) (not (eq (Var p) Bot))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p : PropVars
+y1, y2 : PropF
+*****
+sumbool (eq (Var p) (Conj y1 y2)) (not (eq (Var p) (Conj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p : PropVars
+y1, y2 : PropF
+*****
+sumbool (eq (Var p) (Disj y1 y2)) (not (eq (Var p) (Disj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p : PropVars
+y1, y2 : PropF
+*****
+sumbool (eq (Var p) (Impl y1 y2)) (not (eq (Var p) (Impl y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+
+*****
+forall y : PropF, sumbool (eq Bot y) (not (eq Bot y))
++++++
+destruct y.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+p : PropVars
+*****
+sumbool (eq Bot (Var p)) (not (eq Bot (Var p)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+
+*****
+sumbool (eq Bot Bot) (not (eq Bot Bot))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+
+*****
+
+*****
+sumbool (eq Bot Bot) (not (eq Bot Bot))
++++++
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+
+*****
+
+*****
+sumbool (eq Bot Bot) (not (eq Bot Bot))
++++++
+left.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+left.
+
+*****
+
+*****
+eq Bot Bot
++++++
+reflexivity.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+*****
+sumbool (eq Bot (Conj y1 y2)) (not (eq Bot (Conj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+*****
+sumbool (eq Bot (Disj y1 y2)) (not (eq Bot (Disj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+*****
+sumbool (eq Bot (Impl y1 y2)) (not (eq Bot (Impl y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+forall y : PropF, sumbool (eq (Conj x1 x2) y) (not (eq (Conj x1 x2) y))
++++++
+destruct y.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+x1, x2 : PropF
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+p : PropVars
+*****
+sumbool (eq (Conj x1 x2) (Var p)) (not (eq (Conj x1 x2) (Var p)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Conj x1 x2) Bot) (not (eq (Conj x1 x2) Bot))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Conj x1 x2) (Conj y1 y2)) (not (eq (Conj x1 x2) (Conj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Conj x1 x2) (Conj y1 y2)) (not (eq (Conj x1 x2) (Conj y1 y2)))
++++++
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Conj x1 x2) (Disj y1 y2)) (not (eq (Conj x1 x2) (Disj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Conj x1 x2) (Impl y1 y2)) (not (eq (Conj x1 x2) (Impl y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+forall y : PropF, sumbool (eq (Disj x1 x2) y) (not (eq (Disj x1 x2) y))
++++++
+destruct y.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+x1, x2 : PropF
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+p : PropVars
+*****
+sumbool (eq (Disj x1 x2) (Var p)) (not (eq (Disj x1 x2) (Var p)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Disj x1 x2) Bot) (not (eq (Disj x1 x2) Bot))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Disj x1 x2) (Conj y1 y2)) (not (eq (Disj x1 x2) (Conj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Disj x1 x2) (Disj y1 y2)) (not (eq (Disj x1 x2) (Disj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Disj x1 x2) (Disj y1 y2)) (not (eq (Disj x1 x2) (Disj y1 y2)))
++++++
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Disj x1 x2) (Impl y1 y2)) (not (eq (Disj x1 x2) (Impl y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+forall y : PropF, sumbool (eq (Impl x1 x2) y) (not (eq (Impl x1 x2) y))
++++++
+destruct y.
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+x1, x2 : PropF
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+p : PropVars
+*****
+sumbool (eq (Impl x1 x2) (Var p)) (not (eq (Impl x1 x2) (Var p)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Impl x1 x2) Bot) (not (eq (Impl x1 x2) Bot))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Impl x1 x2) (Conj y1 y2)) (not (eq (Impl x1 x2) (Conj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Impl x1 x2) (Disj y1 y2)) (not (eq (Impl x1 x2) (Disj y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Impl x1 x2) (Impl y1 y2)) (not (eq (Impl x1 x2) (Impl y1 y2)))
++++++
+try (right;discriminate).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+destruct y.
+try (right;discriminate).
+
+*****
+y1,y2 : PropF
+IHx2 : forall y : PropF, sumbool (eq x2 y) (not (eq x2 y))
+IHx1 : forall y : PropF, sumbool (eq x1 y) (not (eq x1 y))
+x1,x2 : PropF
+*****
+sumbool (eq (Impl x1 x2) (Impl y1 y2)) (not (eq (Impl x1 x2) (Impl y1 y2)))
++++++
+try (destruct (IHx1 y1);[destruct (IHx2 y2);[left;f_equal;assumption|]|]; right;injection;intros;contradiction).
+-----
+Lemma PropFeq_dec : forall (x y : PropF), {x = y}+{x <> y}.
+induction x.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF), Nc Γ (Disj A (Neg A))
++++++
+intros.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc Γ (Disj A (Neg A))
++++++
+apply BotC.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons (Neg (Disj A (Neg A))) Γ) Bot
++++++
+mp.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons (Neg (Disj A (Neg A))) Γ) (Impl ?A Bot)
++++++
+is_ass.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons (Neg (Disj A (Neg A))) Γ) (Disj A (Neg A))
++++++
+apply OrI2.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+apply OrI2.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons (Neg (Disj A (Neg A))) Γ) (Neg A)
++++++
+apply ImpI.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+apply OrI2.
+apply ImpI.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons A (cons (Neg (Disj A (Neg A))) Γ)) Bot
++++++
+mp.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+apply OrI2.
+apply ImpI.
+mp.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons A (cons (Neg (Disj A (Neg A))) Γ)) (Impl ?A Bot)
++++++
+is_ass.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+apply OrI2.
+apply ImpI.
+mp.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons A (cons (Neg (Disj A (Neg A))) Γ)) (Disj A (Neg A))
++++++
+apply OrI1.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+apply OrI2.
+apply ImpI.
+mp.
+apply OrI1.
+
+*****
+A : PropF
+Γ : list PropF
+*****
+Nc (cons A (cons (Neg (Disj A (Neg A))) Γ)) A
++++++
+is_ass.
+-----
+Lemma Excluded_Middle : forall Γ A, Γ ⊢ A∨¬A.
+intros.
+apply BotC.
+mp.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma weakening2 : forall Γ A, Γ ⊢ A -> forall Δ, (forall B, In B Γ -> In B Δ) -> Δ ⊢ A.
+-----
+Lemma weakening2 : forall Γ A, Γ ⊢ A -> forall Δ, (forall B, In B Γ -> In B Δ) -> Δ ⊢ A.
+
+*****
+
+*****
+forall (Γ : list PropF) (A : PropF) (_ : Nc Γ A) (Δ : list PropF) (_ : forall (B : PropF) (_ : In B Γ), In B Δ), Nc Δ A
++++++
+induction 1;[constructor|constructor 2|econstructor 3|constructor 4|constructor 5|econstructor 6 |econstructor 7|constructor 8|constructor 9|econstructor 10];try eauto; [apply IHNc..|apply IHNc2|try apply IHNc3];intros;in_solve;eauto.
+-----
+Lemma weakening2 : forall Γ A, Γ ⊢ A -> forall Δ, (forall B, In B Γ -> In B Δ) -> Δ ⊢ A.
+induction 1;[constructor|constructor 2|econstructor 3|constructor 4|constructor 5|econstructor 6 |econstructor 7|constructor 8|constructor 9|econstructor 10];try eauto; [apply IHNc..|apply IHNc2|try apply IHNc3];intros;in_solve;eauto.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+
+*****
+
+*****
+forall (Γ Δ : list PropF) (A : PropF) (_ : Nc Γ A), Nc (app Γ Δ) A
++++++
+intros.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+intros.
+
+*****
+H : Nc Γ A
+A : PropF
+Γ,Δ : list PropF
+*****
+Nc (app Γ Δ) A
++++++
+eapply weakening2.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+intros.
+eapply weakening2.
+
+*****
+H : Nc Γ A
+A : PropF
+Γ,Δ : list PropF
+*****
+Nc ?Γ A
++++++
+eassumption.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+intros.
+eapply weakening2.
+
+*****
+H : Nc Γ A
+A : PropF
+Γ,Δ : list PropF
+*****
+forall (B : PropF) (_ : In B Γ), In B (app Γ Δ)
++++++
+in_solve.
+-----
+Lemma weakening : forall Γ Δ A, Γ ⊢ A -> Γ++Δ ⊢ A.
+intros.
+eapply weakening2.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+
+*****
+
+*****
+forall (Γ : list PropF) (A B : PropF) (_ : Nc Γ (Impl A B)), Nc (cons A Γ) B
++++++
+intros.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+
+*****
+H : Nc Γ (Impl A B)
+A,B : PropF
+Γ : list PropF
+*****
+Nc (cons A Γ) B
++++++
+eapply ImpE with A.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+eapply ImpE with A.
+
+*****
+H : Nc Γ (Impl A B)
+A,B : PropF
+Γ : list PropF
+*****
+Nc (cons A Γ) (Impl A B)
++++++
+eapply weakening2.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+eapply ImpE with A.
+eapply weakening2.
+
+*****
+H : Nc Γ (Impl A B)
+A,B : PropF
+Γ : list PropF
+*****
+Nc ?Γ (Impl A B)
++++++
+eassumption.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+eapply ImpE with A.
+eapply weakening2.
+
+*****
+H : Nc Γ (Impl A B)
+A,B : PropF
+Γ : list PropF
+*****
+forall (B : PropF) (_ : In B Γ), In B (cons A Γ)
++++++
+in_solve.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+eapply ImpE with A.
+
+*****
+H : Nc Γ (Impl A B)
+A,B : PropF
+Γ : list PropF
+*****
+Nc (cons A Γ) A
++++++
+is_ass.
+-----
+Lemma deduction : forall Γ A B, Γ ⊢ A → B -> A::Γ ⊢ B.
+intros.
+eapply ImpE with A.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+
+*****
+
+*****
+forall (A B : PropF) (_ : Provable (Impl A B)) (Γ : list PropF) (_ : Nc Γ A), Nc Γ B
++++++
+intros.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+
+*****
+H0 : Nc Γ A
+Γ : list PropF
+H : Provable (Impl A B)
+A,B : PropF
+*****
+Nc Γ B
++++++
+mp.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+mp.
+
+*****
+H0 : Nc Γ A
+Γ : list PropF
+H : Provable (Impl A B)
+A,B : PropF
+*****
+Nc Γ (Impl ?A B)
++++++
+AddnilL.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+mp.
+AddnilL.
+
+*****
+H0 : Nc Γ A
+Γ : list PropF
+H : Provable (Impl A B)
+A,B : PropF
+*****
+Nc (app nil Γ) (Impl ?A@{Γ:=app nil Γ} B)
++++++
+apply weakening.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+mp.
+AddnilL.
+apply weakening.
+
+*****
+H0 : Nc Γ A
+Γ : list PropF
+H : Provable (Impl A B)
+A,B : PropF
+*****
+Nc nil (Impl ?A@{Γ:=app nil Γ} B)
++++++
+apply H.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+mp.
+
+*****
+H0 : Nc Γ A
+Γ : list PropF
+H : Provable (Impl A B)
+A,B : PropF
+*****
+Nc Γ A
++++++
+assumption.
+-----
+Lemma prov_impl : forall A B, Provable (A → B)->forall Γ, Γ ⊢ A -> Γ ⊢ B.
+intros.
+mp.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Ltac prov_impl_in IH := let H := fresh "K" in\ntry (remember (prov_impl IH) as H eqn:HeqH;clear IH HeqH).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+
+*****
+
+*****
+forall (A : PropF) (Γ : list PropF) (_ : Nc Γ A), Models Γ A
++++++
+intros A Γ H0 v.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+
+*****
+A : PropF
+Γ : list PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+induction H0.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+v : forall _ : PropVars, bool
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+v : forall _ : PropVars, bool
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A : PropF
+H : In A Γ
+v : forall _ : PropVars, bool
+H0 : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v B)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc (cons A Γ) B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v B)
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v B)
++++++
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v B)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v B)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Impl A B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ,\n Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ,\n Is_true (orb (negb (TrueQ v A)) (TrueQ v B))
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ (Impl A B)
+H0_0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+IHNc2 : forall _ : Satisfies v Γ, True
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v B)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), Is_true (TrueQ v Bot)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), Is_true (TrueQ v Bot)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), Is_true (TrueQ v Bot)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), Is_true (TrueQ v Bot)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), False
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), False
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), False
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), False
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) false
+*****
+False
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+
+*****
+Γ : list PropF
+A : PropF
+H0 : Nc (cons (Neg A) Γ) Bot
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v (cons (Neg A) Γ), False
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) false
+*****
+False
++++++
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (andb (TrueQ v A) (TrueQ v B))
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0_ : Nc Γ A
+H0_0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, True
+IHNc2 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v B)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v A)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v A)
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v B)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v B)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v (Conj A B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ,\n Is_true (andb (TrueQ v A) (TrueQ v B))
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v B)
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ (Conj A B)
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v B)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+*****
+forall _ : Satisfies v Γ, Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ A
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v A)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+*****
+forall _ : Satisfies v Γ, Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+*****
+Is_true (orb (TrueQ v A) (TrueQ v B))
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B : PropF
+H0 : Nc Γ B
+v : forall _ : PropVars, bool
+IHNc : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+H : Satisfies v Γ
+H1 : eq (TrueQ v A) false
+*****
+Is_true (TrueQ v B)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v C)
++++++
+simpl.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+*****
+forall _ : Satisfies v Γ, Is_true (TrueQ v C)
++++++
+intros.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v C)
++++++
+auto.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v C)
++++++
+try simpl in IHNc.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v (Disj A B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v C)
++++++
+try simpl in IHNc1.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ,\n Is_true (orb (TrueQ v A) (TrueQ v B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v C)
++++++
+try simpl in IHNc2.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ,\n Is_true (orb (TrueQ v A) (TrueQ v B))
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+*****
+Is_true (TrueQ v C)
++++++
+case_bool v A.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, True
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v C)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, True
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) true
+*****
+Is_true (TrueQ v C)
++++++
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) false
+*****
+Is_true (TrueQ v C)
++++++
+try (case_bool v B;fail).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) false
+*****
+Is_true (TrueQ v C)
++++++
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, Is_true (TrueQ v B)
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) false
+*****
+Is_true (TrueQ v C)
++++++
+case_bool v B.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+case_bool v B.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, True
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) false
+H1 : eq (TrueQ v B) true
+*****
+Is_true (TrueQ v C)
++++++
+apply IHNc3.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+simpl.
+intros.
+auto.
+try simpl in IHNc.
+try simpl in IHNc1.
+try simpl in IHNc2.
+case_bool v A.
+try (case_bool v B;fail).
+try (apply IHNc||apply IHNc2;prove_satisfaction).
+case_bool v B.
+apply IHNc3.
+
+*****
+Γ : list PropF
+A, B, C : PropF
+H0_ : Nc Γ (Disj A B)
+H0_0 : Nc (cons A Γ) C
+H0_1 : Nc (cons B Γ) C
+v : forall _ : PropVars, bool
+IHNc1 : forall _ : Satisfies v Γ, True
+IHNc2 : forall _ : Satisfies v (cons A Γ), Is_true (TrueQ v C)
+IHNc3 : forall _ : Satisfies v (cons B Γ), Is_true (TrueQ v C)
+H : Satisfies v Γ
+H0 : eq (TrueQ v A) false
+H1 : eq (TrueQ v B) true
+*****
+Satisfies v (cons B Γ)
++++++
+prove_satisfaction.
+-----
+Theorem Soundness_general : forall A Γ, Γ ⊢ A -> Γ ⊨ A.
+intros A Γ H0 v.
+induction H0.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Theorem Soundness : Prop_Soundness.
+-----
+Theorem Soundness : Prop_Soundness.
+
+*****
+
+*****
+Prop_Soundness
++++++
+intros ? ? ? ?.
+-----
+Theorem Soundness : Prop_Soundness.
+intros ? ? ? ?.
+
+*****
+A : PropF
+H : Provable A
+v : forall _ : PropVars, bool
+H0 : Satisfies v nil
+*****
+Is_true (TrueQ v A)
++++++
+eapply Soundness_general.
+-----
+Theorem Soundness : Prop_Soundness.
+intros ? ? ? ?.
+eapply Soundness_general.
+
+*****
+A : PropF
+H : Provable A
+v : forall _ : PropVars, bool
+H0 : Satisfies v nil
+*****
+Nc ?Γ A
++++++
+eassumption.
+-----
+Theorem Soundness : Prop_Soundness.
+intros ? ? ? ?.
+eapply Soundness_general.
+
+*****
+A : PropF
+H : Provable A
+v : forall _ : PropVars, bool
+H0 : Satisfies v nil
+*****
+Satisfies v nil
++++++
+eassumption.
+-----
+Theorem Soundness : Prop_Soundness.
+intros ? ? ? ?.
+eapply Soundness_general.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End sound_mod.
+-----

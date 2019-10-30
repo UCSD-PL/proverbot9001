@@ -1,0 +1,40 @@
+22eb42cf800d4e4fce6f78ce166e3410
+Require Import ExtLib.Core.RelDec.
+Set Implicit Arguments.
+Set Strict Implicit.
+Global Instance RelDec_eq : RelDec (@eq bool) :=
+{ rel_dec := fun x y => match x , y with
+                          | true , true
+                          | false , false => true
+                          | _ , _=> false
+                        end }.
+Global Instance RelDec_Correct_eq_bool : RelDec_Correct RelDec_eq.
+  constructor.
+  destruct x.
+  {
+    destruct y.
+    {
+      auto.
+      simpl.
+      intuition.
+    }
+    {
+      auto.
+      simpl.
+      intuition.
+    }
+  }
+  {
+    destruct y.
+    {
+      auto.
+      simpl.
+      intuition.
+    }
+    {
+      auto.
+      simpl.
+      intuition.
+    }
+  }
+Qed.

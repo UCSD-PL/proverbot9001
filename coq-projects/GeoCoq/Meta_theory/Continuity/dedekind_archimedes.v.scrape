@@ -1,0 +1,4805 @@
+Require Import GeoCoq.Axioms.continuity_axioms.
+-----
+Require Import GeoCoq.Tarski_dev.Ch07_midpoint.
+-----
+Section Dedekind_archimedes.
+-----
+Context `{TnEQD:Tarski_neutral_dimensionless_with_decidable_point_equality}.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C, archimedes_axiom
++++++
+Proof.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall _ : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C, archimedes_axiom
++++++
+intros Haux A B C D HAB.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+
+*****
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+destruct (eq_dec_points C D).
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+
+*****
+H : eq C D
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+subst.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+subst.
+
+*****
+HAB : not (eq A B)
+A,B,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B D D
++++++
+exists B.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+subst.
+exists B.
+
+*****
+HAB : not (eq A B)
+A,B,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Grad A B B) (Le D D A B)
++++++
+split.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+subst.
+exists B.
+split.
+
+*****
+HAB : not (eq A B)
+A,B,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Grad A B B
++++++
+Le.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+subst.
+exists B.
+split.
+Le.
+
+*****
+HAB : not (eq A B)
+A,B,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Grad A B B
++++++
+apply grad_init.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+subst.
+exists B.
+split.
+
+*****
+HAB : not (eq A B)
+A,B,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le D D A B
++++++
+Le.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+
+*****
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+
+*****
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq A B)
++++++
+auto.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+
+*****
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq C D)
++++++
+auto.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+
+*****
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+auto.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+
+*****
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+trivial.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B C D
++++++
+exists B'.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Grad A B B') (Le C D A B')
++++++
+split.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+split.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Grad A B B'
++++++
+trivial.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+split.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le C D A B'
++++++
+trivial.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+split.
+trivial.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le C D A B'
++++++
+apply le_transitivity with A E.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+split.
+trivial.
+apply le_transitivity with A E.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le C D A E
++++++
+Le.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+destruct (segment_construction_3 A B C D) as [E [HOut HCong]].
+auto.
+destruct (Haux A B E HOut) as [B' [HGrad HLe]].
+trivial.
+exists B'.
+split.
+trivial.
+apply le_transitivity with A E.
+
+*****
+HLe : Le A E A B'
+HGrad : Grad A B B'
+B' : Tpoint
+HCong : Cong A E C D
+HOut : Out A B E
+E : Tpoint
+H : not (eq C D)
+HAB : not (eq A B)
+A,B,C,D : Tpoint
+Haux : forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le A E A B'
++++++
+Le.
+-----
+Lemma archimedes_aux : (forall A B C, Out A B C -> Reach A B A C) -> archimedes_axiom.
+Proof.
+intros Haux A B C D HAB.
+destruct (eq_dec_points C D).
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) ->\n  dedekind_s_axiom -> archimedes_axiom.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))), Reach A B C D) (_ : dedekind_s_axiom), archimedes_axiom
++++++
+Proof.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+
+*****
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (_ : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))), Reach A B C D) (_ : dedekind_s_axiom), archimedes_axiom
++++++
+intros Hstab dedekind.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+
+*****
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+archimedes_axiom
++++++
+apply archimedes_aux.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+
+*****
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (A B C : Tpoint) (_ : Out A B C), Reach A B A C
++++++
+intros A B C HOut.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+
+*****
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A C
++++++
+apply Hstab.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+
+*****
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A C))
++++++
+intro HNReach.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+
+*****
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HX : exists X, forall P Q, (Out A B P /\ ~ ~ Reach A B A P) -> (Out A B Q /\ ~ Reach A B A Q) -> Bet P X Q).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+
+*****
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun X : Tpoint => forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P)))) (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q)
++++++
+apply dedekind.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+
+*****
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+ex (fun A0 : Tpoint => forall (X Y : Tpoint) (_ : and (Out A B X) (not (not (Reach A B A X)))) (_ : and (Out A B Y) (not (Reach A B A Y))), Bet A0 X Y)
++++++
+exists A.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+
+*****
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+forall (X Y : Tpoint) (_ : and (Out A B X) (not (not (Reach A B A X)))) (_ : and (Out A B Y) (not (Reach A B A Y))), Bet A X Y
++++++
+intros X Y [HXOut HX] [HYOut HY].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+
+*****
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HX : not (not (Reach A B A X))
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A X Y
++++++
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+
+*****
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HX : not (not (Reach A B A X))
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A X Y
++++++
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+
+*****
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HX : not (not (Reach A B A X))
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A X Y
++++++
+exfalso.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+
+*****
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HX : not (not (Reach A B A X))
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HX; clear HX.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+apply HX; clear HX.
+
+*****
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Reach A B A X)
++++++
+intro HX.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+apply HX; clear HX.
+intro HX.
+
+*****
+HX : Reach A B A X
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HY.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+apply HX; clear HX.
+intro HX.
+apply HY.
+
+*****
+HX : Reach A B A X
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A Y
++++++
+destruct HX as [B' [HGrad HLe]].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+apply HX; clear HX.
+intro HX.
+apply HY.
+destruct HX as [B' [HGrad HLe]].
+
+*****
+HLe : Le A X A B'
+HGrad : Grad A B B'
+B' : Tpoint
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A Y
++++++
+exists B'; split; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+apply dedekind.
+exists A.
+intros X Y [HXOut HX] [HYOut HY].
+assert (HOut' : Out A X Y) by (apply l6_7 with B; [apply l6_6|]; trivial).
+destruct (HOut') as [_ [_ [|Habs]]]; trivial.
+exfalso.
+apply HX; clear HX.
+intro HX.
+apply HY.
+destruct HX as [B' [HGrad HLe]].
+exists B'; split; trivial.
+
+*****
+HLe : Le A X A B'
+HGrad : Grad A B B'
+B' : Tpoint
+Habs : Bet A Y X
+HOut' : Out A X Y
+HY : not (Reach A B A Y)
+HYOut : Out A B Y
+HXOut : Out A B X
+X,Y : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le A Y A B'
++++++
+apply le_transitivity with A X; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+
+*****
+HX : ex\n (fun X : Tpoint =>\n forall (P Q : Tpoint)\n (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), \n Bet P X Q)
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct HX as [X HX].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+
+*****
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert_diffs.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+
+*****
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HGrad := grad_init A B).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+
+*****
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HBet : Bet B X C).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+
+*****
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet B X C
++++++
+apply HX; split; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+apply HX; split; trivial.
+
+*****
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A B B
++++++
+apply out_trivial; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+apply HX; split; trivial.
+apply out_trivial; auto.
+
+*****
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A B))
++++++
+intro HAbs; apply HAbs.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+apply HX; split; trivial.
+apply out_trivial; auto.
+intro HAbs; apply HAbs.
+
+*****
+HAbs : not (Reach A B A B)
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A B
++++++
+exists B; split; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+
+*****
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+
+*****
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HOut : Out A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+
+*****
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+absurd (~ Reach A B A X).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+
+*****
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X))
++++++
+-
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+
+*****
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X))
++++++
+intro HAbs.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+
+*****
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct (eq_dec_points X B).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+
+*****
+H2 : eq X B
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+subst; apply HAbs; exists B; split; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+
+*****
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct (le_cases X A A B) as [HLe|HLe].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+
+*****
+HLe : Le X A A B
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HAbs; exists B; split; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+
+*****
+HLe : Le A B X A
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (Bet A B X) by (apply l6_13_1; Le).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+
+*****
+H3 : Bet A B X
+HLe : Le A B X A
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct HLe as [X0 [HBet1 HCong]].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+
+*****
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+absurd (~ Reach A B A X0).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+
+*****
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X0))
++++++
+intro HNReach0.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+
+*****
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HXOut : Out X X0 B).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+
+*****
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out X X0 B
++++++
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+
+*****
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq X0 X)
++++++
+intro; treat_equalities; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+
+*****
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct (le_cases X B X X0) as [HLe|HLe].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+-
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HNReach0; exists B; split; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le A X0 A B
++++++
+exists X0; split; Cong.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A X0 B
++++++
+apply between_inner_transitivity with X; Between.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet X0 B X
++++++
+apply between_symmetry, l6_13_1; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+
+*****
+HLe : Le X B X X0
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out X B X0
++++++
+apply l6_6; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+absurd (X = X0).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq X X0)
++++++
+assert_diffs; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+eq X X0
++++++
+apply between_equality with B.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet X X0 B
++++++
+apply l6_13_1; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet X0 X B
++++++
+apply between_symmetry, HX; split; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A B B
++++++
+apply out_trivial; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+apply out_trivial; auto.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A B))
++++++
+intro HN; apply HN; exists B; split; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+apply out_trivial; auto.
+intro HN; apply HN; exists B; split; Le.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A B X0
++++++
+apply l6_7 with X; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+apply out_trivial; auto.
+intro HN; apply HN; exists B; split; Le.
+apply l6_7 with X; trivial.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A X X0
++++++
+apply l6_6, bet_out; Between.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+apply out_trivial; auto.
+intro HN; apply HN; exists B; split; Le.
+apply l6_7 with X; trivial.
+apply l6_6, bet_out; Between.
+
+*****
+HLe : Le X X0 X B
+HXOut : Out X X0 B
+HNReach0 : not (Reach A B A X0)
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq X0 A)
++++++
+intro; subst X0; apply HNReach0.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HNReach0.
+assert (HXOut : Out X X0 B).
+apply l6_7 with A; [|apply l6_6]; apply bet_out; Between.
+intro; treat_equalities; auto.
+destruct (le_cases X B X X0) as [HLe|HLe].
+-
+apply HNReach0; exists B; split; trivial.
+exists X0; split; Cong.
+apply between_inner_transitivity with X; Between.
+apply between_symmetry, l6_13_1; trivial.
+apply l6_6; trivial.
+-
+absurd (X = X0).
+assert_diffs; auto.
+apply between_equality with B.
+apply l6_13_1; trivial.
+apply between_symmetry, HX; split; trivial.
+apply out_trivial; auto.
+intro HN; apply HN; exists B; split; Le.
+apply l6_7 with X; trivial.
+apply l6_6, bet_out; Between.
+intro; subst X0; apply HNReach0.
+
+*****
+HNReach0 : not (Reach A B A A)
+HXOut : Out X A B
+HLe : Le X A X B
+H3 : Bet A B X
+HBet1 : Bet X A A
+HCong : Cong A B X A
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A A
++++++
+exists B; split; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+
+*****
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Reach A B A X0)
++++++
+intro HReach.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+
+*****
+HReach : Reach A B A X0
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct HReach as [B' [HGrad' HLe]].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+
+*****
+HLe : Le A X0 A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+
+*****
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HLe : Le A X0 A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply HAbs; exists B1'; split.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+
+*****
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HLe : Le A X0 A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Grad A B B1'
++++++
+apply grad_stab with B'; Cong.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+
+*****
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HLe : Le A X0 A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le A X A B1'
++++++
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+
+*****
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HLe : Le A X0 A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H3 : Bet A B X
+HCong : Cong A B X X0
+HBet1 : Bet X X0 A
+X0 : Tpoint
+H2 : not (eq X B)
+HAbs : not (Reach A B A X)
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le X0 X B' B1'
++++++
+apply cong__le, cong_transitivity with A B; Cong.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+
+*****
+
+*****
+
++++++
+-
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+
+*****
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (Reach A B A X)
++++++
+intro HReach.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+
+*****
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+
+*****
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (eq X C)
++++++
+intro; subst; contradiction.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+
+*****
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+assert (HBet1 : Bet A X X1).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+
+*****
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet A X X1
++++++
+apply between_symmetry, bet_out__bet with C; eBetween.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+False
++++++
+apply (not_bet_and_out X1 X C).
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+and (Bet X1 X C) (Out X X1 C)
++++++
+split; [|apply l6_6; trivial].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Bet X1 X C
++++++
+apply HX; split; trivial; [| |apply bet_out; auto].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A B X1
++++++
+apply l6_7 with X; trivial.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+apply l6_7 with X; trivial.
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Out A X X1
++++++
+assert_diffs; apply bet_out; auto.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HReach : Reach A B A X
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X1))
++++++
+destruct HReach as [B' [HGrad' HLe]].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+
+*****
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X1))
++++++
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+
+*****
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+not (not (Reach A B A X1))
++++++
+intro HAbs; apply HAbs.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+intro HAbs; apply HAbs.
+
+*****
+HAbs : not (Reach A B A X1)
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Reach A B A X1
++++++
+exists B1'; split.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+intro HAbs; apply HAbs.
+exists B1'; split.
+
+*****
+HAbs : not (Reach A B A X1)
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Grad A B B1'
++++++
+apply grad_stab with B'; Cong.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+intro HAbs; apply HAbs.
+exists B1'; split.
+apply grad_stab with B'; Cong.
+
+*****
+HAbs : not (Reach A B A X1)
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le A X1 A B1'
++++++
+apply bet2_le2__le1346 with X B'; Le.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+intro HAbs; apply HAbs.
+exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X B'; Le.
+
+*****
+HAbs : not (Reach A B A X1)
+HCong' : Cong B' B1' A B
+HBet' : Bet A B' B1'
+B1' : Tpoint
+HBet1 : Bet A X X1
+HCong : Cong X X1 A B
+HOut' : Out X C X1
+X1 : Tpoint
+HLe : Le A X A B'
+HGrad' : Grad A B B'
+B' : Tpoint
+H : Out A B X
+HBet : Bet B X C
+HGrad : Grad A B B
+H1 : not (eq C A)
+H0 : not (eq B A)
+HX : forall (P Q : Tpoint) (_ : and (Out A B P) (not (not (Reach A B A P))))\n (_ : and (Out A B Q) (not (Reach A B A Q))), Bet P X Q
+X : Tpoint
+HNReach : not (Reach A B A C)
+HBet2 : Bet A B C
+A,B,C : Tpoint
+dedekind : dedekind_s_axiom
+Hstab : forall (A B C D : Tpoint) (_ : not (not (Reach A B C D))),\nReach A B C D
+TnEQD : Tarski_neutral_dimensionless_with_decidable_point_equality Tn
+Tn : Tarski_neutral_dimensionless
+*****
+Le X X1 B' B1'
++++++
+apply cong__le, cong_transitivity with A B; Cong.
+-----
+Lemma dedekind__archimedes : (forall A B C D, ~ ~ Reach A B C D -> Reach A B C D) -> dedekind_s_axiom -> archimedes_axiom.
+Proof.
+intros Hstab dedekind.
+apply archimedes_aux.
+intros A B C HOut.
+apply Hstab.
+intro HNReach.
+assert (HX : exists X, forall P Q, (Out A B P /\\ ~ ~ Reach A B A P) -> (Out A B Q /\\ ~ Reach A B A Q) -> Bet P X Q).
+destruct HX as [X HX].
+assert_diffs.
+assert (HGrad := grad_init A B).
+assert (HBet : Bet B X C).
+assert (Out A B X) by (apply out_bet_out_1 with C; auto).
+destruct HOut as [_ [_ [HBet2|HBet2]]]; [|exfalso; apply HNReach; exists B; split; Le].
+absurd (~ Reach A B A X).
+-
+intro HAbs.
+destruct (eq_dec_points X B).
+subst; apply HAbs; exists B; split; Le.
+destruct (le_cases X A A B) as [HLe|HLe].
+apply HAbs; exists B; split; Le.
+assert (Bet A B X) by (apply l6_13_1; Le).
+destruct HLe as [X0 [HBet1 HCong]].
+absurd (~ Reach A B A X0).
+intro HReach.
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+apply HAbs; exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X0 B'; Le; Between.
+apply cong__le, cong_transitivity with A B; Cong.
+-
+intro HReach.
+destruct (segment_construction_3 X C A B) as [X1 [HOut' HCong]]; auto.
+intro; subst; contradiction.
+assert (HBet1 : Bet A X X1).
+apply between_symmetry, bet_out__bet with C; eBetween.
+apply (not_bet_and_out X1 X C).
+split; [|apply l6_6; trivial].
+apply HX; split; trivial; [| |apply bet_out; auto].
+destruct HReach as [B' [HGrad' HLe]].
+destruct (segment_construction A B' A B) as [B1' [HBet' HCong']].
+intro HAbs; apply HAbs.
+exists B1'; split.
+apply grad_stab with B'; Cong.
+apply bet2_le2__le1346 with X B'; Le.
+apply cong__le, cong_transitivity with A B; Cong.
+
+*****
+
+*****
+
++++++
+Qed.
+-----
+End Dedekind_archimedes.
+-----

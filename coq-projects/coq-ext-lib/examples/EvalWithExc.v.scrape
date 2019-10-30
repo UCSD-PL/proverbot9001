@@ -1,0 +1,42 @@
+Require Import Coq.Strings.String.
+-----
+Require Import ExtLib.Structures.Monads.
+-----
+Require Import ExtLib.Data.Monads.EitherMonad.
+-----
+Require Import ExtLib.Data.String.
+-----
+Set Implicit Arguments.
+-----
+Set Strict Implicit.
+-----
+Inductive value : Type :=\n| Int : nat -> value\n| Bool : bool -> value.
+-----
+Inductive exp : Type :=\n| ConstI : nat -> exp\n| ConstB : bool -> exp\n| Plus : exp -> exp -> exp\n| If : exp -> exp -> exp -> exp.
+-----
+Section monadic.
+-----
+Variable m : Type -> Type.
+-----
+Context {Monad_m : Monad m}.
+-----
+Context {MonadExc_m : MonadExc string m}.
+-----
+Import MonadNotation.
+-----
+Local Open Scope monad_scope.
+-----
+Definition asInt (v : value) : m nat :=\n    match v with\n      | Int n => ret n\n      | _ =>\n        \n        raise ("expected integer got bool")%string\n    end.
+-----
+Definition asBool (v : value) : m bool :=\n    match v with\n      | Bool b => ret b\n      | _ => raise ("expected bool got integer")%string\n    end.
+-----
+Fixpoint eval' (e : exp) : m value :=\n    match e with\n        \n      | ConstI i => ret (Int i)\n      | ConstB b => ret (Bool b)\n      | Plus l r =>\n        \n        l <- eval' l ;;\n        l <- asInt l ;;\n        r <- eval' r ;;\n        r <- asInt r ;;\n        \n        ret (Int (l + r))\n      | If t tr fa =>\n        \n        t <- eval' t ;;\n        t <- asBool t ;;\n        \n        if (t : bool) then\n          eval' tr\n        else\n          eval' fa\n    end.
+-----
+End monadic.
+-----
+Definition eval : exp -> string + value :=\n  eval' (m := sum string).
+-----
+Eval compute in eval (Plus (ConstI 1) (ConstI 2)).
+-----
+Eval compute in eval (Plus (ConstI 1) (ConstB false)).
+-----
