@@ -142,6 +142,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
                         action='store_false')
     parser.add_argument("--search-width", dest="search_width", type=int, default=5)
+    parser.add_argument("--max-attempts", dest="max_attempts", type=int, default=10)
     parser.add_argument("--search-depth", dest="search_depth", type=int, default=6)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch", action='store_true')
@@ -864,36 +865,27 @@ def numNodesInTree(branching_factor : int, depth : int):
                  (branching_factor - 1))
     assert result >= 1, f"result is {result}"
     return result
+def time_on_path(node : LabeledNode) -> float:
+    if node.previous == None:
+        return node.time_taken
+    else:
+        return time_on_path(node.previous) + node.time_taken
 def tryPrediction(args : argparse.Namespace,
                   coq : serapi_instance.SerapiInstance,
-                  g : SearchGraph,
-                  predictionNode : LabeledNode) -> Tuple[ProofContext, int, int, int]:
+                  prediction : str,
+                  previousNode : LabeledNode) -> Tuple[ProofContext, int, int, int, Optional[Exception], float]:
     coq.quiet = True
-    time_on_path = 0
-    prev = predictionNode.previous
-    while prev != None:
-        time_on_path += prev.time_taken
-        prev = prev.previous
-    time_left = max(args.max_proof_time - time_on_path, 0)
+    time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
     time_per_command = 30 if coq.use_hammer else 5
     try:
-        coq.run_stmt(predictionNode.prediction, timeout=min(time_left, time_per_command))
-    except serapi_instance.TimeoutError:
-        if time_left < time_per_command:
-            g.setNodeColor(predictionNode, "purple4")
-            raise
-        else:
-            g.setNodeColor(predictionNode, "purple")
-            raise
-    except serapi_instance.ParseError:
-        g.setNodeColor(predictionNode, "gray64")
-        raise
-    except (serapi_instance.CoqExn, serapi_instance.OverflowError, serapi_instance.UnrecognizedError):
-        g.setNodeColor(predictionNode, "red")
-        raise
+        coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
+        error = None
+    except (serapi_instance.TimeoutError, serapi_instance.ParseError,
+            serapi_instance.CoqExn, serapi_instance.OverflowError,
+            serapi_instance.UnrecognizedError) as e:
+        error = e
     time_taken = time.time() - start_time
-    predictionNode.time_taken = time_taken
     num_stmts = 1
     subgoals_closed = 0
     if len(unwrap(coq.proof_context).fg_goals) == 0 and \
@@ -901,7 +893,6 @@ def tryPrediction(args : argparse.Namespace,
         coq.run_stmt("Unshelve.")
         num_stmts += 1
     while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
-        g.setNodeColor(predictionNode, "blue")
         coq.run_stmt("}")
         subgoals_closed += 1
         num_stmts += 1
@@ -914,10 +905,11 @@ def tryPrediction(args : argparse.Namespace,
         subgoals_opened = 0
     context_after = coq.proof_context
     assert context_after
-    return context_after, num_stmts, subgoals_closed, subgoals_opened
+    return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken
 
 def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
                     curNode : LabeledNode, k : int) -> List[LabeledNode]:
+    # eprint(f"Asking for {k} predictions")
     proof_context = coq.proof_context
     assert proof_context
     return g.addPredictions(curNode, proof_context,
@@ -956,12 +948,18 @@ def contextIsBig(context : ProofContext):
     return False
 from tqdm import tqdm
 class TqdmSpy(tqdm):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._time = time.time
     @property
     def n(self):
         return self.__n
     @n.setter
     def n(self, value):
         self.__n = value
+    def update(self, value):
+        self.n = self.n + value
+        super().update(value);
 def dfs_proof_search_with_graph(lemma_statement : str,
                                 module_name : Optional[str],
                                 coq : serapi_instance.SerapiInstance,
@@ -982,16 +980,33 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                subgoal_distance_stack : List[int],
                extra_depth : int) -> SubSearchResult:
         nonlocal hasUnexploredNode
-        # print(coq.use_hammer)
+        tactic_context_before = TacticContext(coq.local_lemmas[:-1],
+                                       coq.prev_tactics,
+                                       coq.hypotheses,
+                                       coq.goals)
+        predictions = [prediction.prediction for prediction in
+                       predictor.predictKTactics(tactic_context_before, args.max_attempts)]
+        proof_context_before = coq.proof_context
         if coq.use_hammer:
-            predictionNodes = makeHammerPredictions(g, coq, current_path[-1], args.search_width)
-        else:
-            predictionNodes = makePredictions(g, coq, current_path[-1], args.search_width)
-        for prediction_idx, predictionNode in enumerate(predictionNodes):
+            predictions = [prediction + "; try hammer." for prediction in predictions]
+        num_successful_predictions = 0
+        for prediction_idx, prediction in enumerate(predictions):
+            if num_successful_predictions >= args.search_width:
+                break
             try:
-                context_after, num_stmts, subgoals_closed, subgoals_opened = \
-                    tryPrediction(args, coq, g, predictionNode)
+                context_after, num_stmts, \
+                    subgoals_closed, subgoals_opened, \
+                    error, time_taken = \
+                    tryPrediction(args, coq, prediction, current_path[-1])
+                if error:
+                    continue
+                num_successful_predictions += 1
                 pbar.update(1)
+                assert pbar.n > 0
+
+                predictionNode = g.mkNode(prediction, proof_context_before,
+                                          current_path[-1])
+                predictionNode.time_taken = time_taken
 
                 #### 1.
                 if subgoal_distance_stack:
@@ -1084,12 +1099,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
                     serapi_instance.UnrecognizedError):
-                pbar.update(1)
                 depth = (args.search_depth + extra_depth + 1) - len(current_path)
                 assert depth > 0
                 nodes_skipped = numNodesInTree(args.search_width, depth) - 1
                 assert nodes_skipped >= 0
-                pbar.update(nodes_skipped)
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
