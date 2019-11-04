@@ -248,8 +248,8 @@ class FeaturesPolyargPredictor(
                                                 .view(stem_width * num_hyps,
                                                       self.training_args.max_length)
 
-                hypfeatures_batch = self.encodeHypsFeatureVecs(context.goal,
-                                                               all_hyps)
+                hypfeatures_batch = encodeHypsFeatureVecs(context.goal,
+                                                          all_hyps)
                 assert hypfeatures_batch.size() == torch.Size([num_hyps, 2])
                 hypfeatures_batch_expanded = hypfeatures_batch.view(1, num_hyps, 2)\
                                                              .expand(stem_width, -1, 2)\
@@ -320,8 +320,8 @@ class FeaturesPolyargPredictor(
         if len(all_hyps) > 0:
             hyps_batch = LongTensor([[self.encodeStrTerm(hyp)
                                       for hyp in all_hyps]])
-            hypfeatures_batch = self.encodeHypsFeatureVecs(context.goal,
-                                                           all_hyps)
+            hypfeatures_batch = encodeHypsFeatureVecs(context.goal,
+                                                      all_hyps)
             hyp_arg_values = self.runHypModel(stem_idxs, encoded_goals, hyps_batch,
                                               hypfeatures_batch)\
                                  .view(1, len(all_hyps))
@@ -351,11 +351,6 @@ class FeaturesPolyargPredictor(
                                     for feature_val in feature(c)]
                                     for c in contexts])
         return word_features, vec_features
-    def encodeHypsFeatureVecs(self, goal : str, hyps : List[str]) -> torch.FloatTensor:
-        return torch.FloatTensor([
-            [SequenceMatcher(None, goal,
-                             serapi_instance.get_hyp_type(hyp)).ratio(),
-             len(hyp)] for hyp in hyps])
     def encodeStrTerm(self, term : str) -> List[int]:
         assert self._tokenizer
         assert self.training_args
@@ -443,7 +438,6 @@ class FeaturesPolyargPredictor(
                 torch.load(arg_values.start_from)
             assert predictor_name == "polyarg"
             tokenizer, embedding, wfeats, vfeats = metadata
-            print(f"{embedding.num_tokens()} tokens in loaded embedding")
             _, embedded_data = embed_data(data, embedding)
             _, tokenized_goals = tokenize_goals(embedded_data,
                                                 arg_values, tokenizer)
@@ -725,9 +719,7 @@ def mkFPASample(embedding : Embedding,
         mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
         max_length)
                            for hyp in selected_hyps]
-    hypfeatures = [[SequenceMatcher(None, goal_str,
-                                    serapi_instance.get_hyp_type(hyp)).ratio(),
-                    len(hyp)] for hyp in selected_hyps]
+    hypfeatures = encodeHypsFeatureVecs(goal_str, selected_hyps)
     return FeaturesPolyArgSample(
         tokenized_hyp_types,
         hypfeatures,
@@ -737,6 +729,27 @@ def mkFPASample(embedding : Embedding,
         stem_idx,
         arg_type,
         arg)
+def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
+    def features(hyp : str):
+        similarity_ratio = SequenceMatcher(None, goal,
+                                           serapi_instance.get_hyp_type(hyp)).ratio()
+        # is_equals_on_goal_token = 0.0
+        # equals_match = re.match("eq\s+(.*)", hyp)
+        # if equals_match:
+        #     left_side, right_side = \
+        #         split_by_char_outside_matching(
+        #             "\(", "\)", "\s*",
+        #             equals_match.group(1))
+        #     if left_side in goal:
+        #         is_equals_on_goal_token = -1.0
+        #     elif right_side in goal:
+        #         is_equals_on_goal_token = 1.0
+
+        return [similarity_ratio,
+                #is_equals_on_goal_token,
+                0.0]
+
+    return torch.FloatTensor([features(hyp) for hyp in hyps])
 
 def main(arg_list : List[str]) -> None:
     predictor = FeaturesPolyargPredictor()
