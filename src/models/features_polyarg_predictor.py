@@ -210,7 +210,7 @@ class FeaturesPolyargPredictor(
         num_hyps = len(all_hyps)
 
         num_stem_poss = self._embedding.num_tokens()
-        stem_width = min(beam_width, num_stem_poss)
+        stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
 
         with self._lock:
 
@@ -270,18 +270,18 @@ class FeaturesPolyargPredictor(
                                              .view(1, stem_width * num_probs))\
                                    .view(stem_width * num_probs)
 
-            final_probs, final_idxs = all_prob_batches.topk(beam_width)
+            final_probs, final_idxs = all_prob_batches.topk(k)
             assert not torch.isnan(final_probs).any()
-            assert final_probs.size() == torch.Size([beam_width])
+            assert final_probs.size() == torch.Size([k])
             row_length = self.training_args.max_length + len(all_hyps) + 1
             stem_keys = final_idxs / row_length
-            assert stem_keys.size() == torch.Size([beam_width])
+            assert stem_keys.size() == torch.Size([k])
             assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
             prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
-            assert prediction_stem_idxs.size() == torch.Size([beam_width]), \
+            assert prediction_stem_idxs.size() == torch.Size([k]), \
                 prediction_stem_idxs.size()
             arg_idxs = final_idxs % row_length
-            assert arg_idxs.size() == torch.Size([beam_width])
+            assert arg_idxs.size() == torch.Size([k])
             return [Prediction(self.decodePrediction(context.goal,
                                                      all_hyps,
                                                      stem_idx.item(),
