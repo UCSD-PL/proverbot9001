@@ -62,6 +62,8 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--weightsfile', default=None, type=Path2)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
+    parser.add_argument('--no-check-consistent', action='store_false',
+                        dest='check_consistent')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
     args, unknown_args = parser.parse_known_args(arg_list)
     commit, date = get_metadata()
@@ -72,7 +74,8 @@ def main(arg_list : List[str]) -> None:
 
     with multiprocessing.pool.ThreadPool(args.num_threads) as pool:
         pool.starmap(functools.partial(run_search, unknown_args, args.output,
-                                       args.predictor, args.weightsfile),
+                                       args.predictor, args.weightsfile,
+                                       args.check_consistent),
                      enumerate(args.filenames))
     file_args : Optional[argparse.Namespace] = None
     file_results : List[ReportStats] = []
@@ -86,7 +89,7 @@ def main(arg_list : List[str]) -> None:
         csv_args.hardfail = False
         if not file_args:
             file_args = csv_args
-        else:
+        elif args.check_consistent:
             assert file_args == csv_args, \
                 f"File {filename} has different args than the others! "\
                 f"Others args are {csv_args}, file args are {file_args}"
@@ -104,6 +107,7 @@ def run_search(argslist : List[str],
                outdir : str,
                predictor : Optional[str],
                weightsfile : Optional[str],
+               check_consistent : bool,
                file_idx : int,
                filename : Path2) -> None:
     augmented_argslist = argslist + ["-o", str(outdir)]
@@ -111,6 +115,8 @@ def run_search(argslist : List[str],
         augmented_argslist += ["--predictor", predictor]
     if weightsfile:
         augmented_argslist += ["--weightsfile", str(weightsfile)]
+    if not check_consistent:
+        augmented_argslist += ["--no-check-consistent"]
     augmented_argslist += [str(filename)]
     search_file.main(augmented_argslist , bar_idx = file_idx)
 

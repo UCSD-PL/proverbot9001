@@ -156,6 +156,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
+    parser.add_argument('--no-check-consistent', action='store_false',
+                        dest='check_consistent')
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -197,7 +199,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     if args.resume:
         try:
-            check_csv_args(args, args.filename)
+            if args.check_consistent:
+                check_csv_args(args, args.filename)
             with tqdm(total=1, unit="cmd", file=sys.stdout,
                       desc=args.filename.name + " (Resumed)",
                       disable=(not args.progress),
