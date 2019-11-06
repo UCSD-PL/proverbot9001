@@ -1059,7 +1059,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                         f"width: {args.search_width}\n" \
                         f"depth: {args.search_depth}\n" \
                         f"lenpath: {len(current_path)}"
-                    pbar.update(nodes_skipped)
+                    # pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context is in current path")
                 elif contextIsBig(context_after):
                     g.setNodeColor(predictionNode, "orange4")
