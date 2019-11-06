@@ -704,7 +704,7 @@ class SerapiInstance(threading.Thread):
                         raise CoqAnomaly("Timing out")
                     assert isBreakMessage(msg), msg
                 assert self.message_queue.empty()
-                return interrupt_response
+                return dumps(interrupt_response)
             elif isBreakMessage(interrupt_response):
                 raise TimeoutError("")
             elif isBreakAnswer(interrupt_response):
@@ -730,7 +730,7 @@ class SerapiInstance(threading.Thread):
                 eprint(interrupt_response)
                 self.get_completed()
                 assert self.message_queue.empty()
-                return interrupt_response
+                return dumps(interrupt_response)
             assert False, (interrupt_response, self.messages)
 
     def get_feedbacks(self) -> List['Sexp']:
