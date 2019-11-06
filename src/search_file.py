@@ -891,7 +891,8 @@ def tryPrediction(args : argparse.Namespace,
     except (serapi_instance.TimeoutError, serapi_instance.ParseError,
             serapi_instance.CoqExn, serapi_instance.OverflowError,
             serapi_instance.UnrecognizedError) as e:
-        error = e
+        return coq.proof_context, 0, 0, 0, e, time.time() - start_time
+
     time_taken = time.time() - start_time
     num_stmts = 1
     subgoals_closed = 0
