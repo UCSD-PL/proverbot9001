@@ -85,7 +85,7 @@ publish:
 	mv $(REPORT) $(REPORT_NAME)
 	chmod +rx $(REPORT_NAME)
 	tar czf report.tar.gz $(REPORT_NAME)
-	rsync -avz report.tar.gz $(SITE_PATH)/reports/
+	rsync -avzP report.tar.gz $(SITE_PATH)/reports/
 	ssh goto 'cd ~alexss/proverbot9001-site/reports && \
                   tar xzf report.tar.gz && \
                   rm report.tar.gz && \
