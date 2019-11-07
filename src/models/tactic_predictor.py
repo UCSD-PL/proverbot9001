@@ -57,9 +57,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
         start = time.time()
-        eprint("Loading text data...", end="")
         text_data = get_text_data(arg_values)
-        print("{:.2f}s".format(time.time() - start))
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
         gc.collect()
