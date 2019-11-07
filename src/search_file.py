@@ -1066,9 +1066,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
 
                     depth = (args.search_depth + new_extra_depth + 1) - len(current_path)
                     assert depth > 0
-                    nodes_skipped = numNodesInTree(args.search_width, depth) - 1
-                    assert nodes_skipped >= 0
-                    pbar.update(nodes_skipped)
+                    # nodes_skipped = numNodesInTree(args.search_width, depth) - 1
+                    # assert nodes_skipped >= 0
+                    # pbar.update(nodes_skipped)
                     cleanupSearch(num_stmts, "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth:
                     sub_search_result = search(pbar, current_path + [predictionNode],
@@ -1082,17 +1082,17 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                             subgoals_opened
                         depth = (args.search_depth + new_extra_depth + 1) \
                             - len(current_path)
-                        nodes_skipped = numNodesInTree(args.search_width, depth) \
-                            * (args.search_width - (prediction_idx + 1))
-                        pbar.update(nodes_skipped)
+                        # nodes_skipped = numNodesInTree(args.search_width, depth) \
+                        #     * (args.search_width - (prediction_idx + 1))
+                        # pbar.update(nodes_skipped)
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed)
                     if subgoals_closed > 0:
                         depth = (args.search_depth + new_extra_depth + 1) \
                             - len(current_path)
-                        nodes_skipped = numNodesInTree(args.search_width, depth) \
-                            * (args.search_width - (prediction_idx + 1))
-                        pbar.update(nodes_skipped)
+                        # nodes_skipped = numNodesInTree(args.search_width, depth) \
+                        #     * (args.search_width - (prediction_idx + 1))
+                        # pbar.update(nodes_skipped)
                         return SubSearchResult(None, subgoals_closed)
                 else:
                     hasUnexploredNode = True
@@ -1100,9 +1100,9 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     if subgoals_closed > 0:
                         depth = (args.search_depth + new_extra_depth + 1) \
                             - len(current_path)
-                        nodes_skipped = numNodesInTree(args.search_width, depth) \
-                            * (args.search_width - (prediction_idx + 1))
-                        pbar.update(nodes_skipped)
+                        # nodes_skipped = numNodesInTree(args.search_width, depth) \
+                        #     * (args.search_width - (prediction_idx + 1))
+                        # pbar.update(nodes_skipped)
                         return SubSearchResult(None, subgoals_closed)
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
