@@ -456,6 +456,7 @@ class FeaturesPolyargPredictor(
             embedding, embedded_data = embed_data(data)
             tokenizer, tokenized_goals = tokenize_goals(embedded_data,
                                                         arg_values)
+        torch.multiprocessing.set_sharing_strategy('file_system')
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
             print("Creating dataset...", end="")
