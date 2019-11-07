@@ -418,7 +418,7 @@ class SerapiInstance(threading.Thread):
                                                                     .format(stmt)))),
               _, lambda e:
               match(normalizeMessage(e.msg),
-                    ['Stream\.Error', str],
+                    ['Stream\\.Error', str],
                     lambda *args: progn(self.get_completed(),
                                         raise_(ParseError("Couldn't parse command {}"
                                                           .format(stmt)))),
@@ -430,11 +430,11 @@ class SerapiInstance(threading.Thread):
                     'Not_found',
                     lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.cancel_last(), raise_(e)), # type: ignore
-                    ['CErrors\.UserError', _],
+                    ['CErrors\\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.get_completed(),
                                         self.cancel_last(), raise_(e)), # type: ignore
-                    ['ExplainErr\.EvaluatedError', TAIL],
+                    ['ExplainErr\\.EvaluatedError', TAIL],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.get_completed(),
                                         self.cancel_last(), raise_(e)), # type: ignore
