@@ -716,6 +716,8 @@ def mkFPASample(embedding : Embedding,
             else:
                 selected_hyps = all_hyps
                 arg = HypIdArg(correct_hyp_idx)
+    if len(selected_hyps) == 0:
+        selected_hyps = [":"]
     tokenized_hyp_types = [normalizeSentenceLength(
         mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
         max_length)
