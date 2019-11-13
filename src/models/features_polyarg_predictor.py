@@ -206,7 +206,10 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
         beam_width=min(self.training_args.max_beam_width, k ** 2)
-        all_hyps = context.hypotheses + context.relevant_lemmas
+        if self.training_args.lemma_args:
+            all_hyps = context.hypotheses + context.relevant_lemmas
+        else:
+            all_hyps = context.hypotheses
         num_hyps = len(all_hyps)
 
         num_stem_poss = self._embedding.num_tokens()
@@ -316,7 +319,10 @@ class FeaturesPolyargPredictor(
         for i in range(len(goal_symbols) + 1, goal_arg_values.size()[1]):
             goal_arg_values[0, i] = -float("Inf")
         encoded_goals = self._model.goal_encoder(goals_batch)
-        all_hyps = context.hypotheses + context.relevant_lemmas
+        if self.training_args.lemma_args:
+            all_hyps = context.hypotheses + context.relevant_lemmas
+        else:
+            all_hyps = context.hypotheses
         if len(all_hyps) > 0:
             hyps_batch = LongTensor([[self.encodeStrTerm(hyp)
                                       for hyp in all_hyps]])
@@ -429,6 +435,7 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("max-length", 30))
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 10))
+        parser.add_argument("--no-lemma-args", dest="lemma_args", action='store_false')
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
@@ -465,8 +472,7 @@ class FeaturesPolyargPredictor(
             result_data = FeaturesPolyArgDataset(list(pool.imap(
                 functools.partial(mkFPASample, embedding,
                                   tokenizer,
-                                  arg_values.max_length,
-                                  arg_values.max_premises,
+                                  arg_values,
                                   self._word_feature_functions,
                                   self._vec_feature_functions),
                 zip(data, tokenized_goals))))
@@ -656,8 +662,7 @@ class FeaturesPolyargPredictor(
 
 def mkFPASample(embedding : Embedding,
                 mytokenizer : Tokenizer,
-                max_length : int,
-                max_premises : int,
+                training_args : argparse.Namespace,
                 word_feature_functions : List[WordFeature],
                 vec_feature_functions : List[VecFeature],
                 zipped : Tuple[ScrapedTactic, List[int]]) \
@@ -674,27 +679,30 @@ def mkFPASample(embedding : Embedding,
     assert len(argstr_tokens) < 2, \
         "Tactic {} doesn't fit our argument model! Too many tokens" .format(tactic)
     arg : TacticArg
-    all_hyps = hypotheses + relevant_lemmas
+    if training_args.lemma_args:
+        all_hyps = hypotheses + relevant_lemmas
+    else:
+        all_hyps = hypotheses
     if len(argstr_tokens) == 0:
         arg_type = ArgType.NO_ARG
         arg = None
-        if len(all_hyps) > max_premises:
-            selected_hyps = random.sample(all_hyps, max_premises)
+        if len(all_hyps) > training_args.max_premises:
+            selected_hyps = random.sample(all_hyps, training_args.max_premises)
         else:
             selected_hyps = all_hyps
     else:
-        goal_symbols = tokenizer.get_symbols(goal_str)[:max_length]
+        goal_symbols = tokenizer.get_symbols(goal_str)[:training_args.max_length]
         arg_token = argstr_tokens[0]
         if arg_token in goal_symbols:
             arg_type = ArgType.GOAL_TOKEN
             arg_idx = goal_symbols.index(arg_token)
-            assert arg_idx < max_length, "Tactic {} doesn't fit our argument model! "\
+            assert arg_idx < training_args.max_length, "Tactic {} doesn't fit our argument model! "\
                 "Token {} is not a hyp var or goal token.\n"\
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg = GoalTokenArg(goal_symbols.index(arg_token))
-            if len(all_hyps) > max_premises:
-                selected_hyps = random.sample(all_hyps, max_premises)
+            if len(all_hyps) > training_args.max_premises:
+                selected_hyps = random.sample(all_hyps, training_args.max_premises)
             else:
                 selected_hyps = all_hyps
         else:
@@ -706,11 +714,11 @@ def mkFPASample(embedding : Embedding,
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg_type = ArgType.HYP_ID
             correct_hyp_idx = dict(indexed_hyp_vars)[arg_token]
-            if len(all_hyps) > max_premises:
+            if len(all_hyps) > training_args.max_premises:
                 selected_hyps = random.sample(all_hyps[:correct_hyp_idx]+
                                               all_hyps[correct_hyp_idx+1:],
-                                              max_premises-1)
-                new_hyp_idx = random.randrange(max_premises)
+                                              training_args.max_premises-1)
+                new_hyp_idx = random.randrange(training_args.max_premises)
                 selected_hyps.insert(new_hyp_idx,
                                      all_hyps[correct_hyp_idx])
                 arg = HypIdArg(new_hyp_idx)
@@ -721,13 +729,13 @@ def mkFPASample(embedding : Embedding,
         selected_hyps = [":"]
     tokenized_hyp_types = [normalizeSentenceLength(
         mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
-        max_length)
+        training_args.max_length)
                            for hyp in selected_hyps]
     hypfeatures = encodeHypsFeatureVecs(goal_str, selected_hyps)
     return FeaturesPolyArgSample(
         tokenized_hyp_types,
         hypfeatures,
-        normalizeSentenceLength(tokenized_goal, max_length),
+        normalizeSentenceLength(tokenized_goal, training_args.max_length),
         word_features,
         vec_features,
         stem_idx,
