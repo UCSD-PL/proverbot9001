@@ -27,10 +27,10 @@ from models.tactic_predictor import \
 from models.components import (Embedding, SimpleEmbedding, DNNClassifier, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength, getNGramTokenbagVector,
-                  strip_scraped_output, TacticContext)
+                  TacticContext)
 from tokenizer import Tokenizer
 import serapi_instance
-from format import ScrapedTactic, TacticContext
+from format import ScrapedTactic, TacticContext, strip_scraped_output
 from util import *
 
 import torch

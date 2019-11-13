@@ -24,10 +24,10 @@ from models.tactic_predictor import \
      predictKTacticsWithLoss_batch)
 from models.components import (Embedding)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength, strip_scraped_output)
+                  normalizeSentenceLength)
 from serapi_instance import get_stem
 from util import *
-from format import TacticContext
+from format import TacticContext, strip_scraped_output
 
 from typing import (List, Any, Tuple, NamedTuple, Dict, Sequence,
                     cast, Optional)

@@ -31,7 +31,6 @@ from format import TacticContext
 import serapi_instance
 
 ContextFilter = Callable[[TacticContext, str, TacticContext, argparse.Namespace], bool]
-
 def filter_and(*args : ContextFilter) -> ContextFilter:
     def filter_and2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
         return lambda in_data, tactic, next_in_data, args: \

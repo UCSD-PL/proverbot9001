@@ -14,7 +14,7 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
 from util import *
 import time
 import random
-from format import ScrapedTactic, TacticContext
+from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,

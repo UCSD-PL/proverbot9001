@@ -33,9 +33,9 @@ from models.tactic_predictor import (TrainablePredictor,
                                      embed_data, add_tokenizer_args)
 from tokenizer import Tokenizer, limitNumTokens, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EmbeddedSample, strip_scraped_output)
+                  EmbeddedSample)
 from util import *
-from format import ScrapedTactic, TacticContext
+from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
 
 import threading

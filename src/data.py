@@ -41,7 +41,7 @@ from tokenizer import (Tokenizer, TokenizerState,
                        make_keyword_tokenizer_relevance,
                        make_keyword_tokenizer_topk, tokenizers)
 from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
-                    read_tuple, TacticContext)
+                    read_tuple, TacticContext, strip_scraped_output)
 from models.components import SimpleEmbedding
 import serapi_instance
 
@@ -49,7 +49,7 @@ from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
 from util import eprint, chunks, split_by_char_outside_matching
-from context_filter import get_context_filter
+from context_filter import get_context_filter, ContextFilter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
 TOKEN_START = 2
@@ -62,16 +62,6 @@ ClassifySequenceDataset = List[Tuple[Sentence, int]]
 SequenceSequenceDataset = List[Tuple[Sentence, Sentence]]
 ClassifyBagDataset = List[Tuple[Bag, int]]
 TermDataset = List[Sentence]
-
-
-def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
-    relevant_lemmas, prev_tactics, hypotheses, goal, output = scraped
-    assert prev_tactics != None
-    assert relevant_lemmas != None
-    assert hypotheses != None
-    assert goal != None
-    assert output != None
-    return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
 
 
 class Dataset(Sized, metaclass=ABCMeta):
@@ -246,11 +236,10 @@ def read_text_data(data_path: Path2) \
     data_chunks = lazy_multiprocessing_imap(line_chunks, read_text_data_worker__)
     yield from itertools.chain.from_iterable(data_chunks)
 
-
 def preprocess_data(arg_values: Namespace, dataset_iter:
                     Iterable[ScrapedTactic]) \
                     -> Iterable[ScrapedTactic]:
-    with multiprocessing.Pool(None) as pool:
+    with multiprocessing.Pool(arg_values.num_threads) as pool:
         if arg_values.truncate_semicolons:
             dataset_iter = pool.imap(truncate_tactic_semicolons,
                                      dataset_iter)
@@ -285,11 +274,6 @@ def get_text_data(arg_values: Namespace) -> RawDataset:
     _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
-
-
-import argparse
-ContextFilter = Callable[[TacticContext, str, TacticContext, argparse.Namespace], bool]
-
 
 def filter_data(data: RawDataset, pair_filter: ContextFilter,
                 arg_values: Namespace) -> Iterable[ScrapedTactic]:

@@ -16,20 +16,21 @@ import shutil
 import io
 import math
 
-from typing import Any, Union, Optional, Tuple, List, Sequence, Dict, Counter, \
-    Callable, NamedTuple, TextIO, Iterable, \
-    cast, TypeVar, NewType
+from typing import (Any, Union, Optional, Tuple, List, Sequence, Dict,
+                    Counter, Callable, NamedTuple, TextIO, Iterable, cast, TypeVar,
+                    NewType)
 from pathlib_revised import Path2
 
-from data import file_chunks, filter_data, strip_scraped_output
+from data import file_chunks, filter_data
 from context_filter import get_context_filter
 from serapi_instance import get_stem, try_load_lin, load_commands_preserve
 import serapi_instance
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction
 from yattag import Doc
-from format import format_goal, format_hypothesis, format_tactic, read_tuple, \
-    ScrapedTactic, ScrapedCommand, TacticContext
+from format import (format_goal, format_hypothesis, format_tactic,
+                    read_tuple, ScrapedTactic, ScrapedCommand, TacticContext,
+                    strip_scraped_output)
 from syntax import syntax_highlight, strip_comments
 from util import multipartition, chunks, stringified_percent, escape_filename
 

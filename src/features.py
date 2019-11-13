@@ -138,6 +138,8 @@ class TopLevelTokenInGoal(WordFeature):
                  args : argparse.Namespace) -> None:
         headTokenCounts : typing.Counter[str] = Counter()
         for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
+            if goal.strip() == "":
+                continue
             headToken = get_symbols(goal)[0]
             headTokenCounts[headToken] += 1
         if args.load_head_keywords and Path2(args.load_head_keywords).exists():
@@ -150,6 +152,8 @@ class TopLevelTokenInGoal(WordFeature):
         eprint("Goal head keywords are {}".format(self.headKeywords),
                guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> int:
+        if context.goal.strip() == "":
+            return 0
         headToken = get_symbols(context.goal)[0]
         if headToken in self.headKeywords:
             return self.headKeywords.index(headToken) + 1

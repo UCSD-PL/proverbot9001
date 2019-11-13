@@ -34,11 +34,19 @@ class ScrapedTactic(NamedTuple):
 
 class TacticContext(NamedTuple):
     relevant_lemmas: List[str]
-    prev_tactics: List[str]
-    hypotheses: List[str]
-    goal: str
+    prev_tactics : List[str]
+    hypotheses : List[str]
+    goal : str
 
 ScrapedCommand = Union[ScrapedTactic, str]
+
+def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
+    relevant_lemmas, prev_tactics, hypotheses, goal, output = scraped
+    assert prev_tactics != None
+    assert hypotheses != None
+    assert goal != None
+    assert output != None
+    return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
 
 def minimize_whitespace(data : str) -> str:
     return re.sub("\s+", " ", data).strip()
@@ -100,7 +108,7 @@ def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
                 lemmas.append(line.strip())
         try:
             goal = next(lines_it)
-            assert next(lines_it) == "+++++\n"
+            assert next(lines_it) == "+++++\n", lines
             tactic = next(lines_it)
             return ScrapedTactic(relevant_lemmas=lemmas,
                                  prev_tactics=prev_tactics, hypotheses=hyps,

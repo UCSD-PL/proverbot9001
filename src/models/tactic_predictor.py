@@ -11,7 +11,6 @@ from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
                   EmbeddedDataset, StrictEmbeddedDataset,
                   LazyEmbeddedDataset, DatasetMetadata, tokenize_data,
                   TOKEN_START)
-from os import path
 
 class Prediction(NamedTuple):
     prediction : str
@@ -77,7 +76,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         parser.add_argument("--context-filter", dest="context_filter", type=str,
                             default=default_values.get("context-filter",
                                                        "goal-changes%no-args"))
-        parser.add_argument("--no-truncate-semicolons",
+        parser.add_argument("--no-truncate_semicolons",
                             dest="truncate_semicolons",
                             action='store_false')
         parser.add_argument("--use-substitutions", dest="use_substitutions", type=bool,
@@ -463,6 +462,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     dataset_size = data_tensors[0].size()[0]
     num_batches = int(dataset_size / arg_values.batch_size)
     dataset_size = num_batches * arg_values.batch_size
+    assert dataset_size > 0
     print("Initializing model...")
     if arg_values.start_from:
         print("Starting from file")
@@ -524,9 +524,6 @@ def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
     print("{:.2f}s".format(time.time() - start))
     return embedding, dataset
 
-import os.path
-
-Sentence = List[int]
 def tokenize_goals(data : StrictEmbeddedDataset, args : Namespace,
                    tokenizer:Optional[Tokenizer]=None) \
     -> Tuple[Tokenizer, List[Sentence]]:
