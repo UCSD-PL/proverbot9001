@@ -158,6 +158,10 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         action='store_const', const=True, default=False)
     parser.add_argument('--no-check-consistent', action='store_false',
                         dest='check_consistent')
+    parser.add_argument('--count-failing-predictions', action='store_true',
+                        dest="count_failing_predictions")
+    parser.add_argument('--no-count-softfail-predictions', action='store_false',
+                        dest="count_softfail_predictions")
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -1007,6 +1011,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     error, time_taken = \
                     tryPrediction(args, coq, prediction, current_path[-1])
                 if error:
+                    if args.count_failing_predictions:
+                        num_successful_predictions += 1
                     continue
                 num_successful_predictions += 1
                 pbar.update(1)
@@ -1037,6 +1043,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     solution = g.mkQED(predictionNode)
                     return SubSearchResult(solution, subgoals_closed)
                 elif contextInPath(context_after, current_path[1:] + [predictionNode]):
+                    if not args.count_softfail_predictions:
+                        num_successful_predictions -= 1
                     g.setNodeColor(predictionNode, "orange")
                     cleanupSearch(num_stmts, "resulting context is in current path")
                 elif contextIsBig(context_after):
