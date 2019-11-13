@@ -53,6 +53,7 @@ def main():
                         action='store_const', const=True, default=False)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                     dest='skip_nochange_tac')
+    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", choices=['local'])
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -109,7 +110,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                                         position=file_idx * 2,
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True, bar_format=mybarfmt):
-                        process_statement(coq, command, f)
+                        process_statement(args, coq, command, f)
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
             return result_file
@@ -120,16 +121,21 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             raise e
     return None
 
-def process_statement(coq : serapi_instance.SerapiInstance, command : str,
+def process_statement(args : argparse.Namespace,
+                      coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
     if not re.match("\s*[{}]\s*", command):
         if coq.proof_context:
             prev_tactics = coq.prev_tactics
             prev_hyps = coq.hypotheses
             prev_goal = coq.goals
-            local_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
+            if args.relevant_lemmas == "local":
+                relevant_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
+            else:
+                assert False
+
             result_file.write(format_context(prev_tactics, prev_hyps, prev_goal,
-                                             local_lemmas))
+                                             relevant_lemmas))
             result_file.write(format_tactic(command))
         else:
             subbed_command = re.sub(r"\n", r"\\n", command)
