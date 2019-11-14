@@ -10,7 +10,7 @@ from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
                   tactic_substitutions, EmbeddedSample,
                   EmbeddedDataset, StrictEmbeddedDataset,
                   LazyEmbeddedDataset, DatasetMetadata, tokenize_data,
-                  TOKEN_START)
+                  TOKEN_START, Sentence)
 
 class Prediction(NamedTuple):
     prediction : str
