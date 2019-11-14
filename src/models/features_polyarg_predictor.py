@@ -253,11 +253,12 @@ class FeaturesPolyargPredictor(
 
                 hypfeatures_batch = encodeHypsFeatureVecs(context.goal,
                                                           all_hyps)
-                assert hypfeatures_batch.size() == torch.Size([num_hyps, 2])
-                hypfeatures_batch_expanded = hypfeatures_batch.view(1, num_hyps, 2)\
-                                                             .expand(stem_width, -1, 2)\
-                                                             .contiguous()\
-                                                             .view(stem_width * num_hyps, 2)
+                assert hypfeatures_batch.size() == torch.Size([num_hyps, hypFeaturesSize()])
+                hypfeatures_batch_expanded = \
+                    hypfeatures_batch.view(1, num_hyps, hypFeaturesSize())\
+                                     .expand(stem_width, -1, -1)\
+                                     .contiguous()\
+                                     .view(stem_width * num_hyps, hypFeaturesSize())
                 hyp_arg_values = self.runHypModel(stem_idxs,
                                                   encoded_goals, hyps_batch,
                                                   hypfeatures_batch)
@@ -420,7 +421,7 @@ class FeaturesPolyargPredictor(
         return "A predictor combining the goal token args and hypothesis args models."
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) -> None:
-        new_defaults = {"batch-size":64, "learning-rate":0.4, "epoch-step":3,
+        new_defaults = {"batch-size":128, "learning-rate":0.4, "epoch-step":3,
                         **default_values}
         super().add_args_to_parser(parser, new_defaults)
         add_nn_args(parser, new_defaults)
@@ -577,7 +578,7 @@ class FeaturesPolyargPredictor(
                               arg_values.hidden_size),
             EncoderRNN(goal_vocab_size, arg_values.hidden_size, arg_values.hidden_size),
             HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
-                        2, arg_values.hidden_size))
+                        hypFeaturesSize(), arg_values.hidden_size))
     def _getBatchPredictionLoss(self, arg_values : Namespace,
                                 data_batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
@@ -741,24 +742,27 @@ def mkFPASample(embedding : Embedding,
         stem_idx,
         arg_type,
         arg)
+
+def hypFeaturesSize() -> int:
+    return 3
 def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
     def features(hyp : str):
         similarity_ratio = SequenceMatcher(None, goal,
                                            serapi_instance.get_hyp_type(hyp)).ratio()
-        # is_equals_on_goal_token = 0.0
-        # equals_match = re.match("eq\s+(.*)", hyp)
-        # if equals_match:
-        #     left_side, right_side = \
-        #         split_by_char_outside_matching(
-        #             "\(", "\)", "\s*",
-        #             equals_match.group(1))
-        #     if left_side in goal:
-        #         is_equals_on_goal_token = -1.0
-        #     elif right_side in goal:
-        #         is_equals_on_goal_token = 1.0
+        is_equals_on_goal_token = 0.0
+        equals_match = re.match("eq\s+(.*)", hyp)
+        if equals_match:
+            left_side, right_side = \
+                split_by_char_outside_matching(
+                    "\(", "\)", "\s*",
+                    equals_match.group(1))
+            if left_side in goal:
+                is_equals_on_goal_token = -1.0
+            elif right_side in goal:
+                is_equals_on_goal_token = 1.0
 
         return [similarity_ratio,
-                #is_equals_on_goal_token,
+                is_equals_on_goal_token,
                 0.0]
 
     return torch.FloatTensor([features(hyp) for hyp in hyps])
