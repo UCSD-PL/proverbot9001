@@ -17,5 +17,5 @@ MYDIR="$(cd -P "$(dirname "$src")" && pwd)"
 mkdir -p logs
 parallel --tmuxpane -j $NUM_THREADS -a $JOBS_FILE --fg \
          "tmux select-layout even-vertical && ulimit -s unlimited &&
-          python3 $MYDIR/src/search_file.py -o $OUTDIR $@ {} 2> logs/{/.}.txt"
-cat $JOBS_FILE | xargs python3 $MYDIR/src/search_report.py -o $OUTDIR $@
+          python3.7 $MYDIR/src/search_file.py -o $OUTDIR $@ {} 2> logs/{/.}.txt"
+cat $JOBS_FILE | xargs python3.7 $MYDIR/src/search_report.py -o $OUTDIR $@
