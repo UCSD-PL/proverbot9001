@@ -36,6 +36,7 @@ setup:
 compcert-scrape: $(CC_TRAIN_SCRAPES)
 	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
 	xargs python3.7 scrape.py $(FLAGS) -c -j $(NTHREADS) --output ../data/compcert-scrape.txt --prelude ../CompCert
+	cp data/compcert-scrape.txt data/compcert-scrape.bkp || true
 
 scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
