@@ -274,7 +274,24 @@ class SerapiInstance(threading.Thread):
         if self.use_hammer:
             self.init_hammer()
 
-    def handle_potential_local_lemma(self, cmd : str) -> None:
+    def cancel_potential_local_lemmas(self, cmd : str) -> None:
+        lemmas = self.lemmas_defined_by_stmt(cmd)
+        for lemma in lemmas:
+            self.local_lemmas.remove(lemma)
+
+    def add_potential_local_lemmas(self, cmd : str) -> None:
+        lemmas = self.lemmas_defined_by_stmt(cmd)
+        for lemma in lemmas:
+            self.local_lemmas.append(lemma)
+
+        for l_idx in range(len(self.local_lemmas)):
+            for ol_idx in range(len(self.local_lemmas)):
+                if l_idx == ol_idx:
+                    continue
+                assert self.local_lemmas[l_idx] != \
+                    self.local_lemmas[ol_idx],\
+                    self.local_lemmas
+    def lemmas_defined_by_stmt(self, cmd : str) -> List[str]:
         lemma_match = re.match(r"\s*(?:Theorem|Lemma|Remark|Proposition)\s+(\w*)(.*)",
                                cmd,
                                flags=re.DOTALL)
@@ -287,14 +304,16 @@ class SerapiInstance(threading.Thread):
                 lemma_statement = lemma_name + " : forall " + binders + ", " + body[1:]
             else:
                 lemma_statement = lemma_name + " " + body
-            self.local_lemmas.append(lemma_statement)
+            return [lemma_statement]
 
         proposition_match = re.match(r".*Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
                                      kill_comments(cmd), flags=re.DOTALL)
         if proposition_match:
             case_matches = re.finditer(r"\|\s*(\w+\s*:[^|]*)", proposition_match.group(1))
-            for case_match in case_matches:
-                self.local_lemmas.append(case_match.group(1))
+            constructor_lemmas = [case_match.group(1) for case_match in
+                                  case_matches]
+            return constructor_lemmas
+        return []
 
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
@@ -357,7 +376,7 @@ class SerapiInstance(threading.Thread):
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
-                self.handle_potential_local_lemma(stmt)
+                self.add_potential_local_lemmas(stmt)
                 # Get initial context
                 context_before = self.proof_context
                 # Send the command
@@ -535,6 +554,7 @@ class SerapiInstance(threading.Thread):
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
                    guard=self.verbose)
+            self.cancel_potential_local_lemmas(cancelled)
         else:
             cancelled = ""
             old_subgoals = []
