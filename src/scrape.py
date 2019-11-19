@@ -48,7 +48,6 @@ def main():
     parser.add_argument('--hardfail', default=False, const=True, action='store_const')
     parser.add_argument('--prelude', default=".")
     parser.add_argument('-v', '--verbose', action='count', default=0)
-    parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
@@ -102,8 +101,8 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                 serapi_instance.load_commands(full_filename),
                 coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
             serapi_instance.save_lin(commands, full_filename)
-            coq.debug = args.debug
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
+            coq.verbose = args.verbose
             try:
                 with open(result_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stdout,
