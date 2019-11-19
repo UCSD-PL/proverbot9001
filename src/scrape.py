@@ -85,8 +85,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
     result_file = full_filename + ".scrape"
-    prelude = os.path.join(args.prelude, "/".join(file_tuple[1].split("/")[:2]))
-    includes = subprocess.Popen(['cat', '{}/_CoqProject'.format(prelude)],
+    includes = subprocess.Popen(['cat', '{}/_CoqProject'.format(args.prelude)],
                                 stdout=subprocess.PIPE).communicate()[0]\
                          .strip().decode('utf-8')
     if args.cont:
@@ -101,10 +100,10 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             commands = linearize_semicolons.preprocess_file_commands(
                 args, file_idx,
                 serapi_instance.load_commands(full_filename),
-                coqargs, includes, prelude, full_filename, filename, args.skip_nochange_tac)
+                coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
             serapi_instance.save_lin(commands, full_filename)
-        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             coq.debug = args.debug
+        with serapi_instance.SerapiContext(coqargs, includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
             try:
                 with open(result_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stdout,
