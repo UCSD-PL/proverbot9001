@@ -259,6 +259,8 @@ class SerapiInstance(threading.Thread):
         self.verbose = 0
         # Set the "extra quiet" flag (don't print on failures) to false
         self.quiet = False
+        # The messages printed to the *response* buffer by the command
+        self.feedbacks : List[str] = []
         # Start the message queue thread
         self.start()
         # Go through the messages and throw away the initial feedback.
@@ -354,6 +356,44 @@ class SerapiInstance(threading.Thread):
     def messages(self):
         return [dumps(msg) for msg in list(self.message_queue.queue)]
 
+    def get_hammer_premise_names(self, k:int) -> List[str]:
+        if not self.goals:
+            return []
+        try:
+            oldquiet = self.quiet
+            self.quiet = False
+            self.run_stmt(f"predict {k}.", timeout=120)
+            self.quiet = oldquiet
+            premise_names = self.feedbacks[3][1][3][1][3][1].split(", ")
+            self.cancel_last()
+            return premise_names
+        except CoqExn:
+            return []
+
+    def get_hammer_premises(self, k:int=10) -> List[str]:
+        names = self.get_hammer_premise_names(k)
+        def get_full_line(name : str) -> str:
+            self.send_acked(f"(Query () (Vernac \"Check {name}.\"))")
+            nextmsg = self.get_message()
+            while match(normalizeMessage(nextmsg),
+                        ["Feedback", [["doc_id", int], ["span_id", int],
+                                      ["route", int],
+                                      ["contents", "Processed"]]],
+                        lambda *args: True,
+                        _,
+                        lambda *args: False):
+                nextmsg = self.get_message()
+            pp_term = nextmsg[1][3][1][3]
+            nextmsg = self.get_message()
+            match(normalizeMessage(nextmsg),
+                  ["Answer", int, ["ObjList", []]],
+                  lambda *args: None,
+                  _, lambda *args: raise_(UnrecognizedError(nextmsg)))
+            self.get_completed()
+            return re.sub("\s+", " ", self.ppToTermStr(pp_term))
+        full_lines = [get_full_line(name) for name in names]
+        return full_lines
+
     # Run a command. This is the main api function for this
     # class. Sends a single command to the running serapi
     # instance. Returns nothing: if you want a response, call one of
@@ -391,7 +431,7 @@ class SerapiInstance(threading.Thread):
                 # Execute the statement.
                 self.send_acked("(Exec {})\n".format(self.cur_state))
                 # Finally, get the result of the command
-                feedbacks = self.get_feedbacks()
+                self.feedbacks = self.get_feedbacks()
                 # Get a new proof context, if it exists
                 if stm.strip == "{":
                     self.get_enter_goal_context()
@@ -489,6 +529,16 @@ class SerapiInstance(threading.Thread):
     def flush_queue(self) -> None:
         while not self.message_queue.empty():
             self.get_message()
+    def ppStrToTermStr(self, pp_str : str) -> str:
+        answer = self.ask(f"(Print ((pp_format PpStr)) (CoqPp {pp_str}))")
+        return match(normalizeMessage(answer),
+                     ["Answer", int, ["ObjList", [["CoqString", _]]]],
+                     lambda statenum, s: str(s),
+                     ["Answer", int, ["CoqExn", list, list, list, _]],
+                     lambda statenum, a, b, c, msg:
+                     raise_(CoqExn(msg)))
+    def ppToTermStr(self, pp) -> str:
+        return self.ppStrToTermStr(dumps(pp))
     @functools.lru_cache(maxsize=128)
     def sexpStrToTermStr(self, sexp_str : str) -> str:
         answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {sexp_str}))")
@@ -685,7 +735,7 @@ class SerapiInstance(threading.Thread):
         self.flush_queue()
 
     def get_message(self, complete=False) -> Any:
-        return loads(self.get_message_text(complete=complete))
+        return loads(self.get_message_text(complete=complete), nil=None)
 
     def get_message_text(self, complete=False) -> Any:
         try:

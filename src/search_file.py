@@ -162,6 +162,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         dest="count_failing_predictions")
     parser.add_argument('--no-count-softfail-predictions', action='store_false',
                         dest="count_softfail_predictions")
+    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", choices=['local', 'hammer'])
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -888,7 +889,7 @@ def tryPrediction(args : argparse.Namespace,
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
-    time_per_command = 30 if coq.use_hammer else 5
+    time_per_command = 60 if coq.use_hammer else 5
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
@@ -918,36 +919,6 @@ def tryPrediction(args : argparse.Namespace,
     context_after = coq.proof_context
     assert context_after
     return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken
-
-def makePredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
-                    curNode : LabeledNode, k : int) -> List[LabeledNode]:
-    # eprint(f"Asking for {k} predictions")
-    proof_context = coq.proof_context
-    assert proof_context
-    return g.addPredictions(curNode, proof_context,
-                            [pred.prediction for pred in
-                             predictor.predictKTactics(
-                                 TacticContext(
-                                     # The last lemma in this list is
-                                     # the one we're currently
-                                     # defining, so we can't use it.
-                                     coq.local_lemmas[:-1],
-                                     coq.prev_tactics, coq.hypotheses,
-                                     coq.goals),
-                                 k)])
-
-def makeHammerPredictions(g : SearchGraph, coq : serapi_instance.SerapiInstance,
-                    curNode : LabeledNode, k : int) -> List[LabeledNode]:
-    proof_context = coq.proof_context
-    assert proof_context
-    return g.addPredictions(curNode, proof_context,
-                            [pred.prediction[:-1] + ";try hammer." for pred in
-                            # ["try hammer;" + pred.prediction for pred in
-                             predictor.predictKTactics(
-                                 TacticContext(coq.local_lemmas,
-                                               coq.prev_tactics, coq.hypotheses,
-                                               coq.goals),
-                                 k)])
 
 goalBignessLimit = 3000
 def contextIsBig(context : ProofContext):
@@ -992,10 +963,16 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                subgoal_distance_stack : List[int],
                extra_depth : int) -> SubSearchResult:
         nonlocal hasUnexploredNode
-        tactic_context_before = TacticContext(coq.local_lemmas[:-1],
-                                       coq.prev_tactics,
-                                       coq.hypotheses,
-                                       coq.goals)
+        if args.relevant_lemmas == "local":
+            relevant_lemmas = coq.local_lemmas[:-1]
+        elif args.relevant_lemmas == "hammer":
+            relevant_lemmas = coq.get_hammer_premises()
+        else:
+            assert False
+        tactic_context_before = TacticContext(relevant_lemmas,
+                                              coq.prev_tactics,
+                                              coq.hypotheses,
+                                              coq.goals)
         predictions = [prediction.prediction for prediction in
                        predictor.predictKTactics(tactic_context_before, args.max_attempts)]
         proof_context_before = coq.proof_context

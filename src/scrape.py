@@ -52,7 +52,8 @@ def main():
                         action='store_const', const=True, default=False)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                     dest='skip_nochange_tac')
-    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", choices=['local'])
+    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", default='local',
+                        choices=['local', 'hammer'])
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -131,6 +132,8 @@ def process_statement(args : argparse.Namespace,
             prev_goal = coq.goals
             if args.relevant_lemmas == "local":
                 relevant_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
+            elif args.relevant_lemmas == "hammer":
+                relevant_lemmas = coq.get_hammer_premises()
             else:
                 assert False
 
