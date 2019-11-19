@@ -140,7 +140,7 @@ def process_statement(args : argparse.Namespace,
         else:
             subbed_command = re.sub(r"\n", r"\\n", command)
             result_file.write(subbed_command+"\n-----\n")
-    coq.run_stmt(command)
+    coq.run_stmt(command, timeout=120)
 
 if __name__ == "__main__":
     main()
