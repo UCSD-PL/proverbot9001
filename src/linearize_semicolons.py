@@ -436,7 +436,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              skip_nochange_tac : bool) -> List[str]:
     try:
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-            coq.debug = args.debug
+            coq.verbose = args.verbose
             with tqdm(file=sys.stdout,
                       disable=not args.progress,
                       position=(file_idx * 2),
@@ -481,7 +481,6 @@ def main():
     parser = argparse.ArgumentParser(description=
                                      "linearize a set of files")
     parser.add_argument('--prelude', default=".")
-    parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument('--hardfail', default=False, const=True, action='store_const')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
