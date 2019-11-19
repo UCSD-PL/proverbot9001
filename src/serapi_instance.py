@@ -271,6 +271,10 @@ class SerapiInstance(threading.Thread):
         # Unset Printing Notations (to get more learnable goals?)
         self.unset_printing_notations()
 
+        # Stacks for keeping track of the current lemma and module
+        self.module_stack : List[str] = []
+        self.section_stack : List[str] = []
+
         # Set up CoqHammer
         self.use_hammer = use_hammer
         if self.use_hammer:
@@ -303,19 +307,23 @@ class SerapiInstance(threading.Thread):
             binders, body = unwrap(split_by_char_outside_matching(r"\(", r"\)", ":",
                                                                   lemma_match.group(2)))
             if binders.strip():
-                lemma_statement = lemma_name + " : forall " + binders + ", " + body[1:]
+                lemma_statement = self.module_prefix + lemma_name + " : forall " + binders + ", " + body[1:]
             else:
-                lemma_statement = lemma_name + " " + body
+                lemma_statement = self.module_prefix + lemma_name + " " + body
             return [lemma_statement]
 
         proposition_match = re.match(r".*Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
                                      kill_comments(cmd), flags=re.DOTALL)
         if proposition_match:
             case_matches = re.finditer(r"\|\s*(\w+\s*:[^|]*)", proposition_match.group(1))
-            constructor_lemmas = [case_match.group(1) for case_match in
+            constructor_lemmas = [self.module_prefix + case_match.group(1) for case_match in
                                   case_matches]
             return constructor_lemmas
         return []
+
+    @property
+    def module_prefix(self):
+        return ".".join(self.module_stack)
 
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
@@ -417,6 +425,7 @@ class SerapiInstance(threading.Thread):
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
                 self.add_potential_local_lemmas(stmt)
+                self.add_potential_module_stack_cmd(stmt)
                 # Get initial context
                 context_before = self.proof_context
                 # Send the command
@@ -953,6 +962,25 @@ class SerapiInstance(threading.Thread):
             if line == '': break
             self.message_queue.put(line)
             eprint(f"RECEIVED: {line}", guard=self.verbose >= 3)
+
+    def add_potential_module_stack_cmd(self, cmd : str) -> None:
+        stripped_cmd = kill_comments(cmd).strip()
+        module_start_match = re.match(r"Module\s+(?:Type\s+)?(\w*)\b(?!.*:=)", stripped_cmd)
+        section_start_match = re.match(r"Section\s+(\w*)\b(?!.*:=)", stripped_cmd)
+        end_match = re.match(r"End (\w*)\.", stripped_cmd)
+        if module_start_match:
+            self.module_stack.append(module_start_match.group(1))
+        elif section_start_match:
+            self.section_stack.append(section_start_match.group(1))
+        elif end_match:
+            if self.module_stack and self.module_stack[-1] == end_match.group(1):
+                self.module_stack.pop()
+            elif self.section_stack and self.section_stack[-1] == end_match.group(1):
+                self.section_stack.pop()
+            else:
+                eprint(f"Unrecognized End \"{cmd}\"")
+                assert False
+
 
     def kill(self) -> None:
         self._proc.terminate()
