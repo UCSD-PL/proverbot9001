@@ -54,11 +54,11 @@ def main():
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                     dest='skip_nochange_tac')
     parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", default='local',
-                        choices=['local', 'hammer'])
+                        choices=['local', 'hammer', 'searchabout'])
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
-    includes=subprocess.Popen(['make', '-C', args.prelude, 'print-includes'],
+    includes=subprocess.Popen(['make', '-j1', '-C', args.prelude, 'print-includes'],
                               stdout=subprocess.PIPE).communicate()[0]\
                        .strip().decode('utf-8')
     thispath = os.path.dirname(os.path.abspath(__file__))
@@ -138,8 +138,10 @@ def process_statement(args : argparse.Namespace,
                 relevant_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
             elif args.relevant_lemmas == "hammer":
                 relevant_lemmas = coq.get_hammer_premises()
+            elif args.relevant_lemmas == "searchabout":
+                relevant_lemmas = coq.get_lemmas_about_head()
             else:
-                assert False
+                assert False, relevant_lemmas
 
             result_file.write(format_context(prev_tactics, prev_hyps, prev_goal,
                                              relevant_lemmas))

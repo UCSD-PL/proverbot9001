@@ -162,7 +162,9 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         dest="count_failing_predictions")
     parser.add_argument('--no-count-softfail-predictions', action='store_false',
                         dest="count_softfail_predictions")
-    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", choices=['local', 'hammer'])
+    parser.add_argument("--relevant-lemmas", dest="relevant_lemmas",
+                        choices=['local', 'hammer', 'searchabout'],
+                        default='local')
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -959,8 +961,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             relevant_lemmas = coq.local_lemmas[:-1]
         elif args.relevant_lemmas == "hammer":
             relevant_lemmas = coq.get_hammer_premises()
+        elif args.relevant_lemmas == "searchabout":
+            relevant_lemmas = coq.get_lemmas_about_head()
         else:
-            assert False
+            assert False, args.relevant_lemmas
         tactic_context_before = TacticContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               coq.hypotheses,
