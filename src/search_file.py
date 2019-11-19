@@ -283,7 +283,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 + commands_in
             raise
         return original_tactics
-    def add_proof_block(coq : SerapiInstance,
+    def add_proof_block(coq : serapi_instance.SerapiInstance,
                         status : SearchStatus,
                         solution : Optional[List[TacticInteraction]],
                         initial_full_context : ProofContext,
