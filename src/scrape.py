@@ -28,6 +28,7 @@ import functools
 import sys
 import contextlib
 import os
+import shutil
 
 import linearize_semicolons
 import serapi_instance
@@ -85,6 +86,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
     result_file = full_filename + ".scrape"
+    temp_file = full_filename + ".scrape.partial"
     includes = subprocess.Popen(['cat', '{}/_CoqProject'.format(args.prelude)],
                                 stdout=subprocess.PIPE).communicate()[0]\
                          .strip().decode('utf-8')
@@ -105,16 +107,18 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
             coq.verbose = args.verbose
             try:
-                with open(result_file, 'w') as f:
+                with open(temp_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stdout,
                                         disable=(not args.progress),
                                         position=file_idx * 2,
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True, bar_format=mybarfmt):
                         process_statement(args, coq, command, f)
+                shutil.move(temp_file, result_file)
+                return result_file
             except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
-            return result_file
+                return temp_file
     except Exception as e:
         eprint("FAILED: In file {}:".format(filename))
         eprint(e)
