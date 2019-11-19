@@ -369,7 +369,7 @@ class SerapiInstance(threading.Thread):
             return []
         try:
             oldquiet = self.quiet
-            self.quiet = False
+            self.quiet = True
             self.run_stmt(f"predict {k}.", timeout=120)
             self.quiet = oldquiet
             premise_names = self.feedbacks[3][1][3][1][3][1].split(", ")
