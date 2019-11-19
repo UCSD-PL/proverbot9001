@@ -743,7 +743,7 @@ def mkFPASample(embedding : Embedding,
         arg)
 
 def hypFeaturesSize() -> int:
-    return 3
+    return 2
 def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
     def features(hyp : str):
         similarity_ratio = SequenceMatcher(None, goal,
@@ -761,8 +761,7 @@ def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
                 is_equals_on_goal_token = 1.0
 
         return [similarity_ratio,
-                is_equals_on_goal_token,
-                0.0]
+                is_equals_on_goal_token]
 
     return torch.FloatTensor([features(hyp) for hyp in hyps])
 
