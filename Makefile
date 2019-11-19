@@ -24,7 +24,7 @@ REPORT="report"
 TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
-CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
+CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
@@ -34,7 +34,7 @@ setup:
 	./src/setup.sh && $(MAKE) publish-depv
 
 compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
-	cat $(TESTSCRAPES) > $@
+	cat $(CC_TRAIN_SCRAPES) > $@
 
 scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
