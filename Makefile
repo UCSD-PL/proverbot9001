@@ -21,6 +21,7 @@ ifneq ($(MESSAGE),)
 FLAGS+=-m "$(MESSAGE)"
 endif
 REPORT="report"
+WEIGHTSFILE='data/polyarg-weights.dat'
 TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
@@ -103,9 +104,8 @@ publish:
 	$(MAKE) update-index
 
 publish-weights:
-	tar czf data/pytorch-weights.tar.gz data/*.dat
-	rsync -avzP data/pytorch-weights.tar.gz goto:proverbot9001-site/downloads/weights-`date -I`.tar.gz
-	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.tar.gz proverbot9001-site/downloads/weights-latest.tar.gz
+	rsync -avzP $(WEIGHTSFILE) goto:proverbot9001-site/downloads/weights-`date -I`.dat
+	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.dat proverbot9001-site/downloads/weights-latest.dat
 
 download-weights:
 	curl -o data/pytorch-weights.tar.gz proverbot9001.ucsd.edu/downloads/weights-latest.tar.gz
