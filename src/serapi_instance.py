@@ -323,7 +323,7 @@ class SerapiInstance(threading.Thread):
 
     @property
     def module_prefix(self):
-        return ".".join(self.module_stack)
+        return "".join([module + "." for module in self.module_stack])
 
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.

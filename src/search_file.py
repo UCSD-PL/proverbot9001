@@ -536,7 +536,7 @@ def write_lemma_button(lemma_statement : str, module : Optional[str],
     global obligation_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
-    module_prefix = f"{module}Zd" if module else ""
+    module_prefix = escape_lemma_name(module)
     if lemma_name == "Obligation":
         obligation_number += 1
         fullname = module_prefix + lemma_name + str(obligation_number)
@@ -1060,7 +1060,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
-    module_prefix = f"{module_name}Zd" if module_name else ""
+    module_prefix = escape_lemma_name(module_name)
     if lemma_name == "Obligation":
         obligation_number += 1
         g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}{obligation_number}.svg")
