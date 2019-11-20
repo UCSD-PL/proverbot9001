@@ -97,7 +97,7 @@
           .on("mousemove", function(d) {
               var xPosition = d3.mouse(this)[0] + x(d[0].x0) - 15;
               var yPosition = d3.mouse(this)[1] +
-                  y(d[0].length + d[1].length + d[2].length) - 60;
+                  y(d[0].length + d[1].length + d[2].length) - 30;
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
               tooltip.select("text").text(d[0].length);
           });
@@ -118,7 +118,7 @@
           .on("mousemove", function(d) {
               var xPosition = d3.mouse(this)[0] + x(d[1].x0) - 15;
               var yPosition = d3.mouse(this)[1] +
-                  y(d[1].length + d[2].length) - 60;
+                  y(d[1].length + d[2].length) - 30;
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
               tooltip.select("text").text(d[1].length);
           });
@@ -139,7 +139,7 @@
           .on("mousemove", function(d) {
               var xPosition = d3.mouse(this)[0] + x(d[1].x0) - 15;
               var yPosition = d3.mouse(this)[1] +
-                  y(d[2].length) - 60;
+                  y(d[2].length) - 30;
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
               tooltip.select("text").text(d[2].length);
           });
