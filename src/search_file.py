@@ -126,8 +126,6 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         help="output data folder name",
                         default="search-report",
                         type=Path2)
-    parser.add_argument("--debug", "-vv", help="debug output",
-                        action='store_true')
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
@@ -356,7 +354,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             else:
                                 raise SourceChangedException
 
-                    if len(commands_run) > 0 and (args.verbose or args.debug):
+                    if len(commands_run) > 0 and args.verbose:
                         eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
                     while len(commands_in) > 0:
                         lemma_statement = run_to_next_proof(coq, pbar)
@@ -432,7 +430,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 commands_caught_up = len(commands_run)
                 if args.hardfail:
                     raise e
-                if args.verbose or args.debug:
+                if args.verbose:
                     eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
             except Exception as e:
                 eprint(f"FAILED: in file {str(args.filename)}, {repr(e)}")
@@ -949,7 +947,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
     def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
         if msg:
             eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.debug)
+                   f"because {msg}.", guard=args.verbose >= 2)
         for _ in range(num_stmts):
             coq.cancel_last()
     hasUnexploredNode = False

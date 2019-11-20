@@ -141,7 +141,7 @@ def process_statement(args : argparse.Namespace,
             elif args.relevant_lemmas == "searchabout":
                 relevant_lemmas = coq.get_lemmas_about_head()
             else:
-                assert False, relevant_lemmas
+                assert False, args.relevant_lemmas
 
             result_file.write(format_context(prev_tactics, prev_hyps, prev_goal,
                                              relevant_lemmas))
