@@ -383,27 +383,52 @@ class SerapiInstance(threading.Thread):
             return []
 
     def get_hammer_premises(self, k:int=10) -> List[str]:
+        old_timeout = self.timeout
+        self.timeout = 600
         names = self.get_hammer_premise_names(k)
         def get_full_line(name : str) -> str:
-            self.send_acked(f"(Query () (Vernac \"Check {name}.\"))")
-            nextmsg = self.get_message()
-            while match(normalizeMessage(nextmsg),
-                        ["Feedback", [["doc_id", int], ["span_id", int],
-                                      ["route", int],
-                                      ["contents", "Processed"]]],
-                        lambda *args: True,
-                        _,
-                        lambda *args: False):
-                nextmsg = self.get_message()
-            pp_term = nextmsg[1][3][1][3]
-            nextmsg = self.get_message()
-            match(normalizeMessage(nextmsg),
-                  ["Answer", int, ["ObjList", []]],
-                  lambda *args: None,
-                  _, lambda *args: raise_(UnrecognizedError(nextmsg)))
-            self.get_completed()
-            return re.sub("\s+", " ", self.ppToTermStr(pp_term))
-        full_lines = [get_full_line(name) for name in names]
+            try:
+                self.send_acked(f"(Query () (Vernac \"Check {name}.\"))")
+                try:
+                    nextmsg = self.get_message()
+                except TimeoutError:
+                    eprint("Timed out waiting for initial message")
+                while match(normalizeMessage(nextmsg),
+                            ["Feedback", [["doc_id", int], ["span_id", int],
+                                          ["route", int],
+                                          ["contents", "Processed"]]],
+                            lambda *args: True,
+                            _,
+                            lambda *args: False):
+                    try:
+                        nextmsg = self.get_message()
+                    except TimeoutError:
+                        eprint("Timed out waiting for message")
+                pp_term = nextmsg[1][3][1][3]
+                try:
+                    nextmsg = self.get_message()
+                except TimeoutError:
+                    eprint("Timed out waiting for message")
+                match(normalizeMessage(nextmsg),
+                      ["Answer", int, ["ObjList", []]],
+                      lambda *args: None,
+                      _, lambda *args: raise_(UnrecognizedError(nextmsg)))
+                try:
+                    self.get_completed()
+                except TimeoutError:
+                    eprint("Timed out waiting for completed message")
+                try:
+                    result = re.sub("\s+", " ", self.ppToTermStr(pp_term))
+                except TimeoutError:
+                    eprint("Timed out when converting ppterm")
+                return result
+            except TimeoutError:
+                eprint("Timed out when getting full line!")
+                return None
+        full_lines = [line for line in
+                      [get_full_line(name) for name in names]
+                      if line]
+        self.timeout = old_timeout
         return full_lines
 
     # Run a command. This is the main api function for this
