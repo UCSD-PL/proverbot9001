@@ -992,8 +992,8 @@ class SerapiInstance(threading.Thread):
 
     def add_potential_module_stack_cmd(self, cmd : str) -> None:
         stripped_cmd = kill_comments(cmd).strip()
-        module_start_match = re.match(r"Module\s+(?:Import\s+)?(?:Type\s+)?(\w*)\b(?!.*:=)", stripped_cmd)
-        section_start_match = re.match(r"Section\s+(\w*)\b(?!.*:=)", stripped_cmd)
+        module_start_match = re.match(r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)(?!(?!.*with).*:=)", stripped_cmd)
+        section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)", stripped_cmd)
         end_match = re.match(r"End (\w*)\.", stripped_cmd)
         if module_start_match:
             self.module_stack.append(module_start_match.group(1))
