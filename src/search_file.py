@@ -38,8 +38,8 @@ from serapi_instance import ProofContext, Obligation
 import linearize_semicolons
 # import syntax
 from format import TacticContext
-from util import (unwrap, eprint, escape_filename, mybarfmt,
-                  split_by_char_outside_matching, nostderr)
+from util import (unwrap, eprint, escape_filename, escape_lemma_name,
+                  mybarfmt, split_by_char_outside_matching, nostderr)
 import itertools
 from dataclasses import dataclass
 
