@@ -33,6 +33,7 @@ import shutil
 import linearize_semicolons
 import serapi_instance
 
+from pathlib_revised import Path2
 from sexpdata import *
 from traceback import *
 from util import *
@@ -55,6 +56,7 @@ def main():
                     dest='skip_nochange_tac')
     parser.add_argument("--relevant-lemmas", dest="relevant_lemmas", default='local',
                         choices=['local', 'hammer', 'searchabout'])
+    parser.add_argument("--no-linearize", dest="linearize", action='store_false')
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -98,13 +100,17 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                     eprint(f"Found existing scrape at {result_file}! Using it")
                 return result_file
     try:
-        commands = serapi_instance.try_load_lin(args, file_idx, full_filename)
-        if not commands:
-            commands = linearize_semicolons.preprocess_file_commands(
-                args, file_idx,
-                serapi_instance.load_commands(full_filename),
-                coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
-            serapi_instance.save_lin(commands, full_filename)
+        if args.linearize:
+            commands = serapi_instance.try_load_lin(args, file_idx, full_filename)
+            if not commands:
+                commands = linearize_semicolons.preprocess_file_commands(
+                    args, file_idx,
+                    serapi_instance.load_commands(full_filename),
+                    coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
+                serapi_instance.save_lin(commands, full_filename)
+        else:
+            with Path2(full_filename).open(mode='r') as f:
+                commands = serapi_instance.read_commands_preserve(args, file_idx, f.read())
         with serapi_instance.SerapiContext(coqargs, includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
             coq.verbose = args.verbose
             try:
