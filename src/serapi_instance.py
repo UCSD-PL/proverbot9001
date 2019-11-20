@@ -666,16 +666,37 @@ class SerapiInstance(threading.Thread):
         self.get_completed()
 
     def search_about(self, symbol : str) -> List[str]:
-        try:
-            self.send_acked("(Add () \"SearchAbout {}.\")\n".format(symbol))
-            self.update_state()
-            self.get_completed()
-            self.send_acked("(Exec {}))\n".format(self.cur_state))
-            feedbacks = self.get_feedbacks()
-            return [self.ppSexpContent(lemma) for lemma in feedbacks[4:-1]]
-        except (CoqExn, BadResponse, AckError, CompletedError) as e:
-            self.handle_exception(e, "SearchAbout {}.".format(symbol))
-        return []
+        self.send_acked(f"(Query () (Vernac \"Search {symbol}.\"))")
+        lemma_msgs : List[str] = []
+        nextmsg = self.get_message()
+        while match(normalizeMessage(nextmsg),
+                    ["Feedback", [["doc_id", int], ["span_id", int],
+                                  ["route", int],
+                                  ["contents", ["ProcessingIn", str]]]],
+                    lambda *args: True,
+                    ["Feedback", [["doc_id", int], ["span_id", int],
+                                  ["route", int],
+                                  ["contents", "Processed"]]],
+                    lambda *args: True,
+                    _,
+                    lambda *args: False):
+            nextmsg = self.get_message()
+        while match(normalizeMessage(nextmsg),
+                    ["Feedback", [["doc_id", int], ["span_id", int],
+                                  ["route", int],
+                                  ["contents", ["Message", "Notice", [], TAIL]]]],
+                    lambda *args: True,
+                    _, lambda *args: False):
+            oldmsg = nextmsg
+            try:
+                nextmsg = self.get_message()
+                lemma_msgs.append(oldmsg)
+            except RecursionError:
+                pass
+        self.get_completed()
+        str_lemmas = [re.sub("\s+", " ", self.ppToTermStr(lemma_msg[1][3][1][3]))
+                      for lemma_msg in lemma_msgs[:10]]
+        return str_lemmas
 
     # Not adding any types here because it would require a lot of
     # casting. Will reassess when recursive types are added to mypy
@@ -951,14 +972,16 @@ class SerapiInstance(threading.Thread):
                                       if substr.strip()],
                                      [],[],[])
 
-    def get_lemmas_about_head(self) -> str:
+    def get_lemmas_about_head(self) -> List[str]:
+        if self.goals.strip() == "":
+            return []
         goal_head = self.goals.split()[0]
         if (goal_head == "forall"):
-            return ""
-        try:
-            return "\n".join(self.search_about(goal_head))
-        except:
-            return ""
+            return []
+        answer = self.search_about(goal_head)
+        assert self.message_queue.empty()
+        return answer
+
 
     def run(self) -> None:
         while(True):
