@@ -53,6 +53,7 @@ def filter_or(*args : ContextFilter) -> ContextFilter:
 def no_compound_or_bullets(in_data : TacticContext, tactic : str,
                            next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
+    tactic = serapi_instance.kill_comments(tactic)
     return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
             not re.match(".*;.*", tactic, flags=re.DOTALL))
 def not_proof_keyword(in_data : TacticContext, tactic : str,
