@@ -33,7 +33,7 @@
 
 <script>
 
-  var margin = {top: 20, right: 20, bottom: 70, left: 40},
+  var margin = {top: 20, right: 20, bottom: 70, left: 50},
       width = 600 - margin.left - margin.right,
       height = 300 - margin.top - margin.bottom;
 
@@ -157,9 +157,24 @@
           .selectAll("text")
           .attr("transform", "translate(0, 5) rotate(50)");
 
+      svg.append("text")
+          .attr("transform",
+                "translate(" + (width/2) + " ," +
+                (height + margin.top + 20) + ")")
+          .style("text-anchor", "middle")
+          .text("Length of original proof");
+
       // add the y Axis
       svg.append("g")
           .call(d3.axisLeft(y));
+      svg.append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 0 - margin.left)
+          .attr("x",0 - (height / 2))
+          .attr("dy", "1em")
+          .style("text-anchor", "middle")
+          .text("# of proofs");
+
 
       var tooltip = svg.append("g")
           .attr("class", "tooltip")
