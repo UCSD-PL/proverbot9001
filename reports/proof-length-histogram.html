@@ -15,13 +15,13 @@
 	shape-rendering: crispEdges;
     }
     .bar-failed {
-        fill: pink;
+        fill: #fc8d59;
     }
     .bar-success{
-        fill: lightgreen;
+        fill: #99d594;
     }
     .bar-incomplete {
-        fill: peachpuff;
+        fill: #ffffbf;
     }
 
   </style>
@@ -75,7 +75,7 @@
       var fail_bins = histogram(fail_data)
       var inc_bins = histogram(inc_data)
       var bin_tuples = succ_bins.map(function(e, i) {
-          return [e, inc_bins[i], fail_bins[i]]
+          return [fail_bins[i], inc_bins[i], e]
       });
 
       y.domain([0, d3.max(bins, function(d) { return d.length; })]);
@@ -83,7 +83,7 @@
       svg.selectAll(null)
           .data(bin_tuples)
           .enter().append("rect")
-          .attr("class", "bar-success")
+          .attr("class", "bar-failed")
           .attr("x", 1)
           .attr("transform", function(d) {
               return "translate(" + x(d[0].x0) + "," +
@@ -125,7 +125,7 @@
       svg.selectAll(null)
            .data(bin_tuples)
            .enter().append("rect")
-           .attr("class", "bar-failed")
+           .attr("class", "bar-success")
            .attr("x", 1)
            .attr("transform", function(d) {
                return "translate(" + x(d[0].x0) + "," +
