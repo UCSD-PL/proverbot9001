@@ -289,6 +289,10 @@ class SerapiInstance(threading.Thread):
         lemmas = self.lemmas_defined_by_stmt(cmd)
         for lemma in lemmas:
             self.local_lemmas.append(lemma)
+        abort_match = re.match("Abort", cmd)
+        if abort_match:
+            assert len(lemmas) == 0
+            self.local_lemmas.pop()
 
         for l_idx in range(len(self.local_lemmas)):
             for ol_idx in range(len(self.local_lemmas)):
@@ -424,8 +428,8 @@ class SerapiInstance(threading.Thread):
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
-                self.add_potential_local_lemmas(stmt)
-                self.add_potential_module_stack_cmd(stmt)
+                self.add_potential_local_lemmas(stm)
+                self.add_potential_module_stack_cmd(stm)
                 # Get initial context
                 context_before = self.proof_context
                 # Send the command
@@ -965,7 +969,7 @@ class SerapiInstance(threading.Thread):
 
     def add_potential_module_stack_cmd(self, cmd : str) -> None:
         stripped_cmd = kill_comments(cmd).strip()
-        module_start_match = re.match(r"Module\s+(?:Type\s+)?(\w*)\b(?!.*:=)", stripped_cmd)
+        module_start_match = re.match(r"Module\s+(?:Import\s+)?(?:Type\s+)?(\w*)\b(?!.*:=)", stripped_cmd)
         section_start_match = re.match(r"Section\s+(\w*)\b(?!.*:=)", stripped_cmd)
         end_match = re.match(r"End (\w*)\.", stripped_cmd)
         if module_start_match:
