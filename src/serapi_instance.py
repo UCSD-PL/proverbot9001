@@ -289,6 +289,16 @@ class SerapiInstance(threading.Thread):
         lemmas = self.lemmas_defined_by_stmt(cmd)
         for lemma in lemmas:
             self.local_lemmas.append(lemma)
+        reset_match = re.match("Reset\s+(.*)\.", cmd)
+        if reset_match:
+            assert len(lemmas) == 0
+            reseted_lemma_name = self.module_prefix + reset_match.group(1)
+            for lemma in list(self.local_lemmas):
+                lemma_match = re.match("\s*([\w'\.]+)\s*:", lemma)
+                assert lemma_match, f"{lemma} doesnt match!"
+                lemma_name = lemma_match.group(1)
+                if lemma_name == reseted_lemma_name:
+                    self.local_lemmas.remove(lemma)
         abort_match = re.match("Abort", cmd)
         if abort_match:
             assert len(lemmas) == 0
