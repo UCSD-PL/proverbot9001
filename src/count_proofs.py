@@ -27,6 +27,7 @@ from context_filter import get_context_filter
 from format import *
 from util import *
 from data import read_all_text_data
+from pathlib_revised import Path2
 
 from typing import Dict, Tuple, Any, cast
 
@@ -77,7 +78,7 @@ def count_proofs(args : argparse.Namespace, filename : str) \
     -> Tuple[int, int]:
     eprint(f"Counting {filename}", guard=args.debug)
     scrapefile= args.prelude + "/" + filename + ".scrape"
-    interactions = list(read_all_text_data(args.prelude + "/" + filename + ".scrape"))
+    interactions = list(read_all_text_data(Path2(args.prelude + "/" + filename + ".scrape")))
     filter_func = get_context_filter(args.context_filter)
 
     count = 0
@@ -88,23 +89,19 @@ def count_proofs(args : argparse.Namespace, filename : str) \
         cast(List[Optional[ScrapedCommand]], interactions[1:])  + [None]
     for inter, next_inter in zip(interactions, extended_interactions):
         if isinstance(inter, ScrapedTactic):
-            goal_before = inter.goal
-            hyps_before = inter.hypotheses
+            context_before = strip_scraped_output(inter)
             command = inter.tactic
         else:
-            goal_before = ""
-            hyps_before = []
+            context_before = TacticContext([], [], [], "")
             command = inter
 
         if next_inter and isinstance(next_inter, ScrapedTactic):
-            goal_after = next_inter.goal
-            hyps_after = next_inter.hypotheses
+            context_after = strip_scraped_output(next_inter)
         else:
-            goal_after = ""
-            hyps_after = []
+            context_after = TacticContext([], [], [], "")
 
-        entering_proof = bool((not goal_before) and goal_after)
-        exiting_proof = bool(goal_before and not goal_after)
+        entering_proof = bool((not context_before.goal) and context_after.goal)
+        exiting_proof = bool(context_before.goal and not context_after.goal)
 
         if entering_proof:
             cur_lemma_stmt = next_inter.prev_tactics[0]
@@ -112,12 +109,8 @@ def count_proofs(args : argparse.Namespace, filename : str) \
             continue
 
         if cur_lemma_stmt:
-            if filter_func({"goal":format_goal(goal_before),
-                            "hyps":hyps_before},
-                           command,
-                           {"goal":format_goal(goal_after),
-                            "hyps":goal_after},
-                           args):
+            if filter_func(context_before, command,
+                           context_after, args):
                 if args.some and not cur_proof_counts:
                     cur_proof_counts = True
             else:
