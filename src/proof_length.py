@@ -27,6 +27,7 @@ import serapi_instance
 from format import *
 from util import *
 from data import read_all_text_data
+from pathlib_revised import Path2
 
 from typing import Dict, Tuple, Any, cast, Pattern, Match
 
@@ -69,7 +70,7 @@ def norm(statement : str):
 def count_lengths(args : argparse.Namespace, filename : str):
     print(f"Counting {filename}")
     full_filename = args.prelude + "/" + filename
-    scraped_commands = list(read_all_text_data(full_filename + ".scrape"))
+    scraped_commands = list(read_all_text_data(Path2(full_filename + ".scrape")))
     scraped_iter = iter(scraped_commands)
     if args.post_linear:
         original_commands = serapi_instance.load_commands_preserve(args, 0,
