@@ -250,7 +250,8 @@ class FeaturesPolyargPredictor(
                                                 .view(stem_width * num_hyps,
                                                       self.training_args.max_length)
 
-                hypfeatures_batch = encodeHypsFeatureVecs(context.goal,
+                hypfeatures_batch = encodeHypsFeatureVecs(self.training_args,
+                                                          context.goal,
                                                           all_hyps)
                 assert hypfeatures_batch.size() == torch.Size([num_hyps, hypFeaturesSize()])
                 hypfeatures_batch_expanded = \
@@ -326,7 +327,8 @@ class FeaturesPolyargPredictor(
         if len(all_hyps) > 0:
             hyps_batch = LongTensor([[self.encodeStrTerm(hyp)
                                       for hyp in all_hyps]])
-            hypfeatures_batch = encodeHypsFeatureVecs(context.goal,
+            hypfeatures_batch = encodeHypsFeatureVecs(self.training_args,
+                                                      context.goal,
                                                       all_hyps)
             hyp_arg_values = self.runHypModel(stem_idxs, encoded_goals, hyps_batch,
                                               hypfeatures_batch)\
@@ -349,13 +351,22 @@ class FeaturesPolyargPredictor(
         -> Tuple[torch.LongTensor, torch.FloatTensor]:
         assert self._word_feature_functions
         assert self._vec_feature_functions
-        word_features = LongTensor([[feature(c) for feature in
-                                     self._word_feature_functions]
-                                    for c in contexts])
-        vec_features = FloatTensor([[feature_val for feature in
-                                    self._vec_feature_functions
-                                    for feature_val in feature(c)]
-                                    for c in contexts])
+        if self.training_args.features:
+            word_features = LongTensor([[feature(c) for feature in
+                                         self._word_feature_functions]
+                                        for c in contexts])
+            vec_features = FloatTensor([[feature_val for feature in
+                                         self._vec_feature_functions
+                                         for feature_val in feature(c)]
+                                        for c in contexts])
+        else:
+            word_features = LongTensor([[0 for feature in
+                                         self._word_feature_functions]
+                                        for c in contexts])
+            vec_features = FloatTensor ([[0 for feature in
+                                          self._vec_feature_functions
+                                          for feature_val in feature(c)]
+                                         for c in contexts])
         return word_features, vec_features
     def encodeStrTerm(self, term : str) -> List[int]:
         assert self._tokenizer
@@ -436,6 +447,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 10))
         parser.add_argument("--no-lemma-args", dest="lemma_args", action='store_false')
+        parser.add_argument("--no-features", dest="features", action="store_false")
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
@@ -670,9 +682,14 @@ def mkFPASample(embedding : Embedding,
     inter, tokenized_goal = zipped
     relevant_lemmas, prev_tactics, hypotheses, goal_str, tactic = inter
     context = strip_scraped_output(inter)
-    word_features = [feature(context) for feature in word_feature_functions]
-    vec_features = [feature_val for feature in vec_feature_functions
-                    for feature_val in feature(context)]
+    if training_args.features:
+        word_features = [feature(context) for feature in word_feature_functions]
+        vec_features = [feature_val for feature in vec_feature_functions
+                        for feature_val in feature(context)]
+    else:
+        word_features = [0 for feature in word_feature_functions]
+        vec_features = [0 for feature in vec_feature_functions
+                        for feature_val in feature(context)]
     tactic_stem, tactic_argstr = serapi_instance.split_tactic(tactic)
     stem_idx = embedding.encode_token(tactic_stem)
     argstr_tokens = tactic_argstr.strip(".").split()
@@ -731,7 +748,7 @@ def mkFPASample(embedding : Embedding,
         mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
         training_args.max_length)
                            for hyp in selected_hyps]
-    hypfeatures = encodeHypsFeatureVecs(goal_str, selected_hyps)
+    hypfeatures = encodeHypsFeatureVecs(training_args, goal_str, selected_hyps)
     return FeaturesPolyArgSample(
         tokenized_hyp_types,
         hypfeatures,
@@ -744,7 +761,8 @@ def mkFPASample(embedding : Embedding,
 
 def hypFeaturesSize() -> int:
     return 2
-def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
+def encodeHypsFeatureVecs(args : argparse.Namespace,
+                          goal : str, hyps : List[str]) -> torch.FloatTensor:
     def features(hyp : str):
         similarity_ratio = SequenceMatcher(None, goal,
                                            serapi_instance.get_hyp_type(hyp)).ratio()
@@ -760,8 +778,11 @@ def encodeHypsFeatureVecs(goal : str, hyps : List[str]) -> torch.FloatTensor:
             elif right_side in goal:
                 is_equals_on_goal_token = 1.0
 
-        return [similarity_ratio,
-                is_equals_on_goal_token]
+        if args.features:
+            return [similarity_ratio,
+                    is_equals_on_goal_token]
+        else:
+            return [0.0, 0.0]
 
     return torch.FloatTensor([features(hyp) for hyp in hyps])
 
