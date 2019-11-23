@@ -50,8 +50,6 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--progress', action='store_true')
     parser.add_argument('--outfile', '-o', default="proofs.csv", type=str)
-    parser.add_argument("--max-length", dest="max_length", type=int,
-                        default=120)
     g = parser.add_mutually_exclusive_group()
     g.add_argument("--post-linearized", dest="post_linear", action='store_true')
     g.add_argument("--add-semis", dest="add_semis", action='store_true')
