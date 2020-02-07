@@ -1157,7 +1157,10 @@ def next_proof(cmds : Iterator[str]) -> Iterable[str]:
     assert possibly_starting_proof(next_cmd), next_cmd
     while not ending_proof(next_cmd):
         yield next_cmd
-        next_cmd = next(cmds)
+        try:
+            next_cmd = next(cmds)
+        except StopIteration:
+            return
     yield next_cmd
 
 def preprocess_command(cmd : str) -> List[str]:
