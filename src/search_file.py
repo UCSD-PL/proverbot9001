@@ -150,6 +150,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         type=int, default=2)
     parser.add_argument("--max-proof-time", dest="max_proof_time",
                         type=float, default=300)
+    parser.add_argument("--linearize", action='store_true')
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
     parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
@@ -225,8 +226,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                        f"didn't match current arguments! {e} "
                        f"Overwriting (interrupt to cancel).")
 
-    commands_in = linearize_semicolons.get_linearized(args, coqargs, includes,
-                                                      bar_idx, str(args.filename))
+    if args.linearize:
+        commands_in = linearize_semicolons.get_linearized(args, coqargs, includes,
+                                                          bar_idx, str(args.filename))
+    else:
+        commands_in = serapi_instance.load_commands_preserve(args, bar_idx,
+                                                             args.prelude / args.filename)
     num_commands_total = len(commands_in)
     lemma_statement = ""
 
