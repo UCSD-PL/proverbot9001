@@ -204,7 +204,9 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 assert isinstance(pending_commands_stack[-1], list)
                 pending_cmd_lst = pending_commands_stack[-1]
                 old_selected_cmd = pending_cmd_lst[goal_num - 2]
-                cmd_before_period = unwrap(re.match("(.*)\.$", old_selected_cmd)).group(1)
+                match = re.match("(.*)\.$", old_selected_cmd, re.DOTALL)
+                assert match, f"\"{old_selected_cmd}\" doesn't match!"
+                cmd_before_period = unwrap(match).group(1)
                 new_selected_cmd = f"{cmd_before_period} ; {rest}."
                 pending_cmd_lst[goal_num - 2] = new_selected_cmd
             continue
@@ -428,7 +430,7 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
             pending_commands = lemma_stack.pop()
             pbar.update(len(pending_commands))
             yield from pending_commands
-    assert(len(lemma_stack) == 0)
+    assert len(lemma_stack) == 0, f"Stack still contains {lemma_stack}"
 
 def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              commands : List[str], coqargs : List[str], includes : str,
