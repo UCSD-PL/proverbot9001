@@ -204,11 +204,9 @@ def read_all_text_data_worker__(lines : List[str]) -> MixedDataset:
                 t = read_tuple(f)
     return list(worker_generator())
 def read_all_text_data(data_path : Path2) -> MixedDataset:
-    with multiprocessing.Pool(None) as pool:
-        line_chunks = file_chunks(data_path, 32768)
-        data_chunks = pool.imap(read_all_text_data_worker__, line_chunks)
-        result = itertools.chain.from_iterable(data_chunks)
-        yield from result
+    line_chunks = file_chunks(data_path, 32768)
+    data_chunks = lazy_multiprocessing_imap(read_all_text_data_worker__, line_chunks)
+    yield from itertools.chain.from_iterable(data_chunks)
 def read_text_data_worker__(lines : List[str]) -> RawDataset:
     def worker_generator() -> Iterable[ScrapedTactic]:
         with io.StringIO("".join(lines)) as f:
@@ -221,7 +219,7 @@ def read_text_data_worker__(lines : List[str]) -> RawDataset:
 T = TypeVar('T')
 O = TypeVar('O')
 
-def lazy_multiprocessing_imap(in_data : Iterable[T], worker : Callable[[T], O],
+def lazy_multiprocessing_imap(worker: Callable[[T], O], in_data : Iterable[T],
                               num_threads : int=os.cpu_count(),
                               chunk_size : Optional[int]=None) -> Iterable[O]:
     if chunk_size == None:
@@ -233,7 +231,7 @@ def lazy_multiprocessing_imap(in_data : Iterable[T], worker : Callable[[T], O],
 def read_text_data(data_path: Path2) \
                   -> Iterable[ScrapedTactic]:
     line_chunks = file_chunks(data_path, 32768)
-    data_chunks = lazy_multiprocessing_imap(line_chunks, read_text_data_worker__)
+    data_chunks = lazy_multiprocessing_imap(read_text_data_worker__, line_chunks)
     yield from itertools.chain.from_iterable(data_chunks)
 
 def preprocess_data(arg_values: Namespace, dataset_iter:
