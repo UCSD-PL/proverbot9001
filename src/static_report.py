@@ -59,7 +59,11 @@ def read_text_data2_worker__(lines : List[str]) -> MixedDataset:
 def read_text_data_singlethreaded(data_path : Path2,
                                   num_threads:Optional[int]=None) -> MixedDataset:
     line_chunks = file_chunks(data_path, 32768)
-    yield from itertools.chain.from_iterable((read_text_data2_worker__(chunk) for chunk in line_chunks))
+    try:
+        yield from itertools.chain.from_iterable((read_text_data2_worker__(chunk) for chunk in line_chunks))
+    except:
+        print(f"Couldn't parse data in {str(data_path)}")
+        raise
 
 def to_list_string(l : List[Any]) -> str:
     return "% ".join([str(item) for item in l])
