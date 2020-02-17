@@ -121,6 +121,9 @@ clean:
 clean-scrape:
 	fd '.*\.scrape' CompCert | xargs rm -f
 
+clean-test-scrape:
+	rm -r $(TESTSCRAPES)
+
 clean-progress:
 	fd '.*\.v\.lin' CompCert | xargs rm -f
 	fd '.*\.scrape' CompCert | xargs rm -f
