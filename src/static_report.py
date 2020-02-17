@@ -28,8 +28,7 @@ import serapi_instance
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction
 from yattag import Doc
-from format import (format_goal, format_hypothesis, format_tactic,
-                    read_tuple, ScrapedTactic, ScrapedCommand, TacticContext,
+from format import (read_tuple, ScrapedTactic, ScrapedCommand, TacticContext,
                     strip_scraped_output)
 from syntax import syntax_highlight, strip_comments
 from util import multipartition, chunks, stringified_percent, escape_filename
@@ -482,7 +481,7 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                                     predictions, grades, certainties = [], [], []
                                 with tag('span',
                                          ('data-hyps',"\n".join(hyps)),
-                                         ('data-goal',format_goal(goal)),
+                                         ('data-goal',goal),
                                          ('data-num-total', str(stats.num_tactics)),
                                          ('data-predictions',
                                           to_list_string(cast(List[str], predictions))),

@@ -29,6 +29,7 @@ import sys
 import contextlib
 import os
 import shutil
+import json
 
 import linearize_semicolons
 import serapi_instance
@@ -37,7 +38,6 @@ from pathlib_revised import Path2
 from sexpdata import *
 from traceback import *
 from util import *
-from format import format_context, format_tactic
 
 from typing import Dict, Any, TextIO, List
 
@@ -150,12 +150,15 @@ def process_statement(args : argparse.Namespace,
             else:
                 assert False, args.relevant_lemmas
 
-            result_file.write(format_context(prev_tactics, prev_hyps, prev_goal,
-                                             relevant_lemmas))
-            result_file.write(format_tactic(command))
+            result_file.write(json.dumps({"prev_tactics": prev_tactics,
+                                          "prev_hyps": prev_hyps,
+                                          "prev_goal": prev_goal,
+                                          "relevant_lemmas": relevant_lemmas,
+                                          "tactic": command}))
+            result_file.write("\n")
         else:
-            subbed_command = re.sub(r"\n", r"\\n", command)
-            result_file.write(subbed_command+"\n-----\n")
+            result_file.write(json.dumps(command))
+        result_file.write("\n")
     coq.run_stmt(command, timeout=120)
 
 if __name__ == "__main__":

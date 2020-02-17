@@ -34,7 +34,6 @@ from pathlib_revised import Path2
 from typing import List, Any, Tuple, Dict, Union, cast, NewType, Callable
 
 from shutil import *
-from format import format_goal, format_hypothesis
 from yattag import Doc
 
 Tag = Callable[..., Doc.Tag]

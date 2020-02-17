@@ -21,6 +21,7 @@
 ##########################################################################
 
 import re
+import json
 from typing import List, TextIO, Optional, NamedTuple, Union
 
 
@@ -48,73 +49,21 @@ def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
     assert output != None
     return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
 
-def minimize_whitespace(data : str) -> str:
-    return re.sub("\s+", " ", data).strip()
-
-def format_context(prev_tactics : List[str], prev_hyps : List[str], prev_goal : str,
-                   rel_lemmas : List[str]) -> str:
-    return (format_tactics(prev_tactics) + "\n*****\n" +
-            format_hypothesis(prev_hyps) + "\n*****\n" +
-            format_hypothesis(rel_lemmas) + "\n*****\n" +
-            format_goal(prev_goal) + "\n+++++\n")
-
-def format_tactics(tactics : List[str]) -> str:
-    return "\n".join([minimize_whitespace(tactic) for tactic in tactics]) + "\n"
-
-def format_hypothesis(prev_hyps : List[str]) -> str:
-    return "\n".join([re.sub(r"\n", r"\\n", re.sub("[ \t]+", " ", prev_hyp.strip())).strip() for prev_hyp in prev_hyps])
-
-def format_goal(prev_goal : str) -> str:
-    return minimize_whitespace(prev_goal)
-
-def format_tactic(tactic : str):
-    return minimize_whitespace(tactic) + "\n-----\n"
-
 def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
-    lines : List[str] = []
-    next_line = f_handle.readline()
-    while next_line != "-----\n" and next_line != "":
-        lines.append(next_line)
-        next_line = f_handle.readline()
-    if len(lines) == 0:
-        return None
-    elif len(lines) == 1:
-        return "\n" + re.sub(r"\\n", r"\n", lines[0])
+    line = f_handle.readline()
+    try:
+        obj = json.loads(line)
+    except:
+        print(f"line: {line}")
+        raise
+    if isinstance(obj, str):
+        return obj
     else:
-        prev_tactics : List[str] = []
-        lines_it = iter(lines)
-        for line in lines_it:
-            if line == "*****\n":
-                break
-            elif line.strip() == "":
-                continue
-            else:
-                prev_tactics.append(line.strip())
-        hyps : List[str] = []
-        for line in lines_it:
-            if line == "*****\n":
-                break
-            elif line.strip() == "":
-                continue
-            else:
-                hyps.append(line.strip())
-        lemmas : List[str] = []
-        for line in lines_it:
-            if line == "*****\n":
-                break
-            elif line.strip() == "":
-                continue
-            else:
-                lemmas.append(line.strip())
-        try:
-            goal = next(lines_it)
-            assert next(lines_it) == "+++++\n", lines
-            tactic = next(lines_it)
-            return ScrapedTactic(relevant_lemmas=lemmas,
-                                 prev_tactics=prev_tactics, hypotheses=hyps,
-                                 goal=goal, tactic=tactic)
-        except StopIteration:
-            return None
+        return ScrapedTactic(obj["relevant_lemmas"],
+                             obj["prev_tactics"],
+                             obj["prev_hyps"],
+                             obj["prev_goal"],
+                             obj["tactic"])
 
 def read_tactic_tuple(f_handle : TextIO) -> Optional[ScrapedTactic]:
     next_tuple = read_tuple(f_handle)

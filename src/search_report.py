@@ -38,7 +38,7 @@ from predict_tactic import (static_predictors, loadPredictorByFile,
 import serapi_instance
 import linearize_semicolons
 import syntax
-from format import format_goal, TacticContext
+from format import TacticContext
 from util import *
 
 from typing import List, Tuple, NamedTuple, Optional, Sequence, Dict
