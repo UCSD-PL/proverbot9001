@@ -572,7 +572,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
     args = parser.parse_args(arg_list)
 
-    coqargs = ["sertop"]
+    coqargs = ["sertop", "--implicit"]
     includes = subprocess.Popen(['make', '-C', str(args.prelude), 'print-includes'],
                                 stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
 

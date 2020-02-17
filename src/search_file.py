@@ -96,7 +96,7 @@ def main(arg_list : List[str], bar_idx : int) -> None:
     args, parser = parse_arguments(arg_list)
     predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
-    coqargs = ["sertop"]
+    coqargs = ["sertop", "--implicit"]
 
     try:
         with open(args.prelude + "/_CoqProject", 'r') as includesfile:
