@@ -21,6 +21,8 @@
 ##########################################################################
 
 import re
+from dataclasses import dataclass
+from typing import List, Union, Iterable
 
 vernacular_binder = [
     "Definition",
@@ -35,6 +37,7 @@ vernacular_binder = [
     "Ltac",
     "Record",
     "Variable",
+    "Variables",
     "Section",
     "End",
     "Instance",
@@ -83,7 +86,7 @@ syntax_words = local_binder + [
 ]
 
 vernacular_color = "#a020f0"
-syntax_color = "#228b22"
+syntax_color = "#0027a6"
 global_bound_color = "#3b10ff"
 local_bound_color = "#a0522d"
 comment_color = "#004800"
@@ -91,47 +94,74 @@ comment_color = "#004800"
 def color_word(color : str, word : str) -> str:
     return f"<span style=\"color:{color}\">{word}</span>"
 
-from typing import Pattern
+@dataclass
+class ColoredString:
+    contents : str
+    color : str
 
-def highlight_comments(page : str) -> str:
-    result = ""
-    comment_depth = 0
-    curpos = 0
-    openp = re.compile(r"\(\*")
-    closep = re.compile(r"\*\)")
-    def search_pat(pat : Pattern) -> int:
-        match = pat.search(page, curpos)
-        return match.end() if match else len(page) + 1
+def highlight_comments(code : str) -> List[Union[str, ColoredString]]:
+    def generate() -> Iterable[Union[str, ColoredString]]:
+        cur_string = ""
+        comment_depth = 0
+        cur_pos = 0
+        openp = re.compile(r"\(\*", re.DOTALL)
+        closep = re.compile(r"\*\)", re.DOTALL)
 
-    while curpos < len(page):
-        nextopenpos = search_pat(openp)
-        nextclosepos = search_pat(closep)
+        while cur_pos < len(code):
+            next_open_match = openp.search(code, cur_pos)
+            next_close_match = closep.search(code, cur_pos)
+            if next_open_match == None and next_close_match == None:
+                if comment_depth <= 0:
+                    yield cur_string + code[cur_pos:]
+                else:
+                    yield ColoredString(cur_string + code[cur_pos:], comment_color)
+                break
+            if next_close_match == None or (next_open_match != None and next_open_match.start() < next_close_match.start()):
+                cur_string += code[cur_pos:next_open_match.start()]
+                if comment_depth == 0:
+                    yield cur_string
+                    cur_string = ""
+                cur_string += next_open_match.group(0)
+                cur_pos = next_open_match.end()
+                comment_depth += 1
+            else:
+                cur_string += code[cur_pos:next_close_match.end()]
+                cur_pos = next_close_match.end()
+                comment_depth -= 1
+                if comment_depth == 0:
+                    yield ColoredString(cur_string, comment_color)
+                    cur_string = ""
+    return list(generate())
 
-        if nextopenpos < nextclosepos:
-            result += page[curpos:nextopenpos]
-            if comment_depth == 0:
-                result += "<span style=\"color:{}\">".format(comment_color)
-            curpos = nextopenpos
-            comment_depth += 1
-        elif nextclosepos < nextopenpos:
-            result += page[curpos:nextclosepos]
-            curpos = nextclosepos
-            comment_depth -= 1
-            if comment_depth == 0:
-                result += "</span>"
-        elif nextclosepos == nextopenpos:
-            assert nextclosepos == len(page) + 1 and \
-                nextopenpos == len(page) + 1
-        result += page[curpos:]
+def highlight_word(color: str, word : str, colored_text : List[Union[str, ColoredString]]) \
+    -> List[Union[str, ColoredString]]:
+    word_pat = re.compile(rf"\b{word}\b")
+    def generate() -> Iterable[Union[str, ColoredString]]:
+        for block in colored_text:
+            if isinstance(block, ColoredString):
+                yield block
+            else:
+                text_left = block
+                match = word_pat.search(text_left)
+                while match:
+                    yield text_left[:match.start()]
+                    yield ColoredString(word, color)
+                    text_left = text_left[match.end():]
+                    match = word_pat.search(text_left)
+                yield text_left
+    return list(generate())
+
+def highlight_words(color : str, words : List[str], text : List[Union[str, ColoredString]]) \
+    -> List[Union[str, ColoredString]]:
+    result = text
+    for word in words:
+        result = highlight_word(color, word, result)
     return result
 
-def syntax_highlight(page : str) -> str:
-    for vernac in vernacular_words:
-        colored_vernac = color_word(vernacular_color, vernac)
-        pat = re.compile(rf"\b{vernac}\b")
-        page = pat.sub(colored_vernac, page)
-    result = highlight_comments(page)
-    return result
+def syntax_highlight(code : str) -> List[Union[str, ColoredString]]:
+    return highlight_words(syntax_color, syntax_words,
+                           highlight_words(vernacular_color, vernacular_words,
+                                           highlight_comments(code)))
 
 def strip_comments(command : str) -> str:
     result = ""
