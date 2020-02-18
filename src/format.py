@@ -51,6 +51,8 @@ def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
 
 def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
     line = f_handle.readline()
+    if line.strip() == "":
+        return None
     try:
         obj = json.loads(line)
     except:
