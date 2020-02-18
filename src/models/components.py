@@ -1,4 +1,24 @@
 #!/usr/bin/env python3.7
+##########################################################################
+#
+#    This file is part of Proverbot9001.
+#
+#    Proverbot9001 is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Proverbot9001 is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Proverbot9001.  If not, see <https://www.gnu.org/licenses/>.
+#
+#    Copyright 2019 Alex Sanchez-Stern and Yousef Alhessi
+#
+##########################################################################
 
 from typing import Dict, Any, List
 from abc import ABCMeta, abstractmethod
@@ -110,6 +130,25 @@ class DNNClassifier(nn.Module):
             layer_values = getattr(self, "_layer{}".format(i))(layer_values)
         layer_values = F.relu(layer_values)
         return self.softmax(self.out_layer(layer_values)).view(input.size()[0], -1)
+
+class DNNScorer(nn.Module):
+    def __init__(self, input_vocab_size : int, hidden_size : int, num_layers) -> None:
+        super(DNNClassifier, self).__init__()
+        self.num_layers = num_layers
+        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
+        for i in range(num_layers - 1):
+            self.add_module("_layer{}".format(i),
+                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+
+    def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
+        layer_values = self.in_layer(maybe_cuda(Variable(input)))
+        for i in range(self.num_layers - 1):
+            layer_values = F.relu(layer_values)
+            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+        layer_values = F.relu(layer_values)
+        return self.out_layer(layer_values)
+
 
 class WordFeaturesEncoder(nn.Module):
     def __init__(self, input_vocab_sizes : List[int],
