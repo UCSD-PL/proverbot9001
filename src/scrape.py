@@ -155,7 +155,6 @@ def process_statement(args : argparse.Namespace,
                                           "prev_goal": prev_goal,
                                           "relevant_lemmas": relevant_lemmas,
                                           "tactic": command}))
-            result_file.write("\n")
         else:
             result_file.write(json.dumps(command))
         result_file.write("\n")

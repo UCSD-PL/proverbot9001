@@ -182,14 +182,7 @@ def file_chunks(filepath : Path2, chunk_size : int):
     with filepath.open(mode='r') as f:
         while True:
             chunk = list(itertools.islice(f, chunk_size))
-            if len(chunk) == chunk_size:
-                while chunk[-1] != "-----\n":
-                    nextline = f.readline()
-                    if not nextline:
-                        break
-                    chunk += [nextline]
-                    assert len(chunk) < chunk_size * 2
-            elif len(chunk) == 0:
+            if len(chunk) == 0:
                 return
             yield chunk
 
