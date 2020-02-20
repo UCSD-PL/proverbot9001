@@ -215,6 +215,14 @@ def sighandler_context(signal, f):
     yield
     sig.signal(signal, old_handler)
 
+@contextlib.contextmanager
+def print_time(msg : str, guard=True):
+    start = time.time()
+    eprint(msg, "...", end="", guard=guard)
+    try:
+        yield
+    finally:
+        eprint("{:.2f}s".format(time.time() - start), guard=guard)
 
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
 
