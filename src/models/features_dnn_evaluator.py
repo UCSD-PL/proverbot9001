@@ -85,7 +85,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
         return "A state evaluator that uses the standard feature set on DNN's"
 
     def shortname(self) -> str:
-        return "features dnn evaluator"
+        return "features-dnn"
 
     def _optimize_model(self, data : StateEvaluationDataset,
                        arg_values : argparse.Namespace) -> Iterable[FeaturesDNNEvaluatorState]:
@@ -104,7 +104,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
             tensors = self._data_tensors(data, arg_values,
                                          word_feature_funcs, vec_feature_funcs)
 
-        with print_Time("Building the model", guard=arg_values.verbose):
+        with print_time("Building the model", guard=arg_values.verbose):
             model = self._get_model(arg_values, word_feature_funcs, vec_feature_funcs)
 
         return ((word_feature_funcs, vec_feature_funcs, state)
@@ -116,13 +116,13 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
     def load_saved_state(self,
                          args : argparse.Namespace,
                          state : FeaturesDNNEvaluatorState) -> None:
-        word_feature_functions, vec_feature_functions, \
+        self.word_features, self.vec_features, \
             neural_state = state
-        self._model = maybe_cuda(self._get_model(args, word_feature_functions, vec_feature_functions))
-        self._model.load_state_dict(state.weights)
+        self._model = maybe_cuda(self._get_model(args, self.word_features, self.vec_features))
+        self._model.load_state_dict(neural_state.weights)
 
-        self.training_loss = state.loss
-        self.num_epochs = state.epoch
+        self.training_loss = neural_state.loss
+        self.num_epochs = neural_state.epoch
         self.training_args = args
 
     def _data_tensors(self, data : StateEvaluationDataset, arg_values : argparse.Namespace,
@@ -133,7 +133,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
                 pool.map(functools.partial(data_to_tensor,
                                            word_features,
                                            vec_features),
-                         chunks(data, 5000))
+                         chunks(data, 15000))
         word_feature_chunks, vec_feature_chunks, output_chunks = zip(*processed_chunks)
 
         word_features = torch.cat(word_feature_chunks, 0)
@@ -161,10 +161,10 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
         return self._criterion(predicted_scores, maybe_cuda(outputs))
 
     def scoreState(self, state : TacticContext) -> float:
-        word_features = torch.LongTensor([[word_feature(state) for word_feature in word_features]])
-        vec_features = torch.FloatTensor([[feature_val for vec_feature in vec_features
-                                           for feature_val in vec_features(state)]])
-        return model(word_features_batch, vec_features_batch)[0][0]
+        word_features_batch = torch.LongTensor([[word_feature(state) for word_feature in self.word_features]])
+        vec_features_batch = torch.FloatTensor([[feature_val for vec_feature in self.vec_features
+                                                 for feature_val in vec_feature(state)]])
+        return self._model(word_features_batch, vec_features_batch)[0].item()
 
 def data_to_tensor(word_features : List[WordFeature], vec_features : List[VecFeature],
                    data : List[StateScore]) -> Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor]:

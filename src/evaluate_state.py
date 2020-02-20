@@ -19,10 +19,16 @@
 #
 ##########################################################################
 
+import torch
 from models import id_evaluator
 from models import features_dnn_evaluator
 from models.state_evaluator import StateEvaluator
 from pathlib_revised import Path2
+
+loadable_evaluators = {
+    'features-dnn' : features_dnn_evaluator.FeaturesDNNEvaluator,
+    'features dnn evaluator' : features_dnn_evaluator.FeaturesDNNEvaluator
+}
 
 static_evaluators = {
     'id' : id_evaluator.IdEvaluator
@@ -41,4 +47,11 @@ def loadEvaluatorByName(evaluator_type : str) -> StateEvaluator:
     return static_evaluators[evaluator_type]() # type: ignore
 
 def loadEvaluatorByFile(filename : Path2) -> StateEvaluator:
-    assert False, "Not yet implemented"
+    evaluator_type, saved_state = torch.load(filename, map_location='cpu')
+    # Silencing the type checker on this line because the "real" type
+    # of the predictors dictionary is "string to classes constructors
+    # that derive from TacticPredictor, but are not tactic
+    # predictor". But I don't know how to specify that.
+    evaluator = loadable_evaluators[evaluator_type]() # type: ignore
+    evaluator.load_saved_state(*saved_state)
+    return evaluator
