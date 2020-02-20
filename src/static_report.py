@@ -439,17 +439,13 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
     def write_highlighted(vernac : str) -> None:
         nonlocal text
         nonlocal tag
-        # print(f"Syntax highlighting: {vernac}")
         substrings = syntax_highlight(vernac)
-        # print(substrings)
 
         for substring in substrings:
             if isinstance(substring, ColoredString):
-                # print(f"Writing colored: {substring.contents}")
                 with tag('span', style=f'color:{substring.color}'):
                     text(substring.contents)
             else:
-                # print(f"Writing: {substring}")
                 text(substring)
 
     with tag('html'):
