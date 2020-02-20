@@ -26,6 +26,7 @@ from tokenizer import tokenizers
 import search_report
 import dynamic_report
 import static_report
+import evaluator_report
 import argparse
 import data
 import itertools
@@ -34,7 +35,8 @@ import features
 from util import eprint
 from format import strip_scraped_output
 from models.components import SimpleEmbedding
-from predict_tactic import trainable_modules
+import predict_tactic
+import evaluate_state
 from pathlib_revised import Path2
 
 from typing import Dict, Callable, List
@@ -56,9 +58,12 @@ def main():
 def train(args):
     parser = argparse.ArgumentParser(description=
                                      "Proverbot9001 training module")
-    parser.add_argument("model", choices=list(trainable_modules.keys()))
+    parser.add_argument("model", choices=list(predict_tactic.trainable_modules.keys()) +
+                        list(evaluate_state.trainable_modules.keys()))
     args_values = parser.parse_args(args[:1])
-    trainable_modules[args_values.model](args[1:])
+    predict_tactic.trainable_modules.get(args_values.model,
+                                         evaluate_state.trainable_modules
+                                         [args_values.model])(args[1:])
 
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
@@ -146,6 +151,7 @@ modules = {
     "search-report":search_report.main,
     "dynamic-report":dynamic_report.main,
     "static-report":static_report.main,
+    "evaluator-report":evaluator_report.main,
     "data": get_data,
 }
 

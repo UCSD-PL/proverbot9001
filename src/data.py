@@ -234,6 +234,11 @@ def read_text_data(data_path: Path2) \
     data_chunks = lazy_multiprocessing_imap(read_text_data_worker__, line_chunks)
     yield from itertools.chain.from_iterable(data_chunks)
 
+@dataclass
+class StateScore:
+    state : TacticContext
+    score : float
+
 def preprocess_data(arg_values: Namespace, dataset_iter:
                     Iterable[ScrapedTactic]) \
                     -> Iterable[ScrapedTactic]:
@@ -272,6 +277,9 @@ def get_text_data(arg_values: Namespace) -> RawDataset:
     _print("{:.2f}s".format(time.time() - start))
     _print("Got {} input-output pairs ".format(len(filtered_data)))
     return filtered_data
+
+class StateEvaluationDataset(ListDataset[StateScore]):
+    pass
 
 def filter_data(data: RawDataset, pair_filter: ContextFilter,
                 arg_values: Namespace) -> Iterable[ScrapedTactic]:

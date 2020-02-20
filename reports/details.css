@@ -190,3 +190,7 @@ code {
 .numtacs.nonempty {
     background-color:lightblue;
 }
+
+.distance {
+    font-size: 20px;
+}
