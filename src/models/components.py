@@ -133,7 +133,7 @@ class DNNClassifier(nn.Module):
 
 class DNNScorer(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, num_layers) -> None:
-        super(DNNClassifier, self).__init__()
+        super().__init__()
         self.num_layers = num_layers
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
         for i in range(num_layers - 1):

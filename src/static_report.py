@@ -407,7 +407,8 @@ def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult
         for result in results:
             if isinstance(result, TacticResult):
                 if not in_proof:
-                    yield cur_region[:-1]
+                    if len(cur_region) > 1:
+                        yield cur_region[:-1]
                     cur_region = [cur_region[-1]]
                     in_proof = True
             else:
