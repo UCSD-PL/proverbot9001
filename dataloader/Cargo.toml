@@ -11,9 +11,10 @@ name = "dataloader"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.8.4"
+version = "0.8.5"
 features = ["extension-module"]
 
 [dependencies]
 serde = "*"
 serde_json = "*"
+edit-distance = "*"

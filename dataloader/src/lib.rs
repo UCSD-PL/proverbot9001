@@ -1,38 +1,18 @@
+use pyo3::exceptions;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
-use serde::{Deserialize, Serialize};
-use serde_json;
+
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result};
-use std::iter;
 
-// enum PyTensor {
-//     Long2DTensor(Vec<Vec<i64>>),
-//     Float2DTensor(Vec<Vec<f64>>),
-// }
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ScrapedTactic {
-    relevant_lemmas: Vec<String>,
-    prev_tactics: Vec<String>,
-    prev_hyps: Vec<String>,
-    prev_goal: String,
-    tactic: String,
-}
-
-struct VernacCommand {
-    command : String,
-}
-
-enum ScrapedData {
-    Vernac(VernacCommand),
-    Tactic(ScrapedTactic),
-}
-
-type PyTensor = Vec<Vec<i64>>;
+mod scraped_data;
+use scraped_data::*;
+mod features;
+use features::{
+    context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE,
+};
 
 #[pyfunction]
-fn load_tactics(filename: String) -> PyResult<Option<Vec<PyTensor>>> {
+fn load_tactics(filename: String) -> PyResult<Option<Vec<LongTensor2D>>> {
     println!("Reading dataset.");
     match File::open(filename) {
         Result::Ok(file) => {
@@ -47,23 +27,161 @@ fn load_tactics(filename: String) -> PyResult<Option<Vec<PyTensor>>> {
             }
             Ok(None)
         }
-        Result::Err(err) => {
-            Err(PyErr::new::<exc::TypeError, _>("Failed to open file"));
-        }
+        Result::Err(_err) => Err(PyErr::new::<exceptions::TypeError, _>(
+            "Failed to open file",
+        )),
     }
 }
-fn scraped_from_file(file: File) -> impl iter::Iterator<Item=ScrapedData> {
-    BufReader::new(file).lines().map(|line : Result<String>| {
-        let actual_line = line.expect("Couldn't read line");
-        if actual_line.starts_with("\""){
-            ScrapedData::Vernac(VernacCommand{command: serde_json::from_str(&actual_line).expect("Couldn't parse string")})
-        } else {
-            ScrapedData::Tactic(serde_json::from_str(&actual_line).expect("Couldn't parse line"))
-        }
-    })
-}
+
 #[pymodule]
 fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(load_tactics))?;
+    m.add_wrapped(wrap_pyfunction!(features_to_total_distances_tensors))?;
+    m.add_wrapped(wrap_pyfunction!(features_to_total_distances_tensors_with_map))?;
+    m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
+    m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;
+    m.add_wrapped(wrap_pyfunction!(tmap_to_picklable))?;
+    m.add_wrapped(wrap_pyfunction!(sample_context_features))?;
+    m.add_class::<TokenMap>()?;
     Ok(())
+}
+
+#[pyfunction]
+fn features_to_total_distances_tensors(
+    filename: String,
+) -> PyResult<(
+    TokenMap,
+    LongTensor2D,
+    FloatTensor2D,
+    FloatTensor2D,
+    Vec<i64>,
+    i64,
+)> {
+    match File::open(filename) {
+        Result::Ok(file) => {
+            let scraped = scraped_from_file(file).collect();
+            let distanced = tactic_distances(scraped);
+            let (tactics, distances): (Vec<ScrapedTactic>, Vec<usize>) =
+                distanced.into_iter().unzip();
+            let outputs = distances
+                .into_iter()
+                .map(|distance| vec![distance as f64])
+                .collect();
+            let map = TokenMap::initialize(&tactics, 50);
+            let (word_features, float_features) = context_features(&map, tactics);
+            let word_features_sizes = map.word_features_sizes();
+
+            Ok((
+                map,
+                word_features,
+                float_features,
+                outputs,
+                word_features_sizes,
+                VEC_FEATURES_SIZE,
+            ))
+        }
+        Result::Err(_err) => Err(PyErr::new::<exceptions::TypeError, _>(
+            "Failed to open file",
+        )),
+    }
+}
+
+#[pyfunction]
+fn features_to_total_distances_tensors_with_map(
+    filename: String,
+    map: TokenMap,
+) -> PyResult<(
+    TokenMap,
+    LongTensor2D,
+    FloatTensor2D,
+    FloatTensor2D,
+    Vec<i64>,
+    i64,
+)> {
+    match File::open(filename) {
+        Result::Ok(file) => {
+            let scraped = scraped_from_file(file).collect();
+            let distanced = tactic_distances(scraped);
+            let (tactics, distances): (Vec<ScrapedTactic>, Vec<usize>) =
+                distanced.into_iter().unzip();
+            let outputs = distances
+                .into_iter()
+                .map(|distance| vec![distance as f64])
+                .collect();
+            let (word_features, float_features) = context_features(&map, tactics);
+            let word_features_sizes = map.word_features_sizes();
+
+            Ok((
+                map,
+                word_features,
+                float_features,
+                outputs,
+                word_features_sizes,
+                VEC_FEATURES_SIZE,
+            ))
+        }
+        Result::Err(_err) => Err(PyErr::new::<exceptions::TypeError, _>(
+            "Failed to open file",
+        )),
+    }
+}
+#[pyfunction]
+fn sample_context_features(tmap: &TokenMap,
+                              relevant_lemmas: Vec<String>,
+                              prev_tactics: Vec<String>,
+                              hypotheses: Vec<String>,
+                              goal: String) -> (LongTensor1D, FloatTensor1D) {
+    features::sample_context_features(tmap, relevant_lemmas, prev_tactics, hypotheses, goal)
+}
+
+#[pyfunction]
+fn features_vocab_sizes(tmap: TokenMap) -> (Vec<i64>, i64) {
+    (tmap.word_features_sizes(), VEC_FEATURES_SIZE)
+}
+
+#[pyfunction]
+fn tmap_to_picklable(tmap: TokenMap) -> PickleableTokenMap {
+    tmap.to_dicts()
+}
+
+#[pyfunction]
+fn tmap_from_picklable(picklable: PickleableTokenMap) -> TokenMap {
+    TokenMap::from_dicts(picklable)
+}
+
+fn tactic_distances(scraped_data: Vec<ScrapedData>) -> Vec<(ScrapedTactic, usize)> {
+    let mut in_proof = false;
+    let mut interaction_buffer = Vec::new();
+    let mut blocks = Vec::new();
+
+    for interaction in scraped_data {
+        match interaction {
+            ScrapedData::Tactic(tac) => {
+                if !in_proof {
+                    interaction_buffer.clear();
+                    in_proof = true;
+                }
+                interaction_buffer.push(tac)
+            }
+            ScrapedData::Vernac(_cmd) => {
+                if in_proof {
+                    blocks.push(interaction_buffer.clone());
+                    in_proof = false;
+                }
+            }
+        }
+    }
+
+    let mut result = Vec::new();
+
+    for block in blocks {
+        let block_len = block.len();
+        let mut distanced_block: Vec<(ScrapedTactic, usize)> = block
+            .into_iter()
+            .enumerate()
+            .map(|(idx, val)| (val, block_len - idx))
+            .collect();
+        result.append(&mut distanced_block);
+    }
+    return result;
 }
