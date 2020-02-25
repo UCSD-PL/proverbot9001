@@ -10,32 +10,8 @@ mod features;
 use features::{context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE};
 
 extern crate rayon;
-
-#[pyfunction]
-fn load_tactics(filename: String) -> PyResult<Option<Vec<LongTensor2D>>> {
-    println!("Reading dataset.");
-    match File::open(filename) {
-        Result::Ok(file) => {
-            for point in scraped_from_file(file) {
-                match point {
-                    ScrapedData::Vernac(_cmd) => (),
-                    ScrapedData::Tactic(tactic) => {
-                        println!("{:?}", tactic);
-                        break;
-                    }
-                }
-            }
-            Ok(None)
-        }
-        Result::Err(_err) => Err(PyErr::new::<exceptions::TypeError, _>(
-            "Failed to open file",
-        )),
-    }
-}
-
 #[pymodule]
 fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_wrapped(wrap_pyfunction!(load_tactics))?;
     #[pyfn(m, "features_to_total_distances_tensors")]
     fn parallel_features_to_total_distances_tensors(
         py: Python,
