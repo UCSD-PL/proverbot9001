@@ -4,12 +4,14 @@ use pyo3::prelude::*;
 
 use edit_distance::edit_distance;
 use crate::scraped_data::*;
+use rayon::prelude::*;
 
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
 pub fn context_features(tmap: &TokenMap, data: Vec<ScrapedTactic>) -> (LongTensor2D, FloatTensor2D) {
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) =
-        data.iter().map(|scraped| best_scored_hyp(&scraped.prev_hyps, &scraped.prev_goal)).unzip();
+        data.par_iter().map(|scraped| best_scored_hyp(&scraped.prev_hyps, &scraped.prev_goal)).unzip();
+
     let word_features = data
         .iter()
         .zip(best_hyps)
@@ -19,10 +21,12 @@ pub fn context_features(tmap: &TokenMap, data: Vec<ScrapedTactic>) -> (LongTenso
                  hyp_head_feature(tmap, best_hyp)]
         })
         .collect();
+
     let vec_features = best_hyp_scores
         .into_iter()
         .map(|score| vec![score])
         .collect();
+
     (word_features, vec_features)
 }
 

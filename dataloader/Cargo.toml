@@ -18,3 +18,4 @@ features = ["extension-module"]
 serde = "*"
 serde_json = "*"
 edit-distance = "*"
+rayon = "*"

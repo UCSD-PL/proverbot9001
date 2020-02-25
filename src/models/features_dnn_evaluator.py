@@ -95,15 +95,15 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
     def _optimize_model(self, arg_values : argparse.Namespace) -> Iterable[FeaturesDNNEvaluatorState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (features_token_map, state) = torch.load(arg_values.start_from)
+                _, (arg_values, (picklable_token_map, state)) = torch.load(arg_values.start_from)
+                token_map = tmap_from_picklable(picklable_token_map)
                 word_features_data, vec_features_data, outputs,\
                     word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors_with_map(
-                        arg_values.scrape_file,
-                        features_token_map)
+                        str(arg_values.scrape_file), token_map)
             else:
                 token_map, word_features_data, vec_features_data, outputs, \
                     word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors(
-                        arg_values.scrape_file)
+                        str(arg_values.scrape_file))
 
         with print_time("Converting data to tensors", guard=arg_values.verbose):
             tensors = [torch.LongTensor(word_features_data),

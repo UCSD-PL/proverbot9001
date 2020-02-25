@@ -7,9 +7,9 @@ use std::fs::File;
 mod scraped_data;
 use scraped_data::*;
 mod features;
-use features::{
-    context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE,
-};
+use features::{context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE};
+
+extern crate rayon;
 
 #[pyfunction]
 fn load_tactics(filename: String) -> PyResult<Option<Vec<LongTensor2D>>> {
@@ -36,8 +36,28 @@ fn load_tactics(filename: String) -> PyResult<Option<Vec<LongTensor2D>>> {
 #[pymodule]
 fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(load_tactics))?;
-    m.add_wrapped(wrap_pyfunction!(features_to_total_distances_tensors))?;
-    m.add_wrapped(wrap_pyfunction!(features_to_total_distances_tensors_with_map))?;
+    #[pyfn(m, "features_to_total_distances_tensors")]
+    fn parallel_features_to_total_distances_tensors(
+        py: Python,
+        filename: String,
+    ) -> PyResult<(
+        TokenMap,
+        LongTensor2D,
+        FloatTensor2D,
+        FloatTensor2D,
+        Vec<i64>,
+        i64,
+    )> {
+        py.allow_threads(move || features_to_total_distances_tensors(filename))
+    }
+    #[pyfn(m, "features_to_total_distances_tensors_with_map")]
+    fn parallel_features_to_total_distances_tensors_with_map(
+        py: Python,
+        filename: String,
+        map: TokenMap,
+    ) -> PyResult<(LongTensor2D, FloatTensor2D, FloatTensor2D, Vec<i64>, i64)> {
+        py.allow_threads(move || features_to_total_distances_tensors_with_map(filename, map))
+    }
     m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
     m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;
     m.add_wrapped(wrap_pyfunction!(tmap_to_picklable))?;
@@ -60,6 +80,7 @@ fn features_to_total_distances_tensors(
     match File::open(filename) {
         Result::Ok(file) => {
             let scraped = scraped_from_file(file).collect();
+
             let distanced = tactic_distances(scraped);
             let (tactics, distances): (Vec<ScrapedTactic>, Vec<usize>) =
                 distanced.into_iter().unzip();
@@ -67,7 +88,9 @@ fn features_to_total_distances_tensors(
                 .into_iter()
                 .map(|distance| vec![distance as f64])
                 .collect();
+
             let map = TokenMap::initialize(&tactics, 50);
+
             let (word_features, float_features) = context_features(&map, tactics);
             let word_features_sizes = map.word_features_sizes();
 
@@ -90,14 +113,7 @@ fn features_to_total_distances_tensors(
 fn features_to_total_distances_tensors_with_map(
     filename: String,
     map: TokenMap,
-) -> PyResult<(
-    TokenMap,
-    LongTensor2D,
-    FloatTensor2D,
-    FloatTensor2D,
-    Vec<i64>,
-    i64,
-)> {
+) -> PyResult<(LongTensor2D, FloatTensor2D, FloatTensor2D, Vec<i64>, i64)> {
     match File::open(filename) {
         Result::Ok(file) => {
             let scraped = scraped_from_file(file).collect();
@@ -112,7 +128,6 @@ fn features_to_total_distances_tensors_with_map(
             let word_features_sizes = map.word_features_sizes();
 
             Ok((
-                map,
                 word_features,
                 float_features,
                 outputs,
@@ -126,11 +141,13 @@ fn features_to_total_distances_tensors_with_map(
     }
 }
 #[pyfunction]
-fn sample_context_features(tmap: &TokenMap,
-                              relevant_lemmas: Vec<String>,
-                              prev_tactics: Vec<String>,
-                              hypotheses: Vec<String>,
-                              goal: String) -> (LongTensor1D, FloatTensor1D) {
+fn sample_context_features(
+    tmap: &TokenMap,
+    relevant_lemmas: Vec<String>,
+    prev_tactics: Vec<String>,
+    hypotheses: Vec<String>,
+    goal: String,
+) -> (LongTensor1D, FloatTensor1D) {
     features::sample_context_features(tmap, relevant_lemmas, prev_tactics, hypotheses, goal)
 }
 
