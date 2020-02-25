@@ -139,18 +139,20 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
         num_proofs += 1
 
         nonlocal num_points
-        proof_length = len(block.proof_interactions)
+
+        distanced_tactics = label_distances(block.proof_interactions)
+
+        proof_length = len(distanced_tactics)
         num_points += proof_length
 
         with tag('div', klass='region'):
             nonlocal evaluator
-            for idx, interaction in enumerate(block.proof_interactions, 1):
+            for idx, (interaction, distance_from_end) in enumerate(distanced_tactics, 1):
                 if interaction.tactic.strip() in ["Proof.", "Qed."]:
                     with tag('code', klass='plaincommand'):
                         write_highlighted(interaction.tactic.strip("\n"))
                     doc.stag('br')
                 else:
-                    distance_from_end = proof_length - idx
                     predicted_distance_from_end = evaluator.scoreState(strip_scraped_output(interaction))
                     grade = grade_prediction(distance_from_end, predicted_distance_from_end)
                     with tag('span',
@@ -201,6 +203,45 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
 
     with (args.output / filename.with_suffix(".html").name).open(mode='w') as fout:
         fout.write(doc.getvalue())
+
+def label_distances(tactics : List[TacticInteraction]) -> List[Tuple[TacticInteraction, int]]:
+    path_segments : List[List[TacticInteraction]] = [[]]
+    closed_distances : List[int] = [0, 0]
+    result : List[List[Tuple[TacticInteraction, int]]] = [[], []]
+
+    def open_goal():
+        nonlocal path_segments
+        nonlocal closed_distances
+        nonlocal result
+        path_segments.append([])
+        closed_distances.append(0)
+        result.append([])
+
+    def close_goal():
+        nonlocal path_segments
+        nonlocal closed_distances
+        nonlocal result
+        last_segment = path_segments.pop()
+        last_distance = closed_distances.pop()
+        closed_tacs = list(reversed([(tac, distance) for (distance, tac) in
+                                     enumerate(reversed(last_segment), last_distance + 1)]))
+        already_closed_tacs = result.pop()
+        result[-1] += closed_tacs + already_closed_tacs
+        closed_distances[-1] += last_distance + len(last_segment)
+
+    for interaction in tactics:
+        if interaction.tactic.strip() == "{":
+            open_goal()
+        elif interaction.tactic.strip() == "}":
+            close_goal()
+        elif interaction.tactic.strip() == "Qed.":
+            close_goal()
+            return result[-1] + [(interaction, 0)]
+        else:
+            path_segments[-1].append(interaction)
+    assert len(path_segments) == 1
+    close_goal()
+    return result[-1]
 
 def header(tag : Tag, doc : Doc, text : Text, css : List[str],
            javascript : List[str], title : str) -> None:

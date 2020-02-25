@@ -139,28 +139,28 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
 def process_statement(args : argparse.Namespace,
                       coq : serapi_instance.SerapiInstance, command : str,
                       result_file : TextIO) -> None:
-    if not re.match("\s*[{}]\s*", command):
-        if coq.proof_context:
-            prev_tactics = coq.prev_tactics
-            prev_hyps = coq.hypotheses
-            prev_goal = coq.goals
-            if args.relevant_lemmas == "local":
-                relevant_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
-            elif args.relevant_lemmas == "hammer":
-                relevant_lemmas = coq.get_hammer_premises()
-            elif args.relevant_lemmas == "searchabout":
-                relevant_lemmas = coq.get_lemmas_about_head()
-            else:
-                assert False, args.relevant_lemmas
-
-            result_file.write(json.dumps({"prev_tactics": prev_tactics,
-                                          "prev_hyps": prev_hyps,
-                                          "prev_goal": prev_goal,
-                                          "relevant_lemmas": relevant_lemmas,
-                                          "tactic": command}))
+    if coq.proof_context:
+        prev_tactics = coq.prev_tactics
+        prev_hyps = coq.hypotheses
+        prev_goal = coq.goals
+        if args.relevant_lemmas == "local":
+            relevant_lemmas = [re.sub("\n", " ", lemma) for lemma in coq.local_lemmas[:-1]]
+        elif args.relevant_lemmas == "hammer":
+            relevant_lemmas = coq.get_hammer_premises()
+        elif args.relevant_lemmas == "searchabout":
+            relevant_lemmas = coq.get_lemmas_about_head()
         else:
-            result_file.write(json.dumps(command))
-        result_file.write("\n")
+            assert False, args.relevant_lemmas
+
+        result_file.write(json.dumps({"prev_tactics": prev_tactics,
+                                      "prev_hyps": prev_hyps,
+                                      "prev_goal": prev_goal,
+                                      "relevant_lemmas": relevant_lemmas,
+                                      "tactic": command}))
+    else:
+        result_file.write(json.dumps(command))
+    result_file.write("\n")
+
     coq.run_stmt(command, timeout=600)
 
 if __name__ == "__main__":
