@@ -6,6 +6,7 @@ from context_filter import get_context_filter
 from format import (TacticContext, ScrapedCommand, ScrapedTactic,
                     strip_scraped_output)
 from data import read_all_text_data
+from syntax import syntax_highlight, ColoredString
 
 from pathlib_revised import Path2
 from dataclasses import dataclass
@@ -100,8 +101,8 @@ def get_blocks(interactions : List[ScrapedCommand]) -> List[Union[VernacBlock, P
             else:
                 assert isinstance(interaction, str)
                 if in_proof:
-                    yield ProofBlock(cur_lemma, interaction_buffer[:-1])
-                    interaction_buffer = [interaction_buffer[-1].tactic]
+                    yield ProofBlock(cur_lemma, interaction_buffer)
+                    interaction_buffer = []
                     in_proof = False
             interaction_buffer.append(interaction)
     return list(generate())
@@ -116,14 +117,22 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
     num_correct = 0
     num_proofs = 0
 
+    def write_highlighted(vernac : str) -> None:
+        nonlocal text
+        nonlocal tag
+        substrings = syntax_highlight(vernac)
+
+        for substring in substrings:
+            if isinstance(substring, ColoredString):
+                with tag('span', style=f'color:{substring.color}'):
+                    text(substring.contents)
+            else:
+                text(substring)
     def write_vernac(block : VernacBlock):
         nonlocal tag
-        nonlocal text
-        nonlocal doc
         for command in block.commands:
             with tag('code', klass='plaincommand'):
-                text(command.strip("\n"))
-            doc.stag('br')
+                write_highlighted(command)
 
     def generate_proof_evaluation_details(block : ProofBlock, region_idx : int):
         nonlocal num_proofs
@@ -135,10 +144,10 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
 
         with tag('div', klass='region'):
             nonlocal evaluator
-            for idx, interaction in enumerate(block.proof_interactions):
-                if interaction.tactic.strip() == "Proof.":
+            for idx, interaction in enumerate(block.proof_interactions, 1):
+                if interaction.tactic.strip() in ["Proof.", "Qed."]:
                     with tag('code', klass='plaincommand'):
-                        text(interaction.tactic.strip("\n"))
+                        write_highlighted(interaction.tactic.strip("\n"))
                     doc.stag('br')
                 else:
                     distance_from_end = proof_length - idx
@@ -163,7 +172,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
             serapi_instance.lemma_name_from_statement(lemma_statement)
         with tag('button', klass='collapsible', id=f'collapsible-{region_idx}'):
             with tag('code', klass='buttontext'):
-                text(lemma_statement.strip())
+                write_highlighted(lemma_statement.strip())
 
     def grade_prediction(correct_number : int, predicted_number : float) -> str:
         distance = abs(correct_number - predicted_number)
