@@ -1,24 +1,39 @@
-use std::collections::{BinaryHeap, HashMap};
-use serde::{Deserialize, Serialize};
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::collections::{BinaryHeap, HashMap};
 
-use edit_distance::edit_distance;
 use crate::scraped_data::*;
+use edit_distance::edit_distance;
 use rayon::prelude::*;
 
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
-pub fn context_features(tmap: &TokenMap, data: Vec<ScrapedTactic>) -> (LongTensor2D, FloatTensor2D) {
-    let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) =
-        data.par_iter().map(|scraped| best_scored_hyp(&scraped.prev_hyps, &scraped.prev_goal)).unzip();
+pub fn context_features(
+    args: DataloaderArgs,
+    tmap: &TokenMap,
+    data: Vec<ScrapedTactic>,
+) -> (LongTensor2D, FloatTensor2D) {
+    let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = data
+        .par_iter()
+        .map(|scraped| {
+            best_scored_hyp(
+                args.max_string_distance,
+                args.max_length,
+                &scraped.prev_hyps,
+                &scraped.prev_goal,
+            )
+        })
+        .unzip();
 
     let word_features = data
         .iter()
         .zip(best_hyps)
         .map(|(scraped, best_hyp): (&ScrapedTactic, &str)| {
-            vec![prev_tactic_feature(tmap, &scraped.prev_tactics),
-                 goal_head_feature(tmap, &scraped.prev_goal),
-                 hyp_head_feature(tmap, best_hyp)]
+            vec![
+                prev_tactic_feature(tmap, &scraped.prev_tactics),
+                goal_head_feature(tmap, &scraped.prev_goal),
+                hyp_head_feature(tmap, best_hyp),
+            ]
         })
         .collect();
 
@@ -30,22 +45,27 @@ pub fn context_features(tmap: &TokenMap, data: Vec<ScrapedTactic>) -> (LongTenso
     (word_features, vec_features)
 }
 
-pub fn sample_context_features(tmap: &TokenMap,
-                               _relevant_lemmas: Vec<String>,
-                               prev_tactics: Vec<String>,
-                               hypotheses: Vec<String>,
-                               goal: String) -> (LongTensor1D, FloatTensor1D) {
-    let (best_hyp, best_score) = best_scored_hyp(&hypotheses, &goal);
-    let word_features = vec![prev_tactic_feature(tmap, &prev_tactics),
-                             goal_head_feature(tmap, &goal),
-                             hyp_head_feature(tmap, best_hyp)];
+pub fn sample_context_features(
+    args: DataloaderArgs,
+    tmap: &TokenMap,
+    _relevant_lemmas: Vec<String>,
+    prev_tactics: Vec<String>,
+    hypotheses: Vec<String>,
+    goal: String,
+) -> (LongTensor1D, FloatTensor1D) {
+    let (best_hyp, best_score) = best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);
+    let word_features = vec![
+        prev_tactic_feature(tmap, &prev_tactics),
+        goal_head_feature(tmap, &goal),
+        hyp_head_feature(tmap, best_hyp),
+    ];
     let vec_features = vec![best_score];
     (word_features, vec_features)
 }
 
 // index of the previous tactic, or zero if it's not
 // in the index table, or there is no previous tactic.
-fn prev_tactic_feature(tmap: &TokenMap, prev_tactics : &Vec<String>) -> i64 {
+fn prev_tactic_feature(tmap: &TokenMap, prev_tactics: &Vec<String>) -> i64 {
     match prev_tactics
         .last()
         .map(|tac| get_stem(tac).expect("Couldn't get the first word of the tactic"))
@@ -56,18 +76,17 @@ fn prev_tactic_feature(tmap: &TokenMap, prev_tactics : &Vec<String>) -> i64 {
     }
 }
 
-fn goal_head_feature(tmap: &TokenMap, goal : &str) -> i64 {
-    match goal
-        .split_whitespace()
-        .next()
-        .and_then(|first_token| tmap.goal_token_to_index.get(first_token))
-    {
-        Some(idx) => (idx + 1) as i64,
+fn goal_head_feature(tmap: &TokenMap, goal: &str) -> i64 {
+    match goal.split_whitespace().next() {
         None => 0,
+        Some(first_token) => match tmap.goal_token_to_index.get(first_token) {
+            None => 1,
+            Some(idx) => (idx + 2) as i64,
+        },
     }
 }
 
-fn hyp_head_feature(tmap: &TokenMap, best_hyp : &str) -> i64 {
+fn hyp_head_feature(tmap: &TokenMap, best_hyp: &str) -> i64 {
     match best_hyp
         .split_whitespace()
         .next()
@@ -84,7 +103,7 @@ fn get_stem<'a>(full_tactic: &'a str) -> Option<&'a str> {
         .next()
 }
 
-#[pyclass(dict, module="dataloader")]
+#[pyclass(dict, module = "dataloader")]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TokenMap {
     tactic_to_index: HashMap<String, usize>,
@@ -92,11 +111,13 @@ pub struct TokenMap {
     hyp_token_to_index: HashMap<String, usize>,
 }
 
-pub type PickleableTokenMap = (HashMap<String, usize>,
-                               HashMap<String, usize>,
-                               HashMap<String, usize>);
+pub type PickleableTokenMap = (
+    HashMap<String, usize>,
+    HashMap<String, usize>,
+    HashMap<String, usize>,
+);
 
-impl<'source> pyo3::FromPyObject<'source> for TokenMap{
+impl<'source> pyo3::FromPyObject<'source> for TokenMap {
     fn extract(ob: &'source pyo3::types::PyAny) -> pyo3::PyResult<TokenMap> {
         let cls: &TokenMap = pyo3::PyTryFrom::try_from(ob)?;
         Ok(cls.clone())
@@ -146,19 +167,27 @@ impl TokenMap {
     }
     pub fn word_features_sizes(&self) -> Vec<i64> {
         // Add one to each of these to account for the UNKNOWN token
-        vec![(self.tactic_to_index.len() + 1) as i64,
-             (self.goal_token_to_index.len() + 1) as i64,
-             (self.hyp_token_to_index.len() + 1) as i64]
+        vec![
+            (self.tactic_to_index.len() + 1) as i64,
+            (self.goal_token_to_index.len() + 2) as i64,
+            (self.hyp_token_to_index.len() + 1) as i64,
+        ]
     }
 
     pub fn to_dicts(&self) -> PickleableTokenMap {
-        (self.tactic_to_index.clone(), self.goal_token_to_index.clone(), self.hyp_token_to_index.clone())
+        (
+            self.tactic_to_index.clone(),
+            self.goal_token_to_index.clone(),
+            self.hyp_token_to_index.clone(),
+        )
     }
 
-    pub fn from_dicts(dicts : PickleableTokenMap) -> TokenMap {
-        TokenMap{tactic_to_index: dicts.0,
-                 goal_token_to_index: dicts.1,
-                 hyp_token_to_index: dicts.2}
+    pub fn from_dicts(dicts: PickleableTokenMap) -> TokenMap {
+        TokenMap {
+            tactic_to_index: dicts.0,
+            goal_token_to_index: dicts.1,
+            hyp_token_to_index: dicts.2,
+        }
     }
 }
 
@@ -190,15 +219,24 @@ fn index_common<'a>(items: impl Iterator<Item = &'a str>, n: usize) -> Vec<Strin
     result
 }
 
-fn best_scored_hyp<'a>(hyps: &'a Vec<String>, goal: &String) -> (&'a str, f64) {
+fn best_scored_hyp<'a>(
+    max_distance: usize,
+    max_length: usize,
+    hyps: &'a Vec<String>,
+    goal: &String,
+) -> (&'a str, f64) {
     let mut best_hyp = "";
-    let mut best_score = std::usize::MAX;
+    let mut best_score = max_distance;
+    let mut truncated_goal = goal.clone();
+    truncated_goal.truncate(max_length);
     for hyp in hyps.iter() {
-        let score = edit_distance(&hyp, &goal);
+        let mut hyp_after_colon = hyp.split(":").collect::<Vec<&str>>()[1].to_string();
+        hyp_after_colon.truncate(max_length);
+        let score = edit_distance(&hyp_after_colon, &truncated_goal);
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
         }
     }
-    (best_hyp, (best_score as f64) / (std::usize::MAX as f64))
+    (best_hyp, (best_score as f64) / (max_distance as f64))
 }

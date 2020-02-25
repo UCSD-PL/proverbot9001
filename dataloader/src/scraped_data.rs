@@ -3,6 +3,7 @@ use serde_json;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::iter;
+use pyo3::prelude::*;
 
 pub type LongTensor2D = Vec<Vec<i64>>;
 pub type FloatTensor2D = Vec<Vec<f64>>;
@@ -39,4 +40,32 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
             ScrapedData::Tactic(serde_json::from_str(&actual_line).expect("Couldn't parse line"))
         }
     })
+}
+
+
+#[pyclass]
+#[derive(Default, Clone)]
+pub struct DataloaderArgs {
+    #[pyo3(get, set)]
+    pub max_distance: usize,
+    #[pyo3(get, set)]
+    pub max_string_distance: usize,
+    #[pyo3(get, set)]
+    pub max_length: usize,
+    #[pyo3(get, set)]
+    pub num_keywords: usize,
+}
+#[pymethods]
+impl DataloaderArgs {
+    #[new]
+    fn new(obj: &PyRawObject) {
+        let d: DataloaderArgs = Default::default();
+        obj.init({d});
+    }
+}
+impl<'source> pyo3::FromPyObject<'source> for DataloaderArgs {
+    fn extract(ob: &'source pyo3::types::PyAny) -> pyo3::PyResult<DataloaderArgs> {
+        let cls: &DataloaderArgs = pyo3::PyTryFrom::try_from(ob)?;
+        Ok(cls.clone())
+    }
 }

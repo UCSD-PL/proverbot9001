@@ -31,7 +31,8 @@ from models.tactic_predictor import optimize_checkpoints
 from dataloader import (sample_context_features,
                         features_to_total_distances_tensors,
                         features_to_total_distances_tensors_with_map,
-                        tmap_to_picklable, tmap_from_picklable, features_vocab_sizes)
+                        tmap_to_picklable, tmap_from_picklable, features_vocab_sizes,
+                        DataloaderArgs)
 from dataloader import TokenMap as FeaturesTokenMap
 from util import maybe_cuda, eprint, print_time
 
@@ -81,11 +82,6 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
             with open(arg_values.save_file, 'wb') as f:
                 torch.save((self.shortname(), (arg_values, state)), f)
 
-    def _add_args_to_parser(self, parser : argparse.ArgumentParser,
-                            default_values : Dict[str, Any] = {}) -> None:
-        super()._add_args_to_parser(parser, default_values)
-        add_nn_args(parser, default_values)
-
     def description(self) -> str:
         return "A state evaluator that uses the standard feature set on DNN's"
 
@@ -97,13 +93,19 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
             if arg_values.start_from:
                 _, (arg_values, (picklable_token_map, state)) = torch.load(arg_values.start_from)
                 token_map = tmap_from_picklable(picklable_token_map)
-                word_features_data, vec_features_data, outputs,\
+                _, word_features_data, vec_features_data, outputs,\
                     word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors_with_map(
+                        extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file), token_map)
             else:
                 token_map, word_features_data, vec_features_data, outputs, \
                     word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors(
+                        extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
+
+        # eprint(f"word data: {word_features_data[:10]}")
+        # eprint(f"vec data: {vec_features_data[:10]}")
+        # eprint(f"outputs: {outputs[:100]}")
 
         with print_time("Converting data to tensors", guard=arg_values.verbose):
             tensors = [torch.LongTensor(word_features_data),
@@ -149,29 +151,36 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
         return self._criterion(predicted_scores, maybe_cuda(outputs))
 
     def scoreState(self, state : TacticContext) -> float:
-        word_features_batch, vec_features_batch = sample_context_features(self.features_token_map,
-                                                                          state.relevant_lemmas,
-                                                                          state.prev_tactics,
-                                                                          state.hypotheses,
-                                                                          state.goal)
+        word_features_batch, vec_features_batch = sample_context_features(
+            extract_dataloader_args(self.training_args),
+            self.features_token_map,
+            state.relevant_lemmas,
+            state.prev_tactics,
+            state.hypotheses,
+            state.goal)
         # eprint(f"Word features: {word_features_batch}")
         # eprint(f"Vec features: {vec_features_batch}")
         model_output = self._model(torch.LongTensor([word_features_batch]),
                                    torch.FloatTensor([vec_features_batch]))
         # eprint(f"Model output: {model_output}")
-        return model_output[0].item()
+        return model_output[0].item() * self.training_args.max_distance
+    def _add_args_to_parser(self, parser : argparse.ArgumentParser,
+                            default_values : Dict[str, Any] = {}) -> None:
+        new_defaults = {"max-length": 100, **default_values}
+        super()._add_args_to_parser(parser, new_defaults)
 
-def data_to_tensor(word_features : List[WordFeature], vec_features : List[VecFeature],
-                   data : List[StateScore]) -> Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor]:
-    assert isinstance(data, list), data
-    assert isinstance(data[0], StateScore)
-    word_features = torch.LongTensor([[word_feature(x.state) for word_feature in word_features]
-                                      for x in data])
-    vec_features = torch.FloatTensor([[feature_val for vec_feature in vec_features
-                                       for feature_val in vec_feature(x.state)]
-                                      for x in data])
-    outputs = torch.FloatTensor([x.score for x in data])
-    return (word_features, vec_features, outputs)
+        add_nn_args(parser, default_values)
+        parser.add_argument("--max-distance", default=default_values.get("max-distance", 10), type=int)
+        parser.add_argument("--num-keywords", default=default_values.get("num-keywords", 100), type=int)
+        parser.add_argument("--max-string-distance", default=default_values.get("max-string-distance", 50), type=int);
+
+def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
+    dargs = DataloaderArgs();
+    dargs.max_distance = args.max_distance
+    dargs.max_length = args.max_length
+    dargs.num_keywords = args.num_keywords
+    dargs.max_string_distance = args.max_string_distance
+    return dargs
 
 def main(arg_list : List[str]) -> None:
     predictor = FeaturesDNNEvaluator()
