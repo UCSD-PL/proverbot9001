@@ -60,9 +60,12 @@ def main():
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
-    includes=subprocess.Popen(['make', '-j1', '-C', args.prelude, 'print-includes'],
-                              stdout=subprocess.PIPE).communicate()[0]\
-                       .strip().decode('utf-8')
+    try:
+        with open(args.prelude + "/_CoqProject", 'r') as includesfile:
+            includes = includesfile.read()
+    except FileNotFoundError:
+        eprint("Didn't find a _CoqProject file in prelude dir")
+        includes = ""
     thispath = os.path.dirname(os.path.abspath(__file__))
     # Set up the command which runs sertop.
     coqargs = ["sertop", "--implicit"]
@@ -90,9 +93,6 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     full_filename = args.prelude + "/" + filename
     result_file = full_filename + ".scrape"
     temp_file = full_filename + ".scrape.partial"
-    includes = subprocess.Popen(['cat', '{}/_CoqProject'.format(args.prelude)],
-                                stdout=subprocess.PIPE).communicate()[0]\
-                         .strip().decode('utf-8')
     if args.cont:
         with contextlib.suppress(FileNotFoundError):
             with open(result_file, 'r') as f:
