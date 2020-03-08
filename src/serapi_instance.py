@@ -693,6 +693,17 @@ class SerapiInstance(threading.Thread):
               _, lambda msg: raise_(CompletedError(completed)))
 
     def add_lib(self, origpath : str, logicalpath : str) -> None:
+        addStm = ("(Add () \"Add LoadPath \\\"{}\\\" as {}.\")\n"
+                  .format(origpath, logicalpath))
+        self.send_acked(addStm)
+        self.update_state()
+        self.get_completed()
+        self.send_acked("(Exec {})\n".format(self.cur_state))
+        self.discard_feedback()
+        self.discard_feedback()
+        self.get_completed()
+    def add_lib_rec(self, origpath : str, logicalpath : str) -> None:
+        print(f"Adding lib {origpath} -> {logicalpath}")
         addStm = ("(Add () \"Add Rec LoadPath \\\"{}\\\" as {}.\")\n"
                   .format(origpath, logicalpath))
         self.send_acked(addStm)
@@ -763,6 +774,8 @@ class SerapiInstance(threading.Thread):
 
     def exec_includes(self, includes_string : str, prelude : str) -> None:
         for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
+            self.add_lib_rec("./" + match.group(1), match.group(2))
+        for match in re.finditer("-Q\s*(\S*)\s*(\S*)\s*", includes_string):
             self.add_lib("./" + match.group(1), match.group(2))
 
     def update_state(self) -> None:
