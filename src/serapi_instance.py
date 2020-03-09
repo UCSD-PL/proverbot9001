@@ -314,7 +314,7 @@ class SerapiInstance(threading.Thread):
                     self.local_lemmas[ol_idx],\
                     self.local_lemmas
     def lemmas_defined_by_stmt(self, cmd : str) -> List[str]:
-        lemma_match = re.match(r"\s*(?:Theorem|Lemma|Remark|Proposition)\s+(\w*)(.*)",
+        lemma_match = re.match(r"\s*(?:Theorem|Lemma|Remark|Proposition|Instance)\s+(\w*)(.*)",
                                cmd,
                                flags=re.DOTALL)
 
