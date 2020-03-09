@@ -556,7 +556,7 @@ class SerapiInstance(threading.Thread):
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Invalid_argument']],
                     lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-                    ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str]]],
+                    ['Answer', int, ['CoqExn', [_, _, ['backtrace', ["Backtrace", []], [str]]]]],
                     lambda sentence, loc1, loc2, inner:
                     progn(self.get_completed(), raise_(CoqAnomaly("Overflowed")))
                     if re.search("Stack overflow", inner) else
@@ -564,9 +564,9 @@ class SerapiInstance(threading.Thread):
                     ['Stack overflow'],
                     lambda *args:
                     progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))),
-                    ['Answer', int, ['CoqExn', _, _, ["Backtrace", []], [str, str]]],
-                    lambda sentence, loc1, loc2, inner1, inner2:
-                    progn(self.get_completed(), raise_(CoqExn(inner1 + inner2))),
+                    ['Answer', int, ['CoqExn', TAIL]],
+                    lambda sentence, rest:
+                    progn(self.get_completed(), self.cancel_last(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
                     [str],
                     lambda contents:
                     progn(self.get_completed(), raise_(CoqExn(contents)))
@@ -579,7 +579,7 @@ class SerapiInstance(threading.Thread):
         while not self.message_queue.empty():
             self.get_message()
     def ppStrToTermStr(self, pp_str : str) -> str:
-        answer = self.ask(f"(Print ((pp_format PpStr)) (CoqPp {pp_str}))")
+        answer = self.ask(f"(Print ((pp ((pp_format PpStr)))) (CoqPp {pp_str}))")
         return match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
@@ -590,7 +590,7 @@ class SerapiInstance(threading.Thread):
         return self.ppStrToTermStr(dumps(pp))
     @functools.lru_cache(maxsize=128)
     def sexpStrToTermStr(self, sexp_str : str) -> str:
-        answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {sexp_str}))", complete=False)
+        answer = self.ask(f"(Print ((pp ((pp_format PpStr)))) (CoqConstr {sexp_str}))")
         result = match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
@@ -619,9 +619,8 @@ class SerapiInstance(threading.Thread):
         term_str = self.sexpToTermStr(term_sexp)
         return f"{ids_str} : {term_str}"
     def parseSexpGoalStr(self, sexp_str : str) -> Obligation:
-        goal_match = re.fullmatch("\(\(name\s*(\d+)\)\s*\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)",
-                                  sexp_str)
-        assert goal_match, sexp_str
+        goal_match = re.fullmatch("\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)\(name\s*\(\)\)\)\)\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
+        assert goal_match, sexp_str + "didn't match"
         goal_num_str, goal_term_str, hyps_list_str = \
             goal_match.group(1, 2, 3)
         goal_str = self.sexpStrToTermStr(goal_term_str)
@@ -703,7 +702,6 @@ class SerapiInstance(threading.Thread):
         self.discard_feedback()
         self.get_completed()
     def add_lib_rec(self, origpath : str, logicalpath : str) -> None:
-        print(f"Adding lib {origpath} -> {logicalpath}")
         addStm = ("(Add () \"Add Rec LoadPath \\\"{}\\\" as {}.\")\n"
                   .format(origpath, logicalpath))
         self.send_acked(addStm)
@@ -897,8 +895,8 @@ class SerapiInstance(threading.Thread):
         fin = next_message
         match(normalizeMessage(fin),
               ["Answer", _, "Completed", TAIL], lambda *args: None,
-              ['Answer', _, ["CoqExn", _, _, _, _]],
-              lambda statenum, loc1, loc2, loc3, inner: raise_(CoqExn(inner)),
+              ['Answer', _, ["CoqExn", [_, _, _, _, _, ['str', _]]]],
+              lambda statenum, loc1, loc2, loc3, loc4, loc5, inner: raise_(CoqExn(fin)),
               _, lambda *args: progn(eprint(f"message is \"{repr(fin)}\""), raise_(UnrecognizedError(fin)))
         )
 
@@ -975,10 +973,11 @@ class SerapiInstance(threading.Thread):
                 self.proof_context = None
             else:
                 goals_match = re.match("\(\(CoqGoal\s*"
-                                       "\(\(fg_goals\s*(.*)\)"
-                                       "\(bg_goals\s*(.*)\)"
-                                       "\(shelved_goals\s*(.*)\)"
-                                       "\(given_up_goals\s*(.*)\)\)\)\)",
+                                       "\(\(goals\s*(.*)\)"
+                                       "\(stack\s*(.*)\)"
+                                       "\(shelf\s*(.*)\)"
+                                       "\(given_up\s*(.*)\)"
+                                       "\(bullet\s*.*\)\)\)\)",
                                        context_str)
                 if not goals_match:
                     raise BadResponse(context_str)
@@ -1582,6 +1581,17 @@ def parseSexpOneLevel(sexp_str : str) -> Union[List[str], int, Symbol]:
     else:
         assert False, f"Couldn't parse {sexp_str}"
     return items
+
+def searchStrsInMsg(sexp) -> List[str]:
+    if isinstance(sexp, list) and len(sexp) > 0:
+        if sexp[0] == "str":
+            assert len(sexp) == 2 and isinstance(sexp[1], str)
+            return [sexp[1]]
+        else:
+            return [substr
+                    for substrs in [searchStrsInMsg(sublst) for sublst in sexp]
+                    for substr in substrs]
+    return []
 
 def main() -> None:
     parser = argparse.ArgumentParser(
