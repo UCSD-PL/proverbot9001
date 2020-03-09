@@ -1110,6 +1110,7 @@ def ending_proof(command : str) -> bool:
     return ("Qed" in stripped_command or
             "Defined" in stripped_command or
             "Admitted" in stripped_command or
+            "Abort" in stripped_command or
             (re.match("\s*Proof\s+\S+\s*", stripped_command) != None and
              re.match("\s*Proof\s+with", stripped_command) == None))
 
