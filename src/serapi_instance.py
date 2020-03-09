@@ -303,6 +303,8 @@ class SerapiInstance(threading.Thread):
         if abort_match:
             assert len(lemmas) == 0
             self.local_lemmas.pop()
+        elif ending_proof(cmd) and self.local_lemmas[-1][0] == ":":
+            self.local_lemmas.pop()
 
         for l_idx in range(len(self.local_lemmas)):
             for ol_idx in range(len(self.local_lemmas)):
@@ -333,6 +335,10 @@ class SerapiInstance(threading.Thread):
             constructor_lemmas = [self.module_prefix + case_match.group(1) for case_match in
                                   case_matches]
             return constructor_lemmas
+
+        unnamed_goal_match = re.match(r"\s*Goal\s+(.*)", cmd, flags=re.DOTALL)
+        if unnamed_goal_match:
+            return [f": {unnamed_goal_match.group(1)}"]
         return []
 
     @property
@@ -1091,6 +1097,7 @@ def possibly_starting_proof(command : str) -> bool:
     stripped_command = kill_comments(command).strip()
     return (re.match("Lemma\s", stripped_command) != None or
             re.match("Theorem\s", stripped_command) != None or
+            re.match("Goal\s", stripped_command) != None or
             re.match("Remark\s", stripped_command) != None or
             re.match("Proposition\s", stripped_command) != None or
             re.match("Definition\s", stripped_command) != None or
