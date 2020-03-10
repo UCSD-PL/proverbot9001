@@ -1481,7 +1481,6 @@ def tacticTakesIdentifierArg(stem : str) -> bool:
 def progn(*args):
     return args[-1]
 
-
 def lemma_name_from_statement(stmt: str) -> str:
     if "Goal" in stmt:
         return ""
