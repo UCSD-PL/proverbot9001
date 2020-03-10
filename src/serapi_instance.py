@@ -328,6 +328,16 @@ class SerapiInstance(threading.Thread):
                 lemma_statement = self.module_prefix + lemma_name + " " + body
             return [lemma_statement]
 
+        goal_match = re.match(r"\s*(?:Goal)\s+(.*)", cmd, flags=re.DOTALL)
+
+        if goal_match:
+            return [": " + goal_match.group(1)]
+
+        morphism_match = re.match(r"\s*Add\s+(?:Parametric\s+)?Morphism.*with signature(.*)\s+as\s+(\w*)\.",
+                                  cmd, flags=re.DOTALL)
+        if morphism_match:
+            return [morphism_match.group(2) + " : " + morphism_match.group(1)]
+
         proposition_match = re.match(r".*Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
                                      kill_comments(cmd), flags=re.DOTALL)
         if proposition_match:
@@ -336,9 +346,6 @@ class SerapiInstance(threading.Thread):
                                   case_matches]
             return constructor_lemmas
 
-        unnamed_goal_match = re.match(r"\s*Goal\s+(.*)", cmd, flags=re.DOTALL)
-        if unnamed_goal_match:
-            return [f": {unnamed_goal_match.group(1)}"]
         return []
 
     @property
