@@ -366,6 +366,14 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         lemma_statement = run_to_next_proof(coq, pbar)
                         if len(commands_in) == 0:
                             break
+                        if "Fixpoint" in lemma_statement:
+                            coq.cancel_last()
+                            original_tactics = run_to_next_vernac(coq, pbar, coq.proof_context,
+                                                                  lemma_statement)
+                            append_to_solution_vfile(args.output_dir, args.filename,
+                                                     [lemma_statement] +
+                                                     [tac.tactic for tac in original_tactics])
+                            continue
                         # Get beginning of next proof
                         num_proofs += 1
                         initial_context = coq.proof_context
