@@ -1396,11 +1396,13 @@ def progn(*args):
     return args[-1]
 
 def lemma_name_from_statement(stmt : str) -> str:
-    stmt = kill_comments(stmt)
-    lemma_match = re.match("\s*\S+\s+([\w']+)", stmt)
-    assert lemma_match, stmt
+    if "Goal" in stmt:
+        return ""
+    stripped_stmt = kill_comments(stmt).strip()
+    lemma_match = re.match("\S+\s+([\w']+)", stripped_stmt)
+    assert lemma_match, stripped_stmt
     lemma_name = lemma_match.group(1)
-    assert ":" not in lemma_name, stmt
+    assert ":" not in lemma_name, stripped_stmt
     return lemma_name
 
 def get_binder_var(goal : str, binder_idx : int) -> Optional[str]:
