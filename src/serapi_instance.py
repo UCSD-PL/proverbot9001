@@ -314,14 +314,14 @@ class SerapiInstance(threading.Thread):
                     self.local_lemmas[ol_idx],\
                     self.local_lemmas
     def lemmas_defined_by_stmt(self, cmd : str) -> List[str]:
-        lemma_match = re.match(r"\s*(?:Theorem|Lemma|Remark|Proposition|Instance)\s+(\w*)(.*)",
-                               cmd,
-                               flags=re.DOTALL)
+        normal_lemma_match = re.match(r"\s*(?:" + "|".join(normal_lemma_starting_patterns) + r")\s+(\w*)(.*)",
+                                      cmd,
+                                      flags=re.DOTALL)
 
-        if lemma_match:
-            lemma_name = lemma_match.group(1)
+        if normal_lemma_match:
+            lemma_name = normal_lemma_match.group(1)
             binders, body = unwrap(split_by_char_outside_matching(r"\(", r"\)", ":",
-                                                                  lemma_match.group(2)))
+                                                                  normal_lemma_match.group(2)))
             if binders.strip():
                 lemma_statement = self.module_prefix + lemma_name + " : forall " + binders + ", " + body[1:]
             else:
