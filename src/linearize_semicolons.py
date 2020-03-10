@@ -420,8 +420,6 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
             coq.run_stmt(command)
             if coq.proof_context:
                 lemma_stack.append([])
-            else:
-                coq.cancel_potential_local_lemmas(command)
             coq.cancel_last()
         if len(lemma_stack) > 0 and not lifted_vernac(command):
             lemma_stack[-1].append(command)
