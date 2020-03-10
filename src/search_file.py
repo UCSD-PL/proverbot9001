@@ -33,7 +33,7 @@ from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import ProofContext, Obligation
+from serapi_instance import ProofContext, Obligation, SerapiInstance
 
 import linearize_semicolons
 # import syntax
@@ -134,7 +134,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default=None)
+    parser.add_argument('--weightsfile', default=None, type=Path2)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
@@ -328,6 +328,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             try:
                 # print("Starting a coq instance...")
                 with serapi_instance.SerapiContext(coqargs, includes, args.prelude, use_hammer=args.use_hammer) as coq:
+                    try_run_prelude(args, coq)
                     if args.progress:
                         pbar.reset()
                     for command in commands_run:
@@ -751,6 +752,21 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
             blocks_out.append(VernacBlock(curVernacCmds))
         return orig_svfile_commands, list(commands_in_iter), blocks_out,\
             num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
+
+def try_run_prelude(args: argparse.Namespace, coq : SerapiInstance):
+    if not args.weightsfile:
+        eprint("No weightsfile")
+        return
+    prelude_path = args.weightsfile.with_suffix(".prelude.v")
+    if not prelude_path.exists():
+        eprint(f"Couldn't find prelude at {prelude_path}")
+        return
+    eprint("Running prelude:", guard=args.verbose>=2)
+    prelude_commands = serapi_instance.load_commands_preserve(args, 0, prelude_path)
+    for command in prelude_commands:
+        eprint(f"Found command {command}", guard=args.verbose>=2)
+        coq.run_stmt(command)
+    eprint("Finished with prelude", guard=args.verbose>=2)
 
 # The core of the search report
 
