@@ -285,13 +285,9 @@ class SerapiInstance(threading.Thread):
         for lemma in lemmas:
             self.local_lemmas.remove(lemma)
 
-    def add_potential_local_lemmas(self, cmd : str) -> None:
-        lemmas = self.lemmas_defined_by_stmt(cmd)
-        for lemma in lemmas:
-            self.local_lemmas.append(lemma)
+    def remove_potential_local_lemmas(self, cmd : str) -> None:
         reset_match = re.match("Reset\s+(.*)\.", cmd)
         if reset_match:
-            assert len(lemmas) == 0
             reseted_lemma_name = self.module_prefix + reset_match.group(1)
             for lemma in list(self.local_lemmas):
                 lemma_match = re.match("\s*([\w'\.]+)\s*:", lemma)
@@ -301,10 +297,12 @@ class SerapiInstance(threading.Thread):
                     self.local_lemmas.remove(lemma)
         abort_match = re.match("Abort", cmd)
         if abort_match:
-            assert len(lemmas) == 0
-            self.local_lemmas.pop()
-        elif ending_proof(cmd) and self.local_lemmas[-1][0] == ":":
-            self.local_lemmas.pop()
+            popped = self.local_lemmas.pop()
+
+    def add_potential_local_lemmas(self, cmd : str) -> None:
+        lemmas = self.lemmas_defined_by_stmt(cmd)
+        for lemma in lemmas:
+            self.local_lemmas.append(lemma)
 
         for l_idx in range(len(self.local_lemmas)):
             for ol_idx in range(len(self.local_lemmas)):
@@ -478,7 +476,6 @@ class SerapiInstance(threading.Thread):
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
             for stm in preprocess_command(kill_comments(stmt)):
-                self.add_potential_local_lemmas(stm)
                 self.add_potential_module_stack_cmd(stm)
                 # Get initial context
                 context_before = self.proof_context
@@ -501,6 +498,12 @@ class SerapiInstance(threading.Thread):
                 else:
                     self.get_proof_context()
 
+                if not context_before and self.proof_context:
+                    self.add_potential_local_lemmas(stm)
+                elif not self.proof_context and context_before:
+                    self.remove_potential_local_lemmas(stm)
+
+                # Manage the tactic history
                 if possibly_starting_proof(stm) and self.proof_context:
                     self.tactic_history = TacticHistory()
                     self.tactic_history.addTactic(stm)
