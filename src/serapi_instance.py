@@ -707,6 +707,16 @@ class SerapiInstance(threading.Thread):
         self.discard_feedback()
         self.discard_feedback()
         self.get_completed()
+    def add_ocaml_lib(self, path : str) -> None:
+        addStm = ("(Add () \"Add ML Path \\\"{}\\\".\")\n"
+                  .format(path))
+        self.send_acked(addStm)
+        self.update_state()
+        self.get_completed()
+        self.send_acked("(Exec {})\n".format(self.cur_state))
+        self.discard_feedback()
+        self.discard_feedback()
+        self.get_completed()
     def add_lib_rec(self, origpath : str, logicalpath : str) -> None:
         addStm = ("(Add () \"Add Rec LoadPath \\\"{}\\\" as {}.\")\n"
                   .format(origpath, logicalpath))
@@ -781,6 +791,8 @@ class SerapiInstance(threading.Thread):
             self.add_lib_rec("./" + match.group(1), match.group(2))
         for match in re.finditer("-Q\s*(\S*)\s*(\S*)\s*", includes_string):
             self.add_lib("./" + match.group(1), match.group(2))
+        for match in re.finditer("-I\s*(\S*)", includes_string):
+            self.add_ocaml_lib("./" + match.group(1))
 
     def update_state(self) -> None:
         self.cur_state = self.get_next_state()
