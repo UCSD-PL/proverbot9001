@@ -1093,24 +1093,33 @@ def SerapiContext(coq_commands : List[str], includes : str, prelude : str, use_h
     yield coq
     coq.kill()
 
+normal_lemma_starting_patterns = [
+    "Lemma",
+    "Theorem",
+    "Remark",
+    "Proposition",
+    "Definition",
+    "Program Definition",
+    "Example",
+    "Fixpoint",
+    "Corollary",
+    "Let",
+    r"(?<!Declare\s)Instance",
+    "Global Instance",
+    "Local Instance",
+    "Function",
+    "Property"]
+special_lemma_starting_patterns = [
+    "Goal",
+    "Add Morphism",
+    "Next Obligation",
+    "Obligation\s+\d+",
+    "Add Parametric Morphism"]
+lemma_starting_patterns = normal_lemma_starting_patterns + special_lemma_starting_patterns
+
 def possibly_starting_proof(command : str) -> bool:
     stripped_command = kill_comments(command).strip()
-    return (re.match("Lemma\s", stripped_command) != None or
-            re.match("Theorem\s", stripped_command) != None or
-            re.match("Goal\s", stripped_command) != None or
-            re.match("Remark\s", stripped_command) != None or
-            re.match("Proposition\s", stripped_command) != None or
-            re.match("Definition\s", stripped_command) != None or
-            re.match("Example\s", stripped_command) != None or
-            re.match("Fixpoint\s", stripped_command) != None or
-            re.match("Corollary\s", stripped_command) != None or
-            re.match("Let\s", stripped_command) != None or
-            ("Instance" in stripped_command and
-             "Declare" not in stripped_command) or
-            re.match("Function\s", stripped_command) != None or
-            re.match("Next Obligation", stripped_command) != None or
-            re.match("Property\s", stripped_command) != None or
-            re.match("Add Morphism\s", stripped_command) != None)
+    return re.match("(" + "|".join(lemma_starting_patterns) + ")\s*", stripped_command)
 
 def ending_proof(command : str) -> bool:
     stripped_command = kill_comments(command).strip()
