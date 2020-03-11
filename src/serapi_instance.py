@@ -500,7 +500,7 @@ class SerapiInstance(threading.Thread):
 
                 if not context_before and self.proof_context:
                     self.add_potential_local_lemmas(stm)
-                elif not self.proof_context and context_before:
+                elif not self.proof_context:
                     self.remove_potential_local_lemmas(stm)
 
                 # Manage the tactic history
