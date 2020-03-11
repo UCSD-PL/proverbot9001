@@ -825,9 +825,9 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, list],
                      lambda state_num, contents:
                      match(contents,
-                           ["CoqExn", _, _, _, _],
-                           lambda loc1, loc2, loc3, inner:
-                           raise_(CoqExn(inner)),
+                           ["CoqExn", TAIL],
+                           lambda rest:
+                           raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
                            ["Added", int, TAIL],
                            lambda state_num, tail: state_num),
                      _, lambda x: raise_(BadResponse(msg)))
@@ -938,7 +938,6 @@ class SerapiInstance(threading.Thread):
         return len(self.proof_context.fg_goals)
 
     def get_cancelled(self) -> int:
-        # try:
         feedback = self.get_message()
 
         new_statenum = \
