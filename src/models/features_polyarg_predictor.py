@@ -469,6 +469,8 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("max-beam-width", 10))
         parser.add_argument("--no-lemma-args", dest="lemma_args", action='store_false')
         parser.add_argument("--no-features", dest="features", action="store_false")
+        parser.add_argument("--no-hyp-rnn", dest="hyp_rnn", action="store_false")
+
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
@@ -642,7 +644,10 @@ class FeaturesPolyargPredictor(
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
-        tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
+        if arg_values.hyp_rnn:
+            tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
+        else:
+            tokenized_hyps_var = maybe_cuda(Variable(torch.zeros_like(tokrnized_hyp_types_batch)))
         hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
         goal_arg_values = model.goal_args_model(
             mergedStemIdxsT.view(batch_size * stem_width),
