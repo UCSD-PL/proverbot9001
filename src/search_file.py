@@ -370,9 +370,14 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                             coq.cancel_last()
                             original_tactics = run_to_next_vernac(coq, pbar, coq.proof_context,
                                                                   lemma_statement)
+                            original_commands = [lemma_statement] + [tac.tactic for tac in original_tactics]
                             append_to_solution_vfile(args.output_dir, args.filename,
-                                                     [lemma_statement] +
-                                                     [tac.tactic for tac in original_tactics])
+                                                     [lemma_statement, "Proof.", "Admitted.",
+                                                      "Reset " + serapi_instance.lemma_name_from_statement(lemma_statement)
+                                                      + "."])
+                            append_to_solution_vfile(args.output_dir, args.filename,
+                                                     original_commands)
+                            blocks_out.append(VernacBlock(original_commands))
                             continue
                         # Get beginning of next proof
                         num_proofs += 1
