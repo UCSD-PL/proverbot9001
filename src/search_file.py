@@ -690,6 +690,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                     loaded_command = next(commands_in_iter)
                     if in_proof:
                         if not skip_sync_next_lemma:
+                            curProofInters.append(TacticInteraction(saved_command, context_before))
                             num_proofs += 1
                             if re.match("Qed\.", saved_command):
                                 search_status = SearchStatus.SUCCESS
@@ -754,7 +755,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         curLemma = saved_command
                         blocks_out.append(VernacBlock(curVernacCmds))
                         curProofInters = []
-                    curProofInters.append(TacticInteraction(saved_command, context_before))
+                    else:
+                        curProofInters.append(TacticInteraction(saved_command, context_before))
         assert not in_proof
         if curVernacCmds:
             blocks_out.append(VernacBlock(curVernacCmds))
