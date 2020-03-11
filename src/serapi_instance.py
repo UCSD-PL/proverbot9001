@@ -1627,7 +1627,7 @@ def parseSexpOneLevel(sexp_str : str) -> Union[List[str], int, Symbol]:
 
 def searchStrsInMsg(sexp) -> List[str]:
     if isinstance(sexp, list) and len(sexp) > 0:
-        if sexp[0] == "str":
+        if sexp[0] == "str" or sexp[0] == Symbol("str"):
             assert len(sexp) == 2 and isinstance(sexp[1], str)
             return [sexp[1]]
         else:
