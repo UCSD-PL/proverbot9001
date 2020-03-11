@@ -995,28 +995,27 @@ class SerapiInstance(threading.Thread):
         return len(self.proof_context.fg_goals)
 
     def get_cancelled(self) -> int:
-        feedback = self.get_message()
+        try:
+            feedback = self.get_message()
 
-        new_statenum = \
-            match(normalizeMessage(feedback),
-                  ["Answer", int, ["CoqExn", TAIL]],
-                  lambda state_id, rest:
-                  raise_(CoqAnomaly(searchStrsInMsg(rest)[0]))
-                  if "Anomaly" in searchStrsInMsg(rest)[0] else
-                  raise_(CoqExn(searchStrsInMsg(rest))),
-                  ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
-                  lambda docnum, statenum, *rest: statenum,
-                  _, lambda *args: raise_(BadResponse(feedback)))
+            new_statenum = \
+                match(normalizeMessage(feedback),
+                      ["Answer", int, ["CoqExn", TAIL]],
+                      lambda *args: raise_(CoqExn(feedback)),
+                      ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
+                      lambda docnum, statenum, *rest: statenum,
+                      _, lambda *args: raise_(BadResponse(feedback)))
 
-        cancelled_answer = self.get_message()
-        old_statenum = \
-            match(normalizeMessage(cancelled_answer),
-                  ["Answer", int, ["Canceled", list]],
-                  lambda _, statenums: min(statenums),
-                  ["Answer", int, ["CoqExn", _, _, _, _]],
-                  lambda *args: raise_(CoqExn(cancelled_answer)),
-                  _, lambda *args: raise_(BadResponse(cancelled_answer)))
-        self.get_completed()
+            cancelled_answer = self.get_message()
+            old_statenum = \
+                match(normalizeMessage(cancelled_answer),
+                      ["Answer", int, ["Canceled", list]],
+                      lambda _, statenums: min(statenums),
+                      ["Answer", int, ["CoqExn", TAIL]],
+                      lambda rest: raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
+                      _, lambda *args: raise_(BadResponse(cancelled_answer)))
+        finally:
+            self.get_completed()
 
         return new_statenum
 
