@@ -480,7 +480,7 @@ class SerapiInstance(threading.Thread):
                 # Get initial context
                 context_before = self.proof_context
                 # Send the command
-                assert self.message_queue.empty()
+                assert self.message_queue.empty(), self.messages
                 self.send_acked("(Add () \"{}\")\n".format(stm))
                 # Get the response, which indicates what state we put
                 # serapi in.
@@ -534,8 +534,8 @@ class SerapiInstance(threading.Thread):
         return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
-        eprint("Problem running statement: {}\n{}".format(stmt, e),
-               guard=(not self.quiet or self.verbose))
+        eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
+               guard=(not self.quiet or self.verbose >= 2))
         match(e,
               TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                                 self.cancel_last(), # type: ignore
@@ -886,7 +886,7 @@ class SerapiInstance(threading.Thread):
                     except:
                         raise CoqAnomaly("Timing out")
                     assert isBreakMessage(msg), msg
-                assert self.message_queue.empty()
+                assert self.message_queue.empty(), self.messages
                 return dumps(interrupt_response)
             elif isBreakMessage(interrupt_response):
                 raise TimeoutError("")
@@ -911,7 +911,7 @@ class SerapiInstance(threading.Thread):
                 raise TimeoutError("")
             elif interrupt_response[0] == Symbol("Feedback"): # type: ignore
                 self.get_completed()
-                assert self.message_queue.empty()
+                assert self.message_queue.empty(), self.messages
                 return dumps(interrupt_response)
             assert False, (interrupt_response, self.messages)
 
@@ -1056,7 +1056,7 @@ class SerapiInstance(threading.Thread):
         if (goal_head == "forall"):
             return []
         answer = self.search_about(goal_head)
-        assert self.message_queue.empty()
+        assert self.message_queue.empty(), self.messages
         return answer
 
 
