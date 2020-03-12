@@ -468,8 +468,11 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 10))
         parser.add_argument("--no-lemma-args", dest="lemma_args", action='store_false')
+        parser.add_argument("--no-hyp-features", dest="hyp_features", action="store_false")
         parser.add_argument("--no-features", dest="features", action="store_false")
         parser.add_argument("--no-hyp-rnn", dest="hyp_rnn", action="store_false")
+        parser.add_argument("--no-goal-rnn", dest="goal_rnn", action="store_false")
+        parser.add_argument("--replace-rnns-with-dnns", action="store_true")
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -648,7 +651,12 @@ class FeaturesPolyargPredictor(
             tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
         else:
             tokenized_hyps_var = maybe_cuda(Variable(torch.zeros_like(tokrnized_hyp_types_batch)))
-        hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
+
+        if arg_values.hyp_features:
+            hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
+        else:
+            hyp_features_var = maybe_cuda(Variable(torch.zeros_like(hyp_features_batch)))
+
         goal_arg_values = model.goal_args_model(
             mergedStemIdxsT.view(batch_size * stem_width),
             tokenized_goals_batch.view(batch_size, 1, goal_size).expand(-1, stem_width, -1)
@@ -665,6 +673,8 @@ class FeaturesPolyargPredictor(
             encoded_goals.view(batch_size, 1, 1, encoded_goal_size)\
             .expand(-1, stem_width, hyp_lists_length, -1).contiguous()\
             .view(batch_size * stem_width * hyp_lists_length, encoded_goal_size)
+        if not arg_values.goal_rnn:
+            encoded_goals_expanded = torch.zeros_like(encoded_goals_expanded)
         stems_expanded = \
             mergedStemIdxsT.view(batch_size, stem_width, 1)\
             .expand(-1, -1, hyp_lists_length).contiguous()\
