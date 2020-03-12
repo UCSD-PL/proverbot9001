@@ -604,19 +604,19 @@ class SerapiInstance(threading.Thread):
                                                           .format(stmt)))),
                     'Not_found',
                     lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['CErrors\\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.get_completed(),
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['ExplainErr\\.EvaluatedError', TAIL],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.get_completed(),
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['Proofview.NoSuchGoals(1)'],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
                                         self.get_completed(),
-                                        self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
+                                        self.cancel_failed(), raise_(NoSuchGoalError())), # type: ignore
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
@@ -633,12 +633,17 @@ class SerapiInstance(threading.Thread):
                     progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))),
                     ['Answer', int, ['CoqExn', TAIL]],
                     lambda sentence, rest:
-                    progn(self.get_completed(), self.cancel_last(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
+                    progn(self.get_completed(), self.cancel_failed(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
                     [str],
                     lambda contents:
-                    progn(self.get_completed(), raise_(CoqExn(contents)))
+                    progn(self.get_completed(), raise_(CoqAnomaly(contents)))
                     if re.search("Anomaly", contents) else
                     raise_(UnrecognizedError(contents)),
+                    str,
+                    lambda contents:
+                    progn(self.get_completed(), raise_(ParseError(contents)))
+                    if "Syntax error" in contents else
+                    raise_(CoqExn(contents)),
                     _, lambda *args: progn(raise_(UnrecognizedError(args)))))
 
     # Flush all messages in the message queue
