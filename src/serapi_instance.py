@@ -537,8 +537,7 @@ class SerapiInstance(threading.Thread):
         eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
                guard=(not self.quiet or self.verbose >= 2))
         match(e,
-              TimeoutError, lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                                self.cancel_last(), # type: ignore
+              TimeoutError, lambda *args: progn(self.cancel_failed(), # type: ignore
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
                                                                     .format(stmt)))),
               _, lambda e:
@@ -554,20 +553,19 @@ class SerapiInstance(threading.Thread):
                                                           .format(stmt)))),
                     'Not_found',
                     lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['CErrors\\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(),
-                                        # self.get_completed(),
-                                        raise_(e)), # type: ignore
+                                        self.get_completed(),
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['ExplainErr\\.EvaluatedError', TAIL],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(),
-                                        # self.get_completed(),
-                                        raise_(e)), # type: ignore
+                                        self.get_completed(),
+                                        self.cancel_failed(), raise_(e)), # type: ignore
                     ['Proofview.NoSuchGoals(1)'],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
+                                        self.get_completed(),
+                                        self.cancel_failed(), raise_(NoSuchGoalError())), # type: ignore
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
                     lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
@@ -584,12 +582,17 @@ class SerapiInstance(threading.Thread):
                     progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))),
                     ['Answer', int, ['CoqExn', TAIL]],
                     lambda sentence, rest:
-                    progn(self.get_completed(), self.cancel_last(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
+                    progn(self.get_completed(), self.cancel_failed(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
                     [str],
                     lambda contents:
-                    progn(self.get_completed(), raise_(CoqExn(contents)))
+                    progn(self.get_completed(), raise_(CoqAnomaly(contents)))
                     if re.search("Anomaly", contents) else
                     raise_(UnrecognizedError(contents)),
+                    str,
+                    lambda contents:
+                    progn(self.get_completed(), raise_(ParseError(contents)))
+                    if "Syntax error" in contents else
+                    raise_(CoqExn(contents)),
                     _, lambda *args: progn(raise_(UnrecognizedError(args)))))
 
     # Flush all messages in the message queue
@@ -664,11 +667,10 @@ class SerapiInstance(threading.Thread):
     # still cancel it. You need to call this after a command that
     # fails after parsing, but not if it fails before.
     def cancel_last(self) -> None:
-        assert self.message_queue.empty(), self.messages
         context_before = self.proof_context
-        if context_before:
+        if self.proof_context:
             cancelled = self.tactic_history.getNextCancelled()
-            old_subgoals = context_before.fg_goals
+            old_subgoals = self.proof_context.fg_goals
             eprint(f"Cancelling {cancelled} "
                    f"from state {self.cur_state}",
                    guard=self.verbose)
@@ -679,6 +681,19 @@ class SerapiInstance(threading.Thread):
             eprint(f"Cancelling vernac "
                    f"from state {self.cur_state}",
                    guard=self.verbose)
+        self.__cancel()
+
+        # Fix up the previous tactics
+        if context_before:
+            self.tactic_history.removeLast(context_before.fg_goals)
+        if not self.proof_context:
+            assert len(self.tactic_history.getFullHistory()) == 0, "History is desynced!"
+            self.tactic_history = TacticHistory()
+        assert self.message_queue.empty(), self.messages
+
+    def __cancel(self) -> None:
+        self.flush_queue()
+        assert self.message_queue.empty(), self.messages
         # Run the cancel
         self.send_acked("(Cancel ({}))".format(self.cur_state))
         # Get the response from cancelling
@@ -686,12 +701,8 @@ class SerapiInstance(threading.Thread):
         # Get a new proof context, if it exists
         self.get_proof_context()
 
-        # Fix up the previous tactics
-        if context_before:
-            self.tactic_history.removeLast(old_subgoals)
-        if not self.proof_context:
-            self.tactic_history = TacticHistory()
-        assert self.message_queue.empty(), self.messages
+    def cancel_failed(self) -> None:
+        self.__cancel()
 
     # Get the next message from the message queue, and make sure it's
     # an Ack
