@@ -585,7 +585,7 @@ class SerapiInstance(threading.Thread):
         return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
-        eprint("Problem running statement: {}\n".format(stmt),
+        eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
                guard=(not self.quiet or self.verbose >= 2))
         match(e,
               TimeoutError, lambda *args: progn(self.cancel_failed(), # type: ignore
@@ -971,6 +971,11 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 assert self.message_queue.empty(), self.messages
                 raise TimeoutError("")
+            elif interrupt_response[0] == Symbol("Feedback"): # type: ignore
+                self.get_completed()
+                assert self.message_queue.empty(), self.messages
+                return dumps(interrupt_response)
+            assert False, (interrupt_response, self.messages)
 
     def get_feedbacks(self) -> List['Sexp']:
         feedbacks = []  # type: List[Sexp]
