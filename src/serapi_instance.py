@@ -1539,8 +1539,17 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
     def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
         match = pat.search(contents, curPos)
         return match, match.end() if match else len(contents) + 1
+    try:
+        should_show = args.progress
+    except AttributeError:
+        should_show = False
+    try:
+        should_show = should_show or args.read_progress
+    except AttributeError:
+        pass
+
     with tqdm(total=len(contents)+1, file=sys.stdout,
-              disable=(not args.progress),
+              disable=(not should_show),
               position = (file_idx * 2),
               desc="Reading file", leave=False,
               dynamic_ncols=True, bar_format=mybarfmt) as pbar:

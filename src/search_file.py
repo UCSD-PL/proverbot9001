@@ -130,6 +130,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_true')
+    parser.add_argument("--read-progress", "-p", help="show progress of reading the file",
+                        action='store_true')
     parser.add_argument("--hardfail", "-f", help="fail when hitting a coq anomaly",
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
