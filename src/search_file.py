@@ -707,12 +707,8 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                 num_proofs_failed += 1
                             else:
                                 search_status = SearchStatus.INCOMPLETE
-                            coq.cancel_last()
-                            try:
-                                while coq.proof_context != None:
-                                    coq.cancel_last()
-                            except serapi_instance.CoqExn as e:
-                                raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
+                            lemma_name = serapi_instance.lemma_name_from_statement(curLemma)
+                            coq.run_stmt(f"Reset {lemma_name}.")
 
                             origProofInters = []
                     else:
