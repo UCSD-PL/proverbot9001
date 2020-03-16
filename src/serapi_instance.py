@@ -1581,7 +1581,7 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
               if not in_quote:
                   comment_depth += 1
           elif nextPos == next_close_comment:
-              if not in_quote:
+              if not in_quote and comment_depth > 0:
                   comment_depth -= 1
           elif nextPos == next_bracket:
               if not in_quote and comment_depth == 0 and \
