@@ -502,10 +502,10 @@ class SerapiInstance(threading.Thread):
                     self.add_potential_local_lemmas(stm)
                 elif not self.proof_context:
                     self.remove_potential_local_lemmas(stm)
+                    self.tactic_history = TacticHistory()
 
                 # Manage the tactic history
                 if possibly_starting_proof(stm) and self.proof_context:
-                    self.tactic_history = TacticHistory()
                     self.tactic_history.addTactic(stm)
                 elif re.match(r"\s*[{]\s*", stm):
                     assert context_before
@@ -669,12 +669,16 @@ class SerapiInstance(threading.Thread):
     def cancel_last(self) -> None:
         context_before = self.proof_context
         if self.proof_context:
-            cancelled = self.tactic_history.getNextCancelled()
             old_subgoals = self.proof_context.fg_goals
-            eprint(f"Cancelling {cancelled} "
-                   f"from state {self.cur_state}",
-                   guard=self.verbose)
-            self.cancel_potential_local_lemmas(cancelled)
+            if len(self.tactic_history.getFullHistory()) > 0:
+                cancelled = self.tactic_history.getNextCancelled()
+                eprint(f"Cancelling {cancelled} "
+                       f"from state {self.cur_state}",
+                       guard=self.verbose)
+                self.cancel_potential_local_lemmas(cancelled)
+            else:
+                eprint(f"Cancelling something (not in history)",
+                       guard=self.verbose)
         else:
             cancelled = ""
             old_subgoals = []
@@ -684,10 +688,10 @@ class SerapiInstance(threading.Thread):
         self.__cancel()
 
         # Fix up the previous tactics
-        if context_before:
+        if context_before and len(self.tactic_history.getFullHistory()) > 0:
             self.tactic_history.removeLast(context_before.fg_goals)
         if not self.proof_context:
-            assert len(self.tactic_history.getFullHistory()) == 0, "History is desynced!"
+            assert len(self.tactic_history.getFullHistory()) == 0, ("History is desynced!", self.tactic_history.getFullHistory())
             self.tactic_history = TacticHistory()
         assert self.message_queue.empty(), self.messages
 
