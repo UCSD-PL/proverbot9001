@@ -205,8 +205,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
 
     if args.resume:
         try:
-            if args.check_consistent:
-                check_csv_args(args, args.filename)
+            check_csv_args(args, args.filename)
             with tqdm(total=1, unit="cmd", file=sys.stdout,
                       desc=args.filename.name + " (Resumed)",
                       disable=(not args.progress),
@@ -508,16 +507,17 @@ def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
     num_proofs_completed = 0
     with open(args.output_dir / (escape_filename(str(vfilename)) + ".csv"),
               'r', newline='') as csvfile:
-        saved_args, rest_iter = read_csv_options(csvfile)
-        for arg in important_args:
-            try:
-                oldval = str(vars(saved_args)[arg])
-                newval = str(vars(args)[arg])
-                if oldval != newval:
-                    raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
-                                                f"new value is {newval}")
-            except KeyError:
-                raise ArgsMismatchException(f"No old value for arg {arg} found.")
+        if args.check_consistent:
+            saved_args, rest_iter = read_csv_options(csvfile)
+            for arg in important_args:
+                try:
+                    oldval = str(vars(saved_args)[arg])
+                    newval = str(vars(args)[arg])
+                    if oldval != newval:
+                        raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
+                                                    f"new value is {newval}")
+                except KeyError:
+                    raise ArgsMismatchException(f"No old value for arg {arg} found.")
 
 def write_html(args : argparse.Namespace,
                output_dir : str, filename : Path2,
