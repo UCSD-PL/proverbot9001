@@ -1548,12 +1548,18 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
     except AttributeError:
         pass
 
+    try:
+        command_limit = args.command_limit
+    except AttributeError:
+        command_limit == None
+
     with tqdm(total=len(contents)+1, file=sys.stdout,
               disable=(not should_show),
               position = (file_idx * 2),
               desc="Reading file", leave=False,
               dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-      while curPos < len(contents):
+      while curPos < len(contents) and (command_limit == None or
+                                        len(result) < command_limit):
           _, next_quote = search_pat(re.compile(r"(?<!\\)\""))
           _, next_open_comment = search_pat(re.compile(r"\(\*"))
           _, next_close_comment = search_pat(re.compile(r"\*\)"))

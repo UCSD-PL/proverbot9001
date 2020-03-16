@@ -166,6 +166,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--relevant-lemmas", dest="relevant_lemmas",
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
+    parser.add_argument("--command-limit", type=int, default=None)
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
