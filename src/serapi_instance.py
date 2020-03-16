@@ -1503,6 +1503,9 @@ def summarizeContext(context : ProofContext) -> None:
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
+    goal_selector_match = re.fullmatch("\s*\d+:(.*)", command, flags=re.DOTALL)
+    if goal_selector_match:
+        return isValidCommand(goal_selector_match.group(1))
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
         and (command.count('(') == command.count(')'))
 
@@ -1563,7 +1566,7 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
                   comment_depth -= 1
           elif nextPos == next_bracket:
               if not in_quote and comment_depth == 0 and \
-                 re.match("\s*$", kill_comments(cur_command[:-1])):
+                 re.match("\s*\d*:?\s*$", kill_comments(cur_command[:-1])):
                   result.append(cur_command)
                   cur_command = ""
           elif nextPos == next_bullet:
