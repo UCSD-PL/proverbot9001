@@ -507,7 +507,7 @@ class SerapiInstance(threading.Thread):
                 # Manage the tactic history
                 if possibly_starting_proof(stm) and self.proof_context:
                     self.tactic_history.addTactic(stm)
-                elif re.match(r"\s*[{]\s*", stm):
+                elif re.match(r"\s*(?:\d+:)?\s*[{]\s*", stm):
                     assert context_before
                     self.tactic_history.openSubgoal(context_before.fg_goals[1:])
                 elif re.match(r"\s*[}]\s*", stm):
