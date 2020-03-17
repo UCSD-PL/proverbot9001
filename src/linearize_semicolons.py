@@ -113,9 +113,10 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
                                                        args.verbose, skip_nochange_tac))
             yield from linearized_commands
         except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
-            eprint("Aborting current proof linearization!")
-            eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
-            eprint()
+            if args.verbose:
+                eprint("Aborting current proof linearization!")
+                eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
+                eprint()
             if args.hardfail:
                 raise e
             coq.run_stmt("Abort.")
@@ -439,6 +440,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
     try:
         with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
             coq.verbose = args.verbose
+            coq.quiet = True
             with tqdm(file=sys.stdout,
                       disable=not args.progress,
                       position=(file_idx * 2),
