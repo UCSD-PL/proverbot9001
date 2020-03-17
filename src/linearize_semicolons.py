@@ -375,7 +375,7 @@ def desugar_assert_by(cmd : str) -> str:
     if assert_by_match:
         prefix = cmd[:assert_by_match.start()]
         after_match = cmd[assert_by_match.end():]
-        split = split_by_char_outside_matching("[[(]", "[\])]",
+        split = split_by_char_outside_matching("[\[(]", "[\])]",
                                                r"\.\W|\.$|[|]",
                                                after_match)
         assert split
@@ -388,7 +388,7 @@ def desugar_now(command : str) -> str:
     while(now_match):
         prefix = command[:now_match.start()]
         after_match = command[now_match.end():]
-        split = split_by_char_outside_matching("[[(]", "[\])]",
+        split = split_by_char_outside_matching("[\[(]", "[\])]",
                                                r"\.\W|\.$|]|\||\)",
                                                after_match)
         assert split
