@@ -370,7 +370,7 @@ class SerapiInstance(threading.Thread):
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
     def send_flush(self, cmd : str):
-        eprint("SENT: " + cmd, guard=self.verbose >= 3)
+        eprint("SENT: " + cmd, guard=self.verbose >= 4)
         self._fin.write(cmd.encode('utf-8'))
         self._fin.flush()
         self._current_fg_goal_count = None
@@ -1082,7 +1082,7 @@ class SerapiInstance(threading.Thread):
             line = self._fout.readline().decode('utf-8')
             if line == '': break
             self.message_queue.put(line)
-            eprint(f"RECEIVED: {line}", guard=self.verbose >= 3)
+            eprint(f"RECEIVED: {line}", guard=self.verbose >= 4)
 
     def add_potential_module_stack_cmd(self, cmd : str) -> None:
         stripped_cmd = kill_comments(cmd).strip()
