@@ -204,7 +204,10 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
             else:
                 assert isinstance(pending_commands_stack[-1], list)
                 pending_cmd_lst = pending_commands_stack[-1]
-                old_selected_cmd = pending_cmd_lst[goal_num - 2]
+                try:
+                    old_selected_cmd = pending_cmd_lst[goal_num - 2]
+                except IndexError:
+                    raise LinearizerCouldNotLinearize
                 match = re.match("(.*)\.$", old_selected_cmd, re.DOTALL)
                 assert match, f"\"{old_selected_cmd}\" doesn't match!"
                 cmd_before_period = unwrap(match).group(1)
