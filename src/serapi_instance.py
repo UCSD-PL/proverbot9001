@@ -1512,7 +1512,7 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
     try:
         command_limit = args.command_limit
     except AttributeError:
-        command_limit == None
+        command_limit = None
 
     with tqdm(total=len(contents)+1, file=sys.stdout,
               disable=(not should_show),
