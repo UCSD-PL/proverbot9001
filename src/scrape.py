@@ -129,7 +129,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     except Exception as e:
         eprint("FAILED: In file {}:".format(filename))
         eprint(e)
-        if args.hardfail:
+        if args.hardfail or len(args.inputs) == 1:
             raise e
     return None
 
