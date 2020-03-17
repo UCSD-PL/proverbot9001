@@ -479,6 +479,7 @@ class SerapiInstance(threading.Thread):
                 self.add_potential_module_stack_cmd(stm)
                 # Get initial context
                 context_before = self.proof_context
+                history_len_before = len(self.tactic_history.getFullHistory())
                 # Send the command
                 assert self.message_queue.empty(), self.messages
                 self.send_acked("(Add () \"{}\")\n".format(stm))
@@ -528,6 +529,13 @@ class SerapiInstance(threading.Thread):
             if self.proof_context and self.verbose >= 3:
                 eprint(f"History is now {self.tactic_history.getFullHistory()}")
                 summarizeContext(self.proof_context)
+            assert len(self.tactic_history.getFullHistory()) == history_len_before + 1 or \
+                (re.match("(?:\d+:)?{", stmt.strip()) and
+                 len(self.tactic_history.getFullHistory()) == history_len_before + 2) or \
+                (stmt.strip() == "}" and len(self.tactic_history.getFullHistory()) == history_len_before) or \
+                self.proof_context == context_before or \
+                stmt.strip() == "Proof." or \
+                (self.proof_context == None and ending_proof(stmt))
             if timeout:
                 self.timeout=old_timeout
 
