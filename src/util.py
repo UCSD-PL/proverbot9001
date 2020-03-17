@@ -268,9 +268,10 @@ def split_by_char_outside_matching(openpat : str, closepat : str,
     -> Optional[Tuple[str, str]]:
     counter = 0
     curpos = 0
-    openp = re.compile(openpat)
-    closep = re.compile(closepat)
-    splitp = re.compile(splitpat)
+    with silent():
+        openp = re.compile(openpat)
+        closep = re.compile(closepat)
+        splitp = re.compile(splitpat)
     def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
         match = pat.search(target, curpos)
         return match, match.end() if match else len(target) + 1
