@@ -537,66 +537,61 @@ class SerapiInstance(threading.Thread):
         return self.tactic_history.getCurrentHistory()
 
     def handle_exception(self, e : Exception, stmt : str):
-        eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
+        eprint("Problem running statement: {}\n".format(stmt),
                guard=(not self.quiet or self.verbose >= 2))
         match(e,
               TimeoutError, lambda *args: progn(self.cancel_failed(), # type: ignore
                                                 raise_(TimeoutError("Statment \"{}\" timed out."
                                                                     .format(stmt)))),
-              _, lambda e:
-              match(normalizeMessage(e.msg),
-                    ['Stream\\.Error', str],
-                    lambda *args: progn(self.get_completed(),
-                                        raise_(ParseError("Couldn't parse command {}"
-                                                          .format(stmt)))),
+              _, lambda e: None)
+        coqexn_msg = match(normalizeMessage(e.msg),
+                           ['Answer', int, ['CoqExn', TAIL]],
+                           lambda sentence_num, rest:
+                           "\n".join(searchStrsInMsg(rest)),
+                           str, lambda s: s,
+                           [str], lambda s: s,
+                           _, None)
+        if coqexn_msg:
+            eprint(coqexn_msg, guard=(not self.quiet or self.verbose >= 2))
+            if "Stream\\.Error" in coqexn_msg or "Syntax error" in coqexn_msg:
+                self.get_completed()
+                raise ParseError(f"Couldn't parse command {stmt}")
+            elif "CLexer.Error" in coqexn_msg:
+                self.get_completed()
+                raise ParseError(f"Couldn't parse command {stmt}")
+            elif "NoSuchGoals" in coqexn_msg:
+                self.get_completed()
+                self.cancel_failed()
+                raise NoSuchGoalError()
+            elif "Invalid_argument" in coqexn_msg:
+                raise ParseError(f"Invalid argument in {stmt}")
+            elif "Not_found" in coqexn_msg:
+                self.cancel_failed(),
+                raise e
+            elif "Overflowed" in coqexn_msg or "Stack overflow" in coqexn_msg:
+                self.get_completed()
+                raise CoqAnomaly("Overflowed")
+            elif "Anomaly" in coqexn_msg:
+                self.get_completed()
+                raise CoqAnomaly(coqexn_msg)
+            else:
+                self.get_completed()
+                self.cancel_failed()
+                raise CoqExn(coqexn_msg)
+        else:
+            match(normalizeMessage(e.msg),
+                  ['Stream\\.Error', str],
+                  lambda *args: progn(self.get_completed(),
+                                      raise_(ParseError("Couldn't parse command {}"
+                                                        .format(stmt)))),
 
-                    ['CLexer.Error.E(3)'],
-                    lambda *args: progn(self.get_completed(),
-                                        raise_(ParseError("Couldn't parse command {}"
-                                                          .format(stmt)))),
-                    'Not_found',
-                    lambda *args: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.cancel_failed(), raise_(e)), # type: ignore
-                    ['CErrors\\.UserError', _],
-                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
-                                        self.cancel_failed(), raise_(e)), # type: ignore
-                    ['ExplainErr\\.EvaluatedError', TAIL],
-                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
-                                        self.cancel_failed(), raise_(e)), # type: ignore
-                    ['Proofview.NoSuchGoals(1)'],
-                    lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
-                                        self.cancel_failed(), raise_(NoSuchGoalError())), # type: ignore
-
-                    ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
-                    lambda *args: raise_(ParseError("Couldn't parse command {}".format(stmt))),
-
-                    ['Answer', int, ['CoqExn', _, _, _, 'Invalid_argument']],
-                    lambda *args: raise_(ParseError("Invalid argument{}".format(stmt))),
-                    ['Answer', int, ['CoqExn', [_, _, ['backtrace', ["Backtrace", []], [str]]]]],
-                    lambda sentence, loc1, loc2, inner:
-                    progn(self.get_completed(), raise_(CoqAnomaly("Overflowed")))
-                    if re.search("Stack overflow", inner) else
-                    progn(self.get_completed(), raise_(UnrecognizedError(inner))),
-                    ['Stack overflow'],
-                    lambda *args:
-                    progn(self.get_completed(), raise_(CoqAnomaly("Overflowed"))),
-                    ['Answer', int, ['CoqExn', TAIL]],
-                    lambda sentence, rest:
-                    progn(self.get_completed(), self.cancel_failed(), raise_(CoqExn("\n".join(searchStrsInMsg(rest))))),
-                    [str],
-                    lambda contents:
-                    progn(self.get_completed(), raise_(CoqAnomaly(contents)))
-                    if re.search("Anomaly", contents) else
-                    raise_(UnrecognizedError(contents)),
-                    str,
-                    lambda contents:
-                    progn(self.get_completed(), raise_(ParseError(contents)))
-                    if "Syntax error" in contents else
-                    raise_(CoqExn(contents)),
-                    _, lambda *args: progn(raise_(UnrecognizedError(args)))))
+                  ['CErrors\\.UserError', _],
+                  lambda inner: progn(self.get_completed(),
+                                      self.cancel_failed(), raise_(e)), # type: ignore
+                  ['ExplainErr\\.EvaluatedError', TAIL],
+                  lambda inner: progn(self.get_completed(),
+                                      self.cancel_failed(), raise_(e)), # type: ignore
+                  _, lambda *args: progn(raise_(UnrecognizedError(args))))
 
     # Flush all messages in the message queue
     def flush_queue(self) -> None:
