@@ -1027,15 +1027,17 @@ class SerapiInstance(threading.Thread):
                     raise BadResponse(context_str)
                 fg_goals_str, bg_goals_str, shelved_goals_str, given_up_goals_str = \
                     goals_match.groups()
-                levels = [levelPat.fullmatch(level).group(1) for level in
-                          parseSexpOneLevel(bg_goals_str)]
-                bg_goal_strs = [bg_goal for level in levels
-                                for bg_goal in parseSexpOneLevel(level)]
+                unparsed_levels = parseSexpOneLevel(bg_goals_str)
+                parsed2 = [uuulevel
+                           for ulevel in unparsed_levels
+                           for uulevel in parseSexpOneLevel(ulevel)
+                           for uuulevel in parseSexpOneLevel(uulevel)]
+                bg_goals = [self.parseSexpGoalStr(bg_goal_str)
+                            for bg_goal_str in parsed2]
                 self.proof_context = ProofContext(
                     [self.parseSexpGoalStr(goal)
                      for goal in parseSexpOneLevel(fg_goals_str)],
-                    [self.parseSexpGoalStr(bg_goal_str)
-                     for bg_goal_str in bg_goal_strs],
+                    bg_goals,
                     [self.parseSexpGoalStr(shelved_goal)
                      for shelved_goal in parseSexpOneLevel(shelved_goals_str)],
                     [self.parseSexpGoalStr(given_up_goal)
@@ -1107,8 +1109,6 @@ class SerapiInstance(threading.Thread):
         threading.Thread.join(self)
 
     pass
-
-levelPat = re.compile("\(\(\)(\(.*\))\)")
 
 def isBreakMessage(msg : 'Sexp') -> bool:
     return match(normalizeMessage(msg),
