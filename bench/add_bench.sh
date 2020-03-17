@@ -19,8 +19,3 @@ if [[ -f configure ]]; then
 fi
 make -j3
 find -name "*.vo" -not -path "./_opam/*" | sed 's/.vo/.v/' > files.txt
-cd ../../
-
-./
-
-# JOBS_FILE=bench/$2/files.txt OUTDIR=$2-report ./parallel-search-report.sh --weightsfile=data/polyarg-weights.dat --prelude=./bench/$2
