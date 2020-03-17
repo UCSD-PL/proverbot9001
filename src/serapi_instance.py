@@ -1168,37 +1168,6 @@ def ending_proof(command : str) -> bool:
             (re.match("\s*Proof\s+\S+\s*", stripped_command) != None and
              re.match("\s*Proof\s+with", stripped_command) == None))
 
-def split_commands(string : str) -> List[str]:
-    result = []
-    next_command = ""
-    in_quote = False
-    for i in range(len(string)):
-        if in_quote:
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = False
-        else:
-            if string[i] == '"' and string[i-1] != '\\':
-                in_quote = True
-            if (re.match("[\{\}]", string[i]) and
-                re.fullmatch("\s*", next_command)):
-                result.append(string[i])
-                next_command = ""
-                continue
-            if (re.match("[\+\-\*]", string[i]) and
-                string[i] != string[i+1] and
-                re.fullmatch("\s*[\+\-\*]*", next_command)):
-                next_command += string[i]
-                result.append(next_command.strip())
-                next_command = ""
-                continue
-            if (re.match("\.($|\s)", string[i:i+2]) and
-                (not string[i-1] == "." or string[i-2] == ".")):
-                result.append(next_command.strip() + ".")
-                next_command = ""
-                continue
-        next_command += string[i]
-    return result
-
 def kill_comments(string: str) -> str:
     result = ""
     depth = 0
@@ -1512,14 +1481,6 @@ def isValidCommand(command : str) -> bool:
         return isValidCommand(goal_selector_match.group(1))
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
         and (command.count('(') == command.count(')'))
-
-def load_commands(filename : str) -> List[str]:
-    with open(filename, 'r') as fin:
-        contents = kill_comments(fin.read())
-        commands_orig = split_commands(contents)
-        commands_preprocessed = [newcmd for cmd in commands_orig
-                                 for newcmd in preprocess_command(cmd)]
-        return commands_preprocessed
 
 def load_commands_preserve(args : argparse.Namespace, file_idx : int,
                            filename : str) -> List[str]:

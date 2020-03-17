@@ -105,7 +105,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
             if not commands:
                 commands = linearize_semicolons.preprocess_file_commands(
                     args, file_idx,
-                    serapi_instance.load_commands(full_filename),
+                    serapi_instance.load_commands_preserve(args, 0, full_filename),
                     coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
                 serapi_instance.save_lin(commands, full_filename)
         else:
