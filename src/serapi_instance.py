@@ -1022,7 +1022,7 @@ class SerapiInstance(threading.Thread):
                       ["Answer", int, ["Canceled", list]],
                       lambda _, statenums: min(statenums),
                       ["Answer", int, ["CoqExn", TAIL]],
-                      lambda rest: raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
+                      lambda statenum, rest: raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
                       _, lambda *args: raise_(BadResponse(cancelled_answer)))
         finally:
             self.get_completed()
