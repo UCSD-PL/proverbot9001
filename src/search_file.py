@@ -398,12 +398,10 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                         serapi_instance.
                                         lemma_name_from_statement(lemma_statement),
                                         time.time() - starttime)
-                        # Cancel until before the proof
-                        try:
-                            while coq.proof_context != None:
-                                coq.cancel_last()
-                        except serapi_instance.CoqExn as e:
-                            raise serapi_instance.CoqAnomaly(f"While cancelling: {e}")
+                        lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+                        if coq.proof_context:
+                            coq.run_stmt(f"Admitted.")
+                        coq.run_stmt(f"Reset {lemma_name}.")
                         if tactic_solution:
                             append_to_solution_vfile(args.output_dir, args.filename,
                                                      [lemma_statement, "Proof."] +
