@@ -525,6 +525,9 @@ class SerapiInstance(threading.Thread):
         except (CoqExn, BadResponse, AckError, CompletedError, TimeoutError) as e:
             self.handle_exception(e, stmt)
         finally:
+            if self.proof_context and self.verbose >= 3:
+                eprint(f"History is now {self.tactic_history.getFullHistory()}")
+                summarizeContext(self.proof_context)
             if timeout:
                 self.timeout=old_timeout
 
@@ -694,6 +697,9 @@ class SerapiInstance(threading.Thread):
             assert len(self.tactic_history.getFullHistory()) == 0, ("History is desynced!", self.tactic_history.getFullHistory())
             self.tactic_history = TacticHistory()
         assert self.message_queue.empty(), self.messages
+        if self.proof_context and self.verbose >= 3:
+            eprint(f"History is now {self.tactic_history.getFullHistory()}")
+            summarizeContext(self.proof_context)
 
     def __cancel(self) -> None:
         self.flush_queue()
