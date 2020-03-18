@@ -48,6 +48,7 @@ def main():
     parser.add_argument('-j', '--threads', default=1, type=int)
     parser.add_argument('-c', '--continue', dest='cont', default=False, const=True, action='store_const')
     parser.add_argument('--hardfail', default=False, const=True, action='store_const')
+    parser.add_argument('--hardfail-scrape', action='store_true')
     parser.add_argument('--prelude', default=".")
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
@@ -129,7 +130,7 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
     except Exception as e:
         eprint("FAILED: In file {}:".format(filename))
         eprint(e)
-        if args.hardfail or len(args.inputs) == 1:
+        if args.hardfail or len(args.inputs) == 1 or args.hardfail_scrape:
             raise e
     return None
 
