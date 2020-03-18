@@ -508,7 +508,7 @@ class SerapiInstance(threading.Thread):
                 # Manage the tactic history
                 if possibly_starting_proof(stm) and self.proof_context:
                     self.tactic_history.addTactic(stm)
-                elif re.match(r"\s*(?:\d+:)?\s*[{]\s*", stm):
+                elif re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", stm):
                     assert context_before
                     self.tactic_history.openSubgoal(context_before.fg_goals[1:])
                 elif re.match(r"\s*[}]\s*", stm):
@@ -530,7 +530,7 @@ class SerapiInstance(threading.Thread):
                 eprint(f"History is now {self.tactic_history.getFullHistory()}")
                 summarizeContext(self.proof_context)
             assert len(self.tactic_history.getFullHistory()) == history_len_before + 1 or \
-                (re.match("(?:\d+:)?{", stmt.strip()) and
+                (re.match("(?:\d+\s*:)?\s*{", stmt.strip()) and
                  len(self.tactic_history.getFullHistory()) == history_len_before + 2) or \
                 (stmt.strip() == "}" and len(self.tactic_history.getFullHistory()) == history_len_before) or \
                 self.proof_context == context_before or \
@@ -1485,7 +1485,7 @@ def summarizeContext(context : ProofContext) -> None:
 
 def isValidCommand(command : str) -> bool:
     command = kill_comments(command)
-    goal_selector_match = re.fullmatch("\s*\d+:(.*)", command, flags=re.DOTALL)
+    goal_selector_match = re.fullmatch("\s*\d+\s*:(.*)", command, flags=re.DOTALL)
     if goal_selector_match:
         return isValidCommand(goal_selector_match.group(1))
     return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
@@ -1555,7 +1555,7 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
                   comment_depth -= 1
           elif nextPos == next_bracket:
               if not in_quote and comment_depth == 0 and \
-                 re.match("\s*\d*:?\s*$", kill_comments(cur_command[:-1])):
+                 re.match("\s*(?:\d+\s*:)?\s*$", kill_comments(cur_command[:-1])):
                   result.append(cur_command)
                   cur_command = ""
           elif nextPos == next_bullet:

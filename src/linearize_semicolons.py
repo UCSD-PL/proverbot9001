@@ -190,7 +190,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
         if verbose >= 2:
             eprint(f"Linearizing command \"{command}\"")
 
-        goal_selector_match = re.match(r"\s*(\d*)\s*:\s*(.*)\.\s*", command)
+        goal_selector_match = re.match(r"\s*(\d+)\s*:\s*(.*)\.\s*", command)
         if goal_selector_match:
             goal_num = int(goal_selector_match.group(1))
             rest = goal_selector_match.group(2)
