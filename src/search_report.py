@@ -90,9 +90,18 @@ def main(arg_list : List[str]) -> None:
         if not file_args:
             file_args = csv_args
         elif args.check_consistent:
-            assert file_args == csv_args, \
-                f"File {filename} has different args than the others! "\
-                f"Others args are {csv_args}, file args are {file_args}"
+            for arg in search_file.important_args:
+                try:
+                    oldval = str(vars(file_args)[arg])
+                    newval = str(vars(csv_args)[arg])
+                    if oldval != newval:
+                        raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
+                                                    f"new value is {newval}")
+                except KeyError:
+                    raise ArgsMismatchException(f"No old value for arg {arg} found.")
+            # assert file_args == csv_args, \
+            #     f"File {filename} has different args than the others! "\
+            #     f"Others args are {csv_args}, file args are {file_args}"
         file_results.append(result)
     assert file_args
 
