@@ -612,9 +612,9 @@ class SerapiInstance(threading.Thread):
         return match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
-                     ["Answer", int, ["CoqExn", list, list, list, _]],
-                     lambda statenum, a, b, c, msg:
-                     raise_(CoqExn(msg)))
+                     ["Answer", int, ["CoqExn", TAIL]],
+                     lambda statenum, msg:
+                     raise_(CoqExn(searchStrsInMsg(msg))))
     def ppToTermStr(self, pp) -> str:
         return self.ppStrToTermStr(dumps(pp))
     @functools.lru_cache(maxsize=128)
@@ -623,9 +623,9 @@ class SerapiInstance(threading.Thread):
         result = match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
-                     ["Answer", int, ["CoqExn", list, list, list, _]],
-                     lambda statenum, a, b, c, msg:
-                     raise_(CoqExn(msg)))
+                     ["Answer", int, ["CoqExn", TAIL]],
+                     lambda statenum, msg:
+                     raise_(CoqExn(searchStrsInMsg(msg))))
         self.get_completed()
         return result
 
