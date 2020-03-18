@@ -469,17 +469,19 @@ class SerapiInstance(threading.Thread):
         # too early.
         stmt = stmt.replace("\\", "\\\\")
         stmt = stmt.replace("\"", "\\\"")
+        # Kill the comments early so we can recognize comments earlier
+        stmt = kill_comments(stmt)
         # We'll wrap the actual running in a try block so that we can
         # report which command the error came from at this
         # level. Other higher level code might re-catch it.
+        history_len_before = len(self.tactic_history.getFullHistory())
+        context_before = self.proof_context
         try:
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
-            for stm in preprocess_command(kill_comments(stmt)):
+            for stm in preprocess_command(stmt):
                 self.add_potential_module_stack_cmd(stm)
                 # Get initial context
-                context_before = self.proof_context
-                history_len_before = len(self.tactic_history.getFullHistory())
                 # Send the command
                 assert self.message_queue.empty(), self.messages
                 self.send_acked("(Add () \"{}\")\n".format(stm))
