@@ -330,13 +330,13 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             try:
                 # print("Starting a coq instance...")
                 with serapi_instance.SerapiContext(coqargs, includes, args.prelude, use_hammer=args.use_hammer) as coq:
+                    coq.verbose = args.verbose
                     try_run_prelude(args, coq)
                     if args.progress:
                         pbar.reset()
                     for command in commands_run:
                         pbar.update(1)
                         coq.run_stmt(command)
-                    coq.verbose = args.verbose
                     if args.resume and len(commands_run) == 0:
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
