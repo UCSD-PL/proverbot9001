@@ -646,7 +646,7 @@ class SerapiInstance(threading.Thread):
         term_str = self.sexpToTermStr(term_sexp)
         return f"{ids_str} : {term_str}"
     def parseSexpGoalStr(self, sexp_str : str) -> Obligation:
-        goal_match = re.fullmatch("\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)\(name\s*\(\)\)\)\)\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
+        goal_match = re.fullmatch("\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
         assert goal_match, sexp_str + "didn't match"
         goal_num_str, goal_term_str, hyps_list_str = \
             goal_match.group(1, 2, 3)
