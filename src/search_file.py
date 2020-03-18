@@ -656,14 +656,14 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
     curLemma = ""
     curProofInters : List[TacticInteraction] = []
     curVernacCmds : List[str] = []
+    commands_run = []
     with open(f"{args.output_dir}/{escape_filename(str(filename))}.v", 'r') as f:
         print(f"Resuming from file {args.filename}")
         f_iter = check_solution_vfile_args(args, model_name,
                                            iter(f))
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
                                                                  "".join(f_iter))
-        commands_in_iter = iter(commands_in
-        orig_svfile_commands = list(svfile_commands)
+        commands_in_iter = iter(commands_in)
         def peek_loaded():
             nonlocal commands_in_iter
             item = next(commands_in_iter)
@@ -707,7 +707,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                             else:
                                 search_status = SearchStatus.INCOMPLETE
                             lemma_name = serapi_instance.lemma_name_from_statement(curLemma)
-                            coq.run_stmt(f"Reset {lemma_name}.")
+                            coq.run_stmt(f"Back.")
 
                             origProofInters = []
                     else:
@@ -725,6 +725,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                             raise SourceChangedException(
                                 f"Loaded command {normalize_command(loaded_command)} doesn't match saved command {normalize_command(saved_command)}")
                         curVernacCmds.append(loaded_command)
+                        commands_run.append(loaded_command)
                     if in_proof:
                         in_proof = False
                         if not skip_sync_next_lemma:
@@ -732,6 +733,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                 itertools.chain([loaded_command], commands_in_iter)))
                             coq.run_stmt(loaded_command)
                             num_original_commands_run += len(proof_cmds)
+                            commands_run += proof_cmds
                             for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                                   desc="Running original proof",
                                                   disable=(not args.progress),
@@ -762,7 +764,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         assert not in_proof
         if curVernacCmds:
             blocks_out.append(VernacBlock(curVernacCmds))
-        return orig_svfile_commands, list(commands_in_iter), blocks_out,\
+        return commands_run, list(commands_in_iter), blocks_out,\
             num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
 
 def try_run_prelude(args: argparse.Namespace, coq : SerapiInstance):
