@@ -38,7 +38,8 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError, NoSuchGoalError)
+                             BadResponse, TimeoutError, ParseError, NoSuchGoalError,
+                             CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
                     Tuple, Pattern, Union)
@@ -58,7 +59,8 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
                        commands_sequence: Iterable[str],
                        coq : serapi_instance.SerapiInstance,
                        filename : str, relative_filename : str,
-                       skip_nochange_tac:bool):
+                       skip_nochange_tac:bool,
+                       known_failures: List[List[str]]):
     commands_iter = iter(commands_sequence)
     command = next(commands_iter, None)
     assert command, "Got an empty sequence!"
@@ -90,7 +92,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
-        if [relative_filename, theorem_name] in compcert_failures:
+        if [relative_filename, theorem_name] in known_failures:
             eprint("Skipping {}".format(theorem_name))
             for command in command_batch:
                 coq.run_stmt(command)
@@ -108,23 +110,27 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
         orig = command_batch[:]
         command_batch = list(prelinear_desugar_tacs(command_batch))
         try:
-            batch_handled = list(handle_with(command_batch, with_tactic))
-            linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
-                                                       args.verbose, skip_nochange_tac))
-            yield from linearized_commands
-        except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
-            if args.verbose:
-                eprint("Aborting current proof linearization!")
-                eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
-                eprint()
-            if args.hardfail:
-                raise e
-            coq.run_stmt("Abort.")
-            coq.run_stmt(theorem_statement)
-            for command in orig:
-                if command:
-                    coq.run_stmt(command)
-                    yield command
+            try:
+                batch_handled = list(handle_with(command_batch, with_tactic))
+                linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
+                                                           args.verbose, skip_nochange_tac))
+                yield from linearized_commands
+            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
+                if args.verbose:
+                    eprint("Aborting current proof linearization!")
+                    eprint("Proof of:\n{}\nin file {}".format(theorem_name, filename))
+                    eprint()
+                if args.hardfail:
+                    raise e
+                coq.run_stmt("Abort.")
+                coq.run_stmt(theorem_statement)
+                for command in orig:
+                    if command:
+                        coq.run_stmt(command)
+                        yield command
+        except CoqAnomaly:
+            eprint(f"Anomaly! Raising with {[relative_filename, theorem_name]}", guard=args.verbose >= 1)
+            raise CoqAnomaly([relative_filename, theorem_name])
 
         command = next(commands_iter, None)
 
@@ -441,23 +447,33 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                              prelude : str, filename : str, relative_filename : str,
                              skip_nochange_tac : bool) -> List[str]:
     try:
-        with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
-            coq.verbose = args.verbose
-            coq.quiet = True
-            with tqdm(file=sys.stdout,
-                      disable=not args.progress,
-                      position=(file_idx * 2),
-                      desc="Linearizing", leave=False,
-                      total=len(commands),
-                      dynamic_ncols=True,
-                      bar_format=mybarfmt) as pbar:
-                result = list(
-                    postlinear_desugar_tacs(
-                        linearize_commands(
-                            args, file_idx,
-                            generate_lifted(commands, coq, pbar),
-                            coq, filename, relative_filename,
-                        skip_nochange_tac)))
+        failed = True
+        failures = list(compcert_failures)
+        while failed:
+            with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+                coq.verbose = args.verbose
+                coq.quiet = True
+                with tqdm(file=sys.stdout,
+                          disable=not args.progress,
+                          position=(file_idx * 2),
+                          desc="Linearizing", leave=False,
+                          total=len(commands),
+                          dynamic_ncols=True,
+                          bar_format=mybarfmt) as pbar:
+                    try:
+                        failed = False
+                        result = list(
+                            postlinear_desugar_tacs(
+                                linearize_commands(
+                                    args, file_idx,
+                                    generate_lifted(commands, coq, pbar),
+                                    coq, filename, relative_filename,
+                                    skip_nochange_tac, failures)))
+                    except CoqAnomaly as e:
+                        if isinstance(e.msg, str):
+                            raise
+                        failed = True
+                        failures.append(e.msg)
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
