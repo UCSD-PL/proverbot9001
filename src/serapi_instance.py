@@ -1428,7 +1428,9 @@ def lemma_name_from_statement(stmt : str) -> str:
     if "Obligation" in stmt:
         return ""
     stripped_stmt = kill_comments(stmt).strip()
-    lemma_match = re.match("\S+\s+([\w']+)", stripped_stmt)
+    lemma_match = re.match(r"\s*(?:" + "|".join(normal_lemma_starting_patterns) + r")\s+([\w']*)(.*)",
+                           stripped_stmt,
+                           flags=re.DOTALL)
     assert lemma_match, stripped_stmt
     lemma_name = lemma_match.group(1)
     assert ":" not in lemma_name, stripped_stmt
