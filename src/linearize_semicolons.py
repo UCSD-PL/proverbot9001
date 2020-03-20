@@ -93,7 +93,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
         coq.run_stmt(theorem_statement)
         yield theorem_statement
         if [relative_filename, theorem_name] in known_failures:
-            eprint("Skipping {}".format(theorem_name))
+            eprint("Skipping {}".format(theorem_name), guard=args.verbose >= 1)
             for command in command_batch:
                 coq.run_stmt(command)
                 yield command
