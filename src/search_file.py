@@ -401,7 +401,10 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
                         if coq.proof_context:
                             coq.run_stmt(f"Admitted.")
-                        coq.run_stmt(f"Reset {lemma_name}.")
+                        if lemma_name:
+                            coq.run_stmt(f"Reset {lemma_name}.")
+                        else:
+                            coq.run_stmt(f"Back.")
                         if tactic_solution:
                             append_to_solution_vfile(args.output_dir, args.filename,
                                                      [lemma_statement, "Proof."] +
@@ -707,7 +710,10 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                             else:
                                 search_status = SearchStatus.INCOMPLETE
                             lemma_name = serapi_instance.lemma_name_from_statement(curLemma)
-                            coq.run_stmt(f"Back.")
+                            if lemma_name:
+                                coq.run_stmt(f"Reset {lemma_name}.")
+                            else:
+                                coq.run_stmt(f"Back.")
 
                             origProofInters = []
                     else:
