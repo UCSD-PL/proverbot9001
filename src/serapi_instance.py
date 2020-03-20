@@ -1425,6 +1425,8 @@ def progn(*args):
 def lemma_name_from_statement(stmt : str) -> str:
     if "Goal" in stmt:
         return ""
+    if "Obligation" in stmt:
+        return ""
     stripped_stmt = kill_comments(stmt).strip()
     lemma_match = re.match("\S+\s+([\w']+)", stripped_stmt)
     assert lemma_match, stripped_stmt
