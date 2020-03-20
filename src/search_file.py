@@ -697,6 +697,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                     coq.run_stmt(saved_command)
                 if coq.proof_context == None:
                     loaded_command = next(commands_in_iter)
+                    commands_run.append(loaded_command)
                     if in_proof:
                         if not skip_sync_next_lemma:
                             curProofInters.append(TacticInteraction(saved_command, context_before))
@@ -731,7 +732,6 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                             raise SourceChangedException(
                                 f"Loaded command {normalize_command(loaded_command)} doesn't match saved command {normalize_command(saved_command)}")
                         curVernacCmds.append(loaded_command)
-                        commands_run.append(loaded_command)
                     if in_proof:
                         in_proof = False
                         if not skip_sync_next_lemma:
