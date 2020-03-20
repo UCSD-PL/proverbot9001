@@ -1058,8 +1058,8 @@ class SerapiInstance(threading.Thread):
 
             msg = self.get_message()
             proof_context_msg = match(normalizeMessage(msg),
-                                      ["Answer", int, ["CoqExn", [], [], ["Backtrace", []], ['Stack overflow']]],
-                                      lambda statenum: raise_(CoqExn(["Stack overflow"])),
+                                      ["Answer", int, ["CoqExn", TAIL]],
+                                      lambda statenum, rest: raise_(CoqExn(searchStrsInMsg(rest))),
                                       ["Answer", int, list],
                                       lambda statenum, contents: contents,
                                       _, lambda *args: raise_(UnrecognizedError(dumps(msg))))
