@@ -112,7 +112,8 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
         else:
             with Path2(full_filename).open(mode='r') as f:
                 commands = serapi_instance.read_commands_preserve(args, file_idx, f.read())
-        with serapi_instance.SerapiContext(coqargs, includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
+        with serapi_instance.SerapiContext(coqargs, serapi_instance.get_module_from_filename(filename),
+                                           includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:

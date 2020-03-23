@@ -450,7 +450,8 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
         failed = True
         failures = list(compcert_failures)
         while failed:
-            with serapi_instance.SerapiContext(coqargs, includes, prelude) as coq:
+            with serapi_instance.SerapiContext(coqargs, serapi_instance.get_module_from_filename(filename),
+                                               includes, prelude) as coq:
                 coq.verbose = args.verbose
                 coq.quiet = True
                 with tqdm(file=sys.stdout,

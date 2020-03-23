@@ -226,7 +226,7 @@ class SerapiInstance(threading.Thread):
     # expect, and a base directory You can also set the coq objects
     # ".debug" field after you've created it to get more verbose
     # logging.
-    def __init__(self, coq_command : List[str], includes : str, prelude : str,
+    def __init__(self, coq_command : List[str], module_name : str, includes : str, prelude : str,
                  timeout : int = 30, use_hammer : bool = False) -> None:
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
@@ -265,15 +265,18 @@ class SerapiInstance(threading.Thread):
         self.start()
         # Go through the messages and throw away the initial feedback.
         self.discard_feedback()
+        # Stacks for keeping track of the current lemma and module
+        self.module_stack : List[str] = []
+        self.section_stack : List[str] = []
+
+        # Open the top level module
+        if module_name:
+            self.run_stmt(f"Module {module_name}.")
         # Execute the commands corresponding to include flags we were
         # passed
         self.exec_includes(includes, prelude)
         # Unset Printing Notations (to get more learnable goals?)
         self.unset_printing_notations()
-
-        # Stacks for keeping track of the current lemma and module
-        self.module_stack : List[str] = []
-        self.section_stack : List[str] = []
 
         # Set up CoqHammer
         self.use_hammer = use_hammer
@@ -1137,8 +1140,8 @@ import contextlib
 from typing import Iterator
 
 @contextlib.contextmanager
-def SerapiContext(coq_commands : List[str], includes : str, prelude : str, use_hammer : bool = False) -> Iterator[Any]:
-    coq = SerapiInstance(coq_commands, includes, prelude, use_hammer=use_hammer)
+def SerapiContext(coq_commands : List[str], module_name : str, includes : str, prelude : str, use_hammer : bool = False) -> Iterator[Any]:
+    coq = SerapiInstance(coq_commands, module_name, includes, prelude, use_hammer=use_hammer)
     yield coq
     coq.kill()
 
@@ -1644,6 +1647,9 @@ def searchStrsInMsg(sexp) -> List[str]:
                     for substr in substrs]
     return []
 
+def get_module_from_filename(filename : Path2) -> str:
+    return Path2(filename).stem
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=
@@ -1684,6 +1690,7 @@ def main() -> None:
                 includes = includesfile.read()
     thispath = os.path.dirname(os.path.abspath(__file__))
     with SerapiContext([args.sertopbin],
+                       "",
                        includes, args.prelude) as coq:
         def handle_interrupt(*args):
             nonlocal coq

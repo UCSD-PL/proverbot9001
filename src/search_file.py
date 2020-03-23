@@ -329,7 +329,9 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         while len(commands_in) > 0:
             try:
                 # print("Starting a coq instance...")
-                with serapi_instance.SerapiContext(coqargs, includes, args.prelude, use_hammer=args.use_hammer) as coq:
+                with serapi_instance.SerapiContext(coqargs,
+                                                   serapi_instance.get_module_from_filename(args.filename),
+                                                   includes, args.prelude, use_hammer=args.use_hammer) as coq:
                     coq.verbose = args.verbose
                     try_run_prelude(args, coq)
                     if args.progress:
