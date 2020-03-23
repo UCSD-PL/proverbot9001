@@ -581,7 +581,7 @@ class SerapiInstance(threading.Thread):
                            _, None)
         if coqexn_msg:
             eprint(coqexn_msg, guard=(not self.quiet or self.verbose >= 2))
-            if "Stream\\.Error" in coqexn_msg or "Syntax error" in coqexn_msg:
+            if "Stream\\.Error" in coqexn_msg or "Syntax error" in coqexn_msg or "Syntax Error" in coqexn_msg:
                 self.get_completed()
                 raise ParseError(f"Couldn't parse command {stmt}")
             elif "CLexer.Error" in coqexn_msg:
