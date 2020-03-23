@@ -981,13 +981,15 @@ def tryPrediction(args : argparse.Namespace,
     except (serapi_instance.TimeoutError, serapi_instance.ParseError,
             serapi_instance.CoqExn, serapi_instance.OverflowError,
             serapi_instance.UnrecognizedError) as e:
-        return coq.proof_context, 0, 0, 0, e, time.time() - start_time
+        return coq.proof_context, 0, 0, 0, e, time.time() - start_time, False
 
     time_taken = time.time() - start_time
     num_stmts = 1
     subgoals_closed = 0
+    unshelved = False
     if len(unwrap(coq.proof_context).fg_goals) == 0 and \
        len(unwrap(coq.proof_context).shelved_goals) > 0:
+        unshelved = True
         coq.run_stmt("Unshelve.")
         num_stmts += 1
     while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
@@ -1003,7 +1005,7 @@ def tryPrediction(args : argparse.Namespace,
         subgoals_opened = 0
     context_after = coq.proof_context
     assert context_after
-    return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken
+    return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken, unshelved
 
 goalBignessLimit = 3000
 def contextIsBig(context : ProofContext):
@@ -1072,7 +1074,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
             try:
                 context_after, num_stmts, \
                     subgoals_closed, subgoals_opened, \
-                    error, time_taken = \
+                    error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction, current_path[-1])
                 if error:
                     if args.count_failing_predictions:
@@ -1085,6 +1087,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 predictionNode = g.mkNode(prediction, proof_context_before,
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
+                if unshelved:
+                    predictionNode = g.mkNode("Unshelve.", proof_context_before,
+                                              predictionNode)
+                    predictionNode.time_taken = 0
 
                 #### 1.
                 if subgoal_distance_stack:
