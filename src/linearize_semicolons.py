@@ -200,7 +200,8 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
         if goal_selector_match:
             goal_num = int(goal_selector_match.group(1))
             rest = goal_selector_match.group(2)
-            assert goal_num >= 2
+            if goal_num < 2:
+                raise LinearizerCouldNotLinearize
             if pending_commands_stack[-1] is None:
                 pending_commands_stack[-1] = ["idtac."]*(goal_num - 2) + [rest + "."]
             elif isinstance(pending_commands_stack[-1], str):
