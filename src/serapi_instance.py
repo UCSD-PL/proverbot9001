@@ -876,10 +876,12 @@ class SerapiInstance(threading.Thread):
                      _, lambda x: raise_(BadResponse(msg)))
 
     def discard_feedback(self) -> None:
-        feedback_message = self.get_message()
-        while feedback_message[1][3][1] != Symbol("Processed"):
+        try:
             feedback_message = self.get_message()
-
+            while feedback_message[1][3][1] != Symbol("Processed"):
+                feedback_message = self.get_message()
+        except TimeoutError:
+            pass
     def discard_initial_feedback(self) -> None:
         feedback1 = self.get_message()
         feedback2 = self.get_message()
