@@ -515,8 +515,12 @@ def main():
     arg_values = parser.parse_args()
 
     base = os.path.dirname(os.path.abspath(__file__)) + "/.."
-    includes = subprocess.Popen(['make', '-C', arg_values.prelude, 'print-includes'],
-                                stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
+    try:
+        with open(arg_values.prelude + "/_CoqProject", 'r') as includesfile:
+            includes = includesfile.read()
+    except FileNotFoundError:
+        eprint("Didn't find a _CoqProject file in prelude dir")
+        includes = ""
     coqargs = ["sertop", "--implicit"]
 
     for filename in arg_values.filenames:
