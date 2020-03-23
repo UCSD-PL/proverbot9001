@@ -182,7 +182,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
             f"command is \"{command}\", command_batch is {command_batch}"
         comment_before_command = ""
         command_proper = command
-        while "(*" in command_proper:
+        while re.fullmatch("\s*\(\*.*", command_proper, flags=re.DOTALL):
             next_comment, command_proper = \
                 split_to_next_matching("\(\*", "\*\)", command_proper)
             command_proper = command_proper[1:]
@@ -192,7 +192,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
         if re.match("\s*[*+-]+\s*|\s*[{}]\s*", command):
             continue
 
-        command = command_proper
+        command = serapi_instance.kill_comments(command_proper)
         if verbose >= 2:
             eprint(f"Linearizing command \"{command}\"")
 
@@ -407,7 +407,7 @@ def prelinear_desugar_tacs(commands : Iterable[str]) -> Iterable[str]:
     for command in commands:
         comment_before_command = ""
         command_proper = command
-        while "(*" in command_proper:
+        while re.fullmatch("\s*\(\*.*", command_proper, flags=re.DOTALL):
             next_comment, command_proper = \
                 split_to_next_matching("\(\*", "\*\)", command_proper)
             comment_before_command += next_comment
