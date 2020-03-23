@@ -126,7 +126,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
                 coq.run_stmt(theorem_statement)
                 for command in orig:
                     if command:
-                        coq.run_stmt(command)
+                        coq.run_stmt(command, timeout=360)
                         yield command
         except CoqAnomaly:
             eprint(f"Anomaly! Raising with {[relative_filename, theorem_name]}", guard=args.verbose >= 1)

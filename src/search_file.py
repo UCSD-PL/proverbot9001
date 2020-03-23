@@ -305,7 +305,7 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
                     TacticInteraction(next_in_command,
                                       coq.proof_context
                                       or ProofContext([], [], [], [])))
-                coq.run_stmt(next_in_command)
+                coq.run_stmt(next_in_command, timeout=240)
                 pbar.update(1)
             body_tactics = [t.tactic for t in original_tactics]
             if next_in_command.strip() == "Defined.":

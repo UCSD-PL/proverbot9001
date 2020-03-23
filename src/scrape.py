@@ -161,7 +161,7 @@ def process_statement(args : argparse.Namespace,
         else:
             result_file.write(json.dumps(command))
         result_file.write("\n")
-    coq.run_stmt(command, timeout=120)
+    coq.run_stmt(command, timeout=600)
 
 if __name__ == "__main__":
     main()
