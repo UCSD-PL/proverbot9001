@@ -160,7 +160,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 pending_commands = pending_commands_stack[-1]
                 if isinstance(pending_commands, list):
                     next_cmd, *rest_cmd = pending_commands
-                    dotdotmatch = re.match("(.*)<\.\.>", next_cmd)
+                    dotdotmatch = re.match("(.*)<\.\.>", next_cmd, flags=re.DOTALL)
                     if (not rest_cmd) and dotdotmatch:
                         pending_commands_stack[-1] = [next_cmd]
                         command_batch.insert(0, dotdotmatch.group(1))
