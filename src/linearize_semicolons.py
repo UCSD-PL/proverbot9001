@@ -161,14 +161,26 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 if isinstance(pending_commands, list):
                     next_cmd, *rest_cmd = pending_commands
                     dotdotmatch = re.match("(.*)<\.\.>", next_cmd, flags=re.DOTALL)
+                    for cmd in rest_cmd:
+                        dotdotmatch = re.match("(.*)<\.\.>", cmd, flags=re.DOTALL)
+                        if dotdotmatch:
+                            continue
+                        assert serapi_instance.isValidCommand(cmd), \
+                            f"\"{cmd}\" is not a valid command"
                     if (not rest_cmd) and dotdotmatch:
                         pending_commands_stack[-1] = [next_cmd]
+                        assert serapi_instance.isValidCommand(dotdotmatch.group(1)), \
+                            f"\"{dotdotmatch.group(1)}\" is not a valid command"
                         command_batch.insert(0, dotdotmatch.group(1))
                     else:
+                        assert serapi_instance.isValidCommand(next_cmd), \
+                            f"\"{next_cmd}\" is not a valid command"
                         command_batch.insert(0, next_cmd)
                     pending_commands_stack[-1] = rest_cmd if rest_cmd else None
                     pass
                 elif pending_commands:
+                    assert serapi_instance.isValidCommand(pending_commands), \
+                        f"\"{command}\" is not a valid command"
                     command_batch.insert(0, pending_commands)
             else:
                 popped = pending_commands_stack.pop()
@@ -203,7 +215,10 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
             if goal_num < 2:
                 raise LinearizerCouldNotLinearize
             if pending_commands_stack[-1] is None:
-                pending_commands_stack[-1] = ["idtac."]*(goal_num - 2) + [rest + "."]
+                completed_rest = rest + "."
+                assert serapi_instance.isValidCommand(rest + "."),\
+                    f"\"{completed_rest}\" is not a valid command in {command}"
+                pending_commands_stack[-1] = ["idtac."]*(goal_num - 2) + [completed_rest]
             elif isinstance(pending_commands_stack[-1], str):
                 pending_cmd = pending_commands_stack[-1]
                 pending_commands_stack[-1] = [pending_cmd] * (goal_num - 2) + \
@@ -256,6 +271,7 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                 commands_list = [cmd.strip() if cmd.strip().strip(".") != ""
                                  else "idtac" + cmd.strip() for cmd in
                                  clauses]
+                assert commands_list, command
                 dotdotpat = re.compile(r"(.*)\.\.($|\W)")
                 ending_dotdot_match = dotdotpat.match(commands_list[-1])
                 if ending_dotdot_match:
@@ -285,15 +301,24 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                                           for cmd in commands_list]
                 else:
                     command_remainders = [cmd + "." for cmd in commands_list]
+                assert serapi_instance.isValidCommand(command_remainders[0]), \
+                    f"\"{command_remainders[0]}\" is not a valid command"
                 command_batch.insert(0, command_remainders[0])
                 if coq.count_fg_goals() > 1:
+                    for command in command_remainders[1:]:
+                        assert serapi_instance.isValidCommand(command), \
+                            f"\"{command}\" is not a valid command"
                     pending_commands_stack.append(command_remainders[1:])
                     coq.run_stmt("{")
                     yield indentation + "{"
             else:
                 if coq.count_fg_goals() > 0:
+                    assert serapi_instance.isValidCommand(rest), \
+                        f"\"{rest}\" is not a valid command, from {command}"
                     command_batch.insert(0, rest)
                 if coq.count_fg_goals() > 1:
+                    assert serapi_instance.isValidCommand(rest), \
+                        f"\"{rest}\" is not a valid command, from {command}"
                     pending_commands_stack.append(rest)
                     coq.run_stmt("{")
                     yield indentation + "{"
