@@ -256,11 +256,15 @@ def multisplit_matching(openpat : str, closepat : str,
                         -> List[str]:
     splits = []
     nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, target)
+    rest = []
     while nextsplit:
         before, rest = nextsplit
         splits.append(before)
         nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, rest[1:])
-    splits.append(rest[1:])
+    if rest:
+        splits.append(rest[1:])
+    else:
+        splits.append(target)
     return splits
 
 def split_by_char_outside_matching(openpat : str, closepat : str,
