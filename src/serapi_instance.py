@@ -882,6 +882,9 @@ class SerapiInstance(threading.Thread):
                 feedback_message = self.get_message()
         except TimeoutError:
             pass
+        except CoqAnomaly as e:
+            if e.msg != "Timing Out":
+                raise
     def discard_initial_feedback(self) -> None:
         feedback1 = self.get_message()
         feedback2 = self.get_message()
@@ -1143,12 +1146,7 @@ def isBreakMessage(msg : 'Sexp') -> bool:
                  "Sys\\.Break", lambda *args: True,
                  _, lambda *args: False)
 def isBreakAnswer(msg : 'Sexp') -> bool:
-    return match(normalizeMessage(msg),
-                 ["Answer", int, ["CoqExn", [], list,
-                                  ["Backtrace", []],
-                                  "Sys\\.Break"]],
-                 lambda *args: True,
-                 _, lambda *args: False)
+    return "Sys\\.Break" in searchStrsInMsg(normalizeMessage(msg))
 
 import contextlib
 from typing import Iterator
