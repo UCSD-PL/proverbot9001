@@ -1158,6 +1158,7 @@ def SerapiContext(coq_commands : List[str], module_name : str, includes : str, p
     coq.kill()
 
 normal_lemma_starting_patterns = [
+    "Local Lemma",
     "Lemma",
     "Theorem",
     "Remark",
