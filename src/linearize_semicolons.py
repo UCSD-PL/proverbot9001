@@ -101,7 +101,7 @@ def linearize_commands(args : argparse.Namespace, file_idx : int,
             continue
 
         # This might not be super robust?
-        match = re.fullmatch("\s*Proof with (.*)\.", command_batch[0])
+        match = re.fullmatch("\s*Proof with (.*)\.\s*", command_batch[0])
         if match and match.group(1):
             with_tactic = match.group(1)
         else:
