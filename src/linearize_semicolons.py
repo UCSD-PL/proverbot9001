@@ -188,6 +188,8 @@ def linearize_proof(coq : serapi_instance.SerapiInstance,
                     if pending_commands_stack[-1] is None:
                         pending_commands_stack[-1] = popped
                     elif isinstance(pending_commands_stack[-1], list):
+                        if isinstance(popped, list) and "<..>" in popped[-1]:
+                            raise LinearizerCouldNotLinearize
                         pending_commands_stack[-1] = popped + pending_commands_stack[-1]
         command = command_batch.pop(0)
         assert serapi_instance.isValidCommand(command), \
