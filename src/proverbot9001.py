@@ -33,14 +33,14 @@ import itertools
 import serapi_instance
 import features
 import json
-from util import eprint
+from util import eprint, print_time
 from format import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
 from pathlib_revised import Path2
 
-from typing import Dict, Callable, List
+from typing import List
 
 
 def exit_early(signal, frame):
@@ -173,6 +173,36 @@ def get_data(args : List[str]) -> None:
                                   "prev_goal": point.goal,
                                   "tactic": point.tactic}))
 
+import random
+import contextlib
+from pathlib_revised import Path2
+from tokenizer import get_relevant_k_keywords2
+
+def get_tokens(args : List[str]):
+    parser = argparse.ArgumentParser(description="Pick a set of tokens")
+    parser.add_argument("--type", choices=["mixed"], default="mixed")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-keywords", type=int, default=120)
+    parser.add_argument("-s", "--num-samples", type=int, default=2000)
+    parser.add_argument("-j", "--num-threads", type=int, default=None)
+    parser.add_argument("scrapefile", type=Path2)
+    parser.add_argument("dest")
+    arg_values = parser.parse_args(args)
+
+    with print_time("Reading scraped data", guard=arg_values.verbose):
+        raw_data = list(data.read_text_data(arg_values.scrapefile))
+    embedding = SimpleEmbedding()
+    subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
+    relevance_pairs = [(goal, embedding.encode_token(serapi_instance.get_stem(tactic)))
+                       for relevant_lemmas, prev_tactics, hyps, goal, tactic in subset]
+    with print_time("Calculating keywords", guard=arg_values.verbose):
+        keywords = get_relevant_k_keywords2(relevance_pairs, arg_values.num_keywords, arg_values.num_threads)
+
+    with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
+          else contextlib.nullcontext(sys.stdout)) as f:
+        for keyword in keywords:
+            f.write(keyword + "\n")
+
 modules = {
     "train" : train,
     "search-report":search_report.main,
@@ -180,6 +210,7 @@ modules = {
     "static-report":static_report.main,
     "evaluator-report":evaluator_report.main,
     "data": get_data,
+    "tokens": get_tokens,
 }
 
 if __name__ == "__main__":
