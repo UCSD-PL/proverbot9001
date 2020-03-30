@@ -219,7 +219,7 @@ def sighandler_context(signal, f):
 @contextlib.contextmanager
 def print_time(msg : str, guard=True):
     start = time.time()
-    eprint(msg, "...", end="", guard=guard)
+    eprint(msg + "...", end="", guard=guard)
     try:
         yield
     finally:
