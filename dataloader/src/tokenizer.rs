@@ -1,14 +1,17 @@
-use std::collections::{BinaryHeap, HashMap};
-use std::hash::Hash;
 use crate::scraped_data::NormalFloat;
 use pyo3::prelude::*;
+use std::collections::{BinaryHeap, HashMap};
+use std::hash::Hash;
 
 extern crate regex;
 use regex::Regex;
 
 pub type Token = i64;
 
-pub struct OpenIndexer<T> where T: Eq + Hash + Clone{
+pub struct OpenIndexer<T>
+where
+    T: Eq + Hash + Clone,
+{
     next_idx: i64,
     map: HashMap<T, i64>,
     frozen: bool,
@@ -16,9 +19,16 @@ pub struct OpenIndexer<T> where T: Eq + Hash + Clone{
 
 pub type PickleableIndexer<T> = (i64, HashMap<T, i64>, bool);
 
-impl <T> OpenIndexer<T> where T: Eq + Hash + Clone{
-    pub fn new() -> Self{
-        OpenIndexer{next_idx: 1, map: HashMap::new(), frozen: false}
+impl<T> OpenIndexer<T>
+where
+    T: Eq + Hash + Clone,
+{
+    pub fn new() -> Self {
+        OpenIndexer {
+            next_idx: 1,
+            map: HashMap::new(),
+            frozen: false,
+        }
     }
     pub fn freeze(&mut self) {
         self.frozen = true;
@@ -35,13 +45,22 @@ impl <T> OpenIndexer<T> where T: Eq + Hash + Clone{
         *self.map.get(&v).unwrap()
     }
     pub fn reverse_lookup(&self, i: i64) -> T {
-        self.map.iter().find(|(_item, idx)| **idx == i).expect("That token doesn't exist!").0.clone()
+        self.map
+            .iter()
+            .find(|(_item, idx)| **idx == i)
+            .expect("That token doesn't exist!")
+            .0
+            .clone()
     }
     pub fn to_pickleable(self) -> PickleableIndexer<T> {
         (self.next_idx, self.map, self.frozen)
     }
     pub fn from_pickleable(tup: PickleableIndexer<T>) -> Self {
-        OpenIndexer{next_idx: tup.0, map: tup.1, frozen: tup.2}
+        OpenIndexer {
+            next_idx: tup.0,
+            map: tup.1,
+            frozen: tup.2,
+        }
     }
     pub fn num_indices(&self) -> i64 {
         self.next_idx
@@ -59,12 +78,7 @@ pub struct Tokenizer {
 pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
 
 impl Tokenizer {
-    pub fn new_relevance(
-        use_unknowns: bool,
-        num_reserved_tokens: usize,
-        num_keywords: usize,
-        data: Vec<(String, usize)>,
-    ) -> Self {
+    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: String) -> Self {
         println!("Getting relevant keywords");
         let keywords = relevant_keywords(data, num_keywords);
         let first_token = (num_reserved_tokens + if use_unknowns { 1 } else { 0 }) as i64;
@@ -73,26 +87,48 @@ impl Tokenizer {
         for (idx, keyword) in keywords.into_iter().enumerate() {
             token_dict.insert(keyword, idx as i64 + first_token);
         }
-        Tokenizer { use_unknowns, num_reserved_tokens, unknown_token, token_dict }
+        Tokenizer {
+            use_unknowns,
+            num_reserved_tokens,
+            unknown_token,
+            token_dict,
+        }
     }
     pub fn tokenize(&self, sentence: &str) -> Vec<Token> {
         let words = get_words(sentence);
-        words.into_iter().flat_map(
-            |word|
-            match self.token_dict.get(word) {
-                None => if self.use_unknowns { Some(self.unknown_token) } else { None },
+        words
+            .into_iter()
+            .flat_map(|word| match self.token_dict.get(word) {
+                None => {
+                    if self.use_unknowns {
+                        Some(self.unknown_token)
+                    } else {
+                        None
+                    }
+                }
                 Some(tok) => Some(*tok),
-            }).collect()
+            })
+            .collect()
     }
     pub fn to_pickleable(self) -> PickleableTokenizer {
-        (self.use_unknowns, self.num_reserved_tokens, self.unknown_token, self.token_dict)
+        (
+            self.use_unknowns,
+            self.num_reserved_tokens,
+            self.unknown_token,
+            self.token_dict,
+        )
     }
-    pub fn from_pickleable(tup: PickleableTokenizer) -> Self{
-        Tokenizer{use_unknowns: tup.0, num_reserved_tokens: tup.1, unknown_token: tup.2,
-                  token_dict: tup.3}
+    pub fn from_pickleable(tup: PickleableTokenizer) -> Self {
+        Tokenizer {
+            use_unknowns: tup.0,
+            num_reserved_tokens: tup.1,
+            unknown_token: tup.2,
+            token_dict: tup.3,
+        }
     }
     pub fn num_tokens(&self) -> i64 {
-        (self.token_dict.len() + self.num_reserved_tokens + if self.use_unknowns { 1 } else { 0 }) as i64
+        (self.token_dict.len() + self.num_reserved_tokens + if self.use_unknowns { 1 } else { 0 })
+            as i64
     }
 }
 
@@ -160,8 +196,7 @@ where
 
 pub fn get_words(string: &str) -> Vec<&str> {
     lazy_static! {
-        static ref WORDS: Regex =
-            Regex::new(r"(,|\.+|:\b|:=|\)|\()|(([[:word:]]|')+)").unwrap();
+        static ref WORDS: Regex = Regex::new(r"(,|\.+|:\b|:=|\)|\()|(([[:word:]]|')+)").unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
