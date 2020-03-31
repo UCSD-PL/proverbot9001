@@ -336,6 +336,7 @@ class SerapiInstance(threading.Thread):
                     self.local_lemmas
 
     def lemmas_defined_by_stmt(self, cmd : str) -> List[str]:
+        cmd = kill_comments(cmd)
         normal_lemma_match = re.match(r"\s*(?:" + "|".join(normal_lemma_starting_patterns) + r")\s+([\w']*)(.*)",
                                       cmd,
                                       flags=re.DOTALL)
@@ -361,12 +362,15 @@ class SerapiInstance(threading.Thread):
             return [morphism_match.group(2) + " : " + morphism_match.group(1)]
 
         proposition_match = re.match(r".*Inductive\s*\w+\s*:.*Prop\s*:=(.*)",
-                                     kill_comments(cmd), flags=re.DOTALL)
+                                     cmd, flags=re.DOTALL)
         if proposition_match:
             case_matches = re.finditer(r"\|\s*(\w+\s*:[^|]*)", proposition_match.group(1))
             constructor_lemmas = [self.module_prefix + case_match.group(1) for case_match in
                                   case_matches]
             return constructor_lemmas
+        obligation_match = re.match(".*Obligation", cmd, flags=re.DOTALL)
+        if obligation_match:
+            return [":"]
 
         return []
 
