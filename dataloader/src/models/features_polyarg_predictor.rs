@@ -116,25 +116,18 @@ pub fn features_polyarg_tensors(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            let tokenizer_sample = raw_data.choose_multiple(&mut thread_rng(), args.num_relevance_samples)
-                .zip(tactic_stem_indices.iter())
-                .map(|(scraped, idx)| (scraped.prev_goal.clone(), *idx as usize))
-                .collect();
             (
-                Tokenizer::new_relevance(
+                Tokenizer::new(
                     use_unknowns,
                     num_reserved_tokens,
-                    args.num_keywords,
-                    tokenizer_sample,
+                    args.keywords_file,
                 ),
                 FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
             )
         }
     };
-    println!("Sorting data by hyp lengths");
     raw_data.sort_by_key(|pnt| -(pnt.prev_hyps.len() as i64));
 
-    println!("Scoring hyps");
     let hyp_scores: Vec<Vec<f64>> = raw_data
         .iter()
         .map(|scraped| {
