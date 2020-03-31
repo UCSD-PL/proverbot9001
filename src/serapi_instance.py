@@ -310,6 +310,8 @@ class SerapiInstance(threading.Thread):
         if reset_match:
             reseted_lemma_name = self.module_prefix + reset_match.group(1)
             for (lemma, is_section) in list(self._local_lemmas):
+                if lemma == ":":
+                    continue
                 lemma_match = re.match("\s*([\w'\.]+)\s*:", lemma)
                 assert lemma_match, f"{lemma} doesnt match!"
                 lemma_name = lemma_match.group(1)
