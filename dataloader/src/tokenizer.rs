@@ -1,8 +1,7 @@
-use crate::scraped_data::NormalFloat;
 use pyo3::prelude::*;
-use std::collections::{BinaryHeap, HashMap};
-use std::hash::Hash;
+use std::collections::HashMap;
 use std::fs::File;
+use std::hash::Hash;
 use std::io::{self, BufRead};
 
 extern crate regex;
@@ -81,7 +80,12 @@ pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
 
 impl Tokenizer {
     pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: String) -> Self {
-        let keywords = io::BufReader::new(File::open(keywords_filepath).expect(format!("Couldn't open keywords file {}", keywords_filepath))).lines().collect();
+        let keywords = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
+            "Couldn't open keywords file {}",
+            keywords_filepath
+        )))
+        .lines()
+        .collect();
         let first_token = (num_reserved_tokens + if use_unknowns { 1 } else { 0 }) as i64;
         let unknown_token = if use_unknowns { num_reserved_tokens } else { 0 } as i64;
         let mut token_dict = HashMap::new();

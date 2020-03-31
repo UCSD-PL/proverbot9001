@@ -1,12 +1,21 @@
+use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
 use std::iter;
-use pyo3::prelude::*;
+
+use crate::paren_util::*;
+use regex::Regex;
+
+pub type FloatUnpaddedTensor3D = Vec<Vec<Vec<f64>>>;
+pub type LongUnpaddedTensor3D = Vec<Vec<Vec<i64>>>;
 
 pub type LongTensor2D = Vec<Vec<i64>>;
+// pub type LongUnpaddedTensor2D = Vec<Vec<i64>>;
 pub type FloatTensor2D = Vec<Vec<f64>>;
+// pub type FloatUnpaddedTensor2D = Vec<Vec<f64>>;
 
 pub type LongTensor1D = Vec<i64>;
 pub type FloatTensor1D = Vec<f64>;
@@ -42,6 +51,86 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
     })
 }
 
+pub fn kill_comments(source: &str) -> String {
+    let mut result = String::new();
+    let mut depth = 0;
+    let mut cur_pos = 0;
+    macro_rules! lookup {
+        ($pat:expr) => {
+            source[cur_pos..]
+                .find($pat)
+                .map(|pos| pos + cur_pos)
+                .unwrap_or(source.len())
+        };
+    };
+    while cur_pos < source.len() {
+        let next_open = lookup!("(*");
+        let next_close = lookup!("*)");
+        if depth == 0 {
+            assert!(
+                next_open <= next_close,
+                "Unbalanced comment delimiters! Too many closes"
+            );
+            result.push_str(&source[cur_pos..next_open]);
+            cur_pos = next_open + 2;
+            depth += 1;
+        } else if next_open < next_close {
+            depth += 1;
+            cur_pos = next_open + 2;
+        } else {
+            assert!(
+                next_close < next_open,
+                "Unbalanced comment delimiters! Not enough closes"
+            );
+            assert!(depth > 0);
+            depth -= 1;
+            cur_pos = next_close + 2;
+        }
+    }
+    result
+}
+
+pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
+    let no_comments_tac = kill_comments(full_tactic);
+    let prepped_tac = no_comments_tac.trim();
+    lazy_static! {
+        static ref GOAL_SELECTOR: Regex = Regex::new(r"[-+*{}]").unwrap();
+    }
+    if GOAL_SELECTOR.is_match(prepped_tac)
+        || split_to_next_pat_outside_parens(&prepped_tac, ";").is_some()
+    {
+        return None;
+    }
+    for prefix in &["try", "now", "repeat", "decide"] {
+        if prepped_tac.starts_with(prefix) {
+            return split_tactic(&prepped_tac[prefix.len()..]).map(|(rest_stem, rest_rest)| {
+                let mut new_stem = prefix.to_string();
+                new_stem.push_str(&rest_stem);
+                (new_stem, rest_rest)
+            });
+        }
+    }
+    for special_stem in &["rewrite <-", "rewrite !", "intros until", "simple in"] {
+        if prepped_tac.starts_with(special_stem) {
+            return Some((
+                special_stem.to_string(),
+                prepped_tac[special_stem.len()..].to_string(),
+            ));
+        }
+    }
+    prepped_tac
+        .find(|c| c == '.' || char::is_whitespace(c))
+        .map(|idx| {
+            (
+                prepped_tac[..idx].to_string(),
+                prepped_tac[idx..].to_string(),
+            )
+        })
+}
+
+pub fn get_stem(full_tactic: &str) -> Option<String> {
+    split_tactic(full_tactic).map(|(stem, _args)| stem)
+}
 
 #[pyclass]
 #[derive(Default, Clone)]
@@ -53,14 +142,20 @@ pub struct DataloaderArgs {
     #[pyo3(get, set)]
     pub max_length: usize,
     #[pyo3(get, set)]
+    pub max_premises: usize,
+    #[pyo3(get, set)]
     pub num_keywords: usize,
+    #[pyo3(get, set)]
+    pub num_relevance_samples: usize,
+    #[pyo3(get, set)]
+    pub keywords_file: String,
 }
 #[pymethods]
 impl DataloaderArgs {
     #[new]
     fn new(obj: &PyRawObject) {
         let d: DataloaderArgs = Default::default();
-        obj.init({d});
+        obj.init({ d });
     }
 }
 impl<'source> pyo3::FromPyObject<'source> for DataloaderArgs {

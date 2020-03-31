@@ -53,7 +53,8 @@ pub fn sample_context_features(
     hypotheses: Vec<String>,
     goal: String,
 ) -> (LongTensor1D, FloatTensor1D) {
-    let (best_hyp, best_score) = best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);
+    let (best_hyp, best_score) =
+        best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
         goal_head_feature(tmap, &goal),
@@ -65,18 +66,18 @@ pub fn sample_context_features(
 
 // index of the previous tactic, or zero if it's not
 // in the index table, or there is no previous tactic.
-fn prev_tactic_feature(tmap: &TokenMap, prev_tactics: &Vec<String>) -> i64 {
+pub fn prev_tactic_feature(tmap: &TokenMap, prev_tactics: &Vec<String>) -> i64 {
     match prev_tactics
         .last()
         .map(|tac| get_stem(tac).expect("Couldn't get the first word of the tactic"))
-        .and_then(|first_token| tmap.tactic_to_index.get(first_token))
+        .and_then(|first_token| tmap.tactic_to_index.get(&first_token))
     {
         Some(idx) => (idx + 1) as i64,
         None => 0,
     }
 }
 
-fn goal_head_feature(tmap: &TokenMap, goal: &str) -> i64 {
+pub fn goal_head_feature(tmap: &TokenMap, goal: &str) -> i64 {
     match goal.split_whitespace().next() {
         None => 0,
         Some(first_token) => match tmap.goal_token_to_index.get(first_token) {
@@ -86,7 +87,7 @@ fn goal_head_feature(tmap: &TokenMap, goal: &str) -> i64 {
     }
 }
 
-fn hyp_head_feature(tmap: &TokenMap, best_hyp: &str) -> i64 {
+pub fn hyp_head_feature(tmap: &TokenMap, best_hyp: &str) -> i64 {
     match best_hyp
         .split_whitespace()
         .next()
@@ -95,12 +96,6 @@ fn hyp_head_feature(tmap: &TokenMap, best_hyp: &str) -> i64 {
         Some(idx) => (idx + 1) as i64,
         None => 0,
     }
-}
-
-fn get_stem<'a>(full_tactic: &'a str) -> Option<&'a str> {
-    full_tactic
-        .split(|c| c == '.' || char::is_whitespace(c))
-        .next()
 }
 
 #[pyclass(dict, module = "dataloader")]
@@ -148,14 +143,15 @@ impl TokenMap {
                 scraped
                     .prev_hyps
                     .iter()
-                    .map(|hyp| hyp.split_whitespace().next().unwrap())
+                    .map(|hyp| hyp.split_whitespace().next().unwrap().to_string())
             }),
             count,
         );
         let index_to_goal_token = index_common(
             init_data
                 .iter()
-                .flat_map(|scraped| scraped.prev_goal.split_whitespace().next()),
+                .flat_map(|scraped| scraped.prev_goal.split_whitespace().next())
+                .map(|s| s.to_string()),
             count,
         );
 
@@ -197,7 +193,7 @@ struct ScoredString<'a> {
     contents: &'a str,
 }
 
-fn index_common<'a>(items: impl Iterator<Item = &'a str>, n: usize) -> Vec<String> {
+fn index_common<'a>(items: impl Iterator<Item = String>, n: usize) -> Vec<String> {
     let mut counts = HashMap::new();
     for item in items {
         *counts.entry(item).or_insert(0) += 1;
@@ -217,6 +213,24 @@ fn index_common<'a>(items: impl Iterator<Item = &'a str>, n: usize) -> Vec<Strin
         }
     }
     result
+}
+
+pub fn score_hyps<'a>(
+    max_distance: usize,
+    max_length: usize,
+    hyps: &Vec<String>,
+    goal: &String,
+) -> Vec<f64> {
+    let mut truncated_goal = goal.clone();
+    truncated_goal.truncate(max_length);
+    hyps.into_iter()
+        .map(|hyp| {
+            let mut hyp_after_colon = hyp.split(":").collect::<Vec<&str>>()[1].to_string();
+            hyp_after_colon.truncate(max_length);
+            let score = edit_distance(&hyp_after_colon, &truncated_goal);
+            (score as f64) / (max_distance as f64)
+        })
+        .collect()
 }
 
 fn best_scored_hyp<'a>(

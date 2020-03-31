@@ -1,3 +1,4 @@
+#![feature(vec_remove_item)]
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
@@ -9,6 +10,13 @@ mod scraped_data;
 use scraped_data::*;
 mod features;
 use features::{context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE};
+mod models;
+use models::features_polyarg_predictor::*;
+mod paren_util;
+mod tokenizer;
+
+#[macro_use]
+extern crate lazy_static;
 
 extern crate rayon;
 #[pymodule]
@@ -44,6 +52,98 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     )> {
         py.allow_threads(move || features_to_total_distances_tensors(args, filename, Some(map)))
     }
+    #[pyfn(m, "features_polyarg_tensors")]
+    fn parallel_features_polyarg_tensors_py(
+        py: Python,
+        args: DataloaderArgs,
+        filename: String,
+    ) -> PyResult<(
+        PickleableFPAMetadata,
+        (
+            LongUnpaddedTensor3D,
+            FloatUnpaddedTensor3D,
+            LongTensor1D,
+            LongTensor2D,
+            LongTensor2D,
+            FloatTensor2D,
+            LongTensor1D,
+            LongTensor1D,
+        ),
+        (Vec<i64>, i64),
+    )> {
+        py.allow_threads(move || features_polyarg_tensors(args, filename, None))
+    }
+    #[pyfn(m, "features_polyarg_tensors_with_meta")]
+    fn parallel_features_polyarg_tensors_with_meta(
+        py: Python,
+        args: DataloaderArgs,
+        filename: String,
+        meta: PickleableFPAMetadata,
+    ) -> PyResult<(
+        PickleableFPAMetadata,
+        (
+            LongUnpaddedTensor3D,
+            FloatUnpaddedTensor3D,
+            LongTensor1D,
+            LongTensor2D,
+            LongTensor2D,
+            FloatTensor2D,
+            LongTensor1D,
+            LongTensor1D,
+        ),
+        (Vec<i64>, i64),
+    )> {
+        py.allow_threads(move || features_polyarg_tensors(args, filename, Some(meta)))
+    }
+    #[pyfn(m, "sample_fpa")]
+    fn sample_fpa_py(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        relevant_lemmas: Vec<String>,
+        prev_tactics: Vec<String>,
+        hypotheses: Vec<String>,
+        goal: String,
+    ) -> (
+        LongUnpaddedTensor3D,
+        FloatUnpaddedTensor3D,
+        LongTensor1D,
+        LongTensor2D,
+        LongTensor2D,
+        FloatTensor2D,
+    ) {
+        sample_fpa(
+            args,
+            metadata,
+            relevant_lemmas,
+            prev_tactics,
+            hypotheses,
+            goal,
+        )
+    }
+    #[pyfn(m, "decode_fpa_result")]
+    fn decode_fpa_result_py(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        hyps: Vec<String>,
+        goal: &str,
+        tac_idx: i64,
+        arg_idx: i64,
+    ) -> String {
+        decode_fpa_result(args, metadata, hyps, goal, tac_idx, arg_idx)
+    }
+    #[pyfn(m, "get_num_tokens")]
+    fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
+        let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        tokenizer.num_tokens()
+    }
+    #[pyfn(m, "get_num_indices")]
+    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
+        let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        indexer.num_indices()
+    }
+
     m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
     m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;
     m.add_wrapped(wrap_pyfunction!(tmap_to_picklable))?;
@@ -52,7 +152,6 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<DataloaderArgs>()?;
     Ok(())
 }
-#[pyfunction]
 fn features_to_total_distances_tensors(
     args: DataloaderArgs,
     filename: String,
