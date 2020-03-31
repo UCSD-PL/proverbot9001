@@ -61,11 +61,13 @@ def train(args):
                                      "Proverbot9001 training module")
     parser.add_argument("model", choices=list(predict_tactic.trainable_modules.keys()) +
                         list(evaluate_state.trainable_modules.keys()))
-    args_values = parser.parse_args(args[:1])
-    module = predict_tactic.trainable_modules.get(args_values.model)
-    if not module:
-        module = evaluate_state.trainable_modules[args_values.model]
-    module(args[1:])
+    arg_values = parser.parse_args(args[:1])
+    if arg_values.model in predict_tactic.trainable_modules.keys():
+        predict_tactic.trainable_modules[arg_values.model](args[1:])
+    elif arg_values.model in evaluate_state.trainable_modules.keys():
+        evaluate_state.trainable_modules[arg_values.model](args[1:])
+    else:
+        assert False, f"Couldn't find the module {arg_values.model} to train!"
 
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
