@@ -69,3 +69,33 @@ impl<'source> pyo3::FromPyObject<'source> for DataloaderArgs {
         Ok(cls.clone())
     }
 }
+
+pub struct NormalFloat(f64);
+impl NormalFloat {
+    pub fn new(v: f64) -> NormalFloat {
+        assert_eq!(v, v);
+        NormalFloat(v)
+    }
+}
+impl PartialEq for NormalFloat {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+impl Eq for NormalFloat {}
+impl PartialOrd for NormalFloat {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.eq(other) {
+            Some(Ordering::Equal)
+        } else if self.0 > other.0 {
+            Some(Ordering::Greater)
+        } else {
+            Some(Ordering::Less)
+        }
+    }
+}
+impl Ord for NormalFloat {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
