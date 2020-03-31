@@ -87,13 +87,15 @@ pub fn features_polyarg_tensors(
     )
     .flat_map(|data| match data {
         ScrapedData::Vernac(_) => None,
-        ScrapedData::Tactic(t) => if get_stem(&t.tactic).is_some() {
-            Some(t)
-        } else {
-            None
-        },
+        ScrapedData::Tactic(t) => {
+            if get_stem(&t.tactic).is_some() {
+                Some(t)
+            } else {
+                None
+            }
+        }
     })
-        .collect();
+    .collect();
     let (mut indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
             OpenIndexer::from_pickleable(indexer),
@@ -103,8 +105,13 @@ pub fn features_polyarg_tensors(
     };
     let tactic_stem_indices: Vec<i64> = raw_data
         .iter()
-        .map(|data| indexer.lookup(get_stem(&data.tactic).expect(&format!("Couldn't get the stem for {}",
-                                                                          data.tactic)).to_string()))
+        .map(|data| {
+            indexer.lookup(
+                get_stem(&data.tactic)
+                    .expect(&format!("Couldn't get the stem for {}", data.tactic))
+                    .to_string(),
+            )
+        })
         .collect();
     indexer.freeze();
 
@@ -117,11 +124,7 @@ pub fn features_polyarg_tensors(
             let use_unknowns = true;
             let num_reserved_tokens = 2;
             (
-                Tokenizer::new(
-                    use_unknowns,
-                    num_reserved_tokens,
-                    args.keywords_file,
-                ),
+                Tokenizer::new(use_unknowns, num_reserved_tokens, args.keywords_file),
                 FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
             )
         }
@@ -201,16 +204,17 @@ pub fn features_polyarg_tensors(
     let word_features_sizes = features_token_map.word_features_sizes();
     Ok((
         fpa_metadata_to_pickleable((indexer, tokenizer, features_token_map)),
-        (tokenized_hyps,
-        hyp_features,
-        num_hyps,
-        tokenized_goals,
-        word_features,
-        vec_features,
-        tactic_stem_indices,
-        arg_indices),
-        (word_features_sizes,
-        VEC_FEATURES_SIZE),
+        (
+            tokenized_hyps,
+            hyp_features,
+            num_hyps,
+            tokenized_goals,
+            word_features,
+            vec_features,
+            tactic_stem_indices,
+            arg_indices,
+        ),
+        (word_features_sizes, VEC_FEATURES_SIZE),
     ))
 }
 
@@ -289,7 +293,9 @@ pub fn decode_fpa_result(
         TacticArgument::NoArg => stem + ".",
         TacticArgument::Unrecognized => stem + ".",
         TacticArgument::GoalToken(tidx) => stem + get_words(goal)[tidx] + ".",
-        TacticArgument::HypVar(hidx) => stem + hyps[hidx].split(":").next().expect("No colon in hyp"),
+        TacticArgument::HypVar(hidx) => {
+            stem + hyps[hidx].split(":").next().expect("No colon in hyp")
+        }
     }
 }
 
@@ -299,8 +305,9 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
     let equals_match = EQ.captures(hyp);
     if let Some(captures) = equals_match {
-        let (left_side, right_side) =
-            split_to_next_matching_paren_or_space(captures.get(1).expect("Can't get capture group").into());
+        let (left_side, right_side) = split_to_next_matching_paren_or_space(
+            captures.get(1).expect("Can't get capture group").into(),
+        );
         if goal.contains(left_side) {
             -1.0
         } else if goal.contains(right_side) {
