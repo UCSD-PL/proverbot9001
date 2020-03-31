@@ -1271,6 +1271,8 @@ def get_stem(tactic : str) -> str:
 
 def split_tactic(tactic : str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
+    if not tactic:
+        return ("", "")
     if re.match("[-+*\{\}]", tactic):
         stripped = tactic.strip()
         return stripped[:-1], stripped[-1]
