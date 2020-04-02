@@ -69,7 +69,7 @@ pub fn sample_context_features(
 pub fn prev_tactic_feature(tmap: &TokenMap, prev_tactics: &Vec<String>) -> i64 {
     match prev_tactics
         .last()
-        .map(|tac| get_stem(tac).expect("Couldn't get the first word of the tactic"))
+        .and_then(|tac| get_stem(tac))
         .and_then(|first_token| tmap.tactic_to_index.get(&first_token))
     {
         Some(idx) => (idx + 1) as i64,
