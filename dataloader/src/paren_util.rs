@@ -16,18 +16,28 @@ pub fn split_to_next_matching_paren_or_space<'a>(haystack: &'a str) -> (&'a str,
             .unwrap_or(haystack.len() + 1);
         if next_open < next_close && next_open < next_split {
             depth += 1;
-            curpos = next_open;
+            curpos = next_open + 1;
         } else if next_close < next_open && next_close < next_split {
             depth -= 1;
-            curpos = next_close;
-        } else if next_split < next_open && next_split < next_close && depth == 0 {
-            return (haystack[..next_split].trim(), haystack[next_split..].trim());
+            curpos = next_close + 1;
+        } else if next_split < next_open && next_split < next_close {
+            if depth == 0 {
+                return (haystack[..next_split].trim(), haystack[next_split..].trim());
+            } else {
+                curpos = next_split + 1;
+            }
+        } else if
+            next_split == haystack.len() + 1 &&
+            next_open == haystack.len() + 1 &&
+            next_close == haystack.len() + 1 {
+            return (haystack, "");
         } else {
             unimplemented!(
-                "Ahhhh: {}, {}, {}, {}",
+                "Ahhhh: {}, {}, {}, {}, {}",
                 next_open,
                 next_close,
                 next_split,
+                haystack.len(),
                 haystack
             );
         }
