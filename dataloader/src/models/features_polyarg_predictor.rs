@@ -159,10 +159,6 @@ pub fn features_polyarg_tensors(
         .iter()
         .map(|tac| tac.prev_hyps.len() as i64)
         .collect();
-    let tokenized_goals = raw_data
-        .iter()
-        .map(|tac| tokenizer.tokenize(&tac.prev_goal))
-        .collect();
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = raw_data
         .iter()
         .map(|tac| &tac.prev_hyps)
@@ -190,6 +186,12 @@ pub fn features_polyarg_tensors(
             ]
         })
         .collect();
+    let tokenized_goals = raw_data
+        .iter()
+        .map(|tac| {
+            normalize_sentence_length(tokenizer.tokenize(&tac.prev_goal), args.max_length, 1)
+        })
+        .collect();
     let (arg_indices, selected_hyps): (Vec<i64>, Vec<Vec<&String>>) = raw_data
         .iter()
         .map(|scraped| {
@@ -199,7 +201,11 @@ pub fn features_polyarg_tensors(
         .unzip();
     let tokenized_hyps = selected_hyps
         .iter()
-        .map(|hyps| hyps.iter().map(|hyp| tokenizer.tokenize(hyp)).collect())
+        .map(|hyps| {
+            hyps.iter()
+                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
+                .collect()
+        })
         .collect();
     let word_features_sizes = features_token_map.word_features_sizes();
     Ok((
@@ -404,4 +410,13 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::GoalToken(tidx) => (tidx + 1) as i64,
         TacticArgument::HypVar(hidx) => (hidx + dargs.max_length) as i64,
     }
+}
+
+fn normalize_sentence_length(mut tokenlist: Vec<i64>, length: usize, pad_value: i64) -> Vec<i64> {
+    if tokenlist.len() > length {
+        tokenlist.truncate(length);
+    } else if tokenlist.len() < length {
+        tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
+    }
+    tokenlist
 }
