@@ -80,7 +80,6 @@ pub fn features_polyarg_tensors(
     ),
     (Vec<i64>, i64),
 )> {
-    println!("Loading raw data");
     let mut raw_data: Vec<ScrapedTactic> = scraped_from_file(
         File::open(filename)
             .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
