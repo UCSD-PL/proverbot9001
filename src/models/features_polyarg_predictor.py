@@ -522,74 +522,7 @@ class FeaturesPolyargPredictor(
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
-        embedding : Embedding
-        tokenizer : Tokenizer
-        if arg_values.start_from:
-            predictor_name, (loaded_args, metadata, predictor_state) = \
-                torch.load(arg_values.start_from)
-            assert predictor_name == "polyarg"
-            tokenizer, embedding, wfeats, vfeats = metadata
-            _, embedded_data = embed_data(data, embedding)
-            _, tokenized_goals = tokenize_goals(embedded_data,
-                                                arg_values, tokenizer)
-            self._word_feature_functions = wfeats
-            self._vec_feature_functions = vfeats
-        else:
-            if arg_values.load_features:
-                self._word_feature_functions, self._vec_feature_functions = \
-                    load_features(arg_values, arg_values.load_features)
-                pass
-            else:
-                stripped_data = [strip_scraped_output(dat)
-                                 for dat in data]
-                self._word_feature_functions = \
-                    [feature_constructor.from_data(stripped_data, arg_values)  # type: ignore
-                     for feature_constructor in
-                     word_feature_constructors]
-                self._vec_feature_functions = \
-                    [feature_constructor(stripped_data, arg_values) for # type: ignore
-                     feature_constructor in vec_feature_constructors]
-            if arg_values.load_embedding:
-                embedding = SimpleEmbedding.from_file(
-                    arg_values.load_embedding)
-                # if not arg_values.load_tensors:
-                _, embedded_data = embed_data(data, embedding)
-            else:
-                embedding, embedded_data = embed_data(data)
-            if arg_values.load_text_tokens:
-                with open(arg_values.load_text_tokens, 'r') as f:
-                    keywords = [line.strip() for line in f]
-                tokenizer = CompleteTokenizer(keywords, num_reserved_tokens=2)
-                tokenizer.freezeTokenList()
-                # if not arg_values.load_tensors:
-                _, tokenized_goals = tokenize_goals(embedded_data,
-                                                    arg_values,
-                                                    tokenizer)
-            else:
-                tokenizer, tokenized_goals = tokenize_goals(embedded_data,
-                                                            arg_values)
-        torch.multiprocessing.set_sharing_strategy('file_system')
-        with multiprocessing.Pool(arg_values.num_threads) as pool:
-            start = time.time()
-            print("Creating dataset...", end="")
-            sys.stdout.flush()
-            # result_data = FeaturesPolyArgDataset(list(pool.imap(
-            #     functools.partial(mkFPASample, embedding,
-            #                       tokenizer,
-            #                       arg_values,
-            #                       self._word_feature_functions,
-            #                       self._vec_feature_functions),
-            #     zip(data, tokenized_goals))))
-            result_data = [mkFPASample(embedding, tokenizer, arg_values,
-                                       self._word_feature_functions,
-                                       self._vec_feature_functions,
-                                       point)
-                           for point in zip(data, tokenized_goals)]
-            print("{:.2f}s".format(time.time() - start))
-        assert self._word_feature_functions
-        assert self._vec_feature_functions
-        return result_data, (tokenizer, embedding, self._word_feature_functions,
-                             self._vec_feature_functions)
+        pass
     def _optimize_model_to_disc(self, arg_values : Namespace) -> Iterable[FeaturesPolyargState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
@@ -640,24 +573,6 @@ class FeaturesPolyargPredictor(
 
         return ((metadata, state) for state in optimize_checkpoints(tensors, arg_values, model,
                                                                     lambda batch_tensors, model:
-        # tokenizer, embedding, word_features, vec_features = metadata
-        # save_checkpoints("polyarg",
-        #                  metadata, arg_values,
-        #                  self._optimize_checkpoints(encoded_data, arg_values,
-        #                                             tokenizer, embedding))
-    # def _optimize_checkpoints(self, encoded_data : FeaturesPolyArgDataset,
-    #                           arg_values : Namespace,
-    #                           tokenizer : Tokenizer,
-    #                           embedding : Embedding) \
-    #     -> Iterable[NeuralPredictorState]:
-    #     return optimize_checkpoints(self._data_tensors(encoded_data, arg_values),
-    #                                 arg_values,
-    #                                 self._get_model(arg_values, embedding.num_tokens(),
-    #                                                 tokenizer.numTokens()),
-    #                                 lambda batch_tensors, model:
-    #                                 self._getBatchPredictionLoss(arg_values,
-    #                                                              batch_tensors,
-    #                                                              model))
                                                                     self._getBatchPredictionLoss(arg_values,
                                                                                                  batch_tensors,
                                                                                                  model)))
