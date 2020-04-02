@@ -81,15 +81,14 @@ pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
 impl Tokenizer {
     pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
         let keywords = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
-            "Couldn't open keywords file {}",
+            "Couldn't open keywords file \"{}\"",
             keywords_filepath
         )))
-        .lines()
-        .collect();
+        .lines().map(|keyword| keyword.unwrap());
         let first_token = (num_reserved_tokens + if use_unknowns { 1 } else { 0 }) as i64;
         let unknown_token = if use_unknowns { num_reserved_tokens } else { 0 } as i64;
         let mut token_dict = HashMap::new();
-        for (idx, keyword) in keywords.into_iter().enumerate() {
+        for (idx, keyword) in keywords.enumerate() {
             token_dict.insert(keyword, idx as i64 + first_token);
         }
         Tokenizer {
