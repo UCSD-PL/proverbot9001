@@ -380,7 +380,7 @@ fn get_argument<'a>(
                     let mut other_hyps = all_hyps.clone();
                     other_hyps.remove(idx);
                     let mut selected_hyps: Vec<&String> = other_hyps
-                        .choose_multiple(&mut thread_rng(), args.max_premises)
+                        .choose_multiple(&mut thread_rng(), args.max_premises - 1)
                         .map(|s| *s)
                         .collect();
                     let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
