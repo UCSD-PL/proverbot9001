@@ -353,12 +353,13 @@ fn get_argument<'a>(
     } else if argstr_tokens.len() > 1 {
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let goal_symbols = get_words(&scraped.prev_goal)[..args.max_length].to_vec();
+        let goal_symbols = get_words(&scraped.prev_goal);
         let arg_token = argstr_tokens[0];
         match goal_symbols
-            .iter()
+            .into_iter()
+            .take(args.max_length)
             .enumerate()
-            .find(|(_idx, symbol)| **symbol == arg_token)
+            .find(|(_idx, symbol)| *symbol == arg_token)
         {
             Some((idx, _symbol)) => {
                 return (TacticArgument::GoalToken(idx), rand_bounded_hyps!());
