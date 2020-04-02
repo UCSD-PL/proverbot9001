@@ -623,7 +623,7 @@ class FeaturesPolyargPredictor(
                                      in unpadded_hyp_features],
                                     batch_first=True),
                        torch.LongTensor(num_hyps),
-                       torch.LongTensor(tokenize_goals),
+                       torch.LongTensor(tokenized_goals),
                        torch.LongTensor(word_features),
                        torch.FloatTensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
