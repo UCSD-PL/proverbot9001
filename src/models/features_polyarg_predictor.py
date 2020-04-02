@@ -56,6 +56,8 @@ from dataloader import (features_polyarg_tensors,
                         features_vocab_sizes,
                         get_num_tokens,
                         get_num_indices,
+                        get_word_feature_vocab_sizes,
+                        get_vec_features_size,
                         DataloaderArgs)
 
 import threading
@@ -188,22 +190,18 @@ class HypArgModel(nn.Module):
 
 class FeaturesClassifier(nn.Module):
     def __init__(self,
-                 word_features : List[WordFeature],
-                 vec_features : List[VecFeature],
+                 wordf_sizes : List[int],
+                 vecf_size : int,
                  hidden_size : int,
                  num_layers : int,
                  stem_vocab_size : int)\
         -> None:
         super().__init__()
-        feature_vec_size = sum([feature.feature_size()
-                                for feature in vec_features])
-        word_features_vocab_sizes = [features.vocab_size()
-                                     for features in word_features]
         self._word_features_encoder = maybe_cuda(
-            WordFeaturesEncoder(word_features_vocab_sizes,
+            WordFeaturesEncoder(wordf_sizes,
                                 hidden_size, 1, hidden_size))
         self._features_classifier = maybe_cuda(
-            DNNClassifier(hidden_size + feature_vec_size,
+            DNNClassifier(hidden_size + vecf_size,
                           hidden_size, stem_vocab_size, num_layers))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
         pass
@@ -630,7 +628,11 @@ class FeaturesPolyargPredictor(
                        torch.LongTensor(arg_indices)]
 
         with print_time("Building the model", guard=arg_values.verbose):
-            model = self._get_model(arg_values, get_num_tokens(metadata), get_num_indices(metadata))
+            model = self._get_model(arg_values,
+                                    word_features_size,
+                                    vec_features_size,
+                                    get_num_indices(metadata),
+                                    get_num_tokens(metadata))
             if arg_values.start_from:
                 model.load_saved_state(arg_values, state)
 
@@ -660,33 +662,26 @@ class FeaturesPolyargPredictor(
     #                                                              model))
     def load_saved_state(self,
                          args : Namespace,
-                         metadata : Tuple[Tokenizer, Embedding,
-                                          List[WordFeature], List[VecFeature]],
+                         metadata : Any,
                          state : NeuralPredictorState) -> None:
-        self._tokenizer, self._embedding, \
-            self._word_feature_functions, self._vec_feature_functions= \
-                metadata
         model = maybe_cuda(self._get_model(args,
-                                           self._embedding.num_tokens(),
-                                           self._tokenizer.numTokens()))
+                                           get_word_feature_vocab_sizes(metadata),
+                                           get_vec_features_sizes(metadata),
+                                           get_num_indices(metadata),
+                                           get_num_tokens(metadata)))
         model.load_state_dict(state.weights)
         self._model = model
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
     def _get_model(self, arg_values : Namespace,
+                   wordf_sizes : int,
+                   vecf_size : int,
                    stem_vocab_size : int,
                    goal_vocab_size : int) \
         -> FeaturesPolyArgModel:
-        assert self._word_feature_functions
-        assert self._vec_feature_functions
-        feature_vec_size = sum([feature.feature_size()
-                                for feature in self._vec_feature_functions])
-        word_feature_vocab_sizes = [feature.vocab_size()
-                                    for feature in self._word_feature_functions]
         return FeaturesPolyArgModel(
-            FeaturesClassifier(self._word_feature_functions,
-                               self._vec_feature_functions,
+            FeaturesClassifier(wordf_sizes, vecf_size,
                                arg_values.hidden_size,
                                arg_values.num_layers,
                                stem_vocab_size),
