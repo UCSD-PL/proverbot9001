@@ -341,6 +341,11 @@ fn get_argument<'a>(
                     .choose_multiple(&mut thread_rng(), args.max_premises)
                     .map(|s| *s)
                     .collect()
+            } else if all_hyps.len() == 0 {
+                lazy_static! {
+                    static ref COLONSTRING: String = ":".to_string();
+                }
+                vec![&COLONSTRING]
             } else {
                 all_hyps
             }
