@@ -142,18 +142,6 @@ pub fn features_polyarg_tensors(
         })
         .collect();
 
-    let hyp_features = raw_data
-        .iter()
-        .zip(hyp_scores.iter())
-        .map(|(scraped, scores)| {
-            scraped
-                .prev_hyps
-                .iter()
-                .zip(scores.iter())
-                .map(|(hyp, score)| vec![*score, equality_hyp_feature(hyp, &scraped.prev_goal)])
-                .collect()
-        })
-        .collect();
     let num_hyps = raw_data
         .iter()
         .map(|tac| tac.prev_hyps.len() as i64)
@@ -204,6 +192,22 @@ pub fn features_polyarg_tensors(
             hyps.iter()
                 .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
                 .collect()
+        })
+        .collect();
+    let hyp_features = raw_data
+        .iter()
+        .zip(selected_hyps)
+        .map(|(scraped, selected)| {
+            score_hyps(
+                args.max_distance,
+                args.max_length,
+                &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
+                &scraped.prev_goal,
+            )
+            .iter()
+            .zip(selected)
+            .map(|(score, hyp)| vec![*score, equality_hyp_feature(hyp, &scraped.prev_goal)])
+            .collect()
         })
         .collect();
     let word_features_sizes = features_token_map.word_features_sizes();
