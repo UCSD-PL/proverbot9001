@@ -79,7 +79,7 @@ pub struct Tokenizer {
 pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
 
 impl Tokenizer {
-    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: String) -> Self {
+    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
         let keywords = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
             "Couldn't open keywords file {}",
             keywords_filepath

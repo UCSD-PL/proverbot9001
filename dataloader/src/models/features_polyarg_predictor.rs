@@ -124,7 +124,7 @@ pub fn features_polyarg_tensors(
             let use_unknowns = true;
             let num_reserved_tokens = 2;
             (
-                Tokenizer::new(use_unknowns, num_reserved_tokens, args.keywords_file),
+                Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file),
                 FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
             )
         }
