@@ -928,6 +928,8 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs.max_string_distance = args.max_string_distance
     dargs.max_premises = args.max_premises
     dargs.num_relevance_samples = args.num_relevance_samples
+    assert args.load_tokens, "Must have a keywords file for the rust dataloader"
+    dargs.keywords_file = args.load_tokens
     return dargs
 
 def main(arg_list : List[str]) -> None:
