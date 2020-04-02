@@ -26,7 +26,7 @@ TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
 CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
-DATALOADER_SRC=$(wildcard dataloader/src/*.rs)
+DATALOADER_SRC=$(wildcard dataloader/src/*.rs) $(wildcard dataloader/src/**/*.rs)
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
