@@ -616,10 +616,12 @@ class FeaturesPolyargPredictor(
 
             tensors = [pad_sequence([torch.LongTensor(tokenized_hyps_list)
                                      for tokenized_hyps_list
-                                     in unpadded_tokenized_hyp_types]),
+                                     in unpadded_tokenized_hyp_types],
+                                    batch_first=True),
                        pad_sequence([torch.FloatTensor(hyp_features_vec)
                                      for hyp_features_vec
-                                     in unpadded_hyp_features]),
+                                     in unpadded_hyp_features],
+                                    batch_first=True),
                        torch.LongTensor(num_hyps),
                        torch.LongTensor(tokenize_goals),
                        torch.LongTensor(word_features),
