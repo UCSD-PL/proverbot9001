@@ -4,6 +4,7 @@ use crate::context_filter_ast::ContextFilterAST;
 
 extern crate regex;
 use regex::Regex;
+use rayon::prelude::*;
 
 use lalrpop_util::lalrpop_mod;
 
@@ -18,7 +19,7 @@ pub fn filter_data(
     let parsed_filter = context_filter_parser::ToplevelFilterParser::new()
         .parse(filter_spec)
         .expect(&format!("Invalid context filter: {}", filter_spec));
-    data.into_iter()
+    data.into_par_iter()
         .filter(|datum| apply_filter(args, &parsed_filter, datum))
         .collect()
 }

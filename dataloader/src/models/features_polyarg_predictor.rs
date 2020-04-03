@@ -6,6 +6,7 @@ use rand::Rng;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
+use rayon::prelude::*;
 
 use crate::context_filter::filter_data;
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
@@ -107,18 +108,6 @@ pub fn features_polyarg_tensors(
         ),
         None => (OpenIndexer::new(), None),
     };
-    let tactic_stem_indices: Vec<i64> = raw_data
-        .iter()
-        .map(|data| {
-            indexer.lookup(
-                get_stem(&data.tactic)
-                    .expect(&format!("Couldn't get the stem for {}", data.tactic))
-                    .to_string(),
-            )
-        })
-        .collect();
-    indexer.freeze();
-
     let (tokenizer, features_token_map) = match rest_meta {
         Some((ptok, ptmap)) => (
             Tokenizer::from_pickleable(ptok),
@@ -135,8 +124,20 @@ pub fn features_polyarg_tensors(
     };
     raw_data.sort_by_key(|pnt| -(pnt.prev_hyps.len() as i64));
 
-    let hyp_scores: Vec<Vec<f64>> = raw_data
+    let tactic_stem_indices: Vec<i64> = raw_data
         .iter()
+        .map(|data| {
+            indexer.lookup(
+                get_stem(&data.tactic)
+                    .expect(&format!("Couldn't get the stem for {}", data.tactic))
+                    .to_string(),
+            )
+        })
+        .collect();
+    indexer.freeze();
+
+    let hyp_scores: Vec<Vec<f64>> = raw_data
+        .par_iter()
         .map(|scraped| {
             score_hyps(
                 args.max_string_distance,
@@ -147,10 +148,6 @@ pub fn features_polyarg_tensors(
         })
         .collect();
 
-    let num_hyps = raw_data
-        .iter()
-        .map(|tac| tac.prev_hyps.len() as i64)
-        .collect();
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = raw_data
         .iter()
         .map(|tac| &tac.prev_hyps)
@@ -163,6 +160,10 @@ pub fn features_polyarg_tensors(
                 .unwrap_or(("", 1.0))
         })
         .unzip();
+    let num_hyps = raw_data
+        .iter()
+        .map(|tac| tac.prev_hyps.len() as i64)
+        .collect();
     let vec_features = best_hyp_scores
         .into_iter()
         .map(|score| vec![score])
@@ -179,20 +180,20 @@ pub fn features_polyarg_tensors(
         })
         .collect();
     let tokenized_goals = raw_data
-        .iter()
+        .par_iter()
         .map(|tac| {
             normalize_sentence_length(tokenizer.tokenize(&tac.prev_goal), args.max_length, 1)
         })
         .collect();
     let (arg_indices, selected_hyps): (Vec<i64>, Vec<Vec<&String>>) = raw_data
-        .iter()
+        .par_iter()
         .map(|scraped| {
             let (arg, selected) = get_argument(&args, scraped);
             (arg_to_index(&args, arg), selected)
         })
         .unzip();
     let tokenized_hyps = selected_hyps
-        .iter()
+        .par_iter()
         .map(|hyps| {
             hyps.iter()
                 .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
@@ -200,7 +201,7 @@ pub fn features_polyarg_tensors(
         })
         .collect();
     let hyp_features = raw_data
-        .iter()
+        .par_iter()
         .zip(selected_hyps)
         .map(|(scraped, selected)| {
             score_hyps(
