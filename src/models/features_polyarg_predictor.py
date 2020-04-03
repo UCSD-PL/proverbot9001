@@ -561,6 +561,7 @@ class FeaturesPolyargPredictor(
                        torch.FloatTensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
                        torch.LongTensor(arg_indices)]
+            eprint(tensors, guard=arg_values.print_tensors)
 
         with print_time("Building the model", guard=arg_values.verbose):
             model = self._get_model(arg_values,
