@@ -473,6 +473,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--no-hyp-rnn", dest="hyp_rnn", action="store_false")
         parser.add_argument("--no-goal-rnn", dest="goal_rnn", action="store_false")
         parser.add_argument("--replace-rnns-with-dnns", action="store_true")
+        parser.add_argument("--print-tensors", action="store_true")
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -594,6 +595,7 @@ class FeaturesPolyargPredictor(
                       (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN else
                       (arg.hyp_idx + arg_values.max_length + 1)
                       for arg_type, arg in zip(arg_types, args)])]
+        eprint(result, guard=arg_values.print_tensors)
         return result
     def _get_model(self, arg_values : Namespace,
                    stem_vocab_size : int,
