@@ -14,6 +14,8 @@ mod models;
 use models::features_polyarg_predictor::*;
 mod paren_util;
 mod tokenizer;
+mod context_filter;
+mod context_filter_ast;
 
 #[macro_use]
 extern crate lazy_static;

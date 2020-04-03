@@ -149,6 +149,8 @@ pub struct DataloaderArgs {
     pub num_relevance_samples: usize,
     #[pyo3(get, set)]
     pub keywords_file: String,
+    #[pyo3(get, set)]
+    pub context_filter: String,
 }
 #[pymethods]
 impl DataloaderArgs {

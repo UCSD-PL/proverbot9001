@@ -7,6 +7,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 
+use crate::context_filter::filter_data;
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
@@ -80,21 +81,25 @@ pub fn features_polyarg_tensors(
     ),
     (Vec<i64>, i64),
 )> {
-    let mut raw_data: Vec<ScrapedTactic> = scraped_from_file(
-        File::open(filename)
-            .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
-    )
-    .flat_map(|data| match data {
-        ScrapedData::Vernac(_) => None,
-        ScrapedData::Tactic(t) => {
-            if get_stem(&t.tactic).is_some() {
-                Some(t)
-            } else {
-                None
+    let mut raw_data: Vec<ScrapedTactic> = filter_data(
+        &args,
+        &args.context_filter,
+        scraped_from_file(
+            File::open(filename)
+                .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
+        )
+        .flat_map(|data| match data {
+            ScrapedData::Vernac(_) => None,
+            ScrapedData::Tactic(t) => {
+                if get_stem(&t.tactic).is_some() {
+                    Some(t)
+                } else {
+                    None
+                }
             }
-        }
-    })
-    .collect();
+        })
+        .collect(),
+    );
     let (mut indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
             OpenIndexer::from_pickleable(indexer),

@@ -22,3 +22,7 @@ rayon = "*"
 regex = "*"
 lazy_static = "*"
 rand = "*"
+lalrpop-util = "0.18.1"
+
+[build-dependencies]
+lalrpop = { version = "0.18.1", features = ["lexer"] }

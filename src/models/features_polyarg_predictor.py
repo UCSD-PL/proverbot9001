@@ -843,6 +843,7 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs.num_relevance_samples = args.num_relevance_samples
     assert args.load_tokens, "Must have a keywords file for the rust dataloader"
     dargs.keywords_file = args.load_tokens
+    dargs.context_filter = args.context_filter
     return dargs
 
 def main(arg_list : List[str]) -> None:
