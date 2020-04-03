@@ -377,10 +377,9 @@ fn get_argument<'a>(
     } else if argstr_tokens.len() > 1 {
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let goal_symbols = get_words(&scraped.prev_goal);
+        let goal_symbols = scraped.prev_goal.split_whitespace();
         let arg_token = argstr_tokens[0];
         match goal_symbols
-            .into_iter()
             .take(args.max_length)
             .enumerate()
             .find(|(_idx, symbol)| *symbol == arg_token)
