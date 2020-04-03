@@ -139,7 +139,7 @@ pub fn features_polyarg_tensors(
         .iter()
         .map(|scraped| {
             score_hyps(
-                args.max_distance,
+                args.max_string_distance,
                 args.max_length,
                 &scraped.prev_hyps,
                 &scraped.prev_goal,
@@ -204,7 +204,7 @@ pub fn features_polyarg_tensors(
         .zip(selected_hyps)
         .map(|(scraped, selected)| {
             score_hyps(
-                args.max_distance,
+                args.max_string_distance,
                 args.max_length,
                 &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
                 &scraped.prev_goal,
@@ -248,7 +248,12 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let hyp_scores = score_hyps(args.max_distance, args.max_length, &hypotheses, &goal);
+    let hyp_scores = score_hyps(
+        args.max_string_distance,
+        args.max_length,
+        &hypotheses,
+        &goal,
+    );
     let hyp_features = hypotheses
         .iter()
         .zip(hyp_scores.iter())
