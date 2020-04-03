@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BinaryHeap, HashMap};
 
 use crate::scraped_data::*;
+use crate::tokenizer::get_words;
 use edit_distance::edit_distance;
 use rayon::prelude::*;
 
@@ -222,13 +223,15 @@ pub fn score_hyps<'a>(
     goal: &String,
 ) -> Vec<f64> {
     assert!(max_distance != 0);
-    let mut truncated_goal = goal.clone();
-    truncated_goal.truncate(max_length);
+    let truncated_goal = get_words(goal).into_iter().take(max_length).collect::<Vec<_>>().join(" ");
     hyps.into_iter()
         .map(|hyp| {
-            let mut hyp_after_colon = hyp.split(":").collect::<Vec<&str>>()[1].to_string();
-            hyp_after_colon.truncate(max_length);
-            let score = edit_distance(&hyp_after_colon, &truncated_goal);
+            let trunc_hyp_after_colon =
+                get_words(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
+                    .into_iter()
+                    .take(max_length).collect::<Vec<_>>()
+                    .join(" ");
+            let score = edit_distance(&trunc_hyp_after_colon, &truncated_goal);
             (score as f64) / (max_distance as f64)
         })
         .collect()
