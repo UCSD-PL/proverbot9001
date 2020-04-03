@@ -221,6 +221,7 @@ pub fn score_hyps<'a>(
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
+    assert!(max_distance != 0);
     let mut truncated_goal = goal.clone();
     truncated_goal.truncate(max_length);
     hyps.into_iter()
