@@ -141,3 +141,12 @@ pub fn get_words(string: &str) -> Vec<&str> {
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
+
+pub fn normalize_sentence_length(mut tokenlist: Vec<i64>, length: usize, pad_value: i64) -> Vec<i64> {
+    if tokenlist.len() > length {
+        tokenlist.truncate(length);
+    } else if tokenlist.len() < length {
+        tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
+    }
+    tokenlist
+}

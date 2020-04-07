@@ -15,7 +15,8 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, OpenIndexer, PickleableIndexer, PickleableTokenizer, Token, Tokenizer,
+    get_words, normalize_sentence_length,
+    OpenIndexer, PickleableIndexer, PickleableTokenizer, Token, Tokenizer,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -428,13 +429,4 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::GoalToken(tidx) => (tidx + 1) as i64,
         TacticArgument::HypVar(hidx) => (hidx + dargs.max_length) as i64,
     }
-}
-
-fn normalize_sentence_length(mut tokenlist: Vec<i64>, length: usize, pad_value: i64) -> Vec<i64> {
-    if tokenlist.len() > length {
-        tokenlist.truncate(length);
-    } else if tokenlist.len() < length {
-        tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
-    }
-    tokenlist
 }
