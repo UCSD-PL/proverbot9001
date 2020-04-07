@@ -11,6 +11,20 @@ use lalrpop_util::lalrpop_mod;
 #[allow(dead_code)]
 lalrpop_mod!(context_filter_parser);
 
+pub fn filter_data_by_key<A: Send>(
+    args: &DataloaderArgs,
+    filter_spec: &str,
+    data: Vec<A>,
+    key: fn(&A) -> &ScrapedTactic,
+) -> Vec<A> {
+    let parsed_filter = context_filter_parser::ToplevelFilterParser::new()
+        .parse(filter_spec)
+        .expect(&format!("Invalid context filter: {}", filter_spec));
+    data.into_par_iter()
+        .filter(|datum| apply_filter(args, &parsed_filter, key(datum)))
+        .collect()
+}
+
 pub fn filter_data(
     args: &DataloaderArgs,
     filter_spec: &str,
