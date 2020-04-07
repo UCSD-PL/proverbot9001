@@ -22,12 +22,13 @@
 import torch
 from models import id_evaluator
 from models import features_dnn_evaluator
+from models import goal_enc_evaluator
 from models.state_evaluator import StateEvaluator
 from pathlib_revised import Path2
 
 loadable_evaluators = {
     'features-dnn' : features_dnn_evaluator.FeaturesDNNEvaluator,
-    'features dnn evaluator' : features_dnn_evaluator.FeaturesDNNEvaluator
+    'eval-goal-enc' : goal_enc_evaluator.GoalEncEvaluator,
 }
 
 static_evaluators = {
@@ -35,7 +36,8 @@ static_evaluators = {
 }
 
 trainable_modules = {
-    'eval-features-dnn' : features_dnn_evaluator.main
+    'eval-features-dnn' : features_dnn_evaluator.main,
+    'eval-goal-enc' : goal_enc_evaluator.main
 }
 
 

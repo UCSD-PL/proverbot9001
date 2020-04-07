@@ -11,10 +11,12 @@ mod features;
 use features::{context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE};
 mod models;
 use models::features_polyarg_predictor::*;
-mod paren_util;
-mod tokenizer;
+use models::goal_enc_evaluator::*;
+use models::evaluator_common::*;
 mod context_filter;
 mod context_filter_ast;
+mod paren_util;
+mod tokenizer;
 
 #[macro_use]
 extern crate lazy_static;
@@ -154,12 +156,43 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         VEC_FEATURES_SIZE
     }
 
+    #[pyfn(m, "goals_to_total_distances_tensors")]
+    fn _goals_to_total_distances_tensors(
+        py: Python,
+        args: DataloaderArgs,
+        filename: String,
+    ) -> PyResult<(GoalEncMetadata, LongTensor2D, FloatTensor1D)> {
+        py.allow_threads(move || {
+            Ok(goals_to_total_distances_tensors(args, filename, None)
+               .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?)
+        })
+    }
+    #[pyfn(m, "goals_to_total_distances_tensors_with_meta")]
+    fn _goals_to_total_distances_tensors_with_meta(
+        py: Python,
+        args: DataloaderArgs,
+        filename: String,
+        metadata: &GoalEncMetadata,
+    ) -> PyResult<(LongTensor2D, FloatTensor1D)> {
+        py.allow_threads(move || {
+            let (_, goals, outputs) =
+                goals_to_total_distances_tensors(args, filename, Some(metadata))
+                .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?;
+            Ok((goals, outputs))
+        })
+    }
+    #[pyfn(m, "goal_enc_get_num_tokens")]
+    fn _goal_enc_get_num_tokens(_py: Python, metadata: &GoalEncMetadata) -> i64 {
+        goal_enc_get_num_tokens(metadata)
+    }
+
     m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
     m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;
     m.add_wrapped(wrap_pyfunction!(tmap_to_picklable))?;
     m.add_wrapped(wrap_pyfunction!(sample_context_features))?;
     m.add_class::<TokenMap>()?;
     m.add_class::<DataloaderArgs>()?;
+    m.add_class::<GoalEncMetadata>()?;
     Ok(())
 }
 fn features_to_total_distances_tensors(
