@@ -82,8 +82,6 @@ class TrainableEvaluator(StateEvaluator, Generic[StateType],
                             action='store_false')
         parser.add_argument("--use-substitutions", dest="use_substitutions", type=bool,
                             default=default_values.get("use_substitutions", True))
-        parser.add_argument("--print-keywords", dest="print_keywords",
-                            default=False, action='store_const', const=True)
         parser.add_argument("--max-length", dest="max_length", type=int,
                             default=default_values.get("max-length", 30))
 

@@ -173,6 +173,8 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
         parser.add_argument("--max-distance", default=default_values.get("max-distance", 10), type=int)
         parser.add_argument("--num-keywords", default=default_values.get("num-keywords", 100), type=int)
         parser.add_argument("--max-string-distance", default=default_values.get("max-string-distance", 50), type=int);
+        parser.add_argument("--print-keywords", dest="print_keywords",
+                            default=False, action='store_const', const=True)
 
 def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs = DataloaderArgs();
