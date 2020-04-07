@@ -39,9 +39,6 @@ from util import maybe_cuda, eprint, print_time
 from typing import (List, Tuple, Iterable, Sequence, Dict, Any, cast)
 import argparse
 import torch
-import functools
-import multiprocessing
-import sys
 from torch import nn
 
 FeaturesDNNEvaluatorState = Tuple[FeaturesTokenMap, NeuralPredictorState]
