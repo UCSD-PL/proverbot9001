@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::{self, BufRead};
+use serde::{Serialize, Deserialize};
 
 extern crate regex;
 use regex::Regex;
@@ -69,6 +70,7 @@ where
 }
 
 #[pyclass]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Tokenizer {
     use_unknowns: bool,
     num_reserved_tokens: usize,
