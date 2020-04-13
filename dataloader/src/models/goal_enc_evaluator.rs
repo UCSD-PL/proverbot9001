@@ -67,4 +67,16 @@ pub fn goals_to_total_distances_tensors(
 
 pub fn goal_enc_get_num_tokens(metadata: &GoalEncMetadata) -> i64 {
     metadata.tokenizer.num_tokens()
+pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: String) -> Vec<i64> {
+    normalize_sentence_length(
+        metadata
+            .tokenizer
+            .as_ref()
+            .expect("No tokenizer")
+            .tokenize(&goal),
+        args.max_length,
+        1,
+    )
+}
+
 }

@@ -185,6 +185,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn _goal_enc_get_num_tokens(_py: Python, metadata: &GoalEncMetadata) -> i64 {
         goal_enc_get_num_tokens(metadata)
     }
+    #[pyfn(m, "goal_enc_tokenize_goal")]
+    fn _goal_enc_tokenize_goal(_py: Python, args: DataloaderArgs,
+                               metadata: &GoalEncMetadata,
+                               s: String) -> Vec<i64> {
+        tokenize_goal(args, metadata, s)
+    }
 
     m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
     m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;

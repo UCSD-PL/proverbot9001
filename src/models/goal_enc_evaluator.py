@@ -28,6 +28,7 @@ from models.tactic_predictor import optimize_checkpoints, add_tokenizer_args
 from dataloader import (goals_to_total_distances_tensors,
                         goals_to_total_distances_tensors_with_meta,
                         goal_enc_get_num_tokens,
+                        goal_enc_tokenize_goal,
                         GoalEncMetadata,
                         DataloaderArgs)
 from util import maybe_cuda, eprint, print_time, LongTensor
