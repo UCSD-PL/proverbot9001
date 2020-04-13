@@ -51,7 +51,7 @@ def main(arg_list : List[str]) -> None:
         file_summary_results.append(generate_evaluation_details(args, idx, filename, evaluator))
 
     if args.generate_index:
-        generate_evaluation_index(file_summary_results, args.output / "report.html")
+        generate_evaluation_index(file_summary_results, args.output)
 
 def parse_arguments(arg_list : List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -273,7 +273,7 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 def generate_evaluation_index(file_summary_results : List[FileSummary],
-                              output_file : Path2):
+                              output_dir : Path2):
     options = []
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
@@ -294,7 +294,11 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
             with tag('h5'):
                 cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                                      shell=True).decode('utf-8').strip()
-                text('Commit: {}'.format(cur_commit))
+                diff_path = output_dir / "diff.txt"
+                subprocess.run([f"git diff HEAD > {str(diff_path)}"], shell=True)
+                subprocess.run([f"git status >> {str(diff_path)}"], shell=True)
+                with tag('a', href=str("diff.txt")):
+                    text('Commit: {}'.format(cur_commit))
             with tag('h5'):
                 cur_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 text('Run on: {}'.format(cur_date))
@@ -337,7 +341,7 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
                     line('td', stringified_percent(total_correct, total_states))
                     line('td', stringified_percent(total_close, total_states))
 
-        with output_file.open("w") as fout:
+        with (output_dir / "report.html").open("w") as fout:
             fout.write(doc.getvalue())
 
     pass
