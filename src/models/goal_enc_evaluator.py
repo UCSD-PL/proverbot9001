@@ -99,12 +99,12 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
         Iterable[GoalEncState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (arg_values, (dataloader_state, state)) = \
+                _, (arg_values, (metadata, state)) = \
                     torch.load(arg_values.start_from)
                 _, tokenized_goals, outputs = \
                     goals_to_total_distances_tensors_with_meta(
                         extract_dataloader_args(arg_values),
-                        str(arg_values.scrape_file), dataloader_state)
+                        str(arg_values.scrape_file), metadata)
             else:
                 metadata, tokenized_goals, outputs = \
                     goals_to_total_distances_tensors(
