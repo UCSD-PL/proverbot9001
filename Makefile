@@ -116,7 +116,7 @@ publish-depv:
 	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 | awk '{print; print ""}' > known-good-dependency-versions.md
 
 src/dataloader.so: $(DATALOADER_SRC)
-	cd dataloader && rustup run nightly cargo build --release && cp target/release/libdataloader.so ../src/dataloader.so
+	cd dataloader && cargo build --release && cp target/release/libdataloader.so ../src/dataloader.so
 
 clean:
 	rm -rf report-*
