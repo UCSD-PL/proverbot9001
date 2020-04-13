@@ -38,6 +38,7 @@ import torch
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
 from typing import List, Tuple, Iterable, Sequence, Dict, Any, cast
 
@@ -113,7 +114,9 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
                         str(arg_values.scrape_file))
 
         with print_time("Converting data to tensors", guard=arg_values.verbose):
-            tensors = [torch.LongTensor(tokenized_goals),
+            tensors = [pad_sequence([torch.LongTensor(tok_goal)
+                                     for tok_goal in tokenized_goals],
+                                     batch_first=True),
                        torch.FloatTensor(outputs)]
 
         with print_time("Building the model", guard=arg_values.verbose):

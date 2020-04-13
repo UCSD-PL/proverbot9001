@@ -54,13 +54,10 @@ pub fn goals_to_total_distances_tensors(
             Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file)
         }
     };
-    let tokenized_goals = tactics
+    let tokenized_goals: Vec<Vec<i64>> = tactics
         .par_iter()
-        .map(|tac| {
-            normalize_sentence_length(tokenizer.tokenize(&tac.prev_goal),
-                                      args.max_length, 1)
-        }).collect();
-
+        .map(|tac| truncate_to_length(tokenizer.tokenize(&tac.prev_goal), args.max_length))
+        .collect();
     Ok((
         GoalEncMetadata {
             tokenizer: Some(tokenizer),
@@ -90,4 +87,7 @@ pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: Str
     )
 }
 
+fn truncate_to_length(mut sentence: Vec<i64>, max_length: usize) -> Vec<i64> {
+    sentence.truncate(max_length);
+    sentence
 }
