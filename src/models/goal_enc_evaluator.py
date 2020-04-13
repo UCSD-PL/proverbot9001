@@ -51,31 +51,19 @@ class GoalEncModel(nn.Module):
                  num_layers : int) -> None:
         super().__init__()
         self._token_embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
-        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._scorer = maybe_cuda(DNNScorer(hidden_size, hidden_size, num_layers))
         self._hidden_size = hidden_size
-
-    def init_hidden(self, batch_size):
-        return maybe_cuda(Variable(torch.zeros(1, batch_size, self._hidden_size)))
+        self._lstm = maybe_cuda(nn.LSTM(input_size=hidden_size,
+                                        hidden_size=hidden_size,
+                                        num_layers=num_layers,
+                                        batch_first=True))
 
     def forward(self,
                 goal_batch : torch.LongTensor):
-        goal_var = maybe_cuda(Variable(goal_batch))
-        batch_size = goal_batch.size()[0]
-
-        hidden = self.init_hidden(batch_size)
-        for i in range(goal_batch.size()[1]):
-            token_batch = self._token_embedding(goal_var[:,i])\
-                              .view(1, batch_size, self._hidden_size)
-            token_batch = F.relu(token_batch)
-            _, hidden = self._gru(token_batch, hidden)
-            hidden = F.relu(hidden)
-
-        end_token_embedded = self._token_embedding(LongTensor([1])
-                                                   .expand(batch_size))\
-                                 .view(1, batch_size, self._hidden_size)
-        final_out, _ = self._gru(end_token_embedded, hidden)
-        scores = self._scorer(final_out)
+        goal_var = maybe_cuda(goal_batch)
+        embedded_goals = self._token_embedding(goal_var)
+        r_out, (h_n, h_c) = self._lstm(embedded_goals, None)
+        scores = self._scorer(r_out[:, -1]).view(-1)
         return scores
 
 class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
