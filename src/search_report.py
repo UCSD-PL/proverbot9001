@@ -232,7 +232,7 @@ def write_summary_html(filename : Path2,
                                      href=escape_filename(fresult.filename) + ".html"):
                                 text("Details")
                 with tag('tr'):
-                    line('td', "Total");
+                    line('td', "Total")
                     line('td', str(combined_stats.num_proofs))
                     line('td', stringified_percent(combined_stats.num_proofs_completed,
                                                    combined_stats.num_proofs))
