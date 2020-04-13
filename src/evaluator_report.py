@@ -344,9 +344,9 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
                     line('td', str(total_states))
                     line('td', stringified_percent(total_correct, total_states))
                     line('td', stringified_percent(total_close, total_states))
-            text(f'Trained as: {unparsed_args}')
+            text(f'Trained as: {" ".join(unparsed_args)}')
             doc.stag('br')
-            text(f'Reported as: {sys.argv}')
+            text(f'Reported as: {" ".join(sys.argv)}')
 
         with (output_dir / "report.html").open("w") as fout:
             fout.write(doc.getvalue())
