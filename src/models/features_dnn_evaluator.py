@@ -62,7 +62,8 @@ class FeaturesDNNEvaluatorModel(nn.Module):
         encoded_word_features = self._word_features_encoder(
             maybe_cuda(word_features_batch))
         scores = self._features_classifier(
-            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))
+            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))\
+        .view(vec_features_batch.size()[0])
         return scores
 
 class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
@@ -145,7 +146,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
             cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor],
                  data_batch)
         predicted_scores = model(word_features_batch, vec_features_batch)
-        return self._criterion(predicted_scores, maybe_cuda(outputs))
+        return self._criterion(predicted_scores, maybe_cuda(outputs).view(-1))
 
     def scoreState(self, state : TacticContext) -> float:
         word_features_batch, vec_features_batch = sample_context_features(
