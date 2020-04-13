@@ -366,12 +366,12 @@ class SerapiInstance(threading.Thread):
         self.send_flush(cmd)
         self.get_ack()
 
-    def ask(self, cmd : str):
-        return loads(self.ask_text(cmd))
-    def ask_text(self, cmd : str):
+    def ask(self, cmd : str, complete=True):
+        return loads(self.ask_text(cmd, complete))
+    def ask_text(self, cmd : str, complete=True):
         assert self.message_queue.empty(), self.messages
         self.send_acked(cmd)
-        msg = self.get_message_text(complete=True)
+        msg = self.get_message_text(complete)
         return msg
 
     @property
@@ -539,15 +539,16 @@ class SerapiInstance(threading.Thread):
                                         self.cancel_last(), raise_(e)), # type: ignore
                     ['CErrors\\.UserError', _],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_last(),
+                                        # self.get_completed(),
+                                        raise_(e)), # type: ignore
                     ['ExplainErr\\.EvaluatedError', TAIL],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
-                                        self.cancel_last(), raise_(e)), # type: ignore
+                                        self.cancel_last(),
+                                        # self.get_completed(),
+                                        raise_(e)), # type: ignore
                     ['Proofview.NoSuchGoals(1)'],
                     lambda inner: progn(self.tactic_history.addTactic(stmt), # type: ignore
-                                        self.get_completed(),
                                         self.cancel_last(), raise_(NoSuchGoalError())), # type: ignore
 
                     ['Answer', int, ['CoqExn', _, _, _, 'Stream\\.Error']],
@@ -589,13 +590,15 @@ class SerapiInstance(threading.Thread):
         return self.ppStrToTermStr(dumps(pp))
     @functools.lru_cache(maxsize=128)
     def sexpStrToTermStr(self, sexp_str : str) -> str:
-        answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {sexp_str}))")
-        return match(normalizeMessage(answer),
+        answer = self.ask(f"(Print ((pp_format PpStr)) (CoqConstr {sexp_str}))", complete=False)
+        result = match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
                      ["Answer", int, ["CoqExn", list, list, list, _]],
                      lambda statenum, a, b, c, msg:
                      raise_(CoqExn(msg)))
+        self.get_completed()
+        return result
 
     def sexpToTermStr(self, sexp) -> str:
         return self.sexpStrToTermStr(dumps(sexp))
@@ -866,7 +869,6 @@ class SerapiInstance(threading.Thread):
                 assert self.message_queue.empty(), self.messages
                 raise TimeoutError("")
             elif interrupt_response[0] == Symbol("Feedback"): # type: ignore
-                eprint(interrupt_response)
                 self.get_completed()
                 assert self.message_queue.empty()
                 return dumps(interrupt_response)
@@ -895,27 +897,26 @@ class SerapiInstance(threading.Thread):
         return len(self.proof_context.fg_goals)
 
     def get_cancelled(self) -> int:
-        try:
-            feedback = self.get_message()
+        # try:
+        feedback = self.get_message()
 
-            new_statenum = \
-                match(normalizeMessage(feedback),
-                      ["Answer", int, ["CoqExn", _, _, _, _]],
-                      lambda *args: raise_(CoqExn(feedback)),
-                      ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
-                      lambda docnum, statenum, *rest: statenum,
-                      _, lambda *args: raise_(BadResponse(feedback)))
+        new_statenum = \
+            match(normalizeMessage(feedback),
+                  ["Answer", int, ["CoqExn", _, _, _, _]],
+                  lambda *args: raise_(CoqExn(feedback)),
+                  ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
+                  lambda docnum, statenum, *rest: statenum,
+                  _, lambda *args: raise_(BadResponse(feedback)))
 
-            cancelled_answer = self.get_message()
-            old_statenum = \
-                match(normalizeMessage(cancelled_answer),
-                      ["Answer", int, ["Canceled", list]],
-                      lambda _, statenums: min(statenums),
-                      ["Answer", int, ["CoqExn", _, _, _, _]],
-                      lambda *args: raise_(CoqExn(cancelled_answer)),
-                      _, lambda *args: raise_(BadResponse(cancelled_answer)))
-        finally:
-            self.get_completed()
+        cancelled_answer = self.get_message()
+        old_statenum = \
+            match(normalizeMessage(cancelled_answer),
+                  ["Answer", int, ["Canceled", list]],
+                  lambda _, statenums: min(statenums),
+                  ["Answer", int, ["CoqExn", _, _, _, _]],
+                  lambda *args: raise_(CoqExn(cancelled_answer)),
+                  _, lambda *args: raise_(BadResponse(cancelled_answer)))
+        self.get_completed()
 
         return new_statenum
 
@@ -1375,6 +1376,7 @@ def progn(*args):
     return args[-1]
 
 def lemma_name_from_statement(stmt : str) -> str:
+    stmt = kill_comments(stmt)
     lemma_match = re.match("\s*\S+\s+([\w']+)", stmt)
     assert lemma_match, stmt
     lemma_name = lemma_match.group(1)
