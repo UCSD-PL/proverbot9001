@@ -147,8 +147,10 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
         return self._criterion(predicted_scores, maybe_cuda(outputs))
 
     def scoreState(self, state : TacticContext) -> float:
-        tokenized_goal = tokenize_goal(extract_dataloader_args(self.training_args),
-                                       state.goal)
+        tokenized_goal = goal_enc_tokenize_goal(
+            extract_dataloader_args(self.training_args),
+            self.metadata,
+            state.goal)
         model_output = self._model(torch.LongTensor([tokenized_goal]))
         return model_output[0].item() * self.training_args.max_distance
 
