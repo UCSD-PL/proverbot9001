@@ -55,7 +55,7 @@ class GoalEncModel(nn.Module):
         self._hidden_size = hidden_size
         self._lstm = maybe_cuda(nn.LSTM(input_size=hidden_size,
                                         hidden_size=hidden_size,
-                                        num_layers=num_layers,
+                                        num_layers=1,
                                         batch_first=True))
 
     def forward(self,
