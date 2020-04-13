@@ -12,21 +12,24 @@ use crate::tokenizer::{normalize_sentence_length, Tokenizer};
 
 #[pyclass(module = "dataloader")]
 pub struct GoalEncMetadata {
-    tokenizer: Tokenizer,
+    tokenizer: Option<Tokenizer>,
 }
 
 #[pymethods]
 impl GoalEncMetadata {
     #[new]
-    fn new(obj: &PyRawObject, keywords_filepath: String) {
-        obj.init({GoalEncMetadata {tokenizer:
-            Tokenizer::new(true, 2, &keywords_filepath)}})
+    fn new(obj: &PyRawObject) {
+        obj.init({ GoalEncMetadata { tokenizer: None } })
     }
     fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(PyBytes::new(py, &serialize(&self.tokenizer).unwrap()).to_object(py))
+        Ok(PyBytes::new(
+            py,
+            &serialize(self.tokenizer.as_ref().expect("No tokenizer")).unwrap(),
+        )
+        .to_object(py))
     }
     fn __setstate__(&mut self, py: Python, state: PyObject) -> PyResult<()> {
-        self.tokenizer = deserialize(state.extract::<&PyBytes>(py)?.as_bytes()).unwrap();
+        self.tokenizer = Some(deserialize(state.extract::<&PyBytes>(py)?.as_bytes()).unwrap());
         Ok(())
     }
 }
@@ -44,7 +47,7 @@ pub fn goals_to_total_distances_tensors(
     });
     let (tactics, distances): (Vec<ScrapedTactic>, Vec<usize>) = filtered_data.into_iter().unzip();
     let tokenizer = match metadata {
-        Some(meta) => meta.tokenizer.clone(),
+        Some(meta) => meta.tokenizer.as_ref().expect("No tokenizer").clone(),
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
@@ -58,14 +61,23 @@ pub fn goals_to_total_distances_tensors(
                                       args.max_length, 1)
         }).collect();
 
-    Ok((GoalEncMetadata{tokenizer},
+    Ok((
+        GoalEncMetadata {
+            tokenizer: Some(tokenizer),
+        },
         tokenized_goals,
         normalize_distances(args.max_distance, distances),
     ))
 }
 
 pub fn goal_enc_get_num_tokens(metadata: &GoalEncMetadata) -> i64 {
-    metadata.tokenizer.num_tokens()
+    metadata
+        .tokenizer
+        .as_ref()
+        .expect("No tokenizer")
+        .num_tokens()
+}
+
 pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: String) -> Vec<i64> {
     normalize_sentence_length(
         metadata
