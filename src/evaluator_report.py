@@ -13,6 +13,9 @@ from dataclasses import dataclass
 import argparse
 import os
 from yattag import Doc
+from util import stringified_percent
+import subprocess
+import datetime
 
 from typing import (List, Union, Tuple, Iterable, Callable)
 
@@ -22,12 +25,14 @@ Line = Callable[..., None]
 
 details_css = ["details.css"]
 details_javascript = ["eval-details.js"]
-report_css = ["report.css"]
-report_js = ["report.js"]
-extra_files = details_css + details_javascript + report_css + report_js + ["logo.png"]
+index_css = ["report.css"]
+index_js = ["report.js"]
+extra_files = details_css + details_javascript + index_css + index_js + ["logo.png"]
 
 @dataclass
 class FileSummary:
+    filename : Path2
+    close : int
     correct : int
     total : int
     num_proofs : int
@@ -46,7 +51,7 @@ def main(arg_list : List[str]) -> None:
         file_summary_results.append(generate_evaluation_details(args, idx, filename, evaluator))
 
     if args.generate_index:
-        generate_evaluation_index(file_summary_results)
+        generate_evaluation_index(file_summary_results, args.output / "report.html")
 
 def parse_arguments(arg_list : List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -114,6 +119,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
     context_filter = get_context_filter(args.context_filter)
 
     num_points = 0
+    num_close = 0
     num_correct = 0
     num_proofs = 0
 
@@ -136,6 +142,8 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
 
     def generate_proof_evaluation_details(block : ProofBlock, region_idx : int):
         nonlocal num_proofs
+        nonlocal num_close
+        nonlocal num_correct
         num_proofs += 1
 
         nonlocal num_points
@@ -148,13 +156,19 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
         with tag('div', klass='region'):
             nonlocal evaluator
             for idx, (interaction, distance_from_end) in enumerate(distanced_tactics, 1):
-                if interaction.tactic.strip() in ["Proof.", "Qed."]:
+                if interaction.tactic.strip() in ["Proof.", "Qed.", "Defined."]:
                     with tag('code', klass='plaincommand'):
                         write_highlighted(interaction.tactic.strip("\n"))
                     doc.stag('br')
                 else:
                     predicted_distance_from_end = evaluator.scoreState(strip_scraped_output(interaction))
                     grade = grade_prediction(distance_from_end, predicted_distance_from_end)
+                    if grade == "goodcommand":
+                        num_correct += 1
+                    elif grade == "okaycommand":
+                        num_close += 1
+
+                    num_points += 1
                     with tag('span',
                              ('data-hyps', "\n".join(interaction.hypotheses)),
                              ('data-goal', interaction.goal),
@@ -165,6 +179,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
                              klass='tactic'), \
                              tag('code', klass=grade):
                         text(interaction.tactic)
+                    doc.stag('br')
 
 
     def write_lemma_button(lemma_statement : str, region_idx : int):
@@ -204,6 +219,8 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
     with (args.output / filename.with_suffix(".html").name).open(mode='w') as fout:
         fout.write(doc.getvalue())
 
+    return FileSummary(filename, num_close, num_correct, num_points, num_proofs)
+
 def label_distances(tactics : List[TacticInteraction]) -> List[Tuple[TacticInteraction, int]]:
     path_segments : List[List[TacticInteraction]] = [[]]
     closed_distances : List[int] = [0, 0]
@@ -234,7 +251,8 @@ def label_distances(tactics : List[TacticInteraction]) -> List[Tuple[TacticInter
             open_goal()
         elif interaction.tactic.strip() == "}":
             close_goal()
-        elif interaction.tactic.strip() == "Qed.":
+        elif interaction.tactic.strip() == "Qed." or \
+             interaction.tactic.strip() == "Defined.":
             close_goal()
             return result[-1] + [(interaction, 0)]
         else:
@@ -254,3 +272,72 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
                 pass
         with tag('title'):
             text(title)
+def generate_evaluation_index(file_summary_results : List[FileSummary],
+                              output_file : Path2):
+    options = []
+    doc, tag, text, line = Doc().ttl()
+    with tag('html'):
+        header(tag, doc, text, index_css, index_js,
+                    "Proverbot State Evaluation Report")
+        with tag("body"):
+            total_states  = sum([result.total for result in file_summary_results])
+            total_correct = sum([result.correct for result in file_summary_results])
+            total_close = sum([result.close for result in file_summary_results])
+            with tag('h2'):
+                text("States Correctly Scored: {}% ({}/{})"
+                     .format(stringified_percent(total_correct, total_states),
+                             total_correct, total_states))
+            with tag('img',
+                     ('src', 'logo.png'),
+                     ('id', 'logo')):
+                pass
+            with tag('h5'):
+                cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
+                                                     shell=True).decode('utf-8').strip()
+                text('Commit: {}'.format(cur_commit))
+            with tag('h5'):
+                cur_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                text('Run on: {}'.format(cur_date))
+            with tag('ul'):
+                for k, v in options:
+                    if k == 'filenames':
+                        continue
+                    elif not v:
+                        continue
+                    with tag('li'):
+                        text("{}: {}".format(k, v))
+            with tag('h4'):
+                text("{} files processed".format(len(file_summary_results)))
+            with tag('table'):
+                with tag('tr', klass="header"):
+                    line('th', 'Filename')
+                    line('th', 'Number of States in File')
+                    line('th', 'Correct (e < 1)')
+                    line('th', 'Close (e < 5)')
+                    line('th', 'Details')
+                sorted_files = sorted(file_summary_results,
+                                      key=lambda fresult:fresult.total,
+                                      reverse=True)
+                for fresult in sorted_files:
+                    if fresult.total == 0:
+                        continue
+                    with tag('tr'):
+                        line('td', fresult.filename.name)
+                        line('td', str(fresult.total))
+                        line('td', stringified_percent(fresult.correct, fresult.total) + "%")
+                        line('td', stringified_percent(fresult.close, fresult.total) + "%")
+                        with tag('td'):
+                            with tag('a',
+                                     href=str(fresult.filename
+                                                  .with_suffix(".html").name)):
+                                text("Details")
+                with tag('tr'):
+                    line('td', "Total")
+                    line('td', str(total_states))
+                    line('td', stringified_percent(total_correct, total_states))
+                    line('td', stringified_percent(total_close, total_states))
+
+        with output_file.open("w") as fout:
+            fout.write(doc.getvalue())
+
+    pass
