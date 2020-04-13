@@ -35,6 +35,7 @@ from util import maybe_cuda, eprint, print_time, LongTensor
 
 import argparse
 import torch
+import sys
 from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -77,7 +78,7 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
 
         for state in save_states:
             with open(arg_values.save_file, 'wb') as f:
-                torch.save((self.shortname(), (arg_values, state)), f)
+                torch.save((self.shortname(), (arg_values, sys.argv, state)), f)
 
     def description(self) -> str:
         return "A state evaluator that uses an RNN to encode the goal"
@@ -122,6 +123,7 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
 
     def load_saved_state(self,
                          arg_values : argparse.Namespace,
+                         unparsed_args : List[str],
                          state : GoalEncState) -> None:
         self.metadata, neural_state = state
         self._model = maybe_cuda(
@@ -130,6 +132,7 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
         self.training_loss = neural_state.loss
         self.num_epochs = neural_state.epoch
         self.training_args = arg_values
+        self.unparsed_args = unparsed_args
 
     def _get_model(self, arg_values : argparse.Namespace,
                    num_tokens : int) -> GoalEncModel:

@@ -12,6 +12,7 @@ from pathlib_revised import Path2
 from dataclasses import dataclass
 import argparse
 import os
+import sys
 from yattag import Doc
 from util import stringified_percent
 import subprocess
@@ -51,7 +52,9 @@ def main(arg_list : List[str]) -> None:
         file_summary_results.append(generate_evaluation_details(args, idx, filename, evaluator))
 
     if args.generate_index:
-        generate_evaluation_index(file_summary_results, args.output)
+        generate_evaluation_index(file_summary_results,
+                                  evaluator.unparsed_args,
+                                  args.output)
 
 def parse_arguments(arg_list : List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -273,6 +276,7 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 def generate_evaluation_index(file_summary_results : List[FileSummary],
+                              unparsed_args : List[str],
                               output_dir : Path2):
     options = []
     doc, tag, text, line = Doc().ttl()
@@ -340,6 +344,9 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
                     line('td', str(total_states))
                     line('td', stringified_percent(total_correct, total_states))
                     line('td', stringified_percent(total_close, total_states))
+            text(f'Trained as: {unparsed_args}')
+            doc.stag('br')
+            text(f'Reported as: {sys.argv}')
 
         with (output_dir / "report.html").open("w") as fout:
             fout.write(doc.getvalue())
