@@ -484,7 +484,6 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     for epoch in range(1, epoch_start):
         adjuster.step()
     for epoch in range(epoch_start, arg_values.num_epochs + 1):
-        adjuster.step()
         print("Epoch {} (learning rate {:.6f})"
               .format(epoch, optimizer.param_groups[0]['lr']))
         epoch_loss = 0.
@@ -506,6 +505,8 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                       .format(timeSince(training_start, progress),
                               items_processed, progress * 100,
                               epoch_loss / batch_num))
+        adjuster.step()
+
         yield NeuralPredictorState(epoch,
                                    epoch_loss / num_batches,
         model.state_dict())
