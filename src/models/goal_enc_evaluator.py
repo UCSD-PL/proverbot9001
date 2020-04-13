@@ -132,11 +132,12 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
                          arg_values : argparse.Namespace,
                          state : GoalEncState) -> None:
         self.metadata, neural_state = state
-        self._model = maybe_cuda(self.get_model(arg_values, goal_enc_get_num_tokens(metadata)))
+        self._model = maybe_cuda(
+            self._get_model(arg_values, goal_enc_get_num_tokens(self.metadata)))
         self._model.load_state_dict(neural_state.weights)
         self.training_loss = neural_state.loss
         self.num_epochs = neural_state.epoch
-        self.training_args = args
+        self.training_args = arg_values
 
     def _get_model(self, arg_values : argparse.Namespace,
                    num_tokens : int) -> GoalEncModel:
@@ -166,7 +167,8 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
         add_nn_args(parser, default_values)
         add_tokenizer_args(parser, default_values)
 
-        parser.add_argument("--max-distance", default=default_values.get("max_distance", 10))
+        parser.add_argument("--max-distance", type=int,
+                            default=default_values.get("max_distance", 10))
 
 def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs = DataloaderArgs();
