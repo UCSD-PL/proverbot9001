@@ -15,10 +15,12 @@ else
     eval `opam config env`
     opam update
     # For Coq:
+    opam pin add coq 8.11.0
     opam pin -y add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi
     pip3 install --user -r requirements.txt
+    make src/dataloader.so
 fi
 
 function check-and-clone {
