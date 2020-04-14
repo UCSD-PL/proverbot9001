@@ -167,6 +167,7 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
 
 def write_summary_html(filename : Path2,
                        options : Sequence[Tuple[str, str]],
+                       unparsed_args : List[str],
                        cur_commit : str, cur_date : datetime.datetime,
                        individual_stats : List[ReportStats],
                        combined_stats : ReportStats) -> None:
@@ -242,6 +243,10 @@ def write_summary_html(filename : Path2,
                                                    combined_stats.num_proofs))
                     line('td', stringified_percent(combined_stats.num_proofs_failed,
                                                    combined_stats.num_proofs))
+            text(f'Trained as: {unparsed_args}')
+            doc.stag('br')
+            text(f"Reported as: {sys.argv}")
+
     with filename.open("w") as fout:
         fout.write(doc.getvalue())
 

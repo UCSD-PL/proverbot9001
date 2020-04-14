@@ -448,7 +448,7 @@ def save_checkpoints(predictor_name : str,
             epoch_filename = arg_values.save_file
         with cast(BinaryIO, epoch_filename.open(mode='wb')) as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
-            torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
+            torch.save((predictor_name, (arg_values, sys.argv, metadata, predictor_state)), f)
 
 def optimize_checkpoints(data_tensors : List[torch.Tensor],
                          arg_values : Namespace,

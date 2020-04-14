@@ -580,6 +580,7 @@ class FeaturesPolyargPredictor(
 
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Any,
                          state : NeuralPredictorState) -> None:
         model = maybe_cuda(self._get_model(args,
@@ -592,6 +593,7 @@ class FeaturesPolyargPredictor(
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
+        self.unparsed_args = unparsed_args
     def _get_model(self, arg_values : Namespace,
                    wordf_sizes : int,
                    vecf_size : int,
