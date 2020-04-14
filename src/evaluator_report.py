@@ -13,6 +13,7 @@ from dataclasses import dataclass
 import argparse
 import os
 import sys
+import json
 from yattag import Doc
 from util import stringified_percent
 import subprocess
@@ -120,6 +121,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
     scrape_path = args.prelude / filename.with_suffix(".v.scrape")
     interactions = list(read_all_text_data(scrape_path))
     context_filter = get_context_filter(args.context_filter)
+    json_rows = []
 
     num_points = 0
     num_close = 0
@@ -147,6 +149,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
         nonlocal num_proofs
         nonlocal num_close
         nonlocal num_correct
+        nonlocal json_rows
         num_proofs += 1
 
         nonlocal num_points
@@ -172,6 +175,12 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
                         num_close += 1
 
                     num_points += 1
+                    json_rows.append({"lemma": block.lemma_statement,
+                                      "hyps": interaction.hypotheses,
+                                      "goal": interaction.goal,
+                                      "actual-distance": distance_from_end,
+                                      "predicted-distance": predicted_distance_from_end,
+                                      "grade": grade})
                     with tag('span',
                              ('data-hyps', "\n".join(interaction.hypotheses)),
                              ('data-goal', interaction.goal),
@@ -221,6 +230,10 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
 
     with (args.output / filename.with_suffix(".html").name).open(mode='w') as fout:
         fout.write(doc.getvalue())
+
+    with (args.output / filename.with_suffix(".json").name).open(mode='w') as fout:
+        for row in json_rows:
+            fout.write(json.dumps(row))
 
     return FileSummary(filename, num_close, num_correct, num_points, num_proofs)
 
