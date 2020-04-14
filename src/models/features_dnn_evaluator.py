@@ -39,6 +39,7 @@ from util import maybe_cuda, eprint, print_time
 from typing import (List, Tuple, Iterable, Sequence, Dict, Any, cast)
 import argparse
 import torch
+import sys
 from torch import nn
 
 FeaturesDNNEvaluatorState = Tuple[FeaturesTokenMap, NeuralPredictorState]
@@ -78,7 +79,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
 
         for state in save_states:
             with open(arg_values.save_file, 'wb') as f:
-                torch.save((self.shortname(), (arg_values, state)), f)
+                torch.save((self.shortname(), (arg_values, sys.argv, state)), f)
 
     def description(self) -> str:
         return "A state evaluator that uses the standard feature set on DNN's"
@@ -123,6 +124,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
                                                                                   model)))
     def load_saved_state(self,
                          args : argparse.Namespace,
+                         unparsed_args : List[str],
                          state : FeaturesDNNEvaluatorState) -> None:
         picklable_tmap, neural_state = state
         self.features_token_map = tmap_from_picklable(picklable_tmap);
@@ -133,6 +135,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
         self.training_loss = neural_state.loss
         self.num_epochs = neural_state.epoch
         self.training_args = args
+        self.unparsed_args = unparsed_args
     def _get_model(self, arg_values : argparse.Namespace,
                    word_features_vocab_sizes: List[int],
                    vec_features_size: int) -> FeaturesDNNEvaluatorModel:
