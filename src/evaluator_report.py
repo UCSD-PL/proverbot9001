@@ -254,6 +254,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
     with (args.output / filename.with_suffix(".json").name).open(mode='w') as fout:
         for row in json_rows:
             fout.write(json.dumps(row))
+            fout.write("\n")
 
     return FileSummary(filename, num_close, num_correct, num_points, num_proofs)
 
