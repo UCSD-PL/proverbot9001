@@ -361,7 +361,7 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
             doc.stag('br')
             text(f'Reported as: {" ".join(sys.argv)}')
 
-        with (output_dir / "report.html").open("w") as fout:
-            fout.write(doc.getvalue())
+    with (output_dir / "report.html").open("w") as fout:
+        fout.write(doc.getvalue())
 
     pass
