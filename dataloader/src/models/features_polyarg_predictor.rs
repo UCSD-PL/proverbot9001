@@ -137,46 +137,51 @@ pub fn features_polyarg_tensors(
         .collect();
     indexer.freeze();
 
-    let hyp_scores: Vec<Vec<f64>> = raw_data
+    let all_premises: Vec<Vec<&String>> = raw_data.iter().map(
+        |scraped|
+        scraped.relevant_lemmas
+            .iter()
+            .chain(scraped.prev_hyps.iter())
+            .collect())
+        .collect();
+
+    let prem_scores: Vec<Vec<f64>> = raw_data
+        .iter().zip(all_premises.iter()).collect::<Vec<_>>()
         .par_iter()
-        .map(|scraped| {
+        .map(|(scraped, premises)| {
             score_hyps(
                 args.max_string_distance,
                 args.max_length,
-                &scraped.prev_hyps,
+                &premises.iter().map(|premise| premise.clone().clone()).collect::<Vec<String>>(),
                 &scraped.prev_goal,
             )
         })
         .collect();
 
-    let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = raw_data
+    let (best_prems, best_prem_scores): (Vec<&str>, Vec<f64>) = all_premises
         .iter()
-        .map(|tac| &tac.prev_hyps)
-        .zip(hyp_scores.iter())
-        .map(|(hyps, scores)| {
-            hyps.iter()
-                .map(|hyp| hyp.as_ref())
+        .zip(prem_scores.iter())
+        .map(|(prems, scores)| {
+            prems.iter()
+                .map(|prem| prem.as_ref())
                 .zip(scores.iter().map(|score| *score))
                 .min_by_key(|(_hyp, score)| NormalFloat::new(*score))
                 .unwrap_or(("", 1.0))
         })
         .unzip();
-    let num_hyps = raw_data
-        .iter()
-        .map(|tac| tac.prev_hyps.len() as i64)
-        .collect();
-    let vec_features = best_hyp_scores
+    let num_prems = all_premises.iter().map(|prems| prems.len() as i64).collect();
+    let vec_features = best_prem_scores
         .into_iter()
         .map(|score| vec![score])
         .collect();
     let word_features = raw_data
         .iter()
-        .zip(best_hyps)
-        .map(|(scraped, best_hyp)| {
+        .zip(best_prems)
+        .map(|(scraped, best_prem)| {
             vec![
                 prev_tactic_feature(&features_token_map, &scraped.prev_tactics),
                 goal_head_feature(&features_token_map, &scraped.prev_goal),
-                hyp_head_feature(&features_token_map, best_hyp),
+                hyp_head_feature(&features_token_map, best_prem),
             ]
         })
         .collect();
@@ -186,24 +191,25 @@ pub fn features_polyarg_tensors(
             normalize_sentence_length(tokenizer.tokenize(&tac.prev_goal), args.max_length, 1)
         })
         .collect();
-    let (arg_indices, selected_hyps): (Vec<i64>, Vec<Vec<&String>>) = raw_data
+    let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
         .par_iter()
         .map(|scraped| {
             let (arg, selected) = get_argument(&args, scraped);
             (arg_to_index(&args, arg), selected)
         })
         .unzip();
-    let tokenized_hyps = selected_hyps
+    let tokenized_hyps = selected_prems
         .par_iter()
         .map(|hyps| {
             hyps.iter()
-                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
+                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp),
+                                                     args.max_length, 1))
                 .collect()
         })
         .collect();
     let hyp_features = raw_data
         .par_iter()
-        .zip(selected_hyps)
+        .zip(selected_prems)
         .map(|(scraped, selected)| {
             score_hyps(
                 args.max_string_distance,
@@ -223,7 +229,7 @@ pub fn features_polyarg_tensors(
         (
             tokenized_hyps,
             hyp_features,
-            num_hyps,
+            num_prems,
             tokenized_goals,
             word_features,
             vec_features,
@@ -250,42 +256,44 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let hyp_scores = score_hyps(
-        args.max_string_distance,
-        args.max_length,
-        &hypotheses,
-        &goal,
-    );
-    let hyp_features = hypotheses
-        .iter()
-        .zip(hyp_scores.iter())
-        .map(|(hyp, score)| vec![*score, equality_hyp_feature(hyp, &goal)])
-        .collect();
-    let num_hyps = hypotheses.len();
-    let tokenized_goal = tokenizer.tokenize(&goal);
-    let (best_hyp, best_score): (&str, f64) = hypotheses
-        .iter()
-        .zip(hyp_scores.iter())
-        .map(|(h, s)| (h.as_str(), *s))
-        .min_by_key(|(_hyp, score)| NormalFloat::new(*score))
-        .unwrap_or(("", 1.0));
-    let vec_features = vec![best_score];
-    let word_features = vec![
-        prev_tactic_feature(&ftmap, &prev_tactics),
-        goal_head_feature(&ftmap, &goal),
-        hyp_head_feature(&ftmap, best_hyp),
-    ];
     let all_premises: Vec<String> = relevant_lemmas
         .into_iter()
         .chain(hypotheses.into_iter())
         .collect();
-    let tokenized_premises = all_premises
-        .into_iter()
-        .map(|premise| tokenizer.tokenize(&premise))
+    let premise_scores = score_hyps(
+        args.max_string_distance,
+        args.max_length,
+        &all_premises,
+        &goal,
+    );
+    let premise_features = all_premises
+        .iter()
+        .zip(premise_scores.iter())
+        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
+    let (best_prem, best_score): (&str, f64) = all_premises
+        .iter()
+        .zip(premise_scores.iter())
+        .map(|(p, s)| (p.as_str(), *s))
+        .min_by_key(|(_prem, score)| NormalFloat::new(*score))
+        .unwrap_or(("", 1.0));
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal),
+                                                   args.max_length, 1);
+    let vec_features = vec![best_score];
+    let word_features = vec![
+        prev_tactic_feature(&ftmap, &prev_tactics),
+        goal_head_feature(&ftmap, &goal),
+        hyp_head_feature(&ftmap, best_prem),
+    ];
+    let tokenized_premises: Vec<Vec<i64>> = all_premises
+        .into_iter()
+        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise),
+                                                 args.max_length, 1))
+        .collect();
+    let num_hyps = tokenized_premises.len();
     (
         vec![tokenized_premises],
-        vec![hyp_features],
+        vec![premise_features],
         vec![num_hyps as i64],
         vec![tokenized_goal],
         vec![word_features],

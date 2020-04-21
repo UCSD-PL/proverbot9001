@@ -106,11 +106,13 @@ def main(arg_list : List[str]) -> None:
     assert file_args
 
     tqdm.write("Writing summary with {} file outputs.".format(len(file_results)))
-    predictorOptions = get_predictor(parser, args).getOptions()
+    predictor = get_predictor(parser, args)
+    predictorOptions = predictor.getOptions()
     write_summary(args, predictorOptions +
                   [("report type", "search"),
                    ("search width", file_args.search_width),
                    ("search depth", file_args.search_depth)],
+                  predictor.unparsed_args,
                   commit, date, file_results)
 def run_search(argslist : List[str],
                outdir : str,
@@ -262,11 +264,13 @@ def write_summary_csv(filename : str, combined_stats : ReportStats,
                             combined_stats.num_proofs_completed])
 
 def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
+                  unparsed_args : List[str],
                   cur_commit : str, cur_date : datetime.datetime,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
     write_summary_html(args.output / "report.html",
-                       options, cur_commit, cur_date, individual_stats, combined_stats)
+                       options, unparsed_args,
+                       cur_commit, cur_date, individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
     write_proof_summary_csv(args.output, [s.filename for s in individual_stats])
     base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
