@@ -25,7 +25,7 @@ use pyo3::prelude::*;
 use std::fs::File;
 
 use crate::models::evaluator_common::*;
-use crate::features::{context_features, PickleableTokenMap, TokenMap, VEC_FEATURES_SIZE};
+use crate::features::{context_features, TokenMap, VEC_FEATURES_SIZE};
 use crate::scraped_data::*;
 
 pub fn features_to_total_distances_tensors(

@@ -20,7 +20,7 @@
 ##########################################################################
 
 from format import TacticContext
-from data import ListDataset, chunks, StateScore
+from data import StateScore
 
 from models.components import NeuralPredictorState, DNNScorer, add_nn_args
 from models.state_evaluator import TrainableEvaluator, StateEvaluationDataset
@@ -31,14 +31,12 @@ from dataloader import (goals_to_total_distances_tensors,
                         goal_enc_tokenize_goal,
                         GoalEncMetadata,
                         DataloaderArgs)
-from util import maybe_cuda, eprint, print_time, LongTensor
+from util import maybe_cuda, eprint, print_time
 
 import argparse
 import torch
 import sys
 from torch import nn
-from torch.autograd import Variable
-import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 
 from typing import List, Tuple, Iterable, Sequence, Dict, Any, cast
