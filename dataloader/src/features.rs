@@ -28,7 +28,7 @@ use crate::tokenizer::get_words;
 use edit_distance::edit_distance;
 use rayon::prelude::*;
 
-pub const VEC_FEATURES_SIZE: i64 = 1;
+pub const VEC_FEATURES_SIZE: i64 = 2;
 
 pub fn context_features(
     args: DataloaderArgs,
@@ -61,7 +61,12 @@ pub fn context_features(
 
     let vec_features = best_hyp_scores
         .into_iter()
-        .map(|score| vec![score])
+        .zip(data.into_iter())
+        .map(|(score, datum)|
+             vec![
+                 (std::cmp::min(get_words(&datum.prev_goal).len(), 100) as f64) / 100.0,
+                 (std::cmp::min(datum.prev_hyps.len(), 20) as f64) / 20.0
+             ])
         .collect();
 
     (word_features, vec_features)
@@ -82,7 +87,10 @@ pub fn sample_context_features(
         goal_head_feature(tmap, &goal),
         hyp_head_feature(tmap, best_hyp),
     ];
-    let vec_features = vec![best_score];
+    let vec_features = vec![
+        (std::cmp::min(get_words(&goal).len(), 100) as f64) / 100.0,
+        (std::cmp::min(hypotheses.len(), 20) as f64) / 20.0
+    ];
     (word_features, vec_features)
 }
 
