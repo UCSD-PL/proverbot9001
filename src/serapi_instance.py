@@ -229,8 +229,13 @@ class SerapiInstance(threading.Thread):
     # expect, and a base directory You can also set the coq objects
     # ".debug" field after you've created it to get more verbose
     # logging.
-    def __init__(self, coq_command : List[str], module_name : str, includes : str, prelude : str,
+    def __init__(self, coq_command : List[str], module_name : str, prelude : str,
                  timeout : int = 30, use_hammer : bool = False) -> None:
+        try:
+            with open(args.prelude + "/_CoqProject", 'r') as includesfile:
+                includes = includesfile.read()
+        except FileNotFoundError:
+            includes = ""
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.

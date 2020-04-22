@@ -109,12 +109,6 @@ def main(arg_list: List[str], bar_idx: int) -> None:
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
     coqargs = ["sertop", "--implicit"]
 
-    try:
-        with open(args.prelude + "/_CoqProject", 'r') as includesfile:
-            includes = includesfile.read()
-    except FileNotFoundError:
-        eprint("Didn't find a _CoqProject file in prelude dir")
-        includes = ""
     if not args.output_dir.exists():
         args.output_dir.makedirs()
 
@@ -124,7 +118,7 @@ def main(arg_list: List[str], bar_idx: int) -> None:
             srcpath = base.parent / 'reports' / filename
             srcpath.copyfile(destpath)
 
-    search_file(args, coqargs, includes, predictor, bar_idx)
+    search_file(args, coqargs, predictor, bar_idx)
 
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
@@ -221,10 +215,9 @@ def append_time(args: argparse.Namespace, action: str, seconds: float):
         with args.proof_times.open('a') as f:
             f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
 
-
-def search_file(args: argparse.Namespace, coqargs: List[str],
-                includes: str, predictor: TacticPredictor,
-                bar_idx: int) -> None:
+def search_file(args : argparse.Namespace, coqargs : List[str],
+                predictor : TacticPredictor,
+                bar_idx : int) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
     num_proofs = 0
@@ -259,7 +252,7 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
 
     if args.linearize:
         commands_in = linearize_semicolons.get_linearized(
-            args, coqargs, includes, bar_idx, str(args.filename))
+            args, coqargs, bar_idx, str(args.filename))
     else:
         commands_in = serapi_instance.load_commands_preserve(
             args, bar_idx, args.prelude / args.filename)
@@ -367,7 +360,7 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
                         coqargs,
                         serapi_instance.get_module_from_filename(
                             args.filename),
-                        includes, args.prelude, use_hammer=args.use_hammer
+                        args.prelude, use_hammer=args.use_hammer
                 ) as coq:
                     coq.verbose = args.verbose
                     try_run_prelude(args, coq)

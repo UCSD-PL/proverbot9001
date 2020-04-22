@@ -471,7 +471,7 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
     assert len(lemma_stack) == 0, f"Stack still contains {lemma_stack}"
 
 def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
-                             commands : List[str], coqargs : List[str], includes : str,
+                             commands : List[str], coqargs : List[str],
                              prelude : str, filename : str, relative_filename : str,
                              skip_nochange_tac : bool) -> List[str]:
     try:
@@ -479,7 +479,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
         failures = list(compcert_failures)
         while failed:
             with serapi_instance.SerapiContext(coqargs, serapi_instance.get_module_from_filename(filename),
-                                               includes, prelude) as coq:
+                                               prelude) as coq:
                 coq.verbose = args.verbose
                 coq.quiet = True
                 with tqdm(file=sys.stdout,
@@ -510,7 +510,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
     except serapi_instance.TimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
-def get_linearized(args : argparse.Namespace, coqargs : List[str], includes : str,
+def get_linearized(args : argparse.Namespace, coqargs : List[str],
                    bar_idx : int, filename : str) -> List[str]:
     local_filename = args.prelude + "/" + filename
     loaded_commands = serapi_instance.try_load_lin(args, bar_idx, local_filename)
@@ -521,7 +521,7 @@ def get_linearized(args : argparse.Namespace, coqargs : List[str], includes : st
         fresh_commands = preprocess_file_commands(
             args, bar_idx,
             original_commands,
-            coqargs, includes, args.prelude,
+            coqargs, args.prelude,
             local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
         return fresh_commands
@@ -543,12 +543,6 @@ def main():
     arg_values = parser.parse_args()
 
     base = os.path.dirname(os.path.abspath(__file__)) + "/.."
-    try:
-        with open(arg_values.prelude + "/_CoqProject", 'r') as includesfile:
-            includes = includesfile.read()
-    except FileNotFoundError:
-        eprint("Didn't find a _CoqProject file in prelude dir")
-        includes = ""
     coqargs = ["sertop", "--implicit"]
 
     for filename in arg_values.filenames:
@@ -559,7 +553,7 @@ def main():
             arg_values, 0, arg_values.prelude + "/" + filename)
         fresh_commands = preprocess_file_commands(arg_values, 0,
                                                   original_commands,
-                                                  coqargs, includes, arg_values.prelude,
+                                                  coqargs, arg_values.prelude,
                                                   local_filename, filename, False)
         serapi_instance.save_lin(fresh_commands, local_filename)
 
