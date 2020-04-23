@@ -181,6 +181,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         action='store_const', const=True, default=False)
     parser.add_argument('--no-check-consistent', action='store_false',
                         dest='check_consistent')
+    parser.add_argument('--show-failing-predictions', action='store_true')
     parser.add_argument('--count-failing-predictions', action='store_true',
                         dest="count_failing_predictions")
     parser.add_argument('--count-softfail-predictions', action='store_true',
@@ -1088,6 +1089,11 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
+                    if args.show_failing_predictions:
+                        predictionNode = g.mkNode(prediction, proof_context_before,
+                                                  current_path[-1])
+                        predictionNode.time_taken = time_taken
+                        g.setNodeColor(predictionNode, "red")
                     continue
                 num_successful_predictions += 1
                 pbar.update(1)
