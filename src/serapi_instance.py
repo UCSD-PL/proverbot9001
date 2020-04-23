@@ -392,9 +392,22 @@ class SerapiInstance(threading.Thread):
         return []
 
     @property
-    def module_prefix(self):
+    def module_prefix(self) -> str:
         return "".join([module + "." for module in self.module_stack])
 
+    @property
+    def cur_lemma(self) -> str:
+        return self.local_lemmas[-1]
+
+    @property
+    def cur_lemma_name(self) -> str:
+        return lemma_name_from_statement(self.cur_lemma)
+
+    def tactic_context(self, relevant_lemmas) -> str:
+        return TacticContext(relevant_lemmas,
+                             self.prev_tactics,
+                             self.hypotheses,
+                             self.goal)
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
     def init_hammer(self):
@@ -1141,6 +1154,26 @@ class SerapiInstance(threading.Thread):
         answer = self.search_about(goal_head)
         assert self.message_queue.empty(), self.messages
         return answer
+
+    def run_into_next_proof(self, commands : List[str]) -> Tuple[List[str], List[str]]:
+        assert not self.proof_context, "We're already in a proof"
+        commands_iter = iter(commands)
+        commands_run = []
+        for command in commands_iter:
+            self.run_stmt(command, timeout=60)
+            commands_run.append(command)
+            if self.proof_context:
+                return list(commands_iter), commands_run
+
+    def finish_proof(self, commands : List[str]) -> Tuple[List[str], List[str]]:
+        assert self.proof_context, "We're already out of a proof"
+        commands_iter = iter(commands)
+        commands_run = []
+        for command in commands_iter:
+            self.run_stmt(command, timeout=60)
+            commands_run.append(command)
+            if not self.proof_context:
+                return [command] + list(commands_iter), commands_run
 
 
     def run(self) -> None:

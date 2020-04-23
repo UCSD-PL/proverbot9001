@@ -71,35 +71,36 @@ def reinforce(args : argparse.Namespace) -> None:
             serapi_instance.get_module_from_filename(args.environment_file),
             args.prelude) as coq:
         ## Get us to the correct proof context
-        rest_commands = coq.run_into_next_proof(env_commands)
+        rest_commands, _ = coq.run_into_next_proof(env_commands)
         if args.environment_proof != None:
             while coq.cur_lemma_name != args.environment_proof:
                 if not rest_commands:
                     eprint("Couldn't find lemma {args.environment_proof}! Exiting...")
                     return
-                rest_commands = coq.finish_proof(rest_commands)
-                rest_commands = coq.run_into_next_proof(env_commands)
+                rest_commands, _ = coq.finish_proof(rest_commands)
+                rest_commands, _ = coq.run_into_next_proof(env_commands)
         else:
             # Don't use lemmas without names (e.g. "Obligation")
             while coq.cur_lemma_name == "":
                 if not rest_commands:
                     eprint("Couldn't find usable lemma! Exiting...")
                     return
-                rest_commands = coq.finish_proof(rest_commands)
-                rest_commands = coq.run_into_next_proof(env_commands)
+                rest_commands, _ = coq.finish_proof(rest_commands)
+                rest_commands, _ = coq.run_into_next_proof(env_commands)
 
         lemma_name = coq.cur_lemma_name
 
         for episode in range(args.num_episodes):
             for t in range(args.episode_length):
-                predictions = predictor.predictKTactics(coq.tactic_context,
-                                                        args.num_predictions)
+                predictions = predictor.predictKTactics(
+                    coq.tactic_context(coq.local_lemmas[:-1]),
+                    args.num_predictions)
                 if random.random() < epsilon:
                     action = random.choice(predictions).prediction
                 else:
-                    q_choices = [(q_estimator(try_prediction(coq, prediction.prediction)),
-                                    prediction.prediction) for
-                                     prediction in predictions]
+                    q_choices = [(q_estimator(coq.tactic_context, prediction.prediction),
+                                  prediction.prediction)
+                                 for prediction in predictions]
                     action = max(q_choices, key=lambda q: q[0])[1]
 
                 coq.run_stmt(action)
