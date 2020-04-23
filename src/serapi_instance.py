@@ -297,7 +297,13 @@ class SerapiInstance(threading.Thread):
 
     @property
     def local_lemmas(self) -> List[str]:
-        return [lemma for (lemma, is_section) in self._local_lemmas]
+        def generate() -> Iterator[str]:
+            for (lemma, is_section) in self._local_lemmas:
+                if lemma.startswith(self.module_prefix):
+                    yield lemma[len(self.module_prefix):].replace('\n', '')
+                else:
+                    yield lemma.replace('\n', '')
+        return list(generate())
 
     def cancel_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
