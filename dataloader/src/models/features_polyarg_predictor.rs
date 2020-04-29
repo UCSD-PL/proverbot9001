@@ -3,10 +3,10 @@ use pyo3::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rand::Rng;
+use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use rayon::prelude::*;
 
 use crate::context_filter::filter_data;
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
@@ -15,8 +15,8 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, normalize_sentence_length,
-    OpenIndexer, PickleableIndexer, PickleableTokenizer, Token, Tokenizer,
+    get_words, get_symbols, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
+    Token, Tokenizer,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -137,22 +137,30 @@ pub fn features_polyarg_tensors(
         .collect();
     indexer.freeze();
 
-    let all_premises: Vec<Vec<&String>> = raw_data.iter().map(
-        |scraped|
-        scraped.relevant_lemmas
-            .iter()
-            .chain(scraped.prev_hyps.iter())
-            .collect())
+    let all_premises: Vec<Vec<&String>> = raw_data
+        .iter()
+        .map(|scraped| {
+            scraped
+                .relevant_lemmas
+                .iter()
+                .chain(scraped.prev_hyps.iter())
+                .collect()
+        })
         .collect();
 
     let prem_scores: Vec<Vec<f64>> = raw_data
-        .iter().zip(all_premises.iter()).collect::<Vec<_>>()
+        .iter()
+        .zip(all_premises.iter())
+        .collect::<Vec<_>>()
         .par_iter()
         .map(|(scraped, premises)| {
             score_hyps(
                 args.max_string_distance,
                 args.max_length,
-                &premises.iter().map(|premise| premise.clone().clone()).collect::<Vec<String>>(),
+                &premises
+                    .iter()
+                    .map(|premise| premise.clone().clone())
+                    .collect::<Vec<String>>(),
                 &scraped.prev_goal,
             )
         })
@@ -162,16 +170,19 @@ pub fn features_polyarg_tensors(
         .iter()
         .zip(prem_scores.iter())
         .map(|(prems, scores)| {
-            prems.iter()
+            prems
+                .iter()
                 .map(|prem| prem.as_ref())
                 .zip(scores.iter().map(|score| *score))
                 .min_by_key(|(_hyp, score)| NormalFloat::new(*score))
                 .unwrap_or(("", 1.0))
         })
         .unzip();
-    let num_prems = all_premises.iter().map(|prems| prems.len() as i64).collect();
-    let (word_features, vec_features) =
-        context_features(&args, &features_token_map, &raw_data);
+    let num_prems = all_premises
+        .iter()
+        .map(|prems| prems.len() as i64)
+        .collect();
+    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
     let tokenized_goals = raw_data
         .par_iter()
         .map(|tac| {
@@ -189,8 +200,7 @@ pub fn features_polyarg_tensors(
         .par_iter()
         .map(|hyps| {
             hyps.iter()
-                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp),
-                                                     args.max_length, 1))
+                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
                 .collect()
         })
         .collect();
@@ -243,8 +253,14 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let (word_features, vec_features) =
-        sample_context_features(&args, &ftmap, &relevant_lemmas, &prev_tactics, &hypotheses, &goal);
+    let (word_features, vec_features) = sample_context_features(
+        &args,
+        &ftmap,
+        &relevant_lemmas,
+        &prev_tactics,
+        &hypotheses,
+        &goal,
+    );
     let all_premises: Vec<String> = relevant_lemmas
         .into_iter()
         .chain(hypotheses.into_iter())
@@ -266,13 +282,11 @@ pub fn sample_fpa(
         .map(|(p, s)| (p.as_str(), *s))
         .min_by_key(|(_prem, score)| NormalFloat::new(*score))
         .unwrap_or(("", 1.0));
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal),
-                                                   args.max_length, 1);
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 1);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
-        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise),
-                                                 args.max_length, 1))
+        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1))
         .collect();
     let num_hyps = tokenized_premises.len();
     (
@@ -288,7 +302,7 @@ pub fn sample_fpa(
 pub fn decode_fpa_result(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
-    hyps: Vec<String>,
+    premises: Vec<String>,
     goal: &str,
     tac_idx: i64,
     arg_idx: i64,
@@ -300,14 +314,18 @@ pub fn decode_fpa_result(
     } else if (arg_idx as usize) <= args.max_length {
         TacticArgument::GoalToken(arg_idx as usize - 1)
     } else {
-        TacticArgument::HypVar((arg_idx as usize) - args.max_length)
+        TacticArgument::HypVar((arg_idx as usize) - args.max_length - 1)
     };
     match argtype {
         TacticArgument::NoArg => stem + ".",
         TacticArgument::Unrecognized => stem + ".",
-        TacticArgument::GoalToken(tidx) => stem + get_words(goal)[tidx] + ".",
+        TacticArgument::GoalToken(tidx) => {
+            assert!(tidx < get_symbols(goal).len(), format!("{}, {}", goal, tidx));
+            stem + " " + get_words(goal)[tidx] + "."
+        }
         TacticArgument::HypVar(hidx) => {
-            stem + hyps[hidx].split(":").next().expect("No colon in hyp")
+            assert!(hidx < premises.len());
+            stem + " " + premises[hidx].split(":").next().expect("No colon in hyp") + "."
         }
     }
 }
