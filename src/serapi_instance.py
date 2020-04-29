@@ -43,7 +43,7 @@ from sexpdata import loads, dumps, Symbol
 from traceback import *
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
                   hash_file, sighandler_context, unwrap)
-from format import ScrapedTactic
+from format import ScrapedTactic, TacticContext
 import tokenizer
 
 # Some Exceptions to throw when various responses come back from coq
@@ -232,7 +232,7 @@ class SerapiInstance(threading.Thread):
     def __init__(self, coq_command : List[str], module_name : str, prelude : str,
                  timeout : int = 30, use_hammer : bool = False) -> None:
         try:
-            with open(args.prelude + "/_CoqProject", 'r') as includesfile:
+            with open(prelude + "/_CoqProject", 'r') as includesfile:
                 includes = includesfile.read()
         except FileNotFoundError:
             includes = ""
@@ -312,7 +312,13 @@ class SerapiInstance(threading.Thread):
 
     @property
     def local_lemmas(self) -> List[str]:
-        return [lemma for (lemma, is_section) in self._local_lemmas]
+        def generate() -> Iterable[str]:
+            for (lemma, is_section) in self._local_lemmas:
+                if lemma.startswith(self.module_prefix):
+                    yield lemma[len(self.module_prefix):]
+                else:
+                    yield lemma
+        return list(generate())
 
     def cancel_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
@@ -401,13 +407,15 @@ class SerapiInstance(threading.Thread):
 
     @property
     def cur_lemma_name(self) -> str:
-        return lemma_name_from_statement(self.cur_lemma)
+        match = re.match("\s*([\w'\.]+)\s+:.*", self.cur_lemma)
+        assert match, f"Can't match {self.cur_lemma}"
+        return match.group(1)
 
     def tactic_context(self, relevant_lemmas) -> str:
         return TacticContext(relevant_lemmas,
                              self.prev_tactics,
                              self.hypotheses,
-                             self.goal)
+                             self.goals)
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
     def init_hammer(self):
@@ -1224,9 +1232,9 @@ from typing import Iterator
 
 
 @contextlib.contextmanager
-def SerapiContext(coq_commands: List[str], module_name: str, includes: str,
+def SerapiContext(coq_commands: List[str], module_name: str,
                   prelude: str, use_hammer: bool = False) -> Iterator[Any]:
-    coq = SerapiInstance(coq_commands, module_name, includes, prelude,
+    coq = SerapiInstance(coq_commands, module_name, prelude,
                          use_hammer=use_hammer)
     try:
         yield coq
