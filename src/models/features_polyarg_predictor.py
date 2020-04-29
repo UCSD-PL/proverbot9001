@@ -297,6 +297,7 @@ class FeaturesPolyargPredictor(
                                                                     stem_width)
 
             num_probs = 1 + num_hyps + self.training_args.max_length
+            num_valid_probs = 1 + num_hyps + len(goal_symbols)
             if num_hyps > 0:
                 encoded_goals = self._model.goal_encoder(goals_batch)\
                                            .view(1, 1, self.training_args.hidden_size)
@@ -361,7 +362,7 @@ class FeaturesPolyargPredictor(
                 arg_idx.item()),
                                 math.exp(prob))
                     for stem_idx, arg_idx, prob in
-                    islice(zip(prediction_stem_idxs, arg_idxs, final_probs), k)]
+                    islice(zip(prediction_stem_idxs, arg_idxs, final_probs), min(k, num_valid_probs))]
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 0
