@@ -39,6 +39,7 @@ from format import TacticContext
 from abc import ABCMeta, abstractmethod
 import torch
 import torch.nn as nn
+from tqdm import tqdm, trange
 from torch import optim
 from pathlib_revised import Path2
 
@@ -65,6 +66,7 @@ def main(arg_list : List[str]) -> None:
 
     parser.add_argument("--learning-rate", default=0.5)
 
+    parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count')
 
     args = parser.parse_args()
@@ -165,11 +167,11 @@ def reinforce(args : argparse.Namespace) -> None:
 
         lemma_name = coq.cur_lemma_name
 
-        for episode in range(args.num_episodes):
-            for t in range(args.episode_length):
         graph = ReinforceGraph(lemma_name)
 
+        for episode in trange(args.num_episodes, disable=(not args.progress)):
             cur_node = graph.start_node
+            for t in trange(args.episode_length, disable=(not args.progress), leave=False):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
                 predictions = predictor.predictKTactics(context_before, args.num_predictions)
                 if random.random() < epsilon:
