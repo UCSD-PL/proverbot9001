@@ -88,7 +88,8 @@ def reinforce(args : argparse.Namespace) -> None:
             serapi_instance.get_module_from_filename(args.environment_file),
             str(args.prelude)) as coq:
         ## Get us to the correct proof context
-        rest_commands, _ = coq.run_into_next_proof(env_commands)
+        rest_commands, run_commands = coq.run_into_next_proof(env_commands)
+        lemma_statement = run_commands[-1]
         if args.proof != None:
             while coq.cur_lemma_name != args.proof:
                 if not rest_commands:
@@ -144,7 +145,8 @@ def reinforce(args : argparse.Namespace) -> None:
 
             # Clean up episode
             coq.run_stmt("Admitted.")
-            coq.run_stmt("Reset {lemma_name}.")
+            coq.run_stmt(f"Reset {lemma_name}.")
+            coq.run_stmt(lemma_statement)
 
 @dataclass
 class LabeledTransition:
