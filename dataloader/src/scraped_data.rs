@@ -21,6 +21,7 @@
 
 use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
+use pyo3::types::PyAny;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
@@ -41,12 +42,76 @@ pub type FloatTensor2D = Vec<Vec<f64>>;
 pub type LongTensor1D = Vec<i64>;
 pub type FloatTensor1D = Vec<f64>;
 
+#[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ScrapedTactic {
+    #[pyo3(get, set)]
     pub relevant_lemmas: Vec<String>,
+    #[pyo3(get, set)]
     pub prev_tactics: Vec<String>,
+    #[pyo3(get, set)]
     pub prev_hyps: Vec<String>,
+    #[pyo3(get, set)]
     pub prev_goal: String,
+    #[pyo3(get, set)]
+    pub tactic: String,
+}
+#[pyclass]
+#[derive(Clone)]
+pub struct ProofContext {
+    #[pyo3(get, set)]
+    pub lemmas: Vec<String>,
+    #[pyo3(get, set)]
+    pub tactics: Vec<String>,
+    #[pyo3(get, set)]
+    pub hyps: Vec<String>,
+    #[pyo3(get, set)]
+    pub goal: String,
+}
+impl ProofContext {
+    pub fn from_scraped(s: ScrapedTactic) -> ProofContext {
+        ProofContext{lemmas: s.relevant_lemmas,
+                     tactics: s.prev_tactics,
+                     hyps: s.prev_hyps,
+                     goal: s.prev_goal}
+    }
+    pub fn empty() -> ProofContext {
+        ProofContext{lemmas: Vec::new(),
+                     tactics: Vec::new(),
+                     hyps: Vec::new(),
+                     goal: "".to_string()}
+    }
+}
+impl <'source> FromPyObject<'source> for ProofContext {
+    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let obj: PyObject = ob.to_object(py);
+        let lemmas: Vec<String> = obj.getattr(py, "lemmas")?.extract(py)?;
+        let tactics: Vec<String> = obj.getattr(py, "tactics")?.extract(py)?;
+        let hyps: Vec<String> = obj.getattr(py, "hyps")?.extract(py)?;
+        let goal: String = obj.getattr(py, "goal")?.extract(py)?;
+        Ok(ProofContext{lemmas, tactics, hyps, goal})
+    }
+}
+#[pyclass]
+#[derive(Clone)]
+pub struct ScrapedTransition2 {
+    #[pyo3(get, set)]
+    pub before: i64,
+    #[pyo3(get, set)]
+    pub after: ProofContext,
+    #[pyo3(get, set)]
+    pub tactic: String,
+}
+#[pyclass]
+#[derive(Clone)]
+pub struct ScrapedTransition {
+    #[pyo3(get, set)]
+    pub before: ProofContext,
+    #[pyo3(get, set)]
+    pub after: ProofContext,
+    #[pyo3(get, set)]
     pub tactic: String,
 }
 

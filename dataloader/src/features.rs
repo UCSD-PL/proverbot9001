@@ -62,7 +62,7 @@ pub fn context_features(
     let vec_features = best_hyp_scores
         .into_iter()
         .zip(data.iter())
-        .map(|(score, datum)|
+        .map(|(_score, datum)|
              vec![
                  (std::cmp::min(get_words(&datum.prev_goal).len(), 100) as f64) / 100.0,
                  (std::cmp::min(datum.prev_hyps.len(), 20) as f64) / 20.0
@@ -80,7 +80,7 @@ pub fn sample_context_features(
     hypotheses: &Vec<String>,
     goal: &String,
 ) -> (LongTensor1D, FloatTensor1D) {
-    let (best_hyp, best_score) =
+    let (best_hyp, _best_score) =
         best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),

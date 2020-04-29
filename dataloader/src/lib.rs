@@ -22,6 +22,7 @@
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use std::fs::File;
 
 mod scraped_data;
 mod context_filter;
@@ -209,6 +210,47 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
                                s: String) -> Vec<i64> {
         tokenize_goal(args, metadata, s)
     }
+    #[pyfn(m, "scraped_tactics_from_file")]
+    fn _scraped_tactics_from_file(_py: Python, filename: String,
+                                  num_tactics: usize) -> PyResult<Vec<ScrapedTactic>> {
+        Ok(scraped_from_file(
+            File::open(filename).map_err(|_err| PyErr::new::<exceptions::IOError, _>(
+            "Failed to open file"))?
+        ).take(num_tactics).flat_map(|datum|
+                   match datum {
+                       ScrapedData::Vernac(_) => None,
+                       ScrapedData::Tactic(t) => Some(t),
+                   }).collect())
+
+    }
+
+    #[pyfn(m, "tactic_transitions_from_file")]
+    fn _tactic_transitions_from_file(_py: Python, filename: String,
+                                     num_tactics: usize) -> PyResult<Vec<ScrapedTransition>> {
+        let raw: Vec<ScrapedData> = scraped_from_file(
+            File::open(filename).map_err(|_err| PyErr::new::<exceptions::IOError, _>(
+            "Failed to open file"))?
+        ).take(num_tactics).collect();
+        let transitioned = raw.iter()
+            .zip(raw.iter().skip(1))
+            .flat_map(|(datum, next)|
+                      match datum {
+                          ScrapedData::Vernac(_) => None,
+                          ScrapedData::Tactic(t) => {
+                              let context_after = match next {
+                                  ScrapedData::Vernac(_) => ProofContext::empty(),
+                                  ScrapedData::Tactic(t_after) =>
+                                      ProofContext::from_scraped(t_after.clone()),
+                              };
+                              Some(ScrapedTransition{
+                                  before: ProofContext::from_scraped(t.clone()),
+                                  after: context_after,
+                                  tactic: t.tactic.clone()})
+                          }
+                      })
+            .collect();
+        Ok(transitioned)
+    }
 
     #[pyfunction]
     pub fn sample_context_features(
@@ -243,5 +285,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<TokenMap>()?;
     m.add_class::<DataloaderArgs>()?;
     m.add_class::<GoalEncMetadata>()?;
+    m.add_class::<ScrapedTactic>()?;
+    m.add_class::<ProofContext>()?;
+    m.add_class::<ScrapedTransition>()?;
     Ok(())
 }
