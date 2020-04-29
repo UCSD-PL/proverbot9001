@@ -34,7 +34,7 @@ from util import maybe_cuda, eprint
 from models.components import WordFeaturesEncoder, DNNScorer
 
 from dataclasses import dataclass
-from typing import List, Tuple, Iterator, TypeVar, Dict
+from typing import List, Tuple, Iterator, TypeVar, Dict, Optional
 from format import TacticContext
 from abc import ABCMeta, abstractmethod
 import torch
@@ -68,6 +68,59 @@ def main(arg_list : List[str]) -> None:
     args = parser.parse_args()
 
     reinforce(args)
+
+import pygraphviz as pgv
+@dataclass(init=True)
+class LabeledNode:
+    action : str
+    reward : float
+    node_id : int
+    parent : Optional["LabeledNode"]
+    children : List["LabeledNode"]
+
+class ReinforceGraph:
+    __graph : pgv.AGraph
+    __next_node_id : int
+    start_node : LabeledNode
+    def __init__(self, lemma_name : str) -> None:
+        self.__graph = pgv.AGraph(directed=True)
+        self.__next_node_id = 0
+        self.start_node = self.mkNode(lemma_name, 0, None)
+        pass
+    def addTransition(self, src : LabeledNode, action : str, reward : float, **kwargs) -> LabeledNode:
+        for child in src.children:
+            if child.action == action:
+                assert child.reward == reward
+                return child
+        return self.mkNode(action, reward, src, **kwargs)
+    def mkNode(self, prediction : str, reward: float, previous_node : Optional[LabeledNode],
+               **kwargs) -> LabeledNode:
+        self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
+        self.__next_node_id += 1
+        newNode = LabeledNode(prediction, reward, self.__next_node_id-1, previous_node, [])
+        if previous_node:
+            self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
+            previous_node.children.append(newNode)
+        return newNode
+    def mkQED(self, src : LabeledNode):
+        qedNode = self.mkNode("QED",
+                              src,
+                              fillcolor="green", style="filled")
+        cur_node = predictionNode
+        cur_path = []
+        while cur_node != self.start_node:
+            self.setNodeColor(cur_node, "palegreen1")
+            cur_path.append(cur_node)
+            assert cur_node.parent
+            cur_node = cur_node.parent
+        pass
+    def setNodeColor(self, node : LabeledNode, color : str) -> None:
+        node_handle = self.__graph.get_node(node.node_id)
+        node_handle.attr["fillcolor"] = color
+        node_handle.attr["style"] = "filled"
+    def draw(self, filename : str) -> None:
+        with nostderr():
+            self.__graph.draw(filename, prog="dot")
 
 def reinforce(args : argparse.Namespace) -> None:
 
@@ -110,6 +163,9 @@ def reinforce(args : argparse.Namespace) -> None:
 
         for episode in range(args.num_episodes):
             for t in range(args.episode_length):
+        graph = ReinforceGraph(lemma_name)
+
+            cur_node = graph.start_node
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
                 predictions = predictor.predictKTactics(context_before, args.num_predictions)
                 if random.random() < epsilon:
@@ -130,10 +186,13 @@ def reinforce(args : argparse.Namespace) -> None:
                         break
                     except (serapi_instance.ParseError, serapi_instance.CoqExn):
                         pass
-
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
+                transition = assign_reward(context_before, context_after, action)
 
-                replay_memory.append(assign_reward(context_before, context_after, action))
+
+                cur_node = graph.addTransition(cur_node, action, transition.reward)
+
+                replay_memory.append(transition)
                 transition_samples = sample_batch(replay_memory, args.batch_size)
                 training_samples = assign_scores(transition_samples,
                                                  q_estimator, predictor,
@@ -147,6 +206,7 @@ def reinforce(args : argparse.Namespace) -> None:
             coq.run_stmt("Admitted.")
             coq.run_stmt(f"Reset {lemma_name}.")
             coq.run_stmt(lemma_statement)
+        graph.draw("reinforce.png")
 
 @dataclass
 class LabeledTransition:
