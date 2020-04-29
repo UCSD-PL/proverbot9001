@@ -170,21 +170,8 @@ pub fn features_polyarg_tensors(
         })
         .unzip();
     let num_prems = all_premises.iter().map(|prems| prems.len() as i64).collect();
-    let vec_features = best_prem_scores
-        .into_iter()
-        .map(|score| vec![score])
-        .collect();
-    let word_features = raw_data
-        .iter()
-        .zip(best_prems)
-        .map(|(scraped, best_prem)| {
-            vec![
-                prev_tactic_feature(&features_token_map, &scraped.prev_tactics),
-                goal_head_feature(&features_token_map, &scraped.prev_goal),
-                hyp_head_feature(&features_token_map, best_prem),
-            ]
-        })
-        .collect();
+    let (word_features, vec_features) =
+        context_features(&args, &features_token_map, &raw_data);
     let tokenized_goals = raw_data
         .par_iter()
         .map(|tac| {
@@ -256,6 +243,8 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
+    let (word_features, vec_features) =
+        sample_context_features(&args, &ftmap, &relevant_lemmas, &prev_tactics, &hypotheses, &goal);
     let all_premises: Vec<String> = relevant_lemmas
         .into_iter()
         .chain(hypotheses.into_iter())
@@ -279,12 +268,7 @@ pub fn sample_fpa(
         .unwrap_or(("", 1.0));
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal),
                                                    args.max_length, 1);
-    let vec_features = vec![best_score];
-    let word_features = vec![
-        prev_tactic_feature(&ftmap, &prev_tactics),
-        goal_head_feature(&ftmap, &goal),
-        hyp_head_feature(&ftmap, best_prem),
-    ];
+
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
         .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise),

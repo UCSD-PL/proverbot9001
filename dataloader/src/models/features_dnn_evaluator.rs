@@ -54,7 +54,7 @@ pub fn features_to_total_distances_tensors(
                 Some(m) => m,
                 None => TokenMap::initialize(&tactics, args.num_keywords),
             };
-            let (word_features, float_features) = context_features(args, &tmap, tactics);
+            let (word_features, float_features) = context_features(&args, &tmap, &tactics);
             let word_features_sizes = tmap.word_features_sizes();
 
             Ok((

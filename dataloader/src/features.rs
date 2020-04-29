@@ -31,9 +31,9 @@ use rayon::prelude::*;
 pub const VEC_FEATURES_SIZE: i64 = 2;
 
 pub fn context_features(
-    args: DataloaderArgs,
+    args: &DataloaderArgs,
     tmap: &TokenMap,
-    data: Vec<ScrapedTactic>,
+    data: &Vec<ScrapedTactic>,
 ) -> (LongTensor2D, FloatTensor2D) {
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = data
         .par_iter()
@@ -61,7 +61,7 @@ pub fn context_features(
 
     let vec_features = best_hyp_scores
         .into_iter()
-        .zip(data.into_iter())
+        .zip(data.iter())
         .map(|(score, datum)|
              vec![
                  (std::cmp::min(get_words(&datum.prev_goal).len(), 100) as f64) / 100.0,
@@ -73,12 +73,12 @@ pub fn context_features(
 }
 
 pub fn sample_context_features(
-    args: DataloaderArgs,
+    args: &DataloaderArgs,
     tmap: &TokenMap,
-    _relevant_lemmas: Vec<String>,
-    prev_tactics: Vec<String>,
-    hypotheses: Vec<String>,
-    goal: String,
+    _relevant_lemmas: &Vec<String>,
+    prev_tactics: &Vec<String>,
+    hypotheses: &Vec<String>,
+    goal: &String,
 ) -> (LongTensor1D, FloatTensor1D) {
     let (best_hyp, best_score) =
         best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);

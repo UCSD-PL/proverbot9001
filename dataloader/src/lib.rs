@@ -212,14 +212,14 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
 
     #[pyfunction]
     pub fn sample_context_features(
-        args: DataloaderArgs,
+        args: &DataloaderArgs,
         tmap: &TokenMap,
         relevant_lemmas: Vec<String>,
         prev_tactics: Vec<String>,
         hypotheses: Vec<String>,
         goal: String,
     ) -> (LongTensor1D, FloatTensor1D) {
-        crate::features::sample_context_features(args, tmap, relevant_lemmas, prev_tactics, hypotheses, goal)
+        crate::features::sample_context_features(args, tmap, &relevant_lemmas, &prev_tactics, &hypotheses, &goal)
     }
 
     #[pyfunction]
