@@ -65,6 +65,8 @@ def main(arg_list : List[str]) -> None:
 
     parser.add_argument("--learning-rate", default=0.5)
 
+    parser.add_argument("--verbose", "-v", action='count')
+
     args = parser.parse_args()
 
     reinforce(args)
@@ -140,6 +142,8 @@ def reinforce(args : argparse.Namespace) -> None:
             ["sertop", "--implicit"],
             serapi_instance.get_module_from_filename(args.environment_file),
             str(args.prelude)) as coq:
+        coq.quiet = True
+        coq.verbose = args.verbose
         ## Get us to the correct proof context
         rest_commands, run_commands = coq.run_into_next_proof(env_commands)
         lemma_statement = run_commands[-1]
