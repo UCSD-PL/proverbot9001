@@ -191,6 +191,7 @@ pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
         if prepped_tac.starts_with(prefix) {
             return split_tactic(&prepped_tac[prefix.len()..]).map(|(rest_stem, rest_rest)| {
                 let mut new_stem = prefix.to_string();
+                new_stem.push_str(" ");
                 new_stem.push_str(&rest_stem);
                 (new_stem, rest_rest)
             });
