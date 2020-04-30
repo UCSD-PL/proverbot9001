@@ -30,7 +30,7 @@ import dataloader
 import tokenizer
 from models import tactic_predictor
 import predict_tactic
-from util import maybe_cuda, eprint
+from util import maybe_cuda, eprint, print_time, nostderr
 from models.components import WordFeaturesEncoder, DNNScorer
 
 from dataclasses import dataclass
