@@ -532,7 +532,7 @@ class SerapiInstance(threading.Thread):
             self.timeout = timeout
         self.flush_queue()
         eprint("Running statement: " + stmt.lstrip('\n'),
-               guard=self.verbose) # lstrip makes output shorter
+               guard=self.verbose >= 2) # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
         # too early.
         stmt = stmt.replace("\\", "\\\\")
