@@ -67,7 +67,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--learning-rate", default=0.5)
 
     parser.add_argument("--progress", "-P", action='store_true')
-    parser.add_argument("--verbose", "-v", action='count')
+    parser.add_argument("--verbose", "-v", action='count', default=0)
 
     args = parser.parse_args()
 
