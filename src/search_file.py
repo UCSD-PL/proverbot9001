@@ -952,22 +952,8 @@ class SearchGraph:
 class SubSearchResult (NamedTuple):
     solution : Optional[List[TacticInteraction]]
     solved_subgoals : int
-def subgoalSurjective(newsub : Obligation,
-                      oldsub : Obligation) -> bool:
-    oldhyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in oldsub.hypotheses]
-    for newhyp_term in [serapi_instance.get_hyp_type(hyp)
-                        for hyp in newsub.hypotheses]:
-        if newhyp_term not in oldhyp_terms:
-            return False
-    return newsub.goal == oldsub.goal
-def contextSurjective(newcontext : ProofContext, oldcontext : ProofContext):
-    for oldsub in oldcontext.all_goals:
-        if not any([subgoalSurjective(newsub, oldsub)
-                    for newsub in newcontext.all_goals]):
-            return False
-    return len(newcontext.all_goals) >= len(oldcontext.all_goals)
 def contextInPath(full_context : ProofContext, path : List[LabeledNode]):
-    return any([contextSurjective(full_context, n.context_before)
+    return any([serapi_instance.contextSurjective(full_context, n.context_before)
                 for n in path])
 def numNodesInTree(branching_factor : int, depth : int):
     assert depth > 0, f"depth is {depth}"

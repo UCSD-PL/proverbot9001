@@ -1783,6 +1783,22 @@ def symbol_matches(full_symbol: str, shorthand_symbol: str) -> bool:
     pass
 
 
+def subgoalSurjective(newsub : Obligation, oldsub : Obligation) -> bool:
+    oldhyp_terms = [get_hyp_type(hyp) for hyp in oldsub.hypotheses]
+    for newhyp_term in [get_hyp_type(hyp) for hyp in newsub.hypotheses]:
+        if newhyp_term not in oldhyp_terms:
+            return False
+    return newsub.goal == oldsub.goal
+
+
+def contextSurjective(newcontext : ProofContext, oldcontext : ProofContext):
+    for oldsub in oldcontext.all_goals:
+        if not any([subgoalSurjective(newsub, oldsub)
+                    for newsub in newcontext.all_goals]):
+            return False
+    return len(newcontext.all_goals) >= len(oldcontext.all_goals)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Module for interacting with a coq-serapi instance from Python (3).")
