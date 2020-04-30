@@ -172,26 +172,29 @@ def reinforce(args : argparse.Namespace) -> None:
         for episode in trange(args.num_episodes, disable=(not args.progress)):
             cur_node = graph.start_node
             for t in trange(args.episode_length, disable=(not args.progress), leave=False):
-                context_before = coq.tactic_context(coq.local_lemmas[:-1])
-                predictions = predictor.predictKTactics(context_before, args.num_predictions)
+                with print_time("Getting predictions", guard=args.verbose):
+                    context_before = coq.tactic_context(coq.local_lemmas[:-1])
+                    predictions = predictor.predictKTactics(context_before, args.num_predictions)
                 if random.random() < epsilon:
                     ordered_actions = [p.prediction for p in
                                        random.sample(predictions, len(predictions))]
                     action = random.choice(predictions).prediction
                 else:
-                    q_choices = [(q_estimator(context_before, prediction.prediction),
-                                  prediction.prediction)
-                                 for prediction in predictions]
-                    ordered_actions = [p[1] for p in
-                                       sorted(q_choices, key=lambda q: q[0], reverse=True)]
+                    with print_time("Picking actions using q_estimator", guard=args.verbose):
+                        q_choices = [(q_estimator(context_before, prediction.prediction),
+                                      prediction.prediction)
+                                     for prediction in predictions]
+                        ordered_actions = [p[1] for p in
+                                           sorted(q_choices, key=lambda q: q[0], reverse=True)]
 
-                for try_action in ordered_actions:
-                    try:
-                        coq.run_stmt(try_action)
-                        action = try_action
-                        break
-                    except (serapi_instance.ParseError, serapi_instance.CoqExn):
-                        pass
+                with print_time("Running actions", guard=args.verbose):
+                    for try_action in ordered_actions:
+                        try:
+                            coq.run_stmt(try_action)
+                            action = try_action
+                            break
+                        except (serapi_instance.ParseError, serapi_instance.CoqExn):
+                            pass
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
                 transition = assign_reward(context_before, context_after, action)
 
@@ -199,14 +202,14 @@ def reinforce(args : argparse.Namespace) -> None:
                 cur_node = graph.addTransition(cur_node, action, transition.reward)
 
                 replay_memory.append(transition)
+            with print_time("Assigning scores", guard=args.verbose):
                 transition_samples = sample_batch(replay_memory, args.batch_size)
                 training_samples = assign_scores(transition_samples,
                                                  q_estimator, predictor,
                                                  args.num_predictions,
                                                  gamma)
-
+            with print_time("Training", guard=args.verbose):
                 q_estimator.train(training_samples)
-                pass
 
             # Clean up episode
             coq.run_stmt("Admitted.")
