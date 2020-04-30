@@ -340,7 +340,7 @@ class FeaturesPolyargPredictor(
             assert not torch.isnan(final_probs).any()
             assert final_probs.size() == torch.Size([k])
             row_length = self.training_args.max_length + num_hyps + 1
-            stem_keys = final_idxs / row_length
+            stem_keys = final_idxs // row_length
             assert stem_keys.size() == torch.Size([k])
             assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
             prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
