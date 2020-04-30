@@ -97,11 +97,20 @@ class ReinforceGraph:
                 assert child.reward == reward
                 return child
         return self.mkNode(action, reward, src, **kwargs)
-    def mkNode(self, prediction : str, reward: float, previous_node : Optional[LabeledNode],
+    def mkNode(self, action: str, reward: float, previous_node : Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
+        if reward > 0:
+            color = "palegreen"
+        elif reward < 0:
+            color = "indianred1"
+        else:
+            color = "white"
+        # assert action.strip() != "intros.", (color, reward)
+        self.__graph.add_node(self.__next_node_id, label=action + "\n" + str(reward),
+                              fillcolor=color, style="filled",
+                              **kwargs)
         self.__next_node_id += 1
-        newNode = LabeledNode(prediction, reward, self.__next_node_id-1, previous_node, [])
+        newNode = LabeledNode(action, reward, self.__next_node_id-1, previous_node, [])
         if previous_node:
             self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
             previous_node.children.append(newNode)
