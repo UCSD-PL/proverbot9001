@@ -171,6 +171,7 @@ def reinforce(args : argparse.Namespace) -> None:
 
         for episode in trange(args.num_episodes, disable=(not args.progress)):
             cur_node = graph.start_node
+            proof_contexts_seen = [coq.proof_context]
             for t in trange(args.episode_length, disable=(not args.progress), leave=False):
                 with print_time("Getting predictions", guard=args.verbose):
                     context_before = coq.tactic_context(coq.local_lemmas[:-1])
@@ -191,17 +192,22 @@ def reinforce(args : argparse.Namespace) -> None:
                     for try_action in ordered_actions:
                         try:
                             coq.run_stmt(try_action)
+                            proof_context_after = coq.proof_context
+                            if any([serapi_instance.contextSurjective(proof_context_after,
+                                                                      path_context)
+                                    for path_context in proof_contexts_seen]):
+                                continue
                             action = try_action
                             break
                         except (serapi_instance.ParseError, serapi_instance.CoqExn):
                             pass
+
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
                 transition = assign_reward(context_before, context_after, action)
-
-
                 cur_node = graph.addTransition(cur_node, action, transition.reward)
-
                 replay_memory.append(transition)
+                proof_contexts_seen.append(proof_context_after)
+
             with print_time("Assigning scores", guard=args.verbose):
                 transition_samples = sample_batch(replay_memory, args.batch_size)
                 training_samples = assign_scores(transition_samples,
