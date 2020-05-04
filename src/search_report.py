@@ -107,7 +107,7 @@ def run_search(argslist : List[str],
     if predictor:
         augmented_argslist += ["--predictor", predictor]
     if weightsfile:
-        augmented_argslist += ["--weightsfile", weightsfile]
+        augmented_argslist += ["--weightsfile", str(weightsfile)]
     augmented_argslist += [filename]
     search_file.main(augmented_argslist , bar_idx = file_idx)
 
