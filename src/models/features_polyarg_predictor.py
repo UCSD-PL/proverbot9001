@@ -459,7 +459,8 @@ class FeaturesPolyargPredictor(
     def _optimize_model_to_disc(self, arg_values : Namespace) -> Iterable[FeaturesPolyargState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (arg_values, (metadata, state)) = torch.load(arg_values.start_from)
+                _, (old_arg_values, unparsed_args,
+                    metadata, state) = torch.load(arg_values.start_from)
                 _, data_lists, \
                 (word_features_size, vec_features_size) = \
                     features_polyarg_tensors_with_meta(extract_dataloader_args(arg_values),
@@ -497,25 +498,32 @@ class FeaturesPolyargPredictor(
             eprint(tensors, guard=arg_values.print_tensors)
 
         with print_time("Building the model", guard=arg_values.verbose):
-            model = self._get_model(arg_values,
-                                    word_features_size,
-                                    vec_features_size,
-                                    get_num_indices(metadata),
-                                    get_num_tokens(metadata))
+
             if arg_values.start_from:
-                model.load_saved_state(arg_values, state)
+                self.load_saved_state(arg_values, unparsed_args,
+                                      metadata, state)
+                model = self._model
+                epoch_start = self.num_epochs
+            else:
+                model = self._get_model(arg_values,
+                                        word_features_size,
+                                        vec_features_size,
+                                        get_num_indices(metadata),
+                                        get_num_tokens(metadata))
+                epoch_start = 1
 
         return ((metadata, state) for state in optimize_checkpoints(tensors, arg_values, model,
                                                                     lambda batch_tensors, model:
                                                                     self._getBatchPredictionLoss(arg_values,
                                                                                                  batch_tensors,
-                                                                                                 model)))
+                                                                                                 model), epoch_start))
 
     def load_saved_state(self,
                          args : Namespace,
                          unparsed_args : List[str],
                          metadata : Any,
                          state : NeuralPredictorState) -> None:
+        eprint("Loading model state dict")
         model = maybe_cuda(self._get_model(args,
                                            get_word_feature_vocab_sizes(metadata),
                                            get_vec_features_size(metadata),

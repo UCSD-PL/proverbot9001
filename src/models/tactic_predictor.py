@@ -455,7 +455,8 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                          model : ModelType,
                          batchLoss :
                          Callable[[Sequence[torch.Tensor], ModelType],
-                                  torch.FloatTensor]) \
+                                  torch.FloatTensor],
+                         epoch_start : int = 1) \
     -> Iterable[NeuralPredictorState]:
     dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
                                  batch_size=arg_values.batch_size, num_workers=0,
@@ -466,14 +467,6 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     dataset_size = num_batches * arg_values.batch_size
     assert dataset_size > 0
     print("Initializing model...")
-    if arg_values.start_from:
-        print("Starting from file")
-        with open(arg_values.start_from, 'rb') as f:
-            state = torch.load(f)
-            model.load_state_dict(state[1][2].weights) # type: ignore
-        epoch_start = state[1][2].epoch
-    else:
-        epoch_start = 1
     model = maybe_cuda(model)
     optimizer = optimizers[arg_values.optimizer](model.parameters(),
                                                  lr=arg_values.learning_rate)
