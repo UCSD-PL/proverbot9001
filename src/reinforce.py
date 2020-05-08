@@ -131,6 +131,9 @@ class ReinforceGraph:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
+    def setNodeApproxQScore(self, node : LabeledNode, score : float ) -> None:
+        node_handle = self.__graph.get_node(node.node_id)
+        node_handle.attr["label"] = f"{node.action} (~{score:.2f})"
     def draw(self, filename : str) -> None:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
@@ -224,6 +227,7 @@ def reinforce(args : argparse.Namespace) -> None:
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
                 transition = assign_reward(context_before, context_after, action)
                 cur_node = graph.addTransition(cur_node, action, transition.reward)
+                transition.graph_node = cur_node
                 replay_memory.append(transition)
                 proof_contexts_seen.append(proof_context_after)
 
@@ -232,7 +236,9 @@ def reinforce(args : argparse.Namespace) -> None:
                 training_samples = assign_scores(transition_samples,
                                                  q_estimator, predictor,
                                                  args.num_predictions,
-                                                 gamma)
+                                                 gamma,
+                                                 # Passing this graph in so we can maintain a record of the most recent q score estimates in the graph
+                                                 graph)
             with print_time("Training", guard=args.verbose):
                 q_estimator.train(training_samples)
 
@@ -248,6 +254,7 @@ class LabeledTransition:
     after : dataloader.ProofContext
     action : str
     reward : float
+    graph_node : Optional[LabeledNode]
 
 def sample_batch(transitions: List[LabeledTransition], k: int) -> List[LabeledTransition]:
     return random.sample(transitions, k)
@@ -260,7 +267,7 @@ def assign_reward(before: TacticContext, after: TacticContext, tactic: str) -> L
             len(tokenizer.get_words(after.goal))
         num_hyps_reward = len(before.hypotheses) - len(after.hypotheses)
         reward = goal_size_reward * 3 + num_hyps_reward
-    return LabeledTransition(before, after, tactic, reward)
+    return LabeledTransition(before, after, tactic, reward, None)
 
 
 def assign_rewards(transitions : List[dataloader.ScrapedTransition]) -> \
@@ -285,7 +292,8 @@ def assign_scores(transitions: List[LabeledTransition],
                   q_estimator: QEstimator,
                   predictor: tactic_predictor.TacticPredictor,
                   num_predictions: int,
-                  discount : float) -> List[Tuple[TacticContext, str, float]]:
+                  discount : float,
+                  graph : ReinforceGraph) -> List[Tuple[TacticContext, str, float]]:
     def generate() -> Iterator[Tuple[dataloader.ProofContext, str, float]]:
         predictions = predictor.predictKTactics_batch([transition.after for transition in transitions],
                                                       num_predictions)
@@ -294,6 +302,8 @@ def assign_scores(transitions: List[LabeledTransition],
             new_q = transition.reward + \
                 discount * max(q_estimator([(ctxt, prediction.prediction)
                                             for prediction in predictions]))
+            if transition.graph_node:
+                graph.setNodeApproxQScore(transition.graph_node, new_q)
             yield transition.before, transition.action, new_q
     return list(generate())
 
