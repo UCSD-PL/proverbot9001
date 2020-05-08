@@ -69,6 +69,8 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
 
+    parser.add_argument("--ghosts", action='store_true')
+
     args = parser.parse_args()
 
     reinforce(args)
@@ -97,22 +99,31 @@ class ReinforceGraph:
                 assert child.reward == reward
                 return child
         return self.mkNode(action, reward, src, **kwargs)
+    def addGhostTransition(self, src : LabeledNode, action : str, **kwargs) -> LabeledNode:
+        for child in src.children:
+            if child.action == action:
+                return child
+        return self.mkNode(action, 0, src, fillcolor="grey", **kwargs)
+
     def mkNode(self, action: str, reward: float, previous_node : Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        if reward > 0:
-            color = "palegreen"
-        elif reward < 0:
-            color = "indianred1"
+        if 'fillcolor' not in kwargs:
+            if reward > 0:
+                color = "palegreen"
+            elif reward < 0:
+                color = "indianred1"
+            else:
+                color = "white"
+            self.__graph.add_node(self.__next_node_id, label=action,
+                                  fillcolor=color, style="filled",
+                                  **kwargs)
         else:
-            color = "white"
-        # assert action.strip() != "intros.", (color, reward)
-        self.__graph.add_node(self.__next_node_id, label=action + "\n" + str(reward),
-                              fillcolor=color, style="filled",
-                              **kwargs)
+            self.__graph.add_node(self.__next_node_id, label=action)
         self.__next_node_id += 1
         newNode = LabeledNode(action, reward, self.__next_node_id-1, previous_node, [])
         if previous_node:
-            self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
+            self.__graph.add_edge(previous_node.node_id, newNode.node_id,
+                                  label=str(reward), **kwargs)
             previous_node.children.append(newNode)
         return newNode
     def mkQED(self, src : LabeledNode):
@@ -193,7 +204,6 @@ def reinforce(args : argparse.Namespace) -> None:
                 if random.random() < epsilon:
                     ordered_actions = [p.prediction for p in
                                        random.sample(predictions, len(predictions))]
-                    action = random.choice(predictions).prediction
                 else:
                     with print_time("Picking actions using q_estimator", guard=args.verbose):
                         q_choices = zip(q_estimator([(context_before,
@@ -213,10 +223,14 @@ def reinforce(args : argparse.Namespace) -> None:
                                                                       path_context)
                                     for path_context in proof_contexts_seen]):
                                 coq.cancel_last()
+                                if args.ghosts:
+                                    graph.addGhostTransition(cur_node, try_action)
                                 continue
                             action = try_action
                             break
                         except (serapi_instance.ParseError, serapi_instance.CoqExn):
+                            if args.ghosts:
+                                graph.addGhostTransition(cur_node, try_action)
                             pass
                     if action == None:
                         # We'll hit this case of we tried all of the predictions, and none worked
