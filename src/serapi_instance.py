@@ -1181,7 +1181,7 @@ class SerapiInstance(threading.Thread):
             self.run_stmt(command, timeout=60)
             commands_run.append(command)
             if not self.proof_context:
-                return [command] + list(commands_iter), commands_run
+                return list(commands_iter), commands_run
 
 
     def run(self) -> None:
