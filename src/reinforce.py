@@ -208,6 +208,7 @@ def reinforce(args : argparse.Namespace) -> None:
                             if any([serapi_instance.contextSurjective(proof_context_after,
                                                                       path_context)
                                     for path_context in proof_contexts_seen]):
+                                coq.cancel_last()
                                 continue
                             action = try_action
                             break
