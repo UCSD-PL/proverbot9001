@@ -117,6 +117,26 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     )> {
         py.allow_threads(move || features_polyarg_tensors(args, filename, Some(meta)))
     }
+    #[pyfn(m, "sample_fpa_batch")]
+    fn sample_fpa_batch_py(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        context_batch: Vec<ProofContext>
+    ) -> (
+        LongUnpaddedTensor3D,
+        FloatUnpaddedTensor3D,
+        LongTensor1D,
+        LongTensor2D,
+        LongTensor2D,
+        FloatTensor2D,
+    ) {
+        sample_fpa_batch(
+            args,
+            metadata,
+            context_batch
+        )
+    }
     #[pyfn(m, "sample_fpa")]
     fn sample_fpa_py(
         _py: Python,

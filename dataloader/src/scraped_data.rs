@@ -82,6 +82,18 @@ impl ProofContext {
                      goal: "".to_string()}
     }
 }
+#[pymethods]
+impl ProofContext {
+    #[new]
+    fn new(obj: &PyRawObject,
+           lemmas: Vec<String>, tactics: Vec<String>,
+           hyps: Vec<String>, goal: String) {
+        obj.init({
+            ProofContext{lemmas, tactics, hyps, goal}
+        })
+    }
+}
+
 impl <'source> FromPyObject<'source> for ProofContext {
     fn extract(ob: &'source PyAny) -> PyResult<Self> {
         let gil = Python::acquire_gil();

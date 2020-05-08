@@ -15,8 +15,8 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, get_symbols, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
-    Token, Tokenizer,
+    get_symbols, get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer,
+    PickleableTokenizer, Token, Tokenizer,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -237,6 +237,91 @@ pub fn features_polyarg_tensors(
     ))
 }
 
+pub fn sample_fpa_batch(
+    args: DataloaderArgs,
+    metadata: PickleableFPAMetadata,
+    context_batch: Vec<ProofContext>,
+) -> (
+    LongUnpaddedTensor3D,
+    FloatUnpaddedTensor3D,
+    LongTensor1D,
+    LongTensor2D,
+    LongTensor2D,
+    FloatTensor2D,
+) {
+    let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
+    let (word_features_batch, vec_features_batch) = context_batch
+        .iter()
+        .map(|ctxt| {
+            sample_context_features(
+                &args,
+                &ftmap,
+                &ctxt.lemmas,
+                &ctxt.tactics,
+                &ctxt.hyps,
+                &ctxt.goal,
+            )
+        })
+        .unzip();
+
+    let premises_batch: Vec<Vec<String>> = context_batch
+        .iter()
+        .map(|ctxt| ctxt.lemmas.iter().chain(ctxt.hyps.iter()).map(|p| p.clone()).collect())
+        .collect();
+
+    let premise_scores_batch: Vec<Vec<f64>> = premises_batch
+        .iter()
+        .zip(context_batch.iter())
+        .map(|(premises, context)| {
+            score_hyps(
+                args.max_string_distance,
+                args.max_length,
+                premises,
+                &context.goal,
+            )
+        })
+        .collect();
+
+    let premise_features_batch = premises_batch
+        .iter()
+        .zip(premise_scores_batch.iter())
+        .zip(context_batch.iter())
+        .map(|((premises, scores), ctxt)| {
+            premises
+                .iter()
+                .zip(scores.iter())
+                .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &ctxt.goal)])
+                .collect()
+        })
+        .collect();
+
+    let tgoals_batch = context_batch
+        .iter()
+        .map(|ctxt| normalize_sentence_length(tokenizer.tokenize(&ctxt.goal), args.max_length, 1))
+        .collect();
+    let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
+        .into_iter()
+        .map(|premises|
+             premises.into_iter()
+             .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1))
+             .collect())
+        .collect();
+
+    let num_hyps_batch = tprems_batch
+        .iter()
+        .map(|tprems| tprems.len() as i64)
+        .collect();
+
+    (
+        tprems_batch,
+        premise_features_batch,
+        num_hyps_batch,
+        tgoals_batch,
+        word_features_batch,
+        vec_features_batch,
+    )
+}
+
 pub fn sample_fpa(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
@@ -276,12 +361,6 @@ pub fn sample_fpa(
         .zip(premise_scores.iter())
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
-    let (best_prem, best_score): (&str, f64) = all_premises
-        .iter()
-        .zip(premise_scores.iter())
-        .map(|(p, s)| (p.as_str(), *s))
-        .min_by_key(|(_prem, score)| NormalFloat::new(*score))
-        .unwrap_or(("", 1.0));
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 1);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
@@ -320,7 +399,10 @@ pub fn decode_fpa_result(
         TacticArgument::NoArg => stem + ".",
         TacticArgument::Unrecognized => stem + ".",
         TacticArgument::GoalToken(tidx) => {
-            assert!(tidx < get_symbols(goal).len(), format!("{}, {}", goal, tidx));
+            assert!(
+                tidx < get_symbols(goal).len(),
+                format!("{}, {}", goal, tidx)
+            );
             stem + " " + get_words(goal)[tidx] + "."
         }
         TacticArgument::HypVar(hidx) => {
