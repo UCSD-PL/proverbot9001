@@ -164,7 +164,8 @@ def reinforce(args : argparse.Namespace) -> None:
                     eprint("Couldn't find lemma {args.proof}! Exiting...")
                     return
                 rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, _ = coq.run_into_next_proof(env_commands)
+                rest_commands, run_commands = coq.run_into_next_proof(rest_commands)
+                lemma_statement = run_commands[-1]
         else:
             # Don't use lemmas without names (e.g. "Obligation")
             while coq.cur_lemma_name == "":
@@ -172,7 +173,8 @@ def reinforce(args : argparse.Namespace) -> None:
                     eprint("Couldn't find usable lemma! Exiting...")
                     return
                 rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, _ = coq.run_into_next_proof(env_commands)
+                rest_commands, run_commands = coq.run_into_next_proof(rest_commands)
+                lemma_statement = run_commands[-1]
 
         lemma_name = coq.cur_lemma_name
 
