@@ -191,9 +191,10 @@ def reinforce(args : argparse.Namespace) -> None:
                     action = random.choice(predictions).prediction
                 else:
                     with print_time("Picking actions using q_estimator", guard=args.verbose):
-                        q_choices = [(q_estimator(context_before, prediction.prediction),
-                                      prediction.prediction)
-                                     for prediction in predictions]
+                        q_choices = zip(q_estimator([(context_before,
+                                                      prediction.prediction)
+                                                     for prediction in predictions]),
+                                        [p.prediction for p in predictions])
                         ordered_actions = [p[1] for p in
                                            sorted(q_choices, key=lambda q: q[0], reverse=True)]
 
@@ -281,8 +282,8 @@ def assign_scores(transitions: List[LabeledTransition],
             ctxt = transition.after
             predictions = predictor.predictKTactics(ctxt, num_predictions)
             new_q = transition.reward + \
-                discount * max([q_estimator(ctxt, prediction.prediction)
-                                for prediction in predictions])
+                discount * max(q_estimator([(ctxt, prediction.prediction)
+                                            for prediction in predictions]))
             yield transition.before, transition.action, new_q
     return list(generate())
 
@@ -299,13 +300,18 @@ class FeaturesQEstimator(QEstimator):
         self.tactic_map = {}
         self.token_map = {}
         pass
-    def __call__(self, state: TacticContext, action: str) -> float:
-        state_word_features, vec_features = self._features(state)
-        encoded_action = self._encode_action(state, action)
-        all_word_features = list(encoded_action) + state_word_features
-        output = self.model(torch.LongTensor([all_word_features]),
-                            torch.FloatTensor([vec_features]))
-        return output[0].item()
+    def __call__(self, inputs: List[Tuple[TacticContext, str]]) -> List[float]:
+        state_word_features_batch, vec_features_batch \
+            = zip(*[self._features(state) for (state, action) in inputs])
+        encoded_actions_batch = [self._encode_action(state, action)
+                                 for (state, action) in inputs]
+        all_word_features_batch = [list(encoded_action) + state_word_features
+                                   for encoded_action, state_word_features in
+                                   zip(encoded_actions_batch,
+                                       state_word_features_batch)]
+        output = self.model(torch.LongTensor(all_word_features_batch),
+                            torch.FloatTensor(vec_features_batch))
+        return list(output)
     def train(self, samples: List[Tuple[TacticContext, str, float]]) -> None:
         self.optimizer.zero_grad()
         state_word_features, vec_features = zip(*[self._features(state) for state, _, _ in samples])
