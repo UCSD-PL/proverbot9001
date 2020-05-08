@@ -278,9 +278,10 @@ def assign_scores(transitions: List[LabeledTransition],
                   num_predictions: int,
                   discount : float) -> List[Tuple[TacticContext, str, float]]:
     def generate() -> Iterator[Tuple[dataloader.ProofContext, str, float]]:
-        for transition in transitions:
+        predictions = predictor.predictKTactics_batch([transition.after for transition in transitions],
+                                                      num_predictions)
+        for transition, predictions in zip(transitions, predictions):
             ctxt = transition.after
-            predictions = predictor.predictKTactics(ctxt, num_predictions)
             new_q = transition.reward + \
                 discount * max(q_estimator([(ctxt, prediction.prediction)
                                             for prediction in predictions]))
