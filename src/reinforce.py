@@ -201,6 +201,7 @@ def reinforce(args : argparse.Namespace) -> None:
                                            sorted(q_choices, key=lambda q: q[0], reverse=True)]
 
                 with print_time("Running actions", guard=args.verbose):
+                    action = None
                     for try_action in ordered_actions:
                         try:
                             coq.run_stmt(try_action)
@@ -214,6 +215,11 @@ def reinforce(args : argparse.Namespace) -> None:
                             break
                         except (serapi_instance.ParseError, serapi_instance.CoqExn):
                             pass
+                    if action == None:
+                        # We'll hit this case of we tried all of the predictions, and none worked
+                        graph.setNodeColor(cur_node, "red")
+                        break # Break from episode
+
 
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
                 transition = assign_reward(context_before, context_after, action)
