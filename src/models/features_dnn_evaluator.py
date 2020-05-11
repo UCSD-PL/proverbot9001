@@ -42,7 +42,11 @@ import torch
 import sys
 from torch import nn
 
-FeaturesDNNEvaluatorState = Tuple[FeaturesTokenMap, NeuralPredictorState]
+    PickleableTokenMap = Tuple[Dict[str, int],
+                                   Dict[str, int],
+                                   Dict[str, int]]
+
+FeaturesDNNEvaluatorState = Tuple[PickleableTokenMap, NeuralPredictorState]
 
 class FeaturesDNNEvaluatorModel(nn.Module):
     def __init__(self,
