@@ -127,14 +127,16 @@ class ReinforceGraph:
             previous_node.children.append(newNode)
         return newNode
     def mkQED(self, src : LabeledNode):
+        for existing_node in src.children:
+            if existing_node.action == "QED":
+                return
         qedNode = self.mkNode("QED",
+                              0,
                               src,
                               fillcolor="green", style="filled")
-        cur_node = predictionNode
-        cur_path = []
+        cur_node = src
         while cur_node != self.start_node:
-            self.setNodeColor(cur_node, "palegreen1")
-            cur_path.append(cur_node)
+            self.setNodeOutlineColor(cur_node, "palegreen1")
             assert cur_node.parent
             cur_node = cur_node.parent
         pass
@@ -142,6 +144,10 @@ class ReinforceGraph:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
+    def setNodeOutlineColor(self, node : LabeledNode, color : str) -> None:
+        node_handle = self.__graph.get_node(node.node_id)
+        node_handle.attr["color"] = color
+
     def setNodeApproxQScore(self, node : LabeledNode, score : float ) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["label"] = f"{node.action} (~{score:.2f})"
@@ -244,6 +250,10 @@ def reinforce(args : argparse.Namespace) -> None:
                 transition.graph_node = cur_node
                 replay_memory.append(transition)
                 proof_contexts_seen.append(proof_context_after)
+
+                if coq.goals == "":
+                    graph.mkQED(cur_node)
+                    break;
 
             with print_time("Assigning scores", guard=args.verbose):
                 transition_samples = sample_batch(replay_memory, args.batch_size)
