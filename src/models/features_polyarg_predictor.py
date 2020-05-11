@@ -367,7 +367,7 @@ class FeaturesPolyargPredictor(
 
         with self._lock:
             tokenized_premises, hyp_features, \
-                num_hyps, tokenized_goal, \
+                nhyps_batch, tokenized_goal, \
                 word_features, vec_features = \
                     sample_fpa(extract_dataloader_args(self.training_args),
                                self._metadata,
@@ -376,7 +376,7 @@ class FeaturesPolyargPredictor(
                                context.hypotheses,
                                context.goal)
 
-            num_hyps = num_hyps[0]
+            num_hyps = nhyps_batch[0]
 
             stem_distribution = self._model.stem_classifier(LongTensor(word_features),
                                                             FloatTensor(vec_features))
