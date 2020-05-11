@@ -30,7 +30,7 @@ from typing import Dict, Any, List, Tuple, NamedTuple, Union
 
 from tokenizer import Tokenizer
 from models.tactic_predictor import TokenizingPredictor, Prediction, TokenizerEmbeddingState
-from models.components import Embedding, SimpleEmbedding
+from models.components import Embedding, SimpleEmbedding, PredictorState
 from format import read_tuple, ScrapedTactic, TacticContext
 from util import *
 from serapi_instance import get_stem
@@ -40,6 +40,9 @@ from dataclasses import dataclass
 
 class TryCommonSample(NamedTuple):
     tactic : int
+@dataclass
+class TryCommonState(PredictorState):
+    inner : List[float]
 @dataclass(init=True, repr=True)
 class TryCommonDataset(Dataset):
     data : List[TryCommonSample]
@@ -50,7 +53,7 @@ class TryCommonDataset(Dataset):
     def __getitem__(self, i : Any):
         return self.data[i]
 
-class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
+class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, TryCommonState]):
     def __init__(self) -> None:
         super().__init__()
     def predictKTactics(self, in_data : TacticContext, k : int) \
@@ -91,13 +94,15 @@ class TryCommonPredictor(TokenizingPredictor[TryCommonDataset, List[float]]):
             torch.save(("trycommon", (arg_values, encdec_state, stem_probs)), f)
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : TokenizerEmbeddingState,
-                         state : List[float]) -> None:
+                         state : TryCommonState) -> None:
         self._tokenizer = metadata.tokenizer
         self._embedding = metadata.embedding
         self.training_args = args
         self.context_filter = args.context_filter
-        self.probabilities = state
+        self.probabilities = state.inner
+        self.unparsed_args = unparsed_args
         pass
     def _description(self) -> str:
         return "A simple predictor which tries the k most common tactic stems."

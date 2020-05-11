@@ -225,6 +225,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
                                     self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding,
                                           List[VecFeature], List[WordFeature]],
                          state : NeuralPredictorState) -> None:
@@ -238,6 +239,7 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
+        self.unparsed_args = unparsed_args
     def _data_tensors(self, encoded_data : EncFeaturesDataset,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:

@@ -169,6 +169,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                     self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
+                         unparse_args : List[str],
                          tokenizer : Tokenizer,
                          state : NeuralPredictorState) -> None:
         self._tokenizer = tokenizer
@@ -177,6 +178,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
+        self.unparsed_args = args
     def _data_tensors(self, encoded_data : ApplyDataset,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:

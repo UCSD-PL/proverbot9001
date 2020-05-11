@@ -360,6 +360,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                     self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding,
                                           List[WordFeature], List[VecFeature]],
                          state : NeuralPredictorState) -> None:
@@ -373,6 +374,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
+        self.unparsed_args = unparsed_args
     def _data_tensors(self, encoded_data : CopyArgDataset,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:

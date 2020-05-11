@@ -38,7 +38,7 @@ from torch.autograd import Variable
 
 from models.tactic_predictor import (TokenizingPredictor, Prediction,
                                      TokenizerEmbeddingState)
-from models.components import Embedding
+from models.components import Embedding, PredictorState
 from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, getNGramTokenbagVector, encode_ngram_classify_data, \
     encode_ngram_classify_input, TokenizedDataset, Dataset, NGram, NGramSample, \
@@ -46,17 +46,25 @@ from data import get_text_data, getNGramTokenbagVector, encode_ngram_classify_da
 from util import *
 from format import TacticContext
 from serapi_instance import get_stem
+from dataclasses import dataclass
 
-class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
+@dataclass
+class NGramSVMClassifierState(PredictorState):
+    inner : svm.SVC
+#     x : int
+#     y : int
+
+class NGramSVMClassifier(TokenizingPredictor[NGramDataset, NGramSVMClassifierState]):
     def load_saved_state(self,
                          args : Namespace,
+                         unpasrsed_args : List[str],
                          metadata : TokenizerEmbeddingState,
-                         state : svm.SVC) -> None:
+                         state : NGramSVMClassifierState) -> None:
         self._tokenizer = metadata.tokenizer
         self._embedding = metadata.embedding
         self.training_args = args
         self.context_filter = args.context_filter
-        self._model = state
+        self._model = state.inner
         pass
     def getOptions(self) -> List[Tuple[str, str]]:
         return list(vars(self.training_args).items())
@@ -142,7 +150,7 @@ class NGramSVMClassifier(TokenizingPredictor[NGramDataset, svm.SVC]):
         loss = model.score(inputs, outputs)
         print("Training loss: {}".format(loss))
         with open(arg_values.save_file, 'wb') as f:
-            torch.save((arg_values, encdec_state, model), f)
+            torch.save((arg_values, encdec_state, NGramSVMClassifierState(1, model)), f)
 
     def _description(self) -> str:
         return "A simple predictor which tries the k most common tactic stems."

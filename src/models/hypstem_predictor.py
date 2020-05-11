@@ -40,7 +40,8 @@ from models.tactic_predictor import (TrainablePredictor, Prediction,
                                      add_tokenizer_args, embed_data,
                                      tokenize_goals, NeuralPredictorState)
 from models.components import (Embedding, StraightlineClassifierModel,
-                               DNNClassifierModel, SVMClassifierModel)
+                               DNNClassifierModel, SVMClassifierModel,
+                               PredictorState)
 from tokenizer import tokenizers, Tokenizer
 
 from data import (getNGramTokenbagVector, ListDataset, RawDataset)
@@ -59,7 +60,7 @@ class HypStemDataset(ListDataset[HypStemSample]):
     pass
 
 ModelType = TypeVar("ModelType", bound=StraightlineClassifierModel)
-StateType = TypeVar("StateType")
+StateType = TypeVar("StateType", bound=PredictorState)
 
 class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embedding],
                                           StateType],
@@ -162,6 +163,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
         return prediction_lists, sum(losses)/len(losses)
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding],
                          state : StateType) -> None:
         self._tokenizer, self._embedding = metadata
@@ -169,6 +171,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
                                              self._embedding.num_tokens())
         self._model.setState(state)
         self.training_args = args
+        self.unparsed_args = args
 
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
