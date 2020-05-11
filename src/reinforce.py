@@ -28,19 +28,15 @@ import sys
 import serapi_instance
 import dataloader
 import tokenizer
-from models import tactic_predictor
+from models import tactic_predictor, FeaturesQEstimator
 import predict_tactic
 from util import maybe_cuda, eprint, print_time, nostderr
-from models.components import WordFeaturesEncoder, DNNScorer
 
 from dataclasses import dataclass
-from typing import List, Tuple, Iterator, TypeVar, Dict, Optional
+from typing import List, Tuple, Iterator, Dict, Optional
 from format import TacticContext
 from abc import ABCMeta, abstractmethod
-import torch
-import torch.nn as nn
 from tqdm import tqdm, trange
-from torch import optim
 from pathlib_revised import Path2
 
 def main(arg_list : List[str]) -> None:
@@ -50,6 +46,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("scrape_file")
 
     parser.add_argument("environment_file", type=Path2)
+    parser.add_argument("out_weights", type=Path2)
     parser.add_argument("--proof", default=None)
 
     parser.add_argument("--prelude", default=".", type=Path2)
@@ -271,6 +268,7 @@ def reinforce(args : argparse.Namespace) -> None:
             coq.run_stmt(f"Reset {lemma_name}.")
             coq.run_stmt(lemma_statement)
         graph.draw("reinforce.png")
+        q_estimator.save_weights(args.out_weights, args)
 
 @dataclass
 class LabeledTransition:
@@ -304,14 +302,6 @@ def assign_rewards(transitions : List[dataloader.ScrapedTransition]) -> \
 
     return list(generate())
 
-class QEstimator(metaclass=ABCMeta):
-    @abstractmethod
-    def __call__(self, state: TacticContext, action: str) -> float:
-        pass
-    @abstractmethod
-    def train(self, samples: List[Tuple[TacticContext, str, float]]) -> None:
-        pass
-
 def assign_scores(transitions: List[LabeledTransition],
                   q_estimator: QEstimator,
                   predictor: tactic_predictor.TacticPredictor,
@@ -334,108 +324,6 @@ def assign_scores(transitions: List[LabeledTransition],
 def context_r2py(r_context : dataloader.ProofContext) -> TacticContext:
     return TacticContext(r_context.lemmas, r_context.tactics,
                          r_context.hyps, r_context.goal)
-
-class FeaturesQEstimator(QEstimator):
-    def __init__(self, learning_rate: float) -> None:
-        self.model = FeaturesQModel(32, 128,
-                                    2, 128, 3)
-        self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
-        self.criterion = nn.MSELoss()
-        self.tactic_map = {}
-        self.token_map = {}
-        pass
-    def __call__(self, inputs: List[Tuple[TacticContext, str]]) -> List[float]:
-        state_word_features_batch, vec_features_batch \
-            = zip(*[self._features(state) for (state, action) in inputs])
-        encoded_actions_batch = [self._encode_action(state, action)
-                                 for (state, action) in inputs]
-        all_word_features_batch = [list(encoded_action) + state_word_features
-                                   for encoded_action, state_word_features in
-                                   zip(encoded_actions_batch,
-                                       state_word_features_batch)]
-        output = self.model(torch.LongTensor(all_word_features_batch),
-                            torch.FloatTensor(vec_features_batch))
-        return list(output)
-    def train(self, samples: List[Tuple[TacticContext, str, float]]) -> None:
-        self.optimizer.zero_grad()
-        state_word_features, vec_features = zip(*[self._features(state) for state, _, _ in samples])
-        encoded_actions = [self._encode_action(state, action) for state, action, _ in samples]
-        all_word_features = [list(ea) + swf for ea, swf in zip(encoded_actions, state_word_features)]
-        outputs = self.model(torch.LongTensor(all_word_features),
-                             torch.FloatTensor(vec_features))
-        expected_outputs = maybe_cuda(torch.FloatTensor([output for _, _, output in samples]))
-        loss = self.criterion(outputs, expected_outputs)
-        loss.backward()
-        self.optimizer.step()
-    def _features(self, context: TacticContext) -> Tuple[List[int], List[float]]:
-        if len(context.prev_tactics) > 0:
-            prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
-            prev_tactic_index = emap_lookup(self.tactic_map, 32, prev_tactic)
-        else:
-            prev_tactic_index = 0
-        if context.goal != "":
-            goal_head_index = emap_lookup(self.token_map, 128, tokenizer.get_words(context.goal)[0])
-        else:
-            goal_head_index = 0
-        goal_length_feature = min(len(tokenizer.get_words(context.goal)), 100) / 100
-        num_hyps_feature = min(len(context.hypotheses), 30) / 30
-        return [prev_tactic_index, goal_head_index], [goal_length_feature, num_hyps_feature]
-    def _encode_action(self, context: TacticContext, action: str) -> Tuple[int, int]:
-        stem, argument = serapi_instance.split_tactic(action)
-        stem_idx = emap_lookup(self.tactic_map, 32, stem)
-        all_premises = context.hypotheses + context.relevant_lemmas
-        stripped_arg = argument.strip(".").strip()
-        if stripped_arg == "":
-            arg_idx = 0
-        else:
-            index_hyp_vars = dict(serapi_instance.get_indexed_vars_in_hyps(all_premises))
-            if stripped_arg in index_hyp_vars:
-                hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]].partition(":")
-                arg_idx = emap_lookup(self.token_map, 128, tokenizer.get_words(rest)[0]) + 2
-            else:
-                goal_symbols = tokenizer.get_symbols(context.goal)
-                if stripped_arg in goal_symbols:
-                    arg_idx = emap_lookup(self.token_map, 128, stripped_arg) + 128 + 2
-                else:
-                    arg_idx = 1
-        return stem_idx, arg_idx
-
-T = TypeVar('T')
-
-def emap_lookup(emap: Dict[T, int], size: int, item: T):
-    if item in emap:
-        return emap[item]
-    elif len(emap) < size - 1:
-        emap[item] = len(emap) + 1
-        return emap[item]
-    else:
-        return 0
-
-class FeaturesQModel(nn.Module):
-    def __init__(self,
-                 num_tactics : int,
-                 num_tokens : int,
-                 vec_features_size : int,
-                 hidden_size : int,
-                 num_layers : int) -> None:
-        super().__init__()
-        # Consider making the word embedding the same for all token-type inputs, also for tactic-type inputs
-        self._word_features_encoder = maybe_cuda(
-            WordFeaturesEncoder([num_tactics, num_tokens * 2 + 2,
-                                 num_tactics, num_tokens],
-                                hidden_size, 1, hidden_size))
-        self._features_classifier = maybe_cuda(
-            DNNScorer(hidden_size + vec_features_size,
-                      hidden_size, num_layers))
-    def forward(self,
-                word_features_batch : torch.LongTensor,
-                vec_features_batch : torch.FloatTensor) -> torch.FloatTensor:
-        encoded_word_features = self._word_features_encoder(
-            maybe_cuda(word_features_batch))
-        scores = self._features_classifier(
-            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))\
-        .view(vec_features_batch.size()[0])
-        return scores
 
 if __name__ == "__main__":
     main(sys.argv[1:])
