@@ -40,9 +40,8 @@ class TokenMap:
 
 PickleableIndexer = Tuple[int, Dict[str, int], bool]
 PickleableTokenizer = Tuple[bool, int, int, Dict[str, int]]
-PickleableFeaturesTokenMap = Tuple[Dict[str, int],
-                                   Dict[str, int],
-                                   Dict[str, int]]
+PickleableFeaturesTokenMap = Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]
+
 PickleableTokenMap = PickleableFeaturesTokenMap
 
 PickleableFPAMetadata = Tuple[PickleableIndexer,

@@ -42,9 +42,9 @@ import torch
 import sys
 from torch import nn
 
-    PickleableTokenMap = Tuple[Dict[str, int],
-                                   Dict[str, int],
-                                   Dict[str, int]]
+PickleableTokenMap = Tuple[Dict[str, int],
+                           Dict[str, int],
+                           Dict[str, int]]
 
 FeaturesDNNEvaluatorState = Tuple[PickleableTokenMap, NeuralPredictorState]
 

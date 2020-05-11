@@ -39,7 +39,7 @@ from util import stringified_percent
 import subprocess
 import datetime
 
-from typing import (List, Union, Tuple, Iterable, Callable)
+from typing import (List, Union, Tuple, Iterable, Callable, cast, Dict, Any)
 
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
@@ -84,7 +84,7 @@ def parse_arguments(arg_list : List[str]) -> argparse.Namespace:
     parser.add_argument("--prelude", default=".", type=Path2)
     parser.add_argument("--context-filter", default="default")
     parser.add_argument("--no-generate-index", dest="generate_index", action='store_false')
-    parser.add_argument("--output", "-o", required="true", type=Path2)
+    parser.add_argument("--output", "-o", required=True, type=Path2)
     evaluator_group = parser.add_mutually_exclusive_group(required="true")
     evaluator_group.add_argument('--weightsfile', default=None, type=Path2)
     evaluator_group.add_argument('--evaluator', choices=list(static_evaluators.keys()),
@@ -119,34 +119,36 @@ def get_blocks(interactions : List[ScrapedCommand]) -> List[Union[VernacBlock, P
     def generate() -> Iterable[Union[VernacBlock, ProofBlock]]:
         in_proof = False
         cur_lemma = ""
-        interaction_buffer = []
+        interaction_buffer : List[ScrapedCommand] = []
         for interaction in interactions:
             if isinstance(interaction, ScrapedTactic):
                 if not in_proof:
-                    yield VernacBlock(interaction_buffer[:-1])
-                    cur_lemma = interaction_buffer[-1]
+                    yield VernacBlock(cast(List[str], interaction_buffer[:-1]))
+                    cur_lemma = cast(str, interaction_buffer[-1])
                     interaction_buffer = []
                     in_proof = True
             else:
                 assert isinstance(interaction, str)
                 if in_proof:
-                    yield ProofBlock(cur_lemma, interaction_buffer)
+                    yield ProofBlock(cur_lemma, cast(List[TacticInteraction], interaction_buffer))
                     interaction_buffer = []
                     in_proof = False
             interaction_buffer.append(interaction)
     return list(generate())
 
 def generate_evaluation_details(args : argparse.Namespace, idx : int,
-                                filename : str, evaluator : StateEvaluator) -> FileSummary:
+                                filename : Path2, evaluator : StateEvaluator) -> FileSummary:
     scrape_path = args.prelude / filename.with_suffix(".v.scrape")
     interactions = list(read_all_text_data(scrape_path))
     context_filter = get_context_filter(args.context_filter)
-    json_rows = []
+    json_rows : List[Dict[str, Any]] = []
 
     num_points = 0
     num_close = 0
     num_correct = 0
     num_proofs = 0
+
+    doc, tag, text, line = Doc().ttl()
 
     def write_highlighted(vernac : str) -> None:
         nonlocal text
@@ -187,7 +189,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
                         write_highlighted(interaction.tactic.strip("\n"))
                     doc.stag('br')
                 else:
-                    predicted_distance_from_end = evaluator.scoreState(strip_scraped_output(interaction))
+                    predicted_distance_from_end = evaluator.scoreState(interaction.context_before)
                     grade = grade_prediction(distance_from_end, predicted_distance_from_end)
                     if grade == "goodcommand":
                         num_correct += 1
@@ -196,14 +198,14 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
 
                     num_points += 1
                     json_rows.append({"lemma": block.lemma_statement,
-                                      "hyps": interaction.hypotheses,
-                                      "goal": interaction.goal,
+                                      "hyps": interaction.context_before.hypotheses,
+                                      "goal": interaction.context_before.goal,
                                       "actual-distance": distance_from_end,
                                       "predicted-distance": predicted_distance_from_end,
                                       "grade": grade})
                     with tag('span',
-                             ('data-hyps', "\n".join(interaction.hypotheses)),
-                             ('data-goal', interaction.goal),
+                             ('data-hyps', "\n".join(interaction.context_before.hypotheses)),
+                             ('data-goal', interaction.context_before.goal),
                              ('data-actual-distance', str(distance_from_end)),
                              ('data-predicted-distance', str(predicted_distance_from_end)),
                              ('data-region', region_idx),
@@ -232,7 +234,6 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
         else:
             return "badcommand"
 
-    doc, tag, text, line = Doc().ttl()
     with tag('html'):
         header(tag, doc, text, details_css, details_javascript, "Proverbot9001 Report")
         with tag('body', onload='init()'), tag('pre'):
@@ -312,7 +313,6 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
 def generate_evaluation_index(file_summary_results : List[FileSummary],
                               unparsed_args : List[str],
                               output_dir : Path2):
-    options = []
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
         header(tag, doc, text, index_css, index_js,
@@ -340,14 +340,14 @@ def generate_evaluation_index(file_summary_results : List[FileSummary],
             with tag('h5'):
                 cur_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
                 text('Run on: {}'.format(cur_date))
-            with tag('ul'):
-                for k, v in options:
-                    if k == 'filenames':
-                        continue
-                    elif not v:
-                        continue
-                    with tag('li'):
-                        text("{}: {}".format(k, v))
+            # with tag('ul'):
+                # for k, v in options:
+                #     if k == 'filenames':
+                #         continue
+                #     elif not v:
+                #         continue
+                #     with tag('li'):
+                #         text("{}: {}".format(k, v))
             with tag('h4'):
                 text("{} files processed".format(len(file_summary_results)))
             with tag('table'):
