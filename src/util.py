@@ -35,7 +35,7 @@ from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
                     Callable, Optional, Pattern, Match)
 
 use_cuda = torch.cuda.is_available()
-assert use_cuda
+# assert use_cuda
 
 def maybe_cuda(component):
     if use_cuda:
@@ -257,7 +257,7 @@ def multisplit_matching(openpat : str, closepat : str,
                         -> List[str]:
     splits = []
     nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, target)
-    rest = []
+    rest = None
     while nextsplit:
         before, rest = nextsplit
         splits.append(before)
