@@ -48,43 +48,44 @@ import tokenizer
 
 # Some Exceptions to throw when various responses come back from coq
 @dataclass
-class AckError(Exception):
+class SerapiException(Exception):
     msg : Union['Sexp', str]
-@dataclass
-class CompletedError(Exception):
-    msg : 'Sexp'
 
 @dataclass
-class CoqExn(Exception):
-    msg : 'Sexp'
-@dataclass
-class BadResponse(Exception):
-    msg : 'Sexp'
-
-@dataclass
-class NotInProof(Exception):
-    msg : str
-@dataclass
-class ParseError(Exception):
-    msg : str
-
-@dataclass
-class LexError(Exception):
-    msg : str
-@dataclass
-class TimeoutError(Exception):
-    msg : str
-@dataclass
-class OverflowError(Exception):
-    msg : str
-@dataclass
-class UnrecognizedError(Exception):
-    msg : str
-class NoSuchGoalError(Exception):
+class AckError(SerapiException):
     pass
 @dataclass
-class CoqAnomaly(Exception):
-    msg : str
+class CompletedError(SerapiException):
+    pass
+@dataclass
+class CoqExn(SerapiException):
+    pass
+@dataclass
+class BadResponse(SerapiException):
+    pass
+@dataclass
+class NotInProof(SerapiException):
+    pass
+@dataclass
+class ParseError(SerapiException):
+    pass
+@dataclass
+class LexError(SerapiException):
+    pass
+@dataclass
+class TimeoutError(SerapiException):
+    pass
+@dataclass
+class OverflowError(SerapiException):
+    pass
+@dataclass
+class UnrecognizedError(SerapiException):
+    pass
+class NoSuchGoalError(SerapiException):
+    pass
+@dataclass
+class CoqAnomaly(SerapiException):
+    pass
 
 def raise_(ex):
     raise ex
@@ -268,7 +269,7 @@ class SerapiInstance(threading.Thread):
         # Set the "extra quiet" flag (don't print on failures) to false
         self.quiet = False
         # The messages printed to the *response* buffer by the command
-        self.feedbacks : List[str] = []
+        self.feedbacks : List[Any] = []
         # Start the message queue thread
         self.start()
         # Go through the messages and throw away the initial feedback.
@@ -411,7 +412,7 @@ class SerapiInstance(threading.Thread):
         assert match, f"Can't match {self.cur_lemma}"
         return match.group(1)
 
-    def tactic_context(self, relevant_lemmas) -> str:
+    def tactic_context(self, relevant_lemmas) -> TacticContext:
         return TacticContext(relevant_lemmas,
                              self.prev_tactics,
                              self.hypotheses,
@@ -434,6 +435,7 @@ class SerapiInstance(threading.Thread):
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
     def send_flush(self, cmd : str):
+        assert self._fin
         eprint("SENT: " + cmd, guard=self.verbose >= 4)
         try:
             self._fin.write(cmd.encode('utf-8'))
@@ -515,7 +517,7 @@ class SerapiInstance(threading.Thread):
                 return result
             except TimeoutError:
                 eprint("Timed out when getting full line!")
-                return None
+                return ""
         full_lines = [line for line in
                       [get_full_line(name) for name in names]
                       if line]
@@ -614,7 +616,7 @@ class SerapiInstance(threading.Thread):
 
         return self.tactic_history.getCurrentHistory()
 
-    def handle_exception(self, e : Exception, stmt : str):
+    def handle_exception(self, e : SerapiException, stmt : str):
         eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
                guard=(not self.quiet or self.verbose >= 2))
         match(e,
