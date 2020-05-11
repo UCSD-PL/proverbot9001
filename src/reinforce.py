@@ -61,7 +61,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--num-episodes", default=256, type=int)
     parser.add_argument("--episode-length", default=16, type=int)
 
-    parser.add_argument("--learning-rate", default=0.5, type=float)
+    parser.add_argument("--learning-rate", default=0.0001, type=float)
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
