@@ -253,13 +253,16 @@ class FeaturesPolyargPredictor(
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
-        save_states = self._optimize_model_to_disc(arg_values)
+        save_states = self._optimize_model(arg_values)
 
         for metadata, state in save_states:
             with open(arg_values.save_file, 'wb') as f:
                 torch.save((self.shortname(), (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, context_batch : List[TacticContext], k : int) -> List[List[Prediction]] :
+        assert self.training_args
+        assert self._model
+
         beam_width=min(self.training_args.max_beam_width, k ** 2)
 
         num_stem_poss = get_num_tokens(self._metadata)
@@ -354,6 +357,9 @@ class FeaturesPolyargPredictor(
                     in zip(stem_idxs_list, arg_idxs_list, final_probs_list, context_batch, nhyps_batch)]
 
     def predictKTactics(self, context : TacticContext, k : int) -> List[Prediction]:
+        assert self.training_args
+        assert self._model
+
         beam_width=min(self.training_args.max_beam_width, k ** 2)
 
         num_stem_poss = get_num_tokens(self._metadata)
@@ -552,7 +558,7 @@ class FeaturesPolyargPredictor(
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
         pass
-    def _optimize_model_to_disc(self, arg_values : Namespace) -> Iterable[FeaturesPolyargState]:
+    def _optimize_model(self, arg_values : Namespace) -> Iterable[FeaturesPolyargState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
                 _, (old_arg_values, unparsed_args,
@@ -608,6 +614,8 @@ class FeaturesPolyargPredictor(
                                         get_num_tokens(metadata))
                 epoch_start = 1
 
+        assert model
+        assert epoch_start
         return ((metadata, state) for state in optimize_checkpoints(tensors, arg_values, model,
                                                                     lambda batch_tensors, model:
                                                                     self._getBatchPredictionLoss(arg_values,
@@ -633,7 +641,7 @@ class FeaturesPolyargPredictor(
         self.unparsed_args = unparsed_args
         self._metadata = metadata
     def _get_model(self, arg_values : Namespace,
-                   wordf_sizes : int,
+                   wordf_sizes : List[int],
                    vecf_size : int,
                    stem_vocab_size : int,
                    goal_vocab_size : int) \
@@ -739,107 +747,6 @@ class FeaturesPolyargPredictor(
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
-
-
-def encode_arg(arg_type: ArgType, arg: TacticArg, max_length: int) -> int:
-    return 0 if arg_type == ArgType.NO_ARG else \
-        (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN \
-        else (arg.hyp_idx + max_length + 1)
-
-
-def mkFPASample(embedding : Embedding,
-                mytokenizer : Tokenizer,
-                training_args : argparse.Namespace,
-                word_feature_functions : List[WordFeature],
-                vec_feature_functions : List[VecFeature],
-                zipped : Tuple[ScrapedTactic, List[int]]) \
-                -> FeaturesPolyArgSample:
-    inter, tokenized_goal = zipped
-    relevant_lemmas, prev_tactics, hypotheses, goal_str, tactic = inter
-    context = strip_scraped_output(inter)
-    if training_args.features:
-        word_features = [feature(context) for feature in word_feature_functions]
-        vec_features = [feature_val for feature in vec_feature_functions
-                        for feature_val in feature(context)]
-    else:
-        word_features = [0 for feature in word_feature_functions]
-        vec_features = [0 for feature in vec_feature_functions
-                        for feature_val in feature(context)]
-    tactic_stem, tactic_argstr = serapi_instance.split_tactic(tactic)
-    stem_idx = embedding.encode_token(tactic_stem)
-    argstr_tokens = tactic_argstr.strip(".").split()
-    assert len(argstr_tokens) < 2, \
-        "Tactic {} doesn't fit our argument model! Too many tokens" .format(tactic)
-    arg : TacticArg
-    if training_args.lemma_args:
-        all_hyps = hypotheses + relevant_lemmas
-    else:
-        all_hyps = hypotheses
-    if len(argstr_tokens) == 0:
-        arg_type = ArgType.NO_ARG
-        arg = None
-        if len(all_hyps) > training_args.max_premises:
-            selected_hyps = random.sample(all_hyps, training_args.max_premises)
-        else:
-            selected_hyps = all_hyps
-    else:
-        goal_symbols = tokenizer.get_symbols(goal_str)[:training_args.max_length]
-        arg_token = argstr_tokens[0]
-
-        goal_symbol_matches = [goal_symbol for goal_symbol in goal_symbols if
-                               serapi_instance.symbol_matches(
-                                   goal_symbol, arg_token)]
-        if len(goal_symbol_matches) > 0:
-            arg_type = ArgType.GOAL_TOKEN
-            arg_idx = goal_symbols.index(goal_symbol_matches[0])
-            assert arg_idx < training_args.max_length, \
-                "Tactic {} doesn't fit our argument model! "\
-                "Token {} is not a hyp var or goal token.\n"\
-                "Hyps: {}\n"\
-                "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
-            arg = GoalTokenArg(arg_idx)
-            if len(all_hyps) > training_args.max_premises:
-                selected_hyps = random.sample(all_hyps, training_args.max_premises)
-            else:
-                selected_hyps = all_hyps
-        else:
-            indexed_hyp_vars = serapi_instance.get_indexed_vars_in_hyps(all_hyps)
-            hyp_vars = [hyp_var for hyp_var, idx in indexed_hyp_vars]
-            assert arg_token in hyp_vars, "Tactic {} doesn't fit our argument model! "\
-                "Token {} is not a hyp var or goal token.\n"\
-                "Hyps: {}\n"\
-                "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
-            arg_type = ArgType.HYP_ID
-            correct_hyp_idx = serapi_instance.get_indexed_vars_dict(
-                all_hyps)[arg_token]
-            if len(all_hyps) > training_args.max_premises:
-                selected_hyps = random.sample(all_hyps[:correct_hyp_idx]+
-                                              all_hyps[correct_hyp_idx+1:],
-                                              training_args.max_premises-1)
-                new_hyp_idx = random.randrange(training_args.max_premises)
-                selected_hyps.insert(new_hyp_idx,
-                                     all_hyps[correct_hyp_idx])
-                arg = HypIdArg(new_hyp_idx)
-            else:
-                selected_hyps = all_hyps
-                arg = HypIdArg(correct_hyp_idx)
-    if len(selected_hyps) == 0:
-        selected_hyps = [":"]
-    tokenized_hyp_types = [normalizeSentenceLength(
-        mytokenizer.toTokenList(serapi_instance.get_hyp_type(hyp)),
-        training_args.max_length)
-                           for hyp in selected_hyps]
-    hypfeatures = encodeHypsFeatureVecs(training_args, goal_str, selected_hyps)
-    return FeaturesPolyArgSample(
-        len(all_hyps),
-        tokenized_hyp_types,
-        hypfeatures,
-        normalizeSentenceLength(tokenized_goal, training_args.max_length),
-        word_features,
-        vec_features,
-        stem_idx,
-        arg_type,
-        arg)
 
 def hypFeaturesSize() -> int:
     return 2
