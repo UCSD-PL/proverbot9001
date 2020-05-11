@@ -316,6 +316,9 @@ def assign_scores(transitions: List[LabeledTransition],
             new_q = transition.reward + \
                 discount * max(q_estimator([(ctxt, prediction.prediction)
                                             for prediction in predictions]))
+            assert transition.reward == transition.reward
+            assert discount == discount
+            assert new_q == new_q
             if transition.graph_node:
                 graph.setNodeApproxQScore(transition.graph_node, new_q)
             yield transition.before, transition.action, new_q
