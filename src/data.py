@@ -233,7 +233,7 @@ def read_text_data(data_path: Path2) \
 
 @dataclass
 class StateScore:
-    state : TacticContext
+    state : ScrapedTactic
     score : float
 
 
@@ -341,7 +341,7 @@ def get_state_distances(interactions : Iterable[ScrapedCommand]) -> Iterable[Sta
         if in_proof and len(interaction_buffer) > 0:
             yield interaction_buffer
     blocks = generate_blocks()
-    return (StateScore(strip_scraped_output(interaction), len(block) - idx)
+    return (StateScore(interaction, len(block) - idx)
             for block in blocks
             for (idx, interaction) in enumerate(block))
 
@@ -350,7 +350,7 @@ def filter_data(data: Iterable[ScrapedTactic], pair_filter: ContextFilter,
     return (scraped
             for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [([], [], [], "", "")]))
+                                      [ScrapedTactic([], [], [], "", "")]))
             if pair_filter(strip_scraped_output(scraped), scraped.tactic,
                            strip_scraped_output(next_scraped), arg_values))
 def filter_eval_data(data: Iterable[StateScore], pair_filter: ContextFilter,
@@ -358,7 +358,7 @@ def filter_eval_data(data: Iterable[StateScore], pair_filter: ContextFilter,
     return (point
             for (point, next_point) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [StateScore(([], [], [], "", ""), 0)]))
+                                      [StateScore(ScrapedTactic([], [], [], "", ""), 0)]))
             if pair_filter(strip_scraped_output(point.state), point.state.tactic,
                            strip_scraped_output(next_point.state), arg_values))
 
