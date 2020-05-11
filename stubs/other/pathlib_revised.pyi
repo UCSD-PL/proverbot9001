@@ -23,7 +23,11 @@ class Path():
         ...
     pass
 class Path2(Path):
+    @overload
     def __init__(self, str_path : str) -> None:
+        ...
+    @overload
+    def __init__(self, str_path : Path2) -> None:
         ...
     @property
     def parent(self) -> Path2:
