@@ -23,6 +23,7 @@
 import re
 from dataclasses import dataclass
 from typing import List, Union, Iterable
+from util import unwrap
 
 vernacular_binder = [
     "Definition",
@@ -116,7 +117,10 @@ def highlight_comments(code : str) -> List[Union[str, ColoredString]]:
                 else:
                     yield ColoredString(cur_string + code[cur_pos:], comment_color)
                 break
-            if next_close_match == None or (next_open_match != None and next_open_match.start() < next_close_match.start()):
+            if next_close_match == None or \
+            (next_open_match != None and
+             unwrap(next_open_match).start() < unwrap(next_close_match).start()):
+                next_open_match = unwrap(next_open_match)
                 cur_string += code[cur_pos:next_open_match.start()]
                 if comment_depth == 0:
                     yield cur_string
@@ -125,6 +129,7 @@ def highlight_comments(code : str) -> List[Union[str, ColoredString]]:
                 cur_pos = next_open_match.end()
                 comment_depth += 1
             else:
+                next_close_match = unwrap(next_close_match)
                 cur_string += code[cur_pos:next_close_match.end()]
                 cur_pos = next_close_match.end()
                 comment_depth -= 1
