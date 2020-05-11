@@ -48,7 +48,8 @@ import serapi_instance
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
-from util import eprint, chunks, split_by_char_outside_matching, get_possible_arg
+from util import (eprint, chunks, split_by_char_outside_matching,
+                  unwrap, get_possible_arg)
 from context_filter import get_context_filter, ContextFilter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
@@ -213,12 +214,15 @@ T = TypeVar('T')
 O = TypeVar('O')
 
 def lazy_multiprocessing_imap(worker: Callable[[T], O], in_data : Iterable[T],
-                              num_threads : int=os.cpu_count(),
+                              num_threads : Optional[int]=os.cpu_count(),
                               chunk_size : Optional[int]=None) -> Iterable[O]:
     if chunk_size == None:
-        chunk_size = num_threads * 10
+        if num_threads:
+            chunk_size = num_threads * 10
+        else:
+            chunk_size = 100
     with multiprocessing.Pool(num_threads) as pool:
-        for chunk in chunks(in_data, chunk_size):
+        for chunk in chunks(in_data, unwrap(chunk_size)):
             yield from list(pool.imap(worker, chunk))
 
 def read_text_data(data_path: Path2) \
@@ -307,7 +311,7 @@ def get_evaluation_data(arg_values: Namespace) -> StateEvaluationDataset:
     distanced_data = get_state_distances(raw_data)
     preprocessed_interactions = preprocess_data_eval(arg_values, distanced_data)
     filtered_interactions = StateEvaluationDataset([
-        StateScore(strip_scraped_output(point.state), point.score) for point in
+        StateScore(point.state, point.score) for point in
         itertools.islice(
             filter_eval_data(preprocessed_interactions,
                              get_context_filter(arg_values.context_filter),
@@ -321,7 +325,7 @@ def get_state_distances(interactions : Iterable[ScrapedCommand]) -> Iterable[Sta
     def generate_blocks() -> Iterable[List[ScrapedTactic]]:
         nonlocal interactions
         in_proof = False
-        interaction_buffer = []
+        interaction_buffer: List[ScrapedTactic] = []
         for interaction in interactions:
             if isinstance(interaction, ScrapedTactic):
                 if not in_proof:
@@ -337,11 +341,11 @@ def get_state_distances(interactions : Iterable[ScrapedCommand]) -> Iterable[Sta
         if in_proof and len(interaction_buffer) > 0:
             yield interaction_buffer
     blocks = generate_blocks()
-    return (StateScore(interaction, len(block) - idx)
+    return (StateScore(strip_scraped_output(interaction), len(block) - idx)
             for block in blocks
             for (idx, interaction) in enumerate(block))
 
-def filter_data(data: RawDataset, pair_filter: ContextFilter,
+def filter_data(data: Iterable[ScrapedTactic], pair_filter: ContextFilter,
                 arg_values: Namespace) -> Iterable[ScrapedTactic]:
     return (scraped
             for (scraped, next_scraped) in
