@@ -23,10 +23,12 @@ import torch
 from models import id_evaluator
 from models import features_dnn_evaluator
 from models import goal_enc_evaluator
-from models.state_evaluator import StateEvaluator
+from models.state_evaluator import StateEvaluator, TrainableEvaluator
 from pathlib_revised import Path2
 
-loadable_evaluators = {
+from typing import Dict, Type
+
+loadable_evaluators : Dict[str, Type[TrainableEvaluator]] = {
     'features-dnn' : features_dnn_evaluator.FeaturesDNNEvaluator,
     'eval-goal-enc' : goal_enc_evaluator.GoalEncEvaluator,
 }
@@ -49,7 +51,7 @@ def loadEvaluatorByName(evaluator_type : str) -> StateEvaluator:
     return static_evaluators[evaluator_type]() # type: ignore
 
 def loadEvaluatorByFile(filename : Path2) -> StateEvaluator:
-    evaluator_type, saved_state = torch.load(filename, map_location='cpu')
+    evaluator_type, saved_state = torch.load(str(filename), map_location='cpu')
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic

@@ -67,7 +67,7 @@ class FeaturesDNNEvaluatorModel(nn.Module):
         .view(vec_features_batch.size()[0])
         return scores
 
-class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
+class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesDNNEvaluatorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.MSELoss())
     def train(self, args : List[str]) -> None:
@@ -90,7 +90,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
     def _optimize_model(self, arg_values : argparse.Namespace) -> Iterable[FeaturesDNNEvaluatorState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (arg_values, (picklable_token_map, state)) = torch.load(arg_values.start_from)
+                _, (arg_values, unparsed_args, (picklable_token_map, state)) = torch.load(arg_values.start_from)
                 token_map = tmap_from_picklable(picklable_token_map)
                 _, word_features_data, vec_features_data, outputs,\
                     word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors_with_map(
@@ -114,7 +114,7 @@ class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesTokenMap]):
         with print_time("Building the model", guard=arg_values.verbose):
             model = self._get_model(arg_values, word_features_vocab_sizes, vec_features_size)
             if arg_values.start_from:
-                model.load_saved_state(arg_values, state)
+                self.load_saved_state(arg_values, unparsed_args, state)
 
         return ((tmap_to_picklable(token_map), state)
                 for state in optimize_checkpoints(tensors, arg_values, model,

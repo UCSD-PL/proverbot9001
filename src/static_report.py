@@ -365,7 +365,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                         with tag('td'):
                             with tag('a', href=escape_filename(fresult.filename) + ".html"):
                                 text("Details")
-                avg_loss = 0
+                avg_loss = 0.0
                 if combined_stats.num_tactics > 0:
                     avg_loss = combined_stats.total_loss / combined_stats.num_tactics
                 with tag('tr'):
@@ -403,7 +403,7 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
 def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult]]:
     def generate() -> Iterable[List[CommandResult]]:
         in_proof = False
-        cur_region = []
+        cur_region : List[CommandResult]= []
         for result in results:
             if isinstance(result, TacticResult):
                 if not in_proof:

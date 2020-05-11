@@ -171,7 +171,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
                                              self._embedding.num_tokens())
         self._model.setState(state)
         self.training_args = args
-        self.unparsed_args = args
+        self.unparsed_args = unparsed_args
 
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \

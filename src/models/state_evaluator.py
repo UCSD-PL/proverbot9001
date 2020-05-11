@@ -30,6 +30,7 @@ import argparse
 import torch
 
 class StateEvaluator(metaclass=ABCMeta):
+    unparsed_args: List[str]
     def __init__(self) -> None:
         pass
     # Lower scores are better
@@ -45,7 +46,7 @@ class TrainableEvaluator(StateEvaluator, Generic[StateType],
         self._add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
         evaluation_data = get_evaluation_data(arg_values)
-        save_states = self._optimize_model(evaluation_data, arg_values)
+        save_states = self._optimize_model_to_iterable(evaluation_data, arg_values)
         for state in save_states:
             with open(arg_values.save_file, 'wb') as f:
                 torch.save((self.shortname(), (arg_values, state)), f)
@@ -56,13 +57,13 @@ class TrainableEvaluator(StateEvaluator, Generic[StateType],
     @abstractmethod
     def shortname(self) -> str:
         pass
-    @abstractmethod
-    def _optimize_model(self, data : StateEvaluationDataset,
-                       arg_values : argparse.Namespace) -> Iterable[StateType]:
+    def _optimize_model_to_iterable(self, data : StateEvaluationDataset,
+                                    arg_values : argparse.Namespace) -> Iterable[StateType]:
         pass
     @abstractmethod
     def load_saved_state(self,
                          args : argparse.Namespace,
+                         unparsed_args : List[str],
                          state : StateType) -> None:
         pass
     def _add_args_to_parser(self, parser : argparse.ArgumentParser,

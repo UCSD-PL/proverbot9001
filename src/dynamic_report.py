@@ -95,12 +95,6 @@ def report_header(tag : Any, doc : Doc, text : Text) -> None:
     header(tag, doc, text,report_css, report_js,
            "Proverbot Report")
 
-def stringified_percent(total : float, outof : float) -> str:
-    if outof == 0:
-        return "NaN"
-    else:
-        return "{:10.2f}".format(total * 100 / outof)
-
 def to_list_string(l : List[Any]) -> str:
     return "% ".join([str(item) for item in l])
 
@@ -537,9 +531,6 @@ class Worker(threading.Thread):
             pass
         finally:
             finished_queue.put(self.workerid)
-
-def escape_filename(filename : str) -> str:
-    return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
 
 def main(arg_list : List[str]) -> None:
     global jobs

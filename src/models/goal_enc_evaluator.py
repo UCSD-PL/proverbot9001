@@ -37,7 +37,7 @@ import argparse
 import torch
 import sys
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pad_sequence
 
 from typing import List, Tuple, Iterable, Sequence, Dict, Any, cast
 
@@ -88,7 +88,7 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
         Iterable[GoalEncState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (arg_values, (metadata, state)) = \
+                _, (arg_values, unparsed_args, (metadata, state)) = \
                     torch.load(arg_values.start_from)
                 _, tokenized_goals, outputs = \
                     goals_to_total_distances_tensors_with_meta(
@@ -110,7 +110,7 @@ class GoalEncEvaluator(TrainableEvaluator[GoalEncState]):
             model = self._get_model(arg_values, goal_enc_get_num_tokens(metadata))
 
             if arg_values.start_from:
-                model.load_saved_state(arg_values, state)
+                self.load_saved_state(arg_values, unparsed_args, state)
 
         return ((metadata, state) for state in
                 optimize_checkpoints(tensors, arg_values, model,

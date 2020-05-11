@@ -18,6 +18,7 @@ class Prediction(NamedTuple):
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
+    unparsed_args : List[str]
     def __init__(self) -> None:
         pass
 

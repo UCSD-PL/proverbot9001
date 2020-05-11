@@ -42,7 +42,7 @@ from serapi_instance import (AckError, CompletedError, CoqExn,
                              CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
-                    Tuple, Pattern, Union)
+                    Tuple, Pattern, Union, cast)
 
 from itertools import islice
 
@@ -502,7 +502,7 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
                         if isinstance(e.msg, str):
                             raise
                         failed = True
-                        failures.append(e.msg)
+                        failures.append(cast(List[str], e.msg))
         return result
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
