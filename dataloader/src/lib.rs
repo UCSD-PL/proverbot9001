@@ -232,16 +232,19 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     }
     #[pyfn(m, "scraped_tactics_from_file")]
     fn _scraped_tactics_from_file(_py: Python, filename: String,
-                                  num_tactics: usize) -> PyResult<Vec<ScrapedTactic>> {
-        Ok(scraped_from_file(
+                                  num_tactics: Option<usize>) -> PyResult<Vec<ScrapedTactic>> {
+        let iter = scraped_from_file(
             File::open(filename).map_err(|_err| PyErr::new::<exceptions::IOError, _>(
             "Failed to open file"))?
-        ).take(num_tactics).flat_map(|datum|
+        ).flat_map(|datum|
                    match datum {
                        ScrapedData::Vernac(_) => None,
                        ScrapedData::Tactic(t) => Some(t),
-                   }).collect())
-
+                   });
+        match num_tactics {
+            Some(num) => Ok(iter.take(num).collect()),
+            None => Ok(iter.collect()),
+        }
     }
 
     #[pyfn(m, "tactic_transitions_from_file")]
