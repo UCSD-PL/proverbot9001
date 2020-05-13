@@ -22,6 +22,7 @@
 
 import argparse
 import random
+import torch
 
 import serapi_instance
 import dataloader
@@ -180,6 +181,11 @@ def reinforce(args: argparse.Namespace) -> None:
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
     q_estimator = FeaturesQEstimator(args.learning_rate)
+    if args.start_from:
+        q_estimator_name, prev_args, unparsed_prev_args, state_dict = \
+            torch.load(args.start_from)
+        q_estimator.model.load_state_dict(state_dict)
+
     epsilon = 0.3
     gamma = 0.9
 
