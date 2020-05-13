@@ -62,12 +62,12 @@ class FeaturesQEstimator(QEstimator):
         state_word_features, vec_features = zip(*[self._features(state) for state, _, _ in samples])
         encoded_actions = [self._encode_action(state, action) for state, action, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in zip(encoded_actions, state_word_features)]
-        with autograd.detect_anomaly():
-            outputs = self.model(torch.LongTensor(all_word_features),
-                                 torch.FloatTensor(vec_features))
-            expected_outputs = maybe_cuda(torch.FloatTensor([output for _, _, output in samples]))
-            loss = self.criterion(outputs, expected_outputs)
-            loss.backward()
+        # with autograd.detect_anomaly():
+        outputs = self.model(torch.LongTensor(all_word_features),
+                             torch.FloatTensor(vec_features))
+        expected_outputs = maybe_cuda(torch.FloatTensor([output for _, _, output in samples]))
+        loss = self.criterion(outputs, expected_outputs)
+        loss.backward()
         self.optimizer.step()
     def _features(self, context: TacticContext) -> Tuple[List[int], List[float]]:
         if len(context.prev_tactics) > 0:
