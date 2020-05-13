@@ -51,8 +51,8 @@ def main() -> None:
 
     parser.add_argument("scrape_file")
 
-    parser.add_argument("environment_file", type=Path2)
     parser.add_argument("out_weights", type=Path2)
+    parser.add_argument("environment_file", type=Path2)
     parser.add_argument("--proof", default=None)
 
     parser.add_argument("--prelude", default=".", type=Path2)
