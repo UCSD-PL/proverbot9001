@@ -215,19 +215,21 @@ def reinforce(args: argparse.Namespace) -> None:
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
                 lemma_statement = run_commands[-1]
+                reinforce_lemma(args, predictor, q_estimator, coq,
+                                lemma_statement,
+                                epsilon, gamma, replay_memory)
         else:
-            # Don't use lemmas without names (e.g. "Obligation")
-            while coq.cur_lemma_name == "":
-                if not rest_commands:
-                    eprint("Couldn't find usable lemma! Exiting...")
-                    return
+            while rest_commands:
                 rest_commands, _ = coq.finish_proof(rest_commands)
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
                 lemma_statement = run_commands[-1]
 
-        reinforce_lemma(args, predictor, q_estimator, coq, lemma_statement,
-                        epsilon, gamma, replay_memory)
+                reinforce_lemma(args, predictor, q_estimator, coq,
+                                lemma_statement,
+                                epsilon, gamma, replay_memory)
+                for sample in replay_memory:
+                    sample.graph_node = None
 
         q_estimator.save_weights(args.out_weights, args)
 
