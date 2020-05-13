@@ -108,16 +108,6 @@ impl <'source> FromPyObject<'source> for ProofContext {
 }
 #[pyclass]
 #[derive(Clone)]
-pub struct ScrapedTransition2 {
-    #[pyo3(get, set)]
-    pub before: i64,
-    #[pyo3(get, set)]
-    pub after: ProofContext,
-    #[pyo3(get, set)]
-    pub tactic: String,
-}
-#[pyclass]
-#[derive(Clone)]
 pub struct ScrapedTransition {
     #[pyo3(get, set)]
     pub before: ProofContext,
