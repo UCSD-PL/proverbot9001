@@ -26,6 +26,11 @@ class ProofContext:
     hyps : List[str]
     goal : str
 
+
+class ScrapedTransition:
+    before: ProofContext
+    after: ProofContext
+
 class Tokenizer:
     use_unknowns: bool
     num_reserved_tokens: int
@@ -150,5 +155,11 @@ def sample_context_features(args : DataloaderArgs, tmap : TokenMap,
 
 def tmap_to_picklable(tmap : TokenMap) -> PickleableTokenMap:
     ...
+
 def tmap_from_picklable(tmap : PickleableTokenMap) -> TokenMap:
+    ...
+
+
+def tactic_transitions_from_file(filename: str, num_transitions: int) \
+    -> List[ScrapedTransition]:
     ...
