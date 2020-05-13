@@ -51,7 +51,7 @@ V = TypeVar('V')
 
 @dataclass
 class KNearestPredictorState(PredictorState, Generic[V]):
-    inner: NearnessTree[V]
+    inner: "NearnessTree[V]"
 
 
 class SPTreeNode(Generic[V]):
