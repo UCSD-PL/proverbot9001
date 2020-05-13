@@ -30,6 +30,7 @@ class ProofContext:
 class ScrapedTransition:
     before: ProofContext
     after: ProofContext
+    tactic: str
 
 class Tokenizer:
     use_unknowns: bool

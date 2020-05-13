@@ -21,27 +21,31 @@
 ##########################################################################
 
 import argparse
-import re
 import random
-import sys
 
 import serapi_instance
 import dataloader
 import tokenizer
-from models import tactic_predictor, FeaturesQEstimator
+from models import tactic_predictor
+from models.q_estimator import QEstimator
+from models.features_q_estimator import FeaturesQEstimator
 import predict_tactic
-from util import maybe_cuda, eprint, print_time, nostderr
+from util import eprint, print_time, nostderr
 
 from dataclasses import dataclass
-from typing import List, Tuple, Iterator, Dict, Optional
+from typing import List, Tuple, Iterator, Optional
 from format import TacticContext
-from abc import ABCMeta, abstractmethod
-from tqdm import tqdm, trange
 from pathlib_revised import Path2
 
-def main(arg_list : List[str]) -> None:
-    parser = argparse.ArgumentParser(
-        description="A module for exploring deep Q learning with proverbot9001")
+import pygraphviz as pgv
+from tqdm import trange
+
+
+def main() -> None:
+    parser = \
+        argparse.ArgumentParser(
+            description="A module for exploring deep Q learning "
+            "with proverbot9001")
 
     parser.add_argument("scrape_file")
 
@@ -51,8 +55,10 @@ def main(arg_list : List[str]) -> None:
 
     parser.add_argument("--prelude", default=".", type=Path2)
 
-    parser.add_argument("--predictor-weights", default=Path2("data/polyarg-weights.dat"),
+    parser.add_argument("--predictor-weights",
+                        default=Path2("data/polyarg-weights.dat"),
                         type=Path2)
+    parser.add_argument("--start-from", default=None, type=Path2)
     parser.add_argument("--num-predictions", default=16, type=int)
 
     parser.add_argument("--buffer-size", default=256, type=int)
@@ -72,37 +78,44 @@ def main(arg_list : List[str]) -> None:
 
     reinforce(args)
 
-import pygraphviz as pgv
+
 @dataclass(init=True)
 class LabeledNode:
-    action : str
-    reward : float
-    node_id : int
-    parent : Optional["LabeledNode"]
-    children : List["LabeledNode"]
+    action: str
+    reward: float
+    node_id: int
+    parent: Optional["LabeledNode"]
+    children: List["LabeledNode"]
+
 
 class ReinforceGraph:
-    __graph : pgv.AGraph
-    __next_node_id : int
-    start_node : LabeledNode
-    def __init__(self, lemma_name : str) -> None:
+    __graph: pgv.AGraph
+    __next_node_id: int
+    start_node: LabeledNode
+
+    def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(lemma_name, 0, None)
         pass
-    def addTransition(self, src : LabeledNode, action : str, reward : float, **kwargs) -> LabeledNode:
+
+    def addTransition(self, src: LabeledNode, action: str, reward: float,
+                      **kwargs) -> LabeledNode:
         for child in src.children:
             if child.action == action:
                 assert child.reward == reward
                 return child
         return self.mkNode(action, reward, src, **kwargs)
-    def addGhostTransition(self, src : LabeledNode, action : str, **kwargs) -> LabeledNode:
+
+    def addGhostTransition(self, src: LabeledNode, action: str,
+                           **kwargs) -> LabeledNode:
         for child in src.children:
             if child.action == action:
                 return child
         return self.mkNode(action, 0, src, fillcolor="grey", **kwargs)
 
-    def mkNode(self, action: str, reward: float, previous_node : Optional[LabeledNode],
+    def mkNode(self, action: str, reward: float,
+               previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         if 'fillcolor' not in kwargs:
             if reward > 0:
@@ -117,49 +130,53 @@ class ReinforceGraph:
         else:
             self.__graph.add_node(self.__next_node_id, label=action)
         self.__next_node_id += 1
-        newNode = LabeledNode(action, reward, self.__next_node_id-1, previous_node, [])
+        newNode = LabeledNode(action, reward, self.__next_node_id-1,
+                              previous_node, [])
         if previous_node:
             self.__graph.add_edge(previous_node.node_id, newNode.node_id,
                                   label=str(reward), **kwargs)
             previous_node.children.append(newNode)
         return newNode
-    def mkQED(self, src : LabeledNode):
+
+    def mkQED(self, src: LabeledNode):
         for existing_node in src.children:
             if existing_node.action == "QED":
                 return
-        qedNode = self.mkNode("QED",
-                              0,
-                              src,
-                              fillcolor="green", style="filled")
+        self.mkNode("QED", 0, src, fillcolor="green", style="filled")
         cur_node = src
         while cur_node != self.start_node:
             self.setNodeOutlineColor(cur_node, "palegreen1")
             assert cur_node.parent
             cur_node = cur_node.parent
         pass
-    def setNodeColor(self, node : LabeledNode, color : str) -> None:
+
+    def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
-    def setNodeOutlineColor(self, node : LabeledNode, color : str) -> None:
+
+    def setNodeOutlineColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["color"] = color
 
-    def setNodeApproxQScore(self, node : LabeledNode, score : float ) -> None:
+    def setNodeApproxQScore(self, node: LabeledNode, score: float) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["label"] = f"{node.action} (~{score:.2f})"
-    def draw(self, filename : str) -> None:
+
+    def draw(self, filename: str) -> None:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
 
-def reinforce(args : argparse.Namespace) -> None:
+
+def reinforce(args: argparse.Namespace) -> None:
 
     # Load the scraped (demonstrated) samples, the proof environment
     # commands, and the predictor
     replay_memory = assign_rewards(
         dataloader.tactic_transitions_from_file(args.scrape_file,
                                                 args.buffer_size))
-    env_commands = serapi_instance.load_commands_preserve(args, 0, args.prelude / args.environment_file)
+    env_commands = serapi_instance.load_commands_preserve(
+        args, 0, args.prelude / args.environment_file)
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
     q_estimator = FeaturesQEstimator(args.learning_rate)
@@ -172,16 +189,17 @@ def reinforce(args : argparse.Namespace) -> None:
             str(args.prelude)) as coq:
         coq.quiet = True
         coq.verbose = args.verbose
-        ## Get us to the correct proof context
+        # Get us to the correct proof context
         rest_commands, run_commands = coq.run_into_next_proof(env_commands)
         lemma_statement = run_commands[-1]
-        if args.proof != None:
+        if args.proof is not None:
             while coq.cur_lemma_name != args.proof:
                 if not rest_commands:
                     eprint("Couldn't find lemma {args.proof}! Exiting...")
                     return
                 rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, run_commands = coq.run_into_next_proof(rest_commands)
+                rest_commands, run_commands = coq.run_into_next_proof(
+                    rest_commands)
                 lemma_statement = run_commands[-1]
         else:
             # Don't use lemmas without names (e.g. "Obligation")
@@ -190,7 +208,8 @@ def reinforce(args : argparse.Namespace) -> None:
                     eprint("Couldn't find usable lemma! Exiting...")
                     return
                 rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, run_commands = coq.run_into_next_proof(rest_commands)
+                rest_commands, run_commands = coq.run_into_next_proof(
+                    rest_commands)
                 lemma_statement = run_commands[-1]
 
         lemma_name = coq.cur_lemma_name
@@ -200,21 +219,27 @@ def reinforce(args : argparse.Namespace) -> None:
         for episode in trange(args.num_episodes, disable=(not args.progress)):
             cur_node = graph.start_node
             proof_contexts_seen = [coq.proof_context]
-            for t in trange(args.episode_length, disable=(not args.progress), leave=False):
+            for t in trange(args.episode_length, disable=(not args.progress),
+                            leave=False):
                 with print_time("Getting predictions", guard=args.verbose):
                     context_before = coq.tactic_context(coq.local_lemmas[:-1])
-                    predictions = predictor.predictKTactics(context_before, args.num_predictions)
+                    predictions = predictor.predictKTactics(
+                        context_before, args.num_predictions)
                 if random.random() < epsilon:
                     ordered_actions = [p.prediction for p in
-                                       random.sample(predictions, len(predictions))]
+                                       random.sample(predictions,
+                                                     len(predictions))]
                 else:
-                    with print_time("Picking actions using q_estimator", guard=args.verbose):
-                        q_choices = zip(q_estimator([(context_before,
-                                                      prediction.prediction)
-                                                     for prediction in predictions]),
+                    with print_time("Picking actions using q_estimator",
+                                    guard=args.verbose):
+                        q_choices = zip(q_estimator(
+                            [(context_before, prediction.prediction)
+                             for prediction in predictions]),
                                         [p.prediction for p in predictions])
                         ordered_actions = [p[1] for p in
-                                           sorted(q_choices, key=lambda q: q[0], reverse=True)]
+                                           sorted(q_choices,
+                                                  key=lambda q: q[0],
+                                                  reverse=True)]
 
                 with print_time("Running actions", guard=args.verbose):
                     action = None
@@ -222,43 +247,53 @@ def reinforce(args : argparse.Namespace) -> None:
                         try:
                             coq.run_stmt(try_action)
                             proof_context_after = coq.proof_context
-                            if any([serapi_instance.contextSurjective(proof_context_after,
-                                                                      path_context)
+                            if any([serapi_instance.contextSurjective(
+                                    proof_context_after, path_context)
                                     for path_context in proof_contexts_seen]):
                                 coq.cancel_last()
                                 if args.ghosts:
-                                    graph.addGhostTransition(cur_node, try_action)
+                                    graph.addGhostTransition(cur_node,
+                                                             try_action)
                                 continue
                             action = try_action
                             break
-                        except (serapi_instance.ParseError, serapi_instance.CoqExn):
+                        except (serapi_instance.ParseError,
+                                serapi_instance.CoqExn):
                             if args.ghosts:
                                 graph.addGhostTransition(cur_node, try_action)
                             pass
-                    if action == None:
-                        # We'll hit this case of we tried all of the predictions, and none worked
+                    if action is None:
+                        # We'll hit this case of we tried all of the
+                        # predictions, and none worked
                         graph.setNodeColor(cur_node, "red")
-                        break # Break from episode
-
+                        break  # Break from episode
 
                 context_after = coq.tactic_context(coq.local_lemmas[:-1])
-                transition = assign_reward(context_before, context_after, action)
-                cur_node = graph.addTransition(cur_node, action, transition.reward)
+                transition = assign_reward(context_before, context_after,
+                                           action)
+                cur_node = graph.addTransition(cur_node, action,
+                                               transition.reward)
                 transition.graph_node = cur_node
                 replay_memory.append(transition)
                 proof_contexts_seen.append(proof_context_after)
 
                 if coq.goals == "":
                     graph.mkQED(cur_node)
-                    break;
+                    break
 
             with print_time("Assigning scores", guard=args.verbose):
-                transition_samples = sample_batch(replay_memory, args.batch_size)
+                transition_samples = sample_batch(replay_memory,
+                                                  args.batch_size)
                 training_samples = assign_scores(transition_samples,
                                                  q_estimator, predictor,
                                                  args.num_predictions,
                                                  gamma,
-                                                 # Passing this graph in so we can maintain a record of the most recent q score estimates in the graph
+                                                 # Passing this graph
+                                                 # in so we can
+                                                 # maintain a record
+                                                 # of the most recent
+                                                 # q score estimates
+                                                 # in the graph
                                                  graph)
             with print_time("Training", guard=args.verbose):
                 q_estimator.train(training_samples)
@@ -270,18 +305,23 @@ def reinforce(args : argparse.Namespace) -> None:
         graph.draw("reinforce.png")
         q_estimator.save_weights(args.out_weights, args)
 
+
 @dataclass
 class LabeledTransition:
-    before : dataloader.ProofContext
-    after : dataloader.ProofContext
-    action : str
-    reward : float
-    graph_node : Optional[LabeledNode]
+    before: TacticContext
+    after: TacticContext
+    action: str
+    reward: float
+    graph_node: Optional[LabeledNode]
 
-def sample_batch(transitions: List[LabeledTransition], k: int) -> List[LabeledTransition]:
+
+def sample_batch(transitions: List[LabeledTransition], k: int) -> \
+      List[LabeledTransition]:
     return random.sample(transitions, k)
 
-def assign_reward(before: TacticContext, after: TacticContext, tactic: str) -> LabeledTransition:
+
+def assign_reward(before: TacticContext, after: TacticContext, tactic: str) \
+      -> LabeledTransition:
     if after.goal == "":
         reward = 1000.0
     else:
@@ -292,8 +332,8 @@ def assign_reward(before: TacticContext, after: TacticContext, tactic: str) -> L
     return LabeledTransition(before, after, tactic, reward, None)
 
 
-def assign_rewards(transitions : List[dataloader.ScrapedTransition]) -> \
-    List[LabeledTransition]:
+def assign_rewards(transitions: List[dataloader.ScrapedTransition]) -> \
+      List[LabeledTransition]:
     def generate() -> Iterator[LabeledTransition]:
         for transition in transitions:
             yield assign_reward(context_r2py(transition.before),
@@ -302,15 +342,18 @@ def assign_rewards(transitions : List[dataloader.ScrapedTransition]) -> \
 
     return list(generate())
 
+
 def assign_scores(transitions: List[LabeledTransition],
                   q_estimator: QEstimator,
                   predictor: tactic_predictor.TacticPredictor,
                   num_predictions: int,
-                  discount : float,
-                  graph : ReinforceGraph) -> List[Tuple[TacticContext, str, float]]:
-    def generate() -> Iterator[Tuple[dataloader.ProofContext, str, float]]:
-        predictions = predictor.predictKTactics_batch([transition.after for transition in transitions],
-                                                      num_predictions)
+                  discount: float,
+                  graph: ReinforceGraph) -> \
+                  List[Tuple[TacticContext, str, float]]:
+    def generate() -> Iterator[Tuple[TacticContext, str, float]]:
+        predictions = predictor.predictKTactics_batch(  # type: ignore
+            [transition.after for transition in transitions],
+            num_predictions)
         for transition, predictions in zip(transitions, predictions):
             ctxt = transition.after
             new_q = transition.reward + \
@@ -324,9 +367,11 @@ def assign_scores(transitions: List[LabeledTransition],
             yield transition.before, transition.action, new_q
     return list(generate())
 
-def context_r2py(r_context : dataloader.ProofContext) -> TacticContext:
+
+def context_r2py(r_context: dataloader.ProofContext) -> TacticContext:
     return TacticContext(r_context.lemmas, r_context.tactics,
                          r_context.hyps, r_context.goal)
 
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
