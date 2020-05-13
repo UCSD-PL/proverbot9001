@@ -647,7 +647,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                            iter(f))
         svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
                                                                  "".join(f_iter))
-        commands_in_iter = iter(commands_in
+        commands_in_iter = iter(commands_in)
         orig_svfile_commands = list(svfile_commands)
         def peek_loaded():
             nonlocal commands_in_iter
