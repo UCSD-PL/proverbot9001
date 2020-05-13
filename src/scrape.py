@@ -20,16 +20,15 @@
 #
 ##########################################################################
 
-import subprocess
 import argparse
 import multiprocessing
-import tempfile
 import functools
 import sys
 import contextlib
 import os
 import shutil
 import json
+import re
 
 import linearize_semicolons
 import serapi_instance
@@ -37,9 +36,9 @@ import serapi_instance
 from pathlib_revised import Path2
 from sexpdata import *
 from traceback import *
-from util import *
+from util import eprint, mybarfmt
 
-from typing import Dict, Any, TextIO, List
+from typing import Dict, Any, TextIO, List, Tuple, Optional
 
 def main():
     # Parse the command line arguments.
@@ -103,18 +102,23 @@ def scrape_file(coqargs : List[str], args : argparse.Namespace, includes : str,
                 return result_file
     try:
         if args.linearize:
-            commands = serapi_instance.try_load_lin(args, file_idx, full_filename)
+            commands = serapi_instance.try_load_lin(args, file_idx,
+                                                    full_filename)
             if not commands:
                 commands = linearize_semicolons.preprocess_file_commands(
                     args, file_idx,
-                    serapi_instance.load_commands_preserve(args, 0, full_filename),
-                    coqargs, includes, args.prelude, full_filename, filename, args.skip_nochange_tac)
+                    serapi_instance.load_commands_preserve(args, 0,
+                                                           full_filename),
+                    coqargs, args.prelude, full_filename, filename,
+                    args.skip_nochange_tac)
                 serapi_instance.save_lin(commands, full_filename)
         else:
             with Path2(full_filename).open(mode='r') as f:
                 commands = serapi_instance.read_commands_preserve(args, file_idx, f.read())
-        with serapi_instance.SerapiContext(coqargs, serapi_instance.get_module_from_filename(filename),
-                                           includes, args.prelude, args.relevant_lemmas=="hammer") as coq:
+        with serapi_instance.SerapiContext(
+                coqargs,
+                serapi_instance.get_module_from_filename(filename),
+                args.prelude, args.relevant_lemmas == "hammer") as coq:
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
