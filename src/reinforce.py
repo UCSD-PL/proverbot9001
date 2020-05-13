@@ -23,15 +23,16 @@
 import argparse
 import random
 import torch
+import os
+import errno
 
 import serapi_instance
 import dataloader
 import tokenizer
-from models import tactic_predictor
-from models.q_estimator import QEstimator
+from models import tactic_predictor, q_estimator
 from models.features_q_estimator import FeaturesQEstimator
 import predict_tactic
-from util import eprint, print_time, nostderr
+from util import eprint, print_time, nostderr, unwrap
 
 from dataclasses import dataclass
 from typing import List, Tuple, Iterator, Optional
@@ -74,8 +75,15 @@ def main() -> None:
     parser.add_argument("--verbose", "-v", action='count', default=0)
 
     parser.add_argument("--ghosts", action='store_true')
+    parser.add_argument("--graphs-dir", default=Path2("graphs"), type=Path2)
 
     args = parser.parse_args()
+
+    try:
+        os.makedirs(str(args.graphs_dir))
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
     reinforce(args)
 
@@ -218,97 +226,9 @@ def reinforce(args: argparse.Namespace) -> None:
                     rest_commands)
                 lemma_statement = run_commands[-1]
 
-        lemma_name = coq.cur_lemma_name
+        reinforce_lemma(args, predictor, q_estimator, coq, lemma_statement,
+                        epsilon, gamma, replay_memory)
 
-        graph = ReinforceGraph(lemma_name)
-
-        for episode in trange(args.num_episodes, disable=(not args.progress)):
-            cur_node = graph.start_node
-            proof_contexts_seen = [coq.proof_context]
-            for t in trange(args.episode_length, disable=(not args.progress),
-                            leave=False):
-                with print_time("Getting predictions", guard=args.verbose):
-                    context_before = coq.tactic_context(coq.local_lemmas[:-1])
-                    predictions = predictor.predictKTactics(
-                        context_before, args.num_predictions)
-                if random.random() < epsilon:
-                    ordered_actions = [p.prediction for p in
-                                       random.sample(predictions,
-                                                     len(predictions))]
-                else:
-                    with print_time("Picking actions using q_estimator",
-                                    guard=args.verbose):
-                        q_choices = zip(q_estimator(
-                            [(context_before, prediction.prediction)
-                             for prediction in predictions]),
-                                        [p.prediction for p in predictions])
-                        ordered_actions = [p[1] for p in
-                                           sorted(q_choices,
-                                                  key=lambda q: q[0],
-                                                  reverse=True)]
-
-                with print_time("Running actions", guard=args.verbose):
-                    action = None
-                    for try_action in ordered_actions:
-                        try:
-                            coq.run_stmt(try_action)
-                            proof_context_after = coq.proof_context
-                            if any([serapi_instance.contextSurjective(
-                                    proof_context_after, path_context)
-                                    for path_context in proof_contexts_seen]):
-                                coq.cancel_last()
-                                if args.ghosts:
-                                    graph.addGhostTransition(cur_node,
-                                                             try_action)
-                                continue
-                            action = try_action
-                            break
-                        except (serapi_instance.ParseError,
-                                serapi_instance.CoqExn):
-                            if args.ghosts:
-                                graph.addGhostTransition(cur_node, try_action)
-                            pass
-                    if action is None:
-                        # We'll hit this case of we tried all of the
-                        # predictions, and none worked
-                        graph.setNodeColor(cur_node, "red")
-                        break  # Break from episode
-
-                context_after = coq.tactic_context(coq.local_lemmas[:-1])
-                transition = assign_reward(context_before, context_after,
-                                           action)
-                cur_node = graph.addTransition(cur_node, action,
-                                               transition.reward)
-                transition.graph_node = cur_node
-                replay_memory.append(transition)
-                proof_contexts_seen.append(proof_context_after)
-
-                if coq.goals == "":
-                    graph.mkQED(cur_node)
-                    break
-
-            with print_time("Assigning scores", guard=args.verbose):
-                transition_samples = sample_batch(replay_memory,
-                                                  args.batch_size)
-                training_samples = assign_scores(transition_samples,
-                                                 q_estimator, predictor,
-                                                 args.num_predictions,
-                                                 gamma,
-                                                 # Passing this graph
-                                                 # in so we can
-                                                 # maintain a record
-                                                 # of the most recent
-                                                 # q score estimates
-                                                 # in the graph
-                                                 graph)
-            with print_time("Training", guard=args.verbose):
-                q_estimator.train(training_samples)
-
-            # Clean up episode
-            coq.run_stmt("Admitted.")
-            coq.run_stmt(f"Reset {lemma_name}.")
-            coq.run_stmt(lemma_statement)
-        graph.draw("reinforce.png")
         q_estimator.save_weights(args.out_weights, args)
 
 
@@ -319,6 +239,108 @@ class LabeledTransition:
     action: str
     reward: float
     graph_node: Optional[LabeledNode]
+
+
+def reinforce_lemma(args: argparse.Namespace,
+                    predictor: tactic_predictor.TacticPredictor,
+                    estimator: q_estimator.QEstimator,
+                    coq: serapi_instance.SerapiInstance,
+                    lemma_statement: str,
+                    epsilon: float,
+                    gamma: float,
+                    memory: List[LabeledTransition]) -> None:
+    lemma_name = coq.cur_lemma_name
+    graph = ReinforceGraph(lemma_name)
+    for episode in trange(args.num_episodes, disable=(not args.progress)):
+        cur_node = graph.start_node
+        proof_contexts_seen = [unwrap(coq.proof_context)]
+        for t in trange(args.episode_length, disable=(not args.progress),
+                        leave=False):
+            with print_time("Getting predictions", guard=args.verbose):
+                context_before = coq.tactic_context(coq.local_lemmas[:-1])
+                predictions = predictor.predictKTactics(
+                    context_before, args.num_predictions)
+            if random.random() < epsilon:
+                ordered_actions = [p.prediction for p in
+                                   random.sample(predictions,
+                                                 len(predictions))]
+            else:
+                with print_time("Picking actions using q_estimator",
+                                guard=args.verbose):
+                    q_choices = zip(estimator(
+                        [(context_before, prediction.prediction)
+                         for prediction in predictions]),
+                                    [p.prediction for p in predictions])
+                    ordered_actions = [p[1] for p in
+                                       sorted(q_choices,
+                                              key=lambda q: q[0],
+                                              reverse=True)]
+
+            with print_time("Running actions", guard=args.verbose):
+                action = None
+                for try_action in ordered_actions:
+                    try:
+                        coq.run_stmt(try_action)
+                        proof_context_after = unwrap(coq.proof_context)
+                        if any([serapi_instance.contextSurjective(
+                                proof_context_after, path_context)
+                                for path_context in proof_contexts_seen]):
+                            coq.cancel_last()
+                            if args.ghosts:
+                                graph.addGhostTransition(cur_node,
+                                                         try_action)
+                            continue
+                        action = try_action
+                        break
+                    except (serapi_instance.ParseError,
+                            serapi_instance.CoqExn):
+                        if args.ghosts:
+                            graph.addGhostTransition(cur_node, try_action)
+                        pass
+                if action is None:
+                    # We'll hit this case of we tried all of the
+                    # predictions, and none worked
+                    graph.setNodeColor(cur_node, "red")
+                    break  # Break from episode
+
+            context_after = coq.tactic_context(coq.local_lemmas[:-1])
+            transition = assign_reward(context_before, context_after,
+                                       action)
+            cur_node = graph.addTransition(cur_node, action,
+                                           transition.reward)
+            transition.graph_node = cur_node
+            memory.append(transition)
+            proof_contexts_seen.append(proof_context_after)
+
+            if coq.goals == "":
+                graph.mkQED(cur_node)
+                break
+
+        with print_time("Assigning scores", guard=args.verbose):
+            transition_samples = sample_batch(memory,
+                                              args.batch_size)
+            training_samples = assign_scores(transition_samples,
+                                             estimator, predictor,
+                                             args.num_predictions,
+                                             gamma,
+                                             # Passing this graph
+                                             # in so we can
+                                             # maintain a record
+                                             # of the most recent
+                                             # q score estimates
+                                             # in the graph
+                                             graph)
+        with print_time("Training", guard=args.verbose):
+            estimator.train(training_samples)
+
+        # Clean up episode
+        coq.run_stmt("Admitted.")
+        coq.run_stmt(f"Reset {lemma_name}.")
+        coq.run_stmt(lemma_statement)
+    graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
+    eprint(f"Drawing graph to {graphpath}")
+    graph.draw(str(graphpath))
+    pass
 
 
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
@@ -350,7 +372,7 @@ def assign_rewards(transitions: List[dataloader.ScrapedTransition]) -> \
 
 
 def assign_scores(transitions: List[LabeledTransition],
-                  q_estimator: QEstimator,
+                  q_estimator: q_estimator.QEstimator,
                   predictor: tactic_predictor.TacticPredictor,
                   num_predictions: int,
                   discount: float,
