@@ -46,13 +46,13 @@ scrape:
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
 CompCert/%.scrape: CompCert/%
-	python3.7 src/scrape.py $(FLAGS) -c -j 1 --prelude=./CompCert $* -o /dev/null
+	python3 src/scrape.py $(FLAGS) -c -j 1 --prelude=./CompCert $* -o /dev/null || true
 
 report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
-compcert-train: data/compcert-scrape.txt
+compcert-train:
 	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.pickle --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 train:
 	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.pickle --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
@@ -119,7 +119,9 @@ clean:
 	rm -f log*.txt
 
 clean-scrape:
-	fd '.*\.scrape' CompCert | xargs rm -f
+	for file in `fd ".*\.scrape" CompCert` ; do \
+            mv $$file $$file.bkp; \
+        done
 
 clean-test-scrape:
 	rm -r $(TESTSCRAPES)

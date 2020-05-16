@@ -167,6 +167,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
+    parser.add_argument("--proof", default=None)
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -387,7 +388,10 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         num_proofs += 1
                         initial_context = coq.proof_context
                         # Try to search
-                        if lemma_statement in lemmas_to_skip:
+                        if lemma_statement in lemmas_to_skip or \
+                           (args.proof and
+                            serapi_instance.lemma_name_from_statement(lemma_statement)
+                            != args.proof):
                             search_status = SearchStatus.FAILURE
                             tactic_solution : Optional[List[TacticInteraction]] = []
                         else:
@@ -723,6 +727,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         if re.match("Reset .*\.", saved_command):
                             commands_in_iter = itertools.chain([loaded_command],
                                                                commands_in_iter)
+                            commands_run = commands_run[:-1]
                             skip_sync_next_lemma = True
                             continue
                         def normalize_command(cmd : str) -> str:
@@ -741,7 +746,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                 itertools.chain([loaded_command], commands_in_iter)))
                             coq.run_stmt(loaded_command)
                             num_original_commands_run += len(proof_cmds)
-                            commands_run += proof_cmds
+                            commands_run += proof_cmds[1:]
                             for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
                                                   desc="Running original proof",
                                                   disable=(not args.progress),
@@ -759,6 +764,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         else:
                             commands_in_iter = itertools.chain([loaded_command],
                                                                commands_in_iter)
+                            commands_run = commands_run[:-1]
                             skip_sync_next_lemma = False
 
                 else:

@@ -136,7 +136,7 @@ def numeric_args(in_data : TacticContext, tactic : str,
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
-        if not re.match("\d+", arg):
+        if not re.fullmatch("\d+", arg):
             return False
     return True
 

@@ -250,7 +250,7 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None # type: Optional[ProofContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
-        self.local_lemmas : List[str] = []
+        self._local_lemmas : List[str] = []
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -282,30 +282,39 @@ class SerapiInstance(threading.Thread):
         self.use_hammer = use_hammer
         if self.use_hammer:
             self.init_hammer()
+    @property
+    def local_lemmas(self) -> List[str]:
+        def generate() -> Iterable[str]:
+            for lemma in self._local_lemmas:
+                if lemma.startswith(self.module_prefix):
+                    yield lemma[len(self.module_prefix):]
+                else:
+                    yield lemma
+        return list(generate())
 
     def cancel_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
         for lemma in lemmas:
-            self.local_lemmas.remove(lemma)
+            self._local_lemmas.remove(lemma)
 
     def remove_potential_local_lemmas(self, cmd : str) -> None:
         reset_match = re.match("Reset\s+(.*)\.", cmd)
         if reset_match:
             reseted_lemma_name = self.module_prefix + reset_match.group(1)
-            for lemma in list(self.local_lemmas):
+            for lemma in list(self._local_lemmas):
                 lemma_match = re.match("\s*([\w'\.]+)\s*:", lemma)
                 assert lemma_match, f"{lemma} doesnt match!"
                 lemma_name = lemma_match.group(1)
                 if lemma_name == reseted_lemma_name:
-                    self.local_lemmas.remove(lemma)
+                    self._local_lemmas.remove(lemma)
         abort_match = re.match("Abort", cmd)
         if abort_match:
-            popped = self.local_lemmas.pop()
+            popped = self._local_lemmas.pop()
 
     def add_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
         for lemma in lemmas:
-            self.local_lemmas.append(lemma)
+            self._local_lemmas.append(lemma)
 
         for l_idx in range(len(self.local_lemmas)):
             for ol_idx in range(len(self.local_lemmas)):
@@ -629,7 +638,6 @@ class SerapiInstance(threading.Thread):
                      ["Answer", int, ["CoqExn", TAIL]],
                      lambda statenum, msg:
                      raise_(CoqExn(searchStrsInMsg(msg))))
-        self.get_completed()
         return result
 
     def sexpToTermStr(self, sexp) -> str:
@@ -971,8 +979,11 @@ class SerapiInstance(threading.Thread):
 
         new_statenum = \
             match(normalizeMessage(feedback),
-                  ["Answer", int, ["CoqExn", _, _, _, _]],
-                  lambda *args: raise_(CoqExn(feedback)),
+                  ["Answer", int, ["CoqExn", TAIL]],
+                  lambda state_id, rest:
+                  raise_(CoqAnomaly(""))
+                  if "Anomaly" in searchStrsInMsg(rest)[0] else
+                  raise_(CoqExn(searchStrsInMsg(rest))),
                   ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
                   lambda docnum, statenum, *rest: statenum,
                   _, lambda *args: raise_(BadResponse(feedback)))
