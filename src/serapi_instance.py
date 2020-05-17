@@ -1036,7 +1036,10 @@ class SerapiInstance(threading.Thread):
             context_match = re.fullmatch("\(Answer\s+\d+\s*\(ObjList\s*(.*)\)\)\n",
                                          text_response)
             if not context_match:
-                raise BadResponse(f"\"{text_response}\"")
+                if "Stack overflow" in text_response:
+                    raise CoqAnomaly(f"\"{text_response}\"")
+                else:
+                    raise BadResponse(f"\"{text_response}\"")
             context_str = context_match.group(1)
             if context_str == "()":
                 self.proof_context = None
