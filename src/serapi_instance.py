@@ -250,7 +250,7 @@ class SerapiInstance(threading.Thread):
         self.proof_context = None # type: Optional[ProofContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
-        self._local_lemmas : List[str] = []
+        self._local_lemmas : List[Tuple[str, bool]] = []
 
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
@@ -292,29 +292,35 @@ class SerapiInstance(threading.Thread):
                     yield lemma
         return list(generate())
 
+    @property
+    def local_lemmas(self) -> List[str]:
+        return [lemma for (lemma, is_section) in self._local_lemmas]
+
     def cancel_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
+        is_section = "Let" in cmd
         for lemma in lemmas:
-            self._local_lemmas.remove(lemma)
+            self._local_lemmas.remove((lemma, is_section))
 
     def remove_potential_local_lemmas(self, cmd : str) -> None:
         reset_match = re.match("Reset\s+(.*)\.", cmd)
         if reset_match:
             reseted_lemma_name = self.module_prefix + reset_match.group(1)
-            for lemma in list(self._local_lemmas):
+            for (lemma, is_section) in list(self._local_lemmas):
                 lemma_match = re.match("\s*([\w'\.]+)\s*:", lemma)
                 assert lemma_match, f"{lemma} doesnt match!"
                 lemma_name = lemma_match.group(1)
                 if lemma_name == reseted_lemma_name:
-                    self._local_lemmas.remove(lemma)
+                    self._local_lemmas.remove((lemma, is_section))
         abort_match = re.match("Abort", cmd)
         if abort_match:
             popped = self._local_lemmas.pop()
 
     def add_potential_local_lemmas(self, cmd : str) -> None:
         lemmas = self.lemmas_defined_by_stmt(cmd)
+        is_section = "Let" in cmd
         for lemma in lemmas:
-            self._local_lemmas.append(lemma)
+            self._local_lemmas.append((lemma, is_section))
 
         for l_idx in range(len(self.local_lemmas)):
             for ol_idx in range(len(self.local_lemmas)):
@@ -325,6 +331,7 @@ class SerapiInstance(threading.Thread):
                 assert self.local_lemmas[l_idx] != \
                     self.local_lemmas[ol_idx],\
                     self.local_lemmas
+
     def lemmas_defined_by_stmt(self, cmd : str) -> List[str]:
         normal_lemma_match = re.match(r"\s*(?:" + "|".join(normal_lemma_starting_patterns) + r")\s+([\w']*)(.*)",
                                       cmd,
@@ -1125,6 +1132,8 @@ class SerapiInstance(threading.Thread):
             if self.module_stack and self.module_stack[-1] == end_match.group(1):
                 self.module_stack.pop()
             elif self.section_stack and self.section_stack[-1] == end_match.group(1):
+                self._local_lemmas = [(lemma, is_section) for (lemma, is_section) in self._local_lemmas
+                                      if not is_section]
                 self.section_stack.pop()
             else:
                 eprint(f"Unrecognized End \"{cmd}\"")
