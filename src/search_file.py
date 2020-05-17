@@ -26,6 +26,7 @@ import re
 import datetime
 import time
 import csv
+import traceback
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Iterator, Callable, Iterable)
 
@@ -168,6 +169,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--proof", default=None)
+    parser.add_argument("--log-anomalies", type=Path2, default=None)
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
@@ -447,6 +449,9 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                                         search_status, tactic_solution,
                                         initial_context, original_tactics)
             except serapi_instance.CoqAnomaly as e:
+                if args.log_anomalies:
+                    with args.log_anomalies.open('a') as f:
+                        traceback.print_exc(file=f)
                 if lemma_statement:
                     commands_in.insert(0, lemma_statement)
                 if commands_caught_up == len(commands_run):
