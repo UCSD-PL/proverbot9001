@@ -276,8 +276,7 @@ def reinforce_lemma(args: argparse.Namespace,
     for episode in trange(args.num_episodes, disable=(not args.progress)):
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
-        for t in trange(args.episode_length, disable=(not args.progress),
-                        leave=False):
+        for t in range(args.episode_length):
             with print_time("Getting predictions", guard=args.verbose):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
                 predictions = predictor.predictKTactics(
