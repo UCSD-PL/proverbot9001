@@ -197,16 +197,16 @@ def reinforce(args: argparse.Namespace) -> None:
     epsilon = 0.3
     gamma = 0.9
 
-    with serapi_instance.SerapiContext(
-            ["sertop", "--implicit"],
-            serapi_instance.get_module_from_filename(args.environment_file),
-            str(args.prelude)) as coq:
-        coq.quiet = True
-        coq.verbose = args.verbose
-        # Get us to the correct proof context
-        rest_commands, run_commands = coq.run_into_next_proof(env_commands)
-        lemma_statement = run_commands[-1]
-        if args.proof is not None:
+    if args.proof is not None:
+        with serapi_instance.SerapiContext(
+                ["sertop", "--implicit"],
+                serapi_instance.get_module_from_filename(
+                    args.environment_file),
+                str(args.prelude)) as coq:
+            coq.quiet = True
+            coq.verbose = args.verbose
+            rest_commands, run_commands = coq.run_into_next_proof(env_commands)
+            lemma_statement = run_commands[-1]
             while coq.cur_lemma_name != args.proof:
                 if not rest_commands:
                     eprint("Couldn't find lemma {args.proof}! Exiting...")
@@ -218,18 +218,38 @@ def reinforce(args: argparse.Namespace) -> None:
                 reinforce_lemma(args, predictor, q_estimator, coq,
                                 lemma_statement,
                                 epsilon, gamma, replay_memory)
-        else:
-            while rest_commands:
-                rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, run_commands = coq.run_into_next_proof(
-                    rest_commands)
-                lemma_statement = run_commands[-1]
+    else:
+        rest_commands = env_commands
+        all_run_commands: List[str] = []
+        while rest_commands:
+            with serapi_instance.SerapiContext(
+                    ["sertop", "--implicit"],
+                    serapi_instance.get_module_from_filename(
+                        args.environment_file),
+                    str(args.prelude)) as coq:
+                coq.quiet = True
+                coq.verbose = args.verbose
+                for command in all_run_commands:
+                    coq.run_stmt(command)
 
-                reinforce_lemma(args, predictor, q_estimator, coq,
-                                lemma_statement,
-                                epsilon, gamma, replay_memory)
-                for sample in replay_memory:
-                    sample.graph_node = None
+                while rest_commands:
+                    rest_commands, run_commands = \
+                        coq.run_into_next_proof(rest_commands)
+                    all_run_commands += run_commands
+                    lemma_statement = run_commands[-1]
+                    for sample in replay_memory:
+                        sample.graph_node = None
+
+                    try:
+                        reinforce_lemma(args, predictor, q_estimator, coq,
+                                        lemma_statement,
+                                        epsilon, gamma, replay_memory)
+                        rest_commands, run_commands = \
+                            coq.finish_proof(rest_commands)
+                        all_run_commands += run_commands
+                    except serapi_instance.CoqAnomaly:
+                        eprint("Hit an anomaly! Restarting coq instance")
+                        break
 
         q_estimator.save_weights(args.out_weights, args)
 
