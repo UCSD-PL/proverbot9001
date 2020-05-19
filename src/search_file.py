@@ -255,7 +255,7 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             coq.run_stmt(next_in_command, timeout=60)
             if not coq.proof_context:
                 vernacs.append(next_in_command)
-            pbar.update(1)
+                pbar.update(1)
         append_time(args, "vernac", time.time() - starttime)
         if len(vernacs) > 0:
             blocks_out.append(VernacBlock(vernacs))
