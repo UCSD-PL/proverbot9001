@@ -30,6 +30,7 @@ from models.components import WordFeaturesEncoder, DNNScorer
 import torch
 import torch.nn as nn
 from torch import optim
+import torch.optim.lr_scheduler as scheduler
 import argparse
 import sys
 from pathlib_revised import Path2
@@ -38,10 +39,13 @@ from typing import Dict, List, Tuple, cast, BinaryIO, TypeVar
 
 
 class FeaturesQEstimator(QEstimator):
-    def __init__(self, learning_rate: float) -> None:
+    def __init__(self, learning_rate: float, batch_step: int, gamma: float) \
+            -> None:
         self.model = FeaturesQModel(32, 128,
                                     2, 128, 3)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
+        self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
+                                         gamma=gamma)
         self.criterion = nn.MSELoss()
         self.tactic_map: Dict[str, int] = {}
         self.token_map: Dict[str, int] = {}
@@ -76,6 +80,7 @@ class FeaturesQEstimator(QEstimator):
         loss = self.criterion(outputs, expected_outputs)
         loss.backward()
         self.optimizer.step()
+        self.adjuster.step()
 
     def _features(self, context: TacticContext) \
             -> Tuple[List[int], List[float]]:

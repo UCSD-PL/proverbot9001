@@ -70,6 +70,8 @@ def main() -> None:
     parser.add_argument("--episode-length", default=16, type=int)
 
     parser.add_argument("--learning-rate", default=0.0001, type=float)
+    parser.add_argument("--batch-step", default=50, type=int)
+    parser.add_argument("--gamma", defeault=0.8, type=int)
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
@@ -188,7 +190,9 @@ def reinforce(args: argparse.Namespace) -> None:
         args, 0, args.prelude / args.environment_file)
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
-    q_estimator = FeaturesQEstimator(args.learning_rate)
+    q_estimator = FeaturesQEstimator(args.learning_rate,
+                                     args.batch_step,
+                                     args.gamma)
     if args.start_from:
         q_estimator_name, prev_args, unparsed_prev_args, state_dict = \
             torch.load(args.start_from)
