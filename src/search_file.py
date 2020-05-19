@@ -765,7 +765,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                                                          coq.module_prefix,
                                                          search_status,
                                                          curProofInters, origProofInters))
-                            curVernacCmds = []
+                            curProofInters = []
                         else:
                             commands_in_iter = itertools.chain([loaded_command],
                                                                commands_in_iter)
@@ -777,7 +777,7 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
                         in_proof = True
                         curLemma = saved_command
                         blocks_out.append(VernacBlock(curVernacCmds))
-                        curProofInters = []
+                        curVernacCmds = []
                     else:
                         curProofInters.append(TacticInteraction(saved_command, context_before))
         assert not in_proof
