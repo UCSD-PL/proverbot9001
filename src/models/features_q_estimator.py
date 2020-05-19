@@ -35,7 +35,10 @@ import argparse
 import sys
 from pathlib_revised import Path2
 
-from typing import Dict, List, Tuple, cast, BinaryIO, TypeVar
+from typing import Dict, List, Tuple, cast, BinaryIO, TypeVar, Any
+
+
+FeaturesQMetadata = Tuple[Dict[str, int], Dict[str, int]]
 
 
 class FeaturesQEstimator(QEstimator):
@@ -128,8 +131,17 @@ class FeaturesQEstimator(QEstimator):
     def save_weights(self, filename: Path2, args: argparse.Namespace) -> None:
         with cast(BinaryIO, filename.open('wb')) as f:
             torch.save(("features evaluator", args, sys.argv,
+                        (self.tactic_map, self.token_map),
                         self.model.state_dict()),
                        f)
+
+    def load_saved_state(self, args: argparse.Namespace,
+                         unparsed_args: List[str],
+                         metadata: FeaturesQMetadata,
+                         state: Dict[str, Any]) -> None:
+        self.tactic_map, self.token_map = metadata
+        self.model.load_state_dict(state)
+        pass
 
 
 T = TypeVar('T')

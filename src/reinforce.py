@@ -194,9 +194,9 @@ def reinforce(args: argparse.Namespace) -> None:
                                      args.batch_step,
                                      args.gamma)
     if args.start_from:
-        q_estimator_name, prev_args, unparsed_prev_args, state_dict = \
+        q_estimator_name, *saved = \
             torch.load(args.start_from)
-        q_estimator.model.load_state_dict(state_dict)
+        q_estimator.load_saved_state(*saved)
 
     epsilon = 0.3
     gamma = 0.9
@@ -219,9 +219,10 @@ def reinforce(args: argparse.Namespace) -> None:
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
                 lemma_statement = run_commands[-1]
-                reinforce_lemma(args, predictor, q_estimator, coq,
-                                lemma_statement,
-                                epsilon, gamma, replay_memory)
+            reinforce_lemma(args, predictor, q_estimator, coq,
+                            lemma_statement,
+                            epsilon, gamma, replay_memory)
+            q_estimator.save_weights(args.out_weights, args)
     else:
         rest_commands = env_commands
         all_run_commands: List[str] = []
