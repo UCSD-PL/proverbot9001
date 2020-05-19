@@ -43,6 +43,7 @@ from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import itertools
 from dataclasses import dataclass
+from enum import Enum, auto
 
 from tqdm import tqdm
 from yattag import Doc
@@ -54,43 +55,52 @@ Line = Callable[..., None]
 details_css = "details.css"
 details_javascript = "search-details.js"
 
-class ReportStats(NamedTuple):
-    filename : str
-    num_proofs : int
-    num_proofs_failed : int
-    num_proofs_completed : int
 
-from enum import Enum, auto
+class ReportStats(NamedTuple):
+    filename: str
+    num_proofs: int
+    num_proofs_failed: int
+    num_proofs_completed: int
+
+
 class SearchStatus(Enum):
     SUCCESS = auto()
     INCOMPLETE = auto()
     FAILURE = auto()
 
+
 class VernacBlock(NamedTuple):
-    commands : List[str]
+    commands: List[str]
+
 
 class TacticInteraction(NamedTuple):
-    tactic : str
-    context_before : ProofContext
+    tactic: str
+    context_before: ProofContext
+
 
 class ProofBlock(NamedTuple):
-    lemma_statement : str
-    module : Optional[str]
-    status : SearchStatus
-    predicted_tactics : List[TacticInteraction]
-    original_tactics : List[TacticInteraction]
+    lemma_statement: str
+    module: Optional[str]
+    status: SearchStatus
+    predicted_tactics: List[TacticInteraction]
+    original_tactics: List[TacticInteraction]
+
 
 class ArgsMismatchException(Exception):
     pass
+
+
 class SourceChangedException(Exception):
     pass
 
+
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
-predictor : TacticPredictor
-unnamed_goal_number : int
+predictor: TacticPredictor
+unnamed_goal_number: int
 
-def main(arg_list : List[str], bar_idx : int) -> None:
+
+def main(arg_list: List[str], bar_idx: int) -> None:
     sys.setrecursionlimit(4500)
     global predictor
 
@@ -106,9 +116,8 @@ def main(arg_list : List[str], bar_idx : int) -> None:
         eprint("Didn't find a _CoqProject file in prelude dir")
         includes = ""
     if not args.output_dir.exists():
-       args.output_dir.makedirs()
+        args.output_dir.makedirs()
 
-    context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
     for filename in [details_css, details_javascript]:
         destpath = args.output_dir / filename
         if not destpath.exists():
@@ -117,11 +126,13 @@ def main(arg_list : List[str], bar_idx : int) -> None:
 
     search_file(args, coqargs, includes, predictor, bar_idx)
 
-def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
-                                                    argparse.ArgumentParser]:
+
+def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
+                                                   argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
         description=
-        "Produce an html report from attempting to complete proofs using Proverbot9001.")
+        "Produce an html report from attempting "
+        "to complete proofs using Proverbot9001.")
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
@@ -131,9 +142,11 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_true')
-    parser.add_argument("--read-progress", "-p", help="show progress of reading the file",
+    parser.add_argument("--read-progress", "-p",
+                        help="show progress of reading the file",
                         action='store_true')
-    parser.add_argument("--hardfail", "-f", help="fail when hitting a coq anomaly",
+    parser.add_argument("--hardfail", "-f",
+                        help="fail when hitting a coq anomaly",
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
@@ -142,13 +155,19 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         default=None)
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
                         action='store_false')
-    parser.add_argument("--search-width", dest="search_width", type=int, default=5)
-    parser.add_argument("--max-attempts", dest="max_attempts", type=int, default=10)
-    parser.add_argument("--search-depth", dest="search_depth", type=int, default=6)
+    parser.add_argument("--search-width", dest="search_width", type=int,
+                        default=5)
+    parser.add_argument("--max-attempts", dest="max_attempts", type=int,
+                        default=10)
+    parser.add_argument("--search-depth", dest="search_depth", type=int,
+                        default=6)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
-    parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch", action='store_true')
-    parser.add_argument("--max-print-term", dest="max_print_term", type=int, default=None)
-    parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int, default=None)
+    parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch",
+                        action='store_true')
+    parser.add_argument("--max-print-term", dest="max_print_term", type=int,
+                        default=None)
+    parser.add_argument("--max-print-hyps", dest="max_print_hyps", type=int,
+                        default=None)
     parser.add_argument("--max-print-subgoals", dest="max_print_subgoals",
                         type=int, default=2)
     parser.add_argument("--max-proof-time", dest="max_proof_time",
@@ -157,7 +176,8 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--linearize", action='store_true')
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
-    parser.add_argument("--use-hammer", help="Use Hammer tactic after every predicted tactic",
+    parser.add_argument("--use-hammer",
+                        help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
     parser.add_argument('--no-check-consistent', action='store_false',
                         dest='check_consistent')
@@ -174,9 +194,10 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
     known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
-def get_predictor(parser : argparse.ArgumentParser,
-                  args : argparse.Namespace) -> TacticPredictor:
-    predictor : TacticPredictor
+
+def get_predictor(parser: argparse.ArgumentParser,
+                  args: argparse.Namespace) -> TacticPredictor:
+    predictor: TacticPredictor
     if args.weightsfile:
         predictor = loadPredictorByFile(args.weightsfile)
     elif args.predictor:
@@ -187,28 +208,31 @@ def get_predictor(parser : argparse.ArgumentParser,
         sys.exit(1)
     return predictor
 
-def reset_times(args : argparse.Namespace):
+
+def reset_times(args: argparse.Namespace):
     if args.proof_times:
         with args.proof_times.open('w'):
             pass
 
-def append_time(args : argparse.Namespace, action : str, seconds : float):
+
+def append_time(args: argparse.Namespace, action: str, seconds: float):
     if args.proof_times:
         with args.proof_times.open('a') as f:
             f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
 
-def search_file(args : argparse.Namespace, coqargs : List[str],
-                includes : str, predictor : TacticPredictor,
-                bar_idx : int) -> None:
+
+def search_file(args: argparse.Namespace, coqargs: List[str],
+                includes: str, predictor: TacticPredictor,
+                bar_idx: int) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
-    commands_run : List[str] = []
-    blocks_out : List[DocumentBlock] = []
+    commands_run: List[str] = []
+    blocks_out: List[DocumentBlock] = []
     commands_caught_up = 0
-    lemmas_to_skip : List[str] = []
+    lemmas_to_skip: List[str] = []
 
     if args.resume:
         try:
@@ -233,20 +257,21 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                        f"Overwriting (interrupt to cancel).")
 
     if args.linearize:
-        commands_in = linearize_semicolons.get_linearized(args, coqargs, includes,
-                                                          bar_idx, str(args.filename))
+        commands_in = linearize_semicolons.get_linearized(
+            args, coqargs, includes, bar_idx, str(args.filename))
     else:
-        commands_in = serapi_instance.load_commands_preserve(args, bar_idx,
-                                                             args.prelude / args.filename)
+        commands_in = serapi_instance.load_commands_preserve(
+            args, bar_idx, args.prelude / args.filename)
     num_commands_total = len(commands_in)
     lemma_statement = ""
 
     # Run vernacular until the next proof (or end of file)
-    def run_to_next_proof(coq : serapi_instance.SerapiInstance, pbar : tqdm) -> str:
+    def run_to_next_proof(coq: serapi_instance.SerapiInstance, pbar: tqdm) \
+            -> str:
         nonlocal commands_run
         nonlocal commands_in
         nonlocal blocks_out
-        vernacs : List[str] = []
+        vernacs: List[str] = []
         assert not coq.proof_context
         starttime = time.time()
         while not coq.proof_context and len(commands_in) > 0:
@@ -263,46 +288,49 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
             append_to_solution_vfile(args.output_dir, args.filename, vernacs)
         return next_in_command
 
-    def run_to_next_vernac(coq : serapi_instance.SerapiInstance,
-                           pbar : tqdm,
-                           initial_full_context : ProofContext,
-                           lemma_statement : str) -> List[TacticInteraction]:
+    def run_to_next_vernac(coq: serapi_instance.SerapiInstance,
+                           pbar: tqdm,
+                           initial_full_context: ProofContext,
+                           lemma_statement: str) -> List[TacticInteraction]:
         nonlocal commands_run
         nonlocal commands_in
         coq.run_stmt(lemma_statement)
-        original_tactics : List[TacticInteraction] = []
+        original_tactics: List[TacticInteraction] = []
         lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
         try:
             starttime = time.time()
-            while coq.proof_context != None:
+            while coq.proof_context is not None:
                 next_in_command = commands_in.pop(0)
                 original_tactics.append(
                     TacticInteraction(next_in_command,
-                                      coq.proof_context or ProofContext([],[],[],[])))
+                                      coq.proof_context
+                                      or ProofContext([], [], [], [])))
                 coq.run_stmt(next_in_command)
                 pbar.update(1)
             body_tactics = [t.tactic for t in original_tactics]
             if next_in_command.strip() == "Defined.":
                 append_to_solution_vfile(args.output_dir, args.filename,
-                                         [f"Reset {lemma_name}.", lemma_statement] + body_tactics)
+                                         [f"Reset {lemma_name}.",
+                                          lemma_statement] + body_tactics)
             commands_run.append(lemma_statement)
             commands_run += body_tactics
             append_time(args, "Orig: " + lemma_name, time.time() - starttime)
-        except:
+        except serapi_instance.SerapiException:
             commands_in = [lemma_statement] + \
                 [t.tactic for t in original_tactics] \
                 + commands_in
             raise
         return original_tactics
-    def add_proof_block(coq : serapi_instance.SerapiInstance,
-                        status : SearchStatus,
-                        solution : Optional[List[TacticInteraction]],
-                        initial_full_context : ProofContext,
-                        original_tactics : List[TacticInteraction]) -> None:
+
+    def add_proof_block(coq: serapi_instance.SerapiInstance,
+                        status: SearchStatus,
+                        solution: Optional[List[TacticInteraction]],
+                        initial_full_context: ProofContext,
+                        original_tactics: List[TacticInteraction]) -> None:
         nonlocal num_proofs_failed
         nonlocal num_proofs_completed
         nonlocal blocks_out
-        empty_context = ProofContext([],[],[],[])
+        empty_context = ProofContext([], [], [], [])
         # Append the proof data
         if solution:
             num_proofs_completed += 1
@@ -323,7 +351,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                 original_tactics))
 
     if not args.progress:
-        print("Loaded {} commands for file {}".format(len(commands_in), args.filename))
+        print("Loaded {} commands for file {}".format(len(commands_in),
+                                                      args.filename))
     with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
               desc=args.filename.name,
               disable=(not args.progress),
@@ -333,9 +362,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
         while len(commands_in) > 0:
             try:
                 # print("Starting a coq instance...")
-                with serapi_instance.SerapiContext(coqargs,
-                                                   serapi_instance.get_module_from_filename(args.filename),
-                                                   includes, args.prelude, use_hammer=args.use_hammer) as coq:
+                with serapi_instance.SerapiContext(
+                        coqargs,
+                        serapi_instance.get_module_from_filename(
+                            args.filename),
+                        includes, args.prelude, use_hammer=args.use_hammer
+                ) as coq:
                     coq.verbose = args.verbose
                     try_run_prelude(args, coq)
                     if args.progress:
@@ -346,30 +378,36 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                     if args.resume and len(commands_run) == 0:
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
-                           commands_run, commands_in, blocks_out, \
-                               num_proofs, num_proofs_failed, num_proofs_completed, \
+                            commands_run, commands_in, blocks_out, \
+                               num_proofs, num_proofs_failed, \
+                               num_proofs_completed, \
                                num_original_commands_run = \
                                    replay_solution_vfile(args, coq, model_name,
                                                          args.filename,
                                                          commands_in,
                                                          bar_idx)
-                           pbar.update(num_original_commands_run)
+                            pbar.update(num_original_commands_run)
                         except FileNotFoundError:
-                            make_new_solution_vfile(args, model_name, args.filename)
+                            make_new_solution_vfile(args, model_name,
+                                                    args.filename)
                             pass
-                        except (ArgsMismatchException, SourceChangedException) as e:
+                        except (ArgsMismatchException,
+                                SourceChangedException) as e:
                             eprint(f"Arguments in solution vfile for {str(args.filename)} "
                                    f"didn't match current arguments, or sources mismatch! "
                                    f"{e}")
                             if args.overwrite_mismatch:
                                 eprint("Overwriting.")
-                                make_new_solution_vfile(args, model_name, args.filename)
+                                make_new_solution_vfile(args, model_name,
+                                                        args.filename)
                                 raise serapi_instance.CoqAnomaly("Replaying")
                             else:
                                 raise SourceChangedException
 
                     if len(commands_run) > 0 and args.verbose:
-                        eprint("Caught up with commands:\n{}\n...\n{}".format(commands_run[0].strip(), commands_run[-1].strip()))
+                        eprint("Caught up with commands:\n{}\n...\n{}"
+                               .format(commands_run[0].strip(),
+                                       commands_run[-1].strip()))
                     while len(commands_in) > 0:
                         lemma_statement = run_to_next_proof(coq, pbar)
                         if len(commands_in) == 0:
