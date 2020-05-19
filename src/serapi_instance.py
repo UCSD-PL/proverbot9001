@@ -666,7 +666,7 @@ class SerapiInstance(threading.Thread):
         assert goal_match, sexp_str + "didn't match"
         goal_num_str, goal_term_str, hyps_list_str = \
             goal_match.group(1, 2, 3)
-        goal_str = self.sexpStrToTermStr(goal_term_str)
+        goal_str = self.sexpStrToTermStr(goal_term_str).replace("\.", ".")
         hyps = [self.parseSexpHypStr(hyp_str) for hyp_str in
                 parseSexpOneLevel(hyps_list_str)]
         return Obligation(hyps, goal_str)
