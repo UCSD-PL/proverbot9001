@@ -239,7 +239,7 @@ def reinforce(args: argparse.Namespace) -> None:
                 while rest_commands:
                     rest_commands, run_commands = \
                         coq.run_into_next_proof(rest_commands)
-                    all_run_commands += run_commands
+                    all_run_commands += run_commands[:-1]
                     lemma_statement = run_commands[-1]
                     for sample in replay_memory:
                         sample.graph_node = None
@@ -250,9 +250,11 @@ def reinforce(args: argparse.Namespace) -> None:
                                         epsilon, gamma, replay_memory)
                         rest_commands, run_commands = \
                             coq.finish_proof(rest_commands)
+                        all_run_commands.append(lemma_statement)
                         all_run_commands += run_commands
                     except serapi_instance.CoqAnomaly:
                         eprint("Hit an anomaly! Restarting coq instance")
+                        rest_commands.insert(0, lemma_statement)
                         break
 
         q_estimator.save_weights(args.out_weights, args)
