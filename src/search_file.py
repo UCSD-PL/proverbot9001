@@ -88,7 +88,7 @@ class SourceChangedException(Exception):
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
 predictor : TacticPredictor
-obligation_number : int
+unnamed_goal_number : int
 
 def main(arg_list : List[str], bar_idx : int) -> None:
     sys.setrecursionlimit(4500)
@@ -199,8 +199,8 @@ def append_time(args : argparse.Namespace, action : str, seconds : float):
 def search_file(args : argparse.Namespace, coqargs : List[str],
                 includes : str, predictor : TacticPredictor,
                 bar_idx : int) -> None:
-    global obligation_number
-    obligation_number = 0
+    global unnamed_goal_number
+    unnamed_goal_number = 0
     num_proofs = 0
     num_proofs_failed = 0
     num_proofs_completed = 0
@@ -537,8 +537,8 @@ def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
 def write_html(args : argparse.Namespace,
                output_dir : str, filename : Path2,
                doc_blocks : List[DocumentBlock]) -> None:
-    global obligation_number
-    obligation_number = 0
+    global unnamed_goal_number
+    unnamed_goal_number = 0
     doc, tag, text, line = Doc().ttl()
     with tag('html'):
         html_header(tag, doc, text, [details_css], [details_javascript],
@@ -565,13 +565,13 @@ def write_html(args : argparse.Namespace,
 
 def write_lemma_button(lemma_statement : str, module : Optional[str],
                        status_klass : str, tag : Tag, text : Text):
-    global obligation_number
+    global unnamed_goal_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
     module_prefix = escape_lemma_name(module)
-    if lemma_name == "Obligation":
-        obligation_number += 1
-        fullname = module_prefix + lemma_name + str(obligation_number)
+    if lemma_name == "":
+        unnamed_goal_number += 1
+        fullname = module_prefix + lemma_name + str(unnamed_goal__number)
     else:
         fullname = module_prefix + lemma_name
     with tag('button', klass='collapsible {}'.format(status_klass),
@@ -995,7 +995,7 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                 args : argparse.Namespace,
                                 bar_idx : int) \
                                 -> SearchResult:
-    global obligation_number
+    global unnamed_goal_number
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
     def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
@@ -1113,9 +1113,10 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
     module_prefix = escape_lemma_name(module_name)
-    if lemma_name == "Obligation":
-        obligation_number += 1
-        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}{obligation_number}.svg")
+    if lemma_name == "":
+        unnamed_goal_number += 1
+        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}"
+               f"{unnamed_goal_number}.svg")
     else:
         g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.svg")
     if command_list:
