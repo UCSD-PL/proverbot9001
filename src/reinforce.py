@@ -280,7 +280,8 @@ def reinforce_lemma(args: argparse.Namespace,
                     memory: List[LabeledTransition]) -> None:
     lemma_name = coq.cur_lemma_name
     graph = ReinforceGraph(lemma_name)
-    for episode in trange(args.num_episodes, disable=(not args.progress)):
+    for episode in trange(args.num_episodes, disable=(not args.progress),
+                          leave=False):
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
         for t in range(args.episode_length):
