@@ -153,6 +153,7 @@ def parse_arguments(args_list : List[str]) -> Tuple[argparse.Namespace,
                         type=int, default=2)
     parser.add_argument("--max-proof-time", dest="max_proof_time",
                         type=float, default=300)
+    parser.add_argument("--max-tactic-time", type=float, default=2)
     parser.add_argument("--linearize", action='store_true')
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
@@ -935,7 +936,7 @@ def tryPrediction(args : argparse.Namespace,
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
-    time_per_command = 60 if coq.use_hammer else 5
+    time_per_command = 60 if coq.use_hammer else args.max_tactic_time
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
