@@ -25,6 +25,7 @@ import random
 import torch
 import os
 import errno
+import signal
 
 import serapi_instance
 import dataloader
@@ -226,6 +227,9 @@ def reinforce(args: argparse.Namespace) -> None:
     else:
         rest_commands = env_commands
         all_run_commands: List[str] = []
+        signal.signal(signal.SIGINT,
+                      lambda signal, frame:
+                      q_estimator.save_weights(args.out_weigts, args))
         while rest_commands:
             with serapi_instance.SerapiContext(
                     ["sertop", "--implicit"],
