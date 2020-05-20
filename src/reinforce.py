@@ -41,7 +41,7 @@ from format import TacticContext
 from pathlib_revised import Path2
 
 import pygraphviz as pgv
-from tqdm import trange
+from tqdm import trange, tqdm
 
 
 def main() -> None:
@@ -189,6 +189,9 @@ def reinforce(args: argparse.Namespace) -> None:
                                                 args.buffer_size))
     env_commands = serapi_instance.load_commands_preserve(
         args, 0, args.prelude / args.environment_file)
+    num_proofs = len([cmd for cmd in env_commands
+                      if cmd.strip() == "Qed." or cmd == "Defined.".strip()])
+
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
     q_estimator = FeaturesQEstimator(args.learning_rate,
@@ -242,26 +245,29 @@ def reinforce(args: argparse.Namespace) -> None:
                 for command in all_run_commands:
                     coq.run_stmt(command)
 
-                while rest_commands:
-                    rest_commands, run_commands = \
-                        coq.run_into_next_proof(rest_commands)
-                    all_run_commands += run_commands[:-1]
-                    lemma_statement = run_commands[-1]
-                    for sample in replay_memory:
-                        sample.graph_node = None
-
-                    try:
-                        reinforce_lemma(args, predictor, q_estimator, coq,
-                                        lemma_statement,
-                                        epsilon, gamma, replay_memory)
+                with tqdm(total=num_proofs, disable=(not args.progress),
+                          leave=True) as pbar:
+                    while rest_commands:
                         rest_commands, run_commands = \
-                            coq.finish_proof(rest_commands)
-                        all_run_commands.append(lemma_statement)
-                        all_run_commands += run_commands
-                    except serapi_instance.CoqAnomaly:
-                        eprint("Hit an anomaly! Restarting coq instance")
-                        rest_commands.insert(0, lemma_statement)
-                        break
+                            coq.run_into_next_proof(rest_commands)
+                        all_run_commands += run_commands[:-1]
+                        lemma_statement = run_commands[-1]
+                        for sample in replay_memory:
+                            sample.graph_node = None
+
+                        try:
+                            reinforce_lemma(args, predictor, q_estimator, coq,
+                                            lemma_statement,
+                                            epsilon, gamma, replay_memory)
+                            pbar.update(1)
+                            rest_commands, run_commands = \
+                                coq.finish_proof(rest_commands)
+                            all_run_commands.append(lemma_statement)
+                            all_run_commands += run_commands
+                        except serapi_instance.CoqAnomaly:
+                            eprint("Hit an anomaly! Restarting coq instance")
+                            rest_commands.insert(0, lemma_statement)
+                            break
 
         q_estimator.save_weights(args.out_weights, args)
 
@@ -372,7 +378,6 @@ def reinforce_lemma(args: argparse.Namespace,
         coq.run_stmt(f"Reset {lemma_name}.")
         coq.run_stmt(lemma_statement)
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
-    eprint(f"Drawing graph to {graphpath}")
     graph.draw(str(graphpath))
     pass
 
