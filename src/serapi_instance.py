@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 from sexpdata import loads, dumps, Symbol
 from traceback import *
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
-                  hash_file, sighandler_context, unwrap)
+                  hash_file, sighandler_context, unwrap, progn)
 from format import ScrapedTactic, TacticContext
 import tokenizer
 
@@ -1539,9 +1539,6 @@ def tacticTakesBinderArgs(stem : str) -> bool:
 
 def tacticTakesIdentifierArg(stem : str) -> bool:
     return stem == "unfold"
-
-def progn(*args):
-    return args[-1]
 
 def lemma_name_from_statement(stmt: str) -> str:
     if "Goal" in stmt:

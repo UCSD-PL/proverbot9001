@@ -33,7 +33,7 @@ import tokenizer
 from models import tactic_predictor, q_estimator
 from models.features_q_estimator import FeaturesQEstimator
 import predict_tactic
-from util import eprint, print_time, nostderr, unwrap
+from util import eprint, print_time, nostderr, unwrap, progn
 
 from dataclasses import dataclass
 from typing import List, Tuple, Iterator, Optional
@@ -229,7 +229,8 @@ def reinforce(args: argparse.Namespace) -> None:
         all_run_commands: List[str] = []
         signal.signal(signal.SIGINT,
                       lambda signal, frame:
-                      q_estimator.save_weights(args.out_weigts, args))
+                      progn(q_estimator.save_weights(args.out_weights, args),
+                            exit()))
         while rest_commands:
             with serapi_instance.SerapiContext(
                     ["sertop", "--implicit"],

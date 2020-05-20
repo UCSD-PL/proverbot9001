@@ -319,3 +319,6 @@ def get_possible_arg(args: argparse.Namespace, argname: str,
 def unwrap(a: Optional[T]) -> T:
     assert a
     return a
+
+def progn(*args):
+    return args[-1]
