@@ -62,7 +62,7 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
-        return []
+        return [("predictor", "refpa")]
 
     def predictKTactics(self, in_data: TacticContext, k: int) \
             -> List[Prediction]:
