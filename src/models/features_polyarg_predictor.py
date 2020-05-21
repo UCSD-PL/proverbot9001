@@ -23,36 +23,32 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from torch import autograd
-from torch.nn.utils.rnn import pack_sequence, pad_sequence
+from torch.nn.utils.rnn import pad_sequence
 
 from features import (WordFeature, VecFeature, Feature,
                       word_feature_constructors, vec_feature_constructors,
                       load_features)
 import tokenizer
-from tokenizer import Tokenizer, CompleteTokenizer, get_symbols
-from data import (ListDataset, normalizeSentenceLength, RawDataset,
-                  EOS_token)
 import re
+from tokenizer import Tokenizer, get_symbols
+from data import (ListDataset, RawDataset,
+                  EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
                   print_time, split_by_char_outside_matching)
 import math
-from format import ScrapedTactic, TacticContext, strip_scraped_output
+from format import TacticContext
 import serapi_instance
-from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
+from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
                                add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
                                      NeuralPredictorState, Prediction,
-                                     optimize_checkpoints,
-                                     save_checkpoints, tokenize_goals,
-                                     embed_data, add_tokenizer_args)
+                                     optimize_checkpoints, add_tokenizer_args)
 from dataloader import (features_polyarg_tensors,
                         features_polyarg_tensors_with_meta,
                         sample_fpa,
                         sample_fpa_batch,
                         decode_fpa_result,
-                        features_vocab_sizes,
                         get_num_tokens,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
@@ -61,10 +57,8 @@ from dataloader import (features_polyarg_tensors,
                         ProofContext)
 
 import threading
-import multiprocessing
 import argparse
 import sys
-import functools
 import re
 from itertools import islice
 from argparse import Namespace
@@ -72,33 +66,43 @@ from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
                     cast, Union, Set, Type, Any, Iterable)
 
 from enum import Enum, auto
+
+
 class ArgType(Enum):
     HYP_ID = auto()
     GOAL_TOKEN = auto()
     NO_ARG = auto()
 
+
 class HypIdArg(NamedTuple):
-    hyp_idx : int
+    hyp_idx: int
+
+
 class GoalTokenArg(NamedTuple):
-    token_idx : int
+    token_idx: int
+
 
 TacticArg = Optional[Union[HypIdArg, GoalTokenArg]]
 
+
 class FeaturesPolyArgSample(NamedTuple):
-    num_hyps : int
-    tokenized_hyp_types : List[List[int]]
-    hyp_features : List[List[float]]
-    tokenized_goal : List[int]
-    word_features : List[int]
-    vec_features : List[float]
-    tactic_stem : int
-    arg_type : ArgType
-    arg : TacticArg
+    num_hyps: int
+    tokenized_hyp_types: List[List[int]]
+    hyp_features: List[List[float]]
+    tokenized_goal: List[int]
+    word_features: List[int]
+    vec_features: List[float]
+    tactic_stem: int
+    arg_type: ArgType
+    arg: TacticArg
+
 
 class FeaturesPolyArgDataset(ListDataset[FeaturesPolyArgSample]):
     pass
 
+
 FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
+
 
 class GoalTokenArgModel(nn.Module):
     def __init__(self, stem_vocab_size : int,
