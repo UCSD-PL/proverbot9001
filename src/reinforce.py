@@ -72,7 +72,7 @@ def main() -> None:
 
     parser.add_argument("--learning-rate", default=0.0001, type=float)
     parser.add_argument("--batch-step", default=50, type=int)
-    parser.add_argument("--gamma", default=0.8, type=int)
+    parser.add_argument("--gamma", default=0.8, type=float)
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
