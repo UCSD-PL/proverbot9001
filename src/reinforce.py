@@ -190,7 +190,7 @@ def reinforce(args: argparse.Namespace) -> None:
     env_commands = serapi_instance.load_commands_preserve(
         args, 0, args.prelude / args.environment_file)
     num_proofs = len([cmd for cmd in env_commands
-                      if cmd.strip() == "Qed." or cmd == "Defined.".strip()])
+                      if cmd.strip() == "Qed." or cmd.strip() == "Defined."])
 
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
@@ -234,19 +234,19 @@ def reinforce(args: argparse.Namespace) -> None:
                       lambda signal, frame:
                       progn(q_estimator.save_weights(args.out_weights, args),
                             exit()))
-        while rest_commands:
-            with serapi_instance.SerapiContext(
-                    ["sertop", "--implicit"],
-                    serapi_instance.get_module_from_filename(
-                        args.environment_file),
-                    str(args.prelude)) as coq:
-                coq.quiet = True
-                coq.verbose = args.verbose
-                for command in all_run_commands:
-                    coq.run_stmt(command)
+        with tqdm(total=num_proofs, disable=(not args.progress),
+                  leave=True) as pbar:
+            while rest_commands:
+                with serapi_instance.SerapiContext(
+                        ["sertop", "--implicit"],
+                        serapi_instance.get_module_from_filename(
+                            args.environment_file),
+                        str(args.prelude)) as coq:
+                    coq.quiet = True
+                    coq.verbose = args.verbose
+                    for command in all_run_commands:
+                        coq.run_stmt(command)
 
-                with tqdm(total=num_proofs, disable=(not args.progress),
-                          leave=True) as pbar:
                     while rest_commands:
                         rest_commands, run_commands = \
                             coq.run_into_next_proof(rest_commands)
