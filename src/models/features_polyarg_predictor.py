@@ -34,7 +34,8 @@ from tokenizer import Tokenizer, CompleteTokenizer, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EOS_token)
 import re
-from util import eprint, maybe_cuda, LongTensor, FloatTensor
+from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
+                  print_time, split_by_char_outside_matching)
 import math
 from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
@@ -64,6 +65,7 @@ import multiprocessing
 import argparse
 import sys
 import functools
+import re
 from itertools import islice
 from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
