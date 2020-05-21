@@ -317,8 +317,9 @@ def get_possible_arg(args: argparse.Namespace, argname: str,
 
 
 def unwrap(a: Optional[T]) -> T:
-    assert a
+    assert a is not None
     return a
+
 
 def progn(*args):
     return args[-1]
