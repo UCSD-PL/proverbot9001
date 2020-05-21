@@ -48,6 +48,7 @@ from enum import Enum, auto
 from tqdm import tqdm
 from yattag import Doc
 from pathlib_revised import Path2
+from enum import Enum, auto
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
@@ -124,8 +125,7 @@ def main(arg_list: List[str], bar_idx: int) -> None:
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
-        description=
-        "Produce an html report from attempting "
+        description="Produce an html report from attempting "
         "to complete proofs using Proverbot9001.")
     parser.add_argument("--prelude", default=".")
     parser.add_argument("--output", "-o", dest="output_dir",
