@@ -1161,7 +1161,8 @@ class SerapiInstance(threading.Thread):
         assert self.message_queue.empty(), self.messages
         return answer
 
-    def run_into_next_proof(self, commands : List[str]) -> Optional[Tuple[List[str], List[str]]]:
+    def run_into_next_proof(self, commands: List[str]) \
+            -> Optional[Tuple[List[str], List[str]]]:
         assert not self.proof_context, "We're already in a proof"
         commands_iter = iter(commands)
         commands_run = []
@@ -1173,7 +1174,8 @@ class SerapiInstance(threading.Thread):
         return None
 
 
-    def finish_proof(self, commands : List[str]) -> Optional[Tuple[List[str], List[str]]]:
+    def finish_proof(self, commands: List[str]) \
+            -> Optional[Tuple[List[str], List[str]]]:
         assert self.proof_context, "We're already out of a proof"
         commands_iter = iter(commands)
         commands_run = []
@@ -1184,35 +1186,42 @@ class SerapiInstance(threading.Thread):
                 return list(commands_iter), commands_run
         return None
 
-
     def run(self) -> None:
         assert self._fout
         while(True):
             line = self._fout.readline().decode('utf-8')
-            if line == '': break
+            if line == '':
+                break
             self.message_queue.put(line)
             eprint(f"RECEIVED: {line}", guard=self.verbose >= 4)
 
-    def add_potential_module_stack_cmd(self, cmd : str) -> None:
+    def add_potential_module_stack_cmd(self, cmd: str) -> None:
         stripped_cmd = kill_comments(cmd).strip()
-        module_start_match = re.match(r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)", stripped_cmd)
+        module_start_match = re.match(
+            r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)", stripped_cmd)
         if stripped_cmd.count(":=") > stripped_cmd.count("with"):
             module_start_match = None
-        section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)", stripped_cmd)
+        section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+                                       stripped_cmd)
         end_match = re.match(r"End (\w*)\.", stripped_cmd)
         if module_start_match:
             self.module_stack.append(module_start_match.group(1))
         elif section_start_match:
             self.section_stack.append(section_start_match.group(1))
         elif end_match:
-            if self.module_stack and self.module_stack[-1] == end_match.group(1):
+            if self.module_stack and \
+               self.module_stack[-1] == end_match.group(1):
                 self.module_stack.pop()
-            elif self.section_stack and self.section_stack[-1] == end_match.group(1):
-                self._local_lemmas = [(lemma, is_section) for (lemma, is_section) in self._local_lemmas
-                                      if not is_section]
+            elif self.section_stack and \
+                    self.section_stack[-1] == end_match.group(1):
+                self._local_lemmas = \
+                    [(lemma, is_section) for (lemma, is_section)
+                     in self._local_lemmas if not is_section]
                 self.section_stack.pop()
             else:
-                assert False, f"Unrecognized End \"{cmd}\", top of module stack is {self.module_stack[-1]}"
+                assert False, \
+                    f"Unrecognized End \"{cmd}\", " \
+                    f"top of module stack is {self.module_stack[-1]}"
 
     def kill(self) -> None:
         assert self._proc.stdout
