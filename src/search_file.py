@@ -373,13 +373,12 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
                         model_name = dict(predictor.getOptions())["predictor"]
                         try:
                             commands_run, commands_in, blocks_out, \
-                               num_proofs, num_proofs_failed, \
-                               num_proofs_completed, \
-                               num_original_commands_run = \
-                                   replay_solution_vfile(args, coq, model_name,
-                                                         args.filename,
-                                                         commands_in,
-                                                         bar_idx)
+                                num_proofs, num_proofs_failed, num_proofs_completed, \
+                                num_original_commands_run = \
+                                    replay_solution_vfile(args, coq, model_name,
+                                                          args.filename,
+                                                          commands_in,
+                                                          bar_idx)
                             pbar.update(num_original_commands_run)
                         except FileNotFoundError:
                             make_new_solution_vfile(args, model_name,
