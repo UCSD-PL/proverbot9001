@@ -18,10 +18,10 @@
 #    Copyright 2019 Alex Sanchez-Stern and Yousef Alhessi
 #
 ##########################################################################
-from typing import List, Tuple, Any, Dict, Optional
+
 import argparse
-import torch
-from pathlib_revised import Path2
+
+from typing import List, Tuple, Any, Dict, Optional
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import NeuralPredictorState
@@ -88,32 +88,3 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
                                       k: int, correct: List[str]) -> \
             Tuple[List[List[Prediction]], float]:
         pass
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Construct weights for reinforced features polyarg")
-    parser.add_argument("fpa_weights")
-    parser.add_argument("q_weights")
-    parser.add_argument("out_weights", type=Path2)
-    args = parser.parse_args()
-
-    fpa_name, fpa_saved = torch.load(args.fpa_weights)
-    assert fpa_name == "polyarg", "Weights aren't  for an FPA predictor!"
-    fpa_args, fpa_up_args, fpa_meta, fpa_state = \
-        fpa_saved
-
-    q_name, *q_saved = torch.load(args.q_weights)
-    assert q_name == "features evaluator"
-    q_args, q_up_args, q_meta, q_state = q_saved
-
-    with args.out_weights.open('w') as f:
-        torch.save(("refpa", (fpa_args, fpa_up_args, (fpa_meta, q_meta),
-                             (fpa_state, q_state))),
-                   f)
-
-    pass
-
-
-if __name__ == "__main__":
-    main()
