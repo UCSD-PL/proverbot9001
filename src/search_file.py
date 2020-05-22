@@ -517,8 +517,8 @@ def search_file(args : argparse.Namespace, coqargs : List[str],
     write_html(args, args.output_dir, args.filename, blocks_out)
     write_csv(args, args.filename, blocks_out)
 
-def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
-                javascript : List[str], title : str) -> None:
+def html_header(tag: Tag, doc: Doc, text: Text, css: List[str],
+                javascript: List[str], title: str) -> None:
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -529,8 +529,11 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[DocumentBlock]):
-    with open("{}/{}.csv".format(args.output_dir, escape_filename(str(filename))),
+
+def write_csv(args: argparse.Namespace, filename: str,
+              doc_blocks: List[DocumentBlock]):
+    with open("{}/{}.csv".format(args.output_dir,
+                                 escape_filename(str(filename))),
               'w', newline='') as csvfile:
         for k, v in vars(args).items():
             csvfile.write("# {}: {}\n".format(k, v))
@@ -542,8 +545,10 @@ def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[Docum
                                     block.status,
                                     len(block.original_tactics)])
 
-def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[str]]:
-    params : Dict[str, str] = {}
+
+def read_csv_options(f: Iterable[str]) -> \
+        Tuple[argparse.Namespace, Iterable[str]]:
+    params: Dict[str, str] = {}
     f_iter = iter(f)
     final_line = ""
     for line in f_iter:
@@ -553,19 +558,19 @@ def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[st
         else:
             final_line = line
             break
-    rest_iter : Iterable[str]
+    rest_iter: Iterable[str]
     if final_line == "":
         rest_iter = iter([])
     else:
         rest_iter = itertools.chain([final_line], f_iter)
     return argparse.Namespace(**params), rest_iter
 
-important_args = ["prelude", "context_filter", "weightsfile", "predictor", "search_width", "search_depth"]
 
-def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
-    num_proofs = 0
-    num_proofs_failed = 0
-    num_proofs_completed = 0
+important_args = ["prelude", "context_filter", "weightsfile",
+                  "predictor", "search_width", "search_depth"]
+
+
+def check_csv_args(args: argparse.Namespace, vfilename: Path2) -> None:
     with open(args.output_dir / (escape_filename(str(vfilename)) + ".csv"),
               'r', newline='') as csvfile:
         if args.check_consistent:
@@ -575,14 +580,17 @@ def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
                     oldval = str(vars(saved_args)[arg])
                     newval = str(vars(args)[arg])
                     if oldval != newval:
-                        raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
-                                                    f"new value is {newval}")
+                        raise ArgsMismatchException(
+                            f"Old value of {arg} is {oldval}, "
+                            f"new value is {newval}")
                 except KeyError:
-                    raise ArgsMismatchException(f"No old value for arg {arg} found.")
+                    raise ArgsMismatchException(
+                        f"No old value for arg {arg} found.")
 
-def write_html(args : argparse.Namespace,
-               output_dir : str, filename : Path2,
-               doc_blocks : List[DocumentBlock]) -> None:
+
+def write_html(args: argparse.Namespace,
+               output_dir: str, filename: Path2,
+               doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
     doc, tag, text, line = Doc().ttl()
@@ -600,17 +608,19 @@ def write_html(args : argparse.Namespace,
                                        status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):
-                            write_tactics(args, block.predicted_tactics, block_idx,
+                            write_tactics(args, block.predicted_tactics,
+                                          block_idx,
                                           tag, text, doc)
                         with tag('div', klass='original'):
-                            write_tactics(args, block.original_tactics, block_idx,
+                            write_tactics(args, block.original_tactics,
+                                          block_idx,
                                           tag, text, doc)
-    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))), 'w') as fout:
-        # fout.write(syntax.syntax_highlight(doc.getvalue()))
+    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))),
+              'w') as fout:
         fout.write(doc.getvalue())
 
-def write_lemma_button(lemma_statement : str, module : Optional[str],
-                       status_klass : str, tag : Tag, text : Text):
+def write_lemma_button(lemma_statement: str, module: Optional[str],
+                       status_klass: str, tag: Tag, text: Text):
     global unnamed_goal_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
@@ -625,29 +635,35 @@ def write_lemma_button(lemma_statement : str, module : Optional[str],
              onmouseout="unhoverLemma(\"{}\")".format(fullname)):
         with tag('code', klass='buttontext'):
             text(lemma_statement.strip())
-def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
+
+
+def write_commands(commands: List[str], tag: Tag, text: Text, doc: Doc):
     for cmd in commands:
         with tag('code', klass='plaincommand'):
             text(cmd.strip("\n"))
         doc.stag('br')
 
-def escape_quotes(term : str):
+
+def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
 
-def subgoal_to_string(args : argparse.Namespace, sg : Obligation) -> str:
+
+def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
 
-def write_tactics(args : argparse.Namespace,
-                  tactics : List[TacticInteraction],
-                  region_idx : int,
-                  tag : Tag, text : Text, doc : Doc):
+
+def write_tactics(args: argparse.Namespace,
+                  tactics: List[TacticInteraction],
+                  region_idx: int,
+                  tag: Tag, text: Text, doc: Doc):
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
         subgoals_str = "(" + ",".join([subgoal_to_string(args, subgoal)
                                        for subgoal in
-                                       t.context_before.all_goals[:args.max_print_subgoals]]) + ")"
+                                       t.context_before.all_goals[
+                                           :args.max_print_subgoals]]) + ")"
         with tag('span',
                  ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
@@ -657,7 +673,8 @@ def write_tactics(args : argparse.Namespace,
                 text(t.tactic.strip())
             doc.stag('br')
 
-def classFromSearchStatus(status : SearchStatus) -> str:
+
+def classFromSearchStatus(status: SearchStatus) -> str:
     if status == SearchStatus.SUCCESS:
         return 'good'
     elif status == SearchStatus.INCOMPLETE:
@@ -665,8 +682,9 @@ def classFromSearchStatus(status : SearchStatus) -> str:
     else:
         return 'bad'
 
-def make_new_solution_vfile(args : argparse.Namespace, model_name : str,
-                            filename : Path2) -> None:
+
+def make_new_solution_vfile(args: argparse.Namespace, model_name: str,
+                            filename: Path2) -> None:
     solution_vfile_path = (args.output_dir / escape_filename(str(filename)))\
         .with_suffix(".v")
     with solution_vfile_path.open(mode='w') as f:
@@ -675,30 +693,34 @@ def make_new_solution_vfile(args : argparse.Namespace, model_name : str,
                      ("model", model_name)]:
             print(f"(* {k}: {v} *)", file=f)
 
-def append_to_solution_vfile(outdir : Path2, filename : Path2,
-                             lines : List[str]) -> None:
-    solution_vfile_path = (outdir / escape_filename(str(filename))).with_suffix(".v")
+
+def append_to_solution_vfile(outdir: Path2, filename: Path2,
+                             lines: List[str]) -> None:
+    solution_vfile_path = (outdir / escape_filename(str(filename))
+                           ).with_suffix(".v")
     with solution_vfile_path.open(mode='a') as f:
         for line in lines:
             print(line.strip(), file=f, flush=True)
 
-def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
-                              f_iter : Iterator[str]) -> Iterable[str]:
+
+def check_solution_vfile_args(args: argparse.Namespace, model_name: str,
+                              f_iter: Iterator[str]) -> Iterable[str]:
     next_line = next(f_iter)
-    argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
-    checked_args = {"search-width":args.search_width,
-                    "search-depth":args.search_depth,
+    argline_match = re.match(r"\(\* (\S*): (\S*) \*\)", next_line)
+    checked_args = {"search-width": args.search_width,
+                    "search-depth": args.search_depth,
                     "model": model_name}
     while argline_match:
-        k, v = argline_match.group(1,2)
+        k, v = argline_match.group(1, 2)
         if not str(checked_args[k]) == v:
-            raise ArgsMismatchException(f"Arg mistmatch: {k} is {checked_args[k]} "
-                                        f"in cur report, {v} in file")
+            raise ArgsMismatchException(
+                f"Arg mistmatch: {k} is {checked_args[k]} "
+                f"in cur report, {v} in file")
         try:
             next_line = next(f_iter)
-        except:
+        except StopIteration:
             return f_iter
-        argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
+        argline_match = re.match(r"\(\* (\S*): (\S*) \*\)", next_line)
     return itertools.chain([next_line], f_iter)
 
 def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.SerapiInstance,
@@ -856,11 +878,6 @@ def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
 # The core of the search report
 
 
-class SearchResult(NamedTuple):
-    status: SearchStatus
-    commands: Optional[List[TacticInteraction]]
-
-
 # This method attempts to complete proofs using search.
 def attempt_search(args: argparse.Namespace,
                    lemma_statement: str,
@@ -874,35 +891,6 @@ def attempt_search(args: argparse.Namespace,
                                          args, bar_idx, predictor,
                                          predictor_lock)
     return result
-
-# This implementation is here for reference/documentation
-# def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-#                      args : argparse.Namespace) -> Optional[List[str]]:
-#     def get_context() -> TacticContext:
-#         return TacticContext(coq.prev_tactics, coq.hypotheses,
-#                              coq.goals)
-#     def predictions() -> List[str]:
-#         return [pred.prediction for pred in
-#                 predictor.predictKTactics(get_context(), args.search_width)]
-#     def search(current_path : List[str]) -> Optional[List[str]]:
-#         for prediction in predictions():
-#             try:
-#                 coq.quiet = True
-#                 coq.run_stmt(prediction)
-#                 if completed_proof(coq):
-#                     return current_path + [prediction]
-#                 elif len(current_path) + 1 < args.search_depth:
-#                     sub_search_result = search(current_path + [prediction])
-#                     if sub_search_result:
-#                         return sub_search_result
-#                 coq.cancel_last()
-#             except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
-#                 continue
-#         return None
-#     return search([])
-
-import pygraphviz as pgv
-# from graphviz import Digraph
 
 
 @dataclass(init=True)
