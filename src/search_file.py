@@ -1233,12 +1233,13 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         return SearchResult(SearchStatus.FAILURE, None)
 
 
-def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
+def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
     if coq.proof_context:
         return len(coq.proof_context.all_goals) == 0 and \
             coq.tactic_history.curDepth() == 0
     else:
         return False
+
 
 if __name__ == "__main__":
     main(sys.argv[1:], 0)
