@@ -34,7 +34,8 @@ from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import ProofContext, Obligation, SerapiInstance, SerapiException
+from serapi_instance import (ProofContext, Obligation, SerapiInstance,
+                             SerapiException)
 
 import linearize_semicolons
 # import syntax
@@ -854,18 +855,24 @@ def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
 
 # The core of the search report
 
+
 class SearchResult(NamedTuple):
-    status : SearchStatus
-    commands : Optional[List[TacticInteraction]]
+    status: SearchStatus
+    commands: Optional[List[TacticInteraction]]
+
 
 # This method attempts to complete proofs using search.
-def attempt_search(args : argparse.Namespace,
-                   lemma_statement : str,
-                   module_name : Optional[str],
-                   coq : serapi_instance.SerapiInstance,
-                   bar_idx : int) \
-    -> SearchResult:
-    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq, args, bar_idx)
+def attempt_search(args: argparse.Namespace,
+                   lemma_statement: str,
+                   module_name: Optional[str],
+                   coq: serapi_instance.SerapiInstance,
+                   bar_idx: int,
+                   predictor: TacticPredictor,
+                   predictor_lock: threading.Lock) \
+        -> SearchResult:
+    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq,
+                                         args, bar_idx, predictor,
+                                         predictor_lock)
     return result
 
 # This implementation is here for reference/documentation
@@ -897,40 +904,49 @@ def attempt_search(args : argparse.Namespace,
 import pygraphviz as pgv
 # from graphviz import Digraph
 
+
 @dataclass(init=True)
 class LabeledNode:
-    prediction : str
-    time_taken : Optional[float]
-    node_id : int
-    context_before : ProofContext
-    previous : Optional["LabeledNode"]
+    prediction: str
+    time_taken: Optional[float]
+    node_id: int
+    context_before: ProofContext
+    previous: Optional["LabeledNode"]
+
+
 class SearchGraph:
-    __graph : pgv.AGraph
-    __next_node_id : int
-    start_node : LabeledNode
-    def __init__(self, lemma_name : str) -> None:
+    __graph: pgv.AGraph
+    __next_node_id: int
+    start_node: LabeledNode
+
+    def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, ProofContext([],[],[],[]), None)
+        self.start_node = self.mkNode(lemma_name, ProofContext([], [], [], []),
+                                      None)
         self.start_node.time_taken = 0.0
         pass
-    def addPredictions(self, src : LabeledNode, context_before : ProofContext,
-                       predictions : List[str]) -> List[LabeledNode]:
+
+    def addPredictions(self, src: LabeledNode, context_before: ProofContext,
+                       predictions: List[str]) -> List[LabeledNode]:
         return [self.mkNode(pred, context_before, src) for pred in predictions]
-    def mkNode(self, prediction : str, context_before : ProofContext,
-               previous_node : Optional[LabeledNode],
+
+    def mkNode(self, prediction: str, context_before: ProofContext,
+               previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction, None, self.__next_node_id-1,
                               context_before, previous_node)
         if previous_node:
-            self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
+            self.__graph.add_edge(previous_node.node_id,
+                                  newNode.node_id, **kwargs)
         return newNode
-    def mkQED(self, predictionNode : LabeledNode):
-        qedNode = self.mkNode("QED", ProofContext([],[],[],[]),
-                              predictionNode,
-                              fillcolor="green", style="filled")
+
+    def mkQED(self, predictionNode: LabeledNode):
+        self.mkNode("QED", ProofContext([], [], [], []),
+                    predictionNode,
+                    fillcolor="green", style="filled")
         cur_node = predictionNode
         cur_path = []
         while cur_node != self.start_node:
@@ -941,35 +957,49 @@ class SearchGraph:
         return [TacticInteraction(n.prediction, n.context_before)
                 for n in reversed(cur_path)]
         pass
-    def setNodeColor(self, node : LabeledNode, color : str) -> None:
+
+    def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
-    def draw(self, filename : str) -> None:
+
+    def draw(self, filename: str) -> None:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
+
+
 class SubSearchResult (NamedTuple):
-    solution : Optional[List[TacticInteraction]]
-    solved_subgoals : int
-def contextInPath(full_context : ProofContext, path : List[LabeledNode]):
-    return any([serapi_instance.contextSurjective(full_context, n.context_before)
+    solution: Optional[List[TacticInteraction]]
+    solved_subgoals: int
+
+
+def contextInPath(full_context: ProofContext, path: List[LabeledNode]):
+    return any([serapi_instance.contextSurjective(full_context,
+                                                  n.context_before)
                 for n in path])
-def numNodesInTree(branching_factor : int, depth : int):
+
+
+def numNodesInTree(branching_factor: int, depth: int):
     assert depth > 0, f"depth is {depth}"
-    result = int((branching_factor ** depth - 1) / \
+    result = int((branching_factor ** depth - 1) /
                  (branching_factor - 1))
     assert result >= 1, f"result is {result}"
     return result
-def time_on_path(node : LabeledNode) -> float:
-    if node.previous == None:
+
+
+def time_on_path(node: LabeledNode) -> float:
+    if node.previous is None:
         return unwrap(node.time_taken)
     else:
         return time_on_path(unwrap(node.previous)) + unwrap(node.time_taken)
-def tryPrediction(args : argparse.Namespace,
-                  coq : serapi_instance.SerapiInstance,
-                  prediction : str,
-                  previousNode : LabeledNode) -> Tuple[ProofContext, int, int, int,
-                                                       Optional[SerapiException], float, bool]:
+
+
+def tryPrediction(args: argparse.Namespace,
+                  coq: serapi_instance.SerapiInstance,
+                  prediction: str,
+                  previousNode: LabeledNode) \
+                  -> Tuple[ProofContext, int, int, int,
+                           Optional[SerapiException], float, bool]:
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
@@ -980,7 +1010,8 @@ def tryPrediction(args : argparse.Namespace,
     except (serapi_instance.TimeoutError, serapi_instance.ParseError,
             serapi_instance.CoqExn, serapi_instance.OverflowError,
             serapi_instance.UnrecognizedError) as e:
-        return unwrap(coq.proof_context), 0, 0, 0, e, time.time() - start_time, False
+        return (unwrap(coq.proof_context), 0, 0, 0, e,
+                time.time() - start_time, False)
 
     time_taken = time.time() - start_time
     num_stmts = 1
@@ -991,7 +1022,8 @@ def tryPrediction(args : argparse.Namespace,
         unshelved = True
         coq.run_stmt("Unshelve.")
         num_stmts += 1
-    while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
+    while len(unwrap(coq.proof_context).fg_goals) == 0 \
+            and not completed_proof(coq):
         coq.run_stmt("}")
         subgoals_closed += 1
         num_stmts += 1
@@ -1004,10 +1036,14 @@ def tryPrediction(args : argparse.Namespace,
         subgoals_opened = 0
     context_after = coq.proof_context
     assert context_after
-    return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken, unshelved
+    return (context_after, num_stmts, subgoals_closed,
+            subgoals_opened, error, time_taken, unshelved)
+
 
 goalBignessLimit = 3000
-def contextIsBig(context : ProofContext):
+
+
+def contextIsBig(context: ProofContext):
     for obligation in context.all_goals:
         for hypothesis in obligation.hypotheses:
             if len(hypothesis) > goalBignessLimit:
@@ -1015,40 +1051,51 @@ def contextIsBig(context : ProofContext):
         if len(obligation.goal) > goalBignessLimit:
             return True
     return False
-from tqdm import tqdm
+
+
 class TqdmSpy(tqdm):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._time = time.time
+
     @property
     def n(self):
         return self.__n
+
     @n.setter
     def n(self, value):
         self.__n = value
+
     def update(self, value):
         self.n = self.n + value
-        super().update(value);
-def dfs_proof_search_with_graph(lemma_statement : str,
-                                module_name : Optional[str],
-                                coq : serapi_instance.SerapiInstance,
-                                args : argparse.Namespace,
-                                bar_idx : int) \
+        super().update(value)
+
+
+def dfs_proof_search_with_graph(lemma_statement: str,
+                                module_name: Optional[str],
+                                coq: serapi_instance.SerapiInstance,
+                                args: argparse.Namespace,
+                                bar_idx: int,
+                                predictor: TacticPredictor,
+                                predictor_lock: threading.Lock) \
                                 -> SearchResult:
     global unnamed_goal_number
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
-    def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
+
+    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
             eprint(f"Cancelling {num_stmts} statements "
                    f"because {msg}.", guard=args.verbose >= 2)
         for _ in range(num_stmts):
             coq.cancel_last()
     hasUnexploredNode = False
-    def search(pbar : tqdm, current_path : List[LabeledNode],
-               subgoal_distance_stack : List[int],
-               extra_depth : int) -> SubSearchResult:
+
+    def search(pbar: tqdm, current_path: List[LabeledNode],
+               subgoal_distance_stack: List[int],
+               extra_depth: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
+        nonlocal predictor_lock
         if args.relevant_lemmas == "local":
             relevant_lemmas = coq.local_lemmas[:-1]
         elif args.relevant_lemmas == "hammer":
@@ -1061,11 +1108,14 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                                               coq.prev_tactics,
                                               coq.hypotheses,
                                               coq.goals)
-        predictions = [prediction.prediction for prediction in
-                       predictor.predictKTactics(tactic_context_before, args.max_attempts)]
+        with predictor_lock:
+            predictions = [prediction.prediction for prediction in
+                           predictor.predictKTactics(tactic_context_before,
+                                                     args.max_attempts)]
         proof_context_before = coq.proof_context
         if coq.use_hammer:
-            predictions = [prediction + "; try hammer." for prediction in predictions]
+            predictions = [prediction + "; try hammer."
+                           for prediction in predictions]
         num_successful_predictions = 0
         for prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
@@ -1088,45 +1138,52 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 pbar.update(1)
                 assert cast(TqdmSpy, pbar).n > 0
 
-                predictionNode = g.mkNode(prediction, unwrap(proof_context_before),
+                predictionNode = g.mkNode(prediction,
+                                          unwrap(proof_context_before),
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
-                    predictionNode = g.mkNode("Unshelve.", unwrap(proof_context_before),
+                    predictionNode = g.mkNode("Unshelve.",
+                                              unwrap(proof_context_before),
                                               predictionNode)
                     predictionNode.time_taken = 0
 
-                #### 1.
+                # ### 1.
                 if subgoal_distance_stack:
                     new_distance_stack = (subgoal_distance_stack[:-1] +
                                           [subgoal_distance_stack[-1]+1])
                 else:
                     new_distance_stack = []
 
-                #### 2.
+                # ### 2.
                 new_extra_depth = extra_depth
                 for _ in range(subgoals_closed):
                     closed_goal_distance = new_distance_stack.pop()
                     new_extra_depth += closed_goal_distance
 
-                #### 3.
+                # ### 3.
                 new_distance_stack += [0] * subgoals_opened
 
                 #############
                 if completed_proof(coq):
                     solution = g.mkQED(predictionNode)
                     return SubSearchResult(solution, subgoals_closed)
-                elif contextInPath(context_after, current_path[1:] + [predictionNode]):
+                elif contextInPath(context_after,
+                                   current_path[1:] + [predictionNode]):
                     if not args.count_softfail_predictions:
                         num_successful_predictions -= 1
                     g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts, "resulting context is in current path")
+                    cleanupSearch(num_stmts,
+                                  "resulting context is in current path")
                 elif contextIsBig(context_after):
                     g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts, "resulting context has too big a goal")
+                    cleanupSearch(num_stmts,
+                                  "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth:
-                    sub_search_result = search(pbar, current_path + [predictionNode],
-                                               new_distance_stack, new_extra_depth)
+                    sub_search_result = search(pbar,
+                                               current_path + [predictionNode],
+                                               new_distance_stack,
+                                               new_extra_depth)
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -1142,8 +1199,8 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0:
-                        depth = (args.search_depth + new_extra_depth + 1) \
-                            - len(current_path)
+                        # depth = (args.search_depth + new_extra_depth + 1) \
+                        #     - len(current_path)
                         return SubSearchResult(None, subgoals_closed)
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
