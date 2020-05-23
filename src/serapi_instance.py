@@ -1200,8 +1200,7 @@ class SerapiInstance(threading.Thread):
             commands_run.append(command)
             if self.proof_context:
                 return list(commands_iter), commands_run
-        return None
-
+        return [], commands_run
 
     def finish_proof(self, commands: List[str]) \
             -> Optional[Tuple[List[str], List[str]]]:
