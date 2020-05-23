@@ -33,7 +33,7 @@ import functools
 from dataclasses import dataclass
 
 from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
-                    Dict, TYPE_CHECKING)
+                    Dict, NamedTuple, TYPE_CHECKING)
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
@@ -87,23 +87,52 @@ class NoSuchGoalError(SerapiException):
 class CoqAnomaly(SerapiException):
     pass
 
+
 def raise_(ex):
     raise ex
 
-from typing import NamedTuple
 
 class Obligation(NamedTuple):
-    hypotheses : List[str]
-    goal : str
+    hypotheses: List[str]
+    goal: str
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"hypotheses": self.hypotheses,
+                "goal": self.goal}
+
 
 class ProofContext(NamedTuple):
-    fg_goals : List[Obligation]
-    bg_goals : List[Obligation]
-    shelved_goals : List[Obligation]
-    given_up_goals : List[Obligation]
+    fg_goals: List[Obligation]
+    bg_goals: List[Obligation]
+    shelved_goals: List[Obligation]
+    given_up_goals: List[Obligation]
+
+    @classmethod
+    def from_dict(cls, data):
+        fg_goals = list(map(Obligation.from_dict, data["fg_goals"]))
+        bg_goals = list(map(Obligation.from_dict, data["bg_goals"]))
+        shelved_goals = list(map(Obligation.from_dict, data["shelved_goals"]))
+        given_up_goals = list(map(Obligation.from_dict,
+                                  data["given_up_goals"]))
+        return cls(fg_goals, bg_goals, shelved_goals, given_up_goals)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"fg_goals": list(map(Obligation.to_dict, self.fg_goals)),
+                "bg_goals": list(map(Obligation.to_dict, self.bg_goals)),
+                "shelved_goals": list(map(Obligation.to_dict,
+                                          self.shelved_goals)),
+                "given_up_goals": list(map(Obligation.to_dict,
+                                           self.given_up_goals))}
+
     @property
     def all_goals(self) -> List[Obligation]:
-        return self.fg_goals + self.bg_goals + self.shelved_goals + self.given_up_goals
+        return self.fg_goals + self.bg_goals + \
+            self.shelved_goals + self.given_up_goals
+
 
 @dataclass
 class TacticTree:
