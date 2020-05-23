@@ -56,7 +56,6 @@ from dataloader import (features_polyarg_tensors,
                         DataloaderArgs,
                         ProofContext)
 
-import threading
 import argparse
 import sys
 import re
@@ -240,7 +239,6 @@ class FeaturesPolyargPredictor(
                            NeuralPredictorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.NLLLoss())
-        self._lock = threading.Lock()
         self.training_args : Optional[argparse.Namespace] = None
         self.training_loss : Optional[float] = None
         self.num_epochs : Optional[int] = None
@@ -272,92 +270,91 @@ class FeaturesPolyargPredictor(
         stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
         batch_size = len(context_batch)
 
-        with self._lock:
-            tprems_batch, pfeat_batch, \
-                nhyps_batch, tgoals_batch, \
-                wfeats_batch, vfeats_batch = \
-                    sample_fpa_batch(extract_dataloader_args(self.training_args),
-                                     self._metadata,
-                                     [context_py2r(context) for context in context_batch])
+        tprems_batch, pfeat_batch, \
+            nhyps_batch, tgoals_batch, \
+            wfeats_batch, vfeats_batch = \
+                sample_fpa_batch(extract_dataloader_args(self.training_args),
+                                 self._metadata,
+                                 [context_py2r(context) for context in context_batch])
 
-            stem_distribution = self._model.stem_classifier(LongTensor(wfeats_batch),
-                                                            FloatTensor(vfeats_batch))
-            stem_certainties_batch, stem_idxs_batch = stem_distribution.topk(stem_width)
+        stem_distribution = self._model.stem_classifier(LongTensor(wfeats_batch),
+                                                        FloatTensor(vfeats_batch))
+        stem_certainties_batch, stem_idxs_batch = stem_distribution.topk(stem_width)
 
-            goals_batch = LongTensor(tgoals_batch)
+        goals_batch = LongTensor(tgoals_batch)
 
-            goal_arg_values = self._model.goal_args_model(
-                stem_idxs_batch.view(batch_size * stem_width),
-                goals_batch.view(batch_size, 1, self.training_args.max_length)
-                .expand(-1, stem_width, -1).contiguous()
-                .view(batch_size * stem_width,
-                      self.training_args.max_length))\
-                                         .view(batch_size, stem_width, self.training_args.max_length + 1)
+        goal_arg_values = self._model.goal_args_model(
+            stem_idxs_batch.view(batch_size * stem_width),
+            goals_batch.view(batch_size, 1, self.training_args.max_length)
+            .expand(-1, stem_width, -1).contiguous()
+            .view(batch_size * stem_width,
+                  self.training_args.max_length))\
+                                     .view(batch_size, stem_width, self.training_args.max_length + 1)
 
-            goal_lengths = [len(tokenizer.get_symbols(context.goal))
-                            for context in context_batch]
-            for b, l in enumerate(goal_lengths):
-                for i in range(l + 1, goal_arg_values.size()[2]):
-                    goal_arg_values[b, :, i] = -float("Inf")
+        goal_lengths = [len(tokenizer.get_symbols(context.goal))
+                        for context in context_batch]
+        for b, l in enumerate(goal_lengths):
+            for i in range(l + 1, goal_arg_values.size()[2]):
+                goal_arg_values[b, :, i] = -float("Inf")
 
-            encoded_goals_batch = self._model.goal_encoder(goals_batch)
+        encoded_goals_batch = self._model.goal_encoder(goals_batch)
 
-            stems_expanded_batch = torch.cat([stem_idxs.view(1, stem_width)
-                                              .expand(num_hyps, stem_width).contiguous()
-                                              .view(num_hyps * stem_width)
-                                              for stem_idxs, num_hyps, in zip(stem_idxs_batch, nhyps_batch)])
-            egoals_expanded_batch = torch.cat([encoded_goal.view(1, self.training_args.hidden_size)
-                                               .expand(num_hyps * stem_width, -1).contiguous()
-                                               for encoded_goal, num_hyps in zip(encoded_goals_batch,
-                                                                                 nhyps_batch)])
-            tprems_expanded_batch = torch.cat([LongTensor(tpremises).view(1, -1, self.training_args.max_length)
-                                               .expand(stem_width, -1, -1).contiguous()
-                                               .view(-1, self.training_args.max_length)
-                                               for tpremises in tprems_batch])
-            pfeat_expanded_batch = torch.cat([FloatTensor(premise_features).view(1, num_hyps, 2)
-                                              .expand(stem_width, -1, -1).contiguous()
-                                              .view(num_hyps * stem_width, 2)
-                                              for premise_features, num_hyps in zip(pfeat_batch, nhyps_batch)])
+        stems_expanded_batch = torch.cat([stem_idxs.view(1, stem_width)
+                                          .expand(num_hyps, stem_width).contiguous()
+                                          .view(num_hyps * stem_width)
+                                          for stem_idxs, num_hyps, in zip(stem_idxs_batch, nhyps_batch)])
+        egoals_expanded_batch = torch.cat([encoded_goal.view(1, self.training_args.hidden_size)
+                                           .expand(num_hyps * stem_width, -1).contiguous()
+                                           for encoded_goal, num_hyps in zip(encoded_goals_batch,
+                                                                             nhyps_batch)])
+        tprems_expanded_batch = torch.cat([LongTensor(tpremises).view(1, -1, self.training_args.max_length)
+                                           .expand(stem_width, -1, -1).contiguous()
+                                           .view(-1, self.training_args.max_length)
+                                           for tpremises in tprems_batch])
+        pfeat_expanded_batch = torch.cat([FloatTensor(premise_features).view(1, num_hyps, 2)
+                                          .expand(stem_width, -1, -1).contiguous()
+                                          .view(num_hyps * stem_width, 2)
+                                          for premise_features, num_hyps in zip(pfeat_batch, nhyps_batch)])
 
-            prem_arg_values = self._model.hyp_model(stems_expanded_batch,
-                                                    egoals_expanded_batch,
-                                                    tprems_expanded_batch,
-                                                    pfeat_expanded_batch)
+        prem_arg_values = self._model.hyp_model(stems_expanded_batch,
+                                                egoals_expanded_batch,
+                                                tprems_expanded_batch,
+                                                pfeat_expanded_batch)
 
-            prem_arg_values_split = prem_arg_values.split([num_hyps * stem_width for num_hyps in nhyps_batch])
-            total_values_list = [torch.cat((goal_values, prem_values.view(stem_width, -1)), dim=1) for
-                                 goal_values, prem_values in zip(goal_arg_values, prem_arg_values_split)]
-            all_probs_list = [self._softmax((total_values +
-                                              stem_certainties.view(stem_width, 1)
-                                              .expand_as(total_values))
-                                             .contiguous()
-                                             .view(1,-1))
-                               .view(-1)
-                               for total_values, stem_certainties
-                               in zip(total_values_list, stem_certainties_batch)]
+        prem_arg_values_split = prem_arg_values.split([num_hyps * stem_width for num_hyps in nhyps_batch])
+        total_values_list = [torch.cat((goal_values, prem_values.view(stem_width, -1)), dim=1) for
+                             goal_values, prem_values in zip(goal_arg_values, prem_arg_values_split)]
+        all_probs_list = [self._softmax((total_values +
+                                          stem_certainties.view(stem_width, 1)
+                                          .expand_as(total_values))
+                                         .contiguous()
+                                         .view(1,-1))
+                           .view(-1)
+                           for total_values, stem_certainties
+                           in zip(total_values_list, stem_certainties_batch)]
 
-            final_probs_list, final_idxs_list = zip(*[probs.topk(k) for probs in all_probs_list])
-            stem_keys_list = [final_idxs // (self.training_args.max_length + num_hyps + 1)
-                              for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
+        final_probs_list, final_idxs_list = zip(*[probs.topk(k) for probs in all_probs_list])
+        stem_keys_list = [final_idxs // (self.training_args.max_length + num_hyps + 1)
+                          for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
 
-            stem_idxs_list = [stem_idxs.view(stem_width).index_select(0, stem_keys)
-                              for stem_idxs, stem_keys in zip(stem_idxs_batch, stem_keys_list)]
+        stem_idxs_list = [stem_idxs.view(stem_width).index_select(0, stem_keys)
+                          for stem_idxs, stem_keys in zip(stem_idxs_batch, stem_keys_list)]
 
-            arg_idxs_list = [final_idxs % (self.training_args.max_length + num_hyps + 1)
-                             for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
+        arg_idxs_list = [final_idxs % (self.training_args.max_length + num_hyps + 1)
+                         for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
 
-            return [[Prediction(decode_fpa_result(extract_dataloader_args(self.training_args),
-                                                  self._metadata,
-                                                  context.hypotheses + context.relevant_lemmas,
-                                                  context.goal,
-                                                  stem_idx.item(),
-                                                  arg_idx.item()),
-                                math.exp(prob))
-                     for stem_idx, arg_idx, prob in
-                     islice(zip(stem_idxs, arg_idxs, final_probs),
-                            min(k, 1 + num_hyps + len(tokenizer.get_symbols(context.goal))))]
-                    for stem_idxs, arg_idxs, final_probs, context, num_hyps
-                    in zip(stem_idxs_list, arg_idxs_list, final_probs_list, context_batch, nhyps_batch)]
+        return [[Prediction(decode_fpa_result(extract_dataloader_args(self.training_args),
+                                              self._metadata,
+                                              context.hypotheses + context.relevant_lemmas,
+                                              context.goal,
+                                              stem_idx.item(),
+                                              arg_idx.item()),
+                            math.exp(prob))
+                 for stem_idx, arg_idx, prob in
+                 islice(zip(stem_idxs, arg_idxs, final_probs),
+                        min(k, 1 + num_hyps + len(tokenizer.get_symbols(context.goal))))]
+                for stem_idxs, arg_idxs, final_probs, context, num_hyps
+                in zip(stem_idxs_list, arg_idxs_list, final_probs_list, context_batch, nhyps_batch)]
 
     def predictKTactics(self, context : TacticContext, k : int) -> List[Prediction]:
         assert self.training_args
@@ -368,106 +365,105 @@ class FeaturesPolyargPredictor(
         num_stem_poss = get_num_tokens(self._metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
 
-        with self._lock:
-            tokenized_premises, hyp_features, \
-                nhyps_batch, tokenized_goal, \
-                word_features, vec_features = \
-                    sample_fpa(extract_dataloader_args(self.training_args),
-                               self._metadata,
-                               context.relevant_lemmas,
-                               context.prev_tactics,
-                               context.hypotheses,
-                               context.goal)
+        tokenized_premises, hyp_features, \
+            nhyps_batch, tokenized_goal, \
+            word_features, vec_features = \
+                sample_fpa(extract_dataloader_args(self.training_args),
+                           self._metadata,
+                           context.relevant_lemmas,
+                           context.prev_tactics,
+                           context.hypotheses,
+                           context.goal)
 
-            num_hyps = nhyps_batch[0]
+        num_hyps = nhyps_batch[0]
 
-            stem_distribution = self._model.stem_classifier(LongTensor(word_features),
-                                                            FloatTensor(vec_features))
-            stem_certainties, stem_idxs = stem_distribution.topk(stem_width)
+        stem_distribution = self._model.stem_classifier(LongTensor(word_features),
+                                                        FloatTensor(vec_features))
+        stem_certainties, stem_idxs = stem_distribution.topk(stem_width)
 
-            goals_batch = LongTensor(tokenized_goal)
-            goal_arg_values = self._model.goal_args_model(
-                stem_idxs.view(1 * stem_width),
-                goals_batch.view(1, 1, self.training_args.max_length)\
-                .expand(-1, stem_width, -1).contiguous()\
-                .view(1 * stem_width,
-                      self.training_args.max_length))\
-                      .view(1, stem_width, self.training_args.max_length + 1)
-            goal_symbols = tokenizer.get_symbols(context.goal)
-            for i in range(len(goal_symbols) + 1, goal_arg_values.size()[2]):
-                goal_arg_values[:, :, i] = -float("Inf")
-            assert goal_arg_values.size() == torch.Size([1, stem_width,
-                                                         self.training_args.max_length + 1]),\
-                "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
-                                                                    stem_width)
+        goals_batch = LongTensor(tokenized_goal)
+        goal_arg_values = self._model.goal_args_model(
+            stem_idxs.view(1 * stem_width),
+            goals_batch.view(1, 1, self.training_args.max_length)\
+            .expand(-1, stem_width, -1).contiguous()\
+            .view(1 * stem_width,
+                  self.training_args.max_length))\
+                  .view(1, stem_width, self.training_args.max_length + 1)
+        goal_symbols = tokenizer.get_symbols(context.goal)
+        for i in range(len(goal_symbols) + 1, goal_arg_values.size()[2]):
+            goal_arg_values[:, :, i] = -float("Inf")
+        assert goal_arg_values.size() == torch.Size([1, stem_width,
+                                                     self.training_args.max_length + 1]),\
+            "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
+                                                                stem_width)
 
-            num_probs = 1 + num_hyps + self.training_args.max_length
-            num_valid_probs = 1 + num_hyps + len(goal_symbols)
-            if num_hyps > 0:
-                encoded_goals = self._model.goal_encoder(goals_batch)\
-                                           .view(1, 1, self.training_args.hidden_size)
+        num_probs = 1 + num_hyps + self.training_args.max_length
+        num_valid_probs = 1 + num_hyps + len(goal_symbols)
+        if num_hyps > 0:
+            encoded_goals = self._model.goal_encoder(goals_batch)\
+                                       .view(1, 1, self.training_args.hidden_size)
 
-                hyps_batch = LongTensor(tokenized_premises)
-                assert hyps_batch.size() == torch.Size([1, num_hyps,
-                                                        self.training_args.max_length]), \
-                                                        (hyps_batch.size(),
-                                                         num_hyps,
-                                                         self.training_args.max_length)
-                hyps_batch_expanded = hyps_batch.expand(stem_width, -1, -1)\
-                                                .contiguous()\
-                                                .view(stem_width * num_hyps,
-                                                      self.training_args.max_length)
+            hyps_batch = LongTensor(tokenized_premises)
+            assert hyps_batch.size() == torch.Size([1, num_hyps,
+                                                    self.training_args.max_length]), \
+                                                    (hyps_batch.size(),
+                                                     num_hyps,
+                                                     self.training_args.max_length)
+            hyps_batch_expanded = hyps_batch.expand(stem_width, -1, -1)\
+                                            .contiguous()\
+                                            .view(stem_width * num_hyps,
+                                                  self.training_args.max_length)
 
-                hypfeatures_batch = FloatTensor(hyp_features)
-                assert hypfeatures_batch.size() == \
-                    torch.Size([1, num_hyps, hypFeaturesSize()]), \
-                    (hypfeatures_batch.size(), num_hyps, hypFeaturesSize())
-                hypfeatures_batch_expanded = \
-                    hypfeatures_batch.expand(stem_width, -1, -1)\
-                                     .contiguous()\
-                                     .view(stem_width * num_hyps, hypFeaturesSize())
-                hyp_arg_values = self.runHypModel(stem_idxs,
-                                                  encoded_goals, hyps_batch,
-                                                  hypfeatures_batch)
-                assert hyp_arg_values.size() == \
-                    torch.Size([1, stem_width, num_hyps])
-                total_values = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
-            else:
-                total_values = goal_arg_values
-            all_prob_batches = self._softmax((total_values +
-                                              stem_certainties.view(1, stem_width, 1)
-                                              .expand(-1, -1, num_probs))
-                                             .contiguous()
-                                             .view(1, stem_width * num_probs))\
-                                   .view(stem_width * num_probs)
+            hypfeatures_batch = FloatTensor(hyp_features)
+            assert hypfeatures_batch.size() == \
+                torch.Size([1, num_hyps, hypFeaturesSize()]), \
+                (hypfeatures_batch.size(), num_hyps, hypFeaturesSize())
+            hypfeatures_batch_expanded = \
+                hypfeatures_batch.expand(stem_width, -1, -1)\
+                                 .contiguous()\
+                                 .view(stem_width * num_hyps, hypFeaturesSize())
+            hyp_arg_values = self.runHypModel(stem_idxs,
+                                              encoded_goals, hyps_batch,
+                                              hypfeatures_batch)
+            assert hyp_arg_values.size() == \
+                torch.Size([1, stem_width, num_hyps])
+            total_values = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
+        else:
+            total_values = goal_arg_values
+        all_prob_batches = self._softmax((total_values +
+                                          stem_certainties.view(1, stem_width, 1)
+                                          .expand(-1, -1, num_probs))
+                                         .contiguous()
+                                         .view(1, stem_width * num_probs))\
+                               .view(stem_width * num_probs)
 
-            final_probs, final_idxs = all_prob_batches.topk(k)
-            assert not torch.isnan(final_probs).any()
-            assert final_probs.size() == torch.Size([k])
-            row_length = self.training_args.max_length + num_hyps + 1
-            stem_keys = final_idxs // row_length
-            assert stem_keys.size() == torch.Size([k])
-            assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
-            prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
-            assert prediction_stem_idxs.size() == torch.Size([k]), \
-                prediction_stem_idxs.size()
-            arg_idxs = final_idxs % row_length
-            assert arg_idxs.size() == torch.Size([k])
+        final_probs, final_idxs = all_prob_batches.topk(k)
+        assert not torch.isnan(final_probs).any()
+        assert final_probs.size() == torch.Size([k])
+        row_length = self.training_args.max_length + num_hyps + 1
+        stem_keys = final_idxs // row_length
+        assert stem_keys.size() == torch.Size([k])
+        assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
+        prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
+        assert prediction_stem_idxs.size() == torch.Size([k]), \
+            prediction_stem_idxs.size()
+        arg_idxs = final_idxs % row_length
+        assert arg_idxs.size() == torch.Size([k])
 
-            if self.training_args.lemma_args:
-                all_hyps = context.hypotheses + context.relevant_lemmas
-            else:
-                all_hyps = context.hypotheses
-            return [Prediction(decode_fpa_result(
-                extract_dataloader_args(self.training_args),
-                self._metadata,
-                all_hyps,
-                context.goal,
-                stem_idx.item(),
-                arg_idx.item()),
-                                math.exp(prob))
-                    for stem_idx, arg_idx, prob in
-                    islice(zip(prediction_stem_idxs, arg_idxs, final_probs), min(k, num_valid_probs))]
+        if self.training_args.lemma_args:
+            all_hyps = context.hypotheses + context.relevant_lemmas
+        else:
+            all_hyps = context.hypotheses
+        return [Prediction(decode_fpa_result(
+            extract_dataloader_args(self.training_args),
+            self._metadata,
+            all_hyps,
+            context.goal,
+            stem_idx.item(),
+            arg_idx.item()),
+                            math.exp(prob))
+                for stem_idx, arg_idx, prob in
+                islice(zip(prediction_stem_idxs, arg_idxs, final_probs), min(k, num_valid_probs))]
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 0
