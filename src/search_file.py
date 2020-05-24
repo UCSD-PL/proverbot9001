@@ -441,7 +441,8 @@ def search_file_multithreaded(args: argparse.Namespace,
                                            args=(args, cmds, predictor,
                                                  predictor_lock,
                                                  jobs, done, widx))
-                   for widx in range(args.num_threads)]
+                   for widx in range(min(args.num_threads,
+                                         len(lemma_statements_todo)))]
         for worker in workers:
             worker.start()
         with proofs_file.open('a') as f:
