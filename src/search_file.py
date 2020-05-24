@@ -169,7 +169,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser = argparse.ArgumentParser(
         description="Produce an html report from attempting "
         "to complete proofs using Proverbot9001.")
-    parser.add_argument("--prelude", default=".")
+    parser.add_argument("--prelude", default=".", type=Path2)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
                         default="search-report",
@@ -463,6 +463,8 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         blocks = blocks_from_scrape_and_sols(args.prelude / args.filename,
                                              lemma_solutions)
+        model_name = dict(predictor.getOptions())["predictor"]
+        write_solution_vfile(args, model_name, blocks)
         write_html(args, args.output_dir, args.filename, blocks)
         write_csv(args, args.filename, blocks)
     pass
@@ -564,6 +566,32 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
                              ProofContext([Obligation(s.hypotheses,
                                                       s.goal)],
                                           [], [], []))
+
+
+def write_solution_vfile(args: argparse.Namespace, model_name: str,
+                         doc_blocks: List[DocumentBlock]):
+    with (args.output_dir / (args.filename.stem + "-solution.v")
+          ).open('w') as sfile:
+        for k, v in [("search-width", args.search_width),
+                     ("search-depth", args.search_depth),
+                     ("model", model_name)]:
+            print(f"(* {k}: {v} *)", file=sfile)
+
+        for block in doc_blocks:
+            if isinstance(block, VernacBlock):
+                for cmd in block.commands:
+                    print(cmd, file=sfile, end='')
+            else:
+                assert isinstance(block, ProofBlock)
+                print(block.lemma_statement, end='', file=sfile)
+                if block.predicted_tactics:
+                    for tac in block.predicted_tactics:
+                        print(tac.tactic, file=sfile)
+                else:
+                    for tac in block.original_tactics:
+                        print(tac.tactic, file=sfile)
+
+        pass
 
 
 def html_header(tag: Tag, doc: Doc, text: Text, css: List[str],
@@ -730,26 +758,6 @@ def classFromSearchStatus(status: SearchStatus) -> str:
         return 'okay'
     else:
         return 'bad'
-
-
-def make_new_solution_vfile(args: argparse.Namespace, model_name: str,
-                            filename: Path2) -> None:
-    solution_vfile_path = (args.output_dir / escape_filename(str(filename)))\
-        .with_suffix(".v")
-    with solution_vfile_path.open(mode='w') as f:
-        for k, v in [("search-width", args.search_width),
-                     ("search-depth", args.search_depth),
-                     ("model", model_name)]:
-            print(f"(* {k}: {v} *)", file=f)
-
-
-def append_to_solution_vfile(outdir: Path2, filename: Path2,
-                             lines: List[str]) -> None:
-    solution_vfile_path = (outdir / escape_filename(str(filename))
-                           ).with_suffix(".v")
-    with solution_vfile_path.open(mode='a') as f:
-        for line in lines:
-            print(line.strip(), file=f, flush=True)
 
 
 def check_solution_vfile_args(args: argparse.Namespace, model_name: str,
