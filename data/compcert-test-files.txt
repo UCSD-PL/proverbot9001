@@ -3,7 +3,7 @@
 ./backend/Selectionproof.v
 ./cfrontend/Cop.v
 ./exportclight/Clightdefs.v
-./cparser/MenhirLib/Validator_complete.v
+./MenhirLib/Validator_complete.v
 ./x86/SelectOpproof.v
 ./flocq/Calc/Round.v
 ./flocq/Prop/Mult_error.v
