@@ -33,13 +33,14 @@ import functools
 from dataclasses import dataclass
 
 from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
-                    Dict, NamedTuple, TYPE_CHECKING)
+                    Pattern, Match, Dict, NamedTuple, TYPE_CHECKING)
+from tqdm import tqdm
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
 if TYPE_CHECKING:
     from sexpdata import Sexp
-from sexpdata import loads, dumps, Symbol
+from sexpdata import Symbol, loads, dumps
 from traceback import *
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
                   hash_file, sighandler_context, unwrap, progn)
@@ -540,7 +541,7 @@ class SerapiInstance(threading.Thread):
                 except TimeoutError:
                     eprint("Timed out waiting for completed message")
                 try:
-                    result = re.sub("\s+", " ", self.ppToTermStr(pp_term))
+                    result = re.sub(r"\s+", " ", self.ppToTermStr(pp_term))
                 except TimeoutError:
                     eprint("Timed out when converting ppterm")
                 return result
@@ -557,13 +558,13 @@ class SerapiInstance(threading.Thread):
     # class. Sends a single command to the running serapi
     # instance. Returns nothing: if you want a response, call one of
     # the other methods to get it.
-    def run_stmt(self, stmt : str, timeout : Optional[int]=None):
+    def run_stmt(self, stmt: str, timeout: Optional[int] = None):
         if timeout:
             old_timeout = self.timeout
             self.timeout = timeout
         self.flush_queue()
         eprint("Running statement: " + stmt.lstrip('\n'),
-               guard=self.verbose >= 2) # lstrip makes output shorter
+               guard=self.verbose >= 2)  # lstrip makes output shorter
         # We need to escape some stuff so that it doesn't get stripped
         # too early.
         stmt = stmt.replace("\\", "\\\\")
@@ -645,13 +646,15 @@ class SerapiInstance(threading.Thread):
 
         return self.tactic_history.getCurrentHistory()
 
-    def handle_exception(self, e : SerapiException, stmt : str):
-        eprint("Problem running statement: {}\n{}".format(stmt, dumps(e.msg)),
+    def handle_exception(self, e: SerapiException, stmt: str):
+        eprint("Problem running statement: {}\n".format(stmt, dumps(e.msg)),
                guard=(not self.quiet or self.verbose >= 2))
         match(e,
-              TimeoutError, lambda *args: progn(self.cancel_failed(), # type: ignore
-                                                raise_(TimeoutError("Statment \"{}\" timed out."
-                                                                    .format(stmt)))),
+              TimeoutError,
+              lambda *args: progn(self.cancel_failed(),  # type: ignore
+                                  raise_(TimeoutError(
+                                      "Statment \"{}\" timed out."
+                                      .format(stmt)))),
               _, lambda e: None)
         coqexn_msg = match(normalizeMessage(e.msg),
                            ['Answer', int, ['CoqExn', TAIL]],
@@ -662,7 +665,9 @@ class SerapiInstance(threading.Thread):
                            _, None)
         if coqexn_msg:
             eprint(coqexn_msg, guard=(not self.quiet or self.verbose >= 2))
-            if "Stream\\.Error" in coqexn_msg or "Syntax error" in coqexn_msg or "Syntax Error" in coqexn_msg:
+            if ("Stream\\.Error" in coqexn_msg
+                    or "Syntax error" in coqexn_msg
+                    or "Syntax Error" in coqexn_msg):
                 self.get_completed()
                 raise ParseError(f"Couldn't parse command {stmt}")
             elif "CLexer.Error" in coqexn_msg:
@@ -691,34 +696,42 @@ class SerapiInstance(threading.Thread):
             match(normalizeMessage(e.msg),
                   ['Stream\\.Error', str],
                   lambda *args: progn(self.get_completed(),
-                                      raise_(ParseError("Couldn't parse command {}"
-                                                        .format(stmt)))),
+                                      raise_(ParseError(
+                                          "Couldn't parse command {}"
+                                          .format(stmt)))),
 
                   ['CErrors\\.UserError', _],
                   lambda inner: progn(self.get_completed(),
-                                      self.cancel_failed(), raise_(e)), # type: ignore
+                                      self.cancel_failed(),  # type: ignore
+                                      raise_(e)),
                   ['ExplainErr\\.EvaluatedError', TAIL],
                   lambda inner: progn(self.get_completed(),
-                                      self.cancel_failed(), raise_(e)), # type: ignore
+                                      self.cancel_failed(),  # type: ignore
+                                      raise_(e)),
                   _, lambda *args: progn(raise_(UnrecognizedError(args))))
 
     # Flush all messages in the message queue
     def flush_queue(self) -> None:
         while not self.message_queue.empty():
             self.get_message()
-    def ppStrToTermStr(self, pp_str : str) -> str:
-        answer = self.ask(f"(Print ((pp ((pp_format PpStr)))) (CoqPp {pp_str}))")
+
+    def ppStrToTermStr(self, pp_str: str) -> str:
+        answer = self.ask(
+            f"(Print ((pp ((pp_format PpStr)))) (CoqPp {pp_str}))")
         return match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
                      ["Answer", int, ["CoqExn", TAIL]],
                      lambda statenum, msg:
                      raise_(CoqExn(searchStrsInMsg(msg))))
+
     def ppToTermStr(self, pp) -> str:
         return self.ppStrToTermStr(dumps(pp))
+
     @functools.lru_cache(maxsize=128)
-    def sexpStrToTermStr(self, sexp_str : str) -> str:
-        answer = self.ask(f"(Print ((pp ((pp_format PpStr)))) (CoqConstr {sexp_str}))")
+    def sexpStrToTermStr(self, sexp_str: str) -> str:
+        answer = self.ask(
+            f"(Print ((pp ((pp_format PpStr)))) (CoqConstr {sexp_str}))")
         return match(normalizeMessage(answer),
                      ["Answer", int, ["ObjList", [["CoqString", _]]]],
                      lambda statenum, s: str(s),
@@ -728,24 +741,35 @@ class SerapiInstance(threading.Thread):
 
     def sexpToTermStr(self, sexp) -> str:
         return self.sexpStrToTermStr(dumps(sexp))
+
     def parseSexpHypStr(self, sexp_str: str) -> str:
-        var_sexps_str, mid_str, term_sexp_str = cast(List[str], parseSexpOneLevel(sexp_str))
-        def get_id(var_pair_str : str) -> str:
-            id_possibly_quoted = unwrap(re.match("\(Id\s*(.*)\)", var_pair_str)).group(1)
-            if id_possibly_quoted[0] == "\"" and id_possibly_quoted[-1] == "\"":
+        var_sexps_str, mid_str, term_sexp_str = \
+            cast(List[str], parseSexpOneLevel(sexp_str))
+
+        def get_id(var_pair_str: str) -> str:
+            id_possibly_quoted = unwrap(re.match(
+                r"\(Id\s*(.*)\)", var_pair_str)).group(1)
+            if id_possibly_quoted[0] == "\"" and \
+               id_possibly_quoted[-1] == "\"":
                 return id_possibly_quoted[1:-1]
             return id_possibly_quoted
         ids_str = ",".join([get_id(var_pair_str) for
-                            var_pair_str in cast(List[str], parseSexpOneLevel(var_sexps_str))])
+                            var_pair_str in
+                            cast(List[str], parseSexpOneLevel(var_sexps_str))])
         term_str = self.sexpStrToTermStr(term_sexp_str)
         return f"{ids_str} : {term_str}"
+
     def parseSexpHyp(self, sexp) -> str:
         var_sexps, _, term_sexp = sexp
         ids_str = ",".join([dumps(var_sexp[1]) for var_sexp in var_sexps])
         term_str = self.sexpToTermStr(term_sexp)
         return f"{ids_str} : {term_str}"
-    def parseSexpGoalStr(self, sexp_str : str) -> Obligation:
-        goal_match = re.fullmatch("\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)\(name\s*\(\)\)\)\)\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
+
+    def parseSexpGoalStr(self, sexp_str: str) -> Obligation:
+        goal_match = re.fullmatch(
+            r"\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)"
+            r"\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)"
+            r"\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
         assert goal_match, sexp_str + "didn't match"
         goal_num_str, goal_term_str, hyps_list_str = \
             goal_match.group(1, 2, 3)
@@ -762,6 +786,7 @@ class SerapiInstance(threading.Thread):
         goal_str = self.sexpToTermStr(goal_term)
         hyps = [self.parseSexpHyp(hyp_sexp) for hyp_sexp in hyps_list]
         return Obligation(hyps, goal_str)
+
     def parseBgGoal(self, sexp) -> Obligation:
         return match(normalizeMessage(sexp),
                      [[], [_]],
@@ -774,7 +799,6 @@ class SerapiInstance(threading.Thread):
     def cancel_last(self) -> None:
         context_before = self.proof_context
         if self.proof_context:
-            old_subgoals = self.proof_context.fg_goals
             if len(self.tactic_history.getFullHistory()) > 0:
                 cancelled = self.tactic_history.getNextCancelled()
                 eprint(f"Cancelling {cancelled} "
@@ -782,11 +806,10 @@ class SerapiInstance(threading.Thread):
                        guard=self.verbose)
                 self.cancel_potential_local_lemmas(cancelled)
             else:
-                eprint(f"Cancelling something (not in history)",
+                eprint("Cancelling something (not in history)",
                        guard=self.verbose)
         else:
             cancelled = ""
-            old_subgoals = []
             eprint(f"Cancelling vernac "
                    f"from state {self.cur_state}",
                    guard=self.verbose)
@@ -796,7 +819,8 @@ class SerapiInstance(threading.Thread):
         if context_before and len(self.tactic_history.getFullHistory()) > 0:
             self.tactic_history.removeLast(context_before.fg_goals)
         if not self.proof_context:
-            assert len(self.tactic_history.getFullHistory()) == 0, ("History is desynced!", self.tactic_history.getFullHistory())
+            assert len(self.tactic_history.getFullHistory()) == 0, \
+                ("History is desynced!", self.tactic_history.getFullHistory())
             self.tactic_history = TacticHistory()
         assert self.message_queue.empty(), self.messages
         if self.proof_context and self.verbose >= 3:
@@ -832,7 +856,7 @@ class SerapiInstance(threading.Thread):
               ["Answer", int, "Completed"], lambda state: None,
               _, lambda msg: raise_(CompletedError(completed)))
 
-    def add_lib(self, origpath : str, logicalpath : str) -> None:
+    def add_lib(self, origpath: str, logicalpath: str) -> None:
         addStm = ("(Add () \"Add LoadPath \\\"{}\\\" as {}.\")\n"
                   .format(origpath, logicalpath))
         self.send_acked(addStm)
@@ -842,7 +866,8 @@ class SerapiInstance(threading.Thread):
         self.discard_feedback()
         self.discard_feedback()
         self.get_completed()
-    def add_ocaml_lib(self, path : str) -> None:
+
+    def add_ocaml_lib(self, path: str) -> None:
         addStm = ("(Add () \"Add ML Path \\\"{}\\\".\")\n"
                   .format(path))
         self.send_acked(addStm)
@@ -852,7 +877,8 @@ class SerapiInstance(threading.Thread):
         self.discard_feedback()
         self.discard_feedback()
         self.get_completed()
-    def add_lib_rec(self, origpath : str, logicalpath : str) -> None:
+
+    def add_lib_rec(self, origpath: str, logicalpath: str) -> None:
         addStm = ("(Add () \"Add Rec LoadPath \\\"{}\\\" as {}.\")\n"
                   .format(origpath, logicalpath))
         self.send_acked(addStm)
@@ -863,9 +889,9 @@ class SerapiInstance(threading.Thread):
         self.discard_feedback()
         self.get_completed()
 
-    def search_about(self, symbol : str) -> List[str]:
+    def search_about(self, symbol: str) -> List[str]:
         self.send_acked(f"(Query () (Vernac \"Search {symbol}.\"))")
-        lemma_msgs : List[str] = []
+        lemma_msgs: List[str] = []
         nextmsg = self.get_message()
         while match(normalizeMessage(nextmsg),
                     ["Feedback", [["doc_id", int], ["span_id", int],
@@ -882,7 +908,8 @@ class SerapiInstance(threading.Thread):
         while match(normalizeMessage(nextmsg),
                     ["Feedback", [["doc_id", int], ["span_id", int],
                                   ["route", int],
-                                  ["contents", ["Message", "Notice", [], TAIL]]]],
+                                  ["contents", ["Message", "Notice",
+                                                [], TAIL]]]],
                     lambda *args: True,
                     _, lambda *args: False):
             oldmsg = nextmsg
@@ -892,7 +919,8 @@ class SerapiInstance(threading.Thread):
             except RecursionError:
                 pass
         self.get_completed()
-        str_lemmas = [re.sub("\s+", " ", self.ppToTermStr(lemma_msg[1][3][1][3]))
+        str_lemmas = [re.sub(r"\s+", " ",
+                             self.ppToTermStr(lemma_msg[1][3][1][3]))
                       for lemma_msg in lemma_msgs[:10]]
         return str_lemmas
 
@@ -921,13 +949,13 @@ class SerapiInstance(threading.Thread):
         else:
             return dumps(content)
 
-    def exec_includes(self, includes_string : str, prelude : str) -> None:
-        for match in re.finditer("-R\s*(\S*)\s*(\S*)\s*", includes_string):
-            self.add_lib_rec("./" + match.group(1), match.group(2))
-        for match in re.finditer("-Q\s*(\S*)\s*(\S*)\s*", includes_string):
-            self.add_lib("./" + match.group(1), match.group(2))
-        for match in re.finditer("-I\s*(\S*)", includes_string):
-            self.add_ocaml_lib("./" + match.group(1))
+    def exec_includes(self, includes_string: str, prelude: str) -> None:
+        for rmatch in re.finditer(r"-R\s*(\S*)\s*(\S*)\s*", includes_string):
+            self.add_lib_rec("./" + rmatch.group(1), rmatch.group(2))
+        for qmatch in re.finditer(r"-Q\s*(\S*)\s*(\S*)\s*", includes_string):
+            self.add_lib("./" + qmatch.group(1), qmatch.group(2))
+        for imatch in re.finditer(r"-I\s*(\S*)", includes_string):
+            self.add_ocaml_lib("./" + imatch.group(1))
 
     def update_state(self) -> None:
         self.cur_state = self.get_next_state()
@@ -1073,13 +1101,13 @@ class SerapiInstance(threading.Thread):
                       _, lambda *args: raise_(BadResponse(feedback)))
 
             cancelled_answer = self.get_message()
-            old_statenum = \
-                match(normalizeMessage(cancelled_answer),
-                      ["Answer", int, ["Canceled", list]],
-                      lambda _, statenums: min(statenums),
-                      ["Answer", int, ["CoqExn", TAIL]],
-                      lambda statenum, rest: raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
-                      _, lambda *args: raise_(BadResponse(cancelled_answer)))
+
+            match(normalizeMessage(cancelled_answer),
+                  ["Answer", int, ["Canceled", list]],
+                  lambda _, statenums: min(statenums),
+                  ["Answer", int, ["CoqExn", TAIL]],
+                  lambda statenum, rest: raise_(CoqExn("\n".join(searchStrsInMsg(rest)))),
+                  _, lambda *args: raise_(BadResponse(cancelled_answer)))
         finally:
             self.get_completed()
 
@@ -1303,22 +1331,28 @@ special_lemma_starting_patterns = [
     "Goal",
     "Add Morphism",
     "Next Obligation",
-    "Obligation\s+\d+",
+    r"Obligation\s+\d+",
     "Add Parametric Morphism"]
-lemma_starting_patterns = normal_lemma_starting_patterns + special_lemma_starting_patterns
 
-def possibly_starting_proof(command : str) -> bool:
+lemma_starting_patterns = \
+    normal_lemma_starting_patterns + special_lemma_starting_patterns
+
+
+def possibly_starting_proof(command: str) -> bool:
     stripped_command = kill_comments(command).strip()
-    return bool(re.match("(" + "|".join(lemma_starting_patterns) + ")\s*", stripped_command))
+    return bool(re.match("(" + "|".join(lemma_starting_patterns) + r")\s*",
+                         stripped_command))
 
-def ending_proof(command : str) -> bool:
+
+def ending_proof(command: str) -> bool:
     stripped_command = kill_comments(command).strip()
     return ("Qed" in stripped_command or
             "Defined" in stripped_command or
             "Admitted" in stripped_command or
             "Abort" in stripped_command or
-            (re.match("\s*Proof\s+\S+\s*", stripped_command) != None and
-             re.match("\s*Proof\s+with", stripped_command) == None))
+            (re.match(r"\s*Proof\s+\S+\s*", stripped_command) is not None and
+             re.match(r"\s*Proof\s+with", stripped_command) is None))
+
 
 def kill_comments(string: str) -> str:
     result = ""
@@ -1338,10 +1372,11 @@ def kill_comments(string: str) -> str:
             if string[i-1:i+1] == '*)' and depth > 0:
                 depth -= 1
             if string[i] == '"' and string[i-1] != '\\':
-               in_quote = True
+                in_quote = True
     return result
 
-def next_proof(cmds : Iterator[str]) -> Iterable[str]:
+
+def next_proof(cmds: Iterator[str]) -> Iterable[str]:
     next_cmd = next(cmds)
     assert possibly_starting_proof(next_cmd), next_cmd
     while not ending_proof(next_cmd):
@@ -1352,7 +1387,8 @@ def next_proof(cmds : Iterator[str]) -> Iterable[str]:
             return
     yield next_cmd
 
-def preprocess_command(cmd : str) -> List[str]:
+
+def preprocess_command(cmd: str) -> List[str]:
     needPrefix = ["String", "Classical", "ClassicalFacts",
                   "ClassicalDescription", "ClassicalEpsilon",
                   "Equivalence", "Init.Wf", "Program.Basics",
@@ -1370,26 +1406,34 @@ def preprocess_command(cmd : str) -> List[str]:
                   "Psatz", "ExtrOcamlBasic", "ExtrOcamlString",
                   "Ascii", "FunInd"]
     for lib in needPrefix:
-        match = re.fullmatch("\s*Require(\s+(?:(?:Import)|(?:Export)))?((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.\s*".format(lib), cmd)
+        match = re.fullmatch(r"\s*Require(\s+(?:(?:Import)|(?:Export)))?"
+                             r"((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.\s*"
+                             .format(lib), cmd)
         if match:
             if match.group(1):
-                impG= match.group(1)
+                impG = match.group(1)
             else:
-                impG=""
+                impG = ""
             if match.group(4):
                 after = match.group(4)
             else:
-                after=""
-            if (re.fullmatch("\s*", match.group(2)) and re.fullmatch("\s*", after)):
+                after = ""
+            if (re.fullmatch(r"\s*", match.group(2)) and
+                    re.fullmatch(r"\s*", after)):
                 return ["From Coq Require" + impG + " " + match.group(3) + "."]
             else:
-                return ["From Coq Require" + impG + " " + match.group(3) + "."] + preprocess_command("Require " + impG.strip() + " " + match.group(2).strip() + " " + after + ".")
+                return ["From Coq Require" + impG + " " + match.group(3) + "."
+                        ] + preprocess_command("Require " + impG.strip() + " "
+                                               + match.group(2).strip() + " "
+                                               + after + ".")
     return [cmd] if cmd.strip() else []
 
-def get_stem(tactic : str) -> str:
+
+def get_stem(tactic: str) -> str:
     return split_tactic(tactic)[0]
 
-def split_tactic(tactic : str) -> Tuple[str, str]:
+
+def split_tactic(tactic: str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
     if not tactic:
         return ("", "")
@@ -1399,29 +1443,31 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     if ";" in tactic:
         return tactic, ""
     for prefix in ["try", "now", "repeat", "decide"]:
-        prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
+        prefix_match = re.match(r"{}\s+(.*)".format(prefix), tactic)
         if prefix_match:
             rest_stem, rest_rest = split_tactic(prefix_match.group(1))
             return prefix + " " + rest_stem, rest_rest
-    for special_stem in ["rewrite <-", "rewrite !", "intros until", "simpl in"]:
-        special_match = re.match("{}\s*(.*)".format(special_stem), tactic)
+    for special_stem in ["rewrite <-", "rewrite !",
+                         "intros until", "simpl in"]:
+        special_match = re.match(r"{}\s*(.*)".format(special_stem), tactic)
         if special_match:
             return special_stem, special_match.group(1)
-    match = re.match("^\(?(\w+)(\W+.*)?", tactic)
+    match = re.match(r"^\(?(\w+)(\W+.*)?", tactic)
     assert match, "tactic \"{}\" doesn't match!".format(tactic)
     stem, rest = match.group(1, 2)
     if not rest:
         rest = ""
     return stem, rest
 
-def parse_hyps(hyps_str : str) -> List[str]:
-    lets_killed = kill_nested("\Wlet\s", "\sin\s", hyps_str)
-    funs_killed = kill_nested("\Wfun\s", "=>", lets_killed)
-    foralls_killed = kill_nested("\Wforall\s", ",", funs_killed)
-    fixs_killed = kill_nested("\Wfix\s", ":=", foralls_killed)
-    structs_killed = kill_nested("\W\{\|\s", "\|\}", fixs_killed)
+
+def parse_hyps(hyps_str: str) -> List[str]:
+    lets_killed = kill_nested(r"\Wlet\s", r"\sin\s", hyps_str)
+    funs_killed = kill_nested(r"\Wfun\s", "=>", lets_killed)
+    foralls_killed = kill_nested(r"\Wforall\s", ",", funs_killed)
+    fixs_killed = kill_nested(r"\Wfix\s", ":=", foralls_killed)
+    structs_killed = kill_nested(r"\W\{\|\s", r"\|\}", fixs_killed)
     hyps_replaced = re.sub(":=.*?:(?!=)", ":", structs_killed, flags=re.DOTALL)
-    var_terms = re.findall("(\S+(?:, \S+)*) (?::=.*?)?:(?!=)\s.*?",
+    var_terms = re.findall(r"(\S+(?:, \S+)*) (?::=.*?)?:(?!=)\s.*?",
                            hyps_replaced, flags=re.DOTALL)
     if len(var_terms) == 0:
         return []
@@ -1436,14 +1482,15 @@ def parse_hyps(hyps_str : str) -> List[str]:
         hyps_list.append(hyp)
     hyps_list.append(rest_hyps_str)
     for hyp in hyps_list:
-        assert re.search(":(?!=)", hyp) != None, \
+        assert re.search(":(?!=)", hyp) is not None, \
             "hyp: {}, hyps_str: {}\nhyps_list: {}\nvar_terms: {}"\
             .format(hyp, hyps_str, hyps_list, var_terms)
     return hyps_list
 
-def kill_nested(start_string : str, end_string : str, hyps : str) \
-    -> str:
-    def searchpos(pattern : str, hyps : str, end : bool = False):
+
+def kill_nested(start_string: str, end_string: str, hyps: str) \
+        -> str:
+    def searchpos(pattern: str, hyps: str, end: bool = False):
         match = re.search(pattern, hyps, flags=re.DOTALL)
         if match:
             if end:
@@ -1457,7 +1504,8 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
     forall_depth = 0
     last_forall_position = -1
     cur_position = 0
-    while next_forall_pos != float("Inf") or (next_comma_pos != float("Inf") and forall_depth > 0):
+    while (next_forall_pos != float("Inf") or
+           (next_comma_pos != float("Inf") and forall_depth > 0)):
         old_forall_depth = forall_depth
         if next_forall_pos < next_comma_pos:
             cur_position = next_forall_pos
@@ -1477,10 +1525,11 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
         new_next_forall_pos = \
             searchpos(start_string, hyps[cur_position+1:]) + cur_position + 1
         new_next_comma_pos = \
-            searchpos(end_string, hyps[cur_position+1:], end=True) + cur_position + 1
+            searchpos(end_string, hyps[cur_position+1:], end=True) + \
+            cur_position + 1
         assert new_next_forall_pos != next_forall_pos or \
             new_next_comma_pos != next_comma_pos or \
-                forall_depth != old_forall_depth, \
+            forall_depth != old_forall_depth, \
             "old start pos was {}, new start pos is {}, old end pos was {},"\
             "new end pos is {}, cur_position is {}"\
             .format(next_forall_pos, new_next_forall_pos, next_comma_pos,
@@ -1489,15 +1538,21 @@ def kill_nested(start_string : str, end_string : str, hyps : str) \
         next_comma_pos = new_next_comma_pos
     return hyps
 
-def get_var_term_in_hyp(hyp : str) -> str:
+
+def get_var_term_in_hyp(hyp: str) -> str:
     return hyp.partition(":")[0].strip()
-def get_hyp_type(hyp : str) -> str:
-    if re.search(":(?!=)", hyp) == None:
+
+
+def get_hyp_type(hyp: str) -> str:
+    if re.search(":(?!=)", hyp) is None:
         return ""
     return re.split(":(?!=)", hyp, maxsplit=1)[1].strip()
-def get_vars_in_hyps(hyps : List[str]) -> List[str]:
+
+
+def get_vars_in_hyps(hyps: List[str]) -> List[str]:
     var_terms = [get_var_term_in_hyp(hyp) for hyp in hyps]
-    var_names = [name.strip() for term in var_terms for name in term.split(",")]
+    var_names = [name.strip() for term in var_terms
+                 for name in term.split(",")]
     return var_names
 
 
@@ -1517,10 +1572,11 @@ def get_indexed_vars_dict(hyps: List[str]) -> Dict[str, int]:
     return result
 
 
-def get_first_var_in_hyp(hyp : str) -> str:
+def get_first_var_in_hyp(hyp: str) -> str:
     return get_var_term_in_hyp(hyp).split(",")[0].strip()
 
-def normalizeMessage(sexp, depth : int=5):
+
+def normalizeMessage(sexp, depth: int = 5):
     if depth <= 0:
         return sexp
     if isinstance(sexp, list):
@@ -1571,39 +1627,40 @@ def tacticTakesHypArgs(stem: str) -> bool:
         or stem == "specialize"
     )
 
-def tacticTakesBinderArgs(stem : str) -> bool:
+
+def tacticTakesBinderArgs(stem: str) -> bool:
     return stem == "induction"
 
-def tacticTakesIdentifierArg(stem : str) -> bool:
+
+def tacticTakesIdentifierArg(stem: str) -> bool:
     return stem == "unfold"
 
+
 def lemma_name_from_statement(stmt: str) -> str:
-    if "Goal" in stmt:
-        return ""
-    if "Obligation" in stmt:
+    if ("Goal" in stmt or "Obligation" in stmt):
         return ""
     stripped_stmt = kill_comments(stmt).strip()
-    derive_match = re.match(
-        r"\s*Derive\s+[\w']+\s+SuchThat\s+.*\s+As\s+([\w']+)\.",
+    derive_match = re.fullmatch(
+        r"\s*Derive\s+([\w'_]+)\s+SuchThat\s+(.*)\s+As\s+([\w']+)\.\s*",
+        stripped_stmt, flags=re.DOTALL)
+    if derive_match:
+        return derive_match.group(3)
+    lemma_match = re.match(
+        r"\s*(?:" + "|".join(normal_lemma_starting_patterns) +
+        r")\s+([\w'\.]*)(.*)",
         stripped_stmt,
         flags=re.DOTALL)
-    if derive_match:
-        return derive_match.group(1)
-    lemma_match = re.match(r"\s*(?:"
-                           + "|".join(normal_lemma_starting_patterns)
-                           + r")\s+([\w']*)(.*)",
-                           stripped_stmt,
-                           flags=re.DOTALL)
     assert lemma_match, stripped_stmt
     lemma_name = lemma_match.group(1)
     assert ":" not in lemma_name, stripped_stmt
     return lemma_name
 
-def get_binder_var(goal : str, binder_idx : int) -> Optional[str]:
+
+def get_binder_var(goal: str, binder_idx: int) -> Optional[str]:
     paren_depth = 0
     binders_passed = 0
     skip = False
-    forall_match = re.match("forall\s+", goal.strip())
+    forall_match = re.match(r"forall\s+", goal.strip())
     if not forall_match:
         return None
     rest_goal = goal[forall_match.end():]
@@ -1623,9 +1680,11 @@ def get_binder_var(goal : str, binder_idx : int) -> Optional[str]:
                     return w
     return None
 
-def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
+
+def normalizeNumericArgs(datum: ScrapedTactic) -> ScrapedTactic:
     numerical_induction_match = re.match(
-        r"\s*(induction|destruct)\s+(\d+)\s*\.", kill_comments(datum.tactic).strip())
+        r"\s*(induction|destruct)\s+(\d+)\s*\.",
+        kill_comments(datum.tactic).strip())
     if numerical_induction_match:
         stem = numerical_induction_match.group(1)
         binder_idx = int(numerical_induction_match.group(2))
@@ -1640,35 +1699,41 @@ def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
     else:
         return datum
 
-def parsePPSubgoal(substr : str) -> Obligation:
+
+def parsePPSubgoal(substr: str) -> Obligation:
     split = re.split("\n====+\n", substr)
     assert len(split) == 2, substr
     hypsstr, goal = split
     return Obligation(parse_hyps(hypsstr), goal)
 
-def summarizeContext(context : ProofContext) -> None:
+
+def summarizeContext(context: ProofContext) -> None:
     eprint("Foreground:")
     for i, subgoal in enumerate(context.fg_goals):
-        hyps_str = ",".join(get_first_var_in_hyp(hyp) for hyp in subgoal.hypotheses)
+        hyps_str = ",".join(get_first_var_in_hyp(hyp)
+                            for hyp in subgoal.hypotheses)
         goal_str = re.sub("\n", "\\n", subgoal.goal)[:100]
         eprint(f"S{i}: {hyps_str} -> {goal_str}")
 
-def isValidCommand(command : str) -> bool:
+
+def isValidCommand(command: str) -> bool:
     command = kill_comments(command)
-    goal_selector_match = re.fullmatch("\s*\d+\s*:(.*)", command, flags=re.DOTALL)
+    goal_selector_match = re.fullmatch(r"\s*\d+\s*:(.*)", command,
+                                       flags=re.DOTALL)
     if goal_selector_match:
         return isValidCommand(goal_selector_match.group(1))
-    return ((command.strip()[-1] == "." and not re.match("\s*{", command)) or re.fullmatch("\s*[-+*{}]*\s*", command) != None) \
+    return ((command.strip()[-1] == "."
+             and not re.match(r"\s*{", command))
+            or re.fullmatch(r"\s*[-+*{}]*\s*", command) is not None) \
         and (command.count('(') == command.count(')'))
 
-def load_commands_preserve(args : argparse.Namespace, file_idx : int,
-                           filename : str) -> List[str]:
+
+def load_commands_preserve(args: argparse.Namespace, file_idx: int,
+                           filename: str) -> List[str]:
     with open(filename, 'r') as fin:
         contents = fin.read()
     return read_commands_preserve(args, file_idx, contents)
 
-from tqdm import tqdm
-from typing import Pattern, Match
 def read_commands_preserve(args : argparse.Namespace, file_idx : int,
                            contents : str) -> List[str]:
     result : List[str] = []
@@ -1797,6 +1862,7 @@ def parseSexpOneLevel(sexp_str : str) -> Union[List[str], int, Symbol]:
         assert False, f"Couldn't parse {sexp_str}"
     return items
 
+
 def searchStrsInMsg(sexp) -> List[str]:
     if isinstance(sexp, list) and len(sexp) > 0:
         if sexp[0] == "str" or sexp[0] == Symbol("str"):
@@ -1807,6 +1873,7 @@ def searchStrsInMsg(sexp) -> List[str]:
                     for substrs in [searchStrsInMsg(sublst) for sublst in sexp]
                     for substr in substrs]
     return []
+
 
 def get_module_from_filename(filename : Union[Path2, str]) -> str:
     return Path2(filename).stem
