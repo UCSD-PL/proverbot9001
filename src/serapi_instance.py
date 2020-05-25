@@ -1450,7 +1450,15 @@ def lemma_name_from_statement(stmt : str) -> str:
     if "Obligation" in stmt:
         return ""
     stripped_stmt = kill_comments(stmt).strip()
-    lemma_match = re.match(r"\s*(?:" + "|".join(normal_lemma_starting_patterns) + r")\s+([\w']*)(.*)",
+    derive_match = re.match(
+        r"\s*Derive\s+[\w']+\s+SuchThat\s+.*\s+As\s+([\w']+)\.",
+        stripped_stmt,
+        flags=re.DOTALL)
+    if derive_match:
+        return derive_match.group(1)
+    lemma_match = re.match(r"\s*(?:"
+                           + "|".join(normal_lemma_starting_patterns)
+                           + r")\s+([\w']*)(.*)",
                            stripped_stmt,
                            flags=re.DOTALL)
     assert lemma_match, stripped_stmt

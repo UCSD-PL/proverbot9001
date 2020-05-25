@@ -412,7 +412,7 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
                         lemma_statement = run_to_next_proof(coq, pbar)
                         if len(commands_in) == 0:
                             break
-                        if "Fixpoint" in lemma_statement:
+                        if "Fixpoint" in lemma_statement or "Derive" in lemma_statement:
                             coq.cancel_last()
                             original_tactics = run_to_next_vernac(coq, pbar, coq.proof_context,
                                                                   lemma_statement)
