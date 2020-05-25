@@ -928,32 +928,16 @@ class SerapiInstance(threading.Thread):
                     assert isBreakMessage(msg), msg
                 assert self.message_queue.empty(), self.messages
                 return dumps(interrupt_response)
-            elif isBreakMessage(interrupt_response):
-                raise TimeoutError("")
-            elif isBreakAnswer(interrupt_response):
-                self.get_completed()
-                raise TimeoutError("")
-            elif match(normalizeMessage(interrupt_response, depth=10),
-                       ["Feedback", [["doc_id", int], ["span_id", int], ["route", int],
-                                     ["contents", ["Message", "Error", [],
-                                                   ["Pp_box", ["Pp_hovbox", int],
-                                                    ["Pp_glue", ["Pp_force_newline", ["Pp_string", "User interrupt."]]]]]]]],
-                       lambda *args: True,
-                       _, lambda *args: False):
+            else:
                 for i in range(num_breaks):
                     try:
-                        msg = loads(self.message_queue.get(timeout=self.timeout))
-                    except:
+                        msg = loads(self.message_queue.get(
+                            timeout=self.timeout))
+                    except queue.Empty:
                         raise CoqAnomaly("Timing out")
-                    assert isBreakAnswer(msg), msg
                 self.get_completed()
                 assert self.message_queue.empty(), self.messages
                 raise TimeoutError("")
-            elif interrupt_response[0] == Symbol("Feedback"): # type: ignore
-                self.get_completed()
-                assert self.message_queue.empty(), self.messages
-                return dumps(interrupt_response)
-            assert False, (interrupt_response, self.messages)
 
     def get_feedbacks(self) -> List['Sexp']:
         feedbacks = [] #type: List[Sexp]
