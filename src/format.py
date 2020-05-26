@@ -20,7 +20,6 @@
 #
 ##########################################################################
 
-import re
 import json
 from typing import List, TextIO, Optional, NamedTuple, Union
 
@@ -35,29 +34,28 @@ class ScrapedTactic(NamedTuple):
 
 class TacticContext(NamedTuple):
     relevant_lemmas: List[str]
-    prev_tactics : List[str]
-    hypotheses : List[str]
-    goal : str
+    prev_tactics: List[str]
+    hypotheses: List[str]
+    goal: str
+
 
 ScrapedCommand = Union[ScrapedTactic, str]
 
-def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
+
+def strip_scraped_output(scraped: ScrapedTactic) -> TacticContext:
     relevant_lemmas, prev_tactics, hypotheses, goal, output = scraped
-    assert prev_tactics != None
-    assert hypotheses != None
-    assert goal != None
-    assert output != None
+    assert prev_tactics is not None
+    assert hypotheses is not None
+    assert goal is not None
+    assert output is not None
     return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
 
-def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
+
+def read_tuple(f_handle: TextIO) -> Optional[ScrapedCommand]:
     line = f_handle.readline()
     if line.strip() == "":
         return None
-    try:
-        obj = json.loads(line)
-    except:
-        print(f"line: {line}")
-        raise
+    obj = json.loads(line)
     if isinstance(obj, str):
         return obj
     else:
@@ -67,7 +65,8 @@ def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
                              obj["prev_goal"],
                              obj["tactic"])
 
-def read_tactic_tuple(f_handle : TextIO) -> Optional[ScrapedTactic]:
+
+def read_tactic_tuple(f_handle: TextIO) -> Optional[ScrapedTactic]:
     next_tuple = read_tuple(f_handle)
     while(isinstance(next_tuple, str)):
         next_tuple = read_tuple(f_handle)
