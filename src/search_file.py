@@ -610,7 +610,7 @@ def write_lemma_button(lemma_statement : str, module : Optional[str],
     module_prefix = escape_lemma_name(module)
     if lemma_name == "":
         unnamed_goal_number += 1
-        fullname = module_prefix + lemma_name + str(unnamed_goal__number)
+        fullname = module_prefix + lemma_name + str(unnamed_goal_number)
     else:
         fullname = module_prefix + lemma_name
     with tag('button', klass='collapsible {}'.format(status_klass),
