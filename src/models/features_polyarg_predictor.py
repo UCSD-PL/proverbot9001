@@ -44,6 +44,7 @@ from models.components import (WordFeaturesEncoder, Embedding,
 from models.tactic_predictor import (TrainablePredictor,
                                      NeuralPredictorState, Prediction,
                                      optimize_checkpoints, add_tokenizer_args)
+import dataloader
 from dataloader import (features_polyarg_tensors,
                         features_polyarg_tensors_with_meta,
                         sample_fpa,
@@ -53,8 +54,7 @@ from dataloader import (features_polyarg_tensors,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
-                        DataloaderArgs,
-                        ProofContext)
+                        DataloaderArgs)
 
 import argparse
 import sys
@@ -796,10 +796,11 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs.context_filter = args.context_filter
     return dargs
 
-def context_py2r(py_context : TacticContext) -> ProofContext:
-    return ProofContext(py_context.relevant_lemmas, py_context.prev_tactics,
-                        py_context.hypotheses, py_context.goal)
 
+def context_py2r(py_context: TacticContext) -> dataloader.TacticContext:
+    return dataloader.TacticContext(
+        py_context.relevant_lemmas, py_context.prev_tactics,
+        dataloader.Obligation(py_context.hypotheses, py_context.goal))
 
 
 def main(arg_list: List[str]) -> None:

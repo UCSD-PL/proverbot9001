@@ -37,7 +37,7 @@ from util import eprint, print_time, nostderr, unwrap, progn
 
 from dataclasses import dataclass
 from typing import List, Tuple, Iterator, Optional
-from format import TacticContext
+from format import (TacticContext, ProofContext, Obligation)
 from pathlib_revised import Path2
 
 import pygraphviz as pgv
@@ -276,8 +276,10 @@ def reinforce(args: argparse.Namespace) -> None:
 
 @dataclass
 class LabeledTransition:
-    before: TacticContext
-    after: TacticContext
+    relevant_lemmas: List[str]
+    prev_tactics: List[str]
+    before: ProofContext
+    after: ProofContext
     action: str
     reward: float
     graph_node: Optional[LabeledNode]
@@ -300,6 +302,7 @@ def reinforce_lemma(args: argparse.Namespace,
         for t in range(args.episode_length):
             with print_time("Getting predictions", guard=args.verbose):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
+                proof_context_before = unwrap(coq.proof_context)
                 predictions = predictor.predictKTactics(
                     context_before, args.num_predictions)
             if random.random() < epsilon:
@@ -345,8 +348,10 @@ def reinforce_lemma(args: argparse.Namespace,
                     graph.setNodeColor(cur_node, "red")
                     break  # Break from episode
 
-            context_after = coq.tactic_context(coq.local_lemmas[:-1])
-            transition = assign_reward(context_before, context_after,
+            transition = assign_reward(context_before.relevant_lemmas,
+                                       context_before.prev_tactics,
+                                       proof_context_before,
+                                       proof_context_after,
                                        action)
             cur_node = graph.addTransition(cur_node, action,
                                            transition.reward)
@@ -389,23 +394,27 @@ def sample_batch(transitions: List[LabeledTransition], k: int) -> \
     return random.sample(transitions, k)
 
 
-def assign_reward(before: TacticContext, after: TacticContext, tactic: str) \
+def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
+                  before: ProofContext, after: ProofContext, tactic: str) \
       -> LabeledTransition:
-    if after.goal == "":
+    if after.focused_goal == "":
         reward = 1000.0
     else:
-        goal_size_reward = len(tokenizer.get_words(before.goal)) - \
-            len(tokenizer.get_words(after.goal))
-        num_hyps_reward = len(before.hypotheses) - len(after.hypotheses)
+        goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
+            len(tokenizer.get_words(after.focused_goal))
+        num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
         reward = goal_size_reward * 3 + num_hyps_reward
-    return LabeledTransition(before, after, tactic, reward, None)
+    return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
+                             tactic, reward, None)
 
 
 def assign_rewards(transitions: List[dataloader.ScrapedTransition]) -> \
       List[LabeledTransition]:
     def generate() -> Iterator[LabeledTransition]:
         for transition in transitions:
-            yield assign_reward(context_r2py(transition.before),
+            yield assign_reward(transition.relevant_lemmas,
+                                transition.prev_tactics,
+                                context_r2py(transition.before),
                                 context_r2py(transition.after),
                                 transition.tactic)
 
@@ -424,22 +433,38 @@ def assign_scores(transitions: List[LabeledTransition],
             [transition.after for transition in transitions],
             num_predictions)
         for transition, predictions in zip(transitions, predictions):
-            ctxt = transition.after
+            tactic_ctxt = TacticContext(transition.relevant_lemmas,
+                                        transition.prev_tactics +
+                                        [transition.action],
+                                        transition.after.focused_hyps,
+                                        transition.after.focused_goal)
+
             new_q = transition.reward + \
-                discount * max(q_estimator([(ctxt, prediction.prediction)
-                                            for prediction in predictions]))
+                discount * max(q_estimator(
+                    [(tactic_ctxt, prediction.prediction)
+                     for prediction in predictions]))
             assert transition.reward == transition.reward
             assert discount == discount
             assert new_q == new_q
             if transition.graph_node:
                 graph.setNodeApproxQScore(transition.graph_node, new_q)
-            yield transition.before, transition.action, new_q
+            yield TacticContext(
+                transition.relevant_lemmas,
+                transition.prev_tactics,
+                transition.before.focused_hyps,
+                transition.before.focused_goal), transition.action, new_q
     return list(generate())
 
 
-def context_r2py(r_context: dataloader.ProofContext) -> TacticContext:
-    return TacticContext(r_context.lemmas, r_context.tactics,
-                         r_context.hyps, r_context.goal)
+def obligation_r2py(r_obl: dataloader.Obligation) -> Obligation:
+    return Obligation(r_obl.hypotheses, r_obl.goal)
+
+
+def context_r2py(r_context: dataloader.ProofContext) -> ProofContext:
+    return ProofContext(list(map(obligation_r2py, r_context.fg_goals)),
+                        list(map(obligation_r2py, r_context.bg_goals)),
+                        list(map(obligation_r2py, r_context.shelved_goals)),
+                        list(map(obligation_r2py, r_context.given_up_goals)))
 
 
 if __name__ == "__main__":

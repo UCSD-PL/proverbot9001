@@ -56,7 +56,7 @@ pub fn goals_to_total_distances_tensors(
     };
     let tokenized_goals: Vec<Vec<i64>> = tactics
         .par_iter()
-        .map(|tac| truncate_to_length(tokenizer.tokenize(&tac.prev_goal), args.max_length))
+        .map(|tac| truncate_to_length(tokenizer.tokenize(&tac.context.focused_goal()), args.max_length))
         .collect();
     Ok((
         GoalEncMetadata {

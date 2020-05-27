@@ -50,47 +50,89 @@ pub struct ScrapedTactic {
     #[pyo3(get, set)]
     pub prev_tactics: Vec<String>,
     #[pyo3(get, set)]
-    pub prev_hyps: Vec<String>,
-    #[pyo3(get, set)]
-    pub prev_goal: String,
+    pub context: ProofContext,
     #[pyo3(get, set)]
     pub tactic: String,
 }
 #[pyclass]
-#[derive(Clone)]
-pub struct ProofContext {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TacticContext {
     #[pyo3(get, set)]
-    pub lemmas: Vec<String>,
+    pub relevant_lemmas: Vec<String>,
     #[pyo3(get, set)]
-    pub tactics: Vec<String>,
+    pub prev_tactics: Vec<String>,
     #[pyo3(get, set)]
-    pub hyps: Vec<String>,
+    pub obligation: Obligation,
+}
+
+impl <'source> FromPyObject<'source> for TacticContext {
+    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let obj: PyObject = ob.to_object(py);
+        let relevant_lemmas: Vec<String> = obj.getattr(py, "relevant_lemmas")?.extract(py)?;
+        let prev_tactics: Vec<String> = obj.getattr(py, "prev_tactics")?.extract(py)?;
+        let obligation: Obligation = obj.getattr(py, "obligation")?.extract(py)?;
+        Ok(TacticContext{relevant_lemmas, prev_tactics, obligation})
+    }
+}
+
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Obligation {
+    #[pyo3(get, set)]
+    pub hypotheses: Vec<String>,
     #[pyo3(get, set)]
     pub goal: String,
 }
-impl ProofContext {
-    pub fn from_scraped(s: ScrapedTactic) -> ProofContext {
-        ProofContext{lemmas: s.relevant_lemmas,
-                     tactics: s.prev_tactics,
-                     hyps: s.prev_hyps,
-                     goal: s.prev_goal}
-    }
-    pub fn empty() -> ProofContext {
-        ProofContext{lemmas: Vec::new(),
-                     tactics: Vec::new(),
-                     hyps: Vec::new(),
-                     goal: "".to_string()}
+
+impl <'source> FromPyObject<'source> for Obligation {
+    fn extract(ob: &'source PyAny) -> PyResult<Self> {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let obj: PyObject = ob.to_object(py);
+        let hypotheses: Vec<String> = obj.getattr(py, "hypotheses")?.extract(py)?;
+        let goal: String = obj.getattr(py, "goal")?.extract(py)?;
+        Ok(Obligation{hypotheses, goal})
     }
 }
-#[pymethods]
+
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ProofContext {
+    #[pyo3(get, set)]
+    pub fg_goals: Vec<Obligation>,
+    #[pyo3(get, set)]
+    pub bg_goals: Vec<Obligation>,
+    #[pyo3(get, set)]
+    pub shelved_goals: Vec<Obligation>,
+    #[pyo3(get, set)]
+    pub given_up_goals: Vec<Obligation>
+}
+
 impl ProofContext {
-    #[new]
-    fn new(obj: &PyRawObject,
-           lemmas: Vec<String>, tactics: Vec<String>,
-           hyps: Vec<String>, goal: String) {
-        obj.init({
-            ProofContext{lemmas, tactics, hyps, goal}
-        })
+    pub fn empty() -> Self {
+        ProofContext{fg_goals: vec![], bg_goals: vec![],
+                     shelved_goals: vec![],
+                     given_up_goals: vec![]}
+    }
+    pub fn focused_goal(&self) -> &String {
+        lazy_static! {
+            static ref EMPTY_STR: String = "".to_string();
+        }
+        match self.fg_goals.first() {
+            Some(obl) => &obl.goal,
+            None => &EMPTY_STR,
+        }
+    }
+    pub fn focused_hyps(&self) -> &Vec<String> {
+        lazy_static! {
+            static ref EMPTY_VEC: Vec<String> = vec![];
+        }
+        match self.fg_goals.first() {
+            Some(obl) => &obl.hypotheses,
+            None => &EMPTY_VEC,
+        }
     }
 }
 
@@ -99,16 +141,20 @@ impl <'source> FromPyObject<'source> for ProofContext {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let obj: PyObject = ob.to_object(py);
-        let lemmas: Vec<String> = obj.getattr(py, "lemmas")?.extract(py)?;
-        let tactics: Vec<String> = obj.getattr(py, "tactics")?.extract(py)?;
-        let hyps: Vec<String> = obj.getattr(py, "hyps")?.extract(py)?;
-        let goal: String = obj.getattr(py, "goal")?.extract(py)?;
-        Ok(ProofContext{lemmas, tactics, hyps, goal})
+        let fg_goals: Vec<Obligation> = obj.getattr(py, "fg_goals")?.extract(py)?;
+        let bg_goals: Vec<Obligation> = obj.getattr(py, "bg_goals")?.extract(py)?;
+        let shelved_goals: Vec<Obligation> = obj.getattr(py, "shelved_goals")?.extract(py)?;
+        let given_up_goals: Vec<Obligation> = obj.getattr(py, "given_up_goals")?.extract(py)?;
+        Ok(ProofContext{fg_goals, bg_goals, shelved_goals, given_up_goals})
     }
 }
 #[pyclass]
 #[derive(Clone)]
 pub struct ScrapedTransition {
+    #[pyo3(get, set)]
+    pub relevant_lemmas: Vec<String>,
+    #[pyo3(get, set)]
+    pub prev_tactics: Vec<String>,
     #[pyo3(get, set)]
     pub before: ProofContext,
     #[pyo3(get, set)]

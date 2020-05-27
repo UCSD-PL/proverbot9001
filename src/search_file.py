@@ -654,10 +654,7 @@ def blocks_from_scrape_and_sols(
 
 
 def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
-    return TacticInteraction(s.tactic,
-                             ProofContext([Obligation(s.hypotheses,
-                                                      s.goal)],
-                                          [], [], []))
+    return TacticInteraction(s.tactic, s.context)
 
 
 def write_solution_vfile(args: argparse.Namespace, filename: Path2,

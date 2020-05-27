@@ -30,8 +30,9 @@ import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample, EOS_token)
-from format import ScrapedTactic, TacticContext, strip_scraped_output
 from util import maybe_cuda, LongTensor, FloatTensor
+from format import (ScrapedTactic, TacticContext,
+                    strip_scraped_output, Obligation, ProofContext)
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
@@ -198,8 +199,11 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                             ScrapedTactic(
                                                 [],
                                                 in_data.prev_tactics,
-                                                in_data.hypotheses,
-                                                in_data.goal,
+                                                ProofContext(
+                                                    [Obligation(
+                                                        in_data.hypotheses,
+                                                        in_data.goal)],
+                                                    [], [], []),
                                                 correct)))]][0]
                                    for in_data, correct
                                    in zip(in_datas, corrects)])
@@ -440,10 +444,10 @@ def get_stem_and_arg_idx(max_length: int, embedding: Embedding,
                          inter: ScrapedTactic) -> Tuple[int, int]:
     tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
     stem_idx = embedding.encode_token(tactic_stem)
-    symbols = tokenizer.get_symbols(inter.goal)
+    symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
     assert arg in symbols, "tactic: {}, arg: {}, goal: {}, symbols: {}"\
-        .format(inter.tactic, arg, inter.goal, symbols)
+        .format(inter.tactic, arg, inter.context.focused_goal, symbols)
     idx = symbols.index(arg)
     if idx >= max_length:
         return stem_idx, 0
@@ -453,10 +457,10 @@ def get_stem_and_arg_idx(max_length: int, embedding: Embedding,
 
 def get_arg_idx(max_length: int, inter: ScrapedTactic) -> int:
     tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
-    symbols = tokenizer.get_symbols(inter.goal)
+    symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
     assert arg in symbols, "tactic: {}, arg: {}, goal: {}, symbols: {}"\
-        .format(inter.tactic, arg, inter.goal, symbols)
+        .format(inter.tactic, arg, inter.context.focused_goal, symbols)
     idx = symbols.index(arg)
     if idx >= max_length:
         return 0

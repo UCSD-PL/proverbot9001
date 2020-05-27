@@ -183,8 +183,8 @@ def report_file(args : argparse.Namespace,
             cast(List[Optional[ScrapedCommand]], list_data[1:]) + [None]
         for point, nextpoint in zip(list_data, extended_list):
             if isinstance(point, ScrapedTactic) \
-               point.goal.strip() != "":
                and not re.match(r"\s*[{}]\s*", point.tactic) and \
+               point.context.focused_goal.strip() != "":
                 if isinstance(nextpoint, ScrapedTactic):
                     context_after = strip_scraped_output(nextpoint)
                 else:
@@ -241,20 +241,24 @@ def report_file(args : argparse.Namespace,
         if isinstance(inter, tuple) and not isinstance(inter, ScrapedTactic):
             assert len(inter) == 2, inter
             scraped, predictions_and_certainties \
-                = inter #cast(Tuple[ScrapedTactic, List[Prediction]], inter)
-            (relevant_lemmas, prev_tactics, hyps, goal, correct_tactic) = scraped
-            prediction_results = [PredictionResult(prediction,
-                                                   grade_prediction(scraped,
-                                                                    prediction),
-                                                   certainty)
+                = inter  # cast(Tuple[ScrapedTactic, List[Prediction]], inter)
+            (relevant_lemmas, prev_tactics, context, correct_tactic) = scraped
+            prediction_results = [PredictionResult(
+                prediction, grade_prediction(scraped, prediction),
+                certainty)
                                   for prediction, certainty in
                                   predictions_and_certainties]
-            command_results.append(TacticResult(correct_tactic, hyps, goal,
+            command_results.append(TacticResult(correct_tactic,
+                                                context.focused_hyps,
+                                                context.focused_goal,
                                                 prediction_results))
             stats.add_tactic(prediction_results,
                              correct_tactic)
         elif isinstance(inter, ScrapedTactic):
-            command_results.append(TacticResult(inter.tactic,inter.hypotheses, inter.goal, []))
+            command_results.append(TacticResult(inter.tactic,
+                                                inter.context.focused_hyps,
+                                                inter.context.focused_goal,
+                                                []))
         else:
             command_results.append((inter,))
 
@@ -278,7 +282,7 @@ def grade_prediction(correct_inter: ScrapedTactic, prediction: str):
     prediction_normalized = \
         serapi_instance.normalizeNumericArgs(ScrapedTactic(
             correct_inter.relevant_lemmas, correct_inter.prev_tactics,
-            correct_inter.hypotheses, correct_inter.goal,
+            correct_inter.context,
             prediction)).tactic
     if correct_tactic.strip() == prediction.strip() or\
        correct_tactic_normalized.strip() == prediction_normalized.strip():

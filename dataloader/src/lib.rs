@@ -122,7 +122,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
-        context_batch: Vec<ProofContext>
+        context_batch: Vec<TacticContext>
     ) -> (
         LongUnpaddedTensor3D,
         FloatUnpaddedTensor3D,
@@ -263,10 +263,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
                               let context_after = match next {
                                   ScrapedData::Vernac(_) => ProofContext::empty(),
                                   ScrapedData::Tactic(t_after) =>
-                                      ProofContext::from_scraped(t_after.clone()),
+                                      t_after.context.clone(),
                               };
                               Some(ScrapedTransition{
-                                  before: ProofContext::from_scraped(t.clone()),
+                                  relevant_lemmas: t.relevant_lemmas.iter().map(String::clone).collect(),
+                                  prev_tactics: t.prev_tactics.iter().map(String::clone).collect(),
+                                  before: t.context.clone(),
                                   after: context_after,
                                   tactic: t.tactic.clone()})
                           }

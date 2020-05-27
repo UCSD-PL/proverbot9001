@@ -41,7 +41,8 @@ from tokenizer import (Tokenizer,
                        make_keyword_tokenizer_relevance,
                        make_keyword_tokenizer_topk)
 from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
-                    read_tuple, TacticContext, strip_scraped_output)
+                    read_tuple, TacticContext, strip_scraped_output,
+                    ProofContext)
 from models.components import SimpleEmbedding
 import serapi_instance
 
@@ -351,7 +352,9 @@ def filter_data(data: Iterable[ScrapedTactic], pair_filter: ContextFilter,
     return (scraped
             for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [ScrapedTactic([], [], [], "", "")]))
+                                      [ScrapedTactic([], [],
+                                                     ProofContext.empty(),
+                                                     "")]))
             if pair_filter(strip_scraped_output(scraped), scraped.tactic,
                            strip_scraped_output(next_scraped), arg_values))
 
@@ -361,9 +364,14 @@ def filter_eval_data(data: Iterable[StateScore], pair_filter: ContextFilter,
     return (point
             for (point, next_point) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [StateScore(ScrapedTactic([], [], [], "", ""), 0)]))
-            if pair_filter(strip_scraped_output(point.state), point.state.tactic,
-                           strip_scraped_output(next_point.state), arg_values))
+                                      [StateScore(
+                                          ScrapedTactic([], [],
+                                                        ProofContext.empty(),
+                                                        ""), 0)]))
+            if pair_filter(strip_scraped_output(point.state),
+                           point.state.tactic,
+                           strip_scraped_output(next_point.state),
+                           arg_values))
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -509,20 +517,21 @@ def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
         sentence.extend([EOS_token] * (max_length - len(sentence)))
     return sentence
 
-    relevant_lemmas, prev_tactics, hypotheses, goal, tactic = point
-    return ScrapedTactic(relevant_lemmas, prev_tactics, hypotheses, goal, get_stem(tactic))
 
 def stemmify_data(point: ScrapedTactic) -> ScrapedTactic:
+    relevant_lemmas, prev_tactics, context, tactic = point
+    return ScrapedTactic(relevant_lemmas, prev_tactics, context,
+                         get_stem(tactic))
 
 def tactic_substitutions_eval(substitutions : Dict[str, str], sample : StateScore) -> StateScore:
     return StateScore(tactic_substitutions(substitutions, sample.state), sample.score)
 
 
-    relevant_lemmas, prev_tactics, hyps, goal, tactic = sample
-    return ScrapedTactic(relevant_lemmas, prev_tactics, hyps, goal,
 def tactic_substitutions(substitutions: Dict[str, str],
                          sample: ScrapedTactic) \
         -> ScrapedTactic:
+    relevant_lemmas, prev_tactics, context, tactic = sample
+    return ScrapedTactic(relevant_lemmas, prev_tactics, context,
                          tactic if get_stem(tactic) not in substitutions
                          else substitutions[get_stem(tactic)])
 
@@ -534,13 +543,14 @@ def normalizeNumericArgs_eval(sample : StateScore) -> StateScore:
 
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
         -> ScrapedTactic:
-    rl, pt, hyp, goal, tactic = sample
-    newtac = tactic.strip()
-    if newtac[0] == "(" and newtac[-1] == ")":
-        newtac = newtac[1:-1]
+    rl, pt, context, tactic = sample
+    newtac = tactic
+    outer_parens_match = re.fullmatch(r"\((.*)\)", newtac.strip())
+    if outer_parens_match:
+        newtac = outer_parens_match.group(1)
     splitresult = split_by_char_outside_matching(
         r"\(|\[", r"\)|\]", ";", newtac)
     if splitresult:
         before_semi, after_semi = splitresult
         newtac = before_semi.strip() + "."
-    return ScrapedTactic(rl, pt, hyp, goal, newtac)
+    return ScrapedTactic(rl, pt, context, newtac)

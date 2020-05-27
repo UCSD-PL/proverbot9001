@@ -33,8 +33,7 @@ from dataclasses import dataclass
 import contextlib
 
 from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
-                    Iterator, Pattern, Match, Dict, NamedTuple,
-                    TYPE_CHECKING)
+                    Iterator, Pattern, Match, TYPE_CHECKING)
 from tqdm import tqdm
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
@@ -44,7 +43,7 @@ if TYPE_CHECKING:
 from sexpdata import Symbol, loads, dumps
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
                   hash_file, sighandler_context, unwrap, progn)
-from format import ScrapedTactic, TacticContext
+from format import ScrapedTactic, TacticContext, Obligation, ProofContext
 import tokenizer
 
 
@@ -116,48 +115,6 @@ class CoqAnomaly(SerapiException):
 
 def raise_(ex):
     raise ex
-
-
-class Obligation(NamedTuple):
-    hypotheses: List[str]
-    goal: str
-
-    @classmethod
-    def from_dict(cls, data):
-        return cls(**data)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"hypotheses": self.hypotheses,
-                "goal": self.goal}
-
-
-class ProofContext(NamedTuple):
-    fg_goals: List[Obligation]
-    bg_goals: List[Obligation]
-    shelved_goals: List[Obligation]
-    given_up_goals: List[Obligation]
-
-    @classmethod
-    def from_dict(cls, data):
-        fg_goals = list(map(Obligation.from_dict, data["fg_goals"]))
-        bg_goals = list(map(Obligation.from_dict, data["bg_goals"]))
-        shelved_goals = list(map(Obligation.from_dict, data["shelved_goals"]))
-        given_up_goals = list(map(Obligation.from_dict,
-                                  data["given_up_goals"]))
-        return cls(fg_goals, bg_goals, shelved_goals, given_up_goals)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {"fg_goals": list(map(Obligation.to_dict, self.fg_goals)),
-                "bg_goals": list(map(Obligation.to_dict, self.bg_goals)),
-                "shelved_goals": list(map(Obligation.to_dict,
-                                          self.shelved_goals)),
-                "given_up_goals": list(map(Obligation.to_dict,
-                                           self.given_up_goals))}
-
-    @property
-    def all_goals(self) -> List[Obligation]:
-        return self.fg_goals + self.bg_goals + \
-            self.shelved_goals + self.given_up_goals
 
 
 @dataclass
@@ -1730,12 +1687,12 @@ def normalizeNumericArgs(datum: ScrapedTactic) -> ScrapedTactic:
     if numerical_induction_match:
         stem = numerical_induction_match.group(1)
         binder_idx = int(numerical_induction_match.group(2))
-        binder_var = get_binder_var(datum.goal, binder_idx)
+        binder_var = get_binder_var(datum.context.fg_goals[0].goal, binder_idx)
         if binder_var:
             newtac = stem + " " + binder_var + "."
-            return ScrapedTactic(datum.relevant_lemmas,
-                                 datum.prev_tactics, datum.hypotheses,
-                                 datum.goal, newtac)
+            return ScrapedTactic(datum.prev_tactics,
+                                 datum.relevant_lemmas,
+                                 datum.context, newtac)
         else:
             return datum
     else:

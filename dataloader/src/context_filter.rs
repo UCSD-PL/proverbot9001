@@ -75,7 +75,7 @@ fn apply_filter(
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
             let goal_symbols: Vec<&str> = scraped
-                .prev_goal
+                .context.focused_goal()
                 .split_whitespace()
                 .take(args.max_length)
                 .collect();
@@ -90,7 +90,7 @@ fn apply_filter(
         }
         ContextFilterAST::HypArgs => {
             let hyp_names: Vec<&str> = scraped
-                .prev_hyps
+                .context.focused_hyps()
                 .iter()
                 .map(|hyp| hyp.splitn(1, ":").next().unwrap().trim())
                 .collect();

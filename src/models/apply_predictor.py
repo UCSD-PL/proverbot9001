@@ -117,12 +117,13 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                             default=default_values.get("hidden-size", 128))
         parser.add_argument("--num-layers", dest="num_layers", type=int,
                             default=default_values.get("num-layers", 3))
-    def _determine_relevance(self, inter : ScrapedTactic) -> List[bool]:
-        stem, args_string  = serapi_instance.split_tactic(inter.tactic)
+
+    def _determine_relevance(self, inter: ScrapedTactic) -> List[bool]:
+        stem, args_string = serapi_instance.split_tactic(inter.tactic)
         args = args_string[:-1].split()
         return [any([var.strip() in args for var in
                      serapi_instance.get_var_term_in_hyp(hyp).split(",")])
-                for hyp in inter.hypotheses]
+                for hyp in inter.context.focused_hyps]
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[ApplyDataset, Tokenizer]:

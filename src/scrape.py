@@ -156,8 +156,7 @@ def process_statement(args: argparse.Namespace,
                       result_file: TextIO) -> None:
     if coq.proof_context:
         prev_tactics = coq.prev_tactics
-        prev_hyps = coq.hypotheses
-        prev_goal = coq.goals
+        context = coq.proof_context
         if args.relevant_lemmas == "local":
             relevant_lemmas = [re.sub("\n", " ", lemma)
                                for lemma in coq.local_lemmas[:-1]]
@@ -168,10 +167,9 @@ def process_statement(args: argparse.Namespace,
         else:
             assert False, args.relevant_lemmas
 
-        result_file.write(json.dumps({"prev_tactics": prev_tactics,
-                                      "prev_hyps": prev_hyps,
-                                      "prev_goal": prev_goal,
-                                      "relevant_lemmas": relevant_lemmas,
+        result_file.write(json.dumps({"relevant_lemmas": relevant_lemmas,
+                                      "prev_tactics": prev_tactics,
+                                      "context": context.to_dict(),
                                       "tactic": command}))
     else:
         result_file.write(json.dumps(command))

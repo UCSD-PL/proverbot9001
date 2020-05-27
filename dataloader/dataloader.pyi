@@ -2,12 +2,33 @@
 from typing import List, Optional, Tuple, Dict
 from dataclasses import dataclass
 
+
+@dataclass
+class Obligation:
+    hypotheses: List[str]
+    goal: str
+
+
+class ProofContext:
+    fg_goals: List[Obligation]
+    bg_goals: List[Obligation]
+    shelved_goals: List[Obligation]
+    given_up_goals: List[Obligation]
+
+
 class ScrapedTactic:
-    relevant_lemmas : List[str]
+    relevant_lemmas: List[str]
     prev_tactics: List[str]
-    prev_hyps: List[str]
-    prev_goal: str
+    context: ProofContext
     tactic: str
+
+
+@dataclass
+class TacticContext:
+    relevant_lemmas: List[str]
+    prev_tactics: List[str]
+    obligation: Obligation
+
 
 class DataloaderArgs:
     max_distance: int
@@ -19,15 +40,10 @@ class DataloaderArgs:
     keywords_file: str
     context_filter: str
 
-@dataclass
-class ProofContext:
-    lemmas : List[str]
-    tactics : List[str]
-    hyps : List[str]
-    goal : str
-
 
 class ScrapedTransition:
+    relevant_lemmas: List[str]
+    prev_tactics: List[str]
     before: ProofContext
     after: ProofContext
     tactic: str
@@ -127,8 +143,9 @@ def sample_fpa(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                    List[List[float]]]:
     ...
 
-def sample_fpa_batch(args : DataloaderArgs, metadata : PickleableFPAMetadata,
-                     context_batch : List[ProofContext]) -> \
+
+def sample_fpa_batch(args: DataloaderArgs, metadata: PickleableFPAMetadata,
+                     context_batch: List[TacticContext]) -> \
                      Tuple[
                          List[List[List[int]]],
                          List[List[List[float]]],

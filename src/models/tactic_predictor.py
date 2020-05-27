@@ -162,9 +162,11 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             stemmed_data = pool.imap(
                 stemmify_data, data, chunksize=10240)
             lazy_embedded_data = LazyEmbeddedDataset((
-                EmbeddedSample(relevant_lemmas, prev_tactics, hypotheses, goal,
+                EmbeddedSample(relevant_lemmas, prev_tactics,
+                               context.focused_hyps,
+                               context.focused_goal,
                                embedding.encode_token(tactic))
-                for (relevant_lemmas, prev_tactics, hypotheses, goal, tactic)
+                for (relevant_lemmas, prev_tactics, context, tactic)
                 in stemmed_data))
             if args.load_tokens:
                 print("Loading tokens from {}".format(args.load_tokens))

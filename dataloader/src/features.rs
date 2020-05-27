@@ -41,8 +41,8 @@ pub fn context_features(
             best_scored_hyp(
                 args.max_string_distance,
                 args.max_length,
-                &scraped.prev_hyps,
-                &scraped.prev_goal,
+                &scraped.context.focused_hyps(),
+                &scraped.context.focused_goal(),
             )
         })
         .unzip();
@@ -53,7 +53,7 @@ pub fn context_features(
         .map(|(scraped, best_hyp): (&ScrapedTactic, &str)| {
             vec![
                 prev_tactic_feature(tmap, &scraped.prev_tactics),
-                goal_head_feature(tmap, &scraped.prev_goal),
+                goal_head_feature(tmap, &scraped.context.focused_goal()),
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
@@ -64,8 +64,8 @@ pub fn context_features(
         .zip(data.iter())
         .map(|(_score, datum)|
              vec![
-                 (std::cmp::min(get_words(&datum.prev_goal).len(), 100) as f64) / 100.0,
-                 (std::cmp::min(datum.prev_hyps.len(), 20) as f64) / 20.0
+                 (std::cmp::min(get_words(&datum.context.focused_goal()).len(), 100) as f64) / 100.0,
+                 (std::cmp::min(datum.context.focused_hyps().len(), 20) as f64) / 20.0
              ])
         .collect();
 
@@ -171,7 +171,7 @@ impl TokenMap {
         let index_to_hyp_token = index_common(
             init_data.iter().flat_map(|scraped| {
                 scraped
-                    .prev_hyps
+                    .context.focused_hyps()
                     .iter()
                     .map(|hyp| hyp.split_whitespace().next().unwrap().to_string())
             }),
@@ -180,7 +180,7 @@ impl TokenMap {
         let index_to_goal_token = index_common(
             init_data
                 .iter()
-                .flat_map(|scraped| scraped.prev_goal.split_whitespace().next())
+                .flat_map(|scraped| scraped.context.focused_goal().split_whitespace().next())
                 .map(|s| s.to_string()),
             count,
         );
