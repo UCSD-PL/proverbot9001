@@ -240,14 +240,21 @@ class EncFeaturesPredictor(TrainablePredictor[EncFeaturesDataset,
         self.num_epochs = state.epoch
         self.training_args = args
         self.unparsed_args = unparsed_args
-    def _data_tensors(self, encoded_data : EncFeaturesDataset,
-                      arg_values : Namespace) \
-        -> List[torch.Tensor]:
-        vec_features, word_features, goals, tactics = zip(*encoded_data)
+
+    def _data_tensors(self, encoded_data: EncFeaturesDataset,
+                      arg_values: Namespace) \
+            -> List[torch.Tensor]:
+        vec_features, word_features, goals, tactics = \
+            cast(Tuple[List[List[float]],
+                       List[List[int]],
+                       List[Sentence],
+                       List[int]],
+                 zip(*encoded_data))
         return [torch.FloatTensor(vec_features),
                 torch.LongTensor(word_features),
                 torch.LongTensor(goals),
                 torch.LongTensor(tactics)]
+
     def _get_model(self, arg_values : Namespace,
                    tactic_vocab_size : int,
                    goal_vocab_size : int) \

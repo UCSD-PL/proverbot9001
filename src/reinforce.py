@@ -230,10 +230,12 @@ def reinforce(args: argparse.Namespace) -> None:
     else:
         rest_commands = env_commands
         all_run_commands: List[str] = []
-        signal.signal(signal.SIGINT,
-                      lambda signal, frame:
-                      progn(q_estimator.save_weights(args.out_weights, args),
-                            exit()))
+        signal.signal(
+            signal.SIGINT,
+            lambda signal, frame:
+            progn(q_estimator.save_weights(
+                args.out_weights, args),  # type: ignore
+                  exit()))
         with tqdm(total=num_proofs, disable=(not args.progress),
                   leave=True) as pbar:
             while rest_commands:

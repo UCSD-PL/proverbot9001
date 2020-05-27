@@ -260,26 +260,29 @@ class FeaturesPolyargPredictor(
             with open(arg_values.save_file, 'wb') as f:
                 torch.save((self.shortname(), (arg_values, sys.argv, metadata, state)), f)
 
-    def predictKTactics_batch(self, context_batch : List[TacticContext], k : int) -> List[List[Prediction]] :
+    def predictKTactics_batch(self, context_batch: List[TacticContext],
+                              k: int) \
+            -> List[List[Prediction]]:
         assert self.training_args
         assert self._model
 
-        beam_width=min(self.training_args.max_beam_width, k ** 2)
-
         num_stem_poss = get_num_tokens(self._metadata)
-        stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
+        stem_width = min(self.training_args.max_beam_width, num_stem_poss,
+                         k ** 2)
         batch_size = len(context_batch)
 
         tprems_batch, pfeat_batch, \
             nhyps_batch, tgoals_batch, \
             wfeats_batch, vfeats_batch = \
-                sample_fpa_batch(extract_dataloader_args(self.training_args),
-                                 self._metadata,
-                                 [context_py2r(context) for context in context_batch])
+            sample_fpa_batch(extract_dataloader_args(self.training_args),
+                             self._metadata,
+                             [context_py2r(context)
+                              for context in context_batch])
 
-        stem_distribution = self._model.stem_classifier(LongTensor(wfeats_batch),
-                                                        FloatTensor(vfeats_batch))
-        stem_certainties_batch, stem_idxs_batch = stem_distribution.topk(stem_width)
+        stem_distribution = self._model.stem_classifier(
+            LongTensor(wfeats_batch), FloatTensor(vfeats_batch))
+        stem_certainties_batch, stem_idxs_batch = stem_distribution.topk(
+            stem_width)
 
         goals_batch = LongTensor(tgoals_batch)
 
@@ -778,15 +781,17 @@ def encodeHypsFeatureVecs(args : argparse.Namespace,
 
     return torch.FloatTensor([features(hyp) for hyp in hyps])
 
+
 def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
-    dargs = DataloaderArgs();
+    dargs = DataloaderArgs()
     # dargs.max_distance = args.max_distance
     dargs.max_length = args.max_length
     dargs.num_keywords = args.num_keywords
     dargs.max_string_distance = args.max_string_distance
     dargs.max_premises = args.max_premises
     dargs.num_relevance_samples = args.num_relevance_samples
-    assert args.load_tokens, "Must have a keywords file for the rust dataloader"
+    assert args.load_tokens, \
+        "Must have a keywords file for the rust dataloader"
     dargs.keywords_file = args.load_tokens
     dargs.context_filter = args.context_filter
     return dargs
@@ -795,6 +800,8 @@ def context_py2r(py_context : TacticContext) -> ProofContext:
     return ProofContext(py_context.relevant_lemmas, py_context.prev_tactics,
                         py_context.hypotheses, py_context.goal)
 
-def main(arg_list : List[str]) -> None:
+
+
+def main(arg_list: List[str]) -> None:
     predictor = FeaturesPolyargPredictor()
     predictor.train(arg_list)

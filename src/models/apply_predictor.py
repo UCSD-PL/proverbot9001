@@ -49,10 +49,11 @@ import functools
 
 TermType = List[int]
 
+
 class HypothesisRelevanceSample(NamedTuple):
-    hypothesis : TermType
-    goal : TermType
-    isRelevant : bool
+    hypothesis: TermType
+    goal: TermType
+    isRelevant: bool
 
 class ApplyDataset(ListDataset[HypothesisRelevanceSample]):
     pass
@@ -179,15 +180,20 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
         self.num_epochs = state.epoch
         self.training_args = args
         self.unparsed_args = unparsed_args
-    def _data_tensors(self, encoded_data : ApplyDataset,
-                      arg_values : Namespace) \
-        -> List[torch.Tensor]:
-        hypotheses, goals, relevance = zip(*encoded_data)
+
+    def _data_tensors(self, encoded_data: ApplyDataset,
+                      arg_values: Namespace) \
+            -> List[torch.Tensor]:
+        hypotheses, goals, relevance = cast(Tuple[List[TermType],
+                                                  List[TermType],
+                                                  List[bool]],
+                                            zip(*encoded_data))
         hypothesesTensor = torch.FloatTensor(hypotheses)
         goalsTensor = torch.FloatTensor(goals)
         relevanceTensor = torch.LongTensor(relevance)
         tensors = [hypothesesTensor, goalsTensor, relevanceTensor]
         return tensors
+
     def _get_model(self, arg_values : Namespace, num_tokens : int) \
         -> DNNClassifier:
         return DNNClassifier(2 * (num_tokens ** arg_values.num_grams),

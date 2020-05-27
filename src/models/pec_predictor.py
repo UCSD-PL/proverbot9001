@@ -167,9 +167,13 @@ class PECPredictor(NeuralClassifier[PECDataset, 'PEClassifier']):
                 get_stem(prev_tactics[-1]) if len(prev_tactics) > 1 else "Proof"),
                                      goal, tactic)
                            for prev_tactics, goal, tactic in data])
-    def _data_tensors(self, encoded_data : PECDataset, arg_values : Namespace) \
-        -> List[torch.Tensor]:
-        prevs, goals, nexts = zip(*encoded_data)
+
+    def _data_tensors(self, encoded_data: PECDataset, arg_values: Namespace) \
+            -> List[torch.Tensor]:
+        prevs, goals, nexts = cast(Tuple[List[int],
+                                         List[Sentence],
+                                         List[int]],
+                                   zip(*encoded_data))
         goal_stream = torch.LongTensor([
             normalizeSentenceLength(goal, arg_values.max_length)
             for goal in goals])

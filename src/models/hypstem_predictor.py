@@ -19,13 +19,12 @@
 #
 ##########################################################################
 import argparse
-import time
 import math
 import threading
 import multiprocessing
 
-from typing import (Dict, Any, List, Tuple, Iterable, cast, Union,
-                    NamedTuple, Generic)
+from typing import (Dict, Any, List, Tuple, cast, NamedTuple, Generic,
+                    TypeVar)
 from argparse import Namespace
 from difflib import SequenceMatcher
 
@@ -47,7 +46,7 @@ from tokenizer import tokenizers, Tokenizer
 from data import (getNGramTokenbagVector, ListDataset, RawDataset)
 from format import ScrapedTactic, TacticContext
 
-from util import *
+from util import maybe_cuda, LongTensor, FloatTensor, list_topk
 import serapi_instance
 
 class HypStemSample(NamedTuple):
@@ -219,12 +218,15 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
 
 def term_relevance(goal : str, term: str):
     return SequenceMatcher(None, term, goal).ratio() * len(term)
-def most_relevant_hyp(inter : ScrapedTactic) -> Tuple[str, float]:
-    goal, hyp_list = inter.goal, inter.hypotheses
+
+
+def most_relevant_hyp(inter: ScrapedTactic) -> Tuple[str, float]:
+    goal, hyp_list = inter.context.focused_goal, inter.context.focused_hyps
     if len(hyp_list) == 0:
         return "", 0
-    result = max([(hyp_term, term_relevance(goal, serapi_instance.get_hyp_type(hyp_term)))
-                   for hyp_term in hyp_list], key=lambda x: x[1])
+    result = max([(hyp_term, term_relevance(
+        goal, serapi_instance.get_hyp_type(hyp_term)))
+                  for hyp_term in hyp_list], key=lambda x: x[1])
     return result
 
 

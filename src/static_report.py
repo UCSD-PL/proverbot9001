@@ -3,22 +3,19 @@
 import argparse
 import subprocess
 import os
-import sys
 import multiprocessing
 import re
 import datetime
-import time
 import csv
 import collections
 import itertools
 import functools
-import shutil
 import io
 import math
 
-from typing import (Any, Union, Optional, Tuple, List, Sequence, Dict,
-                    Counter, Callable, NamedTuple, TextIO, Iterable, cast, TypeVar,
-                    NewType)
+from typing import (Any, Union, Optional, Tuple, List, Sequence,
+                    Counter, Callable, NamedTuple, Iterable,
+                    cast, TypeVar)
 from pathlib_revised import Path2
 
 from data import file_chunks, filter_data
@@ -146,20 +143,18 @@ def report_file(args : argparse.Namespace,
                 context_filter_str : str,
                 filename : Path2) -> Optional['ResultStats']:
 
-    def make_predictions(num_predictions : int,
-                         tactic_interactions : List[ScrapedTactic]) -> \
-        Tuple[Iterable[Tuple[ScrapedTactic, List[Prediction]]], float]:
+    def make_predictions(num_predictions: int,
+                         tactic_interactions: List[ScrapedTactic]) -> \
+            Tuple[Iterable[Tuple[ScrapedTactic, List[Prediction]]], float]:
         if len(tactic_interactions) == 0:
             return [], 0
         chunk_size = args.chunk_size
         total_loss = 0.
-        for tactic_interaction in tactic_interactions:
-            assert isinstance(tactic_interaction.goal, str)
         inputs = [strip_scraped_output(tactic_interaction)
                   for tactic_interaction in tactic_interactions]
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]
-        predictions : List[List[Prediction]] = []
+        predictions: List[List[Prediction]] = []
         for inputs_chunk, corrects_chunk in zip(chunks(inputs, chunk_size),
                                                 chunks(corrects, chunk_size)):
             predictions_chunk, loss = predictor.predictKTacticsWithLoss_batch(
@@ -180,14 +175,16 @@ def report_file(args : argparse.Namespace,
             yield lst.pop()[1]
         yield from list(reversed([c for _, c in lic]))
         yield from list(reversed([b for _, b in lib]))
-    def get_should_filter(data : MixedDataset) -> Iterable[Tuple[ScrapedCommand, bool]]:
-        list_data : List[ScrapedCommand] = list(data)
-        extended_list : List[Optional[ScrapedCommand]] = \
-            cast(List[Optional[ScrapedCommand]], list_data[1:])  + [None]
+
+    def get_should_filter(data: MixedDataset) \
+            -> Iterable[Tuple[ScrapedCommand, bool]]:
+        list_data: List[ScrapedCommand] = list(data)
+        extended_list: List[Optional[ScrapedCommand]] = \
+            cast(List[Optional[ScrapedCommand]], list_data[1:]) + [None]
         for point, nextpoint in zip(list_data, extended_list):
             if isinstance(point, ScrapedTactic) \
-               and not re.match("\s*[{}]\s*", point.tactic) and \
                point.goal.strip() != "":
+               and not re.match(r"\s*[{}]\s*", point.tactic) and \
                 if isinstance(nextpoint, ScrapedTactic):
                     context_after = strip_scraped_output(nextpoint)
                 else:
@@ -202,13 +199,14 @@ def report_file(args : argparse.Namespace,
     try:
         scrape_path = args.prelude / filename.with_suffix(".v.scrape")
         interactions = list(read_text_data_singlethreaded(scrape_path))
-        print("Loaded {} interactions for file {}".format(len(interactions), filename))
+        print("Loaded {} interactions for file {}"
+              .format(len(interactions), filename))
     except FileNotFoundError:
         print("Couldn't find file {}, skipping...".format(scrape_path))
         return None
     context_filter = get_context_filter(context_filter_str)
 
-    command_results : List[CommandResult] = []
+    command_results: List[CommandResult] = []
     stats = ResultStats(str(filename))
     indexed_filter_aware_interactions = list(enumerate(get_should_filter(interactions)))
     for idx, (interaction, should_filter) in indexed_filter_aware_interactions:
@@ -269,9 +267,11 @@ def report_file(args : argparse.Namespace,
     print("Finished output for file {}".format(filename))
     return stats
 
+
 proper_subs = {"auto.": "eauto."}
 
-def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
+
+def grade_prediction(correct_inter: ScrapedTactic, prediction: str):
     correct_tactic = correct_inter.tactic
     correct_tactic_normalized = \
         serapi_instance.normalizeNumericArgs(correct_inter).tactic
@@ -285,15 +285,15 @@ def grade_prediction(correct_inter : ScrapedTactic, prediction : str):
         return "goodcommand"
     elif get_stem(correct_tactic).strip() == get_stem(prediction).strip():
         return "okaycommand"
-    elif correct_tactic.strip() in proper_subs and \
-         proper_subs[correct_tactic.strip()] == prediction.strip():
+    elif (correct_tactic.strip() in proper_subs and
+          proper_subs[correct_tactic.strip()] == prediction.strip()):
         return "mostlygoodcommand"
     else:
         return "badcommand"
 
-###
-### Write the report page out
-###
+#
+# Write the report page out
+#
 def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
                   cur_commit : str, cur_date : datetime.datetime,
                   individual_stats : List['ResultStats']) -> None:

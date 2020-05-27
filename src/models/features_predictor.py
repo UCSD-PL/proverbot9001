@@ -188,6 +188,7 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
         vec_features, word_features, tactics = zip(*encoded_data)
         return [torch.FloatTensor(vec_features), torch.LongTensor(word_features),
                 torch.LongTensor(tactics)]
+
     def _get_model(self, arg_values : Namespace, tactic_vocab_size : int) \
         -> FeaturesClassifier:
         assert self._vec_feature_functions
