@@ -32,11 +32,14 @@ import signal
 import functools
 from dataclasses import dataclass
 
-from typing import List, Any, Optional, cast, Tuple, Union, Iterable
+from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
+                    TYPE_CHECKING)
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
-from sexpdata import *
+if TYPE_CHECKING:
+    from sexpdata import Sexp
+from sexpdata import loads, dumps, Symbol
 from traceback import *
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
                   hash_file, sighandler_context, unwrap)
@@ -871,6 +874,7 @@ class SerapiInstance(threading.Thread):
                            ["Added", int, TAIL],
                            lambda state_num, tail: state_num),
                      _, lambda x: raise_(BadResponse(msg)))
+
     def discard_feedback(self) -> None:
         feedback_message = self.get_message()
         while feedback_message[1][3][1] != Symbol("Processed"):
@@ -879,10 +883,13 @@ class SerapiInstance(threading.Thread):
     def discard_initial_feedback(self) -> None:
         feedback1 = self.get_message()
         feedback2 = self.get_message()
-        match(normalizeMessage(feedback1), ["Feedback", TAIL], lambda *args: None,
+        match(normalizeMessage(feedback1), ["Feedback", TAIL],
+              lambda *args: None,
               _, lambda *args: raise_(BadResponse(feedback1)))
-        match(normalizeMessage(feedback2), ["Feedback", TAIL], lambda *args: None,
+        match(normalizeMessage(feedback2), ["Feedback", TAIL],
+              lambda *args: None,
               _, lambda *args: raise_(BadResponse(feedback2)))
+
     def interrupt(self) -> None:
         self._proc.send_signal(signal.SIGINT)
         self.flush_queue()
@@ -903,27 +910,29 @@ class SerapiInstance(threading.Thread):
             try:
                 interrupt_response = \
                     loads(self.message_queue.get(timeout=self.timeout))
-            except:
+            except queue.Empty:
                 self._proc.send_signal(signal.SIGINT)
                 num_breaks += 1
                 try:
                     interrupt_response = \
                         loads(self.message_queue.get(timeout=self.timeout))
-                except:
+                except queue.Empty:
                     raise CoqAnomaly("Timing Out")
 
-            got_answer_after_interrupt = match(normalizeMessage(interrupt_response),
-                                               ["Answer", int, ["CoqExn", TAIL]],
-                                               lambda *args: False,
-                                               ["Answer", TAIL],
-                                               lambda *args: True,
-                                               _, lambda *args: False)
+            got_answer_after_interrupt = match(
+                normalizeMessage(interrupt_response),
+                ["Answer", int, ["CoqExn", TAIL]],
+                lambda *args: False,
+                ["Answer", TAIL],
+                lambda *args: True,
+                _, lambda *args: False)
             if got_answer_after_interrupt:
                 self.get_completed()
                 for i in range(num_breaks):
                     try:
-                        msg = loads(self.message_queue.get(timeout=self.timeout))
-                    except:
+                        msg = loads(self.message_queue.get(
+                            timeout=self.timeout))
+                    except queue.Empty:
                         raise CoqAnomaly("Timing out")
                     assert isBreakMessage(msg), msg
                 assert self.message_queue.empty(), self.messages
@@ -940,7 +949,7 @@ class SerapiInstance(threading.Thread):
                 raise TimeoutError("")
 
     def get_feedbacks(self) -> List['Sexp']:
-        feedbacks = [] #type: List[Sexp]
+        feedbacks = []  # type: List[Sexp]
         next_message = self.get_message()
         while(isinstance(next_message, list) and
               next_message[0] == Symbol("Feedback")):
@@ -968,7 +977,7 @@ class SerapiInstance(threading.Thread):
             match(normalizeMessage(feedback),
                   ["Answer", int, ["CoqExn", TAIL]],
                   lambda state_id, rest:
-                  raise_(CoqAnomaly(""))
+                  raise_(CoqAnomaly(searchStrsInMsg(rest)[0]))
                   if "Anomaly" in searchStrsInMsg(rest)[0] else
                   raise_(CoqExn(searchStrsInMsg(rest))),
                   ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
@@ -1428,7 +1437,8 @@ def tacticTakesIdentifierArg(stem : str) -> bool:
 def progn(*args):
     return args[-1]
 
-def lemma_name_from_statement(stmt : str) -> str:
+
+def lemma_name_from_statement(stmt: str) -> str:
     if "Goal" in stmt:
         return ""
     if "Obligation" in stmt:
