@@ -397,7 +397,10 @@ def sample_batch(transitions: List[LabeledTransition], k: int) -> \
 def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
                   before: ProofContext, after: ProofContext, tactic: str) \
       -> LabeledTransition:
-    if after.focused_goal == "":
+    goals_changed = len(after.all_goals) - len(before.all_goals)
+    if goals_changed != 0:
+        reward = goals_changed * 30.0
+    elif after.focused_goal == "":
         reward = 1000.0
     else:
         goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
