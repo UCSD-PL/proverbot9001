@@ -316,7 +316,7 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
             commands_run.append(lemma_statement)
             commands_run += body_tactics
             append_time(args, "Orig: " + lemma_name, time.time() - starttime)
-        except serapi_instance.SerapiException:
+        except Exception:
             commands_in = [lemma_statement] + \
                 [t.tactic for t in original_tactics] \
                 + commands_in
