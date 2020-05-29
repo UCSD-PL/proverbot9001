@@ -1013,6 +1013,7 @@ class SerapiInstance(threading.Thread):
                   ["Answer", int, ["CoqExn", _, _, _, _]],
                   lambda *args: raise_(CoqExn(cancelled_answer)),
                   _, lambda *args: raise_(BadResponse(cancelled_answer)))
+        self.get_completed()
 
         return new_statenum
 
