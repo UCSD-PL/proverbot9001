@@ -835,20 +835,25 @@ def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.Serap
         return commands_run, list(commands_in_iter), blocks_out,\
             num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
 
-def try_run_prelude(args: argparse.Namespace, coq : SerapiInstance):
+
+def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
     if not args.weightsfile:
         eprint("No weightsfile")
         return
     prelude_path = args.weightsfile.with_suffix(".prelude.v")
     if not prelude_path.exists():
-        eprint(f"Couldn't find prelude at {prelude_path}")
+        eprint(f"Couldn't find prelude at {prelude_path}",
+               guard=args.verbose >= 2)
         return
-    eprint("Running prelude:", guard=args.verbose>=2)
-    prelude_commands = serapi_instance.load_commands_preserve(args, 0, prelude_path)
+    eprint("Running prelude:", guard=args.verbose >= 2)
+    prelude_commands = serapi_instance.load_commands_preserve(
+        args, 0, prelude_path)
     for command in prelude_commands:
-        eprint(f"Found command {command}", guard=args.verbose>=2)
+        eprint(f"Found command {command}",
+               guard=args.verbose >= 2)
         coq.run_stmt(command)
-    eprint("Finished with prelude", guard=args.verbose>=2)
+    eprint("Finished with prelude",
+           guard=args.verbose >= 2)
 
 # The core of the search report
 
