@@ -405,8 +405,12 @@ class SerapiInstance(threading.Thread):
     # get it. NOT FOR EXTERNAL USE
     def send_flush(self, cmd : str):
         eprint("SENT: " + cmd, guard=self.verbose >= 4)
-        self._fin.write(cmd.encode('utf-8'))
-        self._fin.flush()
+        try:
+            self._fin.write(cmd.encode('utf-8'))
+            self._fin.flush()
+        except BrokenPipeError:
+            raise CoqAnomaly("Coq process unexpectedly quit. Possibly running "
+                             "out of memory due to too many threads?")
         self._current_fg_goal_count = None
 
     def send_acked(self, cmd : str):
