@@ -83,6 +83,8 @@ def main() -> None:
     parser.add_argument("--ghosts", action='store_true')
     parser.add_argument("--graphs-dir", default=Path2("graphs"), type=Path2)
 
+    parser.add_argument("--success-repetitions", default=10, type=int)
+
     args = parser.parse_args()
 
     try:
@@ -316,6 +318,7 @@ def reinforce_lemma(args: argparse.Namespace,
                           leave=False):
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
+        episode_memory = []
         for t in range(args.episode_length):
             with print_time("Getting predictions", guard=args.verbose):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
@@ -373,11 +376,13 @@ def reinforce_lemma(args: argparse.Namespace,
             cur_node = graph.addTransition(cur_node, action,
                                            transition.reward)
             transition.graph_node = cur_node
+            episode_memory.append(transition)
             memory.append(transition)
             proof_contexts_seen.append(proof_context_after)
 
             if coq.goals == "":
                 graph.mkQED(cur_node)
+                memory += (episode_memory * (args.success_repetitions - 1))
                 break
 
         with print_time("Assigning scores", guard=args.verbose):
