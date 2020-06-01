@@ -55,7 +55,7 @@ pub struct ScrapedTactic {
     pub tactic: String,
 }
 #[pyclass]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TacticContext {
     #[pyo3(get, set)]
     pub relevant_lemmas: Vec<String>,
@@ -76,14 +76,30 @@ impl <'source> FromPyObject<'source> for TacticContext {
         Ok(TacticContext{relevant_lemmas, prev_tactics, obligation})
     }
 }
+#[pymethods]
+impl TacticContext {
+    #[new]
+    fn new(obj: &PyRawObject) {
+        let d: TacticContext = Default::default();
+        obj.init({ d });
+    }
+}
 
 #[pyclass]
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Obligation {
     #[pyo3(get, set)]
     pub hypotheses: Vec<String>,
     #[pyo3(get, set)]
     pub goal: String,
+}
+#[pymethods]
+impl Obligation {
+    #[new]
+    fn new(obj: &PyRawObject) {
+        let d: Obligation = Default::default();
+        obj.init({ d });
+    }
 }
 
 impl <'source> FromPyObject<'source> for Obligation {

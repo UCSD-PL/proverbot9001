@@ -32,11 +32,13 @@ import dataloader
 import tokenizer
 from models import tactic_predictor, q_estimator
 from models.features_q_estimator import FeaturesQEstimator
+from models import features_polyarg_predictor
 import predict_tactic
+import util
 from util import eprint, print_time, nostderr, unwrap, progn
 
 from dataclasses import dataclass
-from typing import List, Tuple, Iterator, Optional
+from typing import List, Tuple, Iterator, Optional, cast
 from format import (TacticContext, ProofContext, Obligation)
 from pathlib_revised import Path2
 
@@ -45,6 +47,7 @@ from tqdm import trange, tqdm
 
 
 def main() -> None:
+    util.use_cuda = False
     parser = \
         argparse.ArgumentParser(
             description="A module for exploring deep Q learning "
@@ -284,6 +287,20 @@ class LabeledTransition:
     reward: float
     graph_node: Optional[LabeledNode]
 
+    @property
+    def after_context(self) -> TacticContext:
+        return TacticContext(self.relevant_lemmas,
+                             self.prev_tactics,
+                             self.after.focused_hyps,
+                             self.after.focused_goal)
+
+    @property
+    def before_context(self) -> TacticContext:
+        return TacticContext(self.relevant_lemmas,
+                             self.prev_tactics,
+                             self.before.focused_hyps,
+                             self.before.focused_goal)
+
 
 def reinforce_lemma(args: argparse.Namespace,
                     predictor: tactic_predictor.TacticPredictor,
@@ -398,10 +415,10 @@ def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
                   before: ProofContext, after: ProofContext, tactic: str) \
       -> LabeledTransition:
     goals_changed = len(after.all_goals) - len(before.all_goals)
-    if goals_changed != 0:
-        reward = goals_changed * 30.0
-    elif after.focused_goal == "":
+    if len(after.all_goals) == 0:
         reward = 1000.0
+    elif goals_changed != 0:
+        reward = -(goals_changed * 30.0)
     else:
         goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
             len(tokenizer.get_words(after.focused_goal))
@@ -432,15 +449,15 @@ def assign_scores(transitions: List[LabeledTransition],
                   graph: ReinforceGraph) -> \
                   List[Tuple[TacticContext, str, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float]]:
-        predictions = predictor.predictKTactics_batch(  # type: ignore
-            [transition.after for transition in transitions],
-            num_predictions)
-        for transition, predictions in zip(transitions, predictions):
-            tactic_ctxt = TacticContext(transition.relevant_lemmas,
-                                        transition.prev_tactics +
-                                        [transition.action],
-                                        transition.after.focused_hyps,
-                                        transition.after.focused_goal)
+        prediction_lists = cast(features_polyarg_predictor
+                                .FeaturesPolyargPredictor,
+                                predictor) \
+                                .predictKTactics_batch(
+                                    [transition.after_context for
+                                     transition in transitions],
+                                    num_predictions)
+        for transition, predictions in zip(transitions, prediction_lists):
+            tactic_ctxt = transition.after_context
 
             new_q = transition.reward + \
                 discount * max(q_estimator(

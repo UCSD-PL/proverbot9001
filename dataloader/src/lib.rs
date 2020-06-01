@@ -313,5 +313,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ScrapedTactic>()?;
     m.add_class::<ProofContext>()?;
     m.add_class::<ScrapedTransition>()?;
+    m.add_class::<Obligation>()?;
+    m.add_class::<TacticContext>()?;
     Ok(())
 }

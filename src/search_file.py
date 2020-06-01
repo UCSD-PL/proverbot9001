@@ -572,7 +572,9 @@ def blocks_from_scrape_and_sols(
 
     def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
         for lstmt, lmod, lresult in lemma_statements_done:
-            if lmod == module and lstmt == lemma_stmt:
+            if (lmod == module and
+                    serapi_instance.kill_comments(lstmt).strip()
+                    == serapi_instance.kill_comments(lemma_stmt).strip()):
                 return lresult
         return None
 
