@@ -56,7 +56,7 @@ def main() -> None:
     parser.add_argument("scrape_file")
 
     parser.add_argument("out_weights", type=Path2)
-    parser.add_argument("environment_file", type=Path2)
+    parser.add_argument("environment_files", type=Path2, nargs="+")
     parser.add_argument("--proof", default=None)
 
     parser.add_argument("--prelude", default=".", type=Path2)
@@ -192,16 +192,18 @@ def reinforce(args: argparse.Namespace) -> None:
     replay_memory = assign_rewards(
         dataloader.tactic_transitions_from_file(args.scrape_file,
                                                 args.buffer_size))
-    env_commands = serapi_instance.load_commands_preserve(
-        args, 0, args.prelude / args.environment_file)
-    num_proofs = len([cmd for cmd in env_commands
-                      if cmd.strip() == "Qed." or cmd.strip() == "Defined."])
 
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
     q_estimator = FeaturesQEstimator(args.learning_rate,
                                      args.batch_step,
                                      args.gamma)
+    signal.signal(
+        signal.SIGINT,
+        lambda signal, frame:
+        progn(q_estimator.save_weights(
+            args.out_weights, args),  # type: ignore
+              exit()))
     if args.start_from:
         q_estimator_name, *saved = \
             torch.load(args.start_from)
@@ -211,6 +213,14 @@ def reinforce(args: argparse.Namespace) -> None:
     gamma = 0.9
 
     if args.proof is not None:
+        assert len(args.environment_files) == 1, \
+            "Can't use multiple env files with --proof!"
+        env_commands = serapi_instance.load_commands_preserve(
+            args, 0, args.prelude / args.environment_files[0])
+        num_proofs = len([cmd for cmd in env_commands
+                          if cmd.strip() == "Qed."
+                          or cmd.strip() == "Defined."])
+
         with serapi_instance.SerapiContext(
                 ["sertop", "--implicit"],
                 serapi_instance.get_module_from_filename(
@@ -233,50 +243,52 @@ def reinforce(args: argparse.Namespace) -> None:
                             epsilon, gamma, replay_memory)
             q_estimator.save_weights(args.out_weights, args)
     else:
-        rest_commands = env_commands
-        all_run_commands: List[str] = []
-        signal.signal(
-            signal.SIGINT,
-            lambda signal, frame:
-            progn(q_estimator.save_weights(
-                args.out_weights, args),  # type: ignore
-                  exit()))
-        with tqdm(total=num_proofs, disable=(not args.progress),
-                  leave=True) as pbar:
-            while rest_commands:
-                with serapi_instance.SerapiContext(
-                        ["sertop", "--implicit"],
-                        serapi_instance.get_module_from_filename(
-                            args.environment_file),
-                        str(args.prelude)) as coq:
-                    coq.quiet = True
-                    coq.verbose = args.verbose
-                    for command in all_run_commands:
-                        coq.run_stmt(command)
+        for env_file in args.environment_files:
+            env_commands = serapi_instance.load_commands_preserve(
+                args, 0, args.prelude / env_file)
+            num_proofs = len([cmd for cmd in env_commands
+                              if cmd.strip() == "Qed."
+                              or cmd.strip() == "Defined."])
+            rest_commands = env_commands
+            all_run_commands: List[str] = []
+            with tqdm(total=num_proofs, disable=(not args.progress),
+                      leave=True, desc=env_file.stem) as pbar:
+                while rest_commands:
+                    with serapi_instance.SerapiContext(
+                            ["sertop", "--implicit"],
+                            serapi_instance.get_module_from_filename(
+                                env_file),
+                            str(args.prelude)) as coq:
+                        coq.quiet = True
+                        coq.verbose = args.verbose
+                        for command in all_run_commands:
+                            coq.run_stmt(command)
 
-                    while rest_commands:
-                        rest_commands, run_commands = \
-                            coq.run_into_next_proof(rest_commands)
-                        all_run_commands += run_commands[:-1]
-                        lemma_statement = run_commands[-1]
-                        for sample in replay_memory:
-                            sample.graph_node = None
-
-                        try:
-                            reinforce_lemma(args, predictor, q_estimator, coq,
-                                            lemma_statement,
-                                            epsilon, gamma, replay_memory)
-                            pbar.update(1)
+                        while rest_commands:
                             rest_commands, run_commands = \
-                                coq.finish_proof(rest_commands)
-                            all_run_commands.append(lemma_statement)
-                            all_run_commands += run_commands
-                        except serapi_instance.CoqAnomaly:
-                            eprint("Hit an anomaly! Restarting coq instance")
-                            rest_commands.insert(0, lemma_statement)
-                            break
+                                coq.run_into_next_proof(rest_commands)
+                            all_run_commands += run_commands[:-1]
+                            lemma_statement = run_commands[-1]
+                            for sample in replay_memory:
+                                sample.graph_node = None
 
-        q_estimator.save_weights(args.out_weights, args)
+                            try:
+                                reinforce_lemma(args, predictor, q_estimator,
+                                                coq,
+                                                lemma_statement,
+                                                epsilon, gamma, replay_memory)
+                                pbar.update(1)
+                                rest_commands, run_commands = \
+                                    coq.finish_proof(rest_commands)
+                                all_run_commands.append(lemma_statement)
+                                all_run_commands += run_commands
+                            except serapi_instance.CoqAnomaly:
+                                eprint(
+                                    "Hit an anomaly! Restarting coq instance")
+                                rest_commands.insert(0, lemma_statement)
+                                break
+
+            q_estimator.save_weights(args.out_weights, args)
 
 
 @dataclass
