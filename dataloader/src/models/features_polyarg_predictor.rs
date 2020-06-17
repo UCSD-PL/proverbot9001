@@ -403,7 +403,7 @@ pub fn decode_fpa_result(
         TacticArgument::Unrecognized => stem + ".",
         TacticArgument::GoalToken(tidx) => {
             assert!(
-                tidx < get_symbols(goal).len(),
+                tidx < get_words(goal).len(),
                 format!("{}, {}", goal, tidx)
             );
             stem + " " + get_words(goal)[tidx] + "."
