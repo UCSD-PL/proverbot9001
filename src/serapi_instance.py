@@ -1154,12 +1154,12 @@ class SerapiInstance(threading.Thread):
             else:
                 assert False, f"Unrecognized End \"{cmd}\", top of module stack is {self.module_stack[-1]}"
 
-
     def kill(self) -> None:
         self._proc.terminate()
         self._proc.stdout.close()
+        self._proc.stdin.close()
+        self._proc.kill()
         threading.Thread.join(self)
-
     pass
 
 def isBreakMessage(msg : 'Sexp') -> bool:
@@ -1172,11 +1172,16 @@ def isBreakAnswer(msg : 'Sexp') -> bool:
 import contextlib
 from typing import Iterator
 
+
 @contextlib.contextmanager
-def SerapiContext(coq_commands : List[str], module_name : str, includes : str, prelude : str, use_hammer : bool = False) -> Iterator[Any]:
-    coq = SerapiInstance(coq_commands, module_name, includes, prelude, use_hammer=use_hammer)
-    yield coq
-    coq.kill()
+def SerapiContext(coq_commands: List[str], module_name: str, includes: str,
+                  prelude: str, use_hammer: bool = False) -> Iterator[Any]:
+    coq = SerapiInstance(coq_commands, module_name, includes, prelude,
+                         use_hammer=use_hammer)
+    try:
+        yield coq
+    finally:
+        coq.kill()
 
 normal_lemma_starting_patterns = [
     r"(?:Local|Global\s+)?Lemma",
