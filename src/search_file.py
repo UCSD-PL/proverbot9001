@@ -788,12 +788,16 @@ def write_html(args: argparse.Namespace,
               'w') as fout:
         fout.write(doc.getvalue())
 
+
 def write_lemma_button(lemma_statement: str, module: Optional[str],
                        status_klass: str, tag: Tag, text: Text):
     global unnamed_goal_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
-    module_prefix = escape_lemma_name(module)
+    if module:
+        module_prefix = escape_lemma_name(module)
+    else:
+        module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
         fullname = module_prefix + lemma_name + str(unnamed_goal_number)
@@ -1358,7 +1362,10 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
-    module_prefix = escape_lemma_name(module_name)
+    if module_name:
+        module_prefix = escape_lemma_name(module_name)
+    else:
+        module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
         g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}"
