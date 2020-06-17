@@ -26,7 +26,6 @@ import re
 import datetime
 import time
 import csv
-import traceback
 import multiprocessing
 import threading
 import json
@@ -50,7 +49,6 @@ from util import (unwrap, eprint, escape_filename, escape_lemma_name,
 import util
 import itertools
 from dataclasses import dataclass
-from enum import Enum, auto
 
 from tqdm import tqdm
 from yattag import Doc
