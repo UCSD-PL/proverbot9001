@@ -337,10 +337,14 @@ def search_file_worker(args: argparse.Namespace,
                     except serapi_instance.CoqAnomaly:
                         if failing_lemma == lemma_statement:
                             eprint("Hit the same anomaly twice! Skipping")
+                            solution = [
+                                TacticInteraction("Proof.", initial_context),
+                                TacticInteraction("Admitted.", initial_context)
+                            ]
                             done.put(((next_file, coq.module_prefix,
                                        next_lemma),
-                                      SearchResult(search_status,
-                                                   tactic_solution)))
+                                      SearchResult(SearchStatus.INCOMPLETE,
+                                                   solution)))
                             try:
                                 next_job = jobs.get_nowait()
                                 new_file, next_module, next_lemma = next_job
