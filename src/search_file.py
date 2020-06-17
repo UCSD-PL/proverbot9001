@@ -126,13 +126,10 @@ class SearchResult(NamedTuple):
         return cls(status, commands)
 
     def to_dict(self):
-        if self.commands:
-            return {'status': self.status.name,
-                    'commands': list(map(TacticInteraction.to_dict,
-                                         self.commands))}
-        else:
-            return {'status': str(self.status),
-                    'commands': None}
+        assert self.commands
+        return {'status': self.status.name,
+                'commands': list(map(TacticInteraction.to_dict,
+                                     self.commands))}
 
 
 DocumentBlock = Union[VernacBlock, ProofBlock]
