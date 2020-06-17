@@ -257,6 +257,7 @@ def append_time(args: argparse.Namespace, action: str, seconds: float):
         with args.proof_times.open('a') as f:
             f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
 
+
 def admit_proof_cmds(lemma_statement: str) -> List[str]:
     let_match = re.match(r"\s*Let\s*(.*)\.$",
                          lemma_statement,
@@ -1139,7 +1140,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
                     if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction, proof_context_before,
+                        predictionNode = g.mkNode(prediction,
+                                                  unwrap(proof_context_before),
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
                         g.setNodeColor(predictionNode, "red")
