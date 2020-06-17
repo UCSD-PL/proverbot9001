@@ -328,13 +328,13 @@ class FeaturesPolyargPredictor(
         total_values_list = [torch.cat((goal_values, prem_values.view(stem_width, -1)), dim=1) for
                              goal_values, prem_values in zip(goal_arg_values, prem_arg_values_split)]
         all_probs_list = [self._softmax((total_values +
-                                          stem_certainties.view(stem_width, 1)
-                                          .expand_as(total_values))
-                                         .contiguous()
-                                         .view(1,-1))
-                           .view(-1)
-                           for total_values, stem_certainties
-                           in zip(total_values_list, stem_certainties_batch)]
+                                         stem_certainties.view(stem_width, 1)
+                                         .expand_as(total_values))
+                                        .contiguous()
+                                        .view(1, -1))
+                          .view(-1)
+                          for total_values, stem_certainties
+                          in zip(total_values_list, stem_certainties_batch)]
 
         final_probs_list, final_idxs_list = zip(*[probs.topk(k) for probs in all_probs_list])
         stem_keys_list = [final_idxs // (self.training_args.max_length + num_hyps + 1)
@@ -346,18 +346,21 @@ class FeaturesPolyargPredictor(
         arg_idxs_list = [final_idxs % (self.training_args.max_length + num_hyps + 1)
                          for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
 
-        return [[Prediction(decode_fpa_result(extract_dataloader_args(self.training_args),
-                                              self._metadata,
-                                              context.hypotheses + context.relevant_lemmas,
-                                              context.goal,
-                                              stem_idx.item(),
-                                              arg_idx.item()),
+        return [[Prediction(decode_fpa_result(
+            extract_dataloader_args(self.training_args),
+            self._metadata,
+            context.hypotheses + context.relevant_lemmas,
+            context.goal,
+            stem_idx.item(),
+            arg_idx.item()),
                             math.exp(prob))
                  for stem_idx, arg_idx, prob in
                  islice(zip(stem_idxs, arg_idxs, final_probs),
-                        min(k, 1 + num_hyps + len(tokenizer.get_symbols(context.goal))))]
+                        min(k, 1 + num_hyps +
+                            len(tokenizer.get_symbols(context.goal))))]
                 for stem_idxs, arg_idxs, final_probs, context, num_hyps
-                in zip(stem_idxs_list, arg_idxs_list, final_probs_list, context_batch, nhyps_batch)]
+                in zip(stem_idxs_list, arg_idxs_list, final_probs_list,
+                       context_batch, nhyps_batch)]
 
     def predictKTactics(self, context : TacticContext, k : int) -> List[Prediction]:
         assert self.training_args
