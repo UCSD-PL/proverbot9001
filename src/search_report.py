@@ -313,12 +313,12 @@ def read_stats_from_csv(output_dir : str, vfilename : str) -> \
         rowreader = csv.reader(rest_iter, lineterminator=os.linesep)
         for row in rowreader:
             num_proofs += 1
-            if row[1] == "SearchStatus.SUCCESS":
+            if row[1] == "SUCCESS":
                 num_proofs_completed += 1
-            elif row[1] == "SearchStatus.FAILURE":
+            elif row[1] == "FAILURE":
                 num_proofs_failed += 1
             else:
-                assert row[1] == "SearchStatus.INCOMPLETE"
+                assert row[1] == "INCOMPLETE", row
     return saved_args, ReportStats(str(vfilename),
                                    num_proofs, num_proofs_failed, num_proofs_completed)
 
