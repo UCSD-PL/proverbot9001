@@ -475,7 +475,6 @@ def recover_sol(sol: Dict[str, Any]) -> SearchResult:
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
-    multiprocessing.set_start_method('spawn')
     with multiprocessing.Manager() as manager:
         jobs: multiprocessing.Queue[
             Tuple[str, str, str]] = multiprocessing.Queue()
@@ -1262,4 +1261,5 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main(sys.argv[1:], 0)

@@ -344,4 +344,5 @@ def get_predictor(parser : argparse.ArgumentParser,
     return predictor
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main(sys.argv[1:])
