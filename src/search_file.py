@@ -395,6 +395,8 @@ def search_file_worker(args: argparse.Namespace,
                             if cmd.strip() == "Defined.":
                                 proof_relevant = True
                             break
+                    proof_relevant = proof_relevant or \
+                        bool(re.match(r"\s*Derive", lemma_statement))
                     if proof_relevant:
                         rest_commands, run_commands = coq.finish_proof(
                             rest_commands)
@@ -418,7 +420,7 @@ def lemmas_in_file(filename: str, cmds: List[str]) \
     for cmd_idx, cmd in reversed(list(enumerate(cmds))):
         if in_proof and serapi_instance.possibly_starting_proof(cmd):
             in_proof = False
-            if not proof_relevant:
+            if not proof_relevant and not re.match(r"\s*Derive",  cmd):
                 lemmas.append((cmd_idx, cmd))
         if serapi_instance.ending_proof(cmd):
             in_proof = True
