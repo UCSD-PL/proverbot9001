@@ -354,6 +354,9 @@ def search_file_worker(args: argparse.Namespace,
                                             args.prelude / next_file)
                                     rest_commands = all_commands
                                     break
+                                else:
+                                    rest_commands = [lemma_statement] \
+                                        + rest_commands
                             except queue.Empty:
                                 return
                         else:
