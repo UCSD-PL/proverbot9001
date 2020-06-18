@@ -1092,6 +1092,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                 predictor_lock: threading.Lock) \
                                 -> SearchResult:
     global unnamed_goal_number
+    unnamed_goal_number = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
 
