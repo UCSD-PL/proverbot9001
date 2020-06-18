@@ -592,9 +592,7 @@ def blocks_from_scrape_and_sols(
 
         in_proof = False
         for interaction in interactions:
-            if not in_proof and isinstance(interaction, str):
-                vernac_cmds_batch.append(interaction)
-
+            if isinstance(interaction, str):
                 # Module stuff
                 stripped_cmd = serapi_instance.kill_comments(
                     interaction).strip()
@@ -621,9 +619,9 @@ def blocks_from_scrape_and_sols(
                         assert False, \
                             f"Unrecognized End \"{interaction}\", " \
                             f"top of module stack is {module_stack[-1]}"
-                # Done
+                vernac_cmds_batch.append(interaction)
 
-            elif in_proof and isinstance(interaction, str):
+            if in_proof and isinstance(interaction, str):
                 module_prefix = "".join([module + "." for module
                                          in module_stack])
                 result = lookup(module_prefix, cur_lemma_stmt)
@@ -639,12 +637,11 @@ def blocks_from_scrape_and_sols(
                                      result.status, result.commands,
                                      batch_without_brackets)
                 tactics_interactions_batch = []
-                vernac_cmds_batch = [interaction]
                 in_proof = False
             elif in_proof and isinstance(interaction, ScrapedTactic):
                 tactics_interactions_batch.append(
                     interaction_from_scraped(interaction))
-            else:
+            elif isinstance(interaction, ScrapedTactic):
                 assert not in_proof and isinstance(interaction, ScrapedTactic)
                 cur_lemma_stmt = vernac_cmds_batch[-1]
                 yield VernacBlock(vernac_cmds_batch[:-1])
