@@ -519,8 +519,11 @@ def search_file_multithreaded(args: argparse.Namespace,
                 except FileNotFoundError:
                     pass
             for module_prefix, lemma_statement in lemma_statements_todo:
-                all_jobs.append((str(filename), module_prefix,
-                                 lemma_statement))
+                if not args.proof or \
+                   args.proof == serapi_instance.lemma_name_from_statement(
+                       lemma_statement):
+                    all_jobs.append((str(filename), module_prefix,
+                                     lemma_statement))
         for job in all_jobs:
             jobs.put(job)
         workers = [multiprocessing.Process(target=search_file_worker,
@@ -592,34 +595,6 @@ def blocks_from_scrape_and_sols(
 
         in_proof = False
         for interaction in interactions:
-            if isinstance(interaction, str):
-                # Module stuff
-                stripped_cmd = serapi_instance.kill_comments(
-                    interaction).strip()
-                module_start_match = re.match(
-                    r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)",
-                    stripped_cmd)
-                if stripped_cmd.count(":=") > stripped_cmd.count("with"):
-                    module_start_match = None
-                section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
-                                               stripped_cmd)
-                end_match = re.match(r"End (\w*)\.", stripped_cmd)
-                if module_start_match:
-                    module_stack.append(module_start_match.group(1))
-                elif section_start_match:
-                    section_stack.append(section_start_match.group(1))
-                elif end_match:
-                    if module_stack and \
-                       module_stack[-1] == end_match.group(1):
-                        module_stack.pop()
-                    elif section_stack and \
-                            section_stack[-1] == end_match.group(1):
-                        section_stack.pop()
-                    else:
-                        assert False, \
-                            f"Unrecognized End \"{interaction}\", " \
-                            f"top of module stack is {module_stack[-1]}"
-                vernac_cmds_batch.append(interaction)
 
             if in_proof and isinstance(interaction, str):
                 module_prefix = "".join([module + "." for module
@@ -650,6 +625,34 @@ def blocks_from_scrape_and_sols(
                 tactics_interactions_batch.append(
                     interaction_from_scraped(interaction))
                 in_proof = True
+            if isinstance(interaction, str):
+                # Module stuff
+                stripped_cmd = serapi_instance.kill_comments(
+                    interaction).strip()
+                module_start_match = re.match(
+                    r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)",
+                    stripped_cmd)
+                if stripped_cmd.count(":=") > stripped_cmd.count("with"):
+                    module_start_match = None
+                section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+                                               stripped_cmd)
+                end_match = re.match(r"End (\w*)\.", stripped_cmd)
+                if module_start_match:
+                    module_stack.append(module_start_match.group(1))
+                elif section_start_match:
+                    section_stack.append(section_start_match.group(1))
+                elif end_match:
+                    if module_stack and \
+                       module_stack[-1] == end_match.group(1):
+                        module_stack.pop()
+                    elif section_stack and \
+                            section_stack[-1] == end_match.group(1):
+                        section_stack.pop()
+                    else:
+                        assert False, \
+                            f"Unrecognized End \"{interaction}\", " \
+                            f"top of module stack is {module_stack[-1]}"
+                vernac_cmds_batch.append(interaction)
         pass
     blocks = list(generate())
     return blocks
