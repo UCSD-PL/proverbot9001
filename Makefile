@@ -125,7 +125,7 @@ clean:
 	rm -f log*.txt
 
 clean-scrape:
-	for file in `fd ".*\.scrape" CompCert` ; do \
+	for file in `find CompCert -name "*.scrape"` ; do \
             mv $$file $$file.bkp; \
         done
 
