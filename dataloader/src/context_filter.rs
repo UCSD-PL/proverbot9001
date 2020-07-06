@@ -28,6 +28,7 @@ use regex::Regex;
 use rayon::prelude::*;
 
 use lalrpop_util::lalrpop_mod;
+use crate::tokenizer::get_symbols;
 
 #[allow(dead_code)]
 lalrpop_mod!(context_filter_parser);
@@ -74,9 +75,8 @@ fn apply_filter(
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
-            let goal_symbols: Vec<&str> = scraped
-                .context.focused_goal()
-                .split_whitespace()
+            let goal_symbols: Vec<&str> = get_symbols(&scraped
+                .context.focused_goal()).into_iter()
                 .take(args.max_length)
                 .collect();
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
@@ -92,7 +92,7 @@ fn apply_filter(
             let hyp_names: Vec<&str> = scraped
                 .context.focused_hyps()
                 .iter()
-                .map(|hyp| hyp.splitn(1, ":").next().unwrap().trim())
+                .map(|hyp| hyp.splitn(2, ":").next().unwrap().trim())
                 .collect();
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
@@ -107,7 +107,7 @@ fn apply_filter(
             let lemma_names: Vec<_>= scraped
                 .relevant_lemmas
                 .iter()
-                .map(|lemma| lemma.splitn(1, ":").next().unwrap().trim())
+                .map(|lemma| lemma.splitn(2, ":").next().unwrap().trim())
                 .collect();
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
@@ -150,7 +150,7 @@ fn apply_filter(
         }
         ContextFilterAST::Default => {
             lazy_static! {
-                static ref BACKGROUND_TAC: Regex = Regex::new(r"\d+:.*").unwrap();
+                static ref BACKGROUND_TAC: Regex = Regex::new(r"^\d+:.*").unwrap();
             }
             !scraped.tactic.contains(";") &&
                 !scraped.tactic.contains("Proof") &&

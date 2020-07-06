@@ -244,7 +244,7 @@ pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
     let no_comments_tac = kill_comments(full_tactic);
     let prepped_tac = no_comments_tac.trim();
     lazy_static! {
-        static ref GOAL_SELECTOR: Regex = Regex::new(r"$\s*[-+*{}]+\s*^").unwrap();
+        static ref GOAL_SELECTOR: Regex = Regex::new(r"^\s*[-+*{}]+\s*$").unwrap();
     }
     if GOAL_SELECTOR.is_match(prepped_tac)
         || split_to_next_pat_outside_parens(&prepped_tac, ";").is_some()
@@ -261,7 +261,7 @@ pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
             });
         }
     }
-    for special_stem in &["rewrite <-", "rewrite !", "intros until", "simple in"] {
+    for special_stem in &["rewrite <-", "rewrite !", "intros until", "simpl in"] {
         if prepped_tac.starts_with(special_stem) {
             return Some((
                 special_stem.to_string(),
