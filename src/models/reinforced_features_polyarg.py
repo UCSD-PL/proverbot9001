@@ -59,6 +59,8 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
         # to train)
         self._estimator = features_q_estimator.FeaturesQEstimator(0, 0, 0)
         self._estimator.load_saved_state(args, unparsed_args, q_meta, q_state)
+
+        self.unparsed_args = unparsed_args
         pass
 
     def getOptions(self) -> List[Tuple[str, str]]:
