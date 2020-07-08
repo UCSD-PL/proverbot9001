@@ -225,7 +225,10 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--proof", default=None)
     parser.add_argument("--log-anomalies", type=Path2, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
-    known_args, unknown_args = parser.parse_known_args(args_list)
+    if __name__ == "__main__":
+        known_args = parser.parse_args(args_list)
+    else:
+        known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
 
 
