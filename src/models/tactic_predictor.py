@@ -74,8 +74,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         parser.add_argument("--max-tuples", dest="max_tuples", type=int,
                             default=default_values.get("max-tuples", None))
         parser.add_argument("--context-filter", dest="context_filter", type=str,
-                            default=default_values.get("context-filter",
-                                                       "goal-changes%no-args"))
+                            default=default_values.get("context-filter", "goal-changes"))
         parser.add_argument("--no-truncate-semicolons",
                             dest="truncate_semicolons",
                             action='store_false')
