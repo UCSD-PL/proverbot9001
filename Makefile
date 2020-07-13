@@ -54,7 +54,7 @@ report: $(TESTSCRAPES)
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
 compcert-train: data/compcert-scrape.txt
-	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 train:
 	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 
