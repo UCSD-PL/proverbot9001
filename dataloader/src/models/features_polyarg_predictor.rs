@@ -474,8 +474,8 @@ fn get_argument<'a>(
     } else if argstr_tokens.len() > 1 {
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let goal_symbols = scraped.context.focused_goal().split_whitespace();
         let arg_token = argstr_tokens[0];
+        let goal_symbols = get_symbols(scraped.context.focused_goal());
         match goal_symbols
             .take(args.max_length)
             .enumerate()
