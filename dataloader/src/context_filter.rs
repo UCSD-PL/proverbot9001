@@ -79,13 +79,20 @@ fn apply_filter(
                 .context.focused_goal()).into_iter()
                 .take(args.max_length)
                 .collect();
-            let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
+            let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
             };
             let trimmed_args = tactic_argstr.trim();
-            trimmed_args[..trimmed_args.len() - 1]
-                .split_whitespace()
+            let arg_tokens: Vec<&str> = trimmed_args[..trimmed_args.len() - 1]
+                .split_whitespace().collect();
+            // While the arguments to an intro(s) might *look* like
+            // goal arguments, they are actually fresh variables
+            if (tactic_stem == "intros" ||
+                tactic_stem == "intro") && arg_tokens.len() > 0 {
+                return false
+            }
+            arg_tokens.into_iter()
                 .all(|arg_token| goal_symbols.contains(&arg_token))
         }
         ContextFilterAST::HypArgs => {
@@ -94,13 +101,20 @@ fn apply_filter(
                 .iter()
                 .map(|hyp| hyp.splitn(2, ":").next().unwrap().trim())
                 .collect();
-            let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
+            let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
             };
             let trimmed_args = tactic_argstr.trim();
-            trimmed_args[..trimmed_args.len() - 1]
-                .split_whitespace()
+            let arg_tokens: Vec<&str> = trimmed_args[..trimmed_args.len() - 1]
+                .split_whitespace().collect();
+            // While the arguments to an intro(s) might *look* like
+            // hyp arguments, they are actually fresh variables
+            if (tactic_stem == "intros" ||
+                tactic_stem == "intro") && arg_tokens.len() > 0 {
+                return false
+            }
+            arg_tokens.into_iter()
                 .all(|arg_token| hyp_names.contains(&arg_token))
         }
         ContextFilterAST::RelevantLemmaArgs => {
