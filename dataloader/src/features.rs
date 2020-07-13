@@ -80,8 +80,8 @@ pub fn sample_context_features(
     hypotheses: &Vec<String>,
     goal: &String,
 ) -> (LongTensor1D, FloatTensor1D) {
-    let (best_hyp, _best_score) =
-        best_scored_hyp(args.max_distance, args.max_length, &hypotheses, &goal);
+    let (best_hyp, best_score) =
+        best_scored_hyp(args.max_string_distance, args.max_length, &hypotheses, &goal);
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
         goal_head_feature(tmap, &goal),
