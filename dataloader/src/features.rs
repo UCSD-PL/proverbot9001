@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BinaryHeap, HashMap};
 
 use crate::scraped_data::*;
-use crate::tokenizer::get_words;
+use crate::tokenizer::get_symbols;
 use edit_distance::edit_distance;
 use rayon::prelude::*;
 
@@ -64,7 +64,7 @@ pub fn context_features(
         .zip(data.iter())
         .map(|(_score, datum)|
              vec![
-                 (std::cmp::min(get_words(&datum.context.focused_goal()).len(), 100) as f64) / 100.0,
+                 (std::cmp::min(get_symbols(&datum.context.focused_goal()).len(), 100) as f64) / 100.0,
                  (std::cmp::min(datum.context.focused_hyps().len(), 20) as f64) / 20.0
              ])
         .collect();
@@ -88,7 +88,7 @@ pub fn sample_context_features(
         hyp_head_feature(tmap, best_hyp),
     ];
     let vec_features = vec![
-        (std::cmp::min(get_words(&goal).len(), 100) as f64) / 100.0,
+        (std::cmp::min(get_symbols(&goal).len(), 100) as f64) / 100.0,
         (std::cmp::min(hypotheses.len(), 20) as f64) / 20.0
     ];
     (word_features, vec_features)
@@ -252,11 +252,11 @@ pub fn score_hyps<'a>(
     goal: &String,
 ) -> Vec<f64> {
     assert!(max_distance != 0);
-    let truncated_goal = get_words(goal).into_iter().take(max_length).collect::<Vec<_>>().join(" ");
+    let truncated_goal = get_symbols(goal).into_iter().take(max_length).collect::<Vec<_>>().join(" ");
     hyps.into_iter()
         .map(|hyp| {
             let trunc_hyp_after_colon =
-                get_words(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
+                get_symbols(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
                     .into_iter()
                     .take(max_length).collect::<Vec<_>>()
                     .join(" ");
