@@ -139,7 +139,7 @@ impl Tokenizer {
 }
 pub fn get_words(string: &str) -> Vec<&str> {
     lazy_static! {
-        static ref WORDS: Regex = Regex::new(r"(,|\.+|:=|:|\)|\()|(([[:word:]]|')+)").unwrap();
+        static ref WORDS: Regex = Regex::new(r"(,|\.+|:\b|:=|=>|\)|\()|(([[:word:]]|')+)").unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
