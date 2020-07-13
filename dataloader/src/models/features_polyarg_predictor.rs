@@ -389,8 +389,29 @@ pub fn decode_fpa_result(
     tac_idx: i64,
     arg_idx: i64,
 ) -> String {
+    let stem = decode_fpa_stem(&args, metadata, tac_idx);
+    let arg = decode_fpa_arg(&args, premises, goal, arg_idx);
+    if arg == "" {
+        format!("{}.", stem)
+    } else {
+        format!("{} {}.", stem, arg)
+    }
+}
+
+pub fn decode_fpa_stem(
+    args: &DataloaderArgs,
+    metadata: PickleableFPAMetadata,
+    tac_idx: i64) -> String {
     let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
-    let stem = indexer.reverse_lookup(tac_idx);
+    indexer.reverse_lookup(tac_idx)
+}
+
+pub fn decode_fpa_arg(
+    args: &DataloaderArgs,
+    premises: Vec<String>,
+    goal: &str,
+    arg_idx: i64,
+) -> String {
     let argtype = if arg_idx == 0 {
         TacticArgument::NoArg
     } else if (arg_idx as usize) <= args.max_length {
@@ -399,21 +420,28 @@ pub fn decode_fpa_result(
         TacticArgument::HypVar((arg_idx as usize) - args.max_length - 1)
     };
     match argtype {
-        TacticArgument::NoArg => stem + ".",
-        TacticArgument::Unrecognized => stem + ".",
+        TacticArgument::NoArg => "".to_string(),
+        TacticArgument::Unrecognized => "".to_string(),
         TacticArgument::GoalToken(tidx) => {
-            assert!(
-                tidx < get_words(goal).len(),
-                format!("{}, {}", goal, tidx)
-            );
-            stem + " " + get_words(goal)[tidx] + "."
+            // assert!(tidx < get_words(goal).len(), format!("{}, {:?}, {}", goal, get_words(goal), tidx));
+            if tidx >= get_symbols(goal).len() {
+                "<INVALID>".to_string()
+            } else {
+                get_symbols(goal)[tidx].to_string()
+            }
         }
         TacticArgument::HypVar(hidx) => {
             assert!(hidx < premises.len());
-            stem + " " + premises[hidx].split(":").next().expect("No colon in hyp") + "."
+            let all_vars = premises[hidx].split(":").next().expect("No colon in hyp").trim();
+            if all_vars.contains(",") {
+                all_vars.split(",").next().unwrap().to_string()
+            } else {
+                all_vars.to_string()
+            }
         }
     }
 }
+
 
 fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     lazy_static! {
