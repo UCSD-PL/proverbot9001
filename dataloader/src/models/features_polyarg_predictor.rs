@@ -502,9 +502,13 @@ fn get_argument<'a>(
     } else if argstr_tokens.len() > 1 {
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let arg_token = argstr_tokens[0];
         let goal_symbols = get_symbols(scraped.context.focused_goal());
+        let arg_token = match argstr_tokens[0].parse::<i64>() {
+            Ok(var_idx) => get_binder_var(scraped.context.focused_goal(), var_idx),
+            Err(_) => argstr_tokens[0],
+        };
         match goal_symbols
+            .into_iter()
             .take(args.max_length)
             .enumerate()
             .find(|(_idx, symbol)| *symbol == arg_token)
@@ -552,4 +556,38 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::GoalToken(tidx) => (tidx + 1) as i64,
         TacticArgument::HypVar(hidx) => (hidx + dargs.max_length) as i64,
     }
+}
+
+/// A function for doing some quick & dirty parsing of forall
+/// binders. Ported from the python implementation of this same
+/// function in serapi_instance.py.
+fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
+    let mut paren_depth = 0;
+    let mut binders_passed = 0;
+    let mut skip = false;
+    lazy_static! {
+        static ref FORALL: Regex = Regex::new(r"forall\s+").unwrap();
+    }
+    let forall_match = FORALL.find(goal).expect("No toplevel binder found!");
+    let rest_goal = &goal[forall_match.end()..];
+    for w in get_words(rest_goal) {
+        if w == "(" {
+            paren_depth += 1;
+        } else if w == ")" {
+            paren_depth -= 1;
+            if paren_depth < 2 {
+                skip = false;
+            }
+        } else if paren_depth < 2 && !skip {
+            if w == ":" {
+                skip = true;
+            } else {
+                binders_passed += 1;
+                if binders_passed == binder_idx {
+                    return w;
+                }
+            }
+        }
+    }
+    panic!("Not enough binders!")
 }
