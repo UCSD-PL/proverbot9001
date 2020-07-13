@@ -101,7 +101,7 @@ impl Tokenizer {
         }
     }
     pub fn tokenize(&self, sentence: &str) -> Vec<Token> {
-        let words = get_words(sentence);
+        let words = get_symbols(sentence);
         words
             .into_iter()
             .flat_map(|word| match self.token_dict.get(word) {
