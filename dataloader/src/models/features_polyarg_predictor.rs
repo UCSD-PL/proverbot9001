@@ -186,7 +186,11 @@ pub fn features_polyarg_tensors(
     let tokenized_goals = raw_data
         .par_iter()
         .map(|tac| {
-            normalize_sentence_length(tokenizer.tokenize(&tac.context.focused_goal()), args.max_length, 1)
+            normalize_sentence_length(
+                tokenizer.tokenize(&tac.context.focused_goal()),
+                args.max_length,
+                1,
+            )
         })
         .collect();
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
@@ -216,7 +220,12 @@ pub fn features_polyarg_tensors(
             )
             .iter()
             .zip(selected)
-            .map(|(score, hyp)| vec![*score, equality_hyp_feature(hyp, &scraped.context.focused_goal())])
+            .map(|(score, hyp)| {
+                vec![
+                    *score,
+                    equality_hyp_feature(hyp, &scraped.context.focused_goal()),
+                ]
+            })
             .collect()
         })
         .collect();
@@ -266,8 +275,13 @@ pub fn sample_fpa_batch(
 
     let premises_batch: Vec<Vec<String>> = context_batch
         .iter()
-        .map(|ctxt| ctxt.relevant_lemmas.iter().chain(
-            ctxt.obligation.hypotheses.iter()).map(|p| p.clone()).collect())
+        .map(|ctxt| {
+            ctxt.relevant_lemmas
+                .iter()
+                .chain(ctxt.obligation.hypotheses.iter())
+                .map(|p| p.clone())
+                .collect()
+        })
         .collect();
 
     let premise_scores_batch: Vec<Vec<f64>> = premises_batch
@@ -291,23 +305,33 @@ pub fn sample_fpa_batch(
             premises
                 .iter()
                 .zip(scores.iter())
-                .map(|(premise, score)| vec![*score, equality_hyp_feature(premise,
-                                                                          &ctxt.obligation.goal)])
+                .map(|(premise, score)| {
+                    vec![*score, equality_hyp_feature(premise, &ctxt.obligation.goal)]
+                })
                 .collect()
         })
         .collect();
 
     let tgoals_batch = context_batch
         .iter()
-        .map(|ctxt| normalize_sentence_length(tokenizer.tokenize(&ctxt.obligation.goal),
-                                              args.max_length, 1))
+        .map(|ctxt| {
+            normalize_sentence_length(
+                tokenizer.tokenize(&ctxt.obligation.goal),
+                args.max_length,
+                1,
+            )
+        })
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
         .into_iter()
-        .map(|premises|
-             premises.into_iter()
-             .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1))
-             .collect())
+        .map(|premises| {
+            premises
+                .into_iter()
+                .map(|premise| {
+                    normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1)
+                })
+                .collect()
+        })
         .collect();
 
     let num_hyps_batch = tprems_batch
@@ -401,7 +425,8 @@ pub fn decode_fpa_result(
 pub fn decode_fpa_stem(
     args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
-    tac_idx: i64) -> String {
+    tac_idx: i64,
+) -> String {
     let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
     indexer.reverse_lookup(tac_idx)
 }
@@ -432,7 +457,11 @@ pub fn decode_fpa_arg(
         }
         TacticArgument::HypVar(hidx) => {
             assert!(hidx < premises.len());
-            let all_vars = premises[hidx].split(":").next().expect("No colon in hyp").trim();
+            let all_vars = premises[hidx]
+                .split(":")
+                .next()
+                .expect("No colon in hyp")
+                .trim();
             if all_vars.contains(",") {
                 all_vars.split(",").next().unwrap().to_string()
             } else {
@@ -441,7 +470,6 @@ pub fn decode_fpa_arg(
         }
     }
 }
-
 
 fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     lazy_static! {
@@ -469,7 +497,8 @@ fn get_argument<'a>(
     scraped: &'a ScrapedTactic,
 ) -> (TacticArgument, Vec<&'a String>) {
     let all_hyps: Vec<&String> = scraped
-        .context.focused_hyps()
+        .context
+        .focused_hyps()
         .iter()
         .chain(scraped.relevant_lemmas.iter())
         .collect();

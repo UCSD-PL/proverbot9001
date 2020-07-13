@@ -1,9 +1,9 @@
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::{self, BufRead};
-use serde::{Serialize, Deserialize};
 
 extern crate regex;
 use regex::Regex;
@@ -86,7 +86,8 @@ impl Tokenizer {
             "Couldn't open keywords file \"{}\"",
             keywords_filepath
         )))
-        .lines().map(|keyword| keyword.unwrap());
+        .lines()
+        .map(|keyword| keyword.unwrap());
         let first_token = (num_reserved_tokens + if use_unknowns { 1 } else { 0 }) as i64;
         let unknown_token = if use_unknowns { num_reserved_tokens } else { 0 } as i64;
         let mut token_dict = HashMap::new();
@@ -150,7 +151,11 @@ pub fn get_symbols(string: &str) -> Vec<&str> {
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
 
-pub fn normalize_sentence_length(mut tokenlist: Vec<i64>, length: usize, pad_value: i64) -> Vec<i64> {
+pub fn normalize_sentence_length(
+    mut tokenlist: Vec<i64>,
+    length: usize,
+    pad_value: i64,
+) -> Vec<i64> {
     if tokenlist.len() > length {
         tokenlist.truncate(length);
     } else if tokenlist.len() < length {
