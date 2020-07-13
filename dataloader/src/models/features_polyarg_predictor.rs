@@ -138,7 +138,7 @@ pub fn features_polyarg_tensors(
     indexer.freeze();
 
     let all_premises: Vec<Vec<&String>> = raw_data
-        .iter()
+        .par_iter()
         .map(|scraped| {
             scraped
                 .relevant_lemmas
