@@ -495,7 +495,7 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         all_jobs: List[Tuple[str, str, str]] = []
         file_solutions: List[List[Tuple[Tuple[str, str, str], SearchResult]]
-                             ] = [[]] * len(args.filenames)
+                             ] = [list() for _ in range(len(args.filenames))]
 
         for filename, solutions in zip(args.filenames, file_solutions):
             cmds = serapi_instance.load_commands_preserve(
