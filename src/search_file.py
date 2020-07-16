@@ -338,6 +338,8 @@ def search_file_worker(args: argparse.Namespace,
                                            predictor,
                                            predictor_lock)
                     except serapi_instance.CoqAnomaly:
+                        if args.hardfail:
+                            raise
                         if args.log_anomalies:
                             with args.log_anomalies.open('a') as f:
                                 print(f"ANOMALY at {next_file}:{next_lemma}",
