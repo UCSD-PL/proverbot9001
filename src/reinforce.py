@@ -26,6 +26,8 @@ import torch
 import os
 import errno
 import signal
+import traceback
+import re
 
 import serapi_instance
 import dataloader
@@ -79,6 +81,10 @@ def main() -> None:
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
+    parser.add_argument("--log-anomalies", type=Path2, default=None)
+    parser.add_argument("--log-outgoing-messages", type=Path2, default=None)
+
+    parser.add_argument("--hardfail", action="store_true")
 
     parser.add_argument("--ghosts", action='store_true')
     parser.add_argument("--graphs-dir", default=Path2("graphs"), type=Path2)
@@ -258,7 +264,9 @@ def reinforce(args: argparse.Namespace) -> None:
                             ["sertop", "--implicit"],
                             serapi_instance.get_module_from_filename(
                                 env_file),
-                            str(args.prelude)) as coq:
+                            str(args.prelude),
+                            log_outgoing_messages=args.log_outgoing_messages) \
+                            as coq:
                         coq.quiet = True
                         coq.verbose = args.verbose
                         for command in all_run_commands:
@@ -267,26 +275,53 @@ def reinforce(args: argparse.Namespace) -> None:
                         while rest_commands:
                             rest_commands, run_commands = \
                                 coq.run_into_next_proof(rest_commands)
+                            if not rest_commands:
+                                break
                             all_run_commands += run_commands[:-1]
                             lemma_statement = run_commands[-1]
+
+                            # Check if the definition is
+                            # proof-relevant. If it is, then finishing
+                            # subgoals doesn't necessarily mean you've
+                            # solved the problem, so don't try to
+                            # train on it.
+                            proof_relevant = False
+                            for cmd in rest_commands:
+                                if serapi_instance.ending_proof(cmd):
+                                    if cmd.strip() == "Defined.":
+                                        proof_relevant = True
+                                    break
+                            proof_relevant = proof_relevant or \
+                                bool(re.match(r"\s*Derive", lemma_statement))
                             for sample in replay_memory:
                                 sample.graph_node = None
-
-                            try:
-                                reinforce_lemma(args, predictor, q_estimator,
-                                                coq,
-                                                lemma_statement,
-                                                epsilon, gamma, replay_memory)
-                                pbar.update(1)
-                                rest_commands, run_commands = \
-                                    coq.finish_proof(rest_commands)
-                                all_run_commands.append(lemma_statement)
-                                all_run_commands += run_commands
-                            except serapi_instance.CoqAnomaly:
-                                eprint(
-                                    "Hit an anomaly! Restarting coq instance")
-                                rest_commands.insert(0, lemma_statement)
-                                break
+                            if not proof_relevant:
+                                try:
+                                    reinforce_lemma(args, predictor,
+                                                    q_estimator,
+                                                    coq,
+                                                    lemma_statement,
+                                                    epsilon, gamma,
+                                                    replay_memory)
+                                except serapi_instance.CoqAnomaly:
+                                    if args.log_anomalies:
+                                        with args.log_anomalies.open('a') as f:
+                                            traceback.print_exc(file=f)
+                                    if args.hardfail:
+                                        eprint(
+                                            "Hit an anomaly!"
+                                            "Quitting due to --hardfail")
+                                        raise
+                                    eprint(
+                                        "Hit an anomaly! "
+                                        "Restarting coq instance")
+                                    rest_commands.insert(0, lemma_statement)
+                                    break
+                            pbar.update(1)
+                            rest_commands, run_commands = \
+                                coq.finish_proof(rest_commands)
+                            all_run_commands.append(lemma_statement)
+                            all_run_commands += run_commands
 
             q_estimator.save_weights(args.out_weights, args)
 
@@ -370,7 +405,8 @@ def reinforce_lemma(args: argparse.Namespace,
                         action = try_action
                         break
                     except (serapi_instance.ParseError,
-                            serapi_instance.CoqExn):
+                            serapi_instance.CoqExn,
+                            serapi_instance.TimeoutError):
                         if args.ghosts:
                             graph.addGhostTransition(cur_node, try_action)
                         pass
