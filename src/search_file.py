@@ -30,6 +30,7 @@ import multiprocessing
 import threading
 import json
 import queue
+import traceback
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Iterator, Callable, Iterable, cast,
                     Any)
@@ -139,7 +140,7 @@ unnamed_goal_number: int
 
 
 def main(arg_list: List[str], bar_idx: int) -> None:
-    sys.setrecursionlimit(6500)
+    sys.setrecursionlimit(100000)
     global predictor
 
     args, parser = parse_arguments(arg_list)
@@ -336,6 +337,9 @@ def search_file_worker(args: argparse.Namespace,
                                            predictor,
                                            predictor_lock)
                     except serapi_instance.CoqAnomaly:
+                        if args.log_anomalies:
+                            with args.log_anomalies.open('a') as f:
+                                traceback.print_exc(file=f)
                         if failing_lemma == lemma_statement:
                             eprint("Hit the same anomaly twice! Skipping")
                             solution = [
@@ -348,20 +352,19 @@ def search_file_worker(args: argparse.Namespace,
                                                    solution)))
                             try:
                                 next_job = jobs.get_nowait()
-                                new_file, next_module, next_lemma = next_job
-                                if new_file != next_file:
-                                    next_file = new_file
-                                    all_commands = serapi_instance.\
-                                        load_commands_preserve(
-                                            args, 0,
-                                            args.prelude / next_file)
-                                    rest_commands = all_commands
-                                    break
-                                else:
-                                    rest_commands = [lemma_statement] \
-                                        + rest_commands
                             except queue.Empty:
                                 return
+                            new_file, next_module, next_lemma = next_job
+                            if new_file != next_file:
+                                next_file = new_file
+                                all_commands = serapi_instance.\
+                                    load_commands_preserve(
+                                        args, 0,
+                                        args.prelude / next_file)
+                                rest_commands = all_commands
+                                break
+                            else:
+                                rest_commands = all_commands
                         else:
                             rest_commands = all_commands
                             failing_lemma = lemma_statement
@@ -383,17 +386,17 @@ def search_file_worker(args: argparse.Namespace,
                               SearchResult(search_status, solution)))
                     try:
                         next_job = jobs.get_nowait()
-                        new_file, next_module, next_lemma = next_job
-                        if new_file != next_file:
-                            next_file = new_file
-                            all_commands = serapi_instance.\
-                                load_commands_preserve(
-                                    args, 0,
-                                    args.prelude / next_file)
-                            rest_commands = all_commands
-                            break
                     except queue.Empty:
                         return
+                    new_file, next_module, next_lemma = next_job
+                    if new_file != next_file:
+                        next_file = new_file
+                        all_commands = serapi_instance.\
+                            load_commands_preserve(
+                                args, 0,
+                                args.prelude / next_file)
+                        rest_commands = all_commands
+                        break
                 else:
                     proof_relevant = False
                     for cmd in rest_commands:
@@ -1221,7 +1224,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                         return SubSearchResult(None, subgoals_closed)
             except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
                     serapi_instance.OverflowError, serapi_instance.ParseError,
-                    serapi_instance.UnrecognizedError):
+                    serapi_instance.UnrecognizedError, RecursionError):
                 continue
             except serapi_instance.NoSuchGoalError:
                 raise
