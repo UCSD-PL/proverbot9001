@@ -1027,6 +1027,8 @@ def tryPrediction(args: argparse.Namespace,
         error = None
     except (serapi_instance.TimeoutError, serapi_instance.ParseError,
             serapi_instance.CoqExn, serapi_instance.OverflowError,
+            serapi_instance.ParseError,
+            RecursionError,
             serapi_instance.UnrecognizedError) as e:
         return (unwrap(coq.proof_context), 0, 0, 0, e,
                 time.time() - start_time, False)
@@ -1152,7 +1154,10 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                                   unwrap(proof_context_before),
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
-                        g.setNodeColor(predictionNode, "red")
+                        if isinstance(error, RecursionError):
+                            g.setNodeColor(predictionNode, "grey75")
+                        else:
+                            g.setNodeColor(predictionNode, "red")
                     continue
                 num_successful_predictions += 1
                 pbar.update(1)
@@ -1222,11 +1227,22 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                         # depth = (args.search_depth + new_extra_depth + 1) \
                         #     - len(current_path)
                         return SubSearchResult(None, subgoals_closed)
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
-                    serapi_instance.OverflowError, serapi_instance.ParseError,
-                    serapi_instance.UnrecognizedError, RecursionError):
-                continue
-            except serapi_instance.NoSuchGoalError:
+            except serapi_instance.CoqAnomaly:
+                predictionNode = g.mkNode(prediction,
+                                          unwrap(proof_context_before),
+                                          current_path[-1])
+                g.setNodeColor(predictionNode, "grey25")
+                if module_name:
+                    module_prefix = escape_lemma_name(module_name)
+                else:
+                    module_prefix = ""
+                if lemma_name == "":
+                    unnamed_goal_number += 1
+                    g.draw(f"{args.output_dir}/{module_prefix}"
+                           f"{unnamed_goal_number}.svg")
+                else:
+                    g.draw(f"{args.output_dir}/{module_prefix}"
+                           f"{lemma_name}.svg")
                 raise
         return SubSearchResult(None, 0)
     total_nodes = numNodesInTree(args.search_width,
