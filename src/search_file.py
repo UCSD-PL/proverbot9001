@@ -1117,6 +1117,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                extra_depth: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
         nonlocal predictor_lock
+        global unnamed_goal_number
         if args.relevant_lemmas == "local":
             relevant_lemmas = coq.local_lemmas[:-1]
         elif args.relevant_lemmas == "hammer":
