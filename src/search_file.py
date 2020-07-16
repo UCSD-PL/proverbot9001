@@ -225,6 +225,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--proof", default=None)
     parser.add_argument("--log-anomalies", type=Path2, default=None)
+    parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
@@ -339,9 +340,18 @@ def search_file_worker(args: argparse.Namespace,
                     except serapi_instance.CoqAnomaly:
                         if args.log_anomalies:
                             with args.log_anomalies.open('a') as f:
+                                print(f"ANOMALY at {next_file}:{next_lemma}",
+                                      file=f)
                                 traceback.print_exc(file=f)
                         if failing_lemma == lemma_statement:
                             eprint("Hit the same anomaly twice! Skipping")
+                            if args.log_hard_anomalies:
+                                with args.log_hard_anomalies.open('a') as f:
+                                    print(
+                                        f"HARD ANOMALY at "
+                                        f"{next_file}:{next_lemma}",
+                                        file=f)
+                                    traceback.print_exc(file=f)
                             solution = [
                                 TacticInteraction("Proof.", initial_context),
                                 TacticInteraction("Admitted.", initial_context)
