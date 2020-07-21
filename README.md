@@ -2,6 +2,8 @@
 ![Proverbot logo](proverbotlogo-01.png)
 A bot for proving.
 
+You can find the paper and talk video at [our website](https://proverbot9001.ucsd.edu).
+
 ## Prerequisites
 
 You'll need to install `git`, `opam`, `graphviz`, `libgraphviz-dev`,
