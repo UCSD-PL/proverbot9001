@@ -666,6 +666,7 @@ class SerapiInstance(threading.Thread):
             elif "Invalid_argument" in coqexn_msg:
                 raise ParseError(f"Invalid argument in {stmt}")
             elif "Not_found" in coqexn_msg:
+                self.get_completed()
                 self.cancel_failed()
                 raise e
             elif "Overflowed" in coqexn_msg or "Stack overflow" in coqexn_msg:
@@ -1080,7 +1081,10 @@ class SerapiInstance(threading.Thread):
             new_statenum = \
                 match(normalizeMessage(feedback),
                       ["Answer", int, ["CoqExn", TAIL]],
-                      lambda *args: raise_(CoqExn(feedback)),
+                      lambda docnum, rest:
+                      raise_(CoqAnomaly("Overflowed"))
+                      if "Stack overflow" in "\n".join(searchStrsInMsg(rest))
+                      else raise_(CoqExn(feedback)),
                       ["Feedback", [['doc_id', int], ['span_id', int], TAIL]],
                       lambda docnum, statenum, *rest: statenum,
                       _, lambda *args: raise_(BadResponse(feedback)))
@@ -1242,7 +1246,10 @@ class SerapiInstance(threading.Thread):
     def run(self) -> None:
         assert self._fout
         while(True):
-            line = self._fout.readline().decode('utf-8')
+            try:
+                line = self._fout.readline().decode('utf-8')
+            except ValueError:
+                continue
             if line == '':
                 break
             self.message_queue.put(line)
