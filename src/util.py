@@ -290,8 +290,8 @@ def split_by_char_outside_matching(openpat : str, closepat : str,
             assert nextopenpos > curpos
             curpos = nextopenpos
         elif nextclosepos < nextopenpos and \
-             (nextclosepos < nextsplitpos or
-              (nextclosepos == nextsplitpos and counter > 0)):
+                (nextclosepos < nextsplitpos or
+                 (nextclosepos == nextsplitpos and counter > 0)):
             counter -= 1
             assert nextclosepos > curpos
             curpos = nextclosepos

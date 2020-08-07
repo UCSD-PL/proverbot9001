@@ -98,6 +98,7 @@ def args_vars_in_list(tactic : str,
 def args_vars_in_context(in_data : TacticContext, tactic : str,
                          next_in_data : TacticContext,
                          arg_values : argparse.Namespace) -> bool:
+
     return args_vars_in_list(tactic, in_data.hypotheses)
 
 def tactic_literal(tactic_to_match : str,
@@ -147,7 +148,7 @@ def args_token_in_goal(in_data : TacticContext, tactic : str,
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
-        if not arg in goal_words:
+        if arg not in goal_words:
             return False
     return True
 

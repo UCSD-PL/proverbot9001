@@ -232,6 +232,7 @@ class StateScore:
     state : TacticContext
     score : float
 
+
 def preprocess_data_eval(arg_values: Namespace, dataset_iter:
                          Iterable[StateScore]) \
                         -> Iterable[StateScore]:

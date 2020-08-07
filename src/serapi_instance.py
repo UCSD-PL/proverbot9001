@@ -1422,11 +1422,12 @@ def normalizeMessage(sexp, depth : int=5):
     else:
         return sexp
 
-def tacticTakesHypArgs(stem : str) -> bool:
-    now_match = re.match("\s*now\s+(.*)", stem)
+
+def tacticTakesHypArgs(stem: str) -> bool:
+    now_match = re.match(r"\s*now\s+(.*)", stem)
     if now_match:
         return tacticTakesHypArgs(now_match.group(1))
-    try_match = re.match("\s*try\s+(.*)", stem)
+    try_match = re.match(r"\s*try\s+(.*)", stem)
     if try_match:
         return tacticTakesHypArgs(try_match.group(1))
     return (

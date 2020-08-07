@@ -97,7 +97,7 @@ class GoalTokenArgModel(nn.Module):
         goal_var = maybe_cuda(Variable(goal_batch))
         stem_var = maybe_cuda(Variable(stem_batch))
         batch_size = goal_batch.size()[0]
-        assert  stem_batch.size()[0] == batch_size
+        assert stem_batch.size()[0] == batch_size
         initial_hidden = self._stem_embedding(stem_var)\
                              .view(1, batch_size, self.hidden_size)
         hidden = initial_hidden
@@ -180,6 +180,7 @@ class FeaturesClassifier(nn.Module):
                           hidden_size, stem_vocab_size, num_layers))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
         pass
+
     def forward(self,
                 word_features_batch : torch.LongTensor,
                 vec_features_batch : torch.FloatTensor) -> torch.FloatTensor:
@@ -238,7 +239,8 @@ class FeaturesPolyargPredictor(
         with self._lock:
 
             word_features, vec_features = self.encodeFeatureVecs([context])
-            stem_distribution = self._model.stem_classifier(word_features, vec_features)
+            stem_distribution = self._model.stem_classifier(word_features,
+                                                            vec_features)
             stem_certainties, stem_idxs = stem_distribution.topk(stem_width)
 
             goals_batch = LongTensor([self.encodeStrTerm(context.goal)])
@@ -592,8 +594,8 @@ class FeaturesPolyargPredictor(
                   torch.LongTensor(tactic_stems),
                   torch.LongTensor([
                       0 if arg_type == ArgType.NO_ARG else
-                      (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN else
-                      (arg.hyp_idx + arg_values.max_length + 1)
+                      (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN
+                      else (arg.hyp_idx + arg_values.max_length + 1)
                       for arg_type, arg in zip(arg_types, args)])]
         eprint(result, guard=arg_values.print_tensors)
         return result
@@ -652,7 +654,7 @@ class FeaturesPolyargPredictor(
         if arg_values.hyp_rnn:
             tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
         else:
-            tokenized_hyps_var = maybe_cuda(Variable(torch.zeros_like(tokrnized_hyp_types_batch)))
+            tokenized_hyps_var = maybe_cuda(Variable(torch.zeros_like(tokenized_hyp_types_batch)))
 
         if arg_values.hyp_features:
             hyp_features_var = maybe_cuda(Variable(hyp_features_batch))

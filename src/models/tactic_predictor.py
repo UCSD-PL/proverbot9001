@@ -76,11 +76,11 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         parser.add_argument("--context-filter", dest="context_filter", type=str,
                             default=default_values.get("context-filter",
                                                        "goal-changes%no-args"))
-        parser.add_argument("--no-truncate_semicolons",
+        parser.add_argument("--no-truncate-semicolons",
                             dest="truncate_semicolons",
                             action='store_false')
-        parser.add_argument("--use-substitutions", dest="use_substitutions", type=bool,
-                            default=default_values.get("use_substitutions", True))
+        parser.add_argument("--no-use-substitutions", dest="use_substitutions",
+                            action='store_false')
         parser.add_argument("--verbose", "-v", help="verbose output",
                             action='store_const', const=True, default=False)
         pass
