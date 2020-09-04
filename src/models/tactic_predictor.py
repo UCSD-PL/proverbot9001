@@ -81,6 +81,9 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                             action='store_false')
         parser.add_argument("--no-use-substitutions", dest="use_substitutions",
                             action='store_false')
+        parser.add_argument("--no-normalize-numeric-args",
+                            dest="normalize_numeric_args",
+                            action='store_false')
         parser.add_argument("--verbose", "-v", help="verbose output",
                             action='store_const', const=True, default=False)
         pass
