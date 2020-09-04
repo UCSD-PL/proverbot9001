@@ -107,14 +107,14 @@ def get_data(args : List[str]) -> None:
         dataset = data.get_text_data(arg_values)
         for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             print(goal)
-    elif arg_values.format =="hyps+goal":
+    elif arg_values.format == "hyps+goal":
         dataset = data.get_text_data(arg_values)
         for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
                 print(hyp)
             print("================================")
             print(goal)
-    elif arg_values.format =="hyps+goal+tactic":
+    elif arg_values.format == "hyps+goal+tactic":
         dataset = data.get_text_data(arg_values)
         for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
             for hyp in hyps:
