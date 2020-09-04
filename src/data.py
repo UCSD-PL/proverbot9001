@@ -37,9 +37,9 @@ from sparse_list import SparseList  # type: ignore
 import random
 import torch
 
-from tokenizer import (Tokenizer, TokenizerState,
+from tokenizer import (Tokenizer,
                        make_keyword_tokenizer_relevance,
-                       make_keyword_tokenizer_topk, tokenizers)
+                       make_keyword_tokenizer_topk)
 from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
                     read_tuple, TacticContext, strip_scraped_output)
 from models.components import SimpleEmbedding
