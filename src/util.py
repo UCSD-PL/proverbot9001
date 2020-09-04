@@ -25,6 +25,7 @@ import io
 import math
 import re
 import itertools
+import argparse
 
 import torch
 import torch.cuda
@@ -306,6 +307,15 @@ def split_by_char_outside_matching(openpat : str, closepat : str,
                 curpos = nextsplitpos
     return None
 
-def unwrap(a : Optional[T]) -> T:
+
+def get_possible_arg(args: argparse.Namespace, argname: str,
+                     default: Any) -> Any:
+    try:
+        return getattr(args, argname)
+    except AttributeError:
+        return default
+
+
+def unwrap(a: Optional[T]) -> T:
     assert a
     return a

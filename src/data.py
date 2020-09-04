@@ -48,7 +48,7 @@ import serapi_instance
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
-from util import eprint, chunks, split_by_char_outside_matching
+from util import eprint, chunks, split_by_char_outside_matching, get_possible_arg
 from context_filter import get_context_filter, ContextFilter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
@@ -248,8 +248,9 @@ def preprocess_data_eval(arg_values: Namespace, dataset_iter:
             dataset_iter = pool.imap(
                 functools.partial(tactic_substitutions_eval, substitutions),
                 dataset_iter)
-        dataset_iter = pool.imap(
-            normalizeNumericArgs_eval, dataset_iter)
+        if get_possible_arg(arg_values, 'normalize_numeric_args', True):
+            dataset_iter = pool.imap(
+                normalizeNumericArgs_eval, dataset_iter)
         yield from dataset_iter
 
 def preprocess_data(arg_values: Namespace, dataset_iter:
@@ -267,8 +268,9 @@ def preprocess_data(arg_values: Namespace, dataset_iter:
             dataset_iter = pool.imap(
                 functools.partial(tactic_substitutions, substitutions),
                 dataset_iter)
-        dataset_iter = pool.imap(
-            serapi_instance.normalizeNumericArgs, dataset_iter)
+        if get_possible_arg(arg_values, 'normalize_numeric_args', True):
+            dataset_iter = pool.imap(
+                serapi_instance.normalizeNumericArgs, dataset_iter)
         yield from dataset_iter
 
 
