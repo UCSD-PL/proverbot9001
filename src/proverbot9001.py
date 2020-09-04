@@ -84,7 +84,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--print-keywords", dest="print_keywords", action='store_true')
     parser.add_argument("--no-truncate-semicolons", dest="truncate_semicolons",
                         action='store_false')
-    parser.add_argument("--max-length", dest="max_length", default=None, type=int)
+    parser.add_argument("--max-length", dest="max_length", default=30, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
     parser.add_argument("--context-filter", dest="context_filter", default="default")
