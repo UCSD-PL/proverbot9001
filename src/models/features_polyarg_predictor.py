@@ -699,7 +699,7 @@ class FeaturesPolyargPredictor(
                 mergedStemIdxs.append(predictedStemIdxList)
             else:
                 mergedStemIdxs.append(
-                    torch.cat((stem_idx.view(1).cuda(),
+                    torch.cat((maybe_cuda(stem_idx.view(1)),
                                predictedStemIdxList[:stem_width-1])))
         mergedStemIdxsT = torch.stack(mergedStemIdxs)
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
