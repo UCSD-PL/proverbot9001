@@ -282,7 +282,7 @@ def get_text_data(arg_values: Namespace) -> RawDataset:
     raw_data = read_text_data(arg_values.scrape_file)
     filtered_data = RawDataset(list(
         itertools.islice(
-            filter_data(preprocess_data(arg_values, raw_data),
+            filter_data(list(preprocess_data(arg_values, raw_data)),
                         get_context_filter(arg_values.
                                            context_filter),
                         arg_values),
