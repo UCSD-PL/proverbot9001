@@ -504,10 +504,14 @@ def search_file(args: argparse.Namespace, coqargs: List[str],
                 if lemma_statement:
                     commands_in.insert(0, lemma_statement)
                 if commands_caught_up == len(commands_run):
-                    eprint(f"Hit the same anomaly twice!")
+                    eprint("Hit the same anomaly twice!")
                     if lemma_statement in lemmas_to_skip:
                         raise e
                     else:
+                        eprint(
+                            f"Skipping "
+                            f"{serapi_instance.lemma_name_from_statement(lemma_statement)}"
+                            f"because of {e}")
                         lemmas_to_skip.append(lemma_statement)
                 commands_caught_up = len(commands_run)
                 if args.hardfail:
