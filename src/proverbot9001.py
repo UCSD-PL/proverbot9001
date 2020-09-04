@@ -89,6 +89,11 @@ def get_data(args : List[str]) -> None:
                         action='store_const')
     parser.add_argument("--context-filter", dest="context_filter", default="default")
     parser.add_argument('-v', "--verbose", action="count")
+    parser.add_argument("--num-threads", "-j", type=int, default=None)
+    parser.add_argument("--no-use-substitutions", action='store_false',
+                        dest='use_substitutions')
+    parser.add_argument("--no-normalize-numeric-args", action='store_false',
+                        dest='normalize_numeric_args')
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(
