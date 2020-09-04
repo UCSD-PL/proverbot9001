@@ -23,17 +23,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from torch import autograd
 from torch.nn.utils.rnn import pack_sequence, pad_sequence
 
 from features import (WordFeature, VecFeature, Feature,
-                      word_feature_constructors, vec_feature_constructors)
+                      word_feature_constructors, vec_feature_constructors,
+                      load_features)
 import tokenizer
-from tokenizer import Tokenizer
+from tokenizer import Tokenizer, KeywordTokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EOS_token)
 from util import *
+from util import eprint, maybe_cuda
 import time
 import random
+import itertools
 from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
@@ -476,6 +480,10 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--no-goal-rnn", dest="goal_rnn", action="store_false")
         parser.add_argument("--replace-rnns-with-dnns", action="store_true")
         parser.add_argument("--print-tensors", action="store_true")
+        parser.add_argument("--load-embedding", default=None)
+        parser.add_argument("--load-text-tokens", default=None)
+        parser.add_argument("--load-features", default=None)
+        parser.add_argument("--load-tensors", default=None)
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -493,30 +501,56 @@ class FeaturesPolyargPredictor(
             self._word_feature_functions = wfeats
             self._vec_feature_functions = vfeats
         else:
-            stripped_data = [strip_scraped_output(dat)
-                             for dat in data]
-            self._word_feature_functions = \
-                [feature_constructor(stripped_data, arg_values)  # type: ignore
-                 for feature_constructor in
-                 word_feature_constructors]
-            self._vec_feature_functions = \
-                [feature_constructor(stripped_data, arg_values) for # type: ignore
-                 feature_constructor in vec_feature_constructors]
-            embedding, embedded_data = embed_data(data)
-            tokenizer, tokenized_goals = tokenize_goals(embedded_data,
-                                                        arg_values)
+            if arg_values.load_features:
+                self._word_feature_functions, self._vec_feature_functions = \
+                    load_features(arg_values, arg_values.load_features)
+                pass
+            else:
+                stripped_data = [strip_scraped_output(dat)
+                                 for dat in data]
+                self._word_feature_functions = \
+                    [feature_constructor.from_data(stripped_data, arg_values)  # type: ignore
+                     for feature_constructor in
+                     word_feature_constructors]
+                self._vec_feature_functions = \
+                    [feature_constructor(stripped_data, arg_values) for # type: ignore
+                     feature_constructor in vec_feature_constructors]
+            if arg_values.load_embedding:
+                embedding = SimpleEmbedding.from_file(
+                    arg_values.load_embedding)
+                # if not arg_values.load_tensors:
+                _, embedded_data = embed_data(data, embedding)
+            else:
+                embedding, embedded_data = embed_data(data)
+            if arg_values.load_text_tokens:
+                with open(arg_values.load_text_tokens, 'r') as f:
+                    keywords = [line.strip() for line in f]
+                tokenizer = KeywordTokenizer(keywords, num_reserved_tokens=2)
+                tokenizer.freezeTokenList()
+                # if not arg_values.load_tensors:
+                _, tokenized_goals = tokenize_goals(embedded_data,
+                                                    arg_values,
+                                                    tokenizer)
+            else:
+                tokenizer, tokenized_goals = tokenize_goals(embedded_data,
+                                                            arg_values)
         torch.multiprocessing.set_sharing_strategy('file_system')
         with multiprocessing.Pool(arg_values.num_threads) as pool:
             start = time.time()
             print("Creating dataset...", end="")
             sys.stdout.flush()
-            result_data = FeaturesPolyArgDataset(list(pool.imap(
-                functools.partial(mkFPASample, embedding,
-                                  tokenizer,
-                                  arg_values,
-                                  self._word_feature_functions,
-                                  self._vec_feature_functions),
-                zip(data, tokenized_goals))))
+            # result_data = FeaturesPolyArgDataset(list(pool.imap(
+            #     functools.partial(mkFPASample, embedding,
+            #                       tokenizer,
+            #                       arg_values,
+            #                       self._word_feature_functions,
+            #                       self._vec_feature_functions),
+            #     zip(data, tokenized_goals))))
+            result_data = [mkFPASample(embedding, tokenizer, arg_values,
+                                       self._word_feature_functions,
+                                       self._vec_feature_functions,
+                                       point)
+                           for point in zip(data, tokenized_goals)]
             print("{:.2f}s".format(time.time() - start))
         assert self._word_feature_functions
         assert self._vec_feature_functions
@@ -597,6 +631,26 @@ class FeaturesPolyargPredictor(
                       (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN
                       else (arg.hyp_idx + arg_values.max_length + 1)
                       for arg_type, arg in zip(arg_types, args)])]
+        if arg_values.load_tensors:
+            with open(arg_values.load_tensors, 'rb') as f:
+                loaded_result = torch.load(f)
+            for tidx, (tensor, loaded_tensor) in enumerate(
+                    zip(result, loaded_result)):
+                assert tensor.size() == loaded_tensor.size(), \
+                    (tidx, tensor.size(), loaded_tensor.size())
+                if tidx == 0 or tidx == 1:
+                    for (i, j, k) in itertools.product(
+                            range(tensor.size()[0]),
+                            range(tensor.size()[1]),
+                            range(tensor.size()[2])):
+                        assert tensor[i, j, k] == loaded_tensor[i, j, k]
+                else:
+                    for (i, j) in itertools.product(
+                            range(tensor.size()[0]),
+                            range(tensor.size()[1])):
+                        assert tensor[i, j] == loaded_tensor[i, j]
+
+            return loaded_result
         eprint(result, guard=arg_values.print_tensors)
         return result
     def _get_model(self, arg_values : Namespace,

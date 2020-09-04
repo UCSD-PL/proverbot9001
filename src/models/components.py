@@ -56,6 +56,16 @@ class SimpleEmbedding(Embedding):
     def has_token(self, token : str) -> bool :
         return token in self.tokens_to_indices
 
+    def from_file(filepath: str) -> 'SimpleEmbedding':
+        embedding = SimpleEmbedding()
+        embedding.tokens_to_indices["NOSTEM"] = 0
+        embedding.indices_to_tokens[0] = "NOSTEM"
+        with open(filepath, 'r') as f:
+            for idx, line in enumerate(f):
+                embedding.tokens_to_indices[line.strip()] = idx + 1
+                embedding.indices_to_tokens[idx + 1] = line.strip()
+        return embedding
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
