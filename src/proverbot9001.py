@@ -32,6 +32,7 @@ import data
 import itertools
 import serapi_instance
 import features
+import json
 from util import eprint
 from format import strip_scraped_output
 from models.components import SimpleEmbedding
@@ -70,7 +71,8 @@ def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Parse datafiles into multiple formats")
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
-                                           "hyps+goal+tactic", "tacvector"])
+                                           "hyps+goal+tactic", "tacvector",
+                                           "scrapefile-rd"])
     parser.add_argument("scrape_file", type=Path2)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
@@ -151,6 +153,18 @@ def get_data(args : List[str]) -> None:
         for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
             print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))
                            + [str(tactic)]))
+    elif arg_values.format == "scrapefile-rd":
+        dataset = data.get_text_data(arg_values)
+        for point in dataset:
+            print(json.dumps({"relevant_lemmas": point.relevant_lemmas,
+                              "prev_tactics": point.prev_tactics,
+                              "context": {"fg_goals":
+                                          [{"hypotheses": point.hypotheses,
+                                            "goal": point.goal}],
+                                          "bg_goals": [],
+                                          "shelved_goals": [],
+                                          "given_up_goals": []},
+                              "tactic": point.tactic}))
 
 modules = {
     "train" : train,
