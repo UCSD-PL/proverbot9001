@@ -62,6 +62,7 @@ def main():
                         choices=['local', 'hammer', 'searchabout'])
     parser.add_argument("--no-linearize", dest="linearize",
                         action='store_false')
+    parser.add_argument("--ignore-lin-hash", action='store_true')
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 

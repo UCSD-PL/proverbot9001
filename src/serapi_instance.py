@@ -1830,9 +1830,14 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
                .format(lin_path))
     if not lin_path.exists():
         return None
-    file_hash = hash_file(filename)
+    try:
+        ignore_lin_hash = args.ignore_lin_hash
+    except AttributeError:
+        ignore_lin_hash = False
+
     with lin_path.open(mode='r') as f:
-        if file_hash == f.readline().strip():
+        first_line = f.readline().strip()
+        if ignore_lin_hash or hash_file(filename) == first_line:
             return read_commands_preserve(args, file_idx, f.read())
         else:
             return None
