@@ -24,11 +24,11 @@ use crate::scraped_data::*;
 use crate::context_filter_ast::ContextFilterAST;
 
 extern crate regex;
-use regex::Regex;
 use rayon::prelude::*;
+use regex::Regex;
 
-use lalrpop_util::lalrpop_mod;
 use crate::tokenizer::get_symbols;
+use lalrpop_util::lalrpop_mod;
 
 #[allow(dead_code)]
 lalrpop_mod!(context_filter_parser);
@@ -88,9 +88,8 @@ fn apply_filter(
                 .split_whitespace().collect();
             // While the arguments to an intro(s) might *look* like
             // goal arguments, they are actually fresh variables
-            if (tactic_stem == "intros" ||
-                tactic_stem == "intro") && arg_tokens.len() > 0 {
-                return false
+            if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
+                return false;
             }
             arg_tokens.into_iter()
                 .all(|arg_token| goal_symbols.contains(&arg_token))
@@ -110,9 +109,8 @@ fn apply_filter(
                 .split_whitespace().collect();
             // While the arguments to an intro(s) might *look* like
             // hyp arguments, they are actually fresh variables
-            if (tactic_stem == "intros" ||
-                tactic_stem == "intro") && arg_tokens.len() > 0 {
-                return false
+            if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
+                return false;
             }
             arg_tokens.into_iter()
                 .all(|arg_token| hyp_names.contains(&arg_token))

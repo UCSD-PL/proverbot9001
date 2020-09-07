@@ -188,7 +188,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn decode_fpa_arg_py(
         _py: Python,
         args: DataloaderArgs,
-        metadata: PickleableFPAMetadata,
+        _metadata: PickleableFPAMetadata,
         hyps: Vec<String>,
         goal: &str,
         arg_idx: i64,

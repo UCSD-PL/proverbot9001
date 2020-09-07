@@ -65,7 +65,7 @@ pub struct TacticContext {
     pub obligation: Obligation,
 }
 
-impl <'source> FromPyObject<'source> for TacticContext {
+impl<'source> FromPyObject<'source> for TacticContext {
     fn extract(ob: &'source PyAny) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -73,7 +73,11 @@ impl <'source> FromPyObject<'source> for TacticContext {
         let relevant_lemmas: Vec<String> = obj.getattr(py, "relevant_lemmas")?.extract(py)?;
         let prev_tactics: Vec<String> = obj.getattr(py, "prev_tactics")?.extract(py)?;
         let obligation: Obligation = obj.getattr(py, "obligation")?.extract(py)?;
-        Ok(TacticContext{relevant_lemmas, prev_tactics, obligation})
+        Ok(TacticContext {
+            relevant_lemmas,
+            prev_tactics,
+            obligation,
+        })
     }
 }
 #[pymethods]
@@ -102,14 +106,14 @@ impl Obligation {
     }
 }
 
-impl <'source> FromPyObject<'source> for Obligation {
+impl<'source> FromPyObject<'source> for Obligation {
     fn extract(ob: &'source PyAny) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let obj: PyObject = ob.to_object(py);
         let hypotheses: Vec<String> = obj.getattr(py, "hypotheses")?.extract(py)?;
         let goal: String = obj.getattr(py, "goal")?.extract(py)?;
-        Ok(Obligation{hypotheses, goal})
+        Ok(Obligation { hypotheses, goal })
     }
 }
 
@@ -123,14 +127,17 @@ pub struct ProofContext {
     #[pyo3(get, set)]
     pub shelved_goals: Vec<Obligation>,
     #[pyo3(get, set)]
-    pub given_up_goals: Vec<Obligation>
+    pub given_up_goals: Vec<Obligation>,
 }
 
 impl ProofContext {
     pub fn empty() -> Self {
-        ProofContext{fg_goals: vec![], bg_goals: vec![],
-                     shelved_goals: vec![],
-                     given_up_goals: vec![]}
+        ProofContext {
+            fg_goals: vec![],
+            bg_goals: vec![],
+            shelved_goals: vec![],
+            given_up_goals: vec![],
+        }
     }
     pub fn focused_goal(&self) -> &String {
         lazy_static! {
@@ -152,7 +159,7 @@ impl ProofContext {
     }
 }
 
-impl <'source> FromPyObject<'source> for ProofContext {
+impl<'source> FromPyObject<'source> for ProofContext {
     fn extract(ob: &'source PyAny) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -161,7 +168,12 @@ impl <'source> FromPyObject<'source> for ProofContext {
         let bg_goals: Vec<Obligation> = obj.getattr(py, "bg_goals")?.extract(py)?;
         let shelved_goals: Vec<Obligation> = obj.getattr(py, "shelved_goals")?.extract(py)?;
         let given_up_goals: Vec<Obligation> = obj.getattr(py, "given_up_goals")?.extract(py)?;
-        Ok(ProofContext{fg_goals, bg_goals, shelved_goals, given_up_goals})
+        Ok(ProofContext {
+            fg_goals,
+            bg_goals,
+            shelved_goals,
+            given_up_goals,
+        })
     }
 }
 #[pyclass]

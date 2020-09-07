@@ -438,7 +438,7 @@ pub fn decode_fpa_result(
 }
 
 pub fn decode_fpa_stem(
-    args: &DataloaderArgs,
+    _args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
     tac_idx: i64,
 ) -> String {

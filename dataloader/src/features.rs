@@ -172,7 +172,8 @@ impl TokenMap {
         let index_to_hyp_token = index_common(
             init_data.iter().flat_map(|scraped| {
                 scraped
-                    .context.focused_hyps()
+                    .context
+                    .focused_hyps()
                     .iter()
                     .map(|hyp| hyp.split_whitespace().next().unwrap().to_string())
             }),
@@ -220,23 +221,32 @@ impl TokenMap {
     pub fn save_to_text(&self, filename: &str) {
         let mut index_to_tactic = vec![""; self.tactic_to_index.len()];
         for (tactic, index) in self.tactic_to_index.iter() {
-            assert!(index < &self.tactic_to_index.len(),
-                    "index is {}, but there are only {} tactics",
-                    index, self.tactic_to_index.len());
+            assert!(
+                index < &self.tactic_to_index.len(),
+                "index is {}, but there are only {} tactics",
+                index,
+                self.tactic_to_index.len()
+            );
             index_to_tactic[*index] = tactic;
         }
         let mut index_to_goal_token = vec![""; self.goal_token_to_index.len()];
         for (goal_token, index) in self.goal_token_to_index.iter() {
-            assert!(index < &self.goal_token_to_index.len(),
-                    "index is {}, but there are only {} goal tokens",
-                    index, self.goal_token_to_index.len());
+            assert!(
+                index < &self.goal_token_to_index.len(),
+                "index is {}, but there are only {} goal tokens",
+                index,
+                self.goal_token_to_index.len()
+            );
             index_to_goal_token[*index] = goal_token;
         }
         let mut index_to_hyp_token = vec![""; self.hyp_token_to_index.len()];
         for (hyp_token, index) in self.hyp_token_to_index.iter() {
-            assert!(index < &self.hyp_token_to_index.len(),
-                    "index is {}, but there are only {} hyp tokens",
-                    index, self.hyp_token_to_index.len());
+            assert!(
+                index < &self.hyp_token_to_index.len(),
+                "index is {}, but there are only {} hyp tokens",
+                index,
+                self.hyp_token_to_index.len()
+            );
             index_to_hyp_token[*index] = hyp_token;
         }
 
@@ -285,14 +295,18 @@ pub fn score_hyps<'a>(
     goal: &String,
 ) -> Vec<f64> {
     assert!(max_distance != 0);
-    let truncated_goal = get_symbols(goal).into_iter().take(max_length).collect::<Vec<_>>().join(" ");
+    let truncated_goal = get_symbols(goal)
+        .into_iter()
+        .take(max_length)
+        .collect::<Vec<_>>()
+        .join(" ");
     hyps.into_iter()
         .map(|hyp| {
-            let trunc_hyp_after_colon =
-                get_symbols(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
-                    .into_iter()
-                    .take(max_length).collect::<Vec<_>>()
-                    .join(" ");
+            let trunc_hyp_after_colon = get_symbols(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
+                .into_iter()
+                .take(max_length)
+                .collect::<Vec<_>>()
+                .join(" ");
             let score = edit_distance(&trunc_hyp_after_colon, &truncated_goal);
             (score as f64) / (max_distance as f64)
         })
