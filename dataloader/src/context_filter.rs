@@ -75,8 +75,8 @@ fn apply_filter(
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
-            let goal_symbols: Vec<&str> = get_symbols(&scraped
-                .context.focused_goal()).into_iter()
+            let goal_symbols: Vec<&str> = get_symbols(&scraped.context.focused_goal())
+                .into_iter()
                 .take(args.max_length)
                 .collect();
             let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
