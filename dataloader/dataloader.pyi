@@ -37,8 +37,10 @@ class DataloaderArgs:
     max_premises: int
     num_keywords: int
     num_relevance_samples: int
-    keywords_file: str
+    keywords_file: Optional[str]
     context_filter: str
+    save_embedding: Optional[str]
+    save_features_state: Optional[str]
 
 
 class ScrapedTransition:

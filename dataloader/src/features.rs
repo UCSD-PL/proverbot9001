@@ -22,6 +22,7 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{BinaryHeap, HashMap};
+use std::fs::File;
 
 use crate::scraped_data::*;
 use crate::tokenizer::get_symbols;
@@ -214,6 +215,38 @@ impl TokenMap {
             goal_token_to_index: dicts.1,
             hyp_token_to_index: dicts.2,
         }
+    }
+
+    pub fn save_to_text(&self, filename: &str) {
+        let mut index_to_tactic = vec![""; self.tactic_to_index.len()];
+        for (tactic, index) in self.tactic_to_index.iter() {
+            assert!(index < &self.tactic_to_index.len(),
+                    "index is {}, but there are only {} tactics",
+                    index, self.tactic_to_index.len());
+            index_to_tactic[*index] = tactic;
+        }
+        let mut index_to_goal_token = vec![""; self.goal_token_to_index.len()];
+        for (goal_token, index) in self.goal_token_to_index.iter() {
+            assert!(index < &self.goal_token_to_index.len(),
+                    "index is {}, but there are only {} goal tokens",
+                    index, self.goal_token_to_index.len());
+            index_to_goal_token[*index] = goal_token;
+        }
+        let mut index_to_hyp_token = vec![""; self.hyp_token_to_index.len()];
+        for (hyp_token, index) in self.hyp_token_to_index.iter() {
+            assert!(index < &self.hyp_token_to_index.len(),
+                    "index is {}, but there are only {} hyp tokens",
+                    index, self.hyp_token_to_index.len());
+            index_to_hyp_token[*index] = hyp_token;
+        }
+
+        let mut data = HashMap::new();
+        data.insert("tactics", index_to_tactic);
+        data.insert("goal_tokens", index_to_goal_token);
+        data.insert("hyp_tokens", index_to_hyp_token);
+
+        let file = File::create(filename).unwrap();
+        serde_json::to_writer(file, &data).unwrap();
     }
 }
 

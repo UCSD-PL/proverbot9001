@@ -302,6 +302,10 @@ pub struct DataloaderArgs {
     pub keywords_file: String,
     #[pyo3(get, set)]
     pub context_filter: String,
+    #[pyo3(get, set)]
+    pub save_embedding: Option<String>,
+    #[pyo3(get, set)]
+    pub save_features_state: Option<String>,
 }
 #[pymethods]
 impl DataloaderArgs {

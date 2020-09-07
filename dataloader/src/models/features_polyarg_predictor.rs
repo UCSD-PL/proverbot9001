@@ -123,6 +123,10 @@ pub fn features_polyarg_tensors(
             )
         }
     };
+    match &args.save_features_state {
+        Some(path) => features_token_map.save_to_text(path),
+        None => (),
+    };
     raw_data.sort_by_key(|pnt| -(pnt.context.focused_hyps().len() as i64));
 
     let tactic_stem_indices: Vec<i64> = raw_data
@@ -136,6 +140,11 @@ pub fn features_polyarg_tensors(
         })
         .collect();
     indexer.freeze();
+
+    match &args.save_embedding {
+        Some(path) => indexer.save_to_text(path),
+        None => (),
+    };
 
     let all_premises: Vec<Vec<&String>> = raw_data
         .par_iter()

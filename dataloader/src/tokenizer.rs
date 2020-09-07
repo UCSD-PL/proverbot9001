@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::{self, BufRead};
+use std::fmt::Display;
+use std::io::prelude::*;
 
 extern crate regex;
 use regex::Regex;
@@ -23,7 +25,7 @@ pub type PickleableIndexer<T> = (i64, HashMap<T, i64>, bool);
 
 impl<T> OpenIndexer<T>
 where
-    T: Eq + Hash + Clone,
+    T: Eq + Hash + Clone + Display,
 {
     pub fn new() -> Self {
         OpenIndexer {
@@ -66,6 +68,12 @@ where
     }
     pub fn num_indices(&self) -> i64 {
         self.next_idx
+    }
+    pub fn save_to_text(&self, path: &str) {
+        let mut file = File::create(path).unwrap();
+        for i in 1..self.next_idx {
+            file.write(format!("{}\n", self.reverse_lookup(i)).as_bytes()).unwrap();
+        }
     }
 }
 

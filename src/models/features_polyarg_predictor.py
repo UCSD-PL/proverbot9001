@@ -562,6 +562,9 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-features", default=None)
         parser.add_argument("--load-tensors", default=None)
 
+        parser.add_argument("--save-embedding", type=str, default=None)
+        parser.add_argument("--save-features-state", type=str, default=None)
+
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
@@ -800,6 +803,8 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
         "Must have a keywords file for the rust dataloader"
     dargs.keywords_file = args.load_tokens
     dargs.context_filter = args.context_filter
+    dargs.save_embedding = args.save_embedding
+    dargs.save_features_state = args.save_features_state
     return dargs
 
 
