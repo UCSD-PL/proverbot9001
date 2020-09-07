@@ -25,7 +25,7 @@ use pyo3::types::PyAny;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result};
+use std::io::{BufRead, BufReader, Result, Write};
 use std::iter;
 
 use crate::paren_util::*;
@@ -53,6 +53,17 @@ pub struct ScrapedTactic {
     pub context: ProofContext,
     #[pyo3(get, set)]
     pub tactic: String,
+}
+
+impl ScrapedTactic {
+    pub fn with_tactic(&self, tactic: String) -> Self {
+        ScrapedTactic {
+            relevant_lemmas: self.relevant_lemmas.clone(),
+            prev_tactics: self.prev_tactics.clone(),
+            context: self.context.clone(),
+            tactic: tactic,
+        }
+    }
 }
 #[pyclass]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -211,6 +222,29 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
             ScrapedData::Tactic(serde_json::from_str(&actual_line).expect("Couldn't parse line"))
         }
     })
+}
+
+pub fn scraped_to_file(mut file: File, scraped: impl iter::Iterator<Item = ScrapedData>) {
+    for point in scraped {
+        match point {
+            ScrapedData::Vernac(VernacCommand { command: cmd }) => {
+                writeln!(&mut file, "\"{}\"", cmd).unwrap()
+            }
+            ScrapedData::Tactic(tac) => {
+                serde_json::to_writer(
+                    &mut file,
+                    &serde_json::json!({
+                    "prev_tactics": tac.prev_tactics,
+                    "prev_hyps": tac.context.focused_hyps(),
+                    "prev_goal": tac.context.focused_goal(),
+                    "relevant_lemmas": tac.relevant_lemmas,
+                    "tactic": tac.tactic}),
+                )
+                .unwrap();
+                writeln!(&mut file, "").unwrap();
+            }
+        }
+    }
 }
 
 pub fn kill_comments(source: &str) -> String {
