@@ -136,9 +136,11 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
                             default=default_values.get("tokenizer",
                                                        list(tokenizers.keys())[0]))
-        parser.add_argument("--num-relevance-samples", dest="num_relevance_samples",
-                            type=int, default=default_values.get("num_relevance_samples",
-                                                                 1000))
+        parser.add_argument("--num-relevance-samples",
+                            dest="num_relevance_samples",
+                            type=int,
+                            default=default_values.get("num_relevance_samples",
+                                                       1000))
         parser.add_argument("--save-tokens", dest="save_tokens",
                             default=default_values.get("save-tokens", None),
                             type=Path2)
