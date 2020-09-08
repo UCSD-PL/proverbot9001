@@ -329,6 +329,116 @@ pub fn get_stem(full_tactic: &str) -> Option<String> {
     split_tactic(full_tactic).map(|(stem, _args)| stem)
 }
 
+pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
+    let tacstr = kill_comments(&datum.tactic);
+    let mut newtac = tacstr.trim().to_string();
+    // Truncate semicolons
+    if newtac.chars().next() == Some('(') && newtac.chars().last() == Some(')') {
+        newtac = newtac[1..newtac.len() - 1].to_string();
+    }
+    if let Some((before_semi, _)) = split_to_next_pat_outside_parens(&newtac, ";") {
+        newtac = before_semi.trim().to_string();
+        newtac.push('.');
+    }
+
+    // Substitutions
+    lazy_static! {
+        static ref SUBS_MAP: HashMap<&'static str, &'static str> = {
+            let mut res = HashMap::new();
+            res.insert("auto", "eauto.");
+            res.insert("intros until", "intros.");
+            res.insert("intro", "intros.");
+            res.insert("constructor", "econstructor.");
+            res
+        };
+    }
+    if let Some(stem) = get_stem(&newtac) {
+        let borrowed_stem: &str = &stem;
+        if let Some(subbed_stem) = SUBS_MAP.get(borrowed_stem) {
+            newtac = subbed_stem.to_string();
+        }
+    }
+
+    // Numeric args
+    if let Some((stem, argstr)) = split_tactic(&newtac) {
+        if stem == "induction" || stem == "destruct" {
+            // println!("Preprocessing {}", datum.tactic);
+            let argstr = if argstr.chars().last() == Some('.') {
+                argstr.chars().take(argstr.len() - 1).collect()
+            } else {
+                argstr
+            };
+            let argstr_tokens: Vec<_> = argstr.split_whitespace().collect();
+            if argstr_tokens.len() == 1 {
+                let new_argstr = argstr_tokens
+                    .into_iter()
+                    .map(|token| match token.parse::<i64>() {
+                        Ok(var_idx) => get_binder_var(datum.context.focused_goal(), var_idx),
+                        Err(_) => token,
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                newtac = vec![stem, new_argstr].join(" ");
+                newtac.push('.');
+            }
+        }
+    }
+
+    datum.with_tactic(newtac)
+}
+
+pub fn tactic_takes_hyp_args(tactic_stem: &str) -> bool {
+    let tactic_stem = tactic_stem.trim();
+    if tactic_stem.starts_with("now") || tactic_stem.starts_with("try") {
+        tactic_takes_hyp_args(&tactic_stem[4..])
+    } else if tactic_stem.starts_with("repeat") {
+        tactic_takes_hyp_args(&tactic_stem[7..])
+    } else {
+        tactic_stem == "apply"
+            || tactic_stem == "eapply"
+            || tactic_stem == "eexploit"
+            || tactic_stem == "exploit"
+            || tactic_stem == "erewrite"
+            || tactic_stem == "rewrite"
+            || tactic_stem == "erewrite !"
+            || tactic_stem == "rewrite !"
+            || tactic_stem == "erewrite <-"
+            || tactic_stem == "rewrite <-"
+            || tactic_stem == "destruct"
+            || tactic_stem == "elim"
+            || tactic_stem == "eelim"
+            || tactic_stem == "inversion"
+            || tactic_stem == "monadInv"
+            || tactic_stem == "pattern"
+            || tactic_stem == "revert"
+            || tactic_stem == "exact"
+            || tactic_stem == "eexact"
+            || tactic_stem == "simpl in"
+            || tactic_stem == "fold"
+            || tactic_stem == "generalize"
+            || tactic_stem == "exists"
+            || tactic_stem == "case"
+            || tactic_stem == "inv"
+            || tactic_stem == "subst"
+            || tactic_stem == "specialize"
+    }
+}
+
+pub fn indexed_premises<'a>(premises: impl Iterator<Item = &'a str>) -> Vec<(usize, String)> {
+    let mut result = Vec::new();
+    for (idx, premise) in premises.enumerate() {
+        let before_colon = premise
+            .split(":")
+            .next()
+            .expect("Hyp string doesn't have a colon in it")
+            .trim();
+        let vars = before_colon
+            .split(",")
+            .map(|varname| (idx, varname.to_string()));
+        result.extend(vars);
+    }
+    result
+}
 
 /// A function for doing some quick & dirty parsing of forall
 /// binders. Ported from the python implementation of this same

@@ -83,24 +83,24 @@ pub fn features_polyarg_tensors(
     ),
     (Vec<i64>, i64),
 )> {
-    let mut raw_data: Vec<ScrapedTactic> = filter_data(
-        &args,
-        &args.context_filter,
-        scraped_from_file(
-            File::open(filename)
-                .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
-        )
+    let all_points: Vec<_> = scraped_from_file(
+        File::open(filename)
+            .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
+    )
+    .collect();
+    let unfiltered_data: Vec<ScrapedTactic> = all_points
+        .into_iter()
         .flat_map(|data| match data {
             ScrapedData::Vernac(_) => None,
-            ScrapedData::Tactic(t) => {
-                if get_stem(&t.tactic).is_some() {
-                    Some(t)
-                } else {
-                    None
-                }
-            }
+            ScrapedData::Tactic(t) => Some(t),
         })
-        .collect(),
+        .collect();
+    let preprocessed_data: Vec<ScrapedTactic> = unfiltered_data.into_iter().map(preprocess_datum).collect();
+    let mut raw_data: Vec<ScrapedTactic> =
+        filter_data(&args, &args.context_filter, preprocessed_data);
+    scraped_to_file(
+        File::create("filtered-data.json").unwrap(),
+        raw_data.iter().cloned().map(ScrapedData::Tactic),
     );
     let (mut indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
