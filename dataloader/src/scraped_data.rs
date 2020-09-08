@@ -329,6 +329,41 @@ pub fn get_stem(full_tactic: &str) -> Option<String> {
     split_tactic(full_tactic).map(|(stem, _args)| stem)
 }
 
+
+/// A function for doing some quick & dirty parsing of forall
+/// binders. Ported from the python implementation of this same
+/// function in serapi_instance.py.
+fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
+    let mut paren_depth = 0;
+    let mut binders_passed = 0;
+    let mut skip = false;
+    lazy_static! {
+        static ref FORALL: Regex = Regex::new(r"forall\s+").unwrap();
+    }
+    let forall_match = FORALL.find(goal).expect("No toplevel binder found!");
+    let rest_goal = &goal[forall_match.end()..];
+    for w in get_symbols(rest_goal) {
+        if w == "(" {
+            paren_depth += 1;
+        } else if w == ")" {
+            paren_depth -= 1;
+            if paren_depth < 2 {
+                skip = false;
+            }
+        } else if paren_depth < 2 && !skip {
+            if w == ":" {
+                skip = true;
+            } else {
+                binders_passed += 1;
+                if binders_passed == binder_idx {
+                    return w;
+                }
+            }
+        }
+    }
+    panic!("Not enough binders!")
+}
+
 #[pyclass]
 #[derive(Default, Clone)]
 pub struct DataloaderArgs {
