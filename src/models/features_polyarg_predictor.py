@@ -107,12 +107,23 @@ class GoalTokenArgModel(nn.Module):
         hidden = initial_hidden
         copy_likelyhoods : List[torch.FloatTensor] = []
         for i in range(goal_batch.size()[1]):
-            token_batch = self._token_embedding(goal_var[:,i])\
-                .view(1, batch_size, self.hidden_size)
-            token_batch = F.relu(token_batch)
-            token_out, hidden = self._gru(token_batch, hidden)
-            copy_likelyhood = self._likelyhood_layer(F.relu(token_out))
-            copy_likelyhoods.append(copy_likelyhood[0])
+            try:
+                token_batch = self._token_embedding(goal_var[:,i])\
+                                  .view(1, batch_size, self.hidden_size)
+                token_batch2 = F.relu(token_batch)
+                token_out, hidden = self._gru(token_batch2, hidden)
+                copy_likelyhood = self._likelyhood_layer(F.relu(token_out))
+                copy_likelyhoods.append(copy_likelyhood[0])
+            except RuntimeError:
+                eprint("Tokenized goal:")
+                for j in range(goal_batch.size()[0]):
+                    eprint(goal_batch[j, i].item(), end=" ")
+                    assert goal_batch[j, i] < 123
+                eprint()
+                eprint(f"goal_var: {goal_var}")
+                eprint("Token batch")
+                eprint(token_batch)
+                raise
         end_token_embedded = self._token_embedding(LongTensor([EOS_token])
                                                    .expand(batch_size))\
                                                    .view(1, batch_size, self.hidden_size)
