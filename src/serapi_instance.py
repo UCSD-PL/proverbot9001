@@ -1295,10 +1295,10 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
     if not tactic:
         return ("", "")
-    if re.match("[-+*\{\}]", tactic):
+    if re.match(r"^\s*[-+*\{\}]+\s*$", tactic):
         stripped = tactic.strip()
-        return stripped[:-1], stripped[-1]
-    if re.match(".*;.*", tactic):
+        return tactic, ""
+    if ";" in tactic:
         return tactic, ""
     for prefix in ["try", "now", "repeat", "decide"]:
         prefix_match = re.match("{}\s+(.*)".format(prefix), tactic)
@@ -1309,7 +1309,7 @@ def split_tactic(tactic : str) -> Tuple[str, str]:
         special_match = re.match("{}\s*(.*)".format(special_stem), tactic)
         if special_match:
             return special_stem, special_match.group(1)
-    match = re.match("^\(?(\w+)(?:\s+(.*))?", tactic)
+    match = re.match("^\(?(\w+)(\W+.*)?", tactic)
     assert match, "tactic \"{}\" doesn't match!".format(tactic)
     stem, rest = match.group(1, 2)
     if not rest:
@@ -1430,6 +1430,9 @@ def tacticTakesHypArgs(stem: str) -> bool:
     try_match = re.match(r"\s*try\s+(.*)", stem)
     if try_match:
         return tacticTakesHypArgs(try_match.group(1))
+    repeat_match = re.match(r"\s*repeat\s+(.*)", stem)
+    if repeat_match:
+        return tacticTakesHypArgs(repeat_match.group(1))
     return (
         stem == "apply"
         or stem == "eapply"
@@ -1457,6 +1460,7 @@ def tacticTakesHypArgs(stem: str) -> bool:
         or stem == "case"
         or stem == "inv"
         or stem == "subst"
+        or stem == "specialize"
     )
 
 def tacticTakesBinderArgs(stem : str) -> bool:
@@ -1516,7 +1520,8 @@ def get_binder_var(goal : str, binder_idx : int) -> Optional[str]:
     return None
 
 def normalizeNumericArgs(datum : ScrapedTactic) -> ScrapedTactic:
-    numerical_induction_match = re.match("(induction|destruct)\s+(\d+)\.", datum.tactic.strip())
+    numerical_induction_match = re.match(
+        r"\s*(induction|destruct)\s+(\d+)\s*\.", kill_comments(datum.tactic).strip())
     if numerical_induction_match:
         stem = numerical_induction_match.group(1)
         binder_idx = int(numerical_induction_match.group(2))

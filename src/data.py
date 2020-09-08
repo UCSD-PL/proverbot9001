@@ -525,12 +525,11 @@ def normalizeNumericArgs_eval(sample : StateScore) -> StateScore:
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
         -> ScrapedTactic:
     rl, pt, hyp, goal, tactic = sample
-    newtac = tactic
-    outer_parens_match = re.fullmatch("\((.*)\)", newtac.strip())
-    if outer_parens_match:
-        newtac = outer_parens_match.group(1)
+    newtac = tactic.strip()
+    if newtac[0] == "(" and newtac[-1] == ")":
+        newtac = newtac[1:-1]
     splitresult = split_by_char_outside_matching(
-        "\(|\[", "\)|\]", ";", newtac)
+        r"\(", r"\)", ";", newtac)
     if splitresult:
         before_semi, after_semi = splitresult
         newtac = before_semi.strip() + "."
