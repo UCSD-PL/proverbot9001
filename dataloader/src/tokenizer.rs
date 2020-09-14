@@ -1,11 +1,11 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::fs::File;
 use std::hash::Hash;
-use std::io::{self, BufRead};
-use std::fmt::Display;
 use std::io::prelude::*;
+use std::io::{self, BufRead};
 
 extern crate regex;
 use regex::Regex;
@@ -72,7 +72,8 @@ where
     pub fn save_to_text(&self, path: &str) {
         let mut file = File::create(path).unwrap();
         for i in 1..self.next_idx {
-            file.write(format!("{}\n", self.reverse_lookup(i)).as_bytes()).unwrap();
+            file.write(format!("{}\n", self.reverse_lookup(i)).as_bytes())
+                .unwrap();
         }
     }
 }
@@ -90,16 +91,21 @@ pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
 
 impl Tokenizer {
     pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
-        let keywords = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
+        let keywords: Vec<_> = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
             "Couldn't open keywords file \"{}\"",
             keywords_filepath
         )))
         .lines()
-        .map(|keyword| keyword.unwrap());
-        let first_token = (num_reserved_tokens + if use_unknowns { 1 } else { 0 }) as i64;
-        let unknown_token = if use_unknowns { num_reserved_tokens } else { 0 } as i64;
+        .map(|keyword| keyword.unwrap())
+        .collect();
+        let first_token = (num_reserved_tokens) as i64;
+        let unknown_token = if use_unknowns {
+            num_reserved_tokens + keywords.len()
+        } else {
+            0
+        } as i64;
         let mut token_dict = HashMap::new();
-        for (idx, keyword) in keywords.enumerate() {
+        for (idx, keyword) in keywords.into_iter().enumerate() {
             token_dict.insert(keyword, idx as i64 + first_token);
         }
         Tokenizer {
