@@ -560,14 +560,8 @@ fn get_argument<'a>(
             }
             None => (),
         };
-        let hyp_names_iter = all_hyps.iter().map(|hyp| {
-            hyp.split(":")
-                .next()
-                .expect("Hyp string doesn't have a colon in it")
-                .trim()
-        });
-        match hyp_names_iter
-            .enumerate()
+        match indexed_premises(all_hyps.iter().map(|s| s.as_ref()))
+            .into_iter()
             .find(|(_idx, hname)| *hname == arg_token)
         {
             Some((idx, _hname)) => {
