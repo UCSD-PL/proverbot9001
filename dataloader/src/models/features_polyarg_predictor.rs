@@ -212,11 +212,17 @@ pub fn features_polyarg_tensors(
             (arg_to_index(&args, arg), selected)
         })
         .unzip();
-    let tokenized_hyps = selected_prems
+    let tokenized_hyps: Vec<Vec<Vec<i64>>> = selected_prems
         .par_iter()
         .map(|hyps| {
             hyps.iter()
-                .map(|hyp| normalize_sentence_length(tokenizer.tokenize(hyp), args.max_length, 1))
+                .map(|hyp| {
+                    normalize_sentence_length(
+                        tokenizer.tokenize(get_hyp_type(hyp)),
+                        args.max_length,
+                        0,
+                    )
+                })
                 .collect()
         })
         .collect();

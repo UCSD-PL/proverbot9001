@@ -476,6 +476,10 @@ fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
     panic!("Not enough binders!")
 }
 
+pub fn get_hyp_type(hyp: &str) -> &str {
+    hyp.splitn(2, ":").last().unwrap_or("")
+}
+
 #[pyclass]
 #[derive(Default, Clone)]
 pub struct DataloaderArgs {
