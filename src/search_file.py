@@ -193,6 +193,8 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         default=10)
     parser.add_argument("--search-depth", dest="search_depth", type=int,
                         default=6)
+    parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
+                        type=int, default=200)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch",
                         action='store_true')
@@ -1217,7 +1219,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     g.setNodeColor(predictionNode, "orange4")
                     cleanupSearch(num_stmts,
                                   "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth:
+                elif len(current_path) < args.search_depth + new_extra_depth and len(current_path) < args.hard_depth_limit:
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
