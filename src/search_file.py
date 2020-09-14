@@ -1029,7 +1029,7 @@ def tryPrediction(args: argparse.Namespace,
                   prediction: str,
                   previousNode: LabeledNode) \
                   -> Tuple[ProofContext, int, int, int,
-                           Optional[SerapiException], float, bool]:
+                           Optional[Exception], float, bool]:
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
