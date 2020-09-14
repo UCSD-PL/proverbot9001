@@ -179,16 +179,20 @@ fn apply_filter(
                 <= *num
         }
         ContextFilterAST::Default => {
+            let tactic = kill_comments(&scraped.tactic);
             lazy_static! {
                 static ref BACKGROUND_TAC: Regex = Regex::new(r"^\d+:.*").unwrap();
+                static ref BULLET: Regex = Regex::new(r"^\s*[\{\}\+\-\*].*").unwrap();
             }
-            !scraped.tactic.contains(";") &&
-                !scraped.tactic.contains("Proof") &&
-                !scraped.tactic.contains("Opaque") &&
-                !scraped.tactic.contains("Qed") &&
-                !scraped.tactic.contains("Defined") &&
-                !scraped.tactic.contains("Unshelve") &&
-                !BACKGROUND_TAC.is_match(&scraped.tactic)
+            let result = !tactic.contains(";")
+                && !tactic.contains("Proof")
+                && !tactic.contains("Opaque")
+                && !tactic.contains("Qed")
+                && !tactic.contains("Defined")
+                && !tactic.contains("Unshelve")
+                && !BACKGROUND_TAC.is_match(&tactic)
+                && !BULLET.is_match(&tactic);
+            result
         }
     }
 }
