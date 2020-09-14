@@ -97,11 +97,11 @@ fn apply_filter(
                 .all(|arg_token| goal_symbols.contains(&arg_token))
         }
         ContextFilterAST::HypArgs => {
-            let hyp_names: Vec<&str> = scraped
-                .context.focused_hyps()
-                .iter()
-                .map(|hyp| hyp.splitn(2, ":").next().unwrap().trim())
-                .collect();
+            let hyp_names: Vec<String> =
+                indexed_premises(scraped.context.focused_hyps().iter().map(|s| s.as_ref()))
+                    .into_iter()
+                    .map(|(_idx, hyp_name)| hyp_name)
+                    .collect();
             let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
@@ -120,12 +120,12 @@ fn apply_filter(
                 .all(|arg_token| hyp_names.contains(&arg_token))
         }
         ContextFilterAST::RelevantLemmaArgs => {
-            let lemma_names: Vec<_>= scraped
-                .relevant_lemmas
-                .iter()
-                .map(|lemma| lemma.splitn(2, ":").next().unwrap().trim())
-                .collect();
-            let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
+            let lemma_names: Vec<_> =
+                indexed_premises(scraped.relevant_lemmas.iter().map(|s| s.as_ref()))
+                    .into_iter()
+                    .map(|(_idx, hyp_name)| hyp_name)
+                    .collect();
+            let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
             };
