@@ -542,6 +542,10 @@ fn get_argument<'a>(
     if argstr_tokens.len() == 0 {
         (TacticArgument::NoArg, rand_bounded_hyps!())
     } else if argstr_tokens.len() > 1 {
+        assert!(
+            false,
+            "A multi argument tactic made it past the context filter!"
+        );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
         let goal_symbols = get_symbols(scraped.context.focused_goal());
@@ -581,6 +585,11 @@ fn get_argument<'a>(
             }
             None => (),
         };
+        assert!(
+            false,
+            "An unknown tactic made it past the context filter: {}, arg {}, arg_token {}",
+            scraped.tactic, argstr_tokens[0], arg_token
+        );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     }
 }
