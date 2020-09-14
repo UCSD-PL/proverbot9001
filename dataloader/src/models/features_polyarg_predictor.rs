@@ -89,13 +89,16 @@ pub fn features_polyarg_tensors(
     )
     .collect();
     let unfiltered_data: Vec<ScrapedTactic> = all_points
-        .into_iter()
+        .into_par_iter()
         .flat_map(|data| match data {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
         })
         .collect();
-    let preprocessed_data: Vec<ScrapedTactic> = unfiltered_data.into_iter().map(preprocess_datum).collect();
+    let preprocessed_data: Vec<ScrapedTactic> = unfiltered_data
+        .into_par_iter()
+        .map(preprocess_datum)
+        .collect();
     let mut raw_data: Vec<ScrapedTactic> =
         filter_data(&args, &args.context_filter, preprocessed_data);
     scraped_to_file(
