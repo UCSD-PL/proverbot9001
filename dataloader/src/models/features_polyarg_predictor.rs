@@ -153,9 +153,10 @@ pub fn features_polyarg_tensors(
         .par_iter()
         .map(|scraped| {
             scraped
-                .relevant_lemmas
+                .context
+                .focused_hyps()
                 .iter()
-                .chain(scraped.context.focused_hyps().iter())
+                .chain(scraped.relevant_lemmas.iter())
                 .collect()
         })
         .collect();
