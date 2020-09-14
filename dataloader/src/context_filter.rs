@@ -83,9 +83,11 @@ fn apply_filter(
                 None => return false,
                 Some(x) => x,
             };
-            let trimmed_args = tactic_argstr.trim();
-            let arg_tokens: Vec<&str> = trimmed_args[..trimmed_args.len() - 1]
-                .split_whitespace().collect();
+            let mut trimmed_args = tactic_argstr.trim();
+            if trimmed_args.chars().last() == Some('.') {
+                trimmed_args = &trimmed_args[..trimmed_args.len() - 1]
+            }
+            let arg_tokens: Vec<&str> = trimmed_args.split_whitespace().collect();
             // While the arguments to an intro(s) might *look* like
             // goal arguments, they are actually fresh variables
             if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
@@ -104,9 +106,11 @@ fn apply_filter(
                 None => return false,
                 Some(x) => x,
             };
-            let trimmed_args = tactic_argstr.trim();
-            let arg_tokens: Vec<&str> = trimmed_args[..trimmed_args.len() - 1]
-                .split_whitespace().collect();
+            let mut trimmed_args = tactic_argstr.trim();
+            if trimmed_args.chars().last() == Some('.') {
+                trimmed_args = &trimmed_args[..trimmed_args.len() - 1]
+            }
+            let arg_tokens: Vec<&str> = trimmed_args.split_whitespace().collect();
             // While the arguments to an intro(s) might *look* like
             // hyp arguments, they are actually fresh variables
             if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
@@ -125,10 +129,19 @@ fn apply_filter(
                 None => return false,
                 Some(x) => x,
             };
-            let trimmed_args = tactic_argstr.trim();
-            trimmed_args[..trimmed_args.len() - 1]
-                .split_whitespace()
-                .all(|arg_token| lemma_names.contains(&arg_token))
+            let mut trimmed_args = tactic_argstr.trim();
+            if trimmed_args.chars().last() == Some('.') {
+                trimmed_args = &trimmed_args[..trimmed_args.len() - 1]
+            }
+            let arg_tokens: Vec<&str> = trimmed_args.split_whitespace().collect();
+            let result = tactic_takes_hyp_args(&tactic_stem)
+                && arg_tokens
+                    .iter()
+                    .all(|arg_token| lemma_names.contains(&arg_token.to_string()))
+                || arg_tokens.len() == 0;
+            // assert!(!(scraped.tactic.trim() == "induction e." && result));
+            // assert!(result, "{}", &scraped.tactic);
+            result
         }
         ContextFilterAST::NumericArgs => {
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
