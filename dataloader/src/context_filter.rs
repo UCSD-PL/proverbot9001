@@ -116,8 +116,13 @@ fn apply_filter(
             if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
                 return false;
             }
-            arg_tokens.into_iter()
-                .all(|arg_token| hyp_names.contains(&arg_token))
+            let result = (tactic_takes_hyp_args(&tactic_stem)
+                && arg_tokens
+                    .iter()
+                    .cloned() //.into_iter()
+                    .all(|arg_token| hyp_names.contains(&arg_token.to_string())))
+                || arg_tokens.len() == 0;
+            result
         }
         ContextFilterAST::RelevantLemmaArgs => {
             let lemma_names: Vec<_> =
