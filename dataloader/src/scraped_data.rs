@@ -292,19 +292,19 @@ pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
     lazy_static! {
         static ref GOAL_SELECTOR: Regex = Regex::new(r"^\s*[-+*{}]+\s*$").unwrap();
     }
-    if GOAL_SELECTOR.is_match(prepped_tac)
-        || split_to_next_pat_outside_parens(&prepped_tac, ";").is_some()
-    {
+    if GOAL_SELECTOR.is_match(prepped_tac) || prepped_tac.contains(';') {
         return None;
     }
     for prefix in &["try", "now", "repeat", "decide"] {
         if prepped_tac.starts_with(prefix) {
-            return split_tactic(&prepped_tac[prefix.len()..]).map(|(rest_stem, rest_rest)| {
-                let mut new_stem = prefix.to_string();
-                new_stem.push_str(" ");
-                new_stem.push_str(&rest_stem);
-                (new_stem, rest_rest)
-            });
+            return split_tactic(&prepped_tac[prefix.len()..].trim()).map(
+                |(rest_stem, rest_rest)| {
+                    let mut new_stem = prefix.to_string();
+                    new_stem.push_str(" ");
+                    new_stem.push_str(&rest_stem);
+                    (new_stem, rest_rest)
+                },
+            );
         }
     }
     for special_stem in &["rewrite <-", "rewrite !", "intros until", "simpl in"] {
@@ -316,7 +316,7 @@ pub fn split_tactic(full_tactic: &str) -> Option<(String, String)> {
         }
     }
     prepped_tac
-        .find(|c| c == '.' || char::is_whitespace(c))
+        .find(|c| !(char::is_alphabetic(c) || c == '\'' || c == '_' || c == '('))
         .map(|idx| {
             (
                 prepped_tac[..idx].to_string(),
