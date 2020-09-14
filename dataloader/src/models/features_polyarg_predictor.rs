@@ -179,18 +179,6 @@ pub fn features_polyarg_tensors(
         })
         .collect();
 
-    let (best_prems, best_prem_scores): (Vec<&str>, Vec<f64>) = all_premises
-        .iter()
-        .zip(prem_scores.iter())
-        .map(|(prems, scores)| {
-            prems
-                .iter()
-                .map(|prem| prem.as_ref())
-                .zip(scores.iter().map(|score| *score))
-                .min_by_key(|(_hyp, score)| NormalFloat::new(*score))
-                .unwrap_or(("", 1.0))
-        })
-        .unzip();
     let num_prems = all_premises
         .iter()
         .map(|prems| prems.len() as i64)
