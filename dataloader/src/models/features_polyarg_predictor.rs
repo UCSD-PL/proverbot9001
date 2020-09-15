@@ -172,25 +172,6 @@ pub fn features_polyarg_tensors(
                 .collect()
         })
         .collect();
-
-    let prem_scores: Vec<Vec<f64>> = raw_data
-        .iter()
-        .zip(all_premises.iter())
-        .collect::<Vec<_>>()
-        .par_iter()
-        .map(|(scraped, premises)| {
-            score_hyps(
-                args.max_string_distance,
-                args.max_length,
-                &premises
-                    .iter()
-                    .map(|premise| premise.clone().clone())
-                    .collect::<Vec<String>>(),
-                &scraped.context.focused_goal(),
-            )
-        })
-        .collect();
-
     let num_prems = all_premises
         .iter()
         .map(|prems| prems.len() as i64)
