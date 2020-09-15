@@ -596,8 +596,9 @@ fn get_argument<'a>(
         };
         assert!(
             false,
-            "An unknown tactic made it past the context filter: {}, arg {}, arg_token {}",
-            scraped.tactic, argstr_tokens[0], arg_token
+            "An unknown tactic made it past the context filter: {}, arg {}, arg_token {}\n\
+             Goal is {}",
+            scraped.tactic, argstr_tokens[0], arg_token, scraped.context.focused_goal()
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     }
