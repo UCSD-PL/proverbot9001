@@ -239,6 +239,7 @@ class CompleteTokenizer(Tokenizer):
         self.use_unknowns = use_unknowns
         pass
     def toTokenList(self, string : str) -> List[int]:
+        string = unescape_periods(string)
         words = get_words(string)
         tokens : List[int] = []
         for word in words:
@@ -324,6 +325,11 @@ class KeywordTokenizer(Tokenizer):
 
     def listTokens(self) -> List[str]:
         return self.keywords
+
+
+def unescape_periods(s: str) -> str:
+    return s.replace("\\.", ".")
+
 
 def make_keyword_tokenizer_relevance(data : List[Tuple[str, int]],
                                      tokenizer_type : Callable[[List[str], int],
