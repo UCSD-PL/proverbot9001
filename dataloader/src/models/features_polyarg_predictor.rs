@@ -560,11 +560,8 @@ fn get_argument<'a>(
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let goal_symbols = get_symbols(scraped.context.focused_goal());
-        let arg_token = match argstr_tokens[0].parse::<i64>() {
-            Ok(var_idx) => get_binder_var(scraped.context.focused_goal(), var_idx),
-            Err(_) => argstr_tokens[0],
-        };
+        let goal_symbols = get_words(scraped.context.focused_goal());
+        let arg_token = argstr_tokens[0];
         match goal_symbols
             .into_iter()
             .take(args.max_length)
