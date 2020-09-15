@@ -609,6 +609,8 @@ class FeaturesPolyargPredictor(
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
+
+
     def _data_tensors(self, encoded_data : FeaturesPolyArgDataset,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:

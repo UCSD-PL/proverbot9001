@@ -101,7 +101,7 @@ def get_data(args : List[str]) -> None:
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(
             data.RawDataset(list(itertools.islice(data.read_text_data(arg_values.scrape_file),
-                                             arg_values.max_tuples))),
+                                                  arg_values.max_tuples))),
             tokenizers[arg_values.tokenizer],
             arg_values.num_keywords, 2)
         if arg_values.max_length:
