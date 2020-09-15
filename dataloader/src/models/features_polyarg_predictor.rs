@@ -507,7 +507,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
         );
         if goal.contains(left_side) {
             -1.0
-        } else if goal.contains(right_side) {
+        } else if goal.contains(right_side) && right_side != ""{
             1.0
         } else {
             0.0
