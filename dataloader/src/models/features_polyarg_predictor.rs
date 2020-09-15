@@ -511,10 +511,11 @@ fn get_argument<'a>(
     macro_rules! rand_bounded_hyps {
         () => {
             if all_hyps.len() > args.max_premises {
-                all_hyps
-                    .choose_multiple(&mut thread_rng(), args.max_premises)
-                    .map(|s| *s)
-                    .collect()
+                all_hyps.iter().take(args.max_premises).cloned().collect()
+            // all_hyps
+            //     .choose_multiple(&mut thread_rng(), args.max_premises)
+            //     .map(|s| *s)
+            //     .collect()
             } else if all_hyps.len() == 0 {
                 lazy_static! {
                     static ref COLONSTRING: String = ":".to_string();
@@ -562,11 +563,16 @@ fn get_argument<'a>(
                 if all_hyps.len() > args.max_premises {
                     let mut other_hyps = all_hyps.clone();
                     other_hyps.remove(idx);
+                    // let mut selected_hyps: Vec<&String> = other_hyps
+                    //     .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                    //     .map(|s| *s)
+                    //     .collect();
                     let mut selected_hyps: Vec<&String> = other_hyps
-                        .choose_multiple(&mut thread_rng(), args.max_premises - 1)
-                        .map(|s| *s)
+                        .into_iter()
+                        .take(args.max_premises - 1)
                         .collect();
-                    let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                    // let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                    let new_hyp_idx = args.max_premises - 1;
                     selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
                     return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
                 } else {
