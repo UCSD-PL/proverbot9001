@@ -637,11 +637,10 @@ class FeaturesPolyargPredictor(
                   torch.LongTensor(word_features),
                   torch.FloatTensor(vec_features),
                   torch.LongTensor(tactic_stems),
-                  torch.LongTensor([
-                      0 if arg_type == ArgType.NO_ARG else
-                      (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN
-                      else (arg.hyp_idx + arg_values.max_length + 1)
-                      for arg_type, arg in zip(arg_types, args)])]
+                  torch.LongTensor([encode_arg(
+                      arg_type, arg, arg_values.max_length)
+                                    for arg_type, arg
+                                    in zip(arg_types, args)])]
         if arg_values.load_tensors:
             with open(arg_values.load_tensors, 'rb') as f:
                 loaded_result = torch.load(f)
@@ -776,6 +775,13 @@ class FeaturesPolyargPredictor(
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
+
+
+def encode_arg(arg_type: ArgType, arg: TacticArg, max_length: int) -> int:
+    return 0 if arg_type == ArgType.NO_ARG else \
+        (arg.token_idx + 1) if arg_type == ArgType.GOAL_TOKEN \
+        else (arg.hyp_idx + max_length + 1)
+
 
 def mkFPASample(embedding : Embedding,
                 mytokenizer : Tokenizer,
