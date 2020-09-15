@@ -893,16 +893,19 @@ def encodeHypsFeatureVecs(args : argparse.Namespace,
         similarity_ratio = SequenceMatcher(None, goal,
                                            serapi_instance.get_hyp_type(hyp)).ratio()
         is_equals_on_goal_token = 0.0
-        equals_match = re.match("eq\s+(.*)", hyp)
+        equals_match = re.match(r"eq\s+(.*)", serapi_instance.get_hyp_type(hyp))
         if equals_match:
-            left_side, right_side = \
+            split = \
                 split_by_char_outside_matching(
-                    "\(", "\)", "\s*",
+                    r"\(", r"\)", r"\s+",
                     equals_match.group(1))
-            if left_side in goal:
-                is_equals_on_goal_token = -1.0
-            elif right_side in goal:
-                is_equals_on_goal_token = 1.0
+
+            if split:
+                left_side, right_side = split
+                if left_side in goal:
+                    is_equals_on_goal_token = -1.0
+                elif right_side in goal:
+                    is_equals_on_goal_token = 1.0
 
         if args.features:
             return [similarity_ratio,
