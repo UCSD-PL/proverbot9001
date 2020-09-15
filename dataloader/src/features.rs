@@ -24,7 +24,6 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
-use std::io::Read;
 
 use crate::scraped_data::*;
 use crate::tokenizer::get_symbols;
@@ -65,7 +64,7 @@ pub fn context_features(
     let vec_features = best_hyp_scores
         .into_iter()
         .zip(data.iter())
-        .map(|(score, datum)| {
+        .map(|(score, _datum)| {
             vec![
                 score,
                 // (std::cmp::min(get_symbols(&datum.context.focused_goal()).len(), 100) as f64) / 100.0,
