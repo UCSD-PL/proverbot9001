@@ -38,6 +38,7 @@ from util import eprint, maybe_cuda
 import time
 import random
 import itertools
+import re
 from format import ScrapedTactic, TacticContext, strip_scraped_output
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding, SimpleEmbedding,
