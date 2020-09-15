@@ -27,7 +27,7 @@ extern crate regex;
 use rayon::prelude::*;
 use regex::Regex;
 
-use crate::tokenizer::get_symbols;
+use crate::tokenizer::get_words;
 use lalrpop_util::lalrpop_mod;
 
 #[allow(dead_code)]
@@ -75,7 +75,7 @@ fn apply_filter(
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
-            let goal_symbols: Vec<&str> = get_symbols(&scraped.context.focused_goal())
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
                 .into_iter()
                 .take(args.max_length)
                 .collect();
@@ -94,7 +94,7 @@ fn apply_filter(
                 return false;
             }
             arg_tokens.into_iter()
-                .all(|arg_token| goal_symbols.contains(&arg_token))
+                .all(|arg_token| goal_symbols.iter().find(|symbol| symbol_matches(*symbol, arg_token)).is_some())
         }
         ContextFilterAST::HypArgs => {
             let hyp_names: Vec<String> =

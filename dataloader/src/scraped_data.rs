@@ -480,6 +480,15 @@ pub fn get_hyp_type(hyp: &str) -> &str {
     hyp.splitn(2, ":").last().unwrap_or("")
 }
 
+pub fn symbol_matches(full_symbol: &str, shorthand_symbol: &str) -> bool {
+    if full_symbol == shorthand_symbol {
+        true
+    } else {
+        full_symbol.split(".").last().unwrap() == shorthand_symbol
+    }
+}
+
+
 #[pyclass]
 #[derive(Default, Clone)]
 pub struct DataloaderArgs {

@@ -566,7 +566,7 @@ fn get_argument<'a>(
             .into_iter()
             .take(args.max_length)
             .enumerate()
-            .find(|(_idx, symbol)| *symbol == arg_token)
+            .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
         {
             Some((idx, _symbol)) => {
                 return (TacticArgument::GoalToken(idx), rand_bounded_hyps!());
