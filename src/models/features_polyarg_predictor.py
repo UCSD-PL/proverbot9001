@@ -536,7 +536,7 @@ class FeaturesPolyargPredictor(
             if arg_values.load_text_tokens:
                 with open(arg_values.load_text_tokens, 'r') as f:
                     keywords = [line.strip() for line in f]
-                tokenizer = KeywordTokenizer(keywords, num_reserved_tokens=2)
+                tokenizer = CompleteTokenizer(keywords, num_reserved_tokens=2)
                 tokenizer.freezeTokenList()
                 # if not arg_values.load_tensors:
                 _, tokenized_goals = tokenize_goals(embedded_data,
