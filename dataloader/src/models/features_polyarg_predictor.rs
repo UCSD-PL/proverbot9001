@@ -154,7 +154,7 @@ pub fn features_polyarg_tensors(
             )
         })
         .collect();
-    indexer.freeze();
+    // indexer.freeze();
 
     match &args.save_embedding {
         Some(path) => indexer.save_to_text(path),
