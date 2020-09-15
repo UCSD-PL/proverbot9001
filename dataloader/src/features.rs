@@ -21,8 +21,10 @@
 
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
+use serde_json;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
+use std::io::Read;
 
 use crate::scraped_data::*;
 use crate::tokenizer::get_symbols;
@@ -261,6 +263,48 @@ impl TokenMap {
 
         let file = File::create(filename).unwrap();
         serde_json::to_writer(file, &data).unwrap();
+    }
+
+    pub fn load_from_text(filename: &str) -> TokenMap {
+        let file = File::open(filename)
+            .expect(&format!("Couldn't find features file at \"{}\"", filename));
+        let json_data = serde_json::from_reader(file).expect("Couldn't parse json data");
+        let (goal_tokens, tactics, hyp_tokens) = match json_data {
+            serde_json::Value::Object(vals) => {
+                match (vals["goal_tokens"].clone(),
+                       vals["tactics"].clone(),
+                       vals["hyp_tokens"].clone()) {
+                    (
+                        serde_json::Value::Array(gts),
+                        serde_json::Value::Array(ts),
+                        serde_json::Value::Array(hts),
+                    ) => (
+                        gts.iter().map(|gt| match gt {
+                            serde_json::Value::String(s) => s.clone(),
+                            _ => panic!("Invalid data"),
+                        })
+                        .collect::<Vec<_>>(),
+                        ts.iter().map(|t| match t {
+                            serde_json::Value::String(s) => s.clone(),
+                            _ => panic!("Invalid data"),
+                        })
+                        .collect::<Vec<_>>(),
+                        hts.iter().map(|ht| match ht {
+                            serde_json::Value::String(s) => s.clone(),
+                            _ => panic!("Invalid data"),
+                        })
+                        .collect::<Vec<_>>(),
+                    ),
+                    _ => panic!("Invalid data"),
+                }
+            }
+            _ => panic!("Json data is not an object!"),
+        };
+        TokenMap {
+            tactic_to_index: flip_vec(tactics),
+            goal_token_to_index: flip_vec(goal_tokens),
+            hyp_token_to_index: flip_vec(hyp_tokens),
+        }
     }
 }
 

@@ -110,7 +110,14 @@ pub fn features_polyarg_tensors(
             OpenIndexer::from_pickleable(indexer),
             Some((tokenizer, tmap)),
         ),
-        None => (OpenIndexer::new(), None),
+        None => match &args.load_embedding {
+            Some(path) => {
+                let mut embedding = OpenIndexer::<String>::load_from_text(path);
+                // embedding.freeze();
+                (embedding, None)
+            }
+            None => (OpenIndexer::new(), None),
+        }
     };
     let (tokenizer, features_token_map) = match rest_meta {
         Some((ptok, ptmap)) => (
@@ -120,10 +127,15 @@ pub fn features_polyarg_tensors(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            (
-                Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file),
-                FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
-            )
+            let tokenizer = Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file);
+            let tmap =
+                match &args.load_features_state {
+                    Some(path) =>
+                        FeaturesTokenMap::load_from_text(path),
+                    None =>
+                        FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
+                };
+            (tokenizer, tmap)
         }
     };
     match &args.save_features_state {

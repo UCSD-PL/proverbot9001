@@ -76,6 +76,19 @@ where
                 .unwrap();
         }
     }
+    pub fn load_from_text(path: &str) -> OpenIndexer::<String> {
+        let mut indexer = OpenIndexer::<String>::new();
+        let stems = io::BufReader::new(
+            File::open(path).expect(&format!("Couldn't find stem file \"{}\"", path)),
+        )
+        .lines()
+        .map(|stem| stem.unwrap());
+        for stem in stems {
+            indexer.map.insert(stem, indexer.next_idx);
+            indexer.next_idx += 1;
+        }
+        indexer
+    }
 }
 
 #[pyclass]

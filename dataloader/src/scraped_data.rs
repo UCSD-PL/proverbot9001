@@ -503,6 +503,10 @@ pub struct DataloaderArgs {
     pub save_embedding: Option<String>,
     #[pyo3(get, set)]
     pub save_features_state: Option<String>,
+    #[pyo3(get, set)]
+    pub load_embedding: Option<String>,
+    #[pyo3(get, set)]
+    pub load_features_state: Option<String>,
 }
 #[pymethods]
 impl DataloaderArgs {

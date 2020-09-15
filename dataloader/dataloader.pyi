@@ -41,6 +41,8 @@ class DataloaderArgs:
     context_filter: str
     save_embedding: Optional[str]
     save_features_state: Optional[str]
+    load_embedding: Optional[str]
+    load_features_state: Optional[str]
 
 
 class ScrapedTransition:
