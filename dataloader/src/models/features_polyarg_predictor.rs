@@ -608,6 +608,6 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::Unrecognized => 0,
         TacticArgument::NoArg => 0,
         TacticArgument::GoalToken(tidx) => (tidx + 1) as i64,
-        TacticArgument::HypVar(hidx) => (hidx + dargs.max_length) as i64,
+        TacticArgument::HypVar(hidx) => (hidx + dargs.max_length + 1) as i64,
     }
 }
