@@ -498,9 +498,9 @@ pub fn decode_fpa_arg(
 
 fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     lazy_static! {
-        static ref EQ: Regex = Regex::new(r"eq\s+(.*)").expect("Can't build eq regex");
+        static ref EQ: Regex = Regex::new(r"^\s*eq\s+(.*)").expect("Can't build eq regex");
     }
-    let equals_match = EQ.captures(hyp);
+    let equals_match = EQ.captures(get_hyp_type(hyp));
     if let Some(captures) = equals_match {
         let (left_side, right_side) = split_to_next_matching_paren_or_space(
             captures.get(1).expect("Can't get capture group").into(),
