@@ -72,7 +72,7 @@ def get_data(args : List[str]) -> None:
                                      "Parse datafiles into multiple formats")
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
                                            "hyps+goal+tactic", "tacvector",
-                                           "scrapefile-rd"])
+                                           "scrapefile-rd", "scrapefile"])
     parser.add_argument("scrape_file", type=Path2)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
@@ -164,6 +164,13 @@ def get_data(args : List[str]) -> None:
                                               "bg_goals": [],
                                               "shelved_goals": [],
                                               "given_up_goals": []},
+                                  "tactic": point.tactic}))
+        elif arg_values.format == "scrapefile":
+            for point in dataset:
+                print(json.dumps({"relevant_lemmas": point.relevant_lemmas,
+                                  "prev_tactics": point.prev_tactics,
+                                  "prev_hyps": point.hypotheses,
+                                  "prev_goal": point.goal,
                                   "tactic": point.tactic}))
 
 modules = {
