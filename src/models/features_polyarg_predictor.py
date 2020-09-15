@@ -610,6 +610,8 @@ class FeaturesPolyargPredictor(
                        torch.FloatTensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
                        torch.LongTensor(arg_indices)]
+            with open("tensors.pickle", 'wb') as f:
+                torch.save(tensors, f)
             eprint(tensors, guard=arg_values.print_tensors)
 
         with print_time("Building the model", guard=arg_values.verbose):
