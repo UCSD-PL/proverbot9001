@@ -74,6 +74,7 @@ class GoalTokenArg(NamedTuple):
 TacticArg = Optional[Union[HypIdArg, GoalTokenArg]]
 
 class FeaturesPolyArgSample(NamedTuple):
+    num_hyps : int
     tokenized_hyp_types : List[List[int]]
     hyp_features : List[List[float]]
     tokenized_goal : List[int]
@@ -611,7 +612,7 @@ class FeaturesPolyargPredictor(
     def _data_tensors(self, encoded_data : FeaturesPolyArgDataset,
                       arg_values : Namespace) \
         -> List[torch.Tensor]:
-        tokenized_hyp_types, hyp_features, tokenized_goals, \
+        num_hyps, tokenized_hyp_types, hyp_features, tokenized_goals, \
             word_features, vec_features, tactic_stems, \
             arg_types, args = zip(*sorted(encoded_data,
                                           key=lambda s: len(s.tokenized_hyp_types),
@@ -631,9 +632,7 @@ class FeaturesPolyargPredictor(
                 assert arg.hyp_idx < len(hlist)
         result = [padded_hyps,
                   padded_hyp_features,
-                  torch.LongTensor([len(tokenized_hyp_type_list)
-                                    for tokenized_hyp_type_list
-                                    in tokenized_hyp_types]),
+                  torch.LongTensor(num_hyps),
                   torch.LongTensor(tokenized_goals),
                   torch.LongTensor(word_features),
                   torch.FloatTensor(vec_features),
@@ -856,6 +855,7 @@ def mkFPASample(embedding : Embedding,
                            for hyp in selected_hyps]
     hypfeatures = encodeHypsFeatureVecs(training_args, goal_str, selected_hyps)
     return FeaturesPolyArgSample(
+        len(all_hyps),
         tokenized_hyp_types,
         hypfeatures,
         normalizeSentenceLength(tokenized_goal, training_args.max_length),
