@@ -196,13 +196,13 @@ pub fn features_polyarg_tensors(
         .map(|prems| prems.len() as i64)
         .collect();
     let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
-    let tokenized_goals = raw_data
+    let tokenized_goals: Vec<_> = raw_data
         .par_iter()
         .map(|tac| {
             normalize_sentence_length(
                 tokenizer.tokenize(&tac.context.focused_goal()),
                 args.max_length,
-                1,
+                0,
             )
         })
         .collect();
