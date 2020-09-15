@@ -112,7 +112,7 @@ pub fn features_polyarg_tensors(
         ),
         None => match &args.load_embedding {
             Some(path) => {
-                let mut embedding = OpenIndexer::<String>::load_from_text(path);
+                let embedding = OpenIndexer::<String>::load_from_text(path);
                 // embedding.freeze();
                 (embedding, None)
             }
