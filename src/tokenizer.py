@@ -250,14 +250,16 @@ class CompleteTokenizer(Tokenizer):
     def toString(self, tokenlist : List[int]) -> str:
         result = ""
         for token in tokenlist:
-            assert token >= self.num_reserved_tokens and \
-                token <= self.num_reserved_tokens + len(self.keywords)
+            assert token <= self.num_reserved_tokens + len(self.keywords)
             if result != "":
                 result += " "
             if token == self.num_reserved_tokens + len(self.keywords):
                 result += "UNKNOWN"
             else:
-                result += self.keywords[token - self.num_reserved_tokens]
+                if token < self.num_reserved_tokens:
+                    result += "RES"
+                else:
+                    result += self.keywords[token - self.num_reserved_tokens]
         return result
     def numTokens(self) -> int:
         return self.num_reserved_tokens + len(self.keywords) + 1
