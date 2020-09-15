@@ -30,7 +30,7 @@ from features import (WordFeature, VecFeature, Feature,
                       word_feature_constructors, vec_feature_constructors,
                       load_features)
 import tokenizer
-from tokenizer import Tokenizer, KeywordTokenizer
+from tokenizer import Tokenizer, CompleteTokenizer, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EOS_token)
 from util import *
