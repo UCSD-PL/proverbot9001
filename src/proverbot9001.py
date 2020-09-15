@@ -96,6 +96,7 @@ def get_data(args : List[str]) -> None:
                         dest='use_substitutions')
     parser.add_argument("--no-normalize-numeric-args", action='store_false',
                         dest='normalize_numeric_args')
+    parser.add_argument("--sort", action='store_true')
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         terms, tokenizer = data.term_data(
@@ -110,61 +111,60 @@ def get_data(args : List[str]) -> None:
             print(tokenizer.toString(
                 list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
                   end="\\n\n" if arg_values.lineend else "\n")
-    elif arg_values.format == "goals":
+    else:
         dataset = data.get_text_data(arg_values)
-        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
-            print(goal)
-    elif arg_values.format == "hyps+goal":
-        dataset = data.get_text_data(arg_values)
-        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
-            for hyp in hyps:
-                print(hyp)
-            print("================================")
-            print(goal)
-    elif arg_values.format == "hyps+goal+tactic":
-        dataset = data.get_text_data(arg_values)
-        for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
-            for hyp in hyps:
-                print(hyp)
-            print("================================")
-            print(goal)
-            print("====> {}".format(tactic))
-        pass
-    elif arg_values.format == "tacvector":
-        dataset = data.get_text_data(arg_values)
-        embedding = SimpleEmbedding()
-        eprint("Encoding tactics...", guard=arg_values.verbose)
-        answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
-                   for datum in dataset]
-        stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
-        eprint("Constructing features...", guard=arg_values.verbose)
-        word_feature_functions = [word_feature_constructor(stripped_data, arg_values) # type: ignore
-                                  for word_feature_constructor in features.word_feature_constructors]
-        vec_features_functions = [vec_feature_constructor(stripped_data, arg_values)
-                                  for vec_feature_constructor in features.vec_feature_constructors]
-        eprint("Extracting features...", guard=arg_values.verbose)
-        word_features = [[feature(c) for feature in word_feature_functions]
-                         for c in stripped_data]
-        vec_features = [[feature_val for feature in
-                         vec_features_functions
-                         for feature_val in feature(c)]
-                        for c in stripped_data]
-        eprint("Done", guard=arg_values.verbose)
-        for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
-            print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))
-                           + [str(tactic)]))
-    elif arg_values.format == "scrapefile-rd":
-        dataset = data.get_text_data(arg_values)
-        for point in dataset:
-            print(json.dumps({"relevant_lemmas": point.relevant_lemmas,
-                              "prev_tactics": point.prev_tactics,
-                              "context": {"fg_goals":
-                                          [{"hypotheses": point.hypotheses,
-                                            "goal": point.goal}],
-                                          "bg_goals": [],
-                                          "shelved_goals": [],
-                                          "given_up_goals": []},
-                              "tactic": point.tactic}))
+        if arg_values.sort:
+            dataset = data.RawDataset(sorted(dataset, key=lambda d: len(d.hypotheses), reverse=True))
+        if arg_values.format == "goals":
+            for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
+                print(goal)
+        elif arg_values.format == "hyps+goal":
+            for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
+                for hyp in hyps:
+                    print(hyp)
+                print("================================")
+                print(goal)
+        elif arg_values.format == "hyps+goal+tactic":
+            for relevant_lemmas, prev_tactics, hyps, goal, tactic in dataset:
+                for hyp in hyps:
+                    print(hyp)
+                print("================================")
+                print(goal)
+                print("====> {}".format(tactic))
+            pass
+        elif arg_values.format == "tacvector":
+            embedding = SimpleEmbedding()
+            eprint("Encoding tactics...", guard=arg_values.verbose)
+            answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
+                       for datum in dataset]
+            stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
+            eprint("Constructing features...", guard=arg_values.verbose)
+            word_feature_functions = [word_feature_constructor(stripped_data, arg_values) # type: ignore
+                                      for word_feature_constructor in features.word_feature_constructors]
+            vec_features_functions = [vec_feature_constructor(stripped_data, arg_values)
+                                      for vec_feature_constructor in features.vec_feature_constructors]
+            eprint("Extracting features...", guard=arg_values.verbose)
+            word_features = [[feature(c) for feature in word_feature_functions]
+                             for c in stripped_data]
+            vec_features = [[feature_val for feature in
+                             vec_features_functions
+                             for feature_val in feature(c)]
+                            for c in stripped_data]
+            eprint("Done", guard=arg_values.verbose)
+            for word_feat, vec_feat, tactic in zip(word_features, vec_features, answers):
+                print(",".join(list(map(str, word_feat)) + list(map(str, vec_feat))
+                               + [str(tactic)]))
+        elif arg_values.format == "scrapefile-rd":
+            for point in dataset:
+                print(json.dumps({"relevant_lemmas": point.relevant_lemmas,
+                                  "prev_tactics": point.prev_tactics,
+                                  "context": {"fg_goals":
+                                              [{"hypotheses": point.hypotheses,
+                                                "goal": point.goal}],
+                                              "bg_goals": [],
+                                              "shelved_goals": [],
+                                              "given_up_goals": []},
+                                  "tactic": point.tactic}))
 
 modules = {
     "train" : train,
