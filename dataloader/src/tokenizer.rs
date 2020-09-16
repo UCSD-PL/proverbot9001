@@ -168,7 +168,7 @@ impl Tokenizer {
 pub fn get_words(string: &str) -> Vec<&str> {
     lazy_static! {
         static ref WORDS: Regex =
-            Regex::new(r"(,|:=|:|=>|=|->|@@|\{|\}|/\\|\)|\(|\|\}|\{\||;|\|)|(([[:word:]'\.])+)")
+            Regex::new(r"(,|:=|:|=>|=|->|@@|/\\|\)|\(|\|\}|\{\||;|\|)|\{\||\|\}|(([[:word:]'\.])+)")
                 .unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
@@ -176,7 +176,7 @@ pub fn get_words(string: &str) -> Vec<&str> {
 pub fn get_symbols(string: &str) -> Vec<&str> {
     lazy_static! {
         static ref WORDS: Regex =
-            Regex::new(r"(,|:=|:|=>|=|->|@@|\{|\}|/\\|\)|\(|\|\}|\{\||;|\|)|\.|(([[:word:]'])+)")
+            Regex::new(r"(,|:=|:|=>|=|->|@@|/\\|\)|\(|\|\}|\{\||;|\|)|\{\||\|\}|\.|(([[:word:]'])+)")
                 .unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
