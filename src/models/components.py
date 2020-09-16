@@ -356,11 +356,11 @@ class DNNClassifierModel(StraightlineClassifierModel[NeuralPredictorState]):
             for batch_num, data_batch in enumerate(dataloader, start=1):
                 self._optimizer.zero_grad()
                 input_batch, output_batch = data_batch
-                with autograd.detect_anomaly():
-                    predictionDistribution = self._model(input_batch)
-                    output_var = maybe_cuda(Variable(output_batch))
-                    loss = self._criterion(predictionDistribution, output_var)
-                    loss.backward()
+                # with autograd.detect_anomaly():
+                predictionDistribution = self._model(input_batch)
+                output_var = maybe_cuda(Variable(output_batch))
+                loss = self._criterion(predictionDistribution, output_var)
+                loss.backward()
                 self._optimizer.step()
 
                 epoch_loss += loss.item()
