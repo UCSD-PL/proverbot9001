@@ -436,7 +436,7 @@ pub fn indexed_premises<'a>(premises: impl Iterator<Item = &'a str>) -> Vec<(usi
             .trim();
         let vars = before_colon
             .split(",")
-            .map(|varname| (idx, varname.to_string()));
+            .map(|varname| (idx, varname.trim().to_string()));
         result.extend(vars);
     }
     result
