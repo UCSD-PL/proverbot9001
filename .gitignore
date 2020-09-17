@@ -1,6 +1,7 @@
 /.gcroots/
 *__pycache__/
 /CompCert/
+/coq-projects/
 /coq/
 /coq-serapi/
 /darknet/
