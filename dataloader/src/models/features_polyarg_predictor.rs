@@ -117,7 +117,7 @@ pub fn features_polyarg_tensors(
                 (embedding, None)
             }
             None => (OpenIndexer::new(), None),
-        }
+        },
     };
     let (tokenizer, features_token_map) = match rest_meta {
         Some((ptok, ptmap)) => (
@@ -128,13 +128,10 @@ pub fn features_polyarg_tensors(
             let use_unknowns = true;
             let num_reserved_tokens = 2;
             let tokenizer = Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file);
-            let tmap =
-                match &args.load_features_state {
-                    Some(path) =>
-                        FeaturesTokenMap::load_from_text(path),
-                    None =>
-                        FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
-                };
+            let tmap = match &args.load_features_state {
+                Some(path) => FeaturesTokenMap::load_from_text(path),
+                None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
+            };
             (tokenizer, tmap)
         }
     };
@@ -567,10 +564,8 @@ fn get_argument<'a>(
                     //     .choose_multiple(&mut thread_rng(), args.max_premises - 1)
                     //     .map(|s| *s)
                     //     .collect();
-                    let mut selected_hyps: Vec<&String> = other_hyps
-                        .into_iter()
-                        .take(args.max_premises - 1)
-                        .collect();
+                    let mut selected_hyps: Vec<&String> =
+                        other_hyps.into_iter().take(args.max_premises - 1).collect();
                     // let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
                     let new_hyp_idx = args.max_premises - 1;
                     selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
@@ -585,7 +580,10 @@ fn get_argument<'a>(
             false,
             "An unknown tactic made it past the context filter: {}, arg {}, arg_token {}\n\
              Goal is {}",
-            scraped.tactic, argstr_tokens[0], arg_token, scraped.context.focused_goal()
+            scraped.tactic,
+            argstr_tokens[0],
+            arg_token,
+            scraped.context.focused_goal()
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     }
