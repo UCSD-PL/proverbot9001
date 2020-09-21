@@ -1707,6 +1707,15 @@ def searchStrsInMsg(sexp) -> List[str]:
 def get_module_from_filename(filename : Path2) -> str:
     return Path2(filename).stem
 
+
+def symbol_matches(full_symbol: str, shorthand_symbol: str) -> bool:
+    if full_symbol == shorthand_symbol:
+        return True
+    else:
+        return full_symbol.split(".")[-1] == shorthand_symbol
+    pass
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=

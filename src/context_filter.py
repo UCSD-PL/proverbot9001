@@ -156,7 +156,8 @@ def args_token_in_goal(in_data : TacticContext, tactic : str,
     if (stem == "intros" or stem == "intro") and len(args) > 0:
         return False
     for arg in args:
-        if arg not in goal_words:
+        if not any([serapi_instance.symbol_matches(goal_word, arg)
+                    for goal_word in goal_words]):
             return False
     return True
 

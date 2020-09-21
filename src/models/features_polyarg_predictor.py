@@ -837,14 +837,19 @@ def mkFPASample(embedding : Embedding,
     else:
         goal_symbols = tokenizer.get_symbols(goal_str)[:training_args.max_length]
         arg_token = argstr_tokens[0]
-        if arg_token in goal_symbols:
+
+        goal_symbol_matches = [goal_symbol for goal_symbol in goal_symbols if
+                               serapi_instance.symbol_matches(
+                                   goal_symbol, arg_token)]
+        if len(goal_symbol_matches) > 0:
             arg_type = ArgType.GOAL_TOKEN
-            arg_idx = goal_symbols.index(arg_token)
-            assert arg_idx < training_args.max_length, "Tactic {} doesn't fit our argument model! "\
+            arg_idx = goal_symbols.index(goal_symbol_matches[0])
+            assert arg_idx < training_args.max_length, \
+                "Tactic {} doesn't fit our argument model! "\
                 "Token {} is not a hyp var or goal token.\n"\
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
-            arg = GoalTokenArg(goal_symbols.index(arg_token))
+            arg = GoalTokenArg(arg_idx)
             if len(all_hyps) > training_args.max_premises:
                 selected_hyps = random.sample(all_hyps, training_args.max_premises)
             else:
