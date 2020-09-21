@@ -478,14 +478,24 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     lazy_static! {
         static ref EQ: Regex = Regex::new(r"^\s*eq\s+(.*)").expect("Can't build eq regex");
     }
-    let equals_match = EQ.captures(get_hyp_type(hyp));
+    let normalized_hyp_type = get_hyp_type(hyp).replace("\n", " ");
+    let normalized_goal = goal.replace("\n", " ");
+    let equals_match = EQ.captures(&normalized_hyp_type);
     if let Some(captures) = equals_match {
-        let (left_side, right_side) = split_to_next_matching_paren_or_space(
-            captures.get(1).expect("Can't get capture group").into(),
-        );
-        if goal.contains(left_side) {
+        let normalized_string = captures
+            .get(1)
+            .expect("Can't get capture group")
+            .as_str()
+            .replace("\n", " ");
+        let (left_side, right_side) = split_to_next_matching_paren_or_space(&normalized_string);
+        // if goal.starts_with("eq\n  (store_stack m2' (Vptr sp'") && hyp.starts_with("STORE_PARENT") {
+        // println!("Normalized string is {}", normalized_string);
+        //     println!("Left side is \"{}\", right side is \"{}\"",
+        //              left_side, right_side);
+        // }
+        if normalized_goal.contains(left_side) && right_side != "" {
             -1.0
-        } else if goal.contains(right_side) && right_side != ""{
+        } else if normalized_goal.contains(right_side) && right_side != "" {
             1.0
         } else {
             0.0
