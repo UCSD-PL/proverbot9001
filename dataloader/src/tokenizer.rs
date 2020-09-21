@@ -165,19 +165,18 @@ impl Tokenizer {
             as i64
     }
 }
+static SYMBOLS_REGEX: &'static str = r",|:=|:>|:|=>|<=|>=|=|<>|>|<[^-]|->|<-|@@|\+{1,2}|\*{1,2}|-|~|/\\|\\/|/|%|\^|\|=|&&|\|\||\)|\(|\|\}|\{\||@\{|\{|\}|;|\|)|\{\||\|\}|\[|\]";
 pub fn get_words(string: &str) -> Vec<&str> {
     lazy_static! {
         static ref WORDS: Regex =
-            Regex::new(r"(,|:=|:|=>|=|->|@@|/\\|\)|\(|\|\}|\{\||;|\|)|\{\||\|\}|(([[:word:]'\.])+)")
-                .unwrap();
+            Regex::new(&format!(r"({}|(\??([[:word:]'!#\.])+)", SYMBOLS_REGEX)).unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
 pub fn get_symbols(string: &str) -> Vec<&str> {
     lazy_static! {
         static ref WORDS: Regex =
-            Regex::new(r"(,|:=|:|=>|=|->|@@|/\\|\)|\(|\|\}|\{\||;|\|)|\{\||\|\}|\.|(([[:word:]'])+)")
-                .unwrap();
+            Regex::new(&format!(r"({}|\.|(\??([[:word:]'!#])+)", SYMBOLS_REGEX)).unwrap();
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
