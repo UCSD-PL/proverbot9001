@@ -912,9 +912,9 @@ def encodeHypsFeatureVecs(args : argparse.Namespace,
 
             if split:
                 left_side, right_side = split
-                if left_side in goal:
+                if left_side.strip() in goal:
                     is_equals_on_goal_token = -1.0
-                elif right_side in goal:
+                elif right_side.strip() in goal:
                     is_equals_on_goal_token = 1.0
 
         if args.features:
