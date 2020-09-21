@@ -477,7 +477,10 @@ fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
 }
 
 pub fn get_hyp_type(hyp: &str) -> &str {
-    hyp.splitn(2, ":").last().unwrap_or("")
+    lazy_static! {
+        static ref TYPECOLON: Regex = Regex::new(r":[^=]").unwrap();
+    }
+    TYPECOLON.splitn(hyp, 2).last().unwrap_or("")
 }
 
 pub fn symbol_matches(full_symbol: &str, shorthand_symbol: &str) -> bool {
