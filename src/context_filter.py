@@ -146,13 +146,11 @@ def args_token_in_goal(in_data : TacticContext, tactic : str,
                        arg_values : argparse.Namespace) -> bool:
     goal_words = get_symbols(in_data.goal)[:arg_values.max_length]
     stem, rest = serapi_instance.split_tactic(tactic)
-    # While the arguments to an intro(s) might *look* like
-    # goal arguments, they are actually fresh variables
-    # args = get_subexprs(rest.strip("."))
     if len(rest) > 0 and rest[-1] == '.':
         rest = rest[:-1]
     args = get_subexprs(rest)
-    # args = rest.strip(".").split()
+    # While the arguments to an intro(s) might *look* like
+    # goal arguments, they are actually fresh variables
     if (stem == "intros" or stem == "intro") and len(args) > 0:
         return False
     for arg in args:

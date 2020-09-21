@@ -1604,50 +1604,50 @@ def read_commands_preserve(args : argparse.Namespace, file_idx : int,
               position = (file_idx * 2),
               desc="Reading file", leave=False,
               dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-      while curPos < len(contents) and (command_limit == None or
-                                        len(result) < command_limit):
-          _, next_quote = search_pat(re.compile(r"(?<!\\)\""))
-          _, next_open_comment = search_pat(re.compile(r"\(\*"))
-          _, next_close_comment = search_pat(re.compile(r"\*\)"))
-          _, next_bracket = search_pat(re.compile(r"[\{\}]"))
-          next_bullet_match, next_bullet = search_pat(re.compile(r"[\+\-\*]+(?![\)\+\-\*])"))
-          _, next_period = search_pat(re.compile(r"(?<!\.)\.($|\s)|\.\.\.($|\s)"))
-          nextPos = min(next_quote,
-                        next_open_comment, next_close_comment,
-                        next_bracket,
-                        next_bullet, next_period)
-          assert curPos < nextPos
-          next_chunk = contents[curPos:nextPos]
-          cur_command += next_chunk
-          pbar.update(nextPos - curPos)
-          if nextPos == next_quote:
-              if comment_depth == 0:
-                  in_quote = not in_quote
-          elif nextPos == next_open_comment:
-              if not in_quote:
-                  comment_depth += 1
-          elif nextPos == next_close_comment:
-              if not in_quote and comment_depth > 0:
-                  comment_depth -= 1
-          elif nextPos == next_bracket:
-              if not in_quote and comment_depth == 0 and \
-                 re.match("\s*(?:\d+\s*:)?\s*$", kill_comments(cur_command[:-1])):
-                  result.append(cur_command)
-                  cur_command = ""
-          elif nextPos == next_bullet:
-              assert next_bullet_match
-              match_length = next_bullet_match.end() - next_bullet_match.start()
-              if not in_quote and comment_depth == 0 and \
-                 re.match("\s*$", kill_comments(cur_command[:-match_length])):
-                  result.append(cur_command)
-                  cur_command = ""
-              assert next_bullet_match.end() >= nextPos
-          elif nextPos == next_period:
-              if not in_quote and comment_depth == 0:
-                  result.append(cur_command)
-                  cur_command = ""
-          curPos = nextPos
-      return result
+        while curPos < len(contents) and (command_limit == None or
+                                          len(result) < command_limit):
+            _, next_quote = search_pat(re.compile(r"(?<!\\)\""))
+            _, next_open_comment = search_pat(re.compile(r"\(\*"))
+            _, next_close_comment = search_pat(re.compile(r"\*\)"))
+            _, next_bracket = search_pat(re.compile(r"[\{\}]"))
+            next_bullet_match, next_bullet = search_pat(re.compile(r"[\+\-\*]+(?![\)\+\-\*])"))
+            _, next_period = search_pat(re.compile(r"(?<!\.)\.($|\s)|\.\.\.($|\s)"))
+            nextPos = min(next_quote,
+                          next_open_comment, next_close_comment,
+                          next_bracket,
+                          next_bullet, next_period)
+            assert curPos < nextPos
+            next_chunk = contents[curPos:nextPos]
+            cur_command += next_chunk
+            pbar.update(nextPos - curPos)
+            if nextPos == next_quote:
+                if comment_depth == 0:
+                    in_quote = not in_quote
+            elif nextPos == next_open_comment:
+                if not in_quote:
+                    comment_depth += 1
+            elif nextPos == next_close_comment:
+                if not in_quote and comment_depth > 0:
+                    comment_depth -= 1
+            elif nextPos == next_bracket:
+                if not in_quote and comment_depth == 0 and \
+                   re.match("\s*(?:\d+\s*:)?\s*$", kill_comments(cur_command[:-1])):
+                    result.append(cur_command)
+                    cur_command = ""
+            elif nextPos == next_bullet:
+                assert next_bullet_match
+                match_length = next_bullet_match.end() - next_bullet_match.start()
+                if not in_quote and comment_depth == 0 and \
+                   re.match("\s*$", kill_comments(cur_command[:-match_length])):
+                    result.append(cur_command)
+                    cur_command = ""
+                assert next_bullet_match.end() >= nextPos
+            elif nextPos == next_period:
+                if not in_quote and comment_depth == 0:
+                    result.append(cur_command)
+                    cur_command = ""
+            curPos = nextPos
+        return result
 
 def try_load_lin(args : argparse.Namespace, file_idx : int, filename : str) \
     -> Optional[List[str]]:
@@ -1728,8 +1728,7 @@ def symbol_matches(full_symbol: str, shorthand_symbol: str) -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=
-        "Module for interacting with a coq-serapi instance from Python (3).")
+        description="Module for interacting with a coq-serapi instance from Python (3).")
     parser.add_argument("--prelude", default=".", type=str,
                         help=
                         "The `home` directory in which to look for the _CoqProject file.")
