@@ -895,7 +895,9 @@ def encodeHypsFeatureVecs(args : argparse.Namespace,
         similarity_ratio = SequenceMatcher(None, goal,
                                            serapi_instance.get_hyp_type(hyp)).ratio()
         is_equals_on_goal_token = 0.0
-        equals_match = re.match(r"eq\s+(.*)", serapi_instance.get_hyp_type(hyp))
+        equals_match = re.match(r"eq\s+(.*)",
+                                serapi_instance.get_hyp_type(hyp),
+                                re.DOTALL)
         if equals_match:
             split = \
                 split_by_char_outside_matching(
