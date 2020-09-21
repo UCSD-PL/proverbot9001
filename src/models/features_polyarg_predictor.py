@@ -862,7 +862,8 @@ def mkFPASample(embedding : Embedding,
                 "Hyps: {}\n"\
                 "Goal: {}".format(tactic, arg_token, all_hyps, goal_str)
             arg_type = ArgType.HYP_ID
-            correct_hyp_idx = dict(indexed_hyp_vars)[arg_token]
+            correct_hyp_idx = serapi_instance.get_indexed_vars_dict(
+                all_hyps)[arg_token]
             if len(all_hyps) > training_args.max_premises:
                 selected_hyps = random.sample(all_hyps[:correct_hyp_idx]+
                                               all_hyps[correct_hyp_idx+1:],

@@ -33,7 +33,7 @@ import functools
 from dataclasses import dataclass
 
 from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
-                    TYPE_CHECKING)
+                    Dict, TYPE_CHECKING)
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
 
@@ -1402,12 +1402,22 @@ def get_vars_in_hyps(hyps : List[str]) -> List[str]:
     var_names = [name.strip() for term in var_terms for name in term.split(",")]
     return var_names
 
-def get_indexed_vars_in_hyps(hyps : List[str]) -> List[Tuple[str, int]]:
+
+def get_indexed_vars_in_hyps(hyps: List[str]) -> List[Tuple[str, int]]:
     var_terms = [get_var_term_in_hyp(hyp) for hyp in hyps]
     var_names = [(name.strip(), hyp_idx)
                  for hyp_idx, term in enumerate(var_terms)
                  for name in term.split(",")]
     return var_names
+
+
+def get_indexed_vars_dict(hyps: List[str]) -> Dict[str, int]:
+    result = {}
+    for hyp_var, hyp_idx in get_indexed_vars_in_hyps(hyps):
+        if hyp_var not in result:
+            result[hyp_var] = hyp_idx
+    return result
+
 
 def get_first_var_in_hyp(hyp : str) -> str:
     return get_var_term_in_hyp(hyp).split(",")[0].strip()
