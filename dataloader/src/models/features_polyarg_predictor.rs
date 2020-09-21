@@ -243,6 +243,15 @@ pub fn features_polyarg_tensors(
     ))
 }
 
+pub fn lookup_hyp(premises: Vec<String>, hyp_name: &str) -> String {
+    let hyp_idx = indexed_premises(premises.iter().map(|s| s.as_ref()))
+        .into_iter()
+        .find(|(_idx, hname)| *hname == hyp_name)
+        .expect(&format!("Couldn't find a hyp with name {}", hyp_name))
+        .0;
+    premises[hyp_idx].clone()
+}
+
 pub fn sample_fpa_batch(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
