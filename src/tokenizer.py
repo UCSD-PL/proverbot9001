@@ -46,15 +46,26 @@ class Tokenizer(metaclass=ABCMeta):
     def listTokens(self) -> List[str]:
         pass
 
-def get_words(string : str) -> List[str]:
-    return [word for word in
-            re.sub('(,|\.+|(?::(?!=))|(?::=)|\)|\()', r' \1 ', string).split()
+
+symbols_regexp = (r',|(?::>)|(?::(?!=))|(?::=)|\)|\(|;|@\{|~|\+{1,2}|\*{1,2}|&&|\|\||'
+                  r'(?<!\\)/(?!\\)|/\\|\\/|(?<![<*+-/|&])=(?!>)|%|(?<!<)-(?!>)|'
+                  r'<-|->|<=|>=|<>|\^|\[|\]|(?<!\|)\}|\{(?!\|)')
+
+
+def get_words(string: str) -> List[str]:
+    return [word for word in re.sub(
+        r'(\.+|' + symbols_regexp + ')',
+        r' \1 ',
+        string).split()
             if word.strip() != '']
 
+
 def get_symbols(string: str) -> List[str]:
-    return [word for word in re.sub('(,|(?::(?!=))|(?::=)|\)|\(|;)',
-                                    r' \1 ', string).split()
+    return [word for word in re.sub(
+        r'(' + symbols_regexp + ')',
+        r' \1 ', string).split()
             if word.strip() != '']
+
 
 def get_topk_keywords_worker__(sentence_list : List[str]) -> collections.Counter:
     counts : Counter[str] = collections.Counter()
