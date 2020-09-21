@@ -82,7 +82,7 @@ def hyps_changed(in_data : TacticContext, tactic : str,
 def no_args(in_data : TacticContext, tactic : str,
             next_in_data : TacticContext,
             arg_values : argparse.Namespace) -> bool:
-    return re.match("\s*\S*\.", tactic) != None
+    return re.fullmatch("\s*\S*\.\s*", tactic) != None
 
 def args_vars_in_list(tactic : str,
                       context_list : List[str]) -> bool:
