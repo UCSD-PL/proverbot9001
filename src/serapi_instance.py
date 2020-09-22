@@ -996,13 +996,16 @@ class SerapiInstance(threading.Thread):
         self.flush_queue()
 
     def get_message(self, complete=False) -> Any:
-        return loads(self.get_message_text(complete=complete), nil=None)
+        msg_text = self.get_message_text(complete=complete)
+        assert msg_text is not None, msg_text
+        return loads(msg_text, nil=None)
 
     def get_message_text(self, complete=False) -> Any:
         try:
             msg = self.message_queue.get(timeout=self.timeout)
             if complete:
                 self.get_completed()
+            assert msg is not None
             return msg
         except queue.Empty:
             eprint("Command timed out! Interrupting", guard=self.verbose)
