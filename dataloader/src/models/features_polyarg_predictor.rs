@@ -324,7 +324,7 @@ pub fn sample_fpa_batch(
             normalize_sentence_length(
                 tokenizer.tokenize(&ctxt.obligation.goal),
                 args.max_length,
-                1,
+                0,
             )
         })
         .collect();
@@ -334,7 +334,7 @@ pub fn sample_fpa_batch(
             premises
                 .into_iter()
                 .map(|premise| {
-                    normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1)
+                    normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 0)
                 })
                 .collect()
         })
@@ -394,11 +394,11 @@ pub fn sample_fpa(
         .zip(premise_scores.iter())
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 1);
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
-        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 1))
+        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 0))
         .collect();
     let num_hyps = tokenized_premises.len();
     (
