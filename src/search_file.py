@@ -346,7 +346,7 @@ def search_file_worker(args: argparse.Namespace,
                     rest_commands, run_commands = coq.run_into_next_proof(
                         rest_commands)
                     if not rest_commands:
-                        eprint("Couldn't find lemma {next_job}!")
+                        eprint(f"Couldn't find lemma {next_job}!")
                         break
                 except serapi_instance.CoqAnomaly:
                     all_commands = serapi_instance.\
