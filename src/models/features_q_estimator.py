@@ -87,7 +87,7 @@ class FeaturesQEstimator(QEstimator):
 
     def _features(self, context: TacticContext) \
             -> Tuple[List[int], List[float]]:
-        if len(context.prev_tactics) > 0:
+        if len(context.prev_tactics) > 1:
             prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
             prev_tactic_index = emap_lookup(self.tactic_map, 32, prev_tactic)
         else:
