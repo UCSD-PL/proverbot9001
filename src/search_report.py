@@ -21,20 +21,16 @@
 ##########################################################################
 
 import argparse
-import subprocess
 import os
 import sys
-import multiprocessing
 import re
 import datetime
 from pathlib_revised import Path2
 
-from models.tactic_predictor import TacticPredictor
-from util import *
 from enum import Enum, auto
 from yattag import Doc
 
-from typing import List, Tuple, NamedTuple, Sequence, Dict, Callable
+from typing import List, Tuple, NamedTuple, Sequence, Dict, Callable, Any
 
 index_css = ["report.css"]
 index_js = ["report.js"]
@@ -52,8 +48,6 @@ class SearchStatus(Enum):
     SUCCESS = auto()
     INCOMPLETE = auto()
     FAILURE = auto()
-
-
 
 
 Tag = Callable[..., Doc.Tag]
@@ -174,14 +168,14 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                   cur_commit : str, cur_date : datetime.datetime,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
-    write_summary_html(args.output / "report.html",
+    write_summary_html(args.output_dir / "report.html",
                        options, unparsed_args,
                        cur_commit, cur_date, individual_stats, combined_stats)
-    write_summary_csv("{}/report.csv".format(args.output), combined_stats, options)
-    write_proof_summary_csv(args.output, [s.filename for s in individual_stats])
+    write_summary_csv("{}/report.csv".format(args.output_dir), combined_stats, options)
+    write_proof_summary_csv(args.output_dir, [s.filename for s in individual_stats])
     base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
-        (base / filename).copyfile(args.output / filename)
+        (base / filename).copyfile(args.output_dir / filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma,status,prooflength\n")
@@ -233,22 +227,3 @@ def combine_file_results(stats : List[ReportStats]) -> ReportStats:
                        sum([s.num_proofs for s in stats]),
                        sum([s.num_proofs_failed for s in stats]),
                        sum([s.num_proofs_completed for s in stats]))
-
-def get_predictor(parser : argparse.ArgumentParser,
-                  args : argparse.Namespace) -> TacticPredictor:
-    predictor : TacticPredictor
-    if args.weightsfile:
-        predictor = loadPredictorByFile(args.weightsfile)
-        if args.predictor:
-            eprint("Ignoring --predictor because --weightsfile takes precedence")
-    elif args.predictor:
-        predictor = loadPredictorByName(args.predictor)
-    else:
-        eprint("You must specify either --weightsfile or --predictor!")
-        parser.print_help()
-        sys.exit(1)
-    return predictor
-
-if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
-    main(sys.argv[1:])
