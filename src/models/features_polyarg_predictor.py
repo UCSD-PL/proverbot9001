@@ -57,7 +57,8 @@ from dataloader import (features_polyarg_tensors,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
-                        DataloaderArgs)
+                        DataloaderArgs,
+                        get_fpa_words)
 
 import argparse
 import sys
@@ -297,7 +298,7 @@ class FeaturesPolyargPredictor(
                   self.training_args.max_length))\
                                      .view(batch_size, stem_width, self.training_args.max_length + 1)
 
-        goal_lengths = [len(tokenizer.get_symbols(context.goal))
+        goal_lengths = [len(get_fpa_words(context.goal))
                         for context in context_batch]
         for b, l in enumerate(goal_lengths):
             for i in range(l + 1, goal_arg_values.size()[2]):
@@ -360,7 +361,7 @@ class FeaturesPolyargPredictor(
                  for stem_idx, arg_idx, prob in
                  islice(zip(stem_idxs, arg_idxs, final_probs),
                         min(k, 1 + num_hyps +
-                            len(tokenizer.get_symbols(context.goal))))]
+                            len(get_fpa_words(context.goal))))]
                 for stem_idxs, arg_idxs, final_probs, context, num_hyps
                 in zip(stem_idxs_list, arg_idxs_list, final_probs_list,
                        context_batch, nhyps_batch)]
@@ -398,7 +399,7 @@ class FeaturesPolyargPredictor(
             .view(1 * stem_width,
                   self.training_args.max_length))\
                   .view(1, stem_width, self.training_args.max_length + 1)
-        goal_symbols = tokenizer.get_symbols(context.goal)
+        goal_symbols = get_fpa_words(context.goal)
         for i in range(len(goal_symbols) + 1, goal_arg_values.size()[2]):
             goal_arg_values[:, :, i] = -float("Inf")
         assert goal_arg_values.size() == torch.Size([1, stem_width,

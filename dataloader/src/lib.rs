@@ -36,6 +36,7 @@ use features::*;
 use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
 use models::features_dnn_evaluator::*;
+use tokenizer::get_words;
 
 #[macro_use]
 extern crate lazy_static;
@@ -213,6 +214,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfn(m, "get_vec_features_size")]
     fn get_vec_features_size(_py: Python, _metadata: PickleableFPAMetadata) -> i64 {
         VEC_FEATURES_SIZE
+    }
+    #[pyfn(m, "get_fpa_words")]
+    fn get_fpa_words(_py: Python, s: String) -> Vec<String> {
+        get_words(&s).into_iter().map(|s| s.to_string()).collect()
     }
 
     #[pyfn(m, "goals_to_total_distances_tensors")]
