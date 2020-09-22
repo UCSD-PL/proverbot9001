@@ -246,9 +246,7 @@ class TacticHistory:
 class SerapiInstance(threading.Thread):
     # This takes three parameters: a string to use to run serapi, a
     # list of coq includes which the files we're running on will
-    # expect, and a base directory You can also set the coq objects
-    # ".debug" field after you've created it to get more verbose
-    # logging.
+    # expect, and a base directory
     def __init__(self, coq_command: List[str], module_name: str, prelude: str,
                  timeout: int = 30, use_hammer: bool = False) -> None:
         try:
