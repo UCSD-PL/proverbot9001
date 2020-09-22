@@ -274,7 +274,6 @@ class SerapiInstance(threading.Thread):
         # Initialize some state that we'll use to keep track of the
         # coq state. This way we don't have to do expensive queries to
         # the other process to answer simple questions.
-        self._current_fg_goal_count = None  # type: Optional[int]
         self.proof_context = None  # type: Optional[ProofContext]
         self.cur_state = 0
         self.tactic_history = TacticHistory()
@@ -450,7 +449,6 @@ class SerapiInstance(threading.Thread):
         except BrokenPipeError:
             raise CoqAnomaly("Coq process unexpectedly quit. Possibly running "
                              "out of memory due to too many threads?")
-        self._current_fg_goal_count = None
 
     def send_acked(self, cmd: str):
         self.send_flush(cmd)
