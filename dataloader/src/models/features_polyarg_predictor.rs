@@ -15,8 +15,8 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_symbols, get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer,
-    PickleableTokenizer, Token, Tokenizer,
+    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
+    Token, Tokenizer,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -461,10 +461,10 @@ pub fn decode_fpa_arg(
         TacticArgument::Unrecognized => "".to_string(),
         TacticArgument::GoalToken(tidx) => {
             // assert!(tidx < get_words(goal).len(), format!("{}, {:?}, {}", goal, get_words(goal), tidx));
-            if tidx >= get_symbols(goal).len() {
+            if tidx >= get_words(goal).len() {
                 "<INVALID>".to_string()
             } else {
-                get_symbols(goal)[tidx].to_string()
+                get_words(goal)[tidx].to_string()
             }
         }
         TacticArgument::HypVar(hidx) => {
