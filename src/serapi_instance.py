@@ -248,7 +248,8 @@ class SerapiInstance(threading.Thread):
     # list of coq includes which the files we're running on will
     # expect, and a base directory
     def __init__(self, coq_command: List[str], module_name: str, prelude: str,
-                 timeout: int = 30, use_hammer: bool = False) -> None:
+                 timeout: int = 30, use_hammer: bool = False,
+                 log_outgoing_messages: Optional[Path2] = None) -> None:
         try:
             with open(prelude + "/_CoqProject", 'r') as includesfile:
                 includes = includesfile.read()
@@ -268,6 +269,7 @@ class SerapiInstance(threading.Thread):
         self._fout = self._proc.stdout
         self._fin = self._proc.stdin
         self.timeout = timeout
+        self.log_outgoing_messages = log_outgoing_messages
 
         # Initialize some state that we'll use to keep track of the
         # coq state. This way we don't have to do expensive queries to
@@ -307,6 +309,7 @@ class SerapiInstance(threading.Thread):
         self.use_hammer = use_hammer
         if self.use_hammer:
             self.init_hammer()
+
 
     @property
     def local_lemmas(self) -> List[str]:
@@ -441,6 +444,9 @@ class SerapiInstance(threading.Thread):
     def send_flush(self, cmd: str):
         assert self._fin
         eprint("SENT: " + cmd, guard=self.verbose >= 4)
+        if self.log_outgoing_messages:
+            with self.log_outgoing_messages.open('w') as f:
+                print(cmd, file=f)
         try:
             self._fin.write(cmd.encode('utf-8'))
             self._fin.flush()
@@ -1305,9 +1311,12 @@ def isBreakAnswer(msg: 'Sexp') -> bool:
 
 @contextlib.contextmanager
 def SerapiContext(coq_commands: List[str], module_name: str,
-                  prelude: str, use_hammer: bool = False) -> Iterator[Any]:
+                  prelude: str, use_hammer: bool = False,
+                  log_outgoing_messages: Optional[str] = None) \
+                  -> Iterator[Any]:
     coq = SerapiInstance(coq_commands, module_name, prelude,
-                         use_hammer=use_hammer)
+                         use_hammer=use_hammer,
+                         log_outgoing_messages=log_outgoing_messages)
     try:
         yield coq
     finally:
