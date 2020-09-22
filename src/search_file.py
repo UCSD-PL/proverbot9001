@@ -31,24 +31,23 @@ import threading
 import json
 import queue
 import traceback
+import subprocess
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
-                    Union, Iterator, Callable, Iterable, cast,
+                    Union, Callable, cast,
                     Any)
 
 from models.tactic_predictor import TacticPredictor
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import (ProofContext, Obligation, SerapiInstance,
-                             SerapiException)
+from serapi_instance import (ProofContext, Obligation, SerapiInstance)
 
 import data
-# import syntax
 from format import TacticContext, ScrapedTactic
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
+import search_report
 import util
-import itertools
 from dataclasses import dataclass
 
 from tqdm import tqdm
@@ -62,13 +61,6 @@ Line = Callable[..., None]
 
 details_css = "details.css"
 details_javascript = "search-details.js"
-
-
-class ReportStats(NamedTuple):
-    filename: str
-    num_proofs: int
-    num_proofs_failed: int
-    num_proofs_completed: int
 
 
 class SearchStatus(str, Enum):
@@ -236,6 +228,43 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     return known_args, parser
 
 
+def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
+                  report_stats: List[search_report.ReportStats]) -> None:
+    predictorOptions = predictor.getOptions()
+    commit, date = get_metadata()
+    search_report.write_summary(args,
+                                predictorOptions +
+                                [("report type", "search"),
+                                 ("search width", args.search_width),
+                                 ("search depth", args.search_depth)],
+                                predictor.unparsed_args,
+                                commit, date, report_stats)
+
+
+def stats_from_blocks(blocks: DocumentBlock, vfilename: str) \
+      -> search_report.ReportStats:
+    num_proofs = 0
+    num_proofs_failed = 0
+    num_proofs_completed = 0
+    for block in blocks:
+        if isinstance(block, ProofBlock):
+            num_proofs += 1
+            if block.status == SearchStatus.SUCCESS:
+                num_proofs_completed += 1
+            elif block.status == SearchStatus.FAILURE:
+                num_proofs_failed += 1
+    return search_report.ReportStats(vfilename, num_proofs,
+                                     num_proofs_failed, num_proofs_completed)
+    pass
+
+
+def get_metadata() -> Tuple[str, datetime.datetime]:
+    cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
+                                         shell=True).decode('utf-8').strip()
+    cur_date = datetime.datetime.now()
+    return cur_commit, cur_date
+
+
 def get_predictor(parser: argparse.ArgumentParser,
                   args: argparse.Namespace) -> TacticPredictor:
     predictor: TacticPredictor
@@ -250,6 +279,7 @@ def get_predictor(parser: argparse.ArgumentParser,
     return predictor
 
 
+# A few functions for profiling
 def reset_times(args: argparse.Namespace):
     if args.proof_times:
         with args.proof_times.open('w'):
@@ -576,6 +606,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             worker.join()
 
         model_name = dict(predictor.getOptions())["predictor"]
+        stats: List[search_report.ReportStats] = []
         for filename, solutions in zip(args.filenames, file_solutions):
             blocks = blocks_from_scrape_and_sols(
                 args.prelude / filename,
@@ -585,6 +616,9 @@ def search_file_multithreaded(args: argparse.Namespace,
             write_solution_vfile(args, filename, model_name, blocks)
             write_html(args, args.output_dir, filename, blocks)
             write_csv(args, filename, blocks)
+            stats.append(stats_from_blocks(blocks, str(filename)))
+
+        produce_index(args, predictor, stats)
     pass
 
 
@@ -738,48 +772,6 @@ def write_csv(args: argparse.Namespace, filename: str,
                                     len(block.original_tactics)])
 
 
-def read_csv_options(f: Iterable[str]) -> \
-        Tuple[argparse.Namespace, Iterable[str]]:
-    params: Dict[str, str] = {}
-    f_iter = iter(f)
-    final_line = ""
-    for line in f_iter:
-        param_match = re.match("# (.*): (.*)", line)
-        if param_match:
-            params[param_match.group(1)] = param_match.group(2)
-        else:
-            final_line = line
-            break
-    rest_iter: Iterable[str]
-    if final_line == "":
-        rest_iter = iter([])
-    else:
-        rest_iter = itertools.chain([final_line], f_iter)
-    return argparse.Namespace(**params), rest_iter
-
-
-important_args = ["prelude", "context_filter", "weightsfile",
-                  "predictor", "search_width", "search_depth"]
-
-
-def check_csv_args(args: argparse.Namespace, vfilename: Path2) -> None:
-    with open(args.output_dir / (escape_filename(str(vfilename)) + ".csv"),
-              'r', newline='') as csvfile:
-        if args.check_consistent:
-            saved_args, rest_iter = read_csv_options(csvfile)
-            for arg in important_args:
-                try:
-                    oldval = str(vars(saved_args)[arg])
-                    newval = str(vars(args)[arg])
-                    if oldval != newval:
-                        raise ArgsMismatchException(
-                            f"Old value of {arg} is {oldval}, "
-                            f"new value is {newval}")
-                except KeyError:
-                    raise ArgsMismatchException(
-                        f"No old value for arg {arg} found.")
-
-
 def write_html(args: argparse.Namespace,
                output_dir: str, filename: Path2,
                doc_blocks: List[DocumentBlock]) -> None:
@@ -877,27 +869,6 @@ def classFromSearchStatus(status: SearchStatus) -> str:
         return 'okay'
     else:
         return 'bad'
-
-
-def check_solution_vfile_args(args: argparse.Namespace, model_name: str,
-                              f_iter: Iterator[str]) -> Iterable[str]:
-    next_line = next(f_iter)
-    argline_match = re.match(r"\(\* (\S*): (\S*) \*\)", next_line)
-    checked_args = {"search-width": args.search_width,
-                    "search-depth": args.search_depth,
-                    "model": model_name}
-    while argline_match:
-        k, v = argline_match.group(1, 2)
-        if not str(checked_args[k]) == v:
-            raise ArgsMismatchException(
-                f"Arg mistmatch: {k} is {checked_args[k]} "
-                f"in cur report, {v} in file")
-        try:
-            next_line = next(f_iter)
-        except StopIteration:
-            return f_iter
-        argline_match = re.match(r"\(\* (\S*): (\S*) \*\)", next_line)
-    return itertools.chain([next_line], f_iter)
 
 
 def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
