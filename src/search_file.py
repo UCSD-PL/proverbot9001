@@ -241,7 +241,7 @@ def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
                                 commit, date, report_stats)
 
 
-def stats_from_blocks(blocks: DocumentBlock, vfilename: str) \
+def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
       -> search_report.ReportStats:
     num_proofs = 0
     num_proofs_failed = 0
