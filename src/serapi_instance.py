@@ -1003,7 +1003,8 @@ class SerapiInstance(threading.Thread):
             return loads(msg_text, nil=None)
         except ExpectClosingBracket:
             eprint(
-                f"Tried to load a message but it's ill formed! \"{msg_text}\"")
+                f"Tried to load a message but it's ill formed! \"{msg_text}\"",
+                guard=self.verbose)
             raise CoqAnomaly("")
 
     def get_message_text(self, complete=False) -> Any:
