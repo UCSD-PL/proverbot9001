@@ -40,7 +40,7 @@ from pampy import match, _, TAIL
 
 if TYPE_CHECKING:
     from sexpdata import Sexp
-from sexpdata import Symbol, loads, dumps
+from sexpdata import Symbol, loads, dumps, ExpectClosingBracket
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
                   hash_file, sighandler_context, unwrap, progn)
 from format import ScrapedTactic, TacticContext, Obligation, ProofContext
@@ -998,8 +998,13 @@ class SerapiInstance(threading.Thread):
 
     def get_message(self, complete=False) -> Any:
         msg_text = self.get_message_text(complete=complete)
-        assert msg_text is not None, msg_text
-        return loads(msg_text, nil=None)
+        assert msg_text != "None", msg_text
+        try:
+            return loads(msg_text, nil=None)
+        except ExpectClosingBracket:
+            eprint(
+                f"Tried to load a message but it's ill formed! \"{msg_text}\"")
+            raise CoqAnomaly("")
 
     def get_message_text(self, complete=False) -> Any:
         try:
