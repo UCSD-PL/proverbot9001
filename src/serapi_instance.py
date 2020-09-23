@@ -1319,7 +1319,7 @@ def isBreakAnswer(msg: 'Sexp') -> bool:
 @contextlib.contextmanager
 def SerapiContext(coq_commands: List[str], module_name: str,
                   prelude: str, use_hammer: bool = False,
-                  log_outgoing_messages: Optional[str] = None) \
+                  log_outgoing_messages: Optional[Path2] = None) \
                   -> Iterator[Any]:
     coq = SerapiInstance(coq_commands, module_name, prelude,
                          use_hammer=use_hammer,
