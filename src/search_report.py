@@ -30,7 +30,10 @@ from pathlib_revised import Path2
 from enum import Enum, auto
 from yattag import Doc
 
-from typing import List, Tuple, NamedTuple, Sequence, Dict, Callable, Any
+from util import stringified_percent, escape_filename
+
+from typing import (List, Tuple, NamedTuple, Sequence, Dict, Callable,
+                    Any, Iterable)
 
 index_css = ["report.css"]
 index_js = ["report.js"]
