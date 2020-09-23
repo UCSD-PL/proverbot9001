@@ -268,16 +268,18 @@ def multisplit_matching(openpat : str, closepat : str,
         splits.append(target)
     return splits
 
-def split_by_char_outside_matching(openpat : str, closepat : str,
-                                   splitpat : str, target : str) \
-    -> Optional[Tuple[str, str]]:
+
+def split_by_char_outside_matching(openpat: str, closepat: str,
+                                   splitpat: str, target: str) \
+        -> Optional[Tuple[str, str]]:
     counter = 0
     curpos = 0
     with silent():
         openp = re.compile(openpat)
         closep = re.compile(closepat)
         splitp = re.compile(splitpat)
-    def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
+
+    def search_pat(pat: Pattern) -> Tuple[Optional[Match], int]:
         match = pat.search(target, curpos)
         return match, match.end() if match else len(target) + 1
 
