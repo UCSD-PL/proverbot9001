@@ -228,3 +228,7 @@ def tmap_from_picklable(tmap: PickleableTokenMap) -> TokenMap:
 def tactic_transitions_from_file(filename: str, num_transitions: int) \
         -> List[ScrapedTransition]:
     ...
+
+
+def rust_parse_sexp_one_level(sexpstr: str) -> List[str]:
+    ...

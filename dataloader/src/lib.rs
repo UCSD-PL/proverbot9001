@@ -37,6 +37,7 @@ use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
 use models::features_dnn_evaluator::*;
 use tokenizer::get_words;
+use paren_util::parse_sexp_one_level;
 
 #[macro_use]
 extern crate lazy_static;
@@ -328,10 +329,15 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     pub fn tmap_from_picklable(picklable: PickleableTokenMap) -> TokenMap {
         TokenMap::from_dicts(picklable)
     }
+    #[pyfunction]
+    pub fn rust_parse_sexp_one_level<'a>(sexpstr: &'a str) -> Vec<&'a str> {
+        parse_sexp_one_level(sexpstr)
+    }
     m.add_wrapped(wrap_pyfunction!(features_vocab_sizes))?;
     m.add_wrapped(wrap_pyfunction!(tmap_from_picklable))?;
     m.add_wrapped(wrap_pyfunction!(tmap_to_picklable))?;
     m.add_wrapped(wrap_pyfunction!(sample_context_features))?;
+    m.add_wrapped(wrap_pyfunction!(rust_parse_sexp_one_level))?;
     m.add_class::<TokenMap>()?;
     m.add_class::<DataloaderArgs>()?;
     m.add_class::<GoalEncMetadata>()?;

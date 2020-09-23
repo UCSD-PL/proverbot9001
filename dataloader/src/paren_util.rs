@@ -19,6 +19,9 @@
 //
 /* *********************************************************************** */
 
+extern crate regex;
+use regex::Regex;
+
 pub fn split_to_next_matching_paren_or_space<'a>(haystack: &'a str) -> (&'a str, &'a str) {
     let mut depth = 0;
     let mut curpos = 0;
@@ -102,4 +105,48 @@ pub fn split_to_next_pat_outside_parens<'a>(
         }
     }
     None
+}
+
+pub fn parse_sexp_one_level<'a>(sexp_str: &'a str) -> Vec<&'a str> {
+    lazy_static! {
+        static ref RELEVANT_SYMBOLS: Regex = Regex::new(r"[() ]").unwrap();
+    }
+    let sexp_str = sexp_str.trim();
+    assert!(sexp_str.chars().next() == Some('('));
+    let mut items = Vec::new();
+    let mut paren_level = 0;
+    let mut item_start_pos = 1;
+    for smatch in RELEVANT_SYMBOLS.find_iter(&sexp_str[1..]){
+        match smatch.as_str() {
+            "(" => {
+                paren_level += 1;
+            }
+            ")" => {
+                paren_level -= 1;
+                if paren_level == 0 {
+                    items.push(sexp_str[item_start_pos..smatch.end()+1].trim());
+                    item_start_pos = smatch.end()+1;
+                }
+            }
+            " " => {
+                if paren_level == 0 {
+                    items.push(sexp_str[item_start_pos..smatch.end()+1].trim());
+                    item_start_pos = smatch.end()+1;
+                }
+            }
+            _ => panic!("Bad match!")
+        }
+    }
+    items
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_one_level() {
+        let result = parse_sexp_one_level("(hey (a b c) (a (b (c))) 2)");
+        assert_eq!(result, vec!["hey", "(a b c)", "(a (b (c)))", "2"]);
+    }
 }
