@@ -1894,14 +1894,15 @@ def parseSexpOneLevel(sexp_str: str) -> Union[List[str], int, Symbol]:
     return items
 
 
-def searchStrsInMsg(sexp) -> List[str]:
-    if isinstance(sexp, list) and len(sexp) > 0:
+def searchStrsInMsg(sexp, fuel: int = 100) -> List[str]:
+    if isinstance(sexp, list) and len(sexp) > 0 and fuel > 0:
         if sexp[0] == "str" or sexp[0] == Symbol("str"):
             assert len(sexp) == 2 and isinstance(sexp[1], str)
             return [sexp[1]]
         else:
             return [substr
-                    for substrs in [searchStrsInMsg(sublst) for sublst in sexp]
+                    for substrs in [searchStrsInMsg(sublst, fuel - 1)
+                                    for sublst in sexp]
                     for substr in substrs]
     return []
 
