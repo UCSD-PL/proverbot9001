@@ -66,6 +66,7 @@ details_javascript = "search-details.js"
 class SearchStatus(str, Enum):
     SUCCESS = 'SUCCESS'
     INCOMPLETE = 'INCOMPLETE'
+    SKIPPED = 'SKIPPED'
     FAILURE = 'FAILURE'
 
 
@@ -248,7 +249,8 @@ def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
     num_proofs_completed = 0
     for block in blocks:
         if isinstance(block, ProofBlock):
-            num_proofs += 1
+            if block.status != SearchStatus.SKIPPED:
+                num_proofs += 1
             if block.status == SearchStatus.SUCCESS:
                 num_proofs_completed += 1
             elif block.status == SearchStatus.FAILURE:
@@ -659,7 +661,7 @@ def blocks_from_scrape_and_sols(
                                           t.tactic.strip() != "}"]
                 if result is None:
                     yield ProofBlock(cur_lemma_stmt, module_prefix,
-                                     SearchStatus.FAILURE, [],
+                                     SearchStatus.SKIPPED, [],
                                      batch_without_brackets)
                 else:
                     yield ProofBlock(cur_lemma_stmt, module_prefix,
@@ -867,6 +869,8 @@ def classFromSearchStatus(status: SearchStatus) -> str:
         return 'good'
     elif status == SearchStatus.INCOMPLETE:
         return 'okay'
+    elif status == SearchStatus.SKIPPED:
+        return 'skipped'
     else:
         return 'bad'
 

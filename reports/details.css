@@ -148,6 +148,9 @@ code {
 .collapsible.bad{
     background-color: pink;
 }
+.collapsible.skipped {
+    background-color: grey;
+}
 
 .collapsible:hover {
   background-color: #b6b6b6;
