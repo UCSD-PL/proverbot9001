@@ -757,10 +757,7 @@ class SerapiInstance(threading.Thread):
         return f"{ids_str} : {term_str}"
 
     def parseSexpGoalStr(self, sexp_str: str) -> Obligation:
-        goal_match = re.fullmatch(
-            r"\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)"
-            r"\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)"
-            r"\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)", sexp_str)
+        goal_match = goal_regex.fullmatch(sexp_str)
         assert goal_match, sexp_str + "didn't match"
         goal_num_str, goal_term_str, hyps_list_str = \
             goal_match.group(1, 2, 3)
@@ -1302,6 +1299,11 @@ class SerapiInstance(threading.Thread):
         self._proc.kill()
         threading.Thread.join(self)
     pass
+
+
+goal_regex = re.compile(r"\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)"
+                        r"\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)"
+                        r"\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)")
 
 
 def isBreakMessage(msg: 'Sexp') -> bool:
