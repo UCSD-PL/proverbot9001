@@ -32,10 +32,14 @@ import torch.cuda
 import torch.autograd as autograd
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
-                    Callable, Optional, Pattern, Match)
+                    Callable, Optional, Pattern, Match, Union)
+
+from dataloader import rust_parse_sexp_one_level
+from sexpdata import Symbol
 
 use_cuda = torch.cuda.is_available()
 # assert use_cuda
+
 
 def maybe_cuda(component):
     if use_cuda:
@@ -316,6 +320,18 @@ def get_possible_arg(args: argparse.Namespace, argname: str,
         return getattr(args, argname)
     except AttributeError:
         return default
+
+
+def parseSexpOneLevel(sexp_str: str) -> Union[List[str], int, Symbol]:
+    if sexp_str[0] == '(':
+        result = rust_parse_sexp_one_level(sexp_str)
+        return result
+    elif re.fullmatch(r"\s*\d+\s*", sexp_str):
+        return int(sexp_str.strip())
+    elif re.fullmatch(r'\s*\w+\s*', sexp_str):
+        return Symbol(sexp_str)
+    else:
+        assert False, f"Couldn't parse {sexp_str}"
 
 
 def unwrap(a: Optional[T]) -> T:

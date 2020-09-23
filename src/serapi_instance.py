@@ -42,11 +42,10 @@ if TYPE_CHECKING:
     from sexpdata import Sexp
 from sexpdata import Symbol, loads, dumps, ExpectClosingBracket
 from util import (split_by_char_outside_matching, eprint, mybarfmt,
-                  hash_file, sighandler_context, unwrap, progn)
+                  hash_file, sighandler_context, unwrap, progn,
+                  parseSexpOneLevel)
 from format import ScrapedTactic, TacticContext, Obligation, ProofContext
 import tokenizer
-
-from dataloader import rust_parse_sexp_one_level
 
 
 # Some Exceptions to throw when various responses come back from coq
@@ -1881,49 +1880,6 @@ def save_lin(commands: List[str], filename: str) -> None:
 
 
 parsePat = re.compile("[() ]", flags=(re.ASCII | re.IGNORECASE))
-
-
-def parseSexpOneLevel(sexp_str: str) -> Union[List[str], int, Symbol]:
-    if sexp_str[0] == '(':
-        result = rust_parse_sexp_one_level(sexp_str)
-        # eprint(f"Parsing {sexp_str} to {result}")
-        return result
-    elif re.fullmatch(r"\s*\d+\s*", sexp_str):
-        return int(sexp_str.strip())
-    elif re.fullmatch(r'\s*\w+\s*', sexp_str):
-        return Symbol(sexp_str)
-    else:
-        assert False, f"Couldn't parse {sexp_str}"
-    # sexp_str = sexp_str.strip()
-    # if sexp_str[0] == '(':
-    #     items = []
-    #     cur_pos = 1
-    #     item_start_pos = 1
-    #     paren_level = 0
-    #     while True:
-    #         next_match = parsePat.search(sexp_str, cur_pos)
-    #         if not next_match:
-    #             break
-    #         cur_pos = next_match.end()
-    #         if sexp_str[cur_pos-1] == "(":
-    #             paren_level += 1
-    #         elif sexp_str[cur_pos-1] == ")":
-    #             paren_level -= 1
-    #             if paren_level == 0:
-    #                 items.append(sexp_str[item_start_pos:cur_pos])
-    #                 item_start_pos = cur_pos
-    #         else:
-    #             assert sexp_str[cur_pos-1] == " "
-    #             if paren_level == 0:
-    #                 items.append(sexp_str[item_start_pos:cur_pos])
-    #                 item_start_pos = cur_pos
-    # elif re.fullmatch(r"\d+", sexp_str):
-    #     return int(sexp_str)
-    # elif re.fullmatch(r"\w+", sexp_str):
-    #     return Symbol(sexp_str)
-    # else:
-    #     assert False, f"Couldn't parse {sexp_str}"
-    # return items
 
 
 def searchStrsInMsg(sexp, fuel: int = 30) -> List[str]:
