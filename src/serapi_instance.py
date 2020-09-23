@@ -738,8 +738,8 @@ class SerapiInstance(threading.Thread):
             cast(List[str], parseSexpOneLevel(sexp_str))
 
         def get_id(var_pair_str: str) -> str:
-            id_possibly_quoted = unwrap(re.match(
-                r"\(Id\s*(.*)\)", var_pair_str)).group(1)
+            id_possibly_quoted = unwrap(
+                id_regex.match(var_pair_str)).group(1)
             if id_possibly_quoted[0] == "\"" and \
                id_possibly_quoted[-1] == "\"":
                 return id_possibly_quoted[1:-1]
@@ -1158,13 +1158,7 @@ class SerapiInstance(threading.Thread):
             if context_str == "()":
                 self.proof_context = None
             else:
-                goals_match = re.match(r"\(\(CoqGoal\s*"
-                                       r"\(\(goals\s*(.*)\)"
-                                       r"\(stack\s*(.*)\)"
-                                       r"\(shelf\s*(.*)\)"
-                                       r"\(given_up\s*(.*)\)"
-                                       r"\(bullet\s*.*\)\)\)\)",
-                                       context_str)
+                goals_match = all_goals_regex.match(context_str)
                 if not goals_match:
                     raise BadResponse(context_str)
                 fg_goals_str, bg_goals_str, \
@@ -1309,6 +1303,15 @@ class SerapiInstance(threading.Thread):
 goal_regex = re.compile(r"\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)"
                         r"\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)"
                         r"\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)")
+
+all_goals_regex = re.compile(r"\(\(CoqGoal\s*"
+                             r"\(\(goals\s*(.*)\)"
+                             r"\(stack\s*(.*)\)"
+                             r"\(shelf\s*(.*)\)"
+                             r"\(given_up\s*(.*)\)"
+                             r"\(bullet\s*.*\)\)\)\)")
+
+id_regex = re.compile(r"\(Id\s*(.*)\)")
 
 
 def isBreakMessage(msg: 'Sexp') -> bool:
