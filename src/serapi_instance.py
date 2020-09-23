@@ -1573,10 +1573,15 @@ def get_var_term_in_hyp(hyp: str) -> str:
     return hyp.partition(":")[0].strip()
 
 
+hypcolon_regex = re.compile(":(?!=)")
+
+
 def get_hyp_type(hyp: str) -> str:
-    if re.search(":(?!=)", hyp) is None:
+    splits = hypcolon_regex.split(hyp, maxsplit=1)
+    if len(splits) == 1:
         return ""
-    return re.split(":(?!=)", hyp, maxsplit=1)[1].strip()
+    else:
+        return splits[1].strip()
 
 
 def get_vars_in_hyps(hyps: List[str]) -> List[str]:
