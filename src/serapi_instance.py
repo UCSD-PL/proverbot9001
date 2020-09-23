@@ -1191,14 +1191,17 @@ class SerapiInstance(threading.Thread):
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
 
             msg = self.get_message()
-            proof_context_msg = match(normalizeMessage(msg),
-                                      ["Answer", int, ["CoqExn", TAIL]],
-                                      lambda statenum, rest:
-                                      raise_(CoqExn(searchStrsInMsg(rest))),
-                                      ["Answer", int, list],
-                                      lambda statenum, contents: contents,
-                                      _, lambda *args:
-                                      raise_(UnrecognizedError(dumps(msg))))
+            proof_context_msg = match(
+                normalizeMessage(msg),
+                ["Answer", int, ["CoqExn", TAIL]],
+                lambda statenum, rest:
+                raise_(CoqAnomaly("Stack overflow")) if
+                "Stack overflow." in searchStrsInMsg(rest) else
+                raise_(CoqExn(searchStrsInMsg(rest))),
+                ["Answer", int, list],
+                lambda statenum, contents: contents,
+                _, lambda *args:
+                raise_(UnrecognizedError(dumps(msg))))
             self.get_completed()
             if len(proof_context_msg) == 0:
                 self.proof_context = None
