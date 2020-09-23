@@ -573,15 +573,21 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 assert self.message_queue.empty()
 
+                # Track goal opening/closing
+                is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", stm)
+                is_goal_close = re.match(r"\s*[}]\s*", stm)
+
                 # Execute the statement.
                 self.send_acked("(Exec {})\n".format(self.cur_state))
                 # Finally, get the result of the command
                 self.feedbacks = self.get_feedbacks()
                 # Get a new proof context, if it exists
-                if stm.strip == "{":
+                if is_goal_open:
                     self.get_enter_goal_context()
+                elif is_goal_close:
+                    self.get_proof_context(update_nonfg_goals=True)
                 else:
-                    self.get_proof_context()
+                    self.get_proof_context(update_nonfg_goals=False)
 
                 if not context_before and self.proof_context:
                     self.add_potential_local_lemmas(stm)
@@ -592,11 +598,11 @@ class SerapiInstance(threading.Thread):
                 # Manage the tactic history
                 if possibly_starting_proof(stm) and self.proof_context:
                     self.tactic_history.addTactic(stm)
-                elif re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", stm):
+                elif is_goal_open:
                     assert context_before
                     self.tactic_history.openSubgoal(
                         context_before.fg_goals[1:])
-                elif re.match(r"\s*[}]\s*", stm):
+                elif is_goal_close:
                     self.tactic_history.closeSubgoal()
                 elif self.proof_context:
                     # If we saw a new proof context, we're still in a
@@ -616,17 +622,17 @@ class SerapiInstance(threading.Thread):
                 eprint(
                     f"History is now {self.tactic_history.getFullHistory()}")
                 summarizeContext(self.proof_context)
-            assert len(self.tactic_history.getFullHistory()) == \
-                history_len_before + 1 or \
-                (re.match(r"(?:\d+\s*:)?\s*{", stmt.strip()) and
-                 len(self.tactic_history.getFullHistory()) ==
-                 history_len_before + 2) or \
-                (stmt.strip() == "}" and
-                 len(self.tactic_history.getFullHistory()) ==
-                 history_len_before) or \
-                self.proof_context == context_before or \
-                stmt.strip() == "Proof." or \
-                (self.proof_context is None and ending_proof(stmt))
+            # assert len(self.tactic_history.getFullHistory()) == \
+            #     history_len_before + 1 or \
+            #     (re.match(r"(?:\d+\s*:)?\s*{", stmt.strip()) and
+            #      len(self.tactic_history.getFullHistory()) ==
+            #      history_len_before + 2) or \
+            #     (stmt.strip() == "}" and
+            #      len(self.tactic_history.getFullHistory()) ==
+            #      history_len_before) or \
+            #     self.proof_context == context_before or \
+            #     stmt.strip() == "Proof." or \
+            #     (self.proof_context is None and ending_proof(stmt))
             if timeout:
                 self.timeout = old_timeout
 
@@ -1140,7 +1146,7 @@ class SerapiInstance(threading.Thread):
                                           self.proof_context.shelved_goals,
                                           self.proof_context.given_up_goals)
 
-    def get_proof_context(self) -> None:
+    def get_proof_context(self, update_nonfg_goals: bool = True) -> None:
         # Try to do this the right way, fall back to the
         # wrong way if we run into this bug:
         # https://github.com/ejgallego/coq-serapi/issues/150
@@ -1164,27 +1170,38 @@ class SerapiInstance(threading.Thread):
                 fg_goals_str, bg_goals_str, \
                     shelved_goals_str, given_up_goals_str = \
                     goals_match.groups()
-                unparsed_levels = cast(List[str],
-                                       parseSexpOneLevel(bg_goals_str))
-                parsed2 = [uuulevel
-                           for ulevel in unparsed_levels
-                           for uulevel in cast(List[str],
-                                               parseSexpOneLevel(ulevel))
-                           for uuulevel in cast(List[str],
-                                                parseSexpOneLevel(uulevel))]
-                bg_goals = [self.parseSexpGoalStr(bg_goal_str)
-                            for bg_goal_str in parsed2]
-                self.proof_context = ProofContext(
-                    [self.parseSexpGoalStr(goal)
-                     for goal in cast(List[str],
-                                      parseSexpOneLevel(fg_goals_str))],
-                    bg_goals,
-                    [self.parseSexpGoalStr(shelved_goal)
-                     for shelved_goal in
-                     cast(List[str], parseSexpOneLevel(shelved_goals_str))],
-                    [self.parseSexpGoalStr(given_up_goal)
-                     for given_up_goal in
-                     cast(List[str], parseSexpOneLevel(given_up_goals_str))])
+                if update_nonfg_goals or self.proof_context is None:
+                    unparsed_levels = cast(List[str],
+                                           parseSexpOneLevel(bg_goals_str))
+                    parsed2 = [uuulevel
+                               for ulevel in unparsed_levels
+                               for uulevel in cast(List[str],
+                                                   parseSexpOneLevel(ulevel))
+                               for uuulevel in
+                               cast(List[str], parseSexpOneLevel(uulevel))]
+                    bg_goals = [self.parseSexpGoalStr(bg_goal_str)
+                                for bg_goal_str in parsed2]
+                    self.proof_context = ProofContext(
+                        [self.parseSexpGoalStr(goal)
+                         for goal in cast(List[str],
+                                          parseSexpOneLevel(fg_goals_str))],
+                        bg_goals,
+                        [self.parseSexpGoalStr(shelved_goal)
+                         for shelved_goal in
+                         cast(List[str],
+                              parseSexpOneLevel(shelved_goals_str))],
+                        [self.parseSexpGoalStr(given_up_goal)
+                         for given_up_goal in
+                         cast(List[str],
+                              parseSexpOneLevel(given_up_goals_str))])
+                else:
+                    self.proof_context = ProofContext(
+                        [self.parseSexpGoalStr(goal)
+                         for goal in cast(List[str],
+                                          parseSexpOneLevel(fg_goals_str))],
+                        unwrap(self.proof_context).bg_goals,
+                        unwrap(self.proof_context).shelved_goals,
+                        unwrap(self.proof_context).given_up_goals)
         except CoqExn:
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
 
