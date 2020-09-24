@@ -334,7 +334,11 @@ pub fn sample_fpa_batch(
             premises
                 .into_iter()
                 .map(|premise| {
-                    normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 0)
+                    normalize_sentence_length(
+                        tokenizer.tokenize(get_hyp_type(&premise)),
+                        args.max_length,
+                        0,
+                    )
                 })
                 .collect()
         })
@@ -398,7 +402,13 @@ pub fn sample_fpa(
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
-        .map(|premise| normalize_sentence_length(tokenizer.tokenize(&premise), args.max_length, 0))
+        .map(|premise| {
+            normalize_sentence_length(
+                tokenizer.tokenize(get_hyp_type(&premise)),
+                args.max_length,
+                0,
+            )
+        })
         .collect();
     let num_hyps = tokenized_premises.len();
     (
