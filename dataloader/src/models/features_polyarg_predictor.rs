@@ -419,14 +419,8 @@ pub fn decode_fpa_result(
     tac_idx: i64,
     arg_idx: i64,
 ) -> String {
-    let mut stem = decode_fpa_stem(&args, metadata, tac_idx);
+    let stem = decode_fpa_stem(&args, metadata, tac_idx);
     let arg = decode_fpa_arg(&args, premises, goal, arg_idx);
-    if &stem == "auto" && arg != "" {
-        stem = "eapply".to_string();
-    }
-    if &stem == "simpl" && arg != "" {
-        stem = "apply".to_string();
-    }
     if arg == "" {
         format!("{}.", stem)
     } else {
