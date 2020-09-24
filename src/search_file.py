@@ -1093,6 +1093,15 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
 
+    if args.relevant_lemmas == "local":
+        relevant_lemmas = coq.local_lemmas[:-1]
+    elif args.relevant_lemmas == "hammer":
+        relevant_lemmas = coq.get_hammer_premises()
+    elif args.relevant_lemmas == "searchabout":
+        relevant_lemmas = coq.get_lemmas_about_head()
+    else:
+        assert False, args.relevant_lemmas
+
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
             eprint(f"Cancelling {num_stmts} statements "
@@ -1106,15 +1115,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                extra_depth: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
         nonlocal predictor_lock
+        nonlocal relevant_lemmas
         global unnamed_goal_number
-        if args.relevant_lemmas == "local":
-            relevant_lemmas = coq.local_lemmas[:-1]
-        elif args.relevant_lemmas == "hammer":
-            relevant_lemmas = coq.get_hammer_premises()
-        elif args.relevant_lemmas == "searchabout":
-            relevant_lemmas = coq.get_lemmas_about_head()
-        else:
-            assert False, args.relevant_lemmas
         tactic_context_before = TacticContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               coq.hypotheses,
