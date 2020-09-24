@@ -820,11 +820,16 @@ def write_lemma_button(lemma_statement: str, module: Optional[str],
         fullname = module_prefix + lemma_name + str(unnamed_goal_number)
     else:
         fullname = module_prefix + lemma_name
-    with tag('button', klass='collapsible {}'.format(status_klass),
-             onmouseover="hoverLemma(\"{}\")".format(fullname),
-             onmouseout="unhoverLemma(\"{}\")".format(fullname)):
-        with tag('code', klass='buttontext'):
-            text(lemma_statement.strip())
+    if status_klass != "skipped":
+        with tag('button', klass='collapsible {}'.format(status_klass),
+                 onmouseover="hoverLemma(\"{}\")".format(fullname),
+                 onmouseout="unhoverLemma(\"{}\")".format(fullname)):
+            with tag('code', klass='buttontext'):
+                text(lemma_statement.strip())
+    else:
+        with tag('button', klass='collapsible {}'.format(status_klass)):
+            with tag('code', klass='buttontext'):
+                text(lemma_statement.strip())
 
 
 def write_commands(commands: List[str], tag: Tag, text: Text, doc: Doc):
