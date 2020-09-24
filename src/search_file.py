@@ -333,7 +333,7 @@ def search_file_worker(args: argparse.Namespace,
     except queue.Empty:
         return
     all_commands = serapi_instance.load_commands_preserve(
-        args, 0, args.prelude / next_file)
+        args, 1, args.prelude / next_file)
     rest_commands = all_commands
     while rest_commands:
         with serapi_instance.SerapiContext(["sertop", "--implicit"],
