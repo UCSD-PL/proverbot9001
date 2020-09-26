@@ -576,6 +576,7 @@ class SerapiInstance(threading.Thread):
                 # Track goal opening/closing
                 is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", stm)
                 is_goal_close = re.match(r"\s*[}]\s*", stm)
+                is_unshelve = re.match(r"\s*Unshelve\s*\.\s*", stm)
 
                 # Execute the statement.
                 self.send_acked("(Exec {})\n".format(self.cur_state))
@@ -584,7 +585,7 @@ class SerapiInstance(threading.Thread):
                 # Get a new proof context, if it exists
                 if is_goal_open:
                     self.get_enter_goal_context()
-                elif is_goal_close:
+                elif is_goal_close or is_unshelve:
                     self.get_proof_context(update_nonfg_goals=True)
                 else:
                     self.get_proof_context(update_nonfg_goals=False)
