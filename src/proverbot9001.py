@@ -23,7 +23,7 @@
 import signal
 import sys
 from tokenizer import tokenizers
-import search_report
+import search_file
 import dynamic_report
 import static_report
 import evaluator_report
@@ -208,7 +208,7 @@ def get_tokens(args : List[str]):
 
 modules = {
     "train" : train,
-    "search-report":search_report.main,
+    "search-report":search_file.main,
     "dynamic-report":dynamic_report.main,
     "static-report":static_report.main,
     "evaluator-report":evaluator_report.main,
