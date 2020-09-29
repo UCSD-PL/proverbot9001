@@ -351,13 +351,13 @@ pub fn score_hyps<'a>(
         .join(" ");
     hyps.into_iter()
         .map(|hyp| {
-            let trunc_hyp_after_colon = get_symbols(hyp.splitn(2, ":").collect::<Vec<&str>>()[1])
+            let trunc_hyp_after_colon = get_symbols(get_hyp_type(hyp))
                 .into_iter()
                 .take(max_length)
                 .collect::<Vec<_>>()
                 .join(" ");
             let score = edit_distance(&trunc_hyp_after_colon, &truncated_goal);
-            (score as f64) / (max_distance as f64)
+            (score as f64) / (trunc_hyp_after_colon.len() as f64)
         })
         .collect()
 }
@@ -369,17 +369,21 @@ fn best_scored_hyp<'a>(
     goal: &String,
 ) -> (&'a str, f64) {
     let mut best_hyp = "";
-    let mut best_score = max_distance;
+    let mut best_score = 1.0;
     let mut truncated_goal = goal.clone();
     truncated_goal.truncate(max_length);
     for hyp in hyps.iter() {
-        let mut hyp_after_colon = hyp.split(":").collect::<Vec<&str>>()[1].to_string();
-        hyp_after_colon.truncate(max_length);
-        let score = edit_distance(&hyp_after_colon, &truncated_goal);
+        let trunc_hyp_after_colon = get_symbols(get_hyp_type(hyp))
+            .into_iter()
+            .take(max_length)
+            .collect::<Vec<_>>()
+            .join(" ");
+        let score = (edit_distance(&trunc_hyp_after_colon, &truncated_goal) as f64) /
+            (trunc_hyp_after_colon.len() as f64);
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
         }
     }
-    (best_hyp, (best_score as f64) / (max_distance as f64))
+    (best_hyp, best_score)
 }
