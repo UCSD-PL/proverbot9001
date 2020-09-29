@@ -428,10 +428,6 @@ class FeaturesPolyargPredictor(
             assert hypfeatures_batch.size() == \
                 torch.Size([1, num_hyps, hypFeaturesSize()]), \
                 (hypfeatures_batch.size(), num_hyps, hypFeaturesSize())
-            hypfeatures_batch_expanded = \
-                hypfeatures_batch.expand(stem_width, -1, -1)\
-                                 .contiguous()\
-                                 .view(stem_width * num_hyps, hypFeaturesSize())
             hyp_arg_values = self.runHypModel(stem_idxs,
                                               encoded_goals, hyps_batch,
                                               hypfeatures_batch)
