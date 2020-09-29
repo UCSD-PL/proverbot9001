@@ -282,9 +282,8 @@ pub fn sample_fpa_batch(
     let premises_batch: Vec<Vec<String>> = context_batch
         .iter()
         .map(|ctxt| {
-            ctxt.relevant_lemmas
-                .iter()
-                .chain(ctxt.obligation.hypotheses.iter())
+            ctxt.obligation.hypotheses.iter()
+                .chain(ctxt.relevant_lemmas.iter())
                 .map(|p| p.clone())
                 .collect()
         })
@@ -383,9 +382,9 @@ pub fn sample_fpa(
         &hypotheses,
         &goal,
     );
-    let all_premises: Vec<String> = relevant_lemmas
+    let all_premises: Vec<String> = hypotheses
         .into_iter()
-        .chain(hypotheses.into_iter())
+        .chain(relevant_lemmas.into_iter())
         .collect();
     let premise_scores = score_hyps(
         args.max_string_distance,
