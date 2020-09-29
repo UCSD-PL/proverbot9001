@@ -531,10 +531,10 @@ fn get_argument<'a>(
         () => {
             if all_hyps.len() > args.max_premises {
                 // all_hyps.iter().take(args.max_premises).cloned().collect()
-            all_hyps
-                .choose_multiple(&mut thread_rng(), args.max_premises)
-                .map(|s| *s)
-                .collect()
+                all_hyps
+                    .choose_multiple(&mut thread_rng(), args.max_premises)
+                    .map(|s| *s)
+                    .collect()
             } else if all_hyps.len() == 0 {
                 lazy_static! {
                     static ref COLONSTRING: String = ":".to_string();
