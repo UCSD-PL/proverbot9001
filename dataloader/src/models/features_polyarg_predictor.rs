@@ -448,6 +448,15 @@ pub fn decode_fpa_stem(
     indexer.reverse_lookup(tac_idx)
 }
 
+pub fn encode_fpa_stem(
+    _args: &DataloaderArgs,
+    metadata: PickleableFPAMetadata,
+    tac_stem: String,
+) -> i64 {
+    let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    indexer.lookup(tac_stem)
+}
+
 pub fn decode_fpa_arg(
     args: &DataloaderArgs,
     premises: Vec<String>,

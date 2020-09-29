@@ -186,6 +186,15 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> String {
         decode_fpa_stem(&args, metadata, tac_idx)
     }
+    #[pyfn(m, "encode_fpa_stem")]
+    fn encode_fpa_stem_py(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        tac_stem: String,
+    ) -> i64 {
+        encode_fpa_stem(&args, metadata, tac_stem)
+    }
     #[pyfn(m, "decode_fpa_arg")]
     fn decode_fpa_arg_py(
         _py: Python,
