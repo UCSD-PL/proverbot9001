@@ -765,11 +765,14 @@ class FeaturesPolyargPredictor(
 
 def hypFeaturesSize() -> int:
     return 2
-def encodeHypsFeatureVecs(args : argparse.Namespace,
-                          goal : str, hyps : List[str]) -> torch.FloatTensor:
-    def features(hyp : str):
+
+
+def encodeHypsFeatureVecs(args: argparse.Namespace,
+                          goal: str, hyps: List[str]) -> torch.FloatTensor:
+    def features(hyp: str):
         similarity_ratio = SequenceMatcher(None, goal,
-                                           serapi_instance.get_hyp_type(hyp)).ratio()
+                                           serapi_instance.get_hyp_type(
+                                               hyp)).ratio()
         is_equals_on_goal_token = 0.0
         equals_match = re.match(r"eq\s+(.*)",
                                 serapi_instance.get_hyp_type(hyp),
