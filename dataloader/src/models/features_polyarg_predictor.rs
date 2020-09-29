@@ -500,14 +500,9 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
             .as_str()
             .replace("\n", " ");
         let (left_side, right_side) = split_to_next_matching_paren_or_space(&normalized_string);
-        // if goal.starts_with("eq\n  (store_stack m2' (Vptr sp'") && hyp.starts_with("STORE_PARENT") {
-        // println!("Normalized string is {}", normalized_string);
-        //     println!("Left side is \"{}\", right side is \"{}\"",
-        //              left_side, right_side);
-        // }
-        if normalized_goal.contains(left_side) && right_side != "" {
+        if normalized_goal.contains(left_side.trim()) && right_side != "" {
             -1.0
-        } else if normalized_goal.contains(right_side) && right_side != "" {
+        } else if normalized_goal.contains(right_side.trim()) && right_side != "" {
             1.0
         } else {
             0.0
