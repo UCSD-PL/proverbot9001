@@ -243,6 +243,8 @@ pub fn features_polyarg_tensors(
     ))
 }
 
+/// This function is for debugging purposes
+#[allow(dead_code)]
 pub fn lookup_hyp(premises: Vec<String>, hyp_name: &str) -> String {
     let hyp_idx = indexed_premises(premises.iter().map(|s| s.as_ref()))
         .into_iter()
