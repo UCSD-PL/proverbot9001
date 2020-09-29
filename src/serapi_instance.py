@@ -685,6 +685,9 @@ class SerapiInstance(threading.Thread):
             elif "Anomaly" in coqexn_msg:
                 self.get_completed()
                 raise CoqAnomaly(coqexn_msg)
+            elif "Unable to unify" in coqexn_msg:
+                self.cancel_failed()
+                raise CoqExn(coqexn_msg)
             else:
                 self.get_completed()
                 self.cancel_failed()
