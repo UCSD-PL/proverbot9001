@@ -36,7 +36,7 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast,
                     Any)
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
