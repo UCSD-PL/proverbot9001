@@ -920,6 +920,7 @@ def attempt_search(args: argparse.Namespace,
 @dataclass(init=True)
 class LabeledNode:
     prediction: str
+    certainty: float
     time_taken: Optional[float]
     node_id: int
     context_before: ProofContext
@@ -934,21 +935,26 @@ class SearchGraph:
     def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, ProofContext([], [], [], []),
+        self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
+                                      ProofContext([], [], [], []),
                                       None)
         self.start_node.time_taken = 0.0
         pass
 
     def addPredictions(self, src: LabeledNode, context_before: ProofContext,
-                       predictions: List[str]) -> List[LabeledNode]:
+                       predictions: List[Prediction]) -> List[LabeledNode]:
         return [self.mkNode(pred, context_before, src) for pred in predictions]
 
-    def mkNode(self, prediction: str, context_before: ProofContext,
+    def mkNode(self, prediction: Prediction, context_before: ProofContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
+        self.__graph.add_node(self.__next_node_id,
+                              label="{}\n({})".format(prediction.prediction,
+                                                      prediction.certainty),
+                              **kwargs)
         self.__next_node_id += 1
-        newNode = LabeledNode(prediction, None, self.__next_node_id-1,
+        newNode = LabeledNode(prediction.prediction, prediction.certainty,
+                              None, self.__next_node_id-1,
                               context_before, previous_node)
         if previous_node:
             self.__graph.add_edge(previous_node.node_id,
@@ -956,7 +962,7 @@ class SearchGraph:
         return newNode
 
     def mkQED(self, predictionNode: LabeledNode):
-        self.mkNode("QED", ProofContext([], [], [], []),
+        self.mkNode(Prediction("QED", 1.0), ProofContext([], [], [], []),
                     predictionNode,
                     fillcolor="green", style="filled")
         cur_node = predictionNode
@@ -1127,12 +1133,12 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                               coq.hypotheses,
                                               coq.goals)
         with predictor_lock:
-            predictions = [prediction.prediction for prediction in
-                           predictor.predictKTactics(tactic_context_before,
-                                                     args.max_attempts)]
+            predictions = predictor.predictKTactics(tactic_context_before,
+                                                    args.max_attempts)
         proof_context_before = coq.proof_context
         if coq.use_hammer:
-            predictions = [prediction + "; try hammer."
+            predictions = [Prediction(prediction.prediction + "; try hammer.",
+                                      prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
         for prediction_idx, prediction in enumerate(predictions):
@@ -1142,7 +1148,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                 context_after, num_stmts, \
                     subgoals_closed, subgoals_opened, \
                     error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction, current_path[-1])
+                    tryPrediction(args, coq, prediction.prediction,
+                                  current_path[-1])
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
@@ -1165,7 +1172,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
-                    predictionNode = g.mkNode("Unshelve.",
+                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0),
                                               unwrap(proof_context_before),
                                               predictionNode)
                     predictionNode.time_taken = 0
