@@ -21,7 +21,7 @@
 
 from format import TacticContext
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from abc import ABCMeta, abstractmethod
 
 
@@ -29,6 +29,9 @@ class QEstimator(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, inputs: List[Tuple[TacticContext, str]]) -> List[float]:
         pass
+
     @abstractmethod
-    def train(self, samples: List[Tuple[TacticContext, str, float]]) -> None:
+    def train(self, samples: List[Tuple[TacticContext, str, float]],
+              batch_size: Optional[int] = None,
+              num_epochs: int = 1) -> None:
         pass

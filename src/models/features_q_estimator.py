@@ -29,13 +29,16 @@ from models.components import WordFeaturesEncoder, DNNScorer
 
 import torch
 import torch.nn as nn
+import torch.utils.data as data
 from torch import optim
 import torch.optim.lr_scheduler as scheduler
 import argparse
 import sys
 from pathlib_revised import Path2
+from torch import autograd
 
-from typing import Dict, List, Tuple, cast, BinaryIO, TypeVar, Any
+from typing import (Dict, List, Tuple, cast, BinaryIO, TypeVar, Any,
+                    Optional, Iterable, Sequence)
 
 
 FeaturesQMetadata = Tuple[Dict[str, int], Dict[str, int]]
@@ -67,7 +70,9 @@ class FeaturesQEstimator(QEstimator):
                             torch.FloatTensor(vec_features_batch))
         return list(output)
 
-    def train(self, samples: List[Tuple[TacticContext, str, float]]) -> None:
+    def train(self, samples: List[Tuple[TacticContext, str, float]],
+              batch_size: Optional[int] = None,
+              num_epochs: int = 1) -> None:
         self.optimizer.zero_grad()
         state_word_features, vec_features = zip(*[self._features(state)
                                                   for state, _, _ in samples])
@@ -75,15 +80,37 @@ class FeaturesQEstimator(QEstimator):
                            for state, action, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in
                              zip(encoded_actions, state_word_features)]
-        # with autograd.detect_anomaly():
-        outputs = self.model(torch.LongTensor(all_word_features),
-                             torch.FloatTensor(vec_features))
-        expected_outputs = maybe_cuda(torch.FloatTensor(
-            [output for _, _, output in samples]))
-        loss = self.criterion(outputs, expected_outputs)
-        loss.backward()
-        self.optimizer.step()
-        self.adjuster.step()
+        expected_outputs = [output for _, _, output in samples]
+        if batch_size:
+            batches: Iterable[Sequence[torch.Tensor]] = data.DataLoader(
+                data.TensorDataset(
+                    torch.LongTensor(all_word_features),
+                    torch.FloatTensor(vec_features),
+                    torch.FloatTensor(expected_outputs)),
+                batch_size=batch_size,
+                num_workers=0,
+                shuffle=True, pin_memory=True,
+                drop_last=True)
+        else:
+            batches = [[torch.LongTensor(all_word_features),
+                        torch.FloatTensor(vec_features),
+                        torch.FloatTensor(expected_outputs)]]
+        for epoch in range(0, num_epochs):
+            for batch in batches:
+                word_features_batch, vec_features_batch, \
+                    expected_outputs_batch = batch
+                try:
+                    with autograd.detect_anomaly():
+                        outputs = self.model(word_features_batch,
+                                             vec_features_batch)
+                        loss = self.criterion(
+                            outputs, maybe_cuda(expected_outputs_batch))
+                        loss.backward()
+                        self.optimizer.step()
+                        # self.adjuster.step()
+                except RuntimeError:
+                    eprint("Samples scores were {[score for context, tac, score in samples]}")
+                    raise
 
     def _features(self, context: TacticContext) \
             -> Tuple[List[int], List[float]]:
