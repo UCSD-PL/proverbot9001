@@ -28,6 +28,8 @@ from models.components import NeuralPredictorState
 from models import features_polyarg_predictor, features_q_estimator
 from format import TacticContext
 
+# from util import eprint
+
 PickleableFPAMetadata = Any
 
 
@@ -70,11 +72,16 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
             -> List[Prediction]:
         assert self._fpa
         assert self._estimator
+        # eprint(f"In goal: {in_data.goal}")
         inner_predictions = self._fpa.predictKTactics(in_data, 16)
         q_choices = list(zip(self._estimator(
             [(in_data, prediction.prediction)
              for prediction in inner_predictions]),
                         inner_predictions))
+        # eprint("Scored predictions:")
+        # for score, prediction in q_choices:
+        #     eprint(f"{prediction.prediction}: {score}")
+        # assert False
         ordered_actions = [Prediction(p[1].prediction, p[0]) for p in
                            sorted(q_choices,
                                   key=lambda q: q[0],
