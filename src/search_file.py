@@ -32,6 +32,7 @@ import json
 import queue
 import traceback
 import subprocess
+import cProfile
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast,
                     Any, TYPE_CHECKING)
@@ -322,6 +323,21 @@ def admit_proof(coq: serapi_instance.SerapiInstance,
     return admit_cmds
 
 
+def search_file_worker_profiled(
+        args: argparse.Namespace,
+        predictor: TacticPredictor,
+        predictor_lock: threading.Lock,
+        jobs: 'multiprocessing.Queue[Tuple[str, str, str]]',
+        done:
+        'multiprocessing.Queue['
+        '  Tuple[Tuple[str, str, str], SearchResult]]',
+        graphs: GraphQueue,
+        worker_idx: int) -> None:
+    cProfile.runctx('search_file_worker(args, predictor, '
+                    'predictor_lock, jobs, done, graphs, worker_idx)',
+                    globals(), locals(), 'searchstats-{}'.format(worker_idx))
+
+
 def search_file_worker(args: argparse.Namespace,
                        predictor: TacticPredictor,
                        predictor_lock: threading.Lock,
@@ -607,7 +623,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                      lemma_statement))
         for job in all_jobs:
             jobs.put(job)
-        workers = [multiprocessing.Process(target=search_file_worker,
+        workers = [multiprocessing.Process(target=search_file_worker_profiled,
                                            args=(args, predictor,
                                                  predictor_lock,
                                                  jobs, done, graphs,
