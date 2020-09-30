@@ -34,6 +34,7 @@ import dataloader
 import tokenizer
 from models import tactic_predictor, q_estimator
 from models.features_q_estimator import FeaturesQEstimator
+from models.q_estimator import QEstimator
 from models import features_polyarg_predictor
 import predict_tactic
 import util
@@ -78,6 +79,10 @@ def main() -> None:
     parser.add_argument("--learning-rate", default=0.0001, type=float)
     parser.add_argument("--batch-step", default=50, type=int)
     parser.add_argument("--gamma", default=0.8, type=float)
+
+    parser.add_argument("--pretrain-epochs", default=10, type=int)
+    parser.add_argument("--no-pretrain", action='store_false',
+                        dest='pretrain')
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
@@ -214,6 +219,10 @@ def reinforce(args: argparse.Namespace) -> None:
         q_estimator_name, *saved = \
             torch.load(args.start_from)
         q_estimator.load_saved_state(*saved)
+    elif args.pretrain:
+        pre_train(args, q_estimator,
+                  dataloader.tactic_transitions_from_file(
+                      args.scrape_file, args.buffer_size * 10))
 
     epsilon = 0.3
     gamma = 0.9
@@ -565,6 +574,17 @@ def context_r2py(r_context: dataloader.ProofContext) -> ProofContext:
                         list(map(obligation_r2py, r_context.bg_goals)),
                         list(map(obligation_r2py, r_context.shelved_goals)),
                         list(map(obligation_r2py, r_context.given_up_goals)))
+
+
+def pre_train(args: argparse.Namespace, estimator: QEstimator,
+              transitions: List[dataloader.ScrapedTransition]) -> None:
+    samples = [(TacticContext(transition.relevant_lemmas,
+                              transition.prev_tactics,
+                              transition.before.fg_goals[0].hypotheses,
+                              transition.before.fg_goals[0].goal),
+                transition.tactic, 0.0) for transition in transitions
+               if len(transition.before.fg_goals) > 0]
+    estimator.train(samples, args.batch_size, args.pretrain_epochs)
 
 
 if __name__ == "__main__":
