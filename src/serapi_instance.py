@@ -731,14 +731,19 @@ class SerapiInstance(threading.Thread):
 
     @functools.lru_cache(maxsize=128)
     def sexpStrToTermStr(self, sexp_str: str) -> str:
-        answer = self.ask(
-            f"(Print ((pp ((pp_format PpStr)))) (CoqConstr {sexp_str}))")
-        return match(normalizeMessage(answer),
-                     ["Answer", int, ["ObjList", [["CoqString", _]]]],
-                     lambda statenum, s: str(s),
-                     ["Answer", int, ["CoqExn", TAIL]],
-                     lambda statenum, msg:
-                     raise_(CoqExn(searchStrsInMsg(msg))))
+        try:
+            answer = self.ask(
+                f"(Print ((pp ((pp_format PpStr)))) (CoqConstr {sexp_str}))")
+            return match(normalizeMessage(answer),
+                         ["Answer", int, ["ObjList", [["CoqString", _]]]],
+                         lambda statenum, s: str(s),
+                         ["Answer", int, ["CoqExn", TAIL]],
+                         lambda statenum, msg:
+                         raise_(CoqExn(searchStrsInMsg(msg))))
+        except CoqExn:
+            eprint("Coq exception when trying to convert to string:\n"
+                   f"{sexp_str}")
+            raise
 
     def sexpToTermStr(self, sexp) -> str:
         return self.sexpStrToTermStr(dumps(sexp))
