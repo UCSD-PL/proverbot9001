@@ -68,6 +68,8 @@ class FeaturesQEstimator(QEstimator):
                                        state_word_features_batch)]
         output = self.model(torch.LongTensor(all_word_features_batch),
                             torch.FloatTensor(vec_features_batch))
+        for item in output:
+            assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
 
     def train(self, samples: List[Tuple[TacticContext, str, float]],
