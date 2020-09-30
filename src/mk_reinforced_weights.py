@@ -31,12 +31,12 @@ def main() -> None:
     parser.add_argument("out_weights", type=Path2)
     args = parser.parse_args()
 
-    fpa_name, fpa_saved = torch.load(args.fpa_weights)
+    fpa_name, fpa_saved = torch.load(args.fpa_weights, map_location='cpu')
     assert fpa_name == "polyarg", "Weights aren't  for an FPA predictor!"
     fpa_args, fpa_up_args, fpa_meta, fpa_state = \
         fpa_saved
 
-    q_name, *q_saved = torch.load(args.q_weights)
+    q_name, *q_saved = torch.load(args.q_weights, map_location='cpu')
     assert q_name == "features evaluator"
     q_args, q_up_args, q_meta, q_state = q_saved
 
