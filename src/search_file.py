@@ -34,7 +34,7 @@ import traceback
 import subprocess
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast,
-                    Any)
+                    Any, TYPE_CHECKING)
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -58,6 +58,11 @@ import pygraphviz as pgv
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
+if TYPE_CHECKING:
+    GraphQueue = multiprocessing.Queue[Tuple[List['LabeledNode'], str]]
+else:
+    GraphQueue = multiprocessing.Queue
+
 
 details_css = "details.css"
 details_javascript = "search-details.js"
@@ -324,6 +329,7 @@ def search_file_worker(args: argparse.Namespace,
                        done:
                        'multiprocessing.Queue['
                        '  Tuple[Tuple[str, str, str], SearchResult]]',
+                       graphs: GraphQueue,
                        worker_idx: int) -> None:
     util.use_cuda = False
 
@@ -370,7 +376,8 @@ def search_file_worker(args: argparse.Namespace,
                                            coq.module_prefix,
                                            coq, worker_idx,
                                            predictor,
-                                           predictor_lock)
+                                           predictor_lock,
+                                           graphs)
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
@@ -525,6 +532,23 @@ def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
 
+def draw_graphs(graphs: 'GraphQueue', num_graphs_expected: int):
+    for _ in range(num_graphs_expected):
+        nodes, filename = graphs.get()
+        graph = pgv.AGraph(directed=True)
+        for node in nodes:
+            graph.add_node(node.node_id,
+                           label="{}\n({:.2f})".format(
+                               node.prediction,
+                               node.certainty),
+                           **node.graphargs)
+            if node.previous:
+                graph.add_edge(node.previous.node_id,
+                               node.node_id)
+        with nostderr():
+            graph.draw(filename, prog='dot')
+
+
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     with multiprocessing.Manager() as manager:
@@ -533,6 +557,8 @@ def search_file_multithreaded(args: argparse.Namespace,
         done: multiprocessing.Queue[
             Tuple[Tuple[str, str, str], SearchResult]
         ] = multiprocessing.Queue()
+        graphs: multiprocessing.Queue[Tuple[
+            pgv.AGraph, str]] = multiprocessing.Queue()
 
         # This cast appears to be needed due to a buggy type stub on
         # multiprocessing.Manager()
@@ -581,11 +607,15 @@ def search_file_multithreaded(args: argparse.Namespace,
         workers = [multiprocessing.Process(target=search_file_worker,
                                            args=(args, predictor,
                                                  predictor_lock,
-                                                 jobs, done, widx))
+                                                 jobs, done, graphs,
+                                                 widx))
                    for widx in range(min(args.num_threads,
                                          len(all_jobs)))]
         for worker in workers:
             worker.start()
+        graph_drawer = multiprocessing.Process(target=draw_graphs,
+                                               args=(graphs, len(all_jobs)))
+        graph_drawer.start()
         num_already_done = sum([len(solutions)
                                 for solutions in file_solutions])
         with tqdm(total=len(all_jobs) + num_already_done) as bar:
@@ -909,11 +939,12 @@ def attempt_search(args: argparse.Namespace,
                    coq: serapi_instance.SerapiInstance,
                    bar_idx: int,
                    predictor: TacticPredictor,
-                   predictor_lock: threading.Lock) \
+                   predictor_lock: threading.Lock,
+                   graphs: 'GraphQueue') \
         -> SearchResult:
     result = dfs_proof_search_with_graph(lemma_statement, module_name, coq,
                                          args, bar_idx, predictor,
-                                         predictor_lock)
+                                         predictor_lock, graphs)
     return result
 
 
@@ -925,20 +956,24 @@ class LabeledNode:
     node_id: int
     context_before: ProofContext
     previous: Optional["LabeledNode"]
+    graphargs: Dict[Any, Any]
 
 
 class SearchGraph:
-    __graph: pgv.AGraph
+    __nodes: List[LabeledNode]
     __next_node_id: int
     start_node: LabeledNode
+    __queue: GraphQueue
 
-    def __init__(self, lemma_name: str) -> None:
-        self.__graph = pgv.AGraph(directed=True)
+    def __init__(self, lemma_name: str,
+                 graph_queue: GraphQueue) -> None:
         self.__next_node_id = 0
+        self.__nodes = []
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
                                       ProofContext([], [], [], []),
                                       None)
         self.start_node.time_taken = 0.0
+        self.__queue = graph_queue
         pass
 
     def addPredictions(self, src: LabeledNode, context_before: ProofContext,
@@ -948,17 +983,12 @@ class SearchGraph:
     def mkNode(self, prediction: Prediction, context_before: ProofContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        self.__graph.add_node(self.__next_node_id,
-                              label="{}\n({})".format(prediction.prediction,
-                                                      prediction.certainty),
-                              **kwargs)
         self.__next_node_id += 1
-        newNode = LabeledNode(prediction.prediction, prediction.certainty,
+        newNode = LabeledNode(prediction.prediction,
+                              float(prediction.certainty),
                               None, self.__next_node_id-1,
-                              context_before, previous_node)
-        if previous_node:
-            self.__graph.add_edge(previous_node.node_id,
-                                  newNode.node_id, **kwargs)
+                              context_before, previous_node, {})
+        self.__nodes.append(newNode)
         return newNode
 
     def mkQED(self, predictionNode: LabeledNode):
@@ -977,13 +1007,12 @@ class SearchGraph:
         pass
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
-        node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["fillcolor"] = color
-        node_handle.attr["style"] = "filled"
+        node_handle = self.__nodes[node.node_id]
+        node_handle.graphargs["fillcolor"] = color
+        node_handle.graphargs["style"] = "filled"
 
     def draw(self, filename: str) -> None:
-        with nostderr():
-            self.__graph.draw(filename, prog="dot")
+        self.__queue.put((self.__nodes, filename))
 
 
 class SubSearchResult (NamedTuple):
@@ -1097,12 +1126,13 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                 args: argparse.Namespace,
                                 bar_idx: int,
                                 predictor: TacticPredictor,
-                                predictor_lock: threading.Lock) \
+                                predictor_lock: threading.Lock,
+                                graphs: GraphQueue) \
                                 -> SearchResult:
     global unnamed_goal_number
     unnamed_goal_number = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-    g = SearchGraph(lemma_name)
+    g = SearchGraph(lemma_name, graphs)
 
     if args.relevant_lemmas == "local":
         relevant_lemmas = coq.local_lemmas[:-1]
