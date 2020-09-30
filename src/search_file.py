@@ -623,7 +623,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                      lemma_statement))
         for job in all_jobs:
             jobs.put(job)
-        workers = [multiprocessing.Process(target=search_file_worker_profiled,
+        workers = [multiprocessing.Process(target=search_file_worker,
                                            args=(args, predictor,
                                                  predictor_lock,
                                                  jobs, done, graphs,
