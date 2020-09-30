@@ -556,8 +556,8 @@ class SerapiInstance(threading.Thread):
         # We'll wrap the actual running in a try block so that we can
         # report which command the error came from at this
         # level. Other higher level code might re-catch it.
-        history_len_before = len(self.tactic_history.getFullHistory())
         context_before = self.proof_context
+        # history_len_before = len(self.tactic_history.getFullHistory())
         try:
             # Preprocess_command sometimes turns one command into two,
             # to get around some limitations of the serapi interface.
