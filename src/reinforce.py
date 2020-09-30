@@ -230,7 +230,7 @@ def reinforce(args: argparse.Namespace) -> None:
         with serapi_instance.SerapiContext(
                 ["sertop", "--implicit"],
                 serapi_instance.get_module_from_filename(
-                    args.environment_file),
+                    args.environment_files[0]),
                 str(args.prelude)) as coq:
             coq.quiet = True
             coq.verbose = args.verbose
