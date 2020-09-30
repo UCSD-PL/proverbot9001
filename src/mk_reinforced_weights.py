@@ -22,6 +22,7 @@ import torch
 import argparse
 from pathlib_revised import Path2
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Construct weights for reinforced features polyarg")
@@ -41,7 +42,7 @@ def main() -> None:
 
     with args.out_weights.open('wb') as f:
         torch.save(("refpa", (fpa_args, fpa_up_args, (fpa_meta, q_meta),
-                             (fpa_state, q_state))),
+                              (fpa_state, q_state))),
                    f)
 
     pass

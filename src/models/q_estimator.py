@@ -24,6 +24,7 @@ from format import TacticContext
 from typing import List, Tuple
 from abc import ABCMeta, abstractmethod
 
+
 class QEstimator(metaclass=ABCMeta):
     @abstractmethod
     def __call__(self, inputs: List[Tuple[TacticContext, str]]) -> List[float]:
