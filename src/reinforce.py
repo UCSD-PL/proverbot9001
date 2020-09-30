@@ -398,17 +398,36 @@ def reinforce_lemma(args: argparse.Namespace,
                                 proof_context_after, path_context)
                                 for path_context in proof_contexts_seen]):
                             coq.cancel_last()
+                            transition = assign_failed_reward(
+                                context_before.relevant_lemmas,
+                                context_before.prev_tactics,
+                                proof_context_before,
+                                proof_context_after,
+                                try_action,
+                                -50)
+                            memory.append(transition)
                             if args.ghosts:
-                                graph.addGhostTransition(cur_node,
-                                                         try_action)
+                                ghost_node = graph.addGhostTransition(
+                                    cur_node, try_action)
+                                transition.graph_node = ghost_node
                             continue
                         action = try_action
                         break
                     except (serapi_instance.ParseError,
                             serapi_instance.CoqExn,
                             serapi_instance.TimeoutError):
+                        transition = assign_failed_reward(
+                            context_before.relevant_lemmas,
+                            context_before.prev_tactics,
+                            proof_context_before,
+                            proof_context_before,
+                            try_action,
+                            -500)
+                        memory.append(transition)
                         if args.ghosts:
-                            graph.addGhostTransition(cur_node, try_action)
+                            ghost_node = graph.addGhostTransition(cur_node,
+                                                                  try_action)
+                            transition.graph_node = ghost_node
                         pass
                 if action is None:
                     # We'll hit this case of we tried all of the
@@ -462,6 +481,14 @@ def reinforce_lemma(args: argparse.Namespace,
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
       List[LabeledTransition]:
     return random.sample(transitions, k)
+
+
+def assign_failed_reward(relevant_lemmas: List[str], prev_tactics: List[str],
+                         before: ProofContext, after: ProofContext,
+                         tactic: str, reward: int) \
+                         -> LabeledTransition:
+    return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
+                             tactic, reward, None)
 
 
 def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
