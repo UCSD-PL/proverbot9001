@@ -1204,7 +1204,10 @@ class SerapiInstance(threading.Thread):
                          for goal in cast(List[str],
                                           parseSexpOneLevel(fg_goals_str))],
                         unwrap(self.proof_context).bg_goals,
-                        unwrap(self.proof_context).shelved_goals,
+                        [self.parseSexpGoalStr(shelved_goal)
+                         for shelved_goal in
+                         cast(List[str],
+                              parseSexpOneLevel(shelved_goals_str))],
                         unwrap(self.proof_context).given_up_goals)
         except CoqExn:
             self.send_acked("(Query ((pp ((pp_format PpStr)))) Goals)")
