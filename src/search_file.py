@@ -422,6 +422,9 @@ def search_file_worker(args: argparse.Namespace,
                             rest_commands = all_commands
                             failing_lemma = lemma_statement
                         break
+                    except Exception:
+                        eprint(f"FAILED in file {next_file}, lemma {next_lemma}")
+                        raise
                     admit_proof(coq, lemma_statement)
                     if not tactic_solution:
                         solution = [
