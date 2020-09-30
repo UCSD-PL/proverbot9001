@@ -71,11 +71,11 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
         assert self._fpa
         assert self._estimator
         inner_predictions = self._fpa.predictKTactics(in_data, 16)
-        q_choices = zip(self._estimator(
+        q_choices = list(zip(self._estimator(
             [(in_data, prediction.prediction)
              for prediction in inner_predictions]),
-                        inner_predictions)
-        ordered_actions = [p[1] for p in
+                        inner_predictions))
+        ordered_actions = [Prediction(p[1].prediction, p[0]) for p in
                            sorted(q_choices,
                                   key=lambda q: q[0],
                                   reverse=True)]
