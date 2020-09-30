@@ -401,6 +401,9 @@ class FeaturesPolyargPredictor(
                   self.training_args.max_length))\
                   .view(1, stem_width, self.training_args.max_length + 1)
         goal_symbols = get_fpa_words(context.goal)
+        for i, sym in enumerate(goal_symbols[:self.training_args.max_length]):
+            if not re.match(r"^\w.*", sym):
+                goal_arg_values[:, :, i+1] = -float("Inf")
         for i in range(len(goal_symbols) + 1, goal_arg_values.size()[2]):
             goal_arg_values[:, :, i] = -float("Inf")
         assert goal_arg_values.size() == torch.Size([1, stem_width,
