@@ -686,6 +686,7 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 raise CoqAnomaly(coqexn_msg)
             elif "Unable to unify" in coqexn_msg:
+                self.get_completed()
                 self.cancel_failed()
                 raise CoqExn(coqexn_msg)
             else:
