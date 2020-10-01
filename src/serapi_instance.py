@@ -259,6 +259,7 @@ class SerapiInstance(threading.Thread):
         # Set up some threading stuff. I'm not totally sure what
         # daemon=True does, but I think I wanted it at one time or
         # other.
+        self.__zombie = False
         threading.Thread.__init__(self, daemon=True)
         # Open a process to coq, with streams for communicating with
         # it.
@@ -1281,12 +1282,12 @@ class SerapiInstance(threading.Thread):
 
     def run(self) -> None:
         assert self._fout
-        while(True):
+        while not self.__zombie:
             try:
                 line = self._fout.readline().decode('utf-8')
             except ValueError:
                 continue
-            if line == '':
+            if line.strip() == '':
                 break
             self.message_queue.put(line)
             eprint(f"RECEIVED: {line}", guard=self.verbose >= 4)
@@ -1326,6 +1327,7 @@ class SerapiInstance(threading.Thread):
         if self._proc.stdin:
             self._proc.stdin.close()
         self._proc.kill()
+        self.__zombie = True
         threading.Thread.join(self)
     pass
 
