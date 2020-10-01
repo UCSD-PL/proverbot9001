@@ -655,6 +655,7 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         for worker in workers:
             worker.join()
+        graph_drawer.join()
 
         model_name = dict(predictor.getOptions())["predictor"]
         stats: List[search_report.ReportStats] = []
