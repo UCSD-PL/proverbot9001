@@ -27,7 +27,6 @@ use std::fs::File;
 
 use crate::scraped_data::*;
 use crate::tokenizer::get_symbols;
-use edit_distance::edit_distance;
 use rayon::prelude::*;
 
 pub const VEC_FEATURES_SIZE: i64 = 1;
@@ -336,6 +335,45 @@ fn index_common<'a>(items: impl Iterator<Item = String>, n: usize) -> Vec<String
     }
     result
 }
+pub fn ratcliff_obershelp_string_similarity(s1: &str, s2: &str) -> f64 {
+    fn longest_common_substring_idxs(s1: &str, s2: &str) -> ((usize, usize), (usize, usize)) {
+        let mut max_length = 0;
+        let mut ending_index_1 = s1.len();
+        let mut ending_index_2 = s2.len();
+        let mut lookup = vec![vec![0; s2.len()+1]; s1.len()+1];
+
+        for (i, c1) in s1.chars().enumerate(){
+            for (j, c2) in s2.chars().enumerate() {
+                if c1 == c2 {
+                    lookup[i+1][j+1] = lookup[i][j] + 1;
+                    if lookup[i+1][j+1] > max_length {
+                        max_length = lookup[i+1][j+1];
+                        ending_index_1 = i+1;
+                        ending_index_2 = j+1;
+                    }
+                }
+            }
+        }
+        ((ending_index_1 - max_length, ending_index_1),
+         (ending_index_2 - max_length, ending_index_2))
+    }
+    fn matching_characters(s1: &str, s2: &str) -> usize {
+        let ((l1, r1), (l2, r2)) = longest_common_substring_idxs(s1, s2);
+        assert_eq!(r1 - l1, r2 - l2);
+        if l1 == r1 {
+            0
+        } else {
+            let left_rec = if l1 > 0 && l2 > 0 {
+                matching_characters(&s1[..l1], &s2[..l2])
+            } else { 0 };
+            let right_rec = if r1 < s1.len() && r2 < s2.len() {
+                matching_characters(&s1[r1..], &s2[r2..])
+            } else { 0 };
+            left_rec + (r1 - l1) + right_rec
+        }
+    }
+    (2.0 * matching_characters(s1, s2) as f64) / ((s1.len() + s2.len()) as f64)
+}
 
 pub fn score_hyps<'a>(
     max_distance: usize,
@@ -356,8 +394,7 @@ pub fn score_hyps<'a>(
                 .take(max_length)
                 .collect::<Vec<_>>()
                 .join(" ");
-            let score = edit_distance(&trunc_hyp_after_colon, &truncated_goal);
-            (score as f64) / (trunc_hyp_after_colon.len() as f64)
+            ratcliff_obershelp_string_similarity(&trunc_hyp_after_colon, &truncated_goal)
         })
         .collect()
 }
@@ -378,8 +415,7 @@ fn best_scored_hyp<'a>(
             .take(max_length)
             .collect::<Vec<_>>()
             .join(" ");
-        let score = (edit_distance(&trunc_hyp_after_colon, &truncated_goal) as f64) /
-            (trunc_hyp_after_colon.len() as f64);
+        let score = ratcliff_obershelp_string_similarity(&trunc_hyp_after_colon, &truncated_goal);
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
