@@ -23,7 +23,7 @@ import serapi_instance
 import tokenizer
 
 from models.q_estimator import QEstimator
-from util import maybe_cuda
+from util import maybe_cuda, eprint
 from format import TacticContext
 from models.components import WordFeaturesEncoder, DNNScorer
 
