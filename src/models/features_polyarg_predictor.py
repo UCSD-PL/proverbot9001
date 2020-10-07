@@ -412,7 +412,7 @@ class FeaturesPolyargPredictor(
                                                                 stem_width)
 
         num_probs = 1 + num_hyps + self.training_args.max_length
-        num_valid_probs = 1 + num_hyps + len(goal_symbols)
+        num_valid_probs = (1 + num_hyps + len(goal_symbols)) * stem_width
         if num_hyps > 0:
             encoded_goals = self._model.goal_encoder(goals_batch)\
                                        .view(1, 1, self.training_args.hidden_size)
