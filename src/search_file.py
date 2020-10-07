@@ -1258,7 +1258,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     g.setNodeColor(predictionNode, "orange4")
                     cleanupSearch(num_stmts,
                                   "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth and len(current_path) < args.hard_depth_limit:
+                elif len(current_path) < args.search_depth + new_extra_depth \
+                        and len(current_path) < args.hard_depth_limit:
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
