@@ -420,14 +420,9 @@ class FeaturesPolyargPredictor(
             hyps_batch = LongTensor(tokenized_premises)
             assert hyps_batch.size() == torch.Size([1, num_hyps,
                                                     self.training_args.max_length]), \
-                                                (hyps_batch.size(),
-                                                 num_hyps,
-                                                 self.training_args.max_length)
-            hyps_batch_expanded = hyps_batch.expand(stem_width, -1, -1)\
-                                            .contiguous()\
-                                            .view(stem_width * num_hyps,
-                                                  self.training_args.max_length)
-
+                                                    (hyps_batch.size(),
+                                                     num_hyps,
+                                                     self.training_args.max_length)
             hypfeatures_batch = FloatTensor(hyp_features)
             assert hypfeatures_batch.size() == \
                 torch.Size([1, num_hyps, hypFeaturesSize()]), \
