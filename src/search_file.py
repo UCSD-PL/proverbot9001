@@ -1186,6 +1186,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         with predictor_lock:
             predictions = predictor.predictKTactics(tactic_context_before,
                                                     args.max_attempts)
+            assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction + "; try hammer.",
