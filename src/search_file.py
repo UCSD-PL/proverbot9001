@@ -637,7 +637,8 @@ def search_file_multithreaded(args: argparse.Namespace,
         graph_drawer.start()
         num_already_done = sum([len(solutions)
                                 for solutions in file_solutions])
-        with tqdm(total=len(all_jobs) + num_already_done) as bar:
+        with tqdm(total=len(all_jobs) + num_already_done,
+                  dynamic_ncols=True) as bar:
             bar.update(n=num_already_done)
             bar.refresh()
             for _ in range(len(all_jobs)):
