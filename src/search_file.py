@@ -1260,6 +1260,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                   "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth \
                         and len(current_path) < args.hard_depth_limit:
+                    if subgoals_closed > 0:
+                        g.setNodeColor(predictionNode, "blue")
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
