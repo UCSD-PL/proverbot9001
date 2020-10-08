@@ -655,8 +655,6 @@ class FeaturesPolyargPredictor(
                             range(tensor.size()[0]),
                             range(tensor.size()[1]),
                             range(tensor.size()[2])):
-                        if tidx == 1 and k == 0:
-                            continue
                         assert tensor[i, j, k] == loaded_tensor[i, j, k], \
                             (tidx, i, j, k, (tensor[i, j, k:k+3],
                                              loaded_tensor[i, j, k:k+3]))
@@ -665,13 +663,9 @@ class FeaturesPolyargPredictor(
                         assert tensor[i] == loaded_tensor[i], \
                             (tidx, i, (tensor[i], loaded_tensor[i]))
                 else:
-                    if tidx == 5:
-                        continue
                     for (i, j) in itertools.product(
                             range(tensor.size()[0]),
                             range(tensor.size()[1])):
-                        if tidx == 4 and j == 2:
-                            continue
                         assert tensor[i, j] == loaded_tensor[i, j], \
                             (tidx, i, j, (tensor[i, j:j+3],
                                           loaded_tensor[i, j:j+3]))
