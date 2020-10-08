@@ -40,8 +40,6 @@ pub fn context_features(
         .par_iter()
         .map(|scraped| {
             best_scored_hyp(
-                args.max_string_distance,
-                args.max_length,
                 &scraped.context.focused_hyps(),
                 &scraped.context.focused_goal(),
             )
@@ -84,8 +82,6 @@ pub fn sample_context_features(
     goal: &String,
 ) -> (LongTensor1D, FloatTensor1D) {
     let (best_hyp, best_score) = best_scored_hyp(
-        args.max_string_distance,
-        args.max_length,
         &hypotheses,
         &goal,
     );
@@ -376,46 +372,24 @@ pub fn ratcliff_obershelp_string_similarity(s1: &str, s2: &str) -> f64 {
 }
 
 pub fn score_hyps<'a>(
-    max_distance: usize,
-    max_length: usize,
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
-    assert!(max_distance != 0);
-    let truncated_goal = get_symbols(goal)
-        .into_iter()
-        .take(max_length)
-        .collect::<Vec<_>>()
-        .join(" ");
     hyps.into_iter()
         .map(|hyp| {
-            let trunc_hyp_after_colon = get_symbols(get_hyp_type(hyp))
-                .into_iter()
-                .take(max_length)
-                .collect::<Vec<_>>()
-                .join(" ");
-            ratcliff_obershelp_string_similarity(&trunc_hyp_after_colon, &truncated_goal)
+            ratcliff_obershelp_string_similarity(get_hyp_type(hyp), goal)
         })
         .collect()
 }
 
 fn best_scored_hyp<'a>(
-    max_distance: usize,
-    max_length: usize,
     hyps: &'a Vec<String>,
     goal: &String,
 ) -> (&'a str, f64) {
     let mut best_hyp = "";
     let mut best_score = 1.0;
-    let mut truncated_goal = goal.clone();
-    truncated_goal.truncate(max_length);
     for hyp in hyps.iter() {
-        let trunc_hyp_after_colon = get_symbols(get_hyp_type(hyp))
-            .into_iter()
-            .take(max_length)
-            .collect::<Vec<_>>()
-            .join(" ");
-        let score = ratcliff_obershelp_string_similarity(&trunc_hyp_after_colon, &truncated_goal);
+        let score = ratcliff_obershelp_string_similarity(get_hyp_type(hyp), goal);
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;

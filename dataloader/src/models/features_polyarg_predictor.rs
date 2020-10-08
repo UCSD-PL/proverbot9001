@@ -210,8 +210,6 @@ pub fn features_polyarg_tensors(
         .zip(selected_prems)
         .map(|(scraped, selected)| {
             score_hyps(
-                args.max_string_distance,
-                args.max_length,
                 &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
                 &scraped.context.focused_goal(),
             )
@@ -296,8 +294,6 @@ pub fn sample_fpa_batch(
         .zip(context_batch.iter())
         .map(|(premises, context)| {
             score_hyps(
-                args.max_string_distance,
-                args.max_length,
                 premises,
                 &context.obligation.goal,
             )
@@ -389,8 +385,6 @@ pub fn sample_fpa(
         .chain(relevant_lemmas.into_iter())
         .collect();
     let premise_scores = score_hyps(
-        args.max_string_distance,
-        args.max_length,
         &all_premises,
         &goal,
     );
