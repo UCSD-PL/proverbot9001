@@ -75,6 +75,9 @@ class FeaturesQEstimator(QEstimator):
     def train(self, samples: List[Tuple[TacticContext, str, float]],
               batch_size: Optional[int] = None,
               num_epochs: int = 1) -> None:
+        for context, action, score in samples:
+            assert score < 2000, score
+            assert score != float("-Inf") and score != float("Inf") and score == score
         self.optimizer.zero_grad()
         state_word_features, vec_features = zip(*[self._features(state)
                                                   for state, _, _ in samples])
@@ -111,7 +114,7 @@ class FeaturesQEstimator(QEstimator):
                         self.optimizer.step()
                         # self.adjuster.step()
                 except RuntimeError:
-                    eprint("Samples scores were {[score for context, tac, score in samples]}")
+                    eprint(f"Samples scores were {[score for context, tac, score in samples]}")
                     raise
 
     def _features(self, context: TacticContext) \

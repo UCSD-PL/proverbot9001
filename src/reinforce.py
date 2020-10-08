@@ -414,6 +414,7 @@ def reinforce_lemma(args: argparse.Namespace,
                                 proof_context_after,
                                 try_action,
                                 -50)
+                            assert transition.reward < 2000
                             memory.append(transition)
                             if args.ghosts:
                                 ghost_node = graph.addGhostTransition(
@@ -432,6 +433,7 @@ def reinforce_lemma(args: argparse.Namespace,
                             proof_context_before,
                             try_action,
                             -500)
+                        assert transition.reward < 2000
                         memory.append(transition)
                         if args.ghosts:
                             ghost_node = graph.addGhostTransition(cur_node,
@@ -452,6 +454,7 @@ def reinforce_lemma(args: argparse.Namespace,
             cur_node = graph.addTransition(cur_node, action,
                                            transition.reward)
             transition.graph_node = cur_node
+            assert transition.reward < 2000
             episode_memory.append(transition)
             memory.append(transition)
             proof_contexts_seen.append(proof_context_after)
@@ -508,11 +511,13 @@ def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
         reward = 1000.0
     elif goals_changed != 0:
         reward = -(goals_changed * 30.0)
+        assert reward < 2000
     else:
         goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
             len(tokenizer.get_words(after.focused_goal))
         num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
         reward = goal_size_reward * 3 + num_hyps_reward
+        assert reward < 2000
     return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
                              tactic, reward, None)
 
