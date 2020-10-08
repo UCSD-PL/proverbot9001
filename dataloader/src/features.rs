@@ -377,7 +377,7 @@ pub fn score_hyps<'a>(
 ) -> Vec<f64> {
     hyps.into_iter()
         .map(|hyp| {
-            ratcliff_obershelp_string_similarity(get_hyp_type(hyp), goal)
+            ratcliff_obershelp_string_similarity(goal, get_hyp_type(hyp))
         })
         .collect()
 }
@@ -389,7 +389,7 @@ fn best_scored_hyp<'a>(
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {
-        let score = ratcliff_obershelp_string_similarity(get_hyp_type(hyp), goal);
+        let score = ratcliff_obershelp_string_similarity(goal, get_hyp_type(hyp));
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
