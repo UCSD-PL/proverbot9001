@@ -29,6 +29,8 @@ use crate::scraped_data::*;
 use crate::tokenizer::get_symbols;
 use rayon::prelude::*;
 
+use gestalt_ratio::gestalt_ratio;
+
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
 pub fn context_features(
@@ -331,53 +333,13 @@ fn index_common<'a>(items: impl Iterator<Item = String>, n: usize) -> Vec<String
     }
     result
 }
-pub fn ratcliff_obershelp_string_similarity(s1: &str, s2: &str) -> f64 {
-    fn longest_common_substring_idxs(s1: &str, s2: &str) -> ((usize, usize), (usize, usize)) {
-        let mut max_length = 0;
-        let mut ending_index_1 = s1.len();
-        let mut ending_index_2 = s2.len();
-        let mut lookup = vec![vec![0; s2.len()+1]; s1.len()+1];
-
-        for (i, c1) in s1.chars().enumerate(){
-            for (j, c2) in s2.chars().enumerate() {
-                if c1 == c2 {
-                    lookup[i+1][j+1] = lookup[i][j] + 1;
-                    if lookup[i+1][j+1] > max_length {
-                        max_length = lookup[i+1][j+1];
-                        ending_index_1 = i+1;
-                        ending_index_2 = j+1;
-                    }
-                }
-            }
-        }
-        ((ending_index_1 - max_length, ending_index_1),
-         (ending_index_2 - max_length, ending_index_2))
-    }
-    fn matching_characters(s1: &str, s2: &str) -> usize {
-        let ((l1, r1), (l2, r2)) = longest_common_substring_idxs(s1, s2);
-        assert_eq!(r1 - l1, r2 - l2);
-        if l1 == r1 {
-            0
-        } else {
-            let left_rec = if l1 > 0 && l2 > 0 {
-                matching_characters(&s1[..l1], &s2[..l2])
-            } else { 0 };
-            let right_rec = if r1 < s1.len() && r2 < s2.len() {
-                matching_characters(&s1[r1..], &s2[r2..])
-            } else { 0 };
-            left_rec + (r1 - l1) + right_rec
-        }
-    }
-    (2.0 * matching_characters(s1, s2) as f64) / ((s1.len() + s2.len()) as f64)
-}
-
 pub fn score_hyps<'a>(
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
     hyps.into_iter()
         .map(|hyp| {
-            ratcliff_obershelp_string_similarity(goal, get_hyp_type(hyp))
+            gestalt_ratio(goal, get_hyp_type(hyp))
         })
         .collect()
 }
@@ -389,7 +351,7 @@ fn best_scored_hyp<'a>(
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {
-        let score = ratcliff_obershelp_string_similarity(goal, get_hyp_type(hyp));
+        let score = gestalt_ratio(goal, get_hyp_type(hyp));
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
