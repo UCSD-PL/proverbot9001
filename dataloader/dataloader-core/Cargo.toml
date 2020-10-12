@@ -1,0 +1,30 @@
+[package]
+name = "dataloader"
+version = "0.1.0"
+authors = ["Alex Sanchez-Stern <alex.sanchezstern@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "dataloader"
+crate-type = ["cdylib"]
+
+[dependencies.pyo3]
+version = "0.8.5"
+features = ["extension-module"]
+
+[dependencies]
+serde = "*"
+serde_json = "*"
+edit-distance = "*"
+rayon = "*"
+regex = "*"
+lazy_static = "*"
+rand = "*"
+lalrpop-util = "0.18.1"
+bincode = "*"
+gestalt_ratio = { path = "../gestalt-ratio" }
+
+[build-dependencies]
+lalrpop = { version = "0.18.1", features = ["lexer"] }
