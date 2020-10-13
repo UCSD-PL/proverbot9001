@@ -553,11 +553,13 @@ def assign_scores(transitions: List[LabeledTransition],
         for transition, predictions in zip(transitions, prediction_lists):
             tactic_ctxt = transition.after_context
 
-            new_q = min(transition.reward +
-                        discount * max(q_estimator(
-                            [(tactic_ctxt, prediction.prediction)
-                             for prediction in predictions])),
-                        1000)
+            if len(transition.after.all_goals) == 0:
+                new_q = transition.reward
+            else:
+                new_q = transition.reward + \
+                    discount * max(q_estimator(
+                        [(tactic_ctxt, prediction.prediction)
+                         for prediction in predictions]))
 
             assert transition.reward == transition.reward
             assert discount == discount
