@@ -326,10 +326,9 @@ def search_file_worker_profiled(
         done:
         'multiprocessing.Queue['
         '  Tuple[Tuple[str, str, str], SearchResult]]',
-        graphs: GraphQueue,
         worker_idx: int) -> None:
     cProfile.runctx('search_file_worker(args, predictor, '
-                    'predictor_lock, jobs, done, graphs, worker_idx)',
+                    'predictor_lock, jobs, done, worker_idx)',
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
 
@@ -626,7 +625,6 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         for worker in workers:
             worker.join()
-        graph_drawer.join()
 
         model_name = dict(predictor.getOptions())["predictor"]
         stats: List[search_report.ReportStats] = []
