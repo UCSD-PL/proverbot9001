@@ -301,17 +301,11 @@ class FeaturesPolyargPredictor(
                   self.training_args.max_length))\
                                      .view(batch_size, stem_width, self.training_args.max_length + 1)
 
-        goal_arg_values = torch.where(goal_masks_batch.view(
+        goal_arg_values = torch.where(torch.ByteTensor(goal_masks_batch).view(
             batch_size, 1, self.training_args.max_length+1).expand(-1, stem_width, -1),
                                       goal_arg_values,
                                       torch.full_like(goal_arg_values,
                                                       -float("Inf")))
-
-        # goal_lengths = [len(get_fpa_words(context.goal))
-        #                 for context in context_batch]
-        # for b, l in enumerate(goal_lengths):
-        #     for i in range(l + 1, goal_arg_values.size()[2]):
-        #         goal_arg_values[b, :, i] = -float("Inf")
 
         encoded_goals_batch = self._model.goal_encoder(goals_batch)
 
@@ -408,7 +402,7 @@ class FeaturesPolyargPredictor(
             .view(1 * stem_width,
                   self.training_args.max_length))\
                                     .view(1, stem_width, self.training_args.max_length + 1)
-        goal_arg_values = torch.where(goal_mask.view(1, 1, -1).expand(-1, stem_width, -1),
+        goal_arg_values = torch.where(torch.ByteTensor(goal_mask).view(1, 1, -1).expand(-1, stem_width, -1),
                                       goal_arg_values,
                                       torch.full_like(goal_arg_values, -float("Inf")))
         assert goal_arg_values.size() == torch.Size([1, stem_width,
@@ -417,6 +411,7 @@ class FeaturesPolyargPredictor(
                                                                 stem_width)
 
         num_probs = 1 + num_hyps + self.training_args.max_length
+        goal_symbols = get_fpa_words(context.goal)
         num_valid_probs = (1 + num_hyps + len(goal_symbols)) * stem_width
         if num_hyps > 0:
             encoded_goals = self._model.goal_encoder(goals_batch)\
