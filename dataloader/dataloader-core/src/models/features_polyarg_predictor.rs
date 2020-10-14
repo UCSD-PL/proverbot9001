@@ -76,6 +76,7 @@ pub fn features_polyarg_tensors(
         FloatUnpaddedTensor3D,
         LongTensor1D,
         LongTensor2D,
+        BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
         LongTensor1D,
@@ -184,6 +185,27 @@ pub fn features_polyarg_tensors(
             )
         })
         .collect();
+    let goal_symbols_mask = raw_data
+        .par_iter()
+        .map(|scraped| {
+            let mut vec: Vec<_> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(args.max_length)
+                .map(|goal_word| {
+                    lazy_static! {
+                        static ref STARTS_WITH_LETTER: Regex =
+                            Regex::new(r"^\w.*").expect("Couldn't compile regex");
+                    }
+                    STARTS_WITH_LETTER.is_match(goal_word)
+                })
+                .collect();
+            if vec.len() < args.max_length {
+                vec.extend([false].repeat(args.max_length - vec.len()));
+            }
+            vec.insert(0, true);
+            vec
+        })
+        .collect();
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
         .par_iter()
         .map(|scraped| {
@@ -232,6 +254,7 @@ pub fn features_polyarg_tensors(
             hyp_features,
             num_prems,
             tokenized_goals,
+            goal_symbols_mask,
             word_features,
             vec_features,
             tactic_stem_indices,
@@ -261,6 +284,7 @@ pub fn sample_fpa_batch(
     FloatUnpaddedTensor3D,
     LongTensor1D,
     LongTensor2D,
+    BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
 ) {
@@ -280,9 +304,11 @@ pub fn sample_fpa_batch(
         .unzip();
 
     let premises_batch: Vec<Vec<String>> = context_batch
-        .iter()
+        .par_iter()
         .map(|ctxt| {
-            ctxt.obligation.hypotheses.iter()
+            ctxt.obligation
+                .hypotheses
+                .iter()
                 .chain(ctxt.relevant_lemmas.iter())
                 .map(|p| p.clone())
                 .collect()
@@ -290,20 +316,15 @@ pub fn sample_fpa_batch(
         .collect();
 
     let premise_scores_batch: Vec<Vec<f64>> = premises_batch
-        .iter()
-        .zip(context_batch.iter())
-        .map(|(premises, context)| {
-            score_hyps(
-                premises,
-                &context.obligation.goal,
-            )
-        })
+        .par_iter()
+        .zip(context_batch.par_iter())
+        .map(|(premises, context)| score_hyps(premises, &context.obligation.goal))
         .collect();
 
     let premise_features_batch = premises_batch
-        .iter()
-        .zip(premise_scores_batch.iter())
-        .zip(context_batch.iter())
+        .par_iter()
+        .zip(premise_scores_batch.par_iter())
+        .zip(context_batch.par_iter())
         .map(|((premises, scores), ctxt)| {
             premises
                 .iter()
@@ -316,13 +337,34 @@ pub fn sample_fpa_batch(
         .collect();
 
     let tgoals_batch = context_batch
-        .iter()
+        .par_iter()
         .map(|ctxt| {
             normalize_sentence_length(
                 tokenizer.tokenize(&ctxt.obligation.goal),
                 args.max_length,
                 0,
             )
+        })
+        .collect();
+    let goal_symbols_mask = context_batch
+        .par_iter()
+        .map(|ctxt| {
+            let mut vec: Vec<_> = get_words(&ctxt.obligation.goal)
+                .into_iter()
+                .take(args.max_length)
+                .map(|goal_word| {
+                    lazy_static! {
+                        static ref STARTS_WITH_LETTER: Regex =
+                            Regex::new(r"^\w.*").expect("Couldn't compile regex");
+                    }
+                    STARTS_WITH_LETTER.is_match(goal_word)
+                })
+                .collect();
+            if vec.len() < args.max_length {
+                vec.extend([false].repeat(args.max_length - vec.len()));
+            }
+            vec.insert(0, true);
+            vec
         })
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
@@ -351,6 +393,7 @@ pub fn sample_fpa_batch(
         premise_features_batch,
         num_hyps_batch,
         tgoals_batch,
+        goal_symbols_mask,
         word_features_batch,
         vec_features_batch,
     )
@@ -368,6 +411,7 @@ pub fn sample_fpa(
     FloatUnpaddedTensor3D,
     LongTensor1D,
     LongTensor2D,
+    BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
 ) {
@@ -384,16 +428,32 @@ pub fn sample_fpa(
         .into_iter()
         .chain(relevant_lemmas.into_iter())
         .collect();
-    let premise_scores = score_hyps(
-        &all_premises,
-        &goal,
-    );
+    let premise_scores = score_hyps(&all_premises, &goal);
     let premise_features = all_premises
         .iter()
         .zip(premise_scores.iter())
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
+
+    let goal_symbols_mask = {
+        let mut unpadded_mask: Vec<_> = get_words(&goal)
+            .into_iter()
+            .take(args.max_length)
+            .map(|goal_word| {
+                lazy_static! {
+                    static ref STARTS_WITH_LETTER: Regex =
+                        Regex::new(r"^\w.*").expect("Couldn't compile regex");
+                }
+                STARTS_WITH_LETTER.is_match(goal_word)
+            })
+            .collect();
+        if unpadded_mask.len() < args.max_length {
+            unpadded_mask.extend([false].repeat(args.max_length - unpadded_mask.len()));
+        }
+        unpadded_mask.insert(0, true);
+        unpadded_mask
+    };
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
@@ -411,6 +471,7 @@ pub fn sample_fpa(
         vec![premise_features],
         vec![num_hyps as i64],
         vec![tokenized_goal],
+        vec![goal_symbols_mask],
         vec![word_features],
         vec![vec_features],
     )

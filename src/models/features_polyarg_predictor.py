@@ -155,6 +155,7 @@ class GoalTokenArgModel(nn.Module):
         catted = torch.cat(copy_likelyhoods, dim=1)
         return catted
 
+
 class HypArgModel(nn.Module):
     def __init__(self, goal_data_size : int,
                  stem_vocab_size : int,
@@ -168,6 +169,7 @@ class HypArgModel(nn.Module):
         self._in_hidden = maybe_cuda(EncoderDNN(hidden_size + goal_data_size, hidden_size, hidden_size, 1))
         self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._likelyhood_decoder = maybe_cuda(EncoderDNN(hidden_size + hyp_features_size, hidden_size, 1, 2))
+
     def forward(self, stems_batch : torch.LongTensor,
                 goals_encoded_batch : torch.FloatTensor, hyps_batch : torch.LongTensor,
                 hypfeatures_batch : torch.FloatTensor):
@@ -277,6 +279,7 @@ class FeaturesPolyargPredictor(
 
         tprems_batch, pfeat_batch, \
             nhyps_batch, tgoals_batch, \
+            goal_masks_batch, \
             wfeats_batch, vfeats_batch = \
             sample_fpa_batch(extract_dataloader_args(self.training_args),
                              self._metadata,
@@ -298,11 +301,17 @@ class FeaturesPolyargPredictor(
                   self.training_args.max_length))\
                                      .view(batch_size, stem_width, self.training_args.max_length + 1)
 
-        goal_lengths = [len(get_fpa_words(context.goal))
-                        for context in context_batch]
-        for b, l in enumerate(goal_lengths):
-            for i in range(l + 1, goal_arg_values.size()[2]):
-                goal_arg_values[b, :, i] = -float("Inf")
+        goal_arg_values = torch.where(goal_masks_batch.view(
+            batch_size, 1, self.training_args.max_length+1).expand(-1, stem_width, -1),
+                                      goal_arg_values,
+                                      torch.full_like(goal_arg_values,
+                                                      -float("Inf")))
+
+        # goal_lengths = [len(get_fpa_words(context.goal))
+        #                 for context in context_batch]
+        # for b, l in enumerate(goal_lengths):
+        #     for i in range(l + 1, goal_arg_values.size()[2]):
+        #         goal_arg_values[b, :, i] = -float("Inf")
 
         encoded_goals_batch = self._model.goal_encoder(goals_batch)
 
@@ -366,15 +375,17 @@ class FeaturesPolyargPredictor(
                 in zip(stem_idxs_list, arg_idxs_list, final_probs_list,
                        context_batch, nhyps_batch)]
 
-    def predictKTactics(self, context : TacticContext, k : int) -> List[Prediction]:
+    def predictKTactics(self, context: TacticContext, k: int) -> List[Prediction]:
         assert self.training_args
         assert self._model
 
         num_stem_poss = get_num_tokens(self._metadata)
-        stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
+        stem_width = min(self.training_args.max_beam_width, num_stem_poss,
+                         k ** 2)
 
         tokenized_premises, hyp_features, \
             nhyps_batch, tokenized_goal, \
+            goal_mask, \
             word_features, vec_features = \
                 sample_fpa(extract_dataloader_args(self.training_args),
                            self._metadata,
@@ -392,17 +403,14 @@ class FeaturesPolyargPredictor(
         goals_batch = LongTensor(tokenized_goal)
         goal_arg_values = self._model.goal_args_model(
             stem_idxs.view(1 * stem_width),
-            goals_batch.view(1, 1, self.training_args.max_length)\
-            .expand(-1, stem_width, -1).contiguous()\
+            goals_batch.view(1, 1, self.training_args.max_length)
+            .expand(-1, stem_width, -1).contiguous()
             .view(1 * stem_width,
                   self.training_args.max_length))\
-                  .view(1, stem_width, self.training_args.max_length + 1)
-        goal_symbols = get_fpa_words(context.goal)
-        for i, sym in enumerate(goal_symbols[:self.training_args.max_length]):
-            if not re.match(r"^\w.*", sym) or sym in goal_symbols[:i]:
-                goal_arg_values[:, :, i+1] = -float("Inf")
-        for i in range(len(goal_symbols) + 1, goal_arg_values.size()[2]):
-            goal_arg_values[:, :, i] = -float("Inf")
+                                    .view(1, stem_width, self.training_args.max_length + 1)
+        goal_arg_values = torch.where(goal_mask.view(1, 1, -1).expand(-1, stem_width, -1),
+                                      goal_arg_values,
+                                      torch.full_like(goal_arg_values, -float("Inf")))
         assert goal_arg_values.size() == torch.Size([1, stem_width,
                                                      self.training_args.max_length + 1]),\
             "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
@@ -584,6 +592,7 @@ class FeaturesPolyargPredictor(
             unpadded_hyp_features, \
             num_hyps, \
             tokenized_goals, \
+            goal_masks, \
             word_features, \
             vec_features, \
             tactic_stem_indices, \
@@ -599,6 +608,7 @@ class FeaturesPolyargPredictor(
                                     batch_first=True),
                        torch.LongTensor(num_hyps),
                        torch.LongTensor(tokenized_goals),
+                       torch.ByteTensor(goal_masks),
                        torch.LongTensor(word_features),
                        torch.FloatTensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
@@ -667,11 +677,11 @@ class FeaturesPolyargPredictor(
                                 data_batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
-            tokenized_goals_batch, \
+            tokenized_goals_batch, goal_masks_batch, \
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
                 cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
-                           torch.LongTensor,
+                           torch.LongTensor, torch.ByteTensor,
                            torch.LongTensor, torch.FloatTensor,
                            torch.LongTensor, torch.LongTensor],
                      data_batch)
@@ -709,6 +719,11 @@ class FeaturesPolyargPredictor(
             tokenized_goals_batch.view(batch_size, 1, goal_size).expand(-1, stem_width, -1)
             .contiguous().view(batch_size * stem_width, goal_size))\
             .view(batch_size, stem_width, goal_size + 1)
+        goal_arg_values = torch.where(
+            maybe_cuda(goal_masks_batch.view(batch_size, 1, arg_values.max_length + 1))
+            .expand(-1, stem_width, -1),
+            goal_arg_values,
+            maybe_cuda(torch.full_like(goal_arg_values, -float("Inf"))))
         encoded_goals = model.goal_encoder(tokenized_goals_batch)
 
         hyp_lists_length = tokenized_hyp_types_batch.size()[1]
@@ -757,38 +772,6 @@ class FeaturesPolyargPredictor(
 
 def hypFeaturesSize() -> int:
     return 2
-
-
-def encodeHypsFeatureVecs(args: argparse.Namespace,
-                          goal: str, hyps: List[str]) -> torch.FloatTensor:
-    def features(hyp: str):
-        similarity_ratio = SequenceMatcher(None, goal,
-                                           serapi_instance.get_hyp_type(
-                                               hyp)).ratio()
-        is_equals_on_goal_token = 0.0
-        equals_match = re.match(r"eq\s+(.*)",
-                                serapi_instance.get_hyp_type(hyp),
-                                re.DOTALL)
-        if equals_match:
-            split = \
-                split_by_char_outside_matching(
-                    r"\(", r"\)", r"\s+",
-                    equals_match.group(1))
-
-            if split:
-                left_side, right_side = split
-                if left_side.strip() in goal:
-                    is_equals_on_goal_token = -1.0
-                elif right_side.strip() in goal:
-                    is_equals_on_goal_token = 1.0
-
-        if args.features:
-            return [similarity_ratio,
-                    is_equals_on_goal_token]
-        else:
-            return [0.0, 0.0]
-
-    return torch.FloatTensor([features(hyp) for hyp in hyps])
 
 
 def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:

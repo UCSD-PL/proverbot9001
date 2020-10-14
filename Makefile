@@ -117,7 +117,7 @@ publish-depv:
 
 src/dataloader.so: $(DATALOADER_SRC) dataloader/dataloader.pyi
 	cd dataloader && cargo build --release
-	cp dataloader/dataloader-core/target/release/libdataloader.so src/dataloader.so
+	cp dataloader/target/release/libdataloader.so src/dataloader.so
 	cp dataloader/dataloader.pyi src/
 
 clean:

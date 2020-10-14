@@ -88,6 +88,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             FloatUnpaddedTensor3D,
             LongTensor1D,
             LongTensor2D,
+            BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
             LongTensor1D,
@@ -110,6 +111,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             FloatUnpaddedTensor3D,
             LongTensor1D,
             LongTensor2D,
+            BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
             LongTensor1D,
@@ -130,6 +132,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         FloatUnpaddedTensor3D,
         LongTensor1D,
         LongTensor2D,
+        BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
     ) {
@@ -153,6 +156,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         FloatUnpaddedTensor3D,
         LongTensor1D,
         LongTensor2D,
+        BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
     ) {

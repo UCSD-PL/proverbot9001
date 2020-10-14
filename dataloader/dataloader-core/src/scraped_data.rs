@@ -41,8 +41,11 @@ pub type LongTensor2D = Vec<Vec<i64>>;
 pub type FloatTensor2D = Vec<Vec<f64>>;
 // pub type FloatUnpaddedTensor2D = Vec<Vec<f64>>;
 
+pub type BoolTensor2D = Vec<Vec<bool>>;
+
 pub type LongTensor1D = Vec<i64>;
 pub type FloatTensor1D = Vec<f64>;
+
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone)]
