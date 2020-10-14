@@ -47,8 +47,10 @@ FeaturesQMetadata = Tuple[Dict[str, int], Dict[str, int]]
 class FeaturesQEstimator(QEstimator):
     def __init__(self, learning_rate: float, batch_step: int, gamma: float) \
             -> None:
-        self.model = FeaturesQModel(32, 128,
-                                    2, 128, 3)
+        self._num_tactics = 32
+        self._num_tokens = 128
+        self.model = FeaturesQModel(self._num_tactics, self._num_tokens,
+                                    2, 128, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
         # self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
         #                                  gamma=gamma)
@@ -102,6 +104,7 @@ class FeaturesQEstimator(QEstimator):
                         torch.FloatTensor(expected_outputs)]]
         for epoch in range(0, num_epochs):
             for batch in batches:
+                self.optimizer.zero_grad()
                 word_features_batch, vec_features_batch, \
                     expected_outputs_batch = batch
                 try:

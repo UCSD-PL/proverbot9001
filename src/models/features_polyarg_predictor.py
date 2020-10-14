@@ -370,11 +370,8 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        beam_width=min(self.training_args.max_beam_width, k ** 2)
-
         num_stem_poss = get_num_tokens(self._metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss, k ** 2)
-
 
         tokenized_premises, hyp_features, \
             nhyps_batch, tokenized_goal, \
