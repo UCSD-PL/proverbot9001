@@ -99,9 +99,8 @@ impl<'source> FromPyObject<'source> for TacticContext {
 #[pymethods]
 impl TacticContext {
     #[new]
-    fn new(obj: &PyRawObject) {
-        let d: TacticContext = Default::default();
-        obj.init({ d });
+    fn new(obj: &PyRawObject, relevant_lemmas: Vec<String>, prev_tactics: Vec<String>, obligation: Obligation) {
+        obj.init({ TacticContext{relevant_lemmas, prev_tactics, obligation} });
     }
 }
 
@@ -116,9 +115,8 @@ pub struct Obligation {
 #[pymethods]
 impl Obligation {
     #[new]
-    fn new(obj: &PyRawObject) {
-        let d: Obligation = Default::default();
-        obj.init({ d });
+    fn new(obj: &PyRawObject, hypotheses: Vec<String>, goal: String) {
+        obj.init({ Obligation{hypotheses, goal} });
     }
 }
 
