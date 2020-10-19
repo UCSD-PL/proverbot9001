@@ -743,8 +743,8 @@ class SerapiInstance(threading.Thread):
                          raise_(CoqExn(searchStrsInMsg(msg))))
         except CoqExn as e:
             eprint("Coq exception when trying to convert to string:\n"
-                   f"{sexp_str}")
-            eprint(e)
+                   f"{sexp_str}", guard=self.verbose >= 1)
+            eprint(e, guard=self.verbose >= 2)
             raise
 
     def sexpToTermStr(self, sexp) -> str:
