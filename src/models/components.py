@@ -168,6 +168,32 @@ class DNNScorer(nn.Module):
             layer_values = getattr(self, "_layer{}".format(i))(layer_values)
         return self.out_layer(layer_values)
 
+    def print_weights(self) -> None:
+        if self.num_layers > 1:
+            eprint("In layer:")
+            for param in self.in_layer.parameters():
+                eprint(param.data)
+        for i in range(self.num_layers - 2):
+            eprint(f"Hidden layer {i}:")
+            for param in getattr(self, "_layer{}".format(i)).parameters():
+                eprint(param.data)
+        eprint("Out layer:")
+        for param in self.out_layer.parameters():
+            eprint(param.data)
+
+    def print_grads(self) -> None:
+        if self.num_layers > 1:
+            eprint("In layer:")
+            for param in self.in_layer.parameters():
+                eprint(param.grad)
+        for i in range(self.num_layers - 2):
+            eprint(f"Hidden layer {i}:")
+            for param in getattr(self, "_layer{}".format(i)).parameters():
+                eprint(param.grad)
+        eprint("Out layer:")
+        for param in self.out_layer.parameters():
+            eprint(param.grad)
+
 
 class WordFeaturesEncoder(nn.Module):
     def __init__(self, input_vocab_sizes : List[int],
