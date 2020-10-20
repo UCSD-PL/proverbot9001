@@ -107,18 +107,12 @@ class FeaturesQEstimator(QEstimator):
                 self.optimizer.zero_grad()
                 word_features_batch, vec_features_batch, \
                     expected_outputs_batch = batch
-                try:
-                    with autograd.detect_anomaly():
-                        outputs = self.model(word_features_batch,
-                                             vec_features_batch)
-                        loss = self.criterion(
-                            outputs, maybe_cuda(expected_outputs_batch))
-                        loss.backward()
-                        self.optimizer.step()
-                        # self.adjuster.step()
-                except RuntimeError:
-                    eprint(f"Samples scores were {[score for context, tac, score in samples]}")
-                    raise
+                outputs = self.model(word_features_batch,
+                                     vec_features_batch)
+                loss = self.criterion(
+                    outputs, maybe_cuda(expected_outputs_batch))
+                loss.backward()
+                self.optimizer.step()
 
     def _features(self, context: TacticContext) \
             -> Tuple[List[int], List[float]]:
