@@ -147,18 +147,25 @@ class DNNScorer(nn.Module):
           -> None:
         super().__init__()
         self.num_layers = num_layers
-        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        for i in range(num_layers - 1):
+        if self.num_layers > 1:
+            self.in_layer = maybe_cuda(nn.Linear(input_vocab_size,
+                                                 hidden_size))
+        for i in range(num_layers - 2):
             self.add_module("_layer{}".format(i),
                             maybe_cuda(nn.Linear(hidden_size, hidden_size)))
-        self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+        if self.num_layers > 1:
+            self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+        else:
+            self.out_layer = maybe_cuda(nn.Linear(input_vocab_size, 1))
 
-    def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
-        layer_values = self.in_layer(maybe_cuda(Variable(input)))
-        for i in range(self.num_layers - 1):
+    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+        if self.num_layers > 1:
+            layer_values = self.in_layer(maybe_cuda(Variable(input)))
+        else:
+            layer_values = input
+        for i in range(self.num_layers - 2):
             layer_values = F.relu(layer_values)
             layer_values = getattr(self, "_layer{}".format(i))(layer_values)
-        layer_values = F.relu(layer_values)
         return self.out_layer(layer_values)
 
 
