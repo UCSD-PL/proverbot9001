@@ -285,6 +285,31 @@ class FeaturesPolyargPredictor(
                              self._metadata,
                              [context_py2r(context)
                               for context in context_batch])
+        for tprem, pfeat, nhyp, tgoal, masks, wfeat, vfeat, context \
+            in zip(tprems_batch, pfeat_batch,
+                   nhyps_batch, tgoals_batch,
+                   goal_masks_batch, wfeats_batch,
+                   vfeats_batch, context_batch):
+            s_tprem, s_pfeat, s_nhyp, s_tgoal, s_masks, s_wfeat, s_vfeat = \
+                sample_fpa(extract_dataloader_args(self.training_args),
+                           self._metadata,
+                           context.relevant_lemmas,
+                           context.prev_tactics,
+                           context.hypotheses,
+                           context.goal)
+            assert len(s_tprem) == 1
+            assert len(tprem) == len(s_tprem[0])
+            for p1, p2 in zip(tprem, s_tprem[0]):
+                assert p1 == p2, (p1, p2)
+            assert len(s_pfeat) == 1
+            assert len(pfeat) == len(s_pfeat[0])
+            for f1, f2 in zip(pfeat, s_pfeat[0]):
+                assert f1 == f2, (f1, f2)
+            assert s_nhyp[0] == nhyp, (s_nhyp[0], nhyp)
+            assert s_tgoal[0] == tgoal, (s_tgoal[0], tgoal)
+            assert s_masks[0] == masks, (s_masks[0], masks)
+            assert s_wfeat[0] == wfeat, (s_wfeat[0], wfeat)
+            assert s_vfeat[0] == vfeat, (s_vfeat[0], vfeat)
 
         stem_distribution = self._model.stem_classifier(
             LongTensor(wfeats_batch), FloatTensor(vfeats_batch))
@@ -355,7 +380,7 @@ class FeaturesPolyargPredictor(
         arg_idxs_list = [final_idxs % (self.training_args.max_length + num_hyps + 1)
                          for final_idxs, num_hyps in zip(final_idxs_list, nhyps_batch)]
 
-        return [[Prediction(decode_fpa_result(
+        predictions = [[Prediction(decode_fpa_result(
             extract_dataloader_args(self.training_args),
             self._metadata,
             context.hypotheses + context.relevant_lemmas,
@@ -370,6 +395,14 @@ class FeaturesPolyargPredictor(
                 for stem_idxs, arg_idxs, final_probs, context, num_hyps
                 in zip(stem_idxs_list, arg_idxs_list, final_probs_list,
                        context_batch, nhyps_batch)]
+
+        for context, pred_list in zip(context_batch, predictions):
+            for batch_pred, single_pred in zip(pred_list,
+                                               self.predictKTactics(context, k)):
+                assert batch_pred.prediction == single_pred.prediction, \
+                    (batch_pred, single_pred)
+
+        return predictions
 
     def predictKTactics(self, context: TacticContext, k: int) -> List[Prediction]:
         assert self.training_args
