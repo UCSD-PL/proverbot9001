@@ -70,8 +70,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from util import *
-from typing import TypeVar, Generic
+from util import maybe_cuda, eprint
+from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
 
 S = TypeVar("S")
@@ -141,8 +141,10 @@ class DNNClassifier(nn.Module):
         layer_values = F.relu(layer_values)
         return self.softmax(self.out_layer(layer_values)).view(input.size()[0], -1)
 
+
 class DNNScorer(nn.Module):
-    def __init__(self, input_vocab_size : int, hidden_size : int, num_layers) -> None:
+    def __init__(self, input_vocab_size: int, hidden_size: int, num_layers) \
+          -> None:
         super().__init__()
         self.num_layers = num_layers
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))

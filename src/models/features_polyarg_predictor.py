@@ -299,10 +299,12 @@ class FeaturesPolyargPredictor(
             .expand(-1, stem_width, -1).contiguous()
             .view(batch_size * stem_width,
                   self.training_args.max_length))\
-                                     .view(batch_size, stem_width, self.training_args.max_length + 1)
+                                     .view(batch_size, stem_width,
+                                           self.training_args.max_length + 1)
 
         goal_arg_values = torch.where(torch.ByteTensor(goal_masks_batch).view(
-            batch_size, 1, self.training_args.max_length+1).expand(-1, stem_width, -1),
+            batch_size, 1, self.training_args.max_length+1)
+                                      .expand(-1, stem_width, -1),
                                       goal_arg_values,
                                       torch.full_like(goal_arg_values,
                                                       -float("Inf")))
@@ -401,10 +403,15 @@ class FeaturesPolyargPredictor(
             .expand(-1, stem_width, -1).contiguous()
             .view(1 * stem_width,
                   self.training_args.max_length))\
-                                    .view(1, stem_width, self.training_args.max_length + 1)
-        goal_arg_values = torch.where(torch.ByteTensor(goal_mask).view(1, 1, -1).expand(-1, stem_width, -1),
+                                     .view(1, stem_width,
+                                           self.training_args.max_length + 1)
+        goal_arg_values = torch.where(torch.ByteTensor(goal_mask)
+                                      .view(1, 1,
+                                            self.training_args.max_length + 1)
+                                      .expand(-1, stem_width, -1),
                                       goal_arg_values,
-                                      torch.full_like(goal_arg_values, -float("Inf")))
+                                      torch.full_like(goal_arg_values,
+                                                      -float("Inf")))
         assert goal_arg_values.size() == torch.Size([1, stem_width,
                                                      self.training_args.max_length + 1]),\
             "goal_arg_values.size(): {}; stem_width: {}".format(goal_arg_values.size(),
@@ -573,25 +580,27 @@ class FeaturesPolyargPredictor(
                 _, (old_arg_values, unparsed_args,
                     metadata, state) = torch.load(arg_values.start_from)
                 _, data_lists, \
-                (word_features_size, vec_features_size) = \
-                    features_polyarg_tensors_with_meta(extract_dataloader_args(arg_values),
-                                                       str(arg_values.scrape_file),
-                                                       metadata)
+                    (word_features_size, vec_features_size) = \
+                    features_polyarg_tensors_with_meta(
+                        extract_dataloader_args(arg_values),
+                        str(arg_values.scrape_file),
+                        metadata)
             else:
                 metadata, data_lists, \
-                (word_features_size, vec_features_size) = \
-                    features_polyarg_tensors(extract_dataloader_args(arg_values),
-                                             str(arg_values.scrape_file))
+                    (word_features_size, vec_features_size) = \
+                    features_polyarg_tensors(
+                        extract_dataloader_args(arg_values),
+                        str(arg_values.scrape_file))
         with print_time("Converting data to tensors", guard=arg_values.verbose):
             unpadded_tokenized_hyp_types, \
-            unpadded_hyp_features, \
-            num_hyps, \
-            tokenized_goals, \
-            goal_masks, \
-            word_features, \
-            vec_features, \
-            tactic_stem_indices, \
-            arg_indices = data_lists
+                unpadded_hyp_features, \
+                num_hyps, \
+                tokenized_goals, \
+                goal_masks, \
+                word_features, \
+                vec_features, \
+                tactic_stem_indices, \
+                arg_indices = data_lists
 
             tensors = [pad_sequence([torch.LongTensor(tokenized_hyps_list)
                                      for tokenized_hyps_list

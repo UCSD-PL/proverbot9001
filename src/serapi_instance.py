@@ -33,7 +33,7 @@ from dataclasses import dataclass
 import contextlib
 
 from typing import (List, Any, Optional, cast, Tuple, Union, Iterable,
-                    Iterator, Pattern, Match, TYPE_CHECKING, Dict)
+                    Iterator, Pattern, Match, Dict, TYPE_CHECKING)
 from tqdm import tqdm
 # These dependencies is in pip, the python package manager
 from pampy import match, _, TAIL
