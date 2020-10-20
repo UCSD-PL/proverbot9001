@@ -556,10 +556,15 @@ def assign_scores(transitions: List[LabeledTransition],
             if len(transition.after.all_goals) == 0:
                 new_q = transition.reward
             else:
-                new_q = transition.reward + \
-                    discount * max(q_estimator(
-                        [(tactic_ctxt, prediction.prediction)
-                         for prediction in predictions]))
+                estimates = q_estimator(
+                    [(tactic_ctxt, prediction.prediction)
+                     for prediction in predictions])
+                estimated_future_q = \
+                    discount * max(estimates)
+                estimated_current_q = q_estimator([(transition.before_context,
+                                                    transition.action)])[0]
+                new_q = transition.reward + estimated_future_q \
+                    - estimated_current_q
 
             assert transition.reward == transition.reward
             assert discount == discount
