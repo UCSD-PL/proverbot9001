@@ -51,6 +51,7 @@ class FeaturesQEstimator(QEstimator):
         self._num_tokens = 128
         self.model = FeaturesQModel(self._num_tactics, self._num_tokens,
                                     2, 128, 2)
+        # self.model = SimplifiedQModel(self._num_tactics, 4, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
         # self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
         #                                  gamma=gamma)
@@ -184,6 +185,24 @@ def emap_lookup(emap: Dict[T, int], size: int, item: T):
         return emap[item]
     else:
         return 0
+
+
+class SimplifiedQModel(nn.Module):
+    def __init__(self, num_tactics: int, hidden_size: int,
+                 num_layers: int) -> None:
+        super().__init__()
+        self.num_tactics = num_tactics
+        # self.embedding = maybe_cuda(nn.Embedding(num_tactics, hidden_size))
+        self.dnn = maybe_cuda(DNNScorer(num_tactics, hidden_size, num_layers))
+
+    def forward(self, tactics_batch: torch.LongTensor):
+        # embedded = self.embedding(tactics_batch)
+        one_hot = torch.nn.functional.one_hot(
+            tactics_batch, self.num_tactics).float()
+        return self.dnn(one_hot).view(tactics_batch.size()[0])
+
+    def print_weights(self) -> None:
+        self.dnn.print_weights()
 
 
 class FeaturesQModel(nn.Module):
