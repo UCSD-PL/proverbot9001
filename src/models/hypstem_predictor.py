@@ -19,13 +19,12 @@
 #
 ##########################################################################
 import argparse
-import time
 import math
 import threading
 import multiprocessing
 
-from typing import (Dict, Any, List, Tuple, Iterable, cast, Union,
-                    NamedTuple, Generic)
+from typing import (Dict, Any, List, Tuple, cast, NamedTuple, Generic,
+                    TypeVar)
 from argparse import Namespace
 from difflib import SequenceMatcher
 
@@ -40,13 +39,14 @@ from models.tactic_predictor import (TrainablePredictor, Prediction,
                                      add_tokenizer_args, embed_data,
                                      tokenize_goals, NeuralPredictorState)
 from models.components import (Embedding, StraightlineClassifierModel,
-                               DNNClassifierModel, SVMClassifierModel)
+                               DNNClassifierModel, SVMClassifierModel,
+                               PredictorState)
 from tokenizer import tokenizers, Tokenizer
 
 from data import (getNGramTokenbagVector, ListDataset, RawDataset)
 from format import ScrapedTactic, TacticContext
 
-from util import *
+from util import maybe_cuda, LongTensor, FloatTensor, list_topk
 import serapi_instance
 
 class HypStemSample(NamedTuple):
@@ -59,7 +59,7 @@ class HypStemDataset(ListDataset[HypStemSample]):
     pass
 
 ModelType = TypeVar("ModelType", bound=StraightlineClassifierModel)
-StateType = TypeVar("StateType")
+StateType = TypeVar("StateType", bound=PredictorState)
 
 class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embedding],
                                           StateType],
@@ -162,6 +162,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
         return prediction_lists, sum(losses)/len(losses)
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding],
                          state : StateType) -> None:
         self._tokenizer, self._embedding = metadata
@@ -169,6 +170,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
                                              self._embedding.num_tokens())
         self._model.setState(state)
         self.training_args = args
+        self.unparsed_args = unparsed_args
 
     def add_args_to_parser(self, parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
@@ -216,12 +218,15 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
 
 def term_relevance(goal : str, term: str):
     return SequenceMatcher(None, term, goal).ratio() * len(term)
-def most_relevant_hyp(inter : ScrapedTactic) -> Tuple[str, float]:
-    goal, hyp_list = inter.goal, inter.hypotheses
+
+
+def most_relevant_hyp(inter: ScrapedTactic) -> Tuple[str, float]:
+    goal, hyp_list = inter.context.focused_goal, inter.context.focused_hyps
     if len(hyp_list) == 0:
         return "", 0
-    result = max([(hyp_term, term_relevance(goal, serapi_instance.get_hyp_type(hyp_term)))
-                   for hyp_term in hyp_list], key=lambda x: x[1])
+    result = max([(hyp_term, term_relevance(
+        goal, serapi_instance.get_hyp_type(hyp_term)))
+                  for hyp_term in hyp_list], key=lambda x: x[1])
     return result
 
 

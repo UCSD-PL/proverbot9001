@@ -1,0 +1,49 @@
+
+use crate::context_filter_ast::ContextFilterAST;
+use std::str::FromStr;
+
+grammar;
+
+NamedFilter: ContextFilterAST = {
+    "none" => ContextFilterAST::None,
+    "all" => ContextFilterAST::All,
+    "goal-args" => ContextFilterAST::GoalArgs,
+    "hyp-args" => ContextFilterAST::HypArgs,
+    "rel-lemma-args" => ContextFilterAST::RelevantLemmaArgs,
+    "numeric-args" => ContextFilterAST::NumericArgs,
+    "no-semis" => ContextFilterAST::NoSemis,
+    "default" => ContextFilterAST::Default,
+}
+
+ParameterizedFilter: ContextFilterAST = {
+    "tactic" ":" <s:r"[a-zA-Z]\w*"> => ContextFilterAST::Tactic(s.to_string()),
+    "maxargs" ":" <s:r"[0-9]+"> => ContextFilterAST::MaxArgs(i64::from_str(s).unwrap()),
+}
+
+Ors: Vec<ContextFilterAST> = { // (1)
+    <v:(<CompoundFilter> "+")+> <e:CompoundFilter> =>  {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+};
+Ands: Vec<ContextFilterAST> = { // (1)
+    <v:(<CompoundFilter> "%")+> <e:CompoundFilter> =>  {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+};
+
+CompoundFilter: ContextFilterAST = {
+    NamedFilter => <>,
+    ParameterizedFilter => <>,
+    "(" <a:Ands> ")" => ContextFilterAST::And(<>),
+    "(" <o:Ors> ")" => ContextFilterAST::Or(<>),
+}
+
+pub ToplevelFilter: ContextFilterAST = {
+    CompoundFilter => <>,
+    Ands => ContextFilterAST::And(<>),
+    Ors => ContextFilterAST::Or(<>),
+}

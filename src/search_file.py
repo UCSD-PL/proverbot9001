@@ -26,28 +26,36 @@ import re
 import datetime
 import time
 import csv
+import multiprocessing
+import threading
+import json
+import queue
 import traceback
+import subprocess
+import cProfile
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
-                    Union, Iterator, Callable, Iterable)
+                    Union, Callable, cast,
+                    Any)
 
-from models.tactic_predictor import TacticPredictor
+from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import serapi_instance
-from serapi_instance import ProofContext, Obligation, SerapiInstance
+from serapi_instance import (ProofContext, Obligation, SerapiInstance)
 
-import linearize_semicolons
-# import syntax
-from format import TacticContext
+import data
+from format import TacticContext, ScrapedTactic
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
-import itertools
+import search_report
+import util
 from dataclasses import dataclass
-from enum import Enum, auto
 
 from tqdm import tqdm
 from yattag import Doc
 from pathlib_revised import Path2
+from enum import Enum
+import pygraphviz as pgv
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
@@ -56,17 +64,11 @@ details_css = "details.css"
 details_javascript = "search-details.js"
 
 
-class ReportStats(NamedTuple):
-    filename: str
-    num_proofs: int
-    num_proofs_failed: int
-    num_proofs_completed: int
-
-
-class SearchStatus(Enum):
-    SUCCESS = auto()
-    INCOMPLETE = auto()
-    FAILURE = auto()
+class SearchStatus(str, Enum):
+    SUCCESS = 'SUCCESS'
+    INCOMPLETE = 'INCOMPLETE'
+    SKIPPED = 'SKIPPED'
+    FAILURE = 'FAILURE'
 
 
 class VernacBlock(NamedTuple):
@@ -76,6 +78,16 @@ class VernacBlock(NamedTuple):
 class TacticInteraction(NamedTuple):
     tactic: str
     context_before: ProofContext
+
+    @classmethod
+    def from_dict(cls, data):
+        tactic = data['tactic']
+        context_before = ProofContext.from_dict(data['context_before'])
+        return cls(tactic, context_before)
+
+    def to_dict(self):
+        return {"tactic": self.tactic,
+                "context_before": self.context_before.to_dict()}
 
 
 class ProofBlock(NamedTuple):
@@ -94,6 +106,27 @@ class SourceChangedException(Exception):
     pass
 
 
+class SearchResult(NamedTuple):
+    status: SearchStatus
+    commands: Optional[List[TacticInteraction]]
+
+    @classmethod
+    def from_dict(cls, data):
+        status = SearchStatus(data['status'])
+        if data['commands'] is None:
+            commands = None
+        else:
+            commands = list(map(TacticInteraction.from_dict,
+                                data['commands']))
+        return cls(status, commands)
+
+    def to_dict(self):
+        assert self.commands
+        return {'status': self.status.name,
+                'commands': list(map(TacticInteraction.to_dict,
+                                     self.commands))}
+
+
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
 predictor: TacticPredictor
@@ -101,20 +134,14 @@ unnamed_goal_number: int
 
 
 def main(arg_list: List[str], bar_idx: int) -> None:
-    sys.setrecursionlimit(6500)
+    sys.setrecursionlimit(100000)
     global predictor
 
     args, parser = parse_arguments(arg_list)
+    util.use_cuda = False
     predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
-    coqargs = ["sertop", "--implicit"]
 
-    try:
-        with open(args.prelude + "/_CoqProject", 'r') as includesfile:
-            includes = includesfile.read()
-    except FileNotFoundError:
-        eprint("Didn't find a _CoqProject file in prelude dir")
-        includes = ""
     if not args.output_dir.exists():
         args.output_dir.makedirs()
 
@@ -124,16 +151,15 @@ def main(arg_list: List[str], bar_idx: int) -> None:
             srcpath = base.parent / 'reports' / filename
             srcpath.copyfile(destpath)
 
-    search_file(args, coqargs, includes, predictor, bar_idx)
+    search_file_multithreaded(args, predictor)
 
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
-        description=
-        "Produce an html report from attempting "
+        description="Produce an html report from attempting "
         "to complete proofs using Proverbot9001.")
-    parser.add_argument("--prelude", default=".")
+    parser.add_argument("--prelude", default=".", type=Path2)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
                         default="search-report",
@@ -161,6 +187,8 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         default=10)
     parser.add_argument("--search-depth", dest="search_depth", type=int,
                         default=6)
+    parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
+                        type=int, default=200)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch",
                         action='store_true')
@@ -175,7 +203,8 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-tactic-time", type=float, default=2)
     parser.add_argument("--linearize", action='store_true')
     parser.add_argument("--proof-times", default=None, type=Path2)
-    parser.add_argument('filename', help="proof file name (*.v)", type=Path2)
+    parser.add_argument('filenames', help="proof file name (*.v)",
+                        nargs='+', type=Path2)
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -192,8 +221,51 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--proof", default=None)
     parser.add_argument("--log-anomalies", type=Path2, default=None)
-    known_args, unknown_args = parser.parse_known_args(args_list)
+    parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
+    parser.add_argument("-j", "--num-threads", type=int, default=5)
+    if __name__ == "__main__":
+        known_args = parser.parse_args(args_list)
+    else:
+        known_args, unknown_args = parser.parse_known_args(args_list)
     return known_args, parser
+
+
+def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
+                  report_stats: List[search_report.ReportStats]) -> None:
+    predictorOptions = predictor.getOptions()
+    commit, date = get_metadata()
+    search_report.write_summary(args,
+                                predictorOptions +
+                                [("report type", "search"),
+                                 ("search width", args.search_width),
+                                 ("search depth", args.search_depth)],
+                                predictor.unparsed_args,
+                                commit, date, report_stats)
+
+
+def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
+      -> search_report.ReportStats:
+    num_proofs = 0
+    num_proofs_failed = 0
+    num_proofs_completed = 0
+    for block in blocks:
+        if isinstance(block, ProofBlock):
+            if block.status != SearchStatus.SKIPPED:
+                num_proofs += 1
+            if block.status == SearchStatus.SUCCESS:
+                num_proofs_completed += 1
+            elif block.status == SearchStatus.FAILURE:
+                num_proofs_failed += 1
+    return search_report.ReportStats(vfilename, num_proofs,
+                                     num_proofs_failed, num_proofs_completed)
+    pass
+
+
+def get_metadata() -> Tuple[str, datetime.datetime]:
+    cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
+                                         shell=True).decode('utf-8').strip()
+    cur_date = datetime.datetime.now()
+    return cur_commit, cur_date
 
 
 def get_predictor(parser: argparse.ArgumentParser,
@@ -210,6 +282,7 @@ def get_predictor(parser: argparse.ArgumentParser,
     return predictor
 
 
+# A few functions for profiling
 def reset_times(args: argparse.Namespace):
     if args.proof_times:
         with args.proof_times.open('w'):
@@ -222,310 +295,477 @@ def append_time(args: argparse.Namespace, action: str, seconds: float):
             f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
 
 
-def search_file(args: argparse.Namespace, coqargs: List[str],
-                includes: str, predictor: TacticPredictor,
-                bar_idx: int) -> None:
-    global unnamed_goal_number
-    unnamed_goal_number = 0
-    num_proofs = 0
-    num_proofs_failed = 0
-    num_proofs_completed = 0
-    commands_run: List[str] = []
-    blocks_out: List[DocumentBlock] = []
-    commands_caught_up = 0
-    lemmas_to_skip: List[str] = []
-
-    if args.resume:
-        try:
-            check_csv_args(args, args.filename)
-            with tqdm(total=1, unit="cmd", file=sys.stdout,
-                      desc=args.filename.name + " (Resumed)",
-                      disable=(not args.progress),
-                      leave=True,
-                      position=(bar_idx * 2),
-                      dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-                pbar.update(1)
-            if not args.progress:
-                print(f"Resumed {str(args.filename)} from existing state")
-            return
-        except FileNotFoundError:
-            reset_times(args)
-            pass
-        except ArgsMismatchException as e:
-            if not args.progress:
-                eprint(f"Arguments in csv for {str(args.filename)} "
-                       f"didn't match current arguments! {e} "
-                       f"Overwriting (interrupt to cancel).")
-
-    if args.linearize:
-        commands_in = linearize_semicolons.get_linearized(
-            args, coqargs, includes, bar_idx, str(args.filename))
+def admit_proof_cmds(lemma_statement: str) -> List[str]:
+    let_match = re.match(r"\s*Let\s*(.*)\.$",
+                         lemma_statement,
+                         flags=re.DOTALL)
+    if let_match and ":=" not in lemma_statement:
+        split = split_by_char_outside_matching(r"\(", r"\)", ":=",
+                                               let_match.group(1))
+        assert not split
+        name_and_type = let_match.group(1)
+        admitted_defn = f"Hypothesis {name_and_type}."
+        return ["Abort.", admitted_defn]
     else:
-        commands_in = serapi_instance.load_commands_preserve(
-            args, bar_idx, args.prelude / args.filename)
-    num_commands_total = len(commands_in)
-    lemma_statement = ""
+        return ["Admitted."]
 
-    # Run vernacular until the next proof (or end of file)
-    def run_to_next_proof(coq: serapi_instance.SerapiInstance, pbar: tqdm) \
-            -> str:
-        nonlocal commands_run
-        nonlocal commands_in
-        nonlocal blocks_out
-        vernacs: List[str] = []
-        assert not coq.proof_context
-        starttime = time.time()
-        while not coq.proof_context and len(commands_in) > 0:
-            next_in_command = commands_in.pop(0)
-            # Longer timeout for vernac stuff (especially requires)
-            coq.run_stmt(next_in_command, timeout=60)
-            if not coq.proof_context:
-                vernacs.append(next_in_command)
-                pbar.update(1)
-        append_time(args, "vernac", time.time() - starttime)
-        if len(vernacs) > 0:
-            blocks_out.append(VernacBlock(vernacs))
-            commands_run += vernacs
-            append_to_solution_vfile(args.output_dir, args.filename, vernacs)
-        return next_in_command
 
-    def run_to_next_vernac(coq: serapi_instance.SerapiInstance,
-                           pbar: tqdm,
-                           initial_full_context: ProofContext,
-                           lemma_statement: str) -> List[TacticInteraction]:
-        nonlocal commands_run
-        nonlocal commands_in
-        coq.run_stmt(lemma_statement)
-        original_tactics: List[TacticInteraction] = []
-        lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-        try:
-            starttime = time.time()
-            while coq.proof_context is not None:
-                next_in_command = commands_in.pop(0)
-                original_tactics.append(
-                    TacticInteraction(next_in_command,
-                                      coq.proof_context
-                                      or ProofContext([], [], [], [])))
-                coq.run_stmt(next_in_command, timeout=240)
-                pbar.update(1)
-            body_tactics = [t.tactic for t in original_tactics]
-            if next_in_command.strip() == "Defined.":
-                append_to_solution_vfile(args.output_dir, args.filename,
-                                         [f"Reset {lemma_name}.",
-                                          lemma_statement] + body_tactics)
-            commands_run.append(lemma_statement)
-            commands_run += body_tactics
-            append_time(args, "Orig: " + lemma_name, time.time() - starttime)
-        except Exception:
-            commands_in = [lemma_statement] + \
-                [t.tactic for t in original_tactics] \
-                + commands_in
-            raise
-        return original_tactics
+def admit_proof(coq: serapi_instance.SerapiInstance,
+                lemma_statement: str) -> List[str]:
+    admit_cmds = admit_proof_cmds(lemma_statement)
+    for cmd in admit_cmds:
+        coq.run_stmt(cmd)
+    return admit_cmds
 
-    def add_proof_block(coq: serapi_instance.SerapiInstance,
-                        status: SearchStatus,
-                        solution: Optional[List[TacticInteraction]],
-                        initial_full_context: ProofContext,
-                        original_tactics: List[TacticInteraction]) -> None:
-        nonlocal num_proofs_failed
-        nonlocal num_proofs_completed
-        nonlocal blocks_out
-        empty_context = ProofContext([], [], [], [])
-        # Append the proof data
-        if solution:
-            num_proofs_completed += 1
-            blocks_out.append(ProofBlock(
-                lemma_statement, coq.module_prefix, status,
-                [TacticInteraction("Proof.",
-                                   initial_full_context)] +
-                solution +
-                [TacticInteraction("Qed.", empty_context)],
-                original_tactics))
-        else:
-            blocks_out.append(ProofBlock(
-                lemma_statement, coq.module_prefix, status,
-                [TacticInteraction("Proof.",
-                                   initial_full_context),
-                 TacticInteraction("Admitted.",
-                                   initial_full_context)],
-                original_tactics))
 
-    if not args.progress:
-        print("Loaded {} commands for file {}".format(len(commands_in),
-                                                      args.filename))
-    with tqdm(total=num_commands_total, unit="cmd", file=sys.stdout,
-              desc=args.filename.name,
-              disable=(not args.progress),
-              leave=True,
-              position=(bar_idx * 2),
-              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        while len(commands_in) > 0:
-            try:
-                # print("Starting a coq instance...")
-                with serapi_instance.SerapiContext(
-                        coqargs,
-                        serapi_instance.get_module_from_filename(
-                            args.filename),
-                        includes, args.prelude, use_hammer=args.use_hammer
-                ) as coq:
-                    coq.verbose = args.verbose
-                    try_run_prelude(args, coq)
-                    if args.progress:
-                        pbar.reset()
-                    for command in commands_run:
-                        pbar.update(1)
-                        coq.run_stmt(command)
-                    if args.resume and len(commands_run) == 0:
-                        model_name = dict(predictor.getOptions())["predictor"]
-                        try:
-                            commands_run, commands_in, blocks_out, \
-                               num_proofs, num_proofs_failed, \
-                               num_proofs_completed, \
-                               num_original_commands_run = \
-                                   replay_solution_vfile(args, coq, model_name,
-                                                         args.filename,
-                                                         commands_in,
-                                                         bar_idx)
-                            pbar.update(num_original_commands_run)
-                        except FileNotFoundError:
-                            make_new_solution_vfile(args, model_name,
-                                                    args.filename)
-                            pass
-                        except (ArgsMismatchException,
-                                SourceChangedException) as e:
-                            eprint(f"Arguments in solution vfile for {str(args.filename)} "
-                                   f"didn't match current arguments, or sources mismatch! "
-                                   f"{e}")
-                            if args.overwrite_mismatch:
-                                eprint("Overwriting.")
-                                make_new_solution_vfile(args, model_name,
-                                                        args.filename)
-                                raise serapi_instance.CoqAnomaly("Replaying")
+def search_file_worker_profiled(
+        args: argparse.Namespace,
+        predictor: TacticPredictor,
+        predictor_lock: threading.Lock,
+        jobs: 'multiprocessing.Queue[Tuple[str, str, str]]',
+        done:
+        'multiprocessing.Queue['
+        '  Tuple[Tuple[str, str, str], SearchResult]]',
+        worker_idx: int) -> None:
+    cProfile.runctx('search_file_worker(args, predictor, '
+                    'predictor_lock, jobs, done, worker_idx)',
+                    globals(), locals(), 'searchstats-{}'.format(worker_idx))
+
+
+def search_file_worker(args: argparse.Namespace,
+                       predictor: TacticPredictor,
+                       predictor_lock: threading.Lock,
+                       jobs: 'multiprocessing.Queue[Tuple[str, str, str]]',
+                       done:
+                       'multiprocessing.Queue['
+                       '  Tuple[Tuple[str, str, str], SearchResult]]',
+                       worker_idx: int) -> None:
+    util.use_cuda = False
+
+    failing_lemma = ""
+    try:
+        next_file, next_module, next_lemma = jobs.get_nowait()
+    except queue.Empty:
+        return
+    all_commands = serapi_instance.load_commands_preserve(
+        args, worker_idx + 1, args.prelude / next_file)
+    rest_commands = all_commands
+    while rest_commands:
+        with serapi_instance.SerapiContext(["sertop", "--implicit"],
+                                           serapi_instance.
+                                           get_module_from_filename(next_file),
+                                           str(args.prelude)) as coq:
+            coq.quiet = True
+            coq.verbose = args.verbose
+
+            while next_lemma:
+                try:
+                    rest_commands, run_commands = coq.run_into_next_proof(
+                        rest_commands)
+                    if not rest_commands:
+                        eprint(f"Couldn't find lemma {next_lemma}!")
+                        break
+                except serapi_instance.CoqAnomaly:
+                    all_commands = serapi_instance.\
+                        load_commands_preserve(
+                            args, 0,
+                            args.prelude / next_file)
+                    rest_commands = all_commands
+                    break
+                except serapi_instance.SerapiException:
+                    eprint(f"Failed getting to before: {next_lemma}")
+                    raise
+                lemma_statement = run_commands[-1]
+                if lemma_statement == next_lemma:
+                    initial_context = coq.proof_context
+                    empty_context = ProofContext([], [], [], [])
+                    try:
+                        search_status, tactic_solution = \
+                            attempt_search(args, lemma_statement,
+                                           coq.module_prefix,
+                                           coq, worker_idx,
+                                           predictor,
+                                           predictor_lock)
+                    except serapi_instance.CoqAnomaly:
+                        if args.hardfail:
+                            raise
+                        if args.log_anomalies:
+                            with args.log_anomalies.open('a') as f:
+                                print(f"ANOMALY at {next_file}:{next_lemma}",
+                                      file=f)
+                                traceback.print_exc(file=f)
+                        if failing_lemma == lemma_statement:
+                            eprint("Hit the same anomaly twice! Skipping")
+                            if args.log_hard_anomalies:
+                                with args.log_hard_anomalies.open('a') as f:
+                                    print(
+                                        f"HARD ANOMALY at "
+                                        f"{next_file}:{next_lemma}",
+                                        file=f)
+                                    traceback.print_exc(file=f)
+                            solution = [
+                                TacticInteraction("Proof.", initial_context),
+                                TacticInteraction("Admitted.", initial_context)
+                            ]
+                            done.put(((next_file, coq.module_prefix,
+                                       next_lemma),
+                                      SearchResult(SearchStatus.INCOMPLETE,
+                                                   solution)))
+                            try:
+                                next_job = jobs.get_nowait()
+                            except queue.Empty:
+                                return
+                            new_file, next_module, next_lemma = next_job
+                            if new_file != next_file:
+                                next_file = new_file
+                                all_commands = serapi_instance.\
+                                    load_commands_preserve(
+                                        args, 0,
+                                        args.prelude / next_file)
+                                rest_commands = all_commands
+                                break
                             else:
-                                raise SourceChangedException
-
-                    if len(commands_run) > 0 and args.verbose:
-                        eprint("Caught up with commands:\n{}\n...\n{}"
-                               .format(commands_run[0].strip(),
-                                       commands_run[-1].strip()))
-                    while len(commands_in) > 0:
-                        lemma_statement = run_to_next_proof(coq, pbar)
-                        if len(commands_in) == 0:
-                            break
-                        if "Fixpoint" in lemma_statement or "Derive" in lemma_statement:
-                            coq.cancel_last()
-                            original_tactics = run_to_next_vernac(coq, pbar, coq.proof_context,
-                                                                  lemma_statement)
-                            original_commands = [lemma_statement] + [tac.tactic for tac in original_tactics]
-                            append_to_solution_vfile(args.output_dir, args.filename,
-                                                     [lemma_statement, "Proof.", "Admitted.",
-                                                      "Reset " + serapi_instance.lemma_name_from_statement(lemma_statement)
-                                                      + "."])
-                            append_to_solution_vfile(args.output_dir, args.filename,
-                                                     original_commands)
-                            blocks_out.append(VernacBlock(original_commands))
-                            continue
-                        if "Derive" in lemma_statement:
-                            coq.cancel_last()
-                            original_tactics = run_to_next_vernac(coq, pbar, coq.proof_context,
-                                                                  lemma_statement)
-                            original_commands = [lemma_statement] + [tac.tactic for tac in original_tactics]
-                            append_to_solution_vfile(args.output_dir, args.filename,
-                                                     original_commands)
-                            blocks_out.append(VernacBlock(original_commands))
-                            continue
-                        # Get beginning of next proof
-                        num_proofs += 1
-                        initial_context = coq.proof_context
-                        # Try to search
-                        if lemma_statement in lemmas_to_skip or \
-                           (args.proof and
-                            serapi_instance.lemma_name_from_statement(lemma_statement)
-                            != args.proof):
-                            search_status = SearchStatus.FAILURE
-                            tactic_solution : Optional[List[TacticInteraction]] = []
+                                rest_commands = all_commands
                         else:
-                            starttime = time.time()
-                            search_status, tactic_solution = \
-                                attempt_search(args, lemma_statement,
-                                               coq.module_prefix,
-                                               coq, bar_idx)
-                            append_time(args,
-                                        serapi_instance.
-                                        lemma_name_from_statement(lemma_statement),
-                                        time.time() - starttime)
-                        lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-                        if coq.proof_context:
-                            coq.run_stmt(f"Admitted.")
-                        if lemma_name:
-                            coq.run_stmt(f"Reset {lemma_name}.")
-                        else:
-                            coq.run_stmt(f"Back.")
-                        if tactic_solution:
-                            append_to_solution_vfile(args.output_dir, args.filename,
-                                                     [lemma_statement, "Proof."] +
-                                                     [tac.tactic for tac in tactic_solution]
-                                                     + ["Qed."])
-                        else:
-                            let_match = re.match("\s*Let\s*(.*)\.$",
-                                                 lemma_statement,
-                                                 flags=re.DOTALL)
-                            if let_match and not ":=" in lemma_statement:
-                                split = split_by_char_outside_matching("\(", "\)", ":=",
-                                                                       let_match.group(1))
-                                assert not split
-                                name_and_type = let_match.group(1)
-                                if search_status == SearchStatus.FAILURE:
-                                    postfix = "(*FAILURE*)"
-                                else:
-                                    postfix = "(*INCOMPLETE*)"
-                                admitted_defn = f"Hypothesis {name_and_type} {postfix}."
-                                admitted_cmds = [admitted_defn]
-                            else:
-                                if search_status == SearchStatus.FAILURE:
-                                    num_proofs_failed += 1
-                                    admitted = "Admitted (*FAILURE*)."
-                                else:
-                                    admitted = "Admitted (*INCOMPLETE*)."
-                                admitted_cmds = [lemma_statement, "Proof.\n", admitted]
-                            append_to_solution_vfile(args.output_dir, args.filename,
-                                                     admitted_cmds)
-                        # Run the original proof
-                        original_tactics = run_to_next_vernac(coq, pbar, initial_context,
-                                                              lemma_statement)
-                        add_proof_block(coq,
-                                        search_status, tactic_solution,
-                                        initial_context, original_tactics)
-            except serapi_instance.CoqAnomaly as e:
-                if args.log_anomalies:
-                    with args.log_anomalies.open('a') as f:
-                        traceback.print_exc(file=f)
-                if lemma_statement:
-                    commands_in.insert(0, lemma_statement)
-                if commands_caught_up == len(commands_run):
-                    eprint("Hit the same anomaly twice!")
-                    if lemma_statement in lemmas_to_skip:
-                        raise e
+                            rest_commands = all_commands
+                            failing_lemma = lemma_statement
+                        break
+                    except Exception:
+                        eprint(f"FAILED in file {next_file}, lemma {next_lemma}")
+                        raise
+                    admit_proof(coq, lemma_statement)
+                    if not tactic_solution:
+                        solution = [
+                            TacticInteraction("Proof.", initial_context),
+                            TacticInteraction("Admitted.", initial_context)]
                     else:
-                        eprint(
-                            f"Skipping "
-                            f"{serapi_instance.lemma_name_from_statement(lemma_statement)}"
-                            f"because of {e}")
-                        lemmas_to_skip.append(lemma_statement)
-                commands_caught_up = len(commands_run)
-                if args.hardfail:
-                    raise e
-                if args.verbose:
-                    eprint(f"Hit a coq anomaly {e.msg}! Restarting coq instance.")
-            except Exception as e:
-                eprint(f"FAILED: in file {str(args.filename)}, {repr(e)}")
-                raise
-    write_html(args, args.output_dir, args.filename, blocks_out)
-    write_csv(args, args.filename, blocks_out)
+                        solution = (
+                            [TacticInteraction("Proof.", initial_context)]
+                            + tactic_solution +
+                            [TacticInteraction("Qed.", empty_context)])
+                    while not serapi_instance.ending_proof(rest_commands[0]):
+                        rest_commands = rest_commands[1:]
+                    rest_commands = rest_commands[1:]
+                    done.put(((next_file, next_module, next_lemma),
+                              SearchResult(search_status, solution)))
+                    try:
+                        next_job = jobs.get_nowait()
+                    except queue.Empty:
+                        return
+                    new_file, next_module, next_lemma = next_job
+                    if new_file != next_file:
+                        next_file = new_file
+                        all_commands = serapi_instance.\
+                            load_commands_preserve(
+                                args, 0,
+                                args.prelude / next_file)
+                        rest_commands = all_commands
+                        break
+                else:
+                    proof_relevant = False
+                    for cmd in rest_commands:
+                        if serapi_instance.ending_proof(cmd):
+                            if cmd.strip() == "Defined.":
+                                proof_relevant = True
+                            break
+                    proof_relevant = proof_relevant or \
+                        bool(re.match(r"\s*Derive", lemma_statement))
+                    if proof_relevant:
+                        rest_commands, run_commands = coq.finish_proof(
+                            rest_commands)
+                    else:
+                        admit_proof(coq, lemma_statement)
+                        while not serapi_instance.ending_proof(
+                                rest_commands[0]):
+                            rest_commands = rest_commands[1:]
+                        rest_commands = rest_commands[1:]
 
-def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
-                javascript : List[str], title : str) -> None:
+                pass
+
+    pass
+
+
+def lemmas_in_file(filename: str, cmds: List[str]) \
+        -> List[Tuple[str, str]]:
+    lemmas = []
+    proof_relevant = False
+    in_proof = False
+    for cmd_idx, cmd in reversed(list(enumerate(cmds))):
+        if in_proof and serapi_instance.possibly_starting_proof(cmd):
+            in_proof = False
+            if not proof_relevant and not re.match(r"\s*Derive",  cmd):
+                lemmas.append((cmd_idx, cmd))
+        if serapi_instance.ending_proof(cmd):
+            in_proof = True
+            if cmd.strip() == "Defined.":
+                proof_relevant = True
+            else:
+                proof_relevant = False
+    module_stack = [serapi_instance.get_module_from_filename(filename)]
+    section_stack: List[str] = []
+    full_lemmas = []
+    for cmd_idx, cmd in enumerate(cmds):
+        # Module stuff
+        stripped_cmd = serapi_instance.kill_comments(
+            cmd).strip()
+        module_start_match = re.match(
+                      r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)",
+                      stripped_cmd)
+        if stripped_cmd.count(":=") > stripped_cmd.count("with"):
+            module_start_match = None
+        section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+                                       stripped_cmd)
+        end_match = re.match(r"End (\w*)\.", stripped_cmd)
+        if module_start_match:
+            module_stack.append(module_start_match.group(1))
+        elif section_start_match:
+            section_stack.append(section_start_match.group(1))
+        elif end_match:
+            if module_stack and \
+               module_stack[-1] == end_match.group(1):
+                module_stack.pop()
+            elif section_stack and section_stack[-1] == end_match.group(1):
+                section_stack.pop()
+            else:
+                assert False, \
+                    f"Unrecognized End \"{cmd}\", " \
+                    f"top of module stack is {module_stack[-1]}"
+            # Done
+        if (cmd_idx, cmd) in lemmas:
+            full_lemmas.append(("".join([module + "."
+                                         for module
+                                         in module_stack]),
+                                cmd))
+    return full_lemmas
+
+
+def recover_sol(sol: Dict[str, Any]) -> SearchResult:
+    return SearchResult.from_dict(sol)
+
+
+def search_file_multithreaded(args: argparse.Namespace,
+                              predictor: TacticPredictor) -> None:
+    with multiprocessing.Manager() as manager:
+        jobs: multiprocessing.Queue[
+            Tuple[str, str, str]] = multiprocessing.Queue()
+        done: multiprocessing.Queue[
+            Tuple[Tuple[str, str, str], SearchResult]
+        ] = multiprocessing.Queue()
+
+        # This cast appears to be needed due to a buggy type stub on
+        # multiprocessing.Manager()
+        predictor_lock = cast(multiprocessing.managers.SyncManager,
+                              manager).Lock()
+
+        all_jobs: List[Tuple[str, str, str]] = []
+        file_solutions: List[List[Tuple[Tuple[str, str, str], SearchResult]]
+                             ] = [list() for _ in range(len(args.filenames))]
+
+        for filename, solutions in zip(args.filenames, file_solutions):
+            cmds = serapi_instance.load_commands_preserve(
+                args, 0, args.prelude / filename)
+            proofs_file = (args.output_dir / (filename.stem + "-proofs.txt"))
+            all_lemma_statements = lemmas_in_file(filename, cmds)
+            lemma_statements_todo = list(all_lemma_statements)
+
+            if args.resume:
+                try:
+                    with proofs_file.open('r') as f:
+                        for line in f:
+                            (filename, module_prefix, done_lemma_stmt), sol = \
+                                json.loads(line)
+                            try:
+                                lemma_statements_todo.remove((module_prefix,
+                                                              done_lemma_stmt))
+                            except ValueError:
+                                eprint(f"module_prefix: {module_prefix}, "
+                                       f"done_lemma_stmt: {done_lemma_stmt}")
+                                raise
+                            solutions.append(((filename, module_prefix,
+                                               done_lemma_stmt),
+                                              recover_sol(sol)))
+                        eprint(f"Resumed from {str(proofs_file)}")
+                        pass
+                except FileNotFoundError:
+                    pass
+            for module_prefix, lemma_statement in lemma_statements_todo:
+                if not args.proof or \
+                   args.proof == serapi_instance.lemma_name_from_statement(
+                       lemma_statement):
+                    all_jobs.append((str(filename), module_prefix,
+                                     lemma_statement))
+        for job in all_jobs:
+            jobs.put(job)
+        workers = [multiprocessing.Process(target=search_file_worker,
+                                           args=(args, predictor,
+                                                 predictor_lock,
+                                                 jobs, done, widx))
+                   for widx in range(min(args.num_threads,
+                                         len(all_jobs)))]
+        for worker in workers:
+            worker.start()
+        num_already_done = sum([len(solutions)
+                                for solutions in file_solutions])
+        with tqdm(total=len(all_jobs) + num_already_done,
+                  dynamic_ncols=True) as bar:
+            bar.update(n=num_already_done)
+            bar.refresh()
+            for _ in range(len(all_jobs)):
+                (done_file, done_module, done_lemma), sol = done.get()
+                proofs_file = (args.output_dir /
+                               (Path2(done_file).stem + "-proofs.txt"))
+                with proofs_file.open('a') as f:
+                    f.write(json.dumps(((done_file, done_module, done_lemma),
+                                        sol.to_dict())))
+                    f.write("\n")
+                dict(zip(map(str, args.filenames),
+                         file_solutions))[done_file].append(
+                    ((done_file, done_module, done_lemma), sol))
+                bar.update()
+
+        for worker in workers:
+            worker.join()
+
+        model_name = dict(predictor.getOptions())["predictor"]
+        stats: List[search_report.ReportStats] = []
+        for filename, solutions in zip(args.filenames, file_solutions):
+            blocks = blocks_from_scrape_and_sols(
+                args.prelude / filename,
+                [(lemma_stmt, module_name, sol)
+                 for (filename, module_name, lemma_stmt), sol
+                 in solutions])
+            write_solution_vfile(args, filename, model_name, blocks)
+            write_html(args, args.output_dir, filename, blocks)
+            write_csv(args, filename, blocks)
+            stats.append(stats_from_blocks(blocks, str(filename)))
+
+        produce_index(args, predictor, stats)
+    pass
+
+
+def blocks_from_scrape_and_sols(
+        src_filename: Path2,
+        lemma_statements_done: List[Tuple[str, str, SearchResult]]
+        ) -> List[DocumentBlock]:
+
+    interactions = data.read_all_text_data(
+        src_filename.with_suffix(".v.scrape"))
+
+    def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
+        for lstmt, lmod, lresult in lemma_statements_done:
+            if (lmod == module and
+                    serapi_instance.kill_comments(lstmt).strip()
+                    == serapi_instance.kill_comments(lemma_stmt).strip()):
+                return lresult
+        return None
+
+    def generate():
+        cur_lemma_stmt = ""
+
+        module_stack = [serapi_instance.get_module_from_filename(src_filename)]
+        section_stack: List[str] = []
+
+        tactics_interactions_batch: List[TacticInteraction] = []
+        vernac_cmds_batch: List[str] = []
+
+        in_proof = False
+        for interaction in interactions:
+
+            if in_proof and isinstance(interaction, str):
+                module_prefix = "".join([module + "." for module
+                                         in module_stack])
+                result = lookup(module_prefix, cur_lemma_stmt)
+                batch_without_brackets = [t for t in tactics_interactions_batch
+                                          if t.tactic.strip() != "{" and
+                                          t.tactic.strip() != "}"]
+                if result is None:
+                    yield ProofBlock(cur_lemma_stmt, module_prefix,
+                                     SearchStatus.SKIPPED, [],
+                                     batch_without_brackets)
+                else:
+                    yield ProofBlock(cur_lemma_stmt, module_prefix,
+                                     result.status, result.commands,
+                                     batch_without_brackets)
+                tactics_interactions_batch = []
+                in_proof = False
+            elif in_proof and isinstance(interaction, ScrapedTactic):
+                tactics_interactions_batch.append(
+                    interaction_from_scraped(interaction))
+            elif isinstance(interaction, ScrapedTactic):
+                assert not in_proof and isinstance(interaction, ScrapedTactic)
+                cur_lemma_stmt = vernac_cmds_batch[-1]
+                yield VernacBlock(vernac_cmds_batch[:-1])
+                vernac_cmds_batch = []
+                tactics_interactions_batch = []
+                tactics_interactions_batch.append(
+                    interaction_from_scraped(interaction))
+                in_proof = True
+            if isinstance(interaction, str):
+                # Module stuff
+                stripped_cmd = serapi_instance.kill_comments(
+                    interaction).strip()
+                module_start_match = re.match(
+                    r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)",
+                    stripped_cmd)
+                if stripped_cmd.count(":=") > stripped_cmd.count("with"):
+                    module_start_match = None
+                section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+                                               stripped_cmd)
+                end_match = re.match(r"End (\w*)\.", stripped_cmd)
+                if module_start_match:
+                    module_stack.append(module_start_match.group(1))
+                elif section_start_match:
+                    section_stack.append(section_start_match.group(1))
+                elif end_match:
+                    if module_stack and \
+                       module_stack[-1] == end_match.group(1):
+                        module_stack.pop()
+                    elif section_stack and \
+                            section_stack[-1] == end_match.group(1):
+                        section_stack.pop()
+                    else:
+                        assert False, \
+                            f"Unrecognized End \"{interaction}\", " \
+                            f"top of module stack is {module_stack[-1]}"
+                vernac_cmds_batch.append(interaction)
+        pass
+    blocks = list(generate())
+    return blocks
+
+
+def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
+    return TacticInteraction(s.tactic, s.context)
+
+
+def write_solution_vfile(args: argparse.Namespace, filename: Path2,
+                         model_name: str,
+                         doc_blocks: List[DocumentBlock]):
+    with (args.output_dir / (filename.stem + "-solution.v")
+          ).open('w') as sfile:
+        for k, v in [("search-width", args.search_width),
+                     ("search-depth", args.search_depth),
+                     ("model", model_name)]:
+            print(f"(* {k}: {v} *)", file=sfile)
+
+        for block in doc_blocks:
+            if isinstance(block, VernacBlock):
+                for cmd in block.commands:
+                    print(cmd, file=sfile, end='')
+            else:
+                assert isinstance(block, ProofBlock)
+                print(block.lemma_statement, end='', file=sfile)
+                if block.predicted_tactics:
+                    for tac in block.predicted_tactics:
+                        print(tac.tactic, file=sfile)
+                else:
+                    for tac in block.original_tactics:
+                        print(tac.tactic, file=sfile)
+
+        pass
+
+
+def html_header(tag: Tag, doc: Doc, text: Text, css: List[str],
+                javascript: List[str], title: str) -> None:
     with tag('head'):
         for filename in css:
             doc.stag('link', href=filename, rel='stylesheet')
@@ -536,8 +776,11 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[DocumentBlock]):
-    with open("{}/{}.csv".format(args.output_dir, escape_filename(str(filename))),
+
+def write_csv(args: argparse.Namespace, filename: str,
+              doc_blocks: List[DocumentBlock]):
+    with open("{}/{}.csv".format(args.output_dir,
+                                 escape_filename(str(filename))),
               'w', newline='') as csvfile:
         for k, v in vars(args).items():
             csvfile.write("# {}: {}\n".format(k, v))
@@ -549,47 +792,10 @@ def write_csv(args : argparse.Namespace, filename : str, doc_blocks : List[Docum
                                     block.status,
                                     len(block.original_tactics)])
 
-def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[str]]:
-    params : Dict[str, str] = {}
-    f_iter = iter(f)
-    final_line = ""
-    for line in f_iter:
-        param_match = re.match("# (.*): (.*)", line)
-        if param_match:
-            params[param_match.group(1)] = param_match.group(2)
-        else:
-            final_line = line
-            break
-    rest_iter : Iterable[str]
-    if final_line == "":
-        rest_iter = iter([])
-    else:
-        rest_iter = itertools.chain([final_line], f_iter)
-    return argparse.Namespace(**params), rest_iter
 
-important_args = ["prelude", "context_filter", "weightsfile", "predictor", "search_width", "search_depth"]
-
-def check_csv_args(args : argparse.Namespace, vfilename : Path2) -> None:
-    num_proofs = 0
-    num_proofs_failed = 0
-    num_proofs_completed = 0
-    with open(args.output_dir / (escape_filename(str(vfilename)) + ".csv"),
-              'r', newline='') as csvfile:
-        if args.check_consistent:
-            saved_args, rest_iter = read_csv_options(csvfile)
-            for arg in important_args:
-                try:
-                    oldval = str(vars(saved_args)[arg])
-                    newval = str(vars(args)[arg])
-                    if oldval != newval:
-                        raise ArgsMismatchException(f"Old value of {arg} is {oldval}, "
-                                                    f"new value is {newval}")
-                except KeyError:
-                    raise ArgsMismatchException(f"No old value for arg {arg} found.")
-
-def write_html(args : argparse.Namespace,
-               output_dir : str, filename : Path2,
-               doc_blocks : List[DocumentBlock]) -> None:
+def write_html(args: argparse.Namespace,
+               output_dir: str, filename: Path2,
+               doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
     doc, tag, text, line = Doc().ttl()
@@ -607,54 +813,71 @@ def write_html(args : argparse.Namespace,
                                        status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):
-                            write_tactics(args, block.predicted_tactics, block_idx,
+                            write_tactics(args, block.predicted_tactics,
+                                          block_idx,
                                           tag, text, doc)
                         with tag('div', klass='original'):
-                            write_tactics(args, block.original_tactics, block_idx,
+                            write_tactics(args, block.original_tactics,
+                                          block_idx,
                                           tag, text, doc)
-    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))), 'w') as fout:
-        # fout.write(syntax.syntax_highlight(doc.getvalue()))
+    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))),
+              'w') as fout:
         fout.write(doc.getvalue())
 
-def write_lemma_button(lemma_statement : str, module : Optional[str],
-                       status_klass : str, tag : Tag, text : Text):
+
+def write_lemma_button(lemma_statement: str, module: Optional[str],
+                       status_klass: str, tag: Tag, text: Text):
     global unnamed_goal_number
     lemma_name = \
         serapi_instance.lemma_name_from_statement(lemma_statement)
-    module_prefix = escape_lemma_name(module)
+    if module:
+        module_prefix = escape_lemma_name(module)
+    else:
+        module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
         fullname = module_prefix + lemma_name + str(unnamed_goal_number)
     else:
         fullname = module_prefix + lemma_name
-    with tag('button', klass='collapsible {}'.format(status_klass),
-             onmouseover="hoverLemma(\"{}\")".format(fullname),
-             onmouseout="unhoverLemma(\"{}\")".format(fullname)):
-        with tag('code', klass='buttontext'):
-            text(lemma_statement.strip())
-def write_commands(commands : List[str], tag : Tag, text : Text, doc : Doc):
+    if status_klass != "skipped":
+        with tag('button', klass='collapsible {}'.format(status_klass),
+                 onmouseover="hoverLemma(\"{}\")".format(fullname),
+                 onmouseout="unhoverLemma(\"{}\")".format(fullname)):
+            with tag('code', klass='buttontext'):
+                text(lemma_statement.strip())
+    else:
+        with tag('button', klass='collapsible {}'.format(status_klass)):
+            with tag('code', klass='buttontext'):
+                text(lemma_statement.strip())
+
+
+def write_commands(commands: List[str], tag: Tag, text: Text, doc: Doc):
     for cmd in commands:
         with tag('code', klass='plaincommand'):
             text(cmd.strip("\n"))
         doc.stag('br')
 
-def escape_quotes(term : str):
+
+def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
 
-def subgoal_to_string(args : argparse.Namespace, sg : Obligation) -> str:
+
+def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
 
-def write_tactics(args : argparse.Namespace,
-                  tactics : List[TacticInteraction],
-                  region_idx : int,
-                  tag : Tag, text : Text, doc : Doc):
+
+def write_tactics(args: argparse.Namespace,
+                  tactics: List[TacticInteraction],
+                  region_idx: int,
+                  tag: Tag, text: Text, doc: Doc):
     for t_idx, t in enumerate(tactics):
         idStr = '{}-{}'.format(region_idx, t_idx)
         subgoals_str = "(" + ",".join([subgoal_to_string(args, subgoal)
                                        for subgoal in
-                                       t.context_before.all_goals[:args.max_print_subgoals]]) + ")"
+                                       t.context_before.all_goals[
+                                           :args.max_print_subgoals]]) + ")"
         with tag('span',
                  ('data-subgoals', subgoals_str),
                  id='command-{}'.format(idStr),
@@ -664,180 +887,16 @@ def write_tactics(args : argparse.Namespace,
                 text(t.tactic.strip())
             doc.stag('br')
 
-def classFromSearchStatus(status : SearchStatus) -> str:
+
+def classFromSearchStatus(status: SearchStatus) -> str:
     if status == SearchStatus.SUCCESS:
         return 'good'
     elif status == SearchStatus.INCOMPLETE:
         return 'okay'
+    elif status == SearchStatus.SKIPPED:
+        return 'skipped'
     else:
         return 'bad'
-
-def make_new_solution_vfile(args : argparse.Namespace, model_name : str,
-                            filename : Path2) -> None:
-    solution_vfile_path = (args.output_dir / escape_filename(str(filename)))\
-        .with_suffix(".v")
-    with solution_vfile_path.open(mode='w') as f:
-        for k, v in [("search-width", args.search_width),
-                     ("search-depth", args.search_depth),
-                     ("model", model_name)]:
-            print(f"(* {k}: {v} *)", file=f)
-
-def append_to_solution_vfile(outdir : Path2, filename : Path2,
-                             lines : List[str]) -> None:
-    solution_vfile_path = (outdir / escape_filename(str(filename))).with_suffix(".v")
-    with solution_vfile_path.open(mode='a') as f:
-        for line in lines:
-            print(line.strip(), file=f, flush=True)
-
-def check_solution_vfile_args(args : argparse.Namespace, model_name : str,
-                              f_iter : Iterator[str]) -> Iterable[str]:
-    next_line = next(f_iter)
-    argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
-    checked_args = {"search-width":args.search_width,
-                    "search-depth":args.search_depth,
-                    "model": model_name}
-    while argline_match:
-        k, v = argline_match.group(1,2)
-        if not str(checked_args[k]) == v:
-            raise ArgsMismatchException(f"Arg mistmatch: {k} is {checked_args[k]} "
-                                        f"in cur report, {v} in file")
-        try:
-            next_line = next(f_iter)
-        except:
-            return f_iter
-        argline_match = re.match("\(\* (\S*): (\S*) \*\)", next_line)
-    return itertools.chain([next_line], f_iter)
-
-def replay_solution_vfile(args : argparse.Namespace, coq : serapi_instance.SerapiInstance,
-                          model_name : str, filename : Path2, commands_in : List[str],
-                          bar_idx : int) \
-                          -> Tuple[List[str], List[str], List[DocumentBlock],
-                                   int, int, int, int]:
-    blocks_out : List[DocumentBlock] = []
-    num_proofs = 0
-    num_proofs_failed = 0
-    num_proofs_completed = 0
-    num_original_commands_run = 0
-    in_proof = False
-    skip_sync_next_lemma = False
-    curLemma = ""
-    curProofInters : List[TacticInteraction] = []
-    curVernacCmds : List[str] = []
-    commands_run = []
-    with open(f"{args.output_dir}/{escape_filename(str(filename))}.v", 'r') as f:
-        print(f"Resuming from file {args.filename}")
-        f_iter = check_solution_vfile_args(args, model_name,
-                                           iter(f))
-        svfile_commands = serapi_instance.read_commands_preserve(args, bar_idx,
-                                                                 "".join(f_iter))
-        commands_in_iter = iter(commands_in)
-        def peek_loaded():
-            nonlocal commands_in_iter
-            item = next(commands_in_iter)
-            commands_in_iter = itertools.chain([item], commands_in_iter)
-            return item
-        with tqdm(total=len(svfile_commands),
-                  unit="cmd", file=sys.stdout,
-                  desc="Replaying", disable=(not args.progress),
-                  leave=False,position=(bar_idx*2),
-                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-            while svfile_commands:
-                saved_command = svfile_commands.pop(0)
-                pbar.update(1)
-                context_before = coq.proof_context or ProofContext([],[],[],[])
-                if re.match("\s*Hypothesis", saved_command) and \
-                   re.match("\s*Let", peek_loaded()):
-                    status_marker = unwrap(re.search("(\(\*(?:INCOMPLETE|FAILURE)\*\))",
-                                                     saved_command)).group(1)
-
-                    svfile_commands = [peek_loaded(), "Proof.",
-                                       f"Admitted {status_marker}."] + \
-                                       svfile_commands
-                    continue
-
-                if not(coq.proof_context != None and len(context_before.all_goals) == 0 and
-                       not (serapi_instance.ending_proof(saved_command) or
-                            re.match("\s*[}]", saved_command))):
-                    coq.run_stmt(saved_command)
-                if coq.proof_context == None:
-                    loaded_command = next(commands_in_iter)
-                    commands_run.append(loaded_command)
-                    if in_proof:
-                        if not skip_sync_next_lemma:
-                            curProofInters.append(TacticInteraction(saved_command, context_before))
-                            num_proofs += 1
-                            if re.match("Qed\.", saved_command):
-                                search_status = SearchStatus.SUCCESS
-                                num_proofs_completed += 1
-                            elif re.match("Admitted \(\*FAILURE\*\)\.", saved_command):
-                                search_status = SearchStatus.FAILURE
-                                num_proofs_failed += 1
-                            else:
-                                search_status = SearchStatus.INCOMPLETE
-                            lemma_name = serapi_instance.lemma_name_from_statement(curLemma)
-                            if lemma_name:
-                                coq.run_stmt(f"Reset {lemma_name}.")
-                            else:
-                                coq.run_stmt(f"Back.")
-
-                            origProofInters = []
-                    else:
-                        if re.match("Reset .*\.", saved_command):
-                            commands_in_iter = itertools.chain([loaded_command],
-                                                               commands_in_iter)
-                            commands_run = commands_run[:-1]
-                            skip_sync_next_lemma = True
-                            continue
-                        def normalize_command(cmd : str) -> str:
-                            return re.sub("\s*\(\*(?:INCOMPLETE|FAILURE)\*\)", "",
-                                          re.sub("Let", "Hypothesis",
-                                                 re.sub("\s+", " ", cmd.strip())))
-                        if not normalize_command(loaded_command) == \
-                           normalize_command(saved_command):
-                            raise SourceChangedException(
-                                f"Loaded command {normalize_command(loaded_command)} doesn't match saved command {normalize_command(saved_command)}")
-                        curVernacCmds.append(loaded_command)
-                    if in_proof:
-                        in_proof = False
-                        if not skip_sync_next_lemma:
-                            proof_cmds = list(serapi_instance.next_proof(
-                                itertools.chain([loaded_command], commands_in_iter)))
-                            coq.run_stmt(loaded_command)
-                            num_original_commands_run += len(proof_cmds)
-                            commands_run += proof_cmds[1:]
-                            for proof_cmd in tqdm(proof_cmds[1:], unit="tac", file=sys.stdout,
-                                                  desc="Running original proof",
-                                                  disable=(not args.progress),
-                                                  leave=False, position=(bar_idx * 2) + 1,
-                                                  dynamic_ncols=True, bar_format=mybarfmt):
-                                context_before_orig = coq.proof_context
-                                coq.run_stmt(proof_cmd)
-                                origProofInters.append(
-                                    TacticInteraction(proof_cmd, context_before_orig))
-                            blocks_out.append(ProofBlock(curLemma,
-                                                         coq.module_prefix,
-                                                         search_status,
-                                                         curProofInters, origProofInters))
-                            curProofInters = []
-                        else:
-                            commands_in_iter = itertools.chain([loaded_command],
-                                                               commands_in_iter)
-                            commands_run = commands_run[:-1]
-                            skip_sync_next_lemma = False
-
-                else:
-                    if not in_proof:
-                        in_proof = True
-                        curLemma = saved_command
-                        blocks_out.append(VernacBlock(curVernacCmds))
-                        curVernacCmds = []
-                    else:
-                        curProofInters.append(TacticInteraction(saved_command, context_before))
-        assert not in_proof
-        if curVernacCmds:
-            blocks_out.append(VernacBlock(curVernacCmds))
-        return commands_run, list(commands_in_iter), blocks_out,\
-            num_proofs, num_proofs_failed, num_proofs_completed, num_original_commands_run
 
 
 def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
@@ -861,83 +920,70 @@ def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
 
 # The core of the search report
 
-class SearchResult(NamedTuple):
-    status : SearchStatus
-    commands : Optional[List[TacticInteraction]]
 
 # This method attempts to complete proofs using search.
-def attempt_search(args : argparse.Namespace,
-                   lemma_statement : str,
-                   module_name : Optional[str],
-                   coq : serapi_instance.SerapiInstance,
-                   bar_idx : int) \
-    -> SearchResult:
-    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq, args, bar_idx)
+def attempt_search(args: argparse.Namespace,
+                   lemma_statement: str,
+                   module_name: Optional[str],
+                   coq: serapi_instance.SerapiInstance,
+                   bar_idx: int,
+                   predictor: TacticPredictor,
+                   predictor_lock: threading.Lock) \
+        -> SearchResult:
+    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq,
+                                         args, bar_idx, predictor,
+                                         predictor_lock)
     return result
 
-# This implementation is here for reference/documentation
-# def dfs_proof_search(lemma_statement : str, coq : serapi_instance.SerapiInstance,
-#                      args : argparse.Namespace) -> Optional[List[str]]:
-#     def get_context() -> TacticContext:
-#         return TacticContext(coq.prev_tactics, coq.hypotheses,
-#                              coq.goals)
-#     def predictions() -> List[str]:
-#         return [pred.prediction for pred in
-#                 predictor.predictKTactics(get_context(), args.search_width)]
-#     def search(current_path : List[str]) -> Optional[List[str]]:
-#         for prediction in predictions():
-#             try:
-#                 coq.quiet = True
-#                 coq.run_stmt(prediction)
-#                 if completed_proof(coq):
-#                     return current_path + [prediction]
-#                 elif len(current_path) + 1 < args.search_depth:
-#                     sub_search_result = search(current_path + [prediction])
-#                     if sub_search_result:
-#                         return sub_search_result
-#                 coq.cancel_last()
-#             except (serapi_instance.CoqExn, serapi_instance.TimeoutError):
-#                 continue
-#         return None
-#     return search([])
-
-import pygraphviz as pgv
-# from graphviz import Digraph
 
 @dataclass(init=True)
 class LabeledNode:
-    prediction : str
-    time_taken : Optional[float]
-    node_id : int
-    context_before : ProofContext
-    previous : Optional["LabeledNode"]
+    prediction: str
+    certainty: float
+    time_taken: Optional[float]
+    node_id: int
+    context_before: ProofContext
+    previous: Optional["LabeledNode"]
+
+
 class SearchGraph:
-    __graph : pgv.AGraph
-    __next_node_id : int
-    start_node : LabeledNode
-    def __init__(self, lemma_name : str) -> None:
+    __graph: pgv.AGraph
+    __next_node_id: int
+    start_node: LabeledNode
+
+    def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, ProofContext([],[],[],[]), None)
+        self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
+                                      ProofContext([], [], [], []),
+                                      None)
         self.start_node.time_taken = 0.0
         pass
-    def addPredictions(self, src : LabeledNode, context_before : ProofContext,
-                       predictions : List[str]) -> List[LabeledNode]:
+
+    def addPredictions(self, src: LabeledNode, context_before: ProofContext,
+                       predictions: List[Prediction]) -> List[LabeledNode]:
         return [self.mkNode(pred, context_before, src) for pred in predictions]
-    def mkNode(self, prediction : str, context_before : ProofContext,
-               previous_node : Optional[LabeledNode],
+
+    def mkNode(self, prediction: Prediction, context_before: ProofContext,
+               previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        self.__graph.add_node(self.__next_node_id, label=prediction, **kwargs)
+        self.__graph.add_node(self.__next_node_id,
+                              label="{}\n({})".format(prediction.prediction,
+                                                      prediction.certainty),
+                              **kwargs)
         self.__next_node_id += 1
-        newNode = LabeledNode(prediction, None, self.__next_node_id-1,
+        newNode = LabeledNode(prediction.prediction, prediction.certainty,
+                              None, self.__next_node_id-1,
                               context_before, previous_node)
         if previous_node:
-            self.__graph.add_edge(previous_node.node_id, newNode.node_id, **kwargs)
+            self.__graph.add_edge(previous_node.node_id,
+                                  newNode.node_id, **kwargs)
         return newNode
-    def mkQED(self, predictionNode : LabeledNode):
-        qedNode = self.mkNode("QED", ProofContext([],[],[],[]),
-                              predictionNode,
-                              fillcolor="green", style="filled")
+
+    def mkQED(self, predictionNode: LabeledNode):
+        self.mkNode(Prediction("QED", 1.0), ProofContext([], [], [], []),
+                    predictionNode,
+                    fillcolor="green", style="filled")
         cur_node = predictionNode
         cur_path = []
         while cur_node != self.start_node:
@@ -948,48 +994,49 @@ class SearchGraph:
         return [TacticInteraction(n.prediction, n.context_before)
                 for n in reversed(cur_path)]
         pass
-    def setNodeColor(self, node : LabeledNode, color : str) -> None:
+
+    def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["fillcolor"] = color
         node_handle.attr["style"] = "filled"
-    def draw(self, filename : str) -> None:
+
+    def draw(self, filename: str) -> None:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
+
+
 class SubSearchResult (NamedTuple):
-    solution : Optional[List[TacticInteraction]]
-    solved_subgoals : int
-def subgoalSurjective(newsub : Obligation,
-                      oldsub : Obligation) -> bool:
-    oldhyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in oldsub.hypotheses]
-    for newhyp_term in [serapi_instance.get_hyp_type(hyp)
-                        for hyp in newsub.hypotheses]:
-        if newhyp_term not in oldhyp_terms:
-            return False
-    return newsub.goal == oldsub.goal
-def contextSurjective(newcontext : ProofContext, oldcontext : ProofContext):
-    for oldsub in oldcontext.all_goals:
-        if not any([subgoalSurjective(newsub, oldsub)
-                    for newsub in newcontext.all_goals]):
-            return False
-    return len(newcontext.all_goals) >= len(oldcontext.all_goals)
-def contextInPath(full_context : ProofContext, path : List[LabeledNode]):
-    return any([contextSurjective(full_context, n.context_before)
+    solution: Optional[List[TacticInteraction]]
+    solved_subgoals: int
+
+
+def contextInPath(full_context: ProofContext, path: List[LabeledNode]):
+    return any([serapi_instance.contextSurjective(full_context,
+                                                  n.context_before)
                 for n in path])
-def numNodesInTree(branching_factor : int, depth : int):
+
+
+def numNodesInTree(branching_factor: int, depth: int):
     assert depth > 0, f"depth is {depth}"
-    result = int((branching_factor ** depth - 1) / \
+    result = int((branching_factor ** depth - 1) /
                  (branching_factor - 1))
     assert result >= 1, f"result is {result}"
     return result
-def time_on_path(node : LabeledNode) -> float:
-    if node.previous == None:
-        return node.time_taken
+
+
+def time_on_path(node: LabeledNode) -> float:
+    if node.previous is None:
+        return unwrap(node.time_taken)
     else:
-        return time_on_path(node.previous) + node.time_taken
-def tryPrediction(args : argparse.Namespace,
-                  coq : serapi_instance.SerapiInstance,
-                  prediction : str,
-                  previousNode : LabeledNode) -> Tuple[ProofContext, int, int, int, Optional[Exception], float]:
+        return time_on_path(unwrap(node.previous)) + unwrap(node.time_taken)
+
+
+def tryPrediction(args: argparse.Namespace,
+                  coq: serapi_instance.SerapiInstance,
+                  prediction: str,
+                  previousNode: LabeledNode) \
+                  -> Tuple[ProofContext, int, int, int,
+                           Optional[Exception], float, bool]:
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
@@ -999,8 +1046,11 @@ def tryPrediction(args : argparse.Namespace,
         error = None
     except (serapi_instance.TimeoutError, serapi_instance.ParseError,
             serapi_instance.CoqExn, serapi_instance.OverflowError,
+            serapi_instance.ParseError,
+            RecursionError,
             serapi_instance.UnrecognizedError) as e:
-        return coq.proof_context, 0, 0, 0, e, time.time() - start_time, False
+        return (unwrap(coq.proof_context), 0, 0, 0, e,
+                time.time() - start_time, False)
 
     time_taken = time.time() - start_time
     num_stmts = 1
@@ -1011,7 +1061,8 @@ def tryPrediction(args : argparse.Namespace,
         unshelved = True
         coq.run_stmt("Unshelve.")
         num_stmts += 1
-    while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
+    while len(unwrap(coq.proof_context).fg_goals) == 0 \
+            and not completed_proof(coq):
         coq.run_stmt("}")
         subgoals_closed += 1
         num_stmts += 1
@@ -1024,10 +1075,14 @@ def tryPrediction(args : argparse.Namespace,
         subgoals_opened = 0
     context_after = coq.proof_context
     assert context_after
-    return context_after, num_stmts, subgoals_closed, subgoals_opened, error, time_taken, unshelved
+    return (context_after, num_stmts, subgoals_closed,
+            subgoals_opened, error, time_taken, unshelved)
+
 
 goalBignessLimit = 3000
-def contextIsBig(context : ProofContext):
+
+
+def contextIsBig(context: ProofContext):
     for obligation in context.all_goals:
         for hypothesis in obligation.hypotheses:
             if len(hypothesis) > goalBignessLimit:
@@ -1035,57 +1090,76 @@ def contextIsBig(context : ProofContext):
         if len(obligation.goal) > goalBignessLimit:
             return True
     return False
-from tqdm import tqdm
+
+
 class TqdmSpy(tqdm):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._time = time.time
+
     @property
     def n(self):
         return self.__n
+
     @n.setter
     def n(self, value):
         self.__n = value
+
     def update(self, value):
         self.n = self.n + value
-        super().update(value);
-def dfs_proof_search_with_graph(lemma_statement : str,
-                                module_name : Optional[str],
-                                coq : serapi_instance.SerapiInstance,
-                                args : argparse.Namespace,
-                                bar_idx : int) \
+        super().update(value)
+
+
+def dfs_proof_search_with_graph(lemma_statement: str,
+                                module_name: Optional[str],
+                                coq: serapi_instance.SerapiInstance,
+                                args: argparse.Namespace,
+                                bar_idx: int,
+                                predictor: TacticPredictor,
+                                predictor_lock: threading.Lock) \
                                 -> SearchResult:
     global unnamed_goal_number
+    unnamed_goal_number = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(lemma_name)
-    def cleanupSearch(num_stmts : int, msg : Optional[str] = None):
+
+    if args.relevant_lemmas == "local":
+        relevant_lemmas = coq.local_lemmas[:-1]
+    elif args.relevant_lemmas == "hammer":
+        relevant_lemmas = coq.get_hammer_premises()
+    elif args.relevant_lemmas == "searchabout":
+        relevant_lemmas = coq.get_lemmas_about_head()
+    else:
+        assert False, args.relevant_lemmas
+
+    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
             eprint(f"Cancelling {num_stmts} statements "
                    f"because {msg}.", guard=args.verbose >= 2)
         for _ in range(num_stmts):
             coq.cancel_last()
     hasUnexploredNode = False
-    def search(pbar : tqdm, current_path : List[LabeledNode],
-               subgoal_distance_stack : List[int],
-               extra_depth : int) -> SubSearchResult:
+
+    def search(pbar: tqdm, current_path: List[LabeledNode],
+               subgoal_distance_stack: List[int],
+               extra_depth: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
-        if args.relevant_lemmas == "local":
-            relevant_lemmas = coq.local_lemmas[:-1]
-        elif args.relevant_lemmas == "hammer":
-            relevant_lemmas = coq.get_hammer_premises()
-        elif args.relevant_lemmas == "searchabout":
-            relevant_lemmas = coq.get_lemmas_about_head()
-        else:
-            assert False, args.relevant_lemmas
+        nonlocal predictor_lock
+        nonlocal relevant_lemmas
+        global unnamed_goal_number
         tactic_context_before = TacticContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               coq.hypotheses,
                                               coq.goals)
-        predictions = [prediction.prediction for prediction in
-                       predictor.predictKTactics(tactic_context_before, args.max_attempts)]
+        with predictor_lock:
+            predictions = predictor.predictKTactics(tactic_context_before,
+                                                    args.max_attempts)
+            assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
-            predictions = [prediction + "; try hammer." for prediction in predictions]
+            predictions = [Prediction(prediction.prediction + "; try hammer.",
+                                      prediction.certainty)
+                           for prediction in predictions]
         num_successful_predictions = 0
         for prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
@@ -1094,59 +1168,74 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                 context_after, num_stmts, \
                     subgoals_closed, subgoals_opened, \
                     error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction, current_path[-1])
+                    tryPrediction(args, coq, prediction.prediction,
+                                  current_path[-1])
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
                     if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction, proof_context_before,
+                        predictionNode = g.mkNode(prediction,
+                                                  unwrap(proof_context_before),
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
-                        g.setNodeColor(predictionNode, "red")
+                        if isinstance(error, RecursionError):
+                            g.setNodeColor(predictionNode, "grey75")
+                        else:
+                            g.setNodeColor(predictionNode, "red")
                     continue
                 num_successful_predictions += 1
                 pbar.update(1)
-                assert pbar.n > 0
+                assert cast(TqdmSpy, pbar).n > 0
 
-                predictionNode = g.mkNode(prediction, proof_context_before,
+                predictionNode = g.mkNode(prediction,
+                                          unwrap(proof_context_before),
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
-                    predictionNode = g.mkNode("Unshelve.", proof_context_before,
+                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0),
+                                              unwrap(proof_context_before),
                                               predictionNode)
                     predictionNode.time_taken = 0
 
-                #### 1.
+                # ### 1.
                 if subgoal_distance_stack:
                     new_distance_stack = (subgoal_distance_stack[:-1] +
                                           [subgoal_distance_stack[-1]+1])
                 else:
                     new_distance_stack = []
 
-                #### 2.
+                # ### 2.
                 new_extra_depth = extra_depth
                 for _ in range(subgoals_closed):
                     closed_goal_distance = new_distance_stack.pop()
                     new_extra_depth += closed_goal_distance
 
-                #### 3.
+                # ### 3.
                 new_distance_stack += [0] * subgoals_opened
 
                 #############
                 if completed_proof(coq):
                     solution = g.mkQED(predictionNode)
                     return SubSearchResult(solution, subgoals_closed)
-                elif contextInPath(context_after, current_path[1:] + [predictionNode]):
+                elif contextInPath(context_after,
+                                   current_path[1:] + [predictionNode]):
                     if not args.count_softfail_predictions:
                         num_successful_predictions -= 1
                     g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts, "resulting context is in current path")
+                    cleanupSearch(num_stmts,
+                                  "resulting context is in current path")
                 elif contextIsBig(context_after):
                     g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts, "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth:
-                    sub_search_result = search(pbar, current_path + [predictionNode],
-                                               new_distance_stack, new_extra_depth)
+                    cleanupSearch(num_stmts,
+                                  "resulting context has too big a goal")
+                elif len(current_path) < args.search_depth + new_extra_depth \
+                        and len(current_path) < args.hard_depth_limit:
+                    if subgoals_closed > 0:
+                        g.setNodeColor(predictionNode, "blue")
+                    sub_search_result = search(pbar,
+                                               current_path + [predictionNode],
+                                               new_distance_stack,
+                                               new_extra_depth)
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -1162,26 +1251,43 @@ def dfs_proof_search_with_graph(lemma_statement : str,
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0:
-                        depth = (args.search_depth + new_extra_depth + 1) \
-                            - len(current_path)
+                        # depth = (args.search_depth + new_extra_depth + 1) \
+                        #     - len(current_path)
                         return SubSearchResult(None, subgoals_closed)
-            except (serapi_instance.CoqExn, serapi_instance.TimeoutError,
-                    serapi_instance.OverflowError, serapi_instance.ParseError,
-                    serapi_instance.UnrecognizedError):
-                continue
-            except serapi_instance.NoSuchGoalError:
+            except serapi_instance.CoqAnomaly:
+                predictionNode = g.mkNode(prediction,
+                                          unwrap(proof_context_before),
+                                          current_path[-1])
+                g.setNodeColor(predictionNode, "grey25")
+                if module_name:
+                    module_prefix = escape_lemma_name(module_name)
+                else:
+                    module_prefix = ""
+                if lemma_name == "":
+                    unnamed_goal_number += 1
+                    g.draw(f"{args.output_dir}/{module_prefix}"
+                           f"{unnamed_goal_number}.svg")
+                else:
+                    g.draw(f"{args.output_dir}/{module_prefix}"
+                           f"{lemma_name}.svg")
                 raise
         return SubSearchResult(None, 0)
     total_nodes = numNodesInTree(args.search_width,
                                  args.search_depth + 2) - 1
+    desc_name = lemma_name
+    if len(desc_name) > 25:
+        desc_name = desc_name[:22] + "..."
     with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc="Proof", disable=(not args.progress),
+                 desc=desc_name, disable=(not args.progress),
                  leave=False,
-                 position=((bar_idx*2)+1),
+                 position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         command_list, _ = search(pbar, [g.start_node], [], 0)
         pbar.clear()
-    module_prefix = escape_lemma_name(module_name)
+    if module_name:
+        module_prefix = escape_lemma_name(module_name)
+    else:
+        module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
         g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}"
@@ -1196,12 +1302,14 @@ def dfs_proof_search_with_graph(lemma_statement : str,
         return SearchResult(SearchStatus.FAILURE, None)
 
 
-def completed_proof(coq : serapi_instance.SerapiInstance) -> bool:
+def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
     if coq.proof_context:
         return len(coq.proof_context.all_goals) == 0 and \
             coq.tactic_history.curDepth() == 0
     else:
         return False
 
+
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     main(sys.argv[1:], 0)

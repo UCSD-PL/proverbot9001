@@ -34,25 +34,32 @@ from models.tactic_predictor import (TrainablePredictor,
 from tokenizer import Tokenizer, limitNumTokens, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample)
-from util import *
-from format import ScrapedTactic, TacticContext, strip_scraped_output
+from util import maybe_cuda, LongTensor, FloatTensor, topk_with_filter
+from format import TacticContext, strip_scraped_output
 import serapi_instance
 
 import threading
 import multiprocessing
 import functools
 import sys
-from typing import List, NamedTuple, cast, Sequence, Dict
+import torch
+import time
+import math
+from typing import (List, NamedTuple, cast, Sequence, Dict, Tuple,
+                    Optional, Any, Iterable)
 import argparse
 from argparse import Namespace
 from difflib import SequenceMatcher
 
+
 class HypFeaturesSample(NamedTuple):
-    word_features : List[int]
-    vec_features : List[float]
-    goal : List[int]
-    best_hypothesis : List[int]
-    next_tactic : int
+    word_features: List[int]
+    vec_features: List[float]
+    goal: List[int]
+    best_hypothesis: List[int]
+    next_tactic: int
+
+
 class HypFeaturesDataset(ListDataset[HypFeaturesSample]):
     pass
 
@@ -205,6 +212,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
 
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding,
                                           List[WordFeature], List[VecFeature]],
                          state : NeuralPredictorState) -> None:
@@ -218,10 +226,18 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
-    def _data_tensors(self, encoded_data : HypFeaturesDataset,
-                      arg_values : Namespace) \
-        -> List[torch.Tensor]:
-        word_features, vec_features, goals, hyps, tactics = zip(*encoded_data)
+        self.unparsed_args = unparsed_args
+
+    def _data_tensors(self, encoded_data: HypFeaturesDataset,
+                      arg_values: Namespace) \
+            -> List[torch.Tensor]:
+        word_features, vec_features, goals, hyps, tactics = \
+            cast(Tuple[List[List[int]],
+                       List[List[float]],
+                       List[List[int]],
+                       List[List[int]],
+                       List[int]],
+                 zip(*encoded_data))
         return [torch.LongTensor(word_features),
                 torch.FloatTensor(vec_features),
                 torch.LongTensor(goals),

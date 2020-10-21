@@ -26,6 +26,7 @@ TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
 CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
+DATALOADER_SRC=$(wildcard dataloader/dataloader-core/src/*.rs) $(wildcard dataloader/dataloader-core/src/**/*.rs)
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
@@ -52,10 +53,10 @@ report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
-compcert-train:
-	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.pickle --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+compcert-train: data/compcert-scrape.txt src/dataloader.so
+	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 train:
-	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.pickle --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
+	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 
 static-report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
@@ -114,12 +115,17 @@ download-weights:
 publish-depv:
 	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 | awk '{print; print ""}' > known-good-dependency-versions.md
 
+src/dataloader.so: $(DATALOADER_SRC) dataloader/dataloader.pyi
+	cd dataloader && cargo build --release
+	cp dataloader/target/release/libdataloader.so src/dataloader.so
+	cp dataloader/dataloader.pyi src/
+
 clean:
 	rm -rf report-*
 	rm -f log*.txt
 
 clean-scrape:
-	for file in `fd ".*\.scrape" CompCert` ; do \
+	for file in `find CompCert -name "*.scrape"` ; do \
             mv $$file $$file.bkp; \
         done
 

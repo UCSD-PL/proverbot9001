@@ -19,6 +19,7 @@
 #
 ##########################################################################
 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -29,8 +30,9 @@ import tokenizer
 from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample, EOS_token)
-from util import *
-from format import ScrapedTactic, TacticContext, strip_scraped_output
+from util import maybe_cuda, LongTensor, FloatTensor
+from format import (ScrapedTactic, TacticContext,
+                    strip_scraped_output, Obligation, ProofContext)
 import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
@@ -45,17 +47,22 @@ import multiprocessing
 import argparse
 import sys
 import functools
+import math
+import re
+import time
 from itertools import islice
 from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
-                    cast)
+                    cast, Any, Iterable)
+
 
 class CopyArgSample(NamedTuple):
-    tokenized_goal : List[int]
-    word_features : List[int]
-    vec_features : List[float]
-    tactic_stem : int
-    tactic_arg_token_index : int
+    tokenized_goal: List[int]
+    word_features: List[int]
+    vec_features: List[float]
+    tactic_stem: int
+    tactic_arg_token_index: int
+
 
 class CopyArgDataset(ListDataset[CopyArgSample]):
     pass
@@ -192,8 +199,11 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                             ScrapedTactic(
                                                 [],
                                                 in_data.prev_tactics,
-                                                in_data.hypotheses,
-                                                in_data.goal,
+                                                ProofContext(
+                                                    [Obligation(
+                                                        in_data.hypotheses,
+                                                        in_data.goal)],
+                                                    [], [], []),
                                                 correct)))]][0]
                                    for in_data, correct
                                    in zip(in_datas, corrects)])
@@ -360,6 +370,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                     self._getBatchPredictionLoss(batch_tensors, model))
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Tokenizer, Embedding,
                                           List[WordFeature], List[VecFeature]],
                          state : NeuralPredictorState) -> None:
@@ -373,16 +384,24 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
-    def _data_tensors(self, encoded_data : CopyArgDataset,
-                      arg_values : Namespace) \
-        -> List[torch.Tensor]:
+        self.unparsed_args = unparsed_args
+
+    def _data_tensors(self, encoded_data: CopyArgDataset,
+                      arg_values: Namespace) \
+            -> List[torch.Tensor]:
         goals, word_features, vec_features, tactic_stems, tactic_arg_idxs \
-            = zip(*encoded_data)
+            = cast(Tuple[List[List[int]],
+                         List[List[int]],
+                         List[List[float]],
+                         List[int],
+                         List[int]],
+                   zip(*encoded_data))
         return [torch.LongTensor(goals),
                 torch.LongTensor(word_features),
                 torch.FloatTensor(vec_features),
                 torch.LongTensor(tactic_stems),
                 torch.LongTensor(tactic_arg_idxs)]
+
     def _get_model(self, arg_values : Namespace,
                    tactic_vocab_size : int,
                    goal_vocab_size : int) \
@@ -419,26 +438,29 @@ def mkCopySample(max_length : int,
                          [feature_val for feature in vec_feature_functions
                           for feature_val in feature(tac_context)],
                          tactic_idx, arg_idx)
-def get_stem_and_arg_idx(max_length : int, embedding : Embedding,
-                         inter : ScrapedTactic) -> Tuple[int, int]:
+
+
+def get_stem_and_arg_idx(max_length: int, embedding: Embedding,
+                         inter: ScrapedTactic) -> Tuple[int, int]:
     tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
     stem_idx = embedding.encode_token(tactic_stem)
-    symbols = tokenizer.get_symbols(inter.goal)
+    symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
     assert arg in symbols, "tactic: {}, arg: {}, goal: {}, symbols: {}"\
-        .format(inter.tactic, arg, inter.goal, symbols)
+        .format(inter.tactic, arg, inter.context.focused_goal, symbols)
     idx = symbols.index(arg)
     if idx >= max_length:
         return stem_idx, 0
     else:
         return stem_idx, idx + 1
 
-def get_arg_idx(max_length : int, inter : ScrapedTactic) -> int:
+
+def get_arg_idx(max_length: int, inter: ScrapedTactic) -> int:
     tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
-    symbols = tokenizer.get_symbols(inter.goal)
+    symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
     assert arg in symbols, "tactic: {}, arg: {}, goal: {}, symbols: {}"\
-        .format(inter.tactic, arg, inter.goal, symbols)
+        .format(inter.tactic, arg, inter.context.focused_goal, symbols)
     idx = symbols.index(arg)
     if idx >= max_length:
         return 0

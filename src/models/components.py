@@ -70,8 +70,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from util import *
-from typing import TypeVar, Generic
+from util import maybe_cuda, eprint
+from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
 
 S = TypeVar("S")
@@ -141,23 +141,58 @@ class DNNClassifier(nn.Module):
         layer_values = F.relu(layer_values)
         return self.softmax(self.out_layer(layer_values)).view(input.size()[0], -1)
 
+
 class DNNScorer(nn.Module):
-    def __init__(self, input_vocab_size : int, hidden_size : int, num_layers) -> None:
+    def __init__(self, input_vocab_size: int, hidden_size: int, num_layers) \
+          -> None:
         super().__init__()
         self.num_layers = num_layers
-        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        for i in range(num_layers - 1):
+        if self.num_layers > 1:
+            self.in_layer = maybe_cuda(nn.Linear(input_vocab_size,
+                                                 hidden_size))
+        for i in range(num_layers - 2):
             self.add_module("_layer{}".format(i),
                             maybe_cuda(nn.Linear(hidden_size, hidden_size)))
-        self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+        if self.num_layers > 1:
+            self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
+        else:
+            self.out_layer = maybe_cuda(nn.Linear(input_vocab_size, 1))
 
-    def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
-        layer_values = self.in_layer(maybe_cuda(Variable(input)))
-        for i in range(self.num_layers - 1):
+    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+        if self.num_layers > 1:
+            layer_values = self.in_layer(maybe_cuda(Variable(input)))
+        else:
+            layer_values = input
+        for i in range(self.num_layers - 2):
             layer_values = F.relu(layer_values)
             layer_values = getattr(self, "_layer{}".format(i))(layer_values)
-        layer_values = F.relu(layer_values)
         return self.out_layer(layer_values)
+
+    def print_weights(self) -> None:
+        if self.num_layers > 1:
+            eprint("In layer:")
+            for param in self.in_layer.parameters():
+                eprint(param.data)
+        for i in range(self.num_layers - 2):
+            eprint(f"Hidden layer {i}:")
+            for param in getattr(self, "_layer{}".format(i)).parameters():
+                eprint(param.data)
+        eprint("Out layer:")
+        for param in self.out_layer.parameters():
+            eprint(param.data)
+
+    def print_grads(self) -> None:
+        if self.num_layers > 1:
+            eprint("In layer:")
+            for param in self.in_layer.parameters():
+                eprint(param.grad)
+        for i in range(self.num_layers - 2):
+            eprint(f"Hidden layer {i}:")
+            for param in getattr(self, "_layer{}".format(i)).parameters():
+                eprint(param.grad)
+        eprint("Out layer:")
+        for param in self.out_layer.parameters():
+            eprint(param.grad)
 
 
 class WordFeaturesEncoder(nn.Module):
@@ -356,11 +391,11 @@ class DNNClassifierModel(StraightlineClassifierModel[NeuralPredictorState]):
             for batch_num, data_batch in enumerate(dataloader, start=1):
                 self._optimizer.zero_grad()
                 input_batch, output_batch = data_batch
-                with autograd.detect_anomaly():
-                    predictionDistribution = self._model(input_batch)
-                    output_var = maybe_cuda(Variable(output_batch))
-                    loss = self._criterion(predictionDistribution, output_var)
-                    loss.backward()
+                # with autograd.detect_anomaly():
+                predictionDistribution = self._model(input_batch)
+                output_var = maybe_cuda(Variable(output_batch))
+                loss = self._criterion(predictionDistribution, output_var)
+                loss.backward()
                 self._optimizer.step()
 
                 epoch_loss += loss.item()

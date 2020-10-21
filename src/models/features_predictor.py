@@ -172,6 +172,7 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
         return "A predictor using only hand-engineered features"
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : Tuple[Embedding, List[VecFeature], List[WordFeature]],
                          state : NeuralPredictorState) -> None:
         self._embedding, self._vec_feature_functions, self._word_feature_functions = metadata
@@ -180,12 +181,20 @@ class FeaturesPredictor(TrainablePredictor[FeaturesDataset,
         self.training_loss = state.loss
         self.num_epochs = state.epoch
         self.training_args = args
-    def _data_tensors(self, encoded_data : FeaturesDataset,
-                      arg_values : Namespace) \
-        -> List[torch.Tensor]:
-        vec_features, word_features, tactics = zip(*encoded_data)
-        return [torch.FloatTensor(vec_features), torch.LongTensor(word_features),
+        self.unparsed_args = unparsed_args
+
+    def _data_tensors(self, encoded_data: FeaturesDataset,
+                      arg_values: Namespace) \
+            -> List[torch.Tensor]:
+        vec_features, word_features, tactics = \
+            cast(Tuple[List[List[float]],
+                       List[List[int]],
+                       List[int]],
+                 zip(*encoded_data))
+        return [torch.FloatTensor(vec_features),
+                torch.LongTensor(word_features),
                 torch.LongTensor(tactics)]
+
     def _get_model(self, arg_values : Namespace, tactic_vocab_size : int) \
         -> FeaturesClassifier:
         assert self._vec_feature_functions

@@ -23,7 +23,7 @@
 import signal
 import sys
 from tokenizer import tokenizers
-import search_report
+import search_file
 import dynamic_report
 import static_report
 import evaluator_report
@@ -33,14 +33,14 @@ import itertools
 import serapi_instance
 import features
 import json
-from util import eprint
+from util import eprint, print_time
 from format import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
 from pathlib_revised import Path2
 
-from typing import Dict, Callable, List
+from typing import List
 
 
 def exit_early(signal, frame):
@@ -61,11 +61,13 @@ def train(args):
                                      "Proverbot9001 training module")
     parser.add_argument("model", choices=list(predict_tactic.trainable_modules.keys()) +
                         list(evaluate_state.trainable_modules.keys()))
-    args_values = parser.parse_args(args[:1])
-    module = predict_tactic.trainable_modules.get(args_values.model)
-    if not module:
-        module = evaluate_state.trainable_modules[args_values.model]
-    module(args[1:])
+    arg_values = parser.parse_args(args[:1])
+    if arg_values.model in predict_tactic.trainable_modules.keys():
+        predict_tactic.trainable_modules[arg_values.model](args[1:])
+    elif arg_values.model in evaluate_state.trainable_modules.keys():
+        evaluate_state.trainable_modules[arg_values.model](args[1:])
+    else:
+        assert False, f"Couldn't find the module {arg_values.model} to train!"
 
 def get_data(args : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
@@ -89,6 +91,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--max-length", dest="max_length", default=30, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
+    parser.add_argument("-j", "--num-threads", default=None, type=int)
     parser.add_argument("--context-filter", dest="context_filter", default="default")
     parser.add_argument('-v', "--verbose", action="count")
     parser.add_argument("--num-threads", "-j", type=int, default=None)
@@ -173,13 +176,44 @@ def get_data(args : List[str]) -> None:
                                   "prev_goal": point.goal,
                                   "tactic": point.tactic}))
 
+import random
+import contextlib
+from pathlib_revised import Path2
+from tokenizer import get_relevant_k_keywords2
+
+def get_tokens(args : List[str]):
+    parser = argparse.ArgumentParser(description="Pick a set of tokens")
+    parser.add_argument("--type", choices=["mixed"], default="mixed")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-keywords", type=int, default=120)
+    parser.add_argument("-s", "--num-samples", type=int, default=2000)
+    parser.add_argument("-j", "--num-threads", type=int, default=None)
+    parser.add_argument("scrapefile", type=Path2)
+    parser.add_argument("dest")
+    arg_values = parser.parse_args(args)
+
+    with print_time("Reading scraped data", guard=arg_values.verbose):
+        raw_data = list(data.read_text_data(arg_values.scrapefile))
+    embedding = SimpleEmbedding()
+    subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
+    relevance_pairs = [(goal, embedding.encode_token(serapi_instance.get_stem(tactic)))
+                       for relevant_lemmas, prev_tactics, hyps, goal, tactic in subset]
+    with print_time("Calculating keywords", guard=arg_values.verbose):
+        keywords = get_relevant_k_keywords2(relevance_pairs, arg_values.num_keywords, arg_values.num_threads)
+
+    with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
+          else contextlib.nullcontext(sys.stdout)) as f:
+        for keyword in keywords:
+            f.write(keyword + "\n")
+
 modules = {
     "train" : train,
-    "search-report":search_report.main,
+    "search-report":search_file.main,
     "dynamic-report":dynamic_report.main,
     "static-report":static_report.main,
     "evaluator-report":evaluator_report.main,
     "data": get_data,
+    "tokens": get_tokens,
 }
 
 if __name__ == "__main__":

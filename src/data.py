@@ -41,14 +41,16 @@ from tokenizer import (Tokenizer,
                        make_keyword_tokenizer_relevance,
                        make_keyword_tokenizer_topk)
 from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
-                    read_tuple, TacticContext, strip_scraped_output)
+                    read_tuple, TacticContext, strip_scraped_output,
+                    ProofContext)
 from models.components import SimpleEmbedding
 import serapi_instance
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
                     Any)
-from util import eprint, chunks, split_by_char_outside_matching, get_possible_arg
+from util import (eprint, chunks, split_by_char_outside_matching,
+                  unwrap, get_possible_arg)
 from context_filter import get_context_filter, ContextFilter
 from serapi_instance import get_stem
 from pathlib_revised import Path2
@@ -213,12 +215,15 @@ T = TypeVar('T')
 O = TypeVar('O')
 
 def lazy_multiprocessing_imap(worker: Callable[[T], O], in_data : Iterable[T],
-                              num_threads : int=os.cpu_count(),
+                              num_threads : Optional[int]=os.cpu_count(),
                               chunk_size : Optional[int]=None) -> Iterable[O]:
     if chunk_size == None:
-        chunk_size = num_threads * 10
+        if num_threads:
+            chunk_size = num_threads * 10
+        else:
+            chunk_size = 100
     with multiprocessing.Pool(num_threads) as pool:
-        for chunk in chunks(in_data, chunk_size):
+        for chunk in chunks(in_data, unwrap(chunk_size)):
             yield from list(pool.imap(worker, chunk))
 
 def read_text_data(data_path: Path2) \
@@ -229,7 +234,7 @@ def read_text_data(data_path: Path2) \
 
 @dataclass
 class StateScore:
-    state : TacticContext
+    state : ScrapedTactic
     score : float
 
 
@@ -307,7 +312,7 @@ def get_evaluation_data(arg_values: Namespace) -> StateEvaluationDataset:
     distanced_data = get_state_distances(raw_data)
     preprocessed_interactions = preprocess_data_eval(arg_values, distanced_data)
     filtered_interactions = StateEvaluationDataset([
-        StateScore(strip_scraped_output(point.state), point.score) for point in
+        StateScore(point.state, point.score) for point in
         itertools.islice(
             filter_eval_data(preprocessed_interactions,
                              get_context_filter(arg_values.context_filter),
@@ -321,7 +326,7 @@ def get_state_distances(interactions : Iterable[ScrapedCommand]) -> Iterable[Sta
     def generate_blocks() -> Iterable[List[ScrapedTactic]]:
         nonlocal interactions
         in_proof = False
-        interaction_buffer = []
+        interaction_buffer: List[ScrapedTactic] = []
         for interaction in interactions:
             if isinstance(interaction, ScrapedTactic):
                 if not in_proof:
@@ -341,22 +346,32 @@ def get_state_distances(interactions : Iterable[ScrapedCommand]) -> Iterable[Sta
             for block in blocks
             for (idx, interaction) in enumerate(block))
 
-def filter_data(data: RawDataset, pair_filter: ContextFilter,
+
+def filter_data(data: Iterable[ScrapedTactic], pair_filter: ContextFilter,
                 arg_values: Namespace) -> Iterable[ScrapedTactic]:
     return (scraped
             for (scraped, next_scraped) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [([], [], [], "", "")]))
+                                      [ScrapedTactic([], [],
+                                                     ProofContext.empty(),
+                                                     "")]))
             if pair_filter(strip_scraped_output(scraped), scraped.tactic,
                            strip_scraped_output(next_scraped), arg_values))
+
+
 def filter_eval_data(data: Iterable[StateScore], pair_filter: ContextFilter,
                      arg_values: Namespace) -> Iterable[StateScore]:
     return (point
             for (point, next_point) in
             zip(data, itertools.chain(itertools.islice(data, 1, None),
-                                      [StateScore(([], [], [], "", ""), 0)]))
-            if pair_filter(strip_scraped_output(point.state), point.state.tactic,
-                           strip_scraped_output(next_point.state), arg_values))
+                                      [StateScore(
+                                          ScrapedTactic([], [],
+                                                        ProofContext.empty(),
+                                                        ""), 0)]))
+            if pair_filter(strip_scraped_output(point.state),
+                           point.state.tactic,
+                           strip_scraped_output(next_point.state),
+                           arg_values))
 
 def encode_seq_seq_data(data : RawDataset,
                         context_tokenizer_type : Callable[[List[str], int], Tokenizer],
@@ -502,18 +517,21 @@ def normalizeSentenceLength(sentence : Sentence, max_length : int) -> Sentence:
         sentence.extend([EOS_token] * (max_length - len(sentence)))
     return sentence
 
-def stemmify_data(point : ScrapedTactic) -> ScrapedTactic:
-    relevant_lemmas, prev_tactics, hypotheses, goal, tactic = point
-    return ScrapedTactic(relevant_lemmas, prev_tactics, hypotheses, goal, get_stem(tactic))
+
+def stemmify_data(point: ScrapedTactic) -> ScrapedTactic:
+    relevant_lemmas, prev_tactics, context, tactic = point
+    return ScrapedTactic(relevant_lemmas, prev_tactics, context,
+                         get_stem(tactic))
 
 def tactic_substitutions_eval(substitutions : Dict[str, str], sample : StateScore) -> StateScore:
     return StateScore(tactic_substitutions(substitutions, sample.state), sample.score)
 
 
-def tactic_substitutions(substitutions : Dict[str, str], sample : ScrapedTactic) \
-    -> ScrapedTactic:
-    relevant_lemmas, prev_tactics, hyps, goal, tactic = sample
-    return ScrapedTactic(relevant_lemmas, prev_tactics, hyps, goal,
+def tactic_substitutions(substitutions: Dict[str, str],
+                         sample: ScrapedTactic) \
+        -> ScrapedTactic:
+    relevant_lemmas, prev_tactics, context, tactic = sample
+    return ScrapedTactic(relevant_lemmas, prev_tactics, context,
                          tactic if get_stem(tactic) not in substitutions
                          else substitutions[get_stem(tactic)])
 
@@ -522,15 +540,17 @@ def truncate_tactic_semicolons_eval(sample : StateScore) -> StateScore:
 def normalizeNumericArgs_eval(sample : StateScore) -> StateScore:
     return StateScore(serapi_instance.normalizeNumericArgs(sample.state), sample.score)
 
+
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
         -> ScrapedTactic:
-    rl, pt, hyp, goal, tactic = sample
-    newtac = tactic.strip()
-    if newtac[0] == "(" and newtac[-1] == ")":
-        newtac = newtac[1:-1]
+    rl, pt, context, tactic = sample
+    newtac = tactic
+    outer_parens_match = re.fullmatch(r"\((.*)\)", newtac.strip())
+    if outer_parens_match:
+        newtac = outer_parens_match.group(1)
     splitresult = split_by_char_outside_matching(
-        r"\(", r"\)", ";", newtac)
+        r"\(|\[", r"\)|\]", ";", newtac)
     if splitresult:
         before_semi, after_semi = splitresult
         newtac = before_semi.strip() + "."
-    return ScrapedTactic(rl, pt, hyp, goal, newtac)
+    return ScrapedTactic(rl, pt, context, newtac)

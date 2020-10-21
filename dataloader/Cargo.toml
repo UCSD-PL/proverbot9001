@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "dataloader-core",
+    "gestalt-ratio",
+]

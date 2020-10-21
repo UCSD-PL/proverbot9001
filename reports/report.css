@@ -26,6 +26,10 @@ body {
     text-rendering: optimizeLegibility;
     text-align: center;
 }
+table {
+    margin-right:auto;
+    margin-left:auto;
+}
 
 tr {
     border: 2em solid #CCC;

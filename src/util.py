@@ -32,10 +32,14 @@ import torch.cuda
 import torch.autograd as autograd
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
-                    Callable, Optional, Pattern, Match)
+                    Callable, Optional, Pattern, Match, Union)
+
+from dataloader import rust_parse_sexp_one_level
+from sexpdata import Symbol
 
 use_cuda = torch.cuda.is_available()
-assert use_cuda
+# assert use_cuda
+
 
 def maybe_cuda(component):
     if use_cuda:
@@ -219,7 +223,7 @@ def sighandler_context(signal, f):
 @contextlib.contextmanager
 def print_time(msg : str, guard=True):
     start = time.time()
-    eprint(msg, "...", end="", guard=guard)
+    eprint(msg + "...", end="", guard=guard)
     try:
         yield
     finally:
@@ -257,7 +261,7 @@ def multisplit_matching(openpat : str, closepat : str,
                         -> List[str]:
     splits = []
     nextsplit = split_by_char_outside_matching(openpat, closepat, splitpat, target)
-    rest = []
+    rest = None
     while nextsplit:
         before, rest = nextsplit
         splits.append(before)
@@ -268,16 +272,18 @@ def multisplit_matching(openpat : str, closepat : str,
         splits.append(target)
     return splits
 
-def split_by_char_outside_matching(openpat : str, closepat : str,
-                                   splitpat : str, target : str) \
-    -> Optional[Tuple[str, str]]:
+
+def split_by_char_outside_matching(openpat: str, closepat: str,
+                                   splitpat: str, target: str) \
+        -> Optional[Tuple[str, str]]:
     counter = 0
     curpos = 0
     with silent():
         openp = re.compile(openpat)
         closep = re.compile(closepat)
         splitp = re.compile(splitpat)
-    def search_pat(pat : Pattern) -> Tuple[Optional[Match], int]:
+
+    def search_pat(pat: Pattern) -> Tuple[Optional[Match], int]:
         match = pat.search(target, curpos)
         return match, match.end() if match else len(target) + 1
 
@@ -316,6 +322,22 @@ def get_possible_arg(args: argparse.Namespace, argname: str,
         return default
 
 
+def parseSexpOneLevel(sexp_str: str) -> Union[List[str], int, Symbol]:
+    if sexp_str[0] == '(':
+        result = rust_parse_sexp_one_level(sexp_str)
+        return result
+    elif re.fullmatch(r"\s*\d+\s*", sexp_str):
+        return int(sexp_str.strip())
+    elif re.fullmatch(r'\s*\w+\s*', sexp_str):
+        return Symbol(sexp_str)
+    else:
+        assert False, f"Couldn't parse {sexp_str}"
+
+
 def unwrap(a: Optional[T]) -> T:
-    assert a
+    assert a is not None
     return a
+
+
+def progn(*args):
+    return args[-1]

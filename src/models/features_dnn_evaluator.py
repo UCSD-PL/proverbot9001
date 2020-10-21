@@ -28,86 +28,99 @@ from features import (WordFeature, VecFeature,
 from models.components import NeuralPredictorState, add_nn_args, WordFeaturesEncoder, DNNScorer
 from models.state_evaluator import TrainableEvaluator, StateEvaluationDataset
 from models.tactic_predictor import optimize_checkpoints
+from dataloader import (sample_context_features,
+                        features_to_total_distances_tensors,
+                        features_to_total_distances_tensors_with_map,
+                        tmap_to_picklable, tmap_from_picklable, features_vocab_sizes,
+                        DataloaderArgs)
+from dataloader import TokenMap as FeaturesTokenMap
 from util import maybe_cuda, eprint, print_time
 
 from typing import (List, Tuple, Iterable, Sequence, Dict, Any, cast)
 import argparse
 import torch
-import functools
-import multiprocessing
 import sys
 from torch import nn
 
-FeaturesDNNEvaluatorState = Tuple[List[WordFeature], List[VecFeature], NeuralPredictorState]
+PickleableTokenMap = Tuple[Dict[str, int],
+                           Dict[str, int],
+                           Dict[str, int]]
+
+FeaturesDNNEvaluatorState = Tuple[PickleableTokenMap, NeuralPredictorState]
 
 class FeaturesDNNEvaluatorModel(nn.Module):
     def __init__(self,
-                 word_features : List[WordFeature],
-                 vec_features : List[VecFeature],
+                 word_features_vocab_sizes : List[int],
+                 vec_features_size : int,
                  hidden_size : int,
                  num_layers : int) -> None:
         super().__init__()
-        feature_vec_size = sum([feature.feature_size()
-                                for feature in vec_features])
-        word_features_vocab_sizes = [features.vocab_size()
-                                     for features in word_features]
         self._word_features_encoder = maybe_cuda(
             WordFeaturesEncoder(word_features_vocab_sizes,
                                 hidden_size, 1, hidden_size))
         self._features_classifier = maybe_cuda(
-            DNNScorer(hidden_size + feature_vec_size,
+            DNNScorer(hidden_size + vec_features_size,
                       hidden_size, num_layers))
     def forward(self,
                 word_features_batch : torch.LongTensor,
                 vec_features_batch : torch.FloatTensor) -> torch.FloatTensor:
-        batch_size = word_features_batch.size()[0]
         encoded_word_features = self._word_features_encoder(
             maybe_cuda(word_features_batch))
         scores = self._features_classifier(
-            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))
-        return scores.view(batch_size)
+            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))\
+        .view(vec_features_batch.size()[0])
+        return scores
 
-class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecFeature]]]):
+class FeaturesDNNEvaluator(TrainableEvaluator[FeaturesDNNEvaluatorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.MSELoss())
-    def _add_args_to_parser(self, parser : argparse.ArgumentParser,
-                            default_values : Dict[str, Any] = {}) -> None:
-        super()._add_args_to_parser(parser, default_values)
-        add_nn_args(parser, default_values)
-        feature_set : Set[str] = set()
-        all_constructors : List[Type[Feature]] = vec_feature_constructors + word_feature_constructors # type: ignore
-        for feature_constructor in all_constructors:
-            new_args = feature_constructor\
-                .add_feature_arguments(parser, feature_set, default_values)
-            feature_set = feature_set.union(new_args)
+    def train(self, args : List[str]) -> None:
+        argparser = argparse.ArgumentParser(self.description())
+        self._add_args_to_parser(argparser)
+        arg_values = argparser.parse_args(args)
+        # THIS PART IS DIFFERENT THAN THE SUPERCLASS, hence the overriding
+        save_states = self._optimize_model(arg_values)
+
+        for state in save_states:
+            with open(arg_values.save_file, 'wb') as f:
+                torch.save((self.shortname(), (arg_values, sys.argv, state)), f)
 
     def description(self) -> str:
         return "A state evaluator that uses the standard feature set on DNN's"
 
     def shortname(self) -> str:
-        return "features dnn evaluator"
+        return "features-dnn"
 
-    def _optimize_model(self, data : StateEvaluationDataset,
-                       arg_values : argparse.Namespace) -> Iterable[FeaturesDNNEvaluatorState]:
-        with print_time("Initializing features", guard=arg_values.verbose):
+    def _optimize_model(self, arg_values : argparse.Namespace) -> Iterable[FeaturesDNNEvaluatorState]:
+        with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
-                _, (_, word_feature_funcs, vec_feature_funcs, _) = \
-                    torch.load(arg_values.start_from)
+                _, (arg_values, unparsed_args, (picklable_token_map, state)) = torch.load(arg_values.start_from)
+                token_map = tmap_from_picklable(picklable_token_map)
+                _, word_features_data, vec_features_data, outputs,\
+                    word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors_with_map(
+                        extract_dataloader_args(arg_values),
+                        str(arg_values.scrape_file), token_map)
             else:
-                stripped_data = [dat.state for dat in data]
-                word_feature_funcs = [feature_constructor(stripped_data, arg_values)
-                                      for feature_constructor in word_feature_constructors]
-                vec_feature_funcs = [feature_constructor(stripped_data, arg_values)
-                                     for feature_constructor in vec_feature_constructors]
+                token_map, word_features_data, vec_features_data, outputs, \
+                    word_features_vocab_sizes, vec_features_size = features_to_total_distances_tensors(
+                        extract_dataloader_args(arg_values),
+                        str(arg_values.scrape_file))
+
+        # eprint(f"word data: {word_features_data[:10]}")
+        # eprint(f"vec data: {vec_features_data[:10]}")
+        # eprint(f"outputs: {outputs[:100]}")
 
         with print_time("Converting data to tensors", guard=arg_values.verbose):
-            tensors = self._data_tensors(data, arg_values,
-                                         word_feature_funcs, vec_feature_funcs)
+            tensors = [torch.LongTensor(word_features_data),
+                       torch.FloatTensor(vec_features_data),
+                       torch.FloatTensor(outputs)]
 
-        with print_Time("Building the model", guard=arg_values.verbose):
-            model = self._get_model(arg_values, word_feature_funcs, vec_feature_funcs)
+        with print_time("Building the model", guard=arg_values.verbose):
+            model = self._get_model(arg_values, word_features_vocab_sizes, vec_features_size)
+            if arg_values.start_from:
+                self.load_saved_state(arg_values, unparsed_args, state)
 
-        return ((word_feature_funcs, vec_feature_funcs, state)
+        return ((tmap_to_picklable(token_map), state)
                 for state in optimize_checkpoints(tensors, arg_values, model,
                                                   lambda batch_tensors, model:
                                                   self._get_batch_prediction_loss(arg_values,
@@ -115,40 +128,22 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
                                                                                   model)))
     def load_saved_state(self,
                          args : argparse.Namespace,
+                         unparsed_args : List[str],
                          state : FeaturesDNNEvaluatorState) -> None:
-        word_feature_functions, vec_feature_functions, \
-            neural_state = state
-        self._model = maybe_cuda(self._get_model(args, word_feature_functions, vec_feature_functions))
-        self._model.load_state_dict(state.weights)
+        picklable_tmap, neural_state = state
+        self.features_token_map = tmap_from_picklable(picklable_tmap);
+        word_features_vocab_sizes, vec_features_size = features_vocab_sizes(self.features_token_map)
+        self._model = maybe_cuda(self._get_model(args, word_features_vocab_sizes, vec_features_size))
+        self._model.load_state_dict(neural_state.weights)
 
-        self.training_loss = state.loss
-        self.num_epochs = state.epoch
+        self.training_loss = neural_state.loss
+        self.num_epochs = neural_state.epoch
         self.training_args = args
-
-    def _data_tensors(self, data : StateEvaluationDataset, arg_values : argparse.Namespace,
-                      word_features : List[WordFeature], vec_features : List[VecFeature]) \
-                      -> List[torch.Tensor]:
-        with multiprocessing.Pool(arg_values.num_threads) as pool:
-            processed_chunks : List[Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor]] = \
-                pool.map(functools.partial(data_to_tensor,
-                                           word_features,
-                                           vec_features),
-                         chunks(data, 5000))
-        word_feature_chunks, vec_feature_chunks, output_chunks = zip(*processed_chunks)
-
-        word_features = torch.cat(word_feature_chunks, 0)
-        vec_features = torch.cat(vec_feature_chunks, 0)
-        outputs = torch.cat(output_chunks, 0)
-        return [word_features, vec_features, outputs]
-
+        self.unparsed_args = unparsed_args
     def _get_model(self, arg_values : argparse.Namespace,
-                   word_feature_funcs : List[WordFeature],
-                   vec_feature_funcs : List[VecFeature]) -> FeaturesDNNEvaluatorModel:
-        word_feature_vocab_sizes = [feature.vocab_size()
-                                    for feature in word_feature_funcs]
-        feature_vec_size = sum([feature.feature_size()
-                                for feature in vec_feature_funcs])
-        return FeaturesDNNEvaluatorModel(word_feature_funcs, vec_feature_funcs,
+                   word_features_vocab_sizes: List[int],
+                   vec_features_size: int) -> FeaturesDNNEvaluatorModel:
+        return FeaturesDNNEvaluatorModel(word_features_vocab_sizes, vec_features_size,
                                          arg_values.hidden_size, arg_values.num_layers)
 
     def _get_batch_prediction_loss(self, arg_values : argparse.Namespace,
@@ -158,25 +153,41 @@ class FeaturesDNNEvaluator(TrainableEvaluator[Tuple[List[WordFeature], List[VecF
             cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor],
                  data_batch)
         predicted_scores = model(word_features_batch, vec_features_batch)
-        return self._criterion(predicted_scores, maybe_cuda(outputs))
+        return self._criterion(predicted_scores, maybe_cuda(outputs).view(-1))
 
     def scoreState(self, state : TacticContext) -> float:
-        word_features = torch.LongTensor([[word_feature(state) for word_feature in word_features]])
-        vec_features = torch.FloatTensor([[feature_val for vec_feature in vec_features
-                                           for feature_val in vec_features(state)]])
-        return model(word_features_batch, vec_features_batch)[0][0]
+        word_features_batch, vec_features_batch = sample_context_features(
+            extract_dataloader_args(self.training_args),
+            self.features_token_map,
+            state.relevant_lemmas,
+            state.prev_tactics,
+            state.hypotheses,
+            state.goal)
+        # eprint(f"Word features: {word_features_batch}")
+        # eprint(f"Vec features: {vec_features_batch}")
+        model_output = self._model(torch.LongTensor([word_features_batch]),
+                                   torch.FloatTensor([vec_features_batch]))
+        # eprint(f"Model output: {model_output}")
+        return model_output[0].item() * self.training_args.max_distance
+    def _add_args_to_parser(self, parser : argparse.ArgumentParser,
+                            default_values : Dict[str, Any] = {}) -> None:
+        new_defaults = {"max-length": 100, **default_values}
+        super()._add_args_to_parser(parser, new_defaults)
 
-def data_to_tensor(word_features : List[WordFeature], vec_features : List[VecFeature],
-                   data : List[StateScore]) -> Tuple[torch.LongTensor, torch.FloatTensor, torch.FloatTensor]:
-    assert isinstance(data, list), data
-    assert isinstance(data[0], StateScore)
-    word_features = torch.LongTensor([[word_feature(x.state) for word_feature in word_features]
-                                      for x in data])
-    vec_features = torch.FloatTensor([[feature_val for vec_feature in vec_features
-                                       for feature_val in vec_feature(x.state)]
-                                      for x in data])
-    outputs = torch.FloatTensor([x.score for x in data])
-    return (word_features, vec_features, outputs)
+        add_nn_args(parser, default_values)
+        parser.add_argument("--max-distance", default=default_values.get("max-distance", 10), type=int)
+        parser.add_argument("--num-keywords", default=default_values.get("num-keywords", 100), type=int)
+        parser.add_argument("--max-string-distance", default=default_values.get("max-string-distance", 50), type=int);
+        parser.add_argument("--print-keywords", dest="print_keywords",
+                            default=False, action='store_const', const=True)
+
+def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
+    dargs = DataloaderArgs();
+    dargs.max_distance = args.max_distance
+    dargs.max_length = args.max_length
+    dargs.num_keywords = args.num_keywords
+    dargs.max_string_distance = args.max_string_distance
+    return dargs
 
 def main(arg_list : List[str]) -> None:
     predictor = FeaturesDNNEvaluator()

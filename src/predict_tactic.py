@@ -36,7 +36,6 @@ from models import k_nearest_predictor
 from models import autoclass_predictor
 from models import wordbagsvm_classifier
 from models import ngramsvm_classifier
-from models import hyparg_predictor
 from models import pec_predictor
 from models import features_predictor
 from models import encfeatures_predictor
@@ -48,6 +47,7 @@ from models import hypfeatures_predictor
 from models import copyarg_predictor
 from models import numeric_induction
 from models import features_polyarg_predictor
+from models import reinforced_features_polyarg
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -65,10 +65,12 @@ loadable_predictors = {
     'featuressvm' : featuressvm_predictor.FeaturesSVMPredictor,
     'encfeatures' : encfeatures_predictor.EncFeaturesPredictor,
     'apply' : apply_predictor.ApplyPredictor,
-    "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor, DNNClassifierModel),
+    "hypstem" : functools.partial(hypstem_predictor.HypStemPredictor,
+                                  DNNClassifierModel),
     "hypfeatures" : hypfeatures_predictor.HypFeaturesPredictor,
     "copyarg" : copyarg_predictor.CopyArgPredictor,
     "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
+    "refpa": reinforced_features_polyarg.ReinforcedFeaturesPolyargPredictor,
 }
 
 static_predictors = {

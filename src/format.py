@@ -20,54 +20,113 @@
 #
 ##########################################################################
 
-import re
 import json
-from typing import List, TextIO, Optional, NamedTuple, Union
+from typing import List, TextIO, Optional, NamedTuple, Union, Dict, Any, Type
+
+
+class Obligation(NamedTuple):
+    hypotheses: List[str]
+    goal: str
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"hypotheses": self.hypotheses,
+                "goal": self.goal}
+
+
+class ProofContext(NamedTuple):
+    fg_goals: List[Obligation]
+    bg_goals: List[Obligation]
+    shelved_goals: List[Obligation]
+    given_up_goals: List[Obligation]
+
+    @classmethod
+    def empty(cls: Type['ProofContext']):
+        return ProofContext([], [], [], [])
+
+    @classmethod
+    def from_dict(cls, data):
+        fg_goals = list(map(Obligation.from_dict, data["fg_goals"]))
+        bg_goals = list(map(Obligation.from_dict, data["bg_goals"]))
+        shelved_goals = list(map(Obligation.from_dict, data["shelved_goals"]))
+        given_up_goals = list(map(Obligation.from_dict,
+                                  data["given_up_goals"]))
+        return cls(fg_goals, bg_goals, shelved_goals, given_up_goals)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {"fg_goals": list(map(Obligation.to_dict, self.fg_goals)),
+                "bg_goals": list(map(Obligation.to_dict, self.bg_goals)),
+                "shelved_goals": list(map(Obligation.to_dict,
+                                          self.shelved_goals)),
+                "given_up_goals": list(map(Obligation.to_dict,
+                                           self.given_up_goals))}
+
+    @property
+    def all_goals(self) -> List[Obligation]:
+        return self.fg_goals + self.bg_goals + \
+            self.shelved_goals + self.given_up_goals
+
+    @property
+    def focused_goal(self) -> str:
+        if self.fg_goals:
+            return self.fg_goals[0].goal
+        else:
+            return ""
+
+    @property
+    def focused_hyps(self) -> List[str]:
+        if self.fg_goals:
+            return self.fg_goals[0].hypotheses
+        else:
+            return []
 
 
 class ScrapedTactic(NamedTuple):
     relevant_lemmas: List[str]
     prev_tactics: List[str]
-    hypotheses: List[str]
-    goal: str
+    context: ProofContext
     tactic: str
 
 
 class TacticContext(NamedTuple):
     relevant_lemmas: List[str]
-    prev_tactics : List[str]
-    hypotheses : List[str]
-    goal : str
+    prev_tactics: List[str]
+    hypotheses: List[str]
+    goal: str
+
 
 ScrapedCommand = Union[ScrapedTactic, str]
 
-def strip_scraped_output(scraped : ScrapedTactic) -> TacticContext:
-    relevant_lemmas, prev_tactics, hypotheses, goal, output = scraped
-    assert prev_tactics != None
-    assert hypotheses != None
-    assert goal != None
-    assert output != None
-    return TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
 
-def read_tuple(f_handle : TextIO) -> Optional[ScrapedCommand]:
+def strip_scraped_output(scraped: ScrapedTactic) -> TacticContext:
+    relevant_lemmas, prev_tactics, context, tactic = scraped
+    if context and context.fg_goals:
+        return TacticContext(relevant_lemmas, prev_tactics,
+                             context.fg_goals[0].hypotheses,
+                             context.fg_goals[0].goal)
+    else:
+        return TacticContext(relevant_lemmas, prev_tactics,
+                             [], "")
+
+
+def read_tuple(f_handle: TextIO) -> Optional[ScrapedCommand]:
     line = f_handle.readline()
     if line.strip() == "":
         return None
-    try:
-        obj = json.loads(line)
-    except:
-        print(f"line: {line}")
-        raise
+    obj = json.loads(line)
     if isinstance(obj, str):
         return obj
     else:
         return ScrapedTactic(obj["relevant_lemmas"],
                              obj["prev_tactics"],
-                             obj["prev_hyps"],
-                             obj["prev_goal"],
+                             ProofContext.from_dict(obj["context"]),
                              obj["tactic"])
 
-def read_tactic_tuple(f_handle : TextIO) -> Optional[ScrapedTactic]:
+
+def read_tactic_tuple(f_handle: TextIO) -> Optional[ScrapedTactic]:
     next_tuple = read_tuple(f_handle)
     while(isinstance(next_tuple, str)):
         next_tuple = read_tuple(f_handle)

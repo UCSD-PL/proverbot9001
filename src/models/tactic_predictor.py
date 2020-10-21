@@ -18,6 +18,7 @@ class Prediction(NamedTuple):
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
+    unparsed_args : List[str]
     def __init__(self) -> None:
         pass
 
@@ -55,7 +56,6 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
-        start = time.time()
         text_data = get_text_data(arg_values)
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
@@ -74,8 +74,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         parser.add_argument("--max-tuples", dest="max_tuples", type=int,
                             default=default_values.get("max-tuples", None))
         parser.add_argument("--context-filter", dest="context_filter", type=str,
-                            default=default_values.get("context-filter",
-                                                       "goal-changes%no-args"))
+                            default=default_values.get("context-filter", "goal-changes"))
         parser.add_argument("--no-truncate-semicolons",
                             dest="truncate_semicolons",
                             action='store_false')
@@ -92,7 +91,6 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[DatasetType, MetadataType]: pass
 
-    @abstractmethod
     def _optimize_model_to_disc(self,
                                 encoded_data : DatasetType,
                                 encdec_state : MetadataType,
@@ -103,6 +101,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
     @abstractmethod
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : MetadataType,
                          state : StateType) -> None: pass
     pass
@@ -137,9 +136,11 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         parser.add_argument("--tokenizer", choices=list(tokenizers.keys()), type=str,
                             default=default_values.get("tokenizer",
                                                        list(tokenizers.keys())[0]))
-        parser.add_argument("--num-relevance-samples", dest="num_relevance_samples",
-                            type=int, default=default_values.get("num_relevance_samples",
-                                                                 1000))
+        parser.add_argument("--num-relevance-samples",
+                            dest="num_relevance_samples",
+                            type=int,
+                            default=default_values.get("num_relevance_samples",
+                                                       1000))
         parser.add_argument("--save-tokens", dest="save_tokens",
                             default=default_values.get("save-tokens", None),
                             type=Path2)
@@ -162,9 +163,11 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             stemmed_data = pool.imap(
                 stemmify_data, data, chunksize=10240)
             lazy_embedded_data = LazyEmbeddedDataset((
-                EmbeddedSample(relevant_lemmas, prev_tactics, hypotheses, goal,
+                EmbeddedSample(relevant_lemmas, prev_tactics,
+                               context.focused_hyps,
+                               context.focused_goal,
                                embedding.encode_token(tactic))
-                for (relevant_lemmas, prev_tactics, hypotheses, goal, tactic)
+                for (relevant_lemmas, prev_tactics, context, tactic)
                 in stemmed_data))
             if args.load_tokens:
                 print("Loading tokens from {}".format(args.load_tokens))
@@ -204,6 +207,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
             TokenizerEmbeddingState(tokenizer, embedding)
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : TokenizerEmbeddingState,
                          state : StateType) -> None:
         self._tokenizer = metadata.tokenizer
@@ -326,6 +330,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
                                        model.state_dict())
     def load_saved_state(self,
                          args : Namespace,
+                         unparsed_args : List[str],
                          metadata : TokenizerEmbeddingState,
                          state : NeuralPredictorState) -> None:
         self._tokenizer = metadata.tokenizer
@@ -449,14 +454,15 @@ def save_checkpoints(predictor_name : str,
             epoch_filename = arg_values.save_file
         with cast(BinaryIO, epoch_filename.open(mode='wb')) as f:
             print("=> Saving checkpoint at epoch {}".format(epoch))
-            torch.save((predictor_name, (arg_values, metadata, predictor_state)), f)
+            torch.save((predictor_name, (arg_values, sys.argv, metadata, predictor_state)), f)
 
 def optimize_checkpoints(data_tensors : List[torch.Tensor],
                          arg_values : Namespace,
                          model : ModelType,
                          batchLoss :
                          Callable[[Sequence[torch.Tensor], ModelType],
-                                  torch.FloatTensor]) \
+                                  torch.FloatTensor],
+                         epoch_start : int = 1) \
     -> Iterable[NeuralPredictorState]:
     dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
                                  batch_size=arg_values.batch_size, num_workers=0,
@@ -467,14 +473,6 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     dataset_size = num_batches * arg_values.batch_size
     assert dataset_size > 0
     print("Initializing model...")
-    if arg_values.start_from:
-        print("Starting from file")
-        with open(arg_values.start_from, 'rb') as f:
-            state = torch.load(f)
-            model.load_state_dict(state[1][2].weights) # type: ignore
-        epoch_start = state[1][2].epoch
-    else:
-        epoch_start = 1
     model = maybe_cuda(model)
     optimizer = optimizers[arg_values.optimizer](model.parameters(),
                                                  lr=arg_values.learning_rate)
@@ -485,15 +483,14 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     for epoch in range(1, epoch_start):
         adjuster.step()
     for epoch in range(epoch_start, arg_values.num_epochs + 1):
-        adjuster.step()
         print("Epoch {} (learning rate {:.6f})"
               .format(epoch, optimizer.param_groups[0]['lr']))
         epoch_loss = 0.
         for batch_num, data_batch in enumerate(dataloader, start=1):
             optimizer.zero_grad()
-            with autograd.detect_anomaly():
-                loss = batchLoss(data_batch, model)
-                loss.backward()
+            # with autograd.detect_anomaly():
+            loss = batchLoss(data_batch, model)
+            loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
             if batch_num % arg_values.print_every == 0:
@@ -507,6 +504,8 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                       .format(timeSince(training_start, progress),
                               items_processed, progress * 100,
                               epoch_loss / batch_num))
+        adjuster.step()
+
         yield NeuralPredictorState(epoch,
                                    epoch_loss / num_batches,
         model.state_dict())

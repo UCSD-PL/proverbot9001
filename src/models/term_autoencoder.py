@@ -20,7 +20,6 @@
 #
 ##########################################################################
 
-import re
 import time
 import argparse
 import sys
@@ -31,20 +30,21 @@ from itertools import chain
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torch import optim
 from torch.optim import Optimizer
 import torch.optim.lr_scheduler as scheduler
 import torch.nn.functional as F
 import torch.utils.data as data
 import torch.cuda
 
-from util import *
+from util import maybe_cuda, LongTensor, chunks, timeSince
 from models.args import add_std_args, optimizers
-from data import read_text_data, Sentence, SOS_token, EOS_token, normalizeSentenceLength
+from data import (read_text_data, Sentence, SOS_token, EOS_token,
+                  normalizeSentenceLength)
 import tokenizer as tk
 
-from typing import List, Dict, Tuple, NamedTuple, Iterable, Callable
-from typing import cast
+from typing import (List, Dict, Tuple, NamedTuple, Iterable, Callable,
+                    cast, Any)
+
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
@@ -77,6 +77,8 @@ class EncoderRNN(nn.Module):
             encoder_output, encoder_hidden = self(encoder_input[:, ei], encoder_hidden)
         return encoder_hidden
     pass
+
+
 class DecoderRNN(nn.Module):
     def __init__(self, hidden_size : int, output_size : int, num_layers : int,
                  batch_size : int =1, beam_width : int =1) -> None:
@@ -250,7 +252,8 @@ def main(args_list : List[str]) -> None:
     print("Extracting terms...", end="")
     sys.stdout.flush()
     term_strings = list(chain.from_iterable(
-        [[hyp.split(":")[1].strip() for hyp in datum.hypotheses] + [datum.goal]
+        [[hyp.split(":")[1].strip() for hyp in datum.context.focused_hyps] +
+         [datum.context.focused_goal]
          for datum in dataset]))
     print(" {:.2f}s".format(time.time() - curtime))
 
