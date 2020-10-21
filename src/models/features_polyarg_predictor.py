@@ -694,6 +694,7 @@ class FeaturesPolyargPredictor(
         self.training_args = args
         self.unparsed_args = unparsed_args
         self._metadata = metadata
+
     def _get_model(self, arg_values : Namespace,
                    wordf_sizes : List[int],
                    vecf_size : int,
@@ -711,7 +712,7 @@ class FeaturesPolyargPredictor(
             HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
                         hypFeaturesSize(), arg_values.hidden_size))
     def _getBatchPredictionLoss(self, arg_values : Namespace,
-                                data_batch : Sequence[torch.Tensor],
+                                batch : Sequence[torch.Tensor],
                                 model : FeaturesPolyArgModel) -> torch.FloatTensor:
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
             tokenized_goals_batch, goal_masks_batch, \
