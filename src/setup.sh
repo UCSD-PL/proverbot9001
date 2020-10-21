@@ -44,4 +44,5 @@ function setup-compcert {
     ) || exit 1
 }
 
+# setup-coq-menhir
 setup-compcert
