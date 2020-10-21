@@ -446,7 +446,7 @@ class NeuralClassifier(NeuralPredictor[RestrictedDatasetType, ModelType],
 def save_checkpoints(predictor_name : str,
                      metadata : MetadataType, arg_values : Namespace,
                      checkpoints_stream : Iterable[StateType]):
-    for predictor_state in checkpoints_stream:
+    for epoch, predictor_state in enumerate(checkpoints_stream, start=1):
         epoch = predictor_state.epoch
         if arg_values.save_all_epochs:
             epoch_filename = Path2(str(arg_values.save_file.with_suffix("")) + f"-{epoch}.dat")

@@ -5,7 +5,7 @@ A bot for proving.
 ## Prerequisites
 
 You'll need to install `git`, `opam`, `graphviz`, `libgraphviz-dev`,
-`python3.7`, `python3.7-dev` and `python3-pip` to run Proverbot.
+`python3.7`, `python3.7-dev` and `python3.7-pip` to run Proverbot.
 
 If you're running Linux, all three can be generally found in your package repositories.
 If that Linux is ubuntu, you'll have to first run:
