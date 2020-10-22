@@ -968,8 +968,9 @@ class SearchGraph:
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id,
-                              label="{}\n({})".format(prediction.prediction,
-                                                      prediction.certainty),
+                              label="{}\n({:.2f})".format(
+                                  prediction.prediction,
+                                  prediction.certainty),
                               **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
