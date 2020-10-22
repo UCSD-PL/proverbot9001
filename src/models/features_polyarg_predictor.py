@@ -484,33 +484,46 @@ class FeaturesPolyargPredictor(
                                          .view(1, stem_width * num_probs))\
                                .view(stem_width * num_probs)
 
-        final_probs, final_idxs = all_prob_batches.topk(k)
+        final_probs, final_idxs = all_prob_batches.sort(descending=True)
         assert not torch.isnan(final_probs).any()
-        assert final_probs.size() == torch.Size([k])
+        assert final_probs.size() == torch.Size([num_probs * stem_width])
         row_length = self.training_args.max_length + num_hyps + 1
         stem_keys = final_idxs // row_length
-        assert stem_keys.size() == torch.Size([k])
-        assert stem_idxs.size() == torch.Size([1, stem_width]), stem_idxs.size()
-        prediction_stem_idxs = stem_idxs.view(stem_width).index_select(0, stem_keys)
-        assert prediction_stem_idxs.size() == torch.Size([k]), \
+        assert stem_keys.size() == torch.Size([num_probs * stem_width])
+        assert stem_idxs.size() == torch.Size([1, stem_width]), \
+            stem_idxs.size()
+        prediction_stem_idxs = stem_idxs.view(stem_width)\
+                                        .index_select(0, stem_keys)
+        assert prediction_stem_idxs.size() == torch.Size(
+            [num_probs * stem_width]), \
             prediction_stem_idxs.size()
         arg_idxs = final_idxs % row_length
-        assert arg_idxs.size() == torch.Size([k])
+        assert arg_idxs.size() == torch.Size([num_probs * stem_width])
 
         if self.training_args.lemma_args:
             all_hyps = context.hypotheses + context.relevant_lemmas
         else:
             all_hyps = context.hypotheses
-        return [Prediction(decode_fpa_result(
-            extract_dataloader_args(self.training_args),
-            self._metadata,
-            all_hyps,
-            context.goal,
-            stem_idx.item(),
-            arg_idx.item()),
-                            math.exp(prob))
-                for stem_idx, arg_idx, prob in
-                islice(zip(prediction_stem_idxs, arg_idxs, final_probs), min(k, num_valid_probs))]
+
+        prediction_strs: List[str] = []
+        prediction_probs: List[float] = []
+        next_i = 0
+        while len(prediction_strs) < k and next_i < num_valid_probs:
+            next_pred_str = decode_fpa_result(
+                extract_dataloader_args(self.training_args),
+                self._metadata,
+                all_hyps, context.goal,
+                prediction_stem_idxs[next_i].item(),
+                arg_idxs[next_i].item())
+            if next_pred_str not in prediction_strs:
+                prediction_strs.append(next_pred_str)
+                prediction_probs.append(math.exp(final_probs[next_i].item()))
+            next_i += 1
+
+        predictions = [Prediction(s, prob) for s, prob in
+                       zip(prediction_strs, prediction_probs)]
+
+        return predictions
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 0
