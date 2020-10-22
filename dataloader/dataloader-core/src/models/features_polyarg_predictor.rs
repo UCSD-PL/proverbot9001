@@ -188,22 +188,7 @@ pub fn features_polyarg_tensors(
     let goal_symbols_mask = raw_data
         .par_iter()
         .map(|scraped| {
-            let mut vec: Vec<_> = get_words(&scraped.context.focused_goal())
-                .into_iter()
-                .take(args.max_length)
-                .map(|goal_word| {
-                    lazy_static! {
-                        static ref STARTS_WITH_LETTER: Regex =
-                            Regex::new(r"^\w.*").expect("Couldn't compile regex");
-                    }
-                    STARTS_WITH_LETTER.is_match(goal_word)
-                })
-                .collect();
-            if vec.len() < args.max_length {
-                vec.extend([false].repeat(args.max_length - vec.len()));
-            }
-            vec.insert(0, true);
-            vec
+            get_goal_mask(&scraped.context.focused_goal(), args.max_length)
         })
         .collect();
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
@@ -273,6 +258,25 @@ pub fn lookup_hyp(premises: Vec<String>, hyp_name: &str) -> String {
         .expect(&format!("Couldn't find a hyp with name {}", hyp_name))
         .0;
     premises[hyp_idx].clone()
+}
+
+fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
+    lazy_static! {
+        static ref STARTS_WITH_LETTER: Regex =
+            Regex::new(r"^\w.*").expect("Couldn't compile regex");
+    }
+
+    let words = get_words(goal);
+    let mut mask_vec: Vec<_> = words.into_iter()
+        .take(max_length)
+        .map(|goal_word| {
+            STARTS_WITH_LETTER.is_match(goal_word)
+        }).collect();
+    if mask_vec.len() < max_length {
+        mask_vec.extend([false].repeat(max_length - mask_vec.len()));
+    }
+    mask_vec.insert(0, true);
+    mask_vec
 }
 
 pub fn sample_fpa_batch(
@@ -349,22 +353,7 @@ pub fn sample_fpa_batch(
     let goal_symbols_mask = context_batch
         .par_iter()
         .map(|ctxt| {
-            let mut vec: Vec<_> = get_words(&ctxt.obligation.goal)
-                .into_iter()
-                .take(args.max_length)
-                .map(|goal_word| {
-                    lazy_static! {
-                        static ref STARTS_WITH_LETTER: Regex =
-                            Regex::new(r"^\w.*").expect("Couldn't compile regex");
-                    }
-                    STARTS_WITH_LETTER.is_match(goal_word)
-                })
-                .collect();
-            if vec.len() < args.max_length {
-                vec.extend([false].repeat(args.max_length - vec.len()));
-            }
-            vec.insert(0, true);
-            vec
+            get_goal_mask(&ctxt.obligation.goal, args.max_length)
         })
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
@@ -436,24 +425,7 @@ pub fn sample_fpa(
         .collect();
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
 
-    let goal_symbols_mask = {
-        let mut unpadded_mask: Vec<_> = get_words(&goal)
-            .into_iter()
-            .take(args.max_length)
-            .map(|goal_word| {
-                lazy_static! {
-                    static ref STARTS_WITH_LETTER: Regex =
-                        Regex::new(r"^\w.*").expect("Couldn't compile regex");
-                }
-                STARTS_WITH_LETTER.is_match(goal_word)
-            })
-            .collect();
-        if unpadded_mask.len() < args.max_length {
-            unpadded_mask.extend([false].repeat(args.max_length - unpadded_mask.len()));
-        }
-        unpadded_mask.insert(0, true);
-        unpadded_mask
-    };
+    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
