@@ -416,17 +416,17 @@ class FeaturesPolyargPredictor(
             nhyps_batch, tokenized_goal, \
             goal_mask, \
             word_features, vec_features = \
-                sample_fpa(extract_dataloader_args(self.training_args),
-                           self._metadata,
-                           context.relevant_lemmas,
-                           context.prev_tactics,
-                           context.hypotheses,
-                           context.goal)
+            sample_fpa(extract_dataloader_args(self.training_args),
+                       self._metadata,
+                       context.relevant_lemmas,
+                       context.prev_tactics,
+                       context.hypotheses,
+                       context.goal)
 
         num_hyps = nhyps_batch[0]
 
-        stem_distribution = self._model.stem_classifier(LongTensor(word_features),
-                                                        FloatTensor(vec_features))
+        stem_distribution = self._model.stem_classifier(
+            LongTensor(word_features), FloatTensor(vec_features))
         stem_certainties, stem_idxs = stem_distribution.topk(stem_width)
 
         goals_batch = LongTensor(tokenized_goal)
@@ -455,14 +455,15 @@ class FeaturesPolyargPredictor(
         num_valid_probs = (1 + num_hyps + len(goal_symbols)) * stem_width
         if num_hyps > 0:
             encoded_goals = self._model.goal_encoder(goals_batch)\
-                                       .view(1, 1, self.training_args.hidden_size)
+                                       .view(1, 1,
+                                             self.training_args.hidden_size)
 
             hyps_batch = LongTensor(tokenized_premises)
-            assert hyps_batch.size() == torch.Size([1, num_hyps,
-                                                    self.training_args.max_length]), \
-                                                    (hyps_batch.size(),
-                                                     num_hyps,
-                                                     self.training_args.max_length)
+            assert hyps_batch.size() == torch.Size(
+                [1, num_hyps, self.training_args.max_length]), \
+                (hyps_batch.size(),
+                 num_hyps,
+                 self.training_args.max_length)
             hypfeatures_batch = FloatTensor(hyp_features)
             assert hypfeatures_batch.size() == \
                 torch.Size([1, num_hyps, hypFeaturesSize()]), \
@@ -476,7 +477,8 @@ class FeaturesPolyargPredictor(
         else:
             total_values = goal_arg_values
         all_prob_batches = self._softmax((total_values +
-                                          stem_certainties.view(1, stem_width, 1)
+                                          stem_certainties.view(1, stem_width,
+                                                                1)
                                           .expand(-1, -1, num_probs))
                                          .contiguous()
                                          .view(1, stem_width * num_probs))\
