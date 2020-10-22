@@ -164,6 +164,10 @@ def sample_fpa_batch(args: DataloaderArgs, metadata: PickleableFPAMetadata,
     ...
 
 
+def get_fpa_words(s: str) -> List[str]:
+    ...
+
+
 def decode_fpa_result(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                       hyps: List[str], goal: str, tac_idx: int,
                       arg_idx: int) -> str:

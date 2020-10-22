@@ -26,18 +26,15 @@ from torch.autograd import Variable
 from torch.nn.utils.rnn import pad_sequence
 
 from features import (WordFeature, VecFeature, Feature,
-                      word_feature_constructors, vec_feature_constructors,
-                      load_features)
-import tokenizer
+                      word_feature_constructors, vec_feature_constructors)
 import re
-from tokenizer import Tokenizer, get_symbols
+from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
-                  print_time, split_by_char_outside_matching)
+                  print_time)
 import math
 from format import TacticContext
-import serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
                                add_nn_args)
@@ -50,9 +47,9 @@ from dataloader import (features_polyarg_tensors,
                         sample_fpa,
                         sample_fpa_batch,
                         decode_fpa_result,
-                        decode_fpa_stem,
-                        decode_fpa_arg,
-                        features_vocab_sizes,
+                        # decode_fpa_stem,
+                        # decode_fpa_arg,
+                        # features_vocab_sizes,
                         get_num_tokens,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
@@ -62,7 +59,6 @@ from dataloader import (features_polyarg_tensors,
 
 import argparse
 import sys
-import re
 from itertools import islice
 from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
