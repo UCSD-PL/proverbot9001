@@ -27,7 +27,6 @@ from torch.nn.utils.rnn import pad_sequence
 
 from features import (WordFeature, VecFeature, Feature,
                       word_feature_constructors, vec_feature_constructors)
-import re
 from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
@@ -194,6 +193,7 @@ class HypArgModel(nn.Module):
                       dim=1))
         return hyp_likelyhoods
 
+
 class FeaturesClassifier(nn.Module):
     def __init__(self,
                  wordf_sizes : List[int],
@@ -221,6 +221,7 @@ class FeaturesClassifier(nn.Module):
             torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1)))
         return stem_distribution
 
+
 class FeaturesPolyArgModel(nn.Module):
     def __init__(self,
                  stem_classifier : FeaturesClassifier,
@@ -233,7 +234,7 @@ class FeaturesPolyArgModel(nn.Module):
         self.goal_encoder = maybe_cuda(goal_encoder)
         self.hyp_model = maybe_cuda(hyp_model)
 
-from difflib import SequenceMatcher
+
 class FeaturesPolyargPredictor(
         TrainablePredictor[FeaturesPolyArgDataset,
                            Tuple[Tokenizer, Embedding,
@@ -252,7 +253,7 @@ class FeaturesPolyargPredictor(
         # self._embedding : Optional[Embedding] = None
         self._model : Optional[FeaturesPolyArgModel] = None
 
-    def train(self, args : List[str]) -> None:
+    def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
@@ -260,7 +261,8 @@ class FeaturesPolyargPredictor(
 
         for metadata, state in save_states:
             with open(arg_values.save_file, 'wb') as f:
-                torch.save((self.shortname(), (arg_values, sys.argv, metadata, state)), f)
+                torch.save((self.shortname(),
+                            (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, context_batch: List[TacticContext],
                               k: int) \
@@ -405,8 +407,7 @@ class FeaturesPolyargPredictor(
         assert self._model
 
         num_stem_poss = get_num_tokens(self._metadata)
-        stem_width = min(self.training_args.max_beam_width, num_stem_poss,
-                         k ** 2)
+        stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
             nhyps_batch, tokenized_goal, \
