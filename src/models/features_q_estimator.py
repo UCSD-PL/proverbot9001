@@ -31,11 +31,9 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 from torch import optim
-# import torch.optim.lr_scheduler as scheduler
 import argparse
 import sys
 from pathlib_revised import Path2
-from torch import autograd
 
 from typing import (Dict, List, Tuple, cast, BinaryIO, TypeVar, Any,
                     Optional, Iterable, Sequence)
@@ -79,7 +77,6 @@ class FeaturesQEstimator(QEstimator):
               batch_size: Optional[int] = None,
               num_epochs: int = 1) -> None:
         for context, action, score in samples:
-            assert score < 2000, score
             assert score != float("-Inf") and score != float("Inf") and score == score
         self.optimizer.zero_grad()
         state_word_features, vec_features = zip(*[self._features(state)
