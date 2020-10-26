@@ -413,7 +413,7 @@ def reinforce_lemma(args: argparse.Namespace,
                                 proof_context_before,
                                 proof_context_after,
                                 try_action,
-                                -50)
+                                -1)
                             assert transition.reward < 2000
                             memory.append(transition)
                             if args.ghosts:
@@ -432,7 +432,7 @@ def reinforce_lemma(args: argparse.Namespace,
                             proof_context_before,
                             proof_context_before,
                             try_action,
-                            -500)
+                            -5)
                         assert transition.reward < 2000
                         memory.append(transition)
                         if args.ghosts:
@@ -508,16 +508,16 @@ def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
       -> LabeledTransition:
     goals_changed = len(after.all_goals) - len(before.all_goals)
     if len(after.all_goals) == 0:
-        reward = 1000.0
+        reward = 10.0
     elif goals_changed != 0:
-        reward = -(goals_changed * 30.0)
-        assert reward < 2000
+        reward = -(goals_changed * 2.0)
     else:
-        goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
-            len(tokenizer.get_words(after.focused_goal))
-        num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
-        reward = goal_size_reward * 3 + num_hyps_reward
-        assert reward < 2000
+        reward = 0
+    # else:
+    #     goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
+    #         len(tokenizer.get_words(after.focused_goal))
+    #     num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
+    #     reward = goal_size_reward * 3 + num_hyps_reward
     return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
                              tactic, reward, None)
 
