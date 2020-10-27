@@ -252,12 +252,12 @@ class EncoderRNN(nn.Module):
         result = self._out_layer(token_out.view(batch_size, self.hidden_size))
         return result
 
+
 class EncoderDNN(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
-                 num_layers : int, batch_size : int=1) -> None:
+                 num_layers : int) -> None:
         super(EncoderDNN, self).__init__()
         self.num_layers = num_layers
-        self.batch_size = batch_size
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
         for i in range(num_layers - 1):
             self.add_module("_layer{}".format(i),

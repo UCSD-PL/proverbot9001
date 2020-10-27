@@ -34,6 +34,7 @@ import threading
 from sexpdata import *
 from traceback import *
 from util import *
+from util import eprint
 from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
