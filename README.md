@@ -23,9 +23,13 @@ before you can install OPAM.
 If you're running OS X, you can find these packages in Homebrew.
 
 If you're on Windows, follow:
+
 https://gitforwindows.org/
+
 https://fdopen.github.io/opam-repository-mingw/installation/
+
 https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+
 https://www.python.org/downloads/windows/
 
 or use Windows Subsystem for Linux
