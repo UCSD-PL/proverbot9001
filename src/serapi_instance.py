@@ -356,6 +356,8 @@ class SerapiInstance(threading.Thread):
                     continue
                 if self.local_lemmas[l_idx][0] == ":":
                     continue
+                if self._local_lemmas[l_idx][1]:
+                    continue
                 assert self.local_lemmas[l_idx] != \
                     self.local_lemmas[ol_idx],\
                     self.local_lemmas
