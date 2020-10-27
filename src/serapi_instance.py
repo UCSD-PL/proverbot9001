@@ -312,7 +312,6 @@ class SerapiInstance(threading.Thread):
         if self.use_hammer:
             self.init_hammer()
 
-
     @property
     def local_lemmas(self) -> List[str]:
         def generate() -> Iterable[str]:
