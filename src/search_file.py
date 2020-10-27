@@ -374,6 +374,7 @@ def search_file_worker(args: argparse.Namespace,
                     break
                 except serapi_instance.SerapiException:
                     eprint(f"Failed getting to before: {next_lemma}")
+                    eprint(f"In file {next_file}")
                     raise
                 lemma_statement = run_commands[-1]
                 if lemma_statement == next_lemma:
