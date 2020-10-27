@@ -513,7 +513,7 @@ def lemmas_in_file(filename: str, cmds: List[str]) \
                       stripped_cmd)
         if stripped_cmd.count(":=") > stripped_cmd.count("with"):
             module_start_match = None
-        section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+        section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
                                        stripped_cmd)
         end_match = re.match(r"End ([\w']*)\.", stripped_cmd)
         if module_start_match:
@@ -709,9 +709,9 @@ def blocks_from_scrape_and_sols(
                     stripped_cmd)
                 if stripped_cmd.count(":=") > stripped_cmd.count("with"):
                     module_start_match = None
-                section_start_match = re.match(r"Section\s+([\w']*)\b(?!.*:=)",
+                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
                                                stripped_cmd)
-                end_match = re.match(r"End (\w*)\.", stripped_cmd)
+                end_match = re.match(r"End ([\w']*)\.", stripped_cmd)
                 if module_start_match:
                     module_stack.append(module_start_match.group(1))
                 elif section_start_match:
