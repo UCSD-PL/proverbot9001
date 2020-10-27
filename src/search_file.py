@@ -469,7 +469,12 @@ def search_file_worker(args: argparse.Namespace,
                                 proof_relevant = True
                             break
                     proof_relevant = proof_relevant or \
-                        bool(re.match(r"\s*Derive", lemma_statement))
+                        bool(re.match(
+                            r"\s*Derive",
+                            serapi_instance.kill_comments(lemma_statement))) or \
+                        bool(re.match(
+                            r"\s*Let",
+                            serapi_instance.kill_comments(lemma_statement)))
                     if proof_relevant:
                         rest_commands, run_commands = coq.finish_proof(
                             rest_commands)
