@@ -19,5 +19,5 @@ shift
 
 cd $MYDIR/$PROJECT
 
-cat "$TRAIN_FILES" | xargs python3 ../../src/scrape.py -c -j3 -o /dev/null $@
-find -name "*.scrape" | xargs cat > scrape.txt
+cat "$TRAIN_FILES" | xargs python3 $MYDIR/../src/scrape.py -c -j3 -o /dev/null $@
+find -name "*.scrape" | xargs cat > $MYDIR/$PROJECT/scrape.txt
