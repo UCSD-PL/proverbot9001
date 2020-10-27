@@ -351,7 +351,7 @@ class SerapiInstance(threading.Thread):
             self._local_lemmas.append((lemma, is_section))
 
         for l_idx in range(len(self.local_lemmas)):
-            for ol_idx in range(len(self.local_lemmas)):
+            for ol_idx in range(l_idx):
                 if l_idx == ol_idx:
                     continue
                 if self.local_lemmas[l_idx][0] == ":":
