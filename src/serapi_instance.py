@@ -1410,10 +1410,10 @@ def possibly_starting_proof(command: str) -> bool:
 
 def ending_proof(command: str) -> bool:
     stripped_command = kill_comments(command).strip()
-    return ("Qed" in stripped_command or
-            "Defined" in stripped_command or
-            "Admitted" in stripped_command or
-            "Abort" in stripped_command or
+    return ("Qed." in stripped_command or
+            "Defined." in stripped_command or
+            "Admitted." in stripped_command or
+            "Abort." in stripped_command or
             (re.match(r"\s*Proof\s+\S+\s*", stripped_command) is not None and
              re.match(r"\s*Proof\s+with", stripped_command) is None))
 
