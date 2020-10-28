@@ -20,4 +20,5 @@ shift 2
 
 cd $MYDIR/$PROJECT
 
-JOBS_FILE=test-files.txt ../../parallel-search-report.sh -o ../../$PROJECT-$WEIGHTS_ID-report -P --weightsfile=../../data/polyarg-weights-$WEIGHTS_ID.dat
+cat test-files.txt | xargs $MYDIR/../src/search_file.py -o search-report-$WEIGHTS_ID -P --weightsfile=$MYDIR/../data/polyarg-weights-$WEIGHTS_ID.dat
+
