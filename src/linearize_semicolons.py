@@ -29,12 +29,13 @@ import re
 import subprocess
 import sys
 import threading
+import asyncio
 
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
 from util import *
-from util import eprint
+from util import eprint, split_by_char_outside_matching
 from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
@@ -390,8 +391,12 @@ def split_commas(command : str) -> str:
         return prefix + first_command + ";" + split_commas(unfold_command + rest)
     else:
         return command
-def postlinear_desugar_tacs(commands :  Iterable[str]) -> Iterable[str]:
+
+
+def postlinear_desugar_tacs(commands:  Iterable[str]) -> Iterable[str]:
     yield from commands
+
+
 def desugar_rewrite_by(cmd : str) -> str:
     rewrite_by_match = re.search(r"\b(rewrite\s*(?:!|<-)?.*?\s+)by\s+", cmd)
     if rewrite_by_match:
@@ -471,10 +476,11 @@ def generate_lifted(commands : List[str], coq : serapi_instance.SerapiInstance,
             yield from pending_commands
     assert len(lemma_stack) == 0, f"Stack still contains {lemma_stack}"
 
-def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
-                             commands : List[str], coqargs : List[str],
-                             prelude : str, filename : str, relative_filename : str,
-                             skip_nochange_tac : bool) -> List[str]:
+
+async def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
+                                   commands : List[str], coqargs : List[str],
+                                   prelude : str, filename : str, relative_filename : str,
+                                   skip_nochange_tac : bool) -> List[str]:
     try:
         failed = True
         failures = list(compcert_failures)
@@ -511,6 +517,8 @@ def preprocess_file_commands(args : argparse.Namespace, file_idx : int,
     except serapi_instance.TimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
+
+
 def get_linearized(args : argparse.Namespace, coqargs : List[str],
                    bar_idx : int, filename : str) -> List[str]:
     local_filename = args.prelude + "/" + filename
@@ -519,12 +527,18 @@ def get_linearized(args : argparse.Namespace, coqargs : List[str],
         original_commands = \
             serapi_instance.load_commands_preserve(args, bar_idx,
                                                    args.prelude + "/" + filename)
-        fresh_commands = preprocess_file_commands(
-            args, bar_idx,
-            original_commands,
-            coqargs, args.prelude,
-            local_filename, filename, False)
-        serapi_instance.save_lin(fresh_commands, local_filename)
+        try:
+            fresh_commands = await asyncio.wait_for(
+                preprocess_file_commands(
+                    args, bar_idx,
+                    original_commands,
+                    coqargs, args.prelude,
+                    local_filename, filename, False),
+                timeout=args.linearizer_timeout)
+            serapi_instance.save_lin(fresh_commands, local_filename)
+        except (CoqAnomaly, asyncio.TimeoutError):
+            serapi_instance.save_lin(original_commands, local_filename)
+
         return fresh_commands
     else:
         return loaded_commands
@@ -540,10 +554,10 @@ def main():
                         dest='skip_nochange_tac')
     parser.add_argument("--progress",
                         action='store_const', const=True, default=False)
+    parser.add_argument("--linearizer-timeout", type=int, default=(60 * 60 * 2))
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
-    base = os.path.dirname(os.path.abspath(__file__)) + "/.."
     coqargs = ["sertop", "--implicit"]
 
     for filename in arg_values.filenames:
@@ -552,11 +566,16 @@ def main():
         local_filename = arg_values.prelude + "/" + filename
         original_commands = serapi_instance.load_commands_preserve(
             arg_values, 0, arg_values.prelude + "/" + filename)
-        fresh_commands = preprocess_file_commands(arg_values, 0,
-                                                  original_commands,
-                                                  coqargs, arg_values.prelude,
-                                                  local_filename, filename, False)
-        serapi_instance.save_lin(fresh_commands, local_filename)
+        try:
+            fresh_commands = await asyncio.wait_for(
+                preprocess_file_commands(arg_values, 0,
+                                         original_commands,
+                                         coqargs, arg_values.prelude,
+                                         local_filename, filename, False))
+            serapi_instance.save_lin(fresh_commands, local_filename)
+        except (CoqAnomaly, asyncio.TimeoutError):
+            serapi_instance.save_lin(original_commands, local_filename)
+
 
 if __name__ == "__main__":
     main()

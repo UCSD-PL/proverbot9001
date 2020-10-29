@@ -63,6 +63,8 @@ def main():
     parser.add_argument("--no-linearize", dest="linearize",
                         action='store_false')
     parser.add_argument("--ignore-lin-hash", action='store_true')
+    parser.add_argument("--linearizer-timeout", type=int,
+                        default=(60 * 60))
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -111,16 +113,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace, includes: str,
                 return result_file
     try:
         if args.linearize:
-            commands = serapi_instance.try_load_lin(args, file_idx,
-                                                    full_filename)
-            if not commands:
-                commands = linearize_semicolons.preprocess_file_commands(
-                    args, file_idx,
-                    serapi_instance.load_commands_preserve(args, 0,
-                                                           full_filename),
-                    coqargs, args.prelude, full_filename, filename,
-                    args.skip_nochange_tac)
-                serapi_instance.save_lin(commands, full_filename)
+            commands = linearize_semicolons.get_linearized(args, coqargs, file_idx, filename)
         else:
             with Path2(full_filename).open(mode='r') as vf:
                 commands = serapi_instance.read_commands_preserve(
