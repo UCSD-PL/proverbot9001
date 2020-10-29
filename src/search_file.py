@@ -215,6 +215,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         dest="count_failing_predictions")
     parser.add_argument('--count-softfail-predictions', action='store_true',
                         dest="count_softfail_predictions")
+    parser.add_argument("--careful", action='store_true')
     parser.add_argument("--relevant-lemmas", dest="relevant_lemmas",
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
@@ -475,7 +476,8 @@ def search_file_worker(args: argparse.Namespace,
                             serapi_instance.kill_comments(lemma_statement))) or \
                         bool(re.match(
                             r"\s*Let",
-                            serapi_instance.kill_comments(lemma_statement)))
+                            serapi_instance.kill_comments(lemma_statement))) or \
+                        args.careful
                     if proof_relevant:
                         rest_commands, run_commands = coq.finish_proof(
                             rest_commands)
