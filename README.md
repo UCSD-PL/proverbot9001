@@ -8,7 +8,7 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 
 ## Prerequisites
 
-You'll need to install `git`, `opam`, `graphviz`, `libgraphviz-dev`,
+You'll need to install `git`, `opam`, `rustup`, `graphviz`, `libgraphviz-dev`,
 `python3.7`, `python3.7-dev` and `python3.7-pip` to run Proverbot.
 
 If you're running Linux, all three can be generally found in your package repositories.
