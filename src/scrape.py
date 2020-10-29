@@ -98,7 +98,8 @@ def main():
                             out.write(line)
 
 
-def scrape_file(coqargs: List[str], args: argparse.Namespace, includes: str,
+def scrape_file(coqargs: List[str], args: argparse.Namespace,
+                includes: str,
                 file_tuple: Tuple[int, str]) -> Optional[str]:
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple
