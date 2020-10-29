@@ -11,6 +11,8 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
+    git submodule init
+    git submodule update
     opam init -a --compiler=4.07.1
     eval `opam config env`
     opam update
@@ -21,7 +23,7 @@ else
     opam install -y coq-serapi
     pip3 install --user -r requirements.txt
     # For py03/dataloader
-    rustup install nightly
+    rustup toolchain install nightly
     make src/dataloader.so
 fi
 
