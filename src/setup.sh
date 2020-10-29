@@ -20,6 +20,8 @@ else
     # For SerAPI:
     opam install -y coq-serapi
     pip3 install --user -r requirements.txt
+    # For py03/dataloader
+    rustup install nightly
     make src/dataloader.so
 fi
 
