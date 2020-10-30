@@ -103,18 +103,21 @@ FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
 
 
 class GoalTokenArgModel(nn.Module):
-    def __init__(self, stem_vocab_size : int,
-                 input_vocab_size : int, input_length : int,
-                 hidden_size : int) -> None:
+    def __init__(self, stem_vocab_size: int,
+                 input_vocab_size: int, input_length: int,
+                 hidden_size: int) -> None:
         super().__init__()
         self.hidden_size = hidden_size
-        self._stem_embedding = maybe_cuda(nn.Embedding(stem_vocab_size, hidden_size))
-        self._token_embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
+        self._stem_embedding = maybe_cuda(
+            nn.Embedding(stem_vocab_size, hidden_size))
+        self._token_embedding = maybe_cuda(
+            nn.Embedding(input_vocab_size, hidden_size))
         self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._likelyhood_layer = maybe_cuda(EncoderDNN(hidden_size, hidden_size, 1, 2))
+        self._likelyhood_layer = maybe_cuda(
+            EncoderDNN(hidden_size, hidden_size, 1, 2))
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
-    def forward(self, stem_batch : torch.LongTensor, goal_batch : torch.LongTensor) \
-        -> torch.FloatTensor:
+    def forward(self, stem_batch: torch.LongTensor, goal_batch: torch.LongTensor) \
+            -> torch.FloatTensor:
         goal_var = maybe_cuda(Variable(goal_batch))
         stem_var = maybe_cuda(Variable(stem_batch))
         batch_size = goal_batch.size()[0]
@@ -122,10 +125,10 @@ class GoalTokenArgModel(nn.Module):
         initial_hidden = self._stem_embedding(stem_var)\
                              .view(1, batch_size, self.hidden_size)
         hidden = initial_hidden
-        copy_likelyhoods : List[torch.FloatTensor] = []
+        copy_likelyhoods: List[torch.FloatTensor] = []
         for i in range(goal_batch.size()[1]):
             try:
-                token_batch = self._token_embedding(goal_var[:,i])\
+                token_batch = self._token_embedding(goal_var[:, i])\
                                   .view(1, batch_size, self.hidden_size)
                 token_batch2 = F.relu(token_batch)
                 token_out, hidden = self._gru(token_batch2, hidden)
@@ -143,7 +146,7 @@ class GoalTokenArgModel(nn.Module):
                 raise
         end_token_embedded = self._token_embedding(LongTensor([EOS_token])
                                                    .expand(batch_size))\
-                                                   .view(1, batch_size, self.hidden_size)
+            .view(1, batch_size, self.hidden_size)
         final_out, final_hidden = self._gru(F.relu(end_token_embedded), hidden)
         final_likelyhood = self._likelyhood_layer(F.relu(final_out))
         copy_likelyhoods.insert(0, final_likelyhood[0])
@@ -152,22 +155,26 @@ class GoalTokenArgModel(nn.Module):
 
 
 class HypArgModel(nn.Module):
-    def __init__(self, goal_data_size : int,
-                 stem_vocab_size : int,
-                 token_vocab_size : int,
-                 hyp_features_size : int,
-                 hidden_size : int) -> None:
+    def __init__(self, goal_data_size: int,
+                 stem_vocab_size: int,
+                 token_vocab_size: int,
+                 hyp_features_size: int,
+                 hidden_size: int) -> None:
         super().__init__()
         self.hidden_size = hidden_size
-        self._stem_embedding = maybe_cuda(nn.Embedding(stem_vocab_size, hidden_size))
-        self._token_embedding = maybe_cuda(nn.Embedding(token_vocab_size, hidden_size))
-        self._in_hidden = maybe_cuda(EncoderDNN(hidden_size + goal_data_size, hidden_size, hidden_size, 1))
+        self._stem_embedding = maybe_cuda(
+            nn.Embedding(stem_vocab_size, hidden_size))
+        self._token_embedding = maybe_cuda(
+            nn.Embedding(token_vocab_size, hidden_size))
+        self._in_hidden = maybe_cuda(EncoderDNN(
+            hidden_size + goal_data_size, hidden_size, hidden_size, 1))
         self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._likelyhood_decoder = maybe_cuda(EncoderDNN(hidden_size + hyp_features_size, hidden_size, 1, 2))
+        self._likelyhood_decoder = maybe_cuda(EncoderDNN(
+            hidden_size + hyp_features_size, hidden_size, 1, 2))
 
-    def forward(self, stems_batch : torch.LongTensor,
-                goals_encoded_batch : torch.FloatTensor, hyps_batch : torch.LongTensor,
-                hypfeatures_batch : torch.FloatTensor):
+    def forward(self, stems_batch: torch.LongTensor,
+                goals_encoded_batch: torch.FloatTensor, hyps_batch: torch.LongTensor,
+                hypfeatures_batch: torch.FloatTensor):
         stems_var = maybe_cuda(Variable(stems_batch))
         hyps_var = maybe_cuda(Variable(hyps_batch))
         hypfeatures_var = maybe_cuda(Variable(hypfeatures_batch))
@@ -181,10 +188,10 @@ class HypArgModel(nn.Module):
                            .view(batch_size, self.hidden_size)
         initial_hidden = self._in_hidden(torch.cat(
             (stem_encoded, goals_encoded_batch), dim=1))\
-                             .view(1, batch_size, self.hidden_size)
+            .view(1, batch_size, self.hidden_size)
         hidden = initial_hidden
         for i in range(hyps_batch.size()[1]):
-            token_batch = self._token_embedding(hyps_var[:,i])\
+            token_batch = self._token_embedding(hyps_var[:, i])\
                 .view(1, batch_size, self.hidden_size)
             token_batch = F.relu(token_batch)
             token_out, hidden = self._hyp_gru(token_batch, hidden)
@@ -196,12 +203,12 @@ class HypArgModel(nn.Module):
 
 class FeaturesClassifier(nn.Module):
     def __init__(self,
-                 wordf_sizes : List[int],
-                 vecf_size : int,
-                 hidden_size : int,
-                 num_layers : int,
-                 stem_vocab_size : int)\
-        -> None:
+                 wordf_sizes: List[int],
+                 vecf_size: int,
+                 hidden_size: int,
+                 num_layers: int,
+                 stem_vocab_size: int)\
+            -> None:
         super().__init__()
         self._word_features_encoder = maybe_cuda(
             WordFeaturesEncoder(wordf_sizes,
@@ -213,8 +220,8 @@ class FeaturesClassifier(nn.Module):
         pass
 
     def forward(self,
-                word_features_batch : torch.LongTensor,
-                vec_features_batch : torch.FloatTensor) -> torch.FloatTensor:
+                word_features_batch: torch.LongTensor,
+                vec_features_batch: torch.FloatTensor) -> torch.FloatTensor:
         encoded_word_features = self._word_features_encoder(
             maybe_cuda(word_features_batch))
         stem_distribution = self._softmax(self._features_classifier(
@@ -224,10 +231,10 @@ class FeaturesClassifier(nn.Module):
 
 class FeaturesPolyArgModel(nn.Module):
     def __init__(self,
-                 stem_classifier : FeaturesClassifier,
-                 goal_args_model : GoalTokenArgModel,
-                 goal_encoder : EncoderRNN,
-                 hyp_model : HypArgModel) -> None:
+                 stem_classifier: FeaturesClassifier,
+                 goal_args_model: GoalTokenArgModel,
+                 goal_encoder: EncoderRNN,
+                 hyp_model: HypArgModel) -> None:
         super().__init__()
         self.stem_classifier = maybe_cuda(stem_classifier)
         self.goal_args_model = maybe_cuda(goal_args_model)
@@ -242,16 +249,16 @@ class FeaturesPolyargPredictor(
                            NeuralPredictorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.NLLLoss())
-        self.training_args : Optional[argparse.Namespace] = None
-        self.training_loss : Optional[float] = None
-        self.num_epochs : Optional[int] = None
+        self.training_args: Optional[argparse.Namespace] = None
+        self.training_loss: Optional[float] = None
+        self.num_epochs: Optional[int] = None
         # self._word_feature_functions: Optional[List[WordFeature]] = None
         # self._vec_feature_functions: Optional[List[VecFeature]] = None
         self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
         self._softmax2 = maybe_cuda(nn.LogSoftmax(dim=2))
         # self._tokenizer : Optional[Tokenizer] = None
         # self._embedding : Optional[Embedding] = None
-        self._model : Optional[FeaturesPolyArgModel] = None
+        self._model: Optional[FeaturesPolyArgModel] = None
 
     def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())
@@ -395,6 +402,7 @@ class FeaturesPolyargPredictor(
                 all_hyps, context.goal,
                 all_idxs[next_i][1],
                 all_idxs[next_i][2])
+            # next_pred_str = ""
             if next_pred_str not in prediction_strs:
                 prediction_strs.append(next_pred_str)
                 prediction_probs.append(math.exp(all_idxs[next_i][0]))
@@ -508,13 +516,14 @@ class FeaturesPolyargPredictor(
         predicted_arg_idxs = arg_idxs % num_probs_per_stem
         return prediction_probs[0], predicted_stem_idxs, predicted_arg_idxs[0]
 
-    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
-        Tuple[List[Prediction], float]:
+    def predictKTacticsWithLoss(self, in_data: TacticContext, k: int, correct: str) -> \
+            Tuple[List[Prediction], float]:
         return self.predictKTactics(in_data, k), 0
+
     def predictKTacticsWithLoss_batch(self,
-                                      in_datas : List[TacticContext],
-                                      k : int, corrects : List[str]) -> \
-                                      Tuple[List[List[Prediction]], float]:
+                                      in_datas: List[TacticContext],
+                                      k: int, corrects: List[str]) -> \
+            Tuple[List[List[Prediction]], float]:
         subresults = [self.predictKTacticsWithLoss(in_data, k, correct)
                       for in_data, correct in
                       zip(in_datas, corrects)]
@@ -522,8 +531,8 @@ class FeaturesPolyargPredictor(
         predictions = [subresult[0] for subresult in subresults]
         return predictions, loss
 
-    def runHypModel(self, stem_idxs : torch.LongTensor, encoded_goals : torch.FloatTensor,
-                    hyps_batch : torch.LongTensor, hypfeatures_batch : torch.FloatTensor):
+    def runHypModel(self, stem_idxs: torch.LongTensor, encoded_goals: torch.FloatTensor,
+                    hyps_batch: torch.LongTensor, hypfeatures_batch: torch.FloatTensor):
         assert self._model
         assert self.training_args
         batch_size = encoded_goals.size()[0]
@@ -553,7 +562,7 @@ class FeaturesPolyargPredictor(
                                   .expand(-1, beam_width, -1, -1).contiguous()
                                   .view(batch_size * beam_width * num_hyps,
                                         features_size))\
-                                  .view(batch_size, beam_width, num_hyps)
+            .view(batch_size, beam_width, num_hyps)
         return hyp_arg_values
 
     def getOptions(self) -> List[Tuple[str, str]]:
@@ -564,19 +573,23 @@ class FeaturesPolyargPredictor(
             [("training loss", self.training_loss),
              ("# epochs", self.num_epochs),
              ("predictor", "polyarg")]
+
     def _description(self) -> str:
         return "A predictor combining the goal token args and hypothesis args models."
+
     def shortname(self) -> str:
         return "polyarg"
-    def add_args_to_parser(self, parser : argparse.ArgumentParser,
-                           default_values : Dict[str, Any] = {}) -> None:
-        new_defaults = {"batch-size":128, "learning-rate":0.4, "epoch-step":3,
+
+    def add_args_to_parser(self, parser: argparse.ArgumentParser,
+                           default_values: Dict[str, Any] = {}) -> None:
+        new_defaults = {"batch-size": 128, "learning-rate": 0.4, "epoch-step": 3,
                         **default_values}
         super().add_args_to_parser(parser, new_defaults)
         add_nn_args(parser, new_defaults)
         add_tokenizer_args(parser, new_defaults)
-        feature_set : Set[str] = set()
-        all_constructors : List[Type[Feature]] = vec_feature_constructors + word_feature_constructors # type: ignore
+        feature_set: Set[str] = set()
+        all_constructors: List[Type[Feature]] = vec_feature_constructors + \
+            word_feature_constructors  # type: ignore
         for feature_constructor in all_constructors:
             new_args = feature_constructor\
                 .add_feature_arguments(parser, feature_set, default_values)
@@ -587,11 +600,16 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("max-string-distance", 50))
         parser.add_argument("--max-beam-width", dest="max_beam_width", type=int,
                             default=default_values.get("max-beam-width", 10))
-        parser.add_argument("--no-lemma-args", dest="lemma_args", action='store_false')
-        parser.add_argument("--no-hyp-features", dest="hyp_features", action="store_false")
-        parser.add_argument("--no-features", dest="features", action="store_false")
-        parser.add_argument("--no-hyp-rnn", dest="hyp_rnn", action="store_false")
-        parser.add_argument("--no-goal-rnn", dest="goal_rnn", action="store_false")
+        parser.add_argument("--no-lemma-args",
+                            dest="lemma_args", action='store_false')
+        parser.add_argument("--no-hyp-features",
+                            dest="hyp_features", action="store_false")
+        parser.add_argument(
+            "--no-features", dest="features", action="store_false")
+        parser.add_argument("--no-hyp-rnn", dest="hyp_rnn",
+                            action="store_false")
+        parser.add_argument(
+            "--no-goal-rnn", dest="goal_rnn", action="store_false")
         parser.add_argument("--replace-rnns-with-dnns", action="store_true")
         parser.add_argument("--print-tensors", action="store_true")
         parser.add_argument("--load-text-tokens", default=None)
@@ -602,11 +620,12 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
 
-    def _encode_data(self, data : RawDataset, arg_values : Namespace) \
+    def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
                                                List[WordFeature], List[VecFeature]]]:
         pass
-    def _optimize_model(self, arg_values : Namespace) -> Iterable[FeaturesPolyargState]:
+
+    def _optimize_model(self, arg_values: Namespace) -> Iterable[FeaturesPolyargState]:
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
                 _, (old_arg_values, unparsed_args,
@@ -677,12 +696,13 @@ class FeaturesPolyargPredictor(
                                                                                                  model), epoch_start))
 
     def load_saved_state(self,
-                         args : Namespace,
-                         unparsed_args : List[str],
-                         metadata : Any,
-                         state : NeuralPredictorState) -> None:
+                         args: Namespace,
+                         unparsed_args: List[str],
+                         metadata: Any,
+                         state: NeuralPredictorState) -> None:
         model = maybe_cuda(self._get_model(args,
-                                           get_word_feature_vocab_sizes(metadata),
+                                           get_word_feature_vocab_sizes(
+                                               metadata),
                                            get_vec_features_size(metadata),
                                            get_num_indices(metadata),
                                            get_num_tokens(metadata)))
@@ -694,12 +714,12 @@ class FeaturesPolyargPredictor(
         self.unparsed_args = unparsed_args
         self._metadata = metadata
 
-    def _get_model(self, arg_values : Namespace,
-                   wordf_sizes : List[int],
-                   vecf_size : int,
-                   stem_vocab_size : int,
-                   goal_vocab_size : int) \
-        -> FeaturesPolyArgModel:
+    def _get_model(self, arg_values: Namespace,
+                   wordf_sizes: List[int],
+                   vecf_size: int,
+                   stem_vocab_size: int,
+                   goal_vocab_size: int) \
+            -> FeaturesPolyArgModel:
         return FeaturesPolyArgModel(
             FeaturesClassifier(wordf_sizes, vecf_size,
                                arg_values.hidden_size,
@@ -707,24 +727,27 @@ class FeaturesPolyargPredictor(
                                stem_vocab_size),
             GoalTokenArgModel(stem_vocab_size, goal_vocab_size, arg_values.max_length,
                               arg_values.hidden_size),
-            EncoderRNN(goal_vocab_size, arg_values.hidden_size, arg_values.hidden_size),
+            EncoderRNN(goal_vocab_size, arg_values.hidden_size,
+                       arg_values.hidden_size),
             HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
                         hypFeaturesSize(), arg_values.hidden_size))
-    def _getBatchPredictionLoss(self, arg_values : Namespace,
-                                batch : Sequence[torch.Tensor],
-                                model : FeaturesPolyArgModel) -> torch.FloatTensor:
+
+    def _getBatchPredictionLoss(self, arg_values: Namespace,
+                                batch: Sequence[torch.Tensor],
+                                model: FeaturesPolyArgModel) -> torch.FloatTensor:
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
             tokenized_goals_batch, goal_masks_batch, \
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
-                cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
-                           torch.LongTensor, torch.ByteTensor,
-                           torch.LongTensor, torch.FloatTensor,
-                           torch.LongTensor, torch.LongTensor],
-                     data_batch)
+            cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
+                       torch.LongTensor, torch.ByteTensor,
+                       torch.LongTensor, torch.FloatTensor,
+                       torch.LongTensor, torch.LongTensor],
+                 data_batch)
         batch_size = tokenized_goals_batch.size()[0]
         goal_size = tokenized_goals_batch.size()[1]
-        stemDistributions = model.stem_classifier(word_features_batch, vec_features_batch)
+        stemDistributions = model.stem_classifier(
+            word_features_batch, vec_features_batch)
         num_stem_poss = stemDistributions.size()[1]
         stem_width = min(arg_values.max_beam_width, num_stem_poss)
         stem_var = maybe_cuda(Variable(stem_idxs_batch))
@@ -742,22 +765,27 @@ class FeaturesPolyargPredictor(
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
         if arg_values.hyp_rnn:
-            tokenized_hyps_var = maybe_cuda(Variable(tokenized_hyp_types_batch))
+            tokenized_hyps_var = maybe_cuda(
+                Variable(tokenized_hyp_types_batch))
         else:
-            tokenized_hyps_var = maybe_cuda(Variable(torch.zeros_like(tokenized_hyp_types_batch)))
+            tokenized_hyps_var = maybe_cuda(
+                Variable(torch.zeros_like(tokenized_hyp_types_batch)))
 
         if arg_values.hyp_features:
             hyp_features_var = maybe_cuda(Variable(hyp_features_batch))
         else:
-            hyp_features_var = maybe_cuda(Variable(torch.zeros_like(hyp_features_batch)))
+            hyp_features_var = maybe_cuda(
+                Variable(torch.zeros_like(hyp_features_batch)))
 
         goal_arg_values = model.goal_args_model(
             mergedStemIdxsT.view(batch_size * stem_width),
-            tokenized_goals_batch.view(batch_size, 1, goal_size).expand(-1, stem_width, -1)
+            tokenized_goals_batch.view(
+                batch_size, 1, goal_size).expand(-1, stem_width, -1)
             .contiguous().view(batch_size * stem_width, goal_size))\
             .view(batch_size, stem_width, goal_size + 1)
         goal_arg_values = torch.where(
-            maybe_cuda(goal_masks_batch.view(batch_size, 1, arg_values.max_length + 1))
+            maybe_cuda(goal_masks_batch.view(
+                batch_size, 1, arg_values.max_length + 1))
             .expand(-1, stem_width, -1),
             goal_arg_values,
             maybe_cuda(torch.full_like(goal_arg_values, -float("Inf"))))
@@ -791,21 +819,24 @@ class FeaturesPolyargPredictor(
                             .expand(-1, stem_width, -1, -1).contiguous()
                             .view(batch_size * stem_width * hyp_lists_length,
                                   hyp_features_size))
-        assert hyp_arg_values_concatted.size() == torch.Size([batch_size * stem_width * hyp_lists_length, 1]), hyp_arg_values_concatted.size()
+        assert hyp_arg_values_concatted.size() == torch.Size(
+            [batch_size * stem_width * hyp_lists_length, 1]), hyp_arg_values_concatted.size()
         hyp_arg_values = hyp_arg_values_concatted.view(batch_size, stem_width,
                                                        hyp_lists_length)
         total_arg_values = torch.cat((goal_arg_values, hyp_arg_values),
                                      dim=2)
         num_probs = hyp_lists_length + goal_size + 1
         total_arg_distribution = \
-            self._softmax(total_arg_values.view(batch_size, stem_width * num_probs))
+            self._softmax(total_arg_values.view(
+                batch_size, stem_width * num_probs))
         total_arg_var = maybe_cuda(Variable(arg_total_idxs_batch +
                                             (correctPredictionIdxs * num_probs)))\
-                                            .view(batch_size)
+            .view(batch_size)
         loss = FloatTensor([0.])
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
+
 
 def hypFeaturesSize() -> int:
     return 2
