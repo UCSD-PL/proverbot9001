@@ -317,11 +317,14 @@ class FeaturesPolyargPredictor(
         goal_arg_values = self.goal_token_scores(
             stem_idxs, tokenized_goal, goal_mask)
 
-        hyp_arg_values = self.hyp_name_scores(
-            stem_idxs[0], tokenized_goal[0],
-            tokenized_premises[0], hyp_features[0])
+        if len(tokenized_premises[0]) > 0:
+            hyp_arg_values = self.hyp_name_scores(
+                stem_idxs[0], tokenized_goal[0],
+                tokenized_premises[0], hyp_features[0])
 
-        total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
+            total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
+        else:
+            total_scores = goal_arg_values
 
         final_probs, predicted_stem_idxs, predicted_arg_idxs = \
             self.predict_args(total_scores, stem_certainties, stem_idxs)
