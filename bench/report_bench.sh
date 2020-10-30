@@ -20,5 +20,4 @@ shift 2
 
 cd $MYDIR/$PROJECT
 
-cat test-files.txt | xargs $MYDIR/../src/search_file.py -o search-report-$WEIGHTS_ID -P --weightsfile=$MYDIR/../data/polyarg-weights-$WEIGHTS_ID.dat
-
+cat test-files.txt | xargs $MYDIR/../src/search_file.py -o search-report-$WEIGHTS_ID -P --weightsfile=$MYDIR/../data/polyarg-weights-$WEIGHTS_ID.dat $@
