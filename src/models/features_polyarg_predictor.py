@@ -524,12 +524,7 @@ class FeaturesPolyargPredictor(
                                       in_datas: List[TacticContext],
                                       k: int, corrects: List[str]) -> \
             Tuple[List[List[Prediction]], float]:
-        subresults = [self.predictKTacticsWithLoss(in_data, k, correct)
-                      for in_data, correct in
-                      zip(in_datas, corrects)]
-        loss = sum([subresult[1] for subresult in subresults])
-        predictions = [subresult[0] for subresult in subresults]
-        return predictions, loss
+        return self.predictKTactics_batch(in_datas, k), 0
 
     def runHypModel(self, stem_idxs: torch.LongTensor, encoded_goals: torch.FloatTensor,
                     hyps_batch: torch.LongTensor, hypfeatures_batch: torch.FloatTensor):
