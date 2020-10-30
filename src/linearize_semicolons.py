@@ -22,14 +22,8 @@
 
 from tqdm import tqdm
 import argparse
-import datetime
-import os
-import os.path
-import queue
 import re
-import subprocess
 import sys
-import threading
 import asyncio
 
 # This dependency is in pip, the python package manager
@@ -41,13 +35,14 @@ from compcert_linearizer_failures import compcert_failures
 
 import serapi_instance
 from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError, NoSuchGoalError,
-                             CoqAnomaly)
+                             BadResponse, TimeoutError, ParseError,
+                             NoSuchGoalError, CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
-                    Tuple, Pattern, Union, cast)
+                    Union, cast)
 
 from itertools import islice
+import signal
 
 # exception for when things go bad, but not necessarily because of the linearizer
 
@@ -554,6 +549,14 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
         return commands
 
 
+class LinearizerTimeoutException(Exception):
+    pass
+
+
+def timeout_handler(signum, frame):
+    raise LinearizerTimeoutException("Linearizer timed out")
+
+
 def get_linearized(args: argparse.Namespace, coqargs: List[str],
                    bar_idx: int, filename: str) -> List[str]:
     local_filename = args.prelude + "/" + filename
@@ -561,18 +564,22 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
         args, bar_idx, local_filename)
     if loaded_commands is None:
         original_commands = \
-            serapi_instance.load_commands_preserve(args, bar_idx,
-                                                   args.prelude + "/" + filename)
+            serapi_instance.load_commands_preserve(
+                args, bar_idx, args.prelude + "/" + filename)
         try:
-            eprint(f"Waiting for {args.linearizer_timeout} seconds")
+            if args.linearizer_timeout:
+                signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(args.linearizer_timeout)
             fresh_commands = preprocess_file_commands(
                 args, bar_idx,
                 original_commands,
                 coqargs, args.prelude,
                 local_filename, filename, False)
-            serapi_instance.save_lin(fresh_commands, local_filename)
-        except (CoqAnomaly, asyncio.TimeoutError):
-            serapi_instance.save_lin(original_commands, local_filename)
+        except LinearizerTimeoutException:
+            fresh_commands = original_commands
+        except CoqAnomaly:
+            fresh_commands = original_commands
+        serapi_instance.save_lin(fresh_commands, local_filename)
 
         return fresh_commands
     else:
@@ -609,7 +616,7 @@ def main():
                 coqargs, arg_values.prelude,
                 local_filename, filename, False)
             serapi_instance.save_lin(fresh_commands, local_filename)
-        except (CoqAnomaly, asyncio.TimeoutError):
+        except CoqAnomaly:
             serapi_instance.save_lin(original_commands, local_filename)
 
 
