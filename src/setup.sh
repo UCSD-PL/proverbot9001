@@ -36,7 +36,7 @@ function check-and-clone {
 function setup-compcert {
     check-and-clone\
         "CompCert" "https://github.com/AbsInt/CompCert.git"\
-        "f047fcb7852ff58c0c62f10d41f91f3f88552780"
+        "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
     (
         set -euv
         cd CompCert
