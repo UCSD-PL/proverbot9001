@@ -462,7 +462,7 @@ class FeaturesPolyargPredictor(
             .view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
-            ByteTensor(goal_masks)
+            maybe_cuda(torch.ByteTensor(goal_masks))
             .view(batch_size, 1, num_goal_probs)
             .expand(-1, stem_width, -1),
             unmasked_probabilities,
