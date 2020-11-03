@@ -299,7 +299,7 @@ class SerapiInstance(threading.Thread):
         self.section_stack: List[str] = []
 
         # Open the top level module
-        if module_name:
+        if module_name and module_name not in ["Parameter", "Prop"]:
             self.run_stmt(f"Module {module_name}.")
         # Execute the commands corresponding to include flags we were
         # passed
