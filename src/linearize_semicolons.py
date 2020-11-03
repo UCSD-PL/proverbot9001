@@ -128,6 +128,10 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
                 if args.hardfail:
                     raise e
                 coq.run_stmt("Abort.")
+                for command in orig:
+                    inner_ltac_match = re.match("\s*(?:(?:Local|Global)\s+)?Ltac\s+(\S+)\s+", command)
+                    if inner_ltac_match:
+                        coq.run_stmt("Reset {}.".format(inner_ltac_match.group(1)))
                 coq.run_stmt(theorem_statement)
                 for command in orig:
                     if command:
@@ -218,6 +222,11 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
         command = serapi_instance.kill_comments(command_proper)
         if verbose >= 2:
             eprint(f"Linearizing command \"{command}\"")
+
+        if "Ltac" in command:
+            coq.run_stmt(command)
+            yield command
+            continue
 
         goal_selector_match = re.fullmatch(
             r"\s*(\d+)\s*:\s*(.*)\.\s*", command)
