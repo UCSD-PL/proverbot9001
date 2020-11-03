@@ -1518,7 +1518,8 @@ def split_tactic(tactic: str) -> Tuple[str, str]:
         if special_match:
             return special_stem, special_match.group(1)
     match = re.match(r"^\(?(\w+)(\W+.*)?", tactic)
-    assert match, "tactic \"{}\" doesn't match!".format(tactic)
+    if not match:
+        return tactic, ""
     stem, rest = match.group(1, 2)
     if not rest:
         rest = ""
