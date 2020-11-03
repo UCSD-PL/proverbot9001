@@ -65,6 +65,8 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
                        known_failures: List[List[str]]):
     commands_iter = iter(commands_sequence)
     command = next(commands_iter, None)
+    if not command:
+        return commands_sequence
     assert command, "Got an empty sequence!"
     while command:
         # Run up to the next proof
