@@ -59,6 +59,12 @@ def FloatTensor(*args : Any) -> torch.FloatTensor:
     else:
         return torch.FloatTensor(*args)
 
+def ByteTensor(*args : Any) -> torch.ByteTensor:
+    if use_cuda:
+        return torch.cuda.ByteTensor(*args)
+    else:
+        return torch.ByteTensor(*args)
+
 def asMinutes(s : float) -> str:
     m = math.floor(s / 60)
     s -= m * 60

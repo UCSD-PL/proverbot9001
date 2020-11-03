@@ -31,7 +31,7 @@ from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
-                  print_time)
+                  ByteTensor, print_time)
 import math
 from format import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
@@ -462,7 +462,7 @@ class FeaturesPolyargPredictor(
             .view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
-            torch.ByteTensor(goal_masks)
+            ByteTensor(goal_masks)
             .view(batch_size, 1, num_goal_probs)
             .expand(-1, stem_width, -1),
             unmasked_probabilities,
