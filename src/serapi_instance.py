@@ -1502,6 +1502,9 @@ def split_tactic(tactic: str) -> Tuple[str, str]:
     tactic = kill_comments(tactic).strip()
     if not tactic:
         return ("", "")
+    outer_parens_match = re.fullmatch(r"\((.*)\)\.", tactic)
+    if outer_parens_match:
+        return split_tactic(outer_parens_match.group(1) + ".")
     if re.match(r"^\s*[-+*\{\}]+\s*$", tactic):
         stripped = tactic.strip()
         return stripped[:-1], stripped[-1]
