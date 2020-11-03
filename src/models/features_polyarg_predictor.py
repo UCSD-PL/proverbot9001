@@ -365,14 +365,17 @@ class FeaturesPolyargPredictor(
             zip(stem_certainties_batch, stem_idxs_batch,
                 goal_arg_values_batch, tokenized_goal_batch,
                 tokenized_premises_batch, premise_features_batch):
-            premise_arg_values = self.hyp_name_scores(
-                stem_idxs,
-                tokenized_goal,
-                tokenized_premises,
-                premise_features)
-            total_scores = torch.cat((goal_arg_values.unsqueeze(0),
-                                      premise_arg_values),
-                                     dim=2)
+            if len(tokenized_premises) > 0:
+                premise_arg_values = self.hyp_name_scores(
+                    stem_idxs,
+                    tokenized_goal,
+                    tokenized_premises,
+                    premise_features)
+                total_scores = torch.cat((goal_arg_values.unsqueeze(0),
+                                          premise_arg_values),
+                                         dim=2)
+            else:
+                total_scores = goal_arg_values.unsqueeze(0)
 
             probs, stems, args = self.predict_args(
                 total_scores, stem_certainties, stem_idxs)
