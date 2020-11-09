@@ -295,8 +295,7 @@ class SerapiInstance(threading.Thread):
         # Go through the messages and throw away the initial feedback.
         self.discard_feedback()
         # Stacks for keeping track of the current lemma and module
-        self.module_stack: List[str] = []
-        self.section_stack: List[str] = []
+        self.sm_stack: List[Tuple[str, bool]] = []
 
         # Open the top level module
         if module_name and module_name not in ["Parameter", "Prop"]:
@@ -311,6 +310,16 @@ class SerapiInstance(threading.Thread):
         self.use_hammer = use_hammer
         if self.use_hammer:
             self.init_hammer()
+
+    @property
+    def module_stack(self) -> List[str]:
+        return [entry for entry, is_section in self.sm_stack
+                if not is_section]
+
+    @property
+    def section_stack(self) -> List[str]:
+        return [entry for entry, is_section in self.sm_stack
+                if is_section]
 
     @property
     def local_lemmas(self) -> List[str]:
@@ -1302,25 +1311,22 @@ class SerapiInstance(threading.Thread):
             module_start_match = None
         section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
                                        stripped_cmd)
-        end_match = re.match(r"End ([\w']*)\.", stripped_cmd)
+        end_match = re.match(r"End\s+([\w']*)\.", stripped_cmd)
         if module_start_match:
-            self.module_stack.append(module_start_match.group(1))
+            self.sm_stack.append((module_start_match.group(1), False))
         elif section_start_match:
-            self.section_stack.append(section_start_match.group(1))
+            self.sm_stack.append((section_start_match.group(1), True))
         elif end_match:
-            if self.module_stack and \
-               self.module_stack[-1] == end_match.group(1):
-                self.module_stack.pop()
-            elif self.section_stack and \
-                    self.section_stack[-1] == end_match.group(1):
-                self._local_lemmas = \
-                    [(lemma, is_section) for (lemma, is_section)
-                     in self._local_lemmas if not is_section]
-                self.section_stack.pop()
+            if self.sm_stack and self.sm_stack[-1][0] == end_match.group(1):
+                entry, is_sec = self.sm_stack.pop()
+                if is_sec:
+                    self._local_lemmas = \
+                      [(lemma, is_section) for (lemma, is_section)
+                       in self._local_lemmas if not is_section]
             else:
                 assert False, \
                     f"Unrecognized End \"{cmd}\", " \
-                    f"top of module stack is {self.module_stack[-1]}"
+                    f"top of module stack is {self.sm_stack[-1]}"
 
     def kill(self) -> None:
         assert self._proc.stdout
