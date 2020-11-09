@@ -588,7 +588,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
                 local_filename, filename, False)
         except LinearizerTimeoutException:
             fresh_commands = original_commands
-        except CoqAnomaly:
+        except (CoqAnomaly, CoqExn):
             fresh_commands = original_commands
         serapi_instance.save_lin(fresh_commands, local_filename)
 
