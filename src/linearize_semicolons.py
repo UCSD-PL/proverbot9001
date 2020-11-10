@@ -586,6 +586,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
                 original_commands,
                 coqargs, args.prelude,
                 local_filename, filename, False)
+            signal.alarm(0)
         except LinearizerTimeoutException:
             fresh_commands = original_commands
         except (CoqAnomaly, CoqExn):
