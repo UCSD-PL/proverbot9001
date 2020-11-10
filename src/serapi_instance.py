@@ -1373,9 +1373,9 @@ def SerapiContext(coq_commands: List[str], module_name: str,
 
 
 normal_lemma_starting_patterns = [
-    "(?:Polymorphic\s+)?Lemma",
+    r"(?:Polymorphic\s+)?Lemma",
     "Coercion",
-    "Theorem",
+    r"(?:Polymorphic\s+)?Theorem",
     "Remark",
     "Proposition",
     "Definition",
@@ -1385,7 +1385,6 @@ normal_lemma_starting_patterns = [
     "Corollary",
     "Let",
     r"(?<!Declare\s)(?:Polymorphic\s+)?Instance",
-    "(?:(?:Local|Global)\s+)Instance",
     "Function",
     "Property",
     "Fact"]
