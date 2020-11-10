@@ -94,7 +94,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--chunk-size', dest="chunk_size", type=int, default=4096)
+    parser.add_argument('--chunk-size', dest="chunk_size", type=int, default=1024)
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)

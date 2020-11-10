@@ -194,6 +194,7 @@ class HypArgModel(nn.Module):
             token_batch = self._token_embedding(hyps_var[:, i])\
                 .view(1, batch_size, self.hidden_size)
             token_batch = F.relu(token_batch)
+            hidden = hidden.detach()
             token_out, hidden = self._hyp_gru(token_batch, hidden)
         hyp_likelyhoods = self._likelyhood_decoder(
             torch.cat((token_out.view(batch_size, self.hidden_size), hypfeatures_var),
