@@ -314,7 +314,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
                 loss.backward()
                 optimizer.step()
 
-                epoch_loss += loss.item()
+                epoch_loss += (loss.item() / num_batches)
 
                 if batch_num % arg_values.print_every == 0:
                     items_processed = batch_num * arg_values.batch_size + \
@@ -323,7 +323,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
                     print("{} ({:7} {:5.2f}%) {:.4f}"
                           .format(timeSince(training_start, progress),
                                   items_processed, progress * 100,
-                                  epoch_loss / batch_num))
+                                  epoch_loss * (num_batches / batch_num)))
             adjuster.step()
             yield NeuralPredictorState(epoch,
                                        epoch_loss / num_batches,

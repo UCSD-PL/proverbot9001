@@ -265,14 +265,18 @@ pub fn kill_comments(source: &str) -> String {
     while cur_pos < source.len() {
         let next_open = lookup!("(*");
         let next_close = lookup!("*)");
-        if depth == 0 {
-            assert!(
-                next_open <= next_close,
-                "Unbalanced comment delimiters! Too many closes"
-            );
-            result.push_str(&source[cur_pos..next_open]);
-            cur_pos = next_open + 2;
-            depth += 1;
+        if depth == 0{
+            // assert!(
+            //     next_open <= next_close,
+            //     "Unbalanced comment delimiters! Too many closes"
+            // );
+            if next_open <= next_close {
+                result.push_str(&source[cur_pos..next_open]);
+                cur_pos = next_open + 2;
+                depth += 1;
+            } else {
+                cur_pos = next_close + 2;
+            }
         } else if next_open < next_close {
             depth += 1;
             cur_pos = next_open + 2;
@@ -376,7 +380,10 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
                 let new_argstr = argstr_tokens
                     .into_iter()
                     .map(|token| match token.parse::<i64>() {
-                        Ok(var_idx) => get_binder_var(datum.context.focused_goal(), var_idx),
+                        Ok(var_idx) => match get_binder_var(datum.context.focused_goal(), var_idx) {
+                            Some(var) => var,
+                            None => token,
+                        }
                         Err(_) => token,
                     })
                     .collect::<Vec<_>>()
@@ -446,14 +453,17 @@ pub fn indexed_premises<'a>(premises: impl Iterator<Item = &'a str>) -> Vec<(usi
 /// A function for doing some quick & dirty parsing of forall
 /// binders. Ported from the python implementation of this same
 /// function in serapi_instance.py.
-fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
+fn get_binder_var(goal: &str, binder_idx: i64) -> Option<&str> {
     let mut paren_depth = 0;
     let mut binders_passed = 0;
     let mut skip = false;
     lazy_static! {
         static ref FORALL: Regex = Regex::new(r"forall\s+").unwrap();
     }
-    let forall_match = FORALL.find(goal).expect("No toplevel binder found!");
+    let forall_match = match FORALL.find(goal) {
+        Some(m) => m,
+        None => return None,
+    };
     let rest_goal = &goal[forall_match.end()..];
     for w in get_symbols(rest_goal) {
         if w == "(" {
@@ -469,7 +479,7 @@ fn get_binder_var(goal: &str, binder_idx: i64) -> &str {
             } else {
                 binders_passed += 1;
                 if binders_passed == binder_idx {
-                    return w;
+                    return Some(w);
                 }
             }
         }
