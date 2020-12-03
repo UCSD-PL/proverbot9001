@@ -14,11 +14,16 @@ MYDIR="$(cd -P "$(dirname "$src")" && pwd)"
 [ "$#" -ge 2 ] || (echo "at least 2 argument required, $# provided" && exit 1)
 PROJECT=$1
 WEIGHTS_ID=$2
+shift 2
+
+make -j $MYDIR/$PROJECT/
+$MYDIR/get_bench_files.sh $PROJECT
+[[ -f $MYDIR/$PROJECT/scrape.txt ]] || $MYDIR/scrape_bench.sh $PROJECT -P -j5
+
 TEST_FILES_FILE=test-files.txt
 [[ -f $MYDIR/$PROJECT/$TEST_FILES_FILE ]] || TEST_FILES_FILE=files.txt
 TEST_FILES=$MYDIR/$PROJECT/$TEST_FILES_FILE
 [[ -f $TEST_FILES ]] || (echo "Cannot find test file list" && exit 1)
-shift 2
 
 cd $MYDIR/$PROJECT
 
