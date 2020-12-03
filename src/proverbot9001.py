@@ -181,7 +181,8 @@ import contextlib
 from pathlib_revised import Path2
 from tokenizer import get_relevant_k_keywords2
 
-def get_tokens(args : List[str]):
+
+def get_tokens(args: List[str]):
     parser = argparse.ArgumentParser(description="Pick a set of tokens")
     parser.add_argument("--type", choices=["mixed"], default="mixed")
     parser.add_argument("-v", "--verbose", action='count', default=0)
@@ -196,10 +197,15 @@ def get_tokens(args : List[str]):
         raw_data = list(data.read_text_data(arg_values.scrapefile))
     embedding = SimpleEmbedding()
     subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
-    relevance_pairs = [(goal, embedding.encode_token(serapi_instance.get_stem(tactic)))
-                       for relevant_lemmas, prev_tactics, hyps, goal, tactic in subset]
+    relevance_pairs = [(context.focused_goal(),
+                        embedding.encode_token(
+                            serapi_instance.get_stem(tactic)))
+                       for relevant_lemmas, prev_tactics, context, tactic
+                       in subset]
     with print_time("Calculating keywords", guard=arg_values.verbose):
-        keywords = get_relevant_k_keywords2(relevance_pairs, arg_values.num_keywords, arg_values.num_threads)
+        keywords = get_relevant_k_keywords2(relevance_pairs,
+                                            arg_values.num_keywords,
+                                            arg_values.num_threads)
 
     with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
           else contextlib.nullcontext(sys.stdout)) as f:
