@@ -1385,7 +1385,7 @@ normal_lemma_starting_patterns = [
     "Remark",
     "Proposition",
     r"(?:Polymorphic\s+)?Definition",
-    "Program Definition",
+    "Program\s+Definition",
     "Example",
     "Fixpoint",
     "Corollary",
@@ -1460,45 +1460,11 @@ def next_proof(cmds: Iterator[str]) -> Iterator[str]:
 
 
 def preprocess_command(cmd: str) -> List[str]:
+    coq_import_match = re.match(r"\s*Require\s+Import\s+Coq\.([\w\.'])", cmd)
+    if coq_import_match:
+        return ["Require Import {}".format(coq_import_match.group(1))]
+
     return [cmd]
-    needPrefix = ["String", "Classical", "ClassicalFacts",
-                  "ClassicalDescription", "ClassicalEpsilon",
-                  "Equivalence", "Init.Wf", "Program.Basics",
-                  "Max", "Wf_nat", "EquivDec", "Znumtheory",
-                  "Bool", "Zquot", "FSets", "FSetAVL",
-                  "Wellfounded", "FSetInterface",
-                  "OrderedType", "Program", "Recdef", "Eqdep_dec",
-                  "FunctionalExtensionality", "Zwf", "Permutation",
-                  "Orders", "Mergesort", "List", "ZArith", "Int31",
-                  "Syntax", "Streams", "Equality",
-                  "ProofIrrelevance", "Setoid", "EqNat",
-                  "Arith", "Cyclic31", "Omega", "Relations",
-                  "RelationClasses", "OrderedTypeAlt", "FMapAVL",
-                  "BinPos", "BinNat", "DecidableClass", "Reals",
-                  "Psatz", "ExtrOcamlBasic", "ExtrOcamlString",
-                  "Ascii", "FunInd"]
-    for lib in needPrefix:
-        match = re.fullmatch(r"\s*Require(\s+(?:(?:Import)|(?:Export)))?"
-                             r"((?:\s+\S+)*)\s+({})\s*((?:\s+\S*)*)\.\s*"
-                             .format(lib), cmd)
-        if match:
-            if match.group(1):
-                impG = match.group(1)
-            else:
-                impG = ""
-            if match.group(4):
-                after = match.group(4)
-            else:
-                after = ""
-            if (re.fullmatch(r"\s*", match.group(2)) and
-                    re.fullmatch(r"\s*", after)):
-                return ["From Coq Require" + impG + " " + match.group(3) + "."]
-            else:
-                return ["From Coq Require" + impG + " " + match.group(3) + "."
-                        ] + preprocess_command("Require " + impG.strip() + " "
-                                               + match.group(2).strip() + " "
-                                               + after + ".")
-    return [cmd] if cmd.strip() else []
 
 
 def get_stem(tactic: str) -> str:
