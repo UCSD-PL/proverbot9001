@@ -348,8 +348,10 @@ def search_file_worker(args: argparse.Namespace,
         next_file, next_module, next_lemma = jobs.get_nowait()
     except queue.Empty:
         return
-    all_commands = serapi_instance.load_commands_preserve(
-        args, worker_idx + 1, args.prelude / next_file)
+    with util.silent():
+        all_commands = serapi_instance.load_commands_preserve(
+            args, worker_idx + 1, args.prelude / next_file)
+
     rest_commands = all_commands
     while rest_commands:
         with serapi_instance.SerapiContext(["sertop", "--implicit"],
