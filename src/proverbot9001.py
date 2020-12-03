@@ -197,7 +197,7 @@ def get_tokens(args: List[str]):
         raw_data = list(data.read_text_data(arg_values.scrapefile))
     embedding = SimpleEmbedding()
     subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
-    relevance_pairs = [(context.focused_goal(),
+    relevance_pairs = [(context.focused_goal,
                         embedding.encode_token(
                             serapi_instance.get_stem(tactic)))
                        for relevant_lemmas, prev_tactics, context, tactic
