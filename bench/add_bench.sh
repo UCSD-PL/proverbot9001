@@ -17,5 +17,5 @@ cd $2
 if [[ -f configure ]]; then
     ./configure
 fi
-make -j3
+make -j
 find -name "*.vo" -not -path "./_opam/*" | sed 's/.vo/.v/' > files.txt
