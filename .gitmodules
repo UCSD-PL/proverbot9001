@@ -1,9 +1,9 @@
 [submodule "pytorch-types"]
 	path = stubs/pytorch-types
-	url = git@github.com:HazardousPeach/pytorch-types.git
+	url = https://github.com/HazardousPeach/pytorch-types.git
 [submodule "mypy-data"]
 	path = stubs/mypy-data
 	url = https://github.com/machinalis/mypy-data.git
 [submodule "dataloader/gestalt-ratio"]
 	path = dataloader/gestalt-ratio
-	url = git@github.com:HazardousPeach/gestalt-ratio-rust.git
+	url = https://github.com/HazardousPeach/gestalt-ratio-rust.git
