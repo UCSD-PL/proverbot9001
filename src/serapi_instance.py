@@ -1472,7 +1472,7 @@ def next_proof(cmds: Iterator[str]) -> Iterator[str]:
 
 
 def preprocess_command(cmd: str) -> List[str]:
-    coq_import_match = re.match(r"\s*Require\s+Import\s+Coq\.([\w\.'])", cmd)
+    coq_import_match = re.fullmatch(r"\s*Require\s+Import\s+Coq\.([\w\.'])", cmd)
     if coq_import_match:
         return ["Require Import {}".format(coq_import_match.group(1))]
 
