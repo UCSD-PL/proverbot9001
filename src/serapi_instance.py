@@ -1705,7 +1705,7 @@ def lemma_name_from_statement(stmt: str) -> str:
     if derive_match:
         return derive_match.group(3)
     lemma_match = re.match(
-        r"\s*(?:(?:(?:Local|Global)\s+)?" + "|".join(normal_lemma_starting_patterns) +
+        r"\s*(?:(?:Local|Global)\s+)?(?:" + "|".join(normal_lemma_starting_patterns) +
         r")\s+([\w'\.]*)(.*)",
         stripped_stmt,
         flags=re.DOTALL)
