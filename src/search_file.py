@@ -750,7 +750,7 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
 def write_solution_vfile(args: argparse.Namespace, filename: Path2,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
-    with (args.output_dir / (filename.stem + "-solution.v")
+    with (args.output_dir / (safe_abbrev(filename) + "-solution.v")
           ).open('w') as sfile:
         for k, v in [("search-width", args.search_width),
                      ("search-depth", args.search_depth),
