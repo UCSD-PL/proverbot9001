@@ -1304,29 +1304,14 @@ class SerapiInstance(threading.Thread):
             eprint(f"RECEIVED: {line}", guard=self.verbose >= 4)
 
     def add_potential_module_stack_cmd(self, cmd: str) -> None:
-        stripped_cmd = kill_comments(cmd).strip()
-        module_start_match = re.match(
-            r"Module\s+(?:(?:Import|Export)\s+)?(?:Type\s+)?([\w']*)", stripped_cmd)
-        if stripped_cmd.count(":=") > stripped_cmd.count("with"):
-            module_start_match = None
-        section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
-                                       stripped_cmd)
-        end_match = re.match(r"End\s+([\w']*)\.", stripped_cmd)
-        if module_start_match:
-            self.sm_stack.append((module_start_match.group(1), False))
-        elif section_start_match:
-            self.sm_stack.append((section_start_match.group(1), True))
-        elif end_match:
-            if self.sm_stack and self.sm_stack[-1][0] == end_match.group(1):
-                entry, is_sec = self.sm_stack.pop()
-                if is_sec:
-                    self._local_lemmas = \
-                      [(lemma, is_section) for (lemma, is_section)
-                       in self._local_lemmas if not is_section]
-            else:
-                assert False, \
-                    f"Unrecognized End \"{cmd}\", " \
-                    f"top of module stack is {self.sm_stack[-1]}"
+        new_stack = update_sm_stack(self.sm_stack, cmd)
+        if len(self.sm_stack) > 0 and \
+           self.sm_stack[-1][1] and \
+           len(new_stack) < len(self.sm_stack):
+            self._local_lemmas = \
+                [(lemma, is_section) for (lemma, is_section)
+                 in self._local_lemmas if not is_section]
+        self.sm_stack = new_stack
 
     def kill(self) -> None:
         assert self._proc.stdout
@@ -1424,6 +1409,33 @@ def ending_proof(command: str) -> bool:
              re.match(r"\s*Proof\s+with", stripped_command) is None and
              re.match(r"\s*Proof\s+using", stripped_command) is None))
 
+def initial_sm_stack(filename: str) -> List[Tuple[str, bool]]:
+    return [(get_module_from_filename(filename), False)]
+def update_sm_stack(sm_stack: List[Tuple[str, bool]],
+                    cmd: str) -> List[Tuple[str, bool]]:
+    new_stack = list(sm_stack)
+    stripped_cmd = kill_comments(cmd).strip()
+    module_start_match = re.match(
+        r"Module\s+(?:(?:Import|Export)\s+)?(?:Type\s+)?([\w']*)", stripped_cmd)
+    if stripped_cmd.count(":=") > stripped_cmd.count("with"):
+        module_start_match = None
+    section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
+                                   stripped_cmd)
+    end_match = re.match(r"End\s+([\w']*)\.", stripped_cmd)
+    if module_start_match:
+        new_stack.append((module_start_match.group(1), False))
+    elif section_start_match:
+        new_stack.append((section_start_match.group(1), True))
+    elif end_match:
+        if new_stack and new_stack[-1][0] == end_match.group(1):
+            entry, is_sec = new_stack.pop()
+        else:
+            assert False, \
+                f"Unrecognized End \"{cmd}\", " \
+                f"top of module stack is {new_stack[-1]}"
+    return new_stack
+def module_prefix_from_stack(sm_stack: List[Tuple[str, bool]]) -> str:
+    return "".join([sm[0] + "." for sm in sm_stack if not sm[1]])
 
 def kill_comments(string: str) -> str:
     result = ""

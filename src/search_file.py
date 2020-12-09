@@ -511,41 +511,13 @@ def lemmas_in_file(filename: str, cmds: List[str]) \
                 proof_relevant = True
             else:
                 proof_relevant = False
-    module_stack = [serapi_instance.get_module_from_filename(filename)]
-    section_stack: List[str] = []
+    sm_stack = serapi_instance.initial_sm_stack(filename)
     full_lemmas = []
     for cmd_idx, cmd in enumerate(cmds):
-        # Module stuff
-        stripped_cmd = serapi_instance.kill_comments(
-            cmd).strip()
-        module_start_match = re.match(
-                      r"Module\s+(?:(?:Import|Export)\s+)?(?:Type\s+)?([\w']*)",
-                      stripped_cmd)
-        if stripped_cmd.count(":=") > stripped_cmd.count("with"):
-            module_start_match = None
-        section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
-                                       stripped_cmd)
-        end_match = re.match(r"End ([\w']*)\.", stripped_cmd)
-        if module_start_match:
-            module_stack.append(module_start_match.group(1))
-        elif section_start_match:
-            section_stack.append(section_start_match.group(1))
-        elif end_match:
-            if module_stack and \
-               module_stack[-1] == end_match.group(1):
-                module_stack.pop()
-            elif section_stack and section_stack[-1] == end_match.group(1):
-                section_stack.pop()
-            else:
-                assert False, \
-                    f"Unrecognized End \"{cmd}\", " \
-                    f"top of module stack is {module_stack[-1]}"
-            # Done
+        sm_stack = serapi_instance.update_sm_stack(sm_stack, cmd)
         if (cmd_idx, cmd) in lemmas:
-            full_lemmas.append(("".join([module + "."
-                                         for module
-                                         in module_stack]),
-                                cmd))
+            full_lemmas.append((serapi_instance.module_prefix_from_stack(
+                sm_stack), cmd))
     return full_lemmas
 
 
@@ -673,18 +645,15 @@ def blocks_from_scrape_and_sols(
     def generate():
         cur_lemma_stmt = ""
 
-        module_stack = [serapi_instance.get_module_from_filename(src_filename)]
-        section_stack: List[str] = []
+        sm_stack = initial_sm_stack(src_filename)
 
         tactics_interactions_batch: List[TacticInteraction] = []
         vernac_cmds_batch: List[str] = []
 
         in_proof = False
         for interaction in interactions:
-
             if in_proof and isinstance(interaction, str):
-                module_prefix = "".join([module + "." for module
-                                         in module_stack])
+                module_prefix = module_prefix_from_stack(sm_stack)
                 result = lookup(module_prefix, cur_lemma_stmt)
                 batch_without_brackets = [t for t in tactics_interactions_batch
                                           if t.tactic.strip() != "{" and
@@ -712,32 +681,7 @@ def blocks_from_scrape_and_sols(
                     interaction_from_scraped(interaction))
                 in_proof = True
             if isinstance(interaction, str):
-                # Module stuff
-                stripped_cmd = serapi_instance.kill_comments(
-                    interaction).strip()
-                module_start_match = re.match(
-                    r"Module\s+(?:Import\s+)?(?:Type\s+)?([\w']*)",
-                    stripped_cmd)
-                if stripped_cmd.count(":=") > stripped_cmd.count("with"):
-                    module_start_match = None
-                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)",
-                                               stripped_cmd)
-                end_match = re.match(r"End ([\w']*)\.", stripped_cmd)
-                if module_start_match:
-                    module_stack.append(module_start_match.group(1))
-                elif section_start_match:
-                    section_stack.append(section_start_match.group(1))
-                elif end_match:
-                    if module_stack and \
-                       module_stack[-1] == end_match.group(1):
-                        module_stack.pop()
-                    elif section_stack and \
-                            section_stack[-1] == end_match.group(1):
-                        section_stack.pop()
-                    else:
-                        assert False, \
-                            f"Unrecognized End \"{interaction}\", " \
-                            f"top of module stack is {module_stack[-1]}"
+                sm_stack = update_sm_stack(sm_stack, interaction)
                 vernac_cmds_batch.append(interaction)
         pass
     blocks = list(generate())
