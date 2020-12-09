@@ -581,6 +581,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             if args.resume:
                 try:
                     with proofs_file.open('r') as f:
+                        eprint(f"Resuming from {str(proofs_file)}")
                         for line in f:
                             (filename, module_prefix, done_lemma_stmt), sol = \
                                 json.loads(line)
@@ -595,7 +596,6 @@ def search_file_multithreaded(args: argparse.Namespace,
                             solutions.append(((filename, module_prefix,
                                                done_lemma_stmt),
                                               recover_sol(sol)))
-                        eprint(f"Resumed from {str(proofs_file)}")
                         pass
                 except FileNotFoundError:
                     pass
