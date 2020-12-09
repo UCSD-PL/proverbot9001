@@ -588,7 +588,8 @@ def search_file_multithreaded(args: argparse.Namespace,
                                 lemma_statements_todo.remove((module_prefix,
                                                               done_lemma_stmt))
                             except ValueError:
-                                eprint(f"module_prefix: {module_prefix}, "
+                                eprint(f"filename: {filename}, "
+                                       f"module_prefix: {module_prefix}, "
                                        f"done_lemma_stmt: {done_lemma_stmt}")
                                 raise
                             solutions.append(((filename, module_prefix,
