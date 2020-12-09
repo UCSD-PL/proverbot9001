@@ -574,7 +574,7 @@ def search_file_multithreaded(args: argparse.Namespace,
         for filename, solutions in zip(args.filenames, file_solutions):
             cmds = serapi_instance.load_commands_preserve(
                 args, 0, args.prelude / filename)
-            proofs_file = (args.output_dir / (filename.stem + "-proofs.txt"))
+            proofs_file = (args.output_dir / (safe_abbrev(filename, args.filenames) + "-proofs.txt"))
             all_lemma_statements = lemmas_in_file(filename, cmds)
             lemma_statements_todo = list(all_lemma_statements)
 
@@ -623,7 +623,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             for _ in range(len(all_jobs)):
                 (done_file, done_module, done_lemma), sol = done.get()
                 proofs_file = (args.output_dir /
-                               (Path2(done_file).stem + "-proofs.txt"))
+                               (safe_abbrev(Path2(done_file), args.filenames) + "-proofs.txt"))
                 with proofs_file.open('a') as f:
                     f.write(json.dumps(((done_file, done_module, done_lemma),
                                         sol.to_dict())))
@@ -870,6 +870,13 @@ def write_commands(commands: List[str], tag: Tag, text: Text, doc: Doc):
 
 def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
+
+def safe_abbrev(filename: Path2, all_files: Path2) -> str:
+    if filename.stem in [f.stem for f in all_files if f != filename]:
+        return escape_filename(str(filename))
+    else:
+        return filename.stem
+
 
 
 def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
