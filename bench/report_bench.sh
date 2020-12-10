@@ -17,6 +17,7 @@ WEIGHTS_ID=$2
 shift 2
 
 make -j -C $MYDIR/$PROJECT/
+cp $MYDIR/$PROJECT/{Make,_CoqProject} || true
 $MYDIR/get_bench_files.sh $PROJECT
 [[ -f $MYDIR/$PROJECT/scrape.txt ]] || $MYDIR/scrape_bench.sh $PROJECT -P -j5
 
