@@ -611,7 +611,9 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         model_name = dict(predictor.getOptions())["predictor"]
         stats: List[search_report.ReportStats] = []
-        for filename, solutions in zip(args.filenames, file_solutions):
+        for filename, solutions in tqdm(zip(args.filenames, file_solutions),
+                                        desc="Generating output",
+                                        total=len(args.filenames)):
             blocks = blocks_from_scrape_and_sols(
                 args.prelude / filename,
                 [(lemma_stmt, module_name, sol)
