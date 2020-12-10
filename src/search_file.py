@@ -672,7 +672,7 @@ def blocks_from_scrape_and_sols(
                 tactics_interactions_batch.append(
                     interaction_from_scraped(interaction))
             elif isinstance(interaction, ScrapedTactic):
-                assert not in_proof and isinstance(interaction, ScrapedTactic)
+                assert not in_proof
                 cur_lemma_stmt = vernac_cmds_batch[-1]
                 yield VernacBlock(vernac_cmds_batch[:-1])
                 vernac_cmds_batch = []
