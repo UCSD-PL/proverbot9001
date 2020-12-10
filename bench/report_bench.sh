@@ -16,7 +16,7 @@ PROJECT=$1
 WEIGHTS_ID=$2
 shift 2
 
-make -j $MYDIR/$PROJECT/
+make -j -C $MYDIR/$PROJECT/
 $MYDIR/get_bench_files.sh $PROJECT
 [[ -f $MYDIR/$PROJECT/scrape.txt ]] || $MYDIR/scrape_bench.sh $PROJECT -P -j5
 
