@@ -645,7 +645,7 @@ def blocks_from_scrape_and_sols(
     def generate():
         cur_lemma_stmt = ""
 
-        sm_stack = initial_sm_stack(src_filename)
+        sm_stack = serapi_instance.initial_sm_stack(src_filename)
 
         tactics_interactions_batch: List[TacticInteraction] = []
         vernac_cmds_batch: List[str] = []
@@ -681,7 +681,7 @@ def blocks_from_scrape_and_sols(
                     interaction_from_scraped(interaction))
                 in_proof = True
             if isinstance(interaction, str):
-                sm_stack = update_sm_stack(sm_stack, interaction)
+                sm_stack = serapi_instance.update_sm_stack(sm_stack, interaction)
                 vernac_cmds_batch.append(interaction)
         pass
     blocks = list(generate())
@@ -695,7 +695,7 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
 def write_solution_vfile(args: argparse.Namespace, filename: Path2,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
-    with (args.output_dir / (safe_abbrev(filename) + "-solution.v")
+    with (args.output_dir / (safe_abbrev(filename, args.filenames) + "-solution.v")
           ).open('w') as sfile:
         for k, v in [("search-width", args.search_width),
                      ("search-depth", args.search_depth),
