@@ -208,8 +208,9 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
-    parser.add_argument('--no-check-consistent', action='store_false',
-                        dest='check_consistent')
+    parser.add_argument("--include-proof-relevant", action="store_true")
+    # parser.add_argument('--no-check-consistent', action='store_false',
+    #                     dest='check_consistent')
     parser.add_argument('--show-failing-predictions', action='store_true')
     parser.add_argument('--count-failing-predictions', action='store_true',
                         dest="count_failing_predictions")
@@ -495,7 +496,7 @@ def search_file_worker(args: argparse.Namespace,
     pass
 
 
-def lemmas_in_file(filename: str, cmds: List[str]) \
+def lemmas_in_file(args: argparse.Namespace, filename: str, cmds: List[str]) \
         -> List[Tuple[str, str]]:
     lemmas = []
     proof_relevant = False
@@ -503,7 +504,8 @@ def lemmas_in_file(filename: str, cmds: List[str]) \
     for cmd_idx, cmd in reversed(list(enumerate(cmds))):
         if in_proof and serapi_instance.possibly_starting_proof(cmd):
             in_proof = False
-            if not proof_relevant and not re.match(r"\s*Derive",  cmd):
+            if (not proof_relevant or args.include_proof_relevant)\
+               and not re.match(r"\s*Derive",  cmd):
                 lemmas.append((cmd_idx, cmd))
         if serapi_instance.ending_proof(cmd):
             in_proof = True
@@ -547,7 +549,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             cmds = serapi_instance.load_commands_preserve(
                 args, 0, args.prelude / filename)
             proofs_file = (args.output_dir / (safe_abbrev(filename, args.filenames) + "-proofs.txt"))
-            all_lemma_statements = lemmas_in_file(filename, cmds)
+            all_lemma_statements = lemmas_in_file(args, filename, cmds)
             lemma_statements_todo = list(all_lemma_statements)
 
             if args.resume:
