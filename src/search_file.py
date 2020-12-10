@@ -653,23 +653,34 @@ def blocks_from_scrape_and_sols(
         vernac_cmds_batch: List[str] = []
 
         in_proof = False
+
+        def yield_proof():
+            nonlocal sm_stack
+            nonlocal tactics_interactions_batch
+            nonlocal cur_lemma_stmt
+            nonlocal in_proof
+
+            module_prefix = serapi_instance.module_prefix_from_stack(sm_stack)
+            batch_without_brackets = [t for t in tactics_interactions_batch
+                                      if t.tactic.strip() != "{" and
+                                      t.tactic.strip() != "}"]
+            cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                cur_lemma_stmt)
+            result = lookup(module_prefix, cur_lemma_stmt)
+            if result is None:
+                return ProofBlock(cur_lemma_stmt, module_prefix,
+                                  SearchStatus.SKIPPED, [],
+                                  batch_without_brackets)
+            else:
+                return ProofBlock(cur_lemma_stmt, module_prefix,
+                                  result.status, result.commands,
+                                  batch_without_brackets)
+            tactics_interactions_batch = []
+
         for interaction in interactions:
             if in_proof and isinstance(interaction, str):
-                module_prefix = module_prefix_from_stack(sm_stack)
-                result = lookup(module_prefix, cur_lemma_stmt)
-                batch_without_brackets = [t for t in tactics_interactions_batch
-                                          if t.tactic.strip() != "{" and
-                                          t.tactic.strip() != "}"]
-                if result is None:
-                    yield ProofBlock(cur_lemma_stmt, module_prefix,
-                                     SearchStatus.SKIPPED, [],
-                                     batch_without_brackets)
-                else:
-                    yield ProofBlock(cur_lemma_stmt, module_prefix,
-                                     result.status, result.commands,
-                                     batch_without_brackets)
-                tactics_interactions_batch = []
                 in_proof = False
+                yield yield_proof()
             elif in_proof and isinstance(interaction, ScrapedTactic):
                 tactics_interactions_batch.append(
                     interaction_from_scraped(interaction))
@@ -685,6 +696,8 @@ def blocks_from_scrape_and_sols(
             if isinstance(interaction, str):
                 sm_stack = serapi_instance.update_sm_stack(sm_stack, interaction)
                 vernac_cmds_batch.append(interaction)
+        if in_proof:
+            yield yield_proof()
         pass
     blocks = list(generate())
     return blocks
