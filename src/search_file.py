@@ -306,7 +306,18 @@ def admit_proof_cmds(lemma_statement: str) -> List[str]:
                                                let_match.group(1))
         assert not split
         name_and_type = let_match.group(1)
-        admitted_defn = f"Hypothesis {name_and_type}."
+        name_and_prebinders, ty = \
+            split_by_char_outside_matching(r"\(", r"\)", ":",
+                                           let_match.group(1))
+        prebinders_match = re.match(
+            "\s*([\w']*)\s+(.*)",
+            name_and_prebinders)
+        name = prebinders_match.group(1)
+        prebinders = prebinders_match.group(2)
+        if prebinders.strip() != "":
+            prebinders = f"forall {prebinders},"
+
+        admitted_defn = f"Hypothesis {name} : {prebinders} {ty[1:]}."
         return ["Abort.", admitted_defn]
     else:
         return ["Admitted."]
