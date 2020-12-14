@@ -37,9 +37,6 @@ from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
 from dataloader import rust_parse_sexp_one_level
 from sexpdata import Symbol
 
-use_cuda = torch.cuda.is_available()
-# assert use_cuda
-
 
 def maybe_cuda(component):
     if use_cuda:
@@ -218,6 +215,10 @@ def silent():
     yield
     sys.stderr = save_stderr
     sys.stdout = save_stdout
+
+with silent():
+    use_cuda = torch.cuda.is_available()
+    # assert use_cuda
 
 import signal as sig
 @contextlib.contextmanager
