@@ -139,7 +139,8 @@ def main(arg_list: List[str], bar_idx: int) -> None:
 
     args, parser = parse_arguments(arg_list)
     util.use_cuda = False
-    predictor = get_predictor(parser, args)
+    with util.silent():
+        predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
@@ -1146,9 +1147,10 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                               coq.hypotheses,
                                               coq.goals)
         with predictor_lock:
-            predictions = predictor.predictKTactics(tactic_context_before,
-                                                    args.max_attempts)
-            assert len(predictions) == args.max_attempts
+            with util.silent():
+                predictions = predictor.predictKTactics(tactic_context_before,
+                                                        args.max_attempts)
+                assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction + "; try hammer.",
