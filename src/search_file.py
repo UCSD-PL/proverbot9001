@@ -1154,7 +1154,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                 assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction + "; try hammer.",
+            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
