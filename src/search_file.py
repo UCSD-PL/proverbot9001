@@ -381,10 +381,11 @@ def search_file_worker(args: argparse.Namespace,
                         eprint(f"Couldn't find lemma {next_lemma}!")
                         break
                 except serapi_instance.CoqAnomaly:
-                    all_commands = serapi_instance.\
-                        load_commands_preserve(
-                            args, 0,
-                            args.prelude / next_file)
+                    with util.silent():
+                        all_commands = serapi_instance.\
+                            load_commands_preserve(
+                                args, 0,
+                                args.prelude / next_file)
                     rest_commands = all_commands
                     break
                 except serapi_instance.SerapiException:
@@ -434,10 +435,11 @@ def search_file_worker(args: argparse.Namespace,
                             new_file, next_module, next_lemma = next_job
                             if new_file != next_file:
                                 next_file = new_file
-                                all_commands = serapi_instance.\
-                                    load_commands_preserve(
-                                        args, 0,
-                                        args.prelude / next_file)
+                                with util.silent():
+                                    all_commands = serapi_instance.\
+                                        load_commands_preserve(
+                                            args, 0,
+                                            args.prelude / next_file)
                                 rest_commands = all_commands
                                 break
                             else:
@@ -471,10 +473,11 @@ def search_file_worker(args: argparse.Namespace,
                     new_file, next_module, next_lemma = next_job
                     if new_file != next_file:
                         next_file = new_file
-                        all_commands = serapi_instance.\
-                            load_commands_preserve(
-                                args, 0,
-                                args.prelude / next_file)
+                        with util.silent():
+                            all_commands = serapi_instance.\
+                                load_commands_preserve(
+                                    args, 0,
+                                    args.prelude / next_file)
                         rest_commands = all_commands
                         break
                 else:
