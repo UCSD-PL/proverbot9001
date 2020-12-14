@@ -370,7 +370,8 @@ def search_file_worker(args: argparse.Namespace,
         with serapi_instance.SerapiContext(["sertop", "--implicit"],
                                            serapi_instance.
                                            get_module_from_filename(next_file),
-                                           str(args.prelude)) as coq:
+                                           str(args.prelude),
+                                           use_hammer=args.use_hammer) as coq:
             coq.quiet = True
             coq.verbose = args.verbose
 
