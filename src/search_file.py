@@ -577,7 +577,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             if args.resume:
                 try:
                     with proofs_file.open('r') as f:
-                        eprint(f"Resuming from {str(proofs_file)}")
+                        eprint(f"Resuming from {str(proofs_file)}", guard=args.verbose >= 1)
                         for line in f:
                             (filename, module_prefix, done_lemma_stmt), sol = \
                                 json.loads(line)
