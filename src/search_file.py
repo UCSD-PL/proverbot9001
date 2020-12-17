@@ -1042,7 +1042,7 @@ def tryPrediction(args: argparse.Namespace,
     coq.quiet = True
     time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
     start_time = time.time()
-    time_per_command = 60 if coq.use_hammer else args.max_tactic_time
+    time_per_command = 120 if coq.use_hammer else args.max_tactic_time
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
