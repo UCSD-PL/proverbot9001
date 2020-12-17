@@ -415,7 +415,8 @@ def search_file_worker(args: argparse.Namespace,
                                       file=f)
                                 traceback.print_exc(file=f)
                         if failing_lemma == lemma_statement:
-                            eprint("Hit the same anomaly twice! Skipping")
+                            eprint("Hit the same anomaly twice! Skipping",
+                                   guard=args.verbose >= 1)
                             if args.log_hard_anomalies:
                                 with args.log_hard_anomalies.open('a') as f:
                                     print(
