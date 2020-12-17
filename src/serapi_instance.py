@@ -349,7 +349,7 @@ class SerapiInstance(threading.Thread):
                 lemma_name = lemma_match.group(1)
                 if lemma_name == reseted_lemma_name:
                     self._local_lemmas.remove((lemma, is_section))
-        abort_match = re.match("Abort", cmd)
+        abort_match = re.match("\s*Abort", cmd)
         if abort_match:
             self._local_lemmas.pop()
 
