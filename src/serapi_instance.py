@@ -1326,7 +1326,7 @@ class SerapiInstance(threading.Thread):
 
 
 goal_regex = re.compile(r"\(\(info\s*\(\(evar\s*\(Ser_Evar\s*(\d+)\)\)"
-                        r"\(name\s*\((?:\(Id\s*[\w']+\))*\)\)\)\)"
+                        r"\(name\s*\((?:\(Id\"?\s*[\w']+\"?\))*\)\)\)\)"
                         r"\(ty\s*(.*)\)\s*\(hyp\s*(.*)\)\)")
 
 all_goals_regex = re.compile(r"\(\(CoqGoal\s*"
