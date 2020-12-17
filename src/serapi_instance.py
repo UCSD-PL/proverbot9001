@@ -374,7 +374,7 @@ class SerapiInstance(threading.Thread):
     def lemmas_defined_by_stmt(self, cmd: str) -> List[str]:
         cmd = kill_comments(cmd)
         normal_lemma_match = re.match(
-            r"\s*(?:" + "|".join(normal_lemma_starting_patterns) +
+            r"\s*(?:(?:Local|Global)\s+)?(?:" + "|".join(normal_lemma_starting_patterns) +
             r")\s+([\w']*)(.*)",
             cmd,
             flags=re.DOTALL)
