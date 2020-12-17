@@ -354,6 +354,7 @@ def search_file_worker(args: argparse.Namespace,
                        'multiprocessing.Queue['
                        '  Tuple[Tuple[str, str, str], SearchResult]]',
                        worker_idx: int) -> None:
+    sys.setrecursionlimit(100000)
     util.use_cuda = False
 
     failing_lemma = ""
