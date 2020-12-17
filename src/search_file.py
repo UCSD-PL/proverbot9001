@@ -501,7 +501,13 @@ def search_file_worker(args: argparse.Namespace,
                         rest_commands, run_commands = coq.finish_proof(
                             rest_commands)
                     else:
-                        admit_proof(coq, lemma_statement)
+                        try:
+                            admit_proof(coq, lemma_statement)
+                        except serapi_instance.SerapiException:
+                            next_lemma_name = \
+                                serapi_instance.lemma_name_from_statement(next_lemma)
+                            eprint(f"{next_file}: Failed to admit proof {next_lemma_name}")
+                            raise
                         while not serapi_instance.ending_proof(
                                 rest_commands[0]):
                             rest_commands = rest_commands[1:]
