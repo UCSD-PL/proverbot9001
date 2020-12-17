@@ -497,6 +497,9 @@ def search_file_worker(args: argparse.Namespace,
                         bool(re.match(
                             r"\s*Let",
                             serapi_instance.kill_comments(lemma_statement))) or \
+                        bool(re.match(
+                            r"\s*Equations",
+                            serapi_instance.kill_comments(lemma_statement))) or \
                         args.careful
                     if proof_relevant:
                         rest_commands, run_commands = coq.finish_proof(
@@ -528,7 +531,8 @@ def lemmas_in_file(args: argparse.Namespace, filename: str, cmds: List[str]) \
         if in_proof and serapi_instance.possibly_starting_proof(cmd):
             in_proof = False
             if (not proof_relevant or args.include_proof_relevant)\
-               and not re.match(r"\s*Derive",  cmd):
+               and not re.match(r"\s*Derive", cmd)\
+               and not re.match(r"\s*Equations", cmd):
                 lemmas.append((cmd_idx, cmd))
         if serapi_instance.ending_proof(cmd):
             in_proof = True

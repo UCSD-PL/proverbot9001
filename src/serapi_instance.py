@@ -1378,7 +1378,8 @@ normal_lemma_starting_patterns = [
     r"(?<!Declare\s)(?:Polymorphic\s+)?Instance",
     "Function",
     "Property",
-    "Fact"]
+    "Fact",
+    "Equations(?:\??)"]
 special_lemma_starting_patterns = [
     "Derive",
     "Goal",
