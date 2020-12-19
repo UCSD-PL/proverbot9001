@@ -15,11 +15,24 @@ MYDIR="$(cd -P "$(dirname "$src")" && pwd)"
 PROJECT=$1
 WEIGHTS_ID=$2
 shift 2
+NUM_THREADS=1
+while (( "$#" )); do
+    case "$1" in
+        -j|--num-threads)
+            NUM_THREADS=$2
+            shift 2
+            ;;
+        *) # preserve all other arguments
+            PARAMS="$PARAMS $1"
+            shift
+            ;;
+    esac
+done
 
-make -j -C $MYDIR/$PROJECT/
+make -j$NUM_THREADS -C $MYDIR/$PROJECT/
 cp $MYDIR/$PROJECT/{Make,_CoqProject} || true
 $MYDIR/get_bench_files.sh $PROJECT
-[[ -f $MYDIR/$PROJECT/scrape.txt ]] || $MYDIR/scrape_bench.sh $PROJECT -P -j5
+[[ -f $MYDIR/$PROJECT/scrape.txt ]] || $MYDIR/scrape_bench.sh $PROJECT -P -j$NUM_THREADS
 
 TEST_FILES_FILE=test-files.txt
 [[ -f $MYDIR/$PROJECT/$TEST_FILES_FILE ]] || TEST_FILES_FILE=files.txt
@@ -28,4 +41,4 @@ TEST_FILES=$MYDIR/$PROJECT/$TEST_FILES_FILE
 
 cd $MYDIR/$PROJECT
 
-cat $TEST_FILES_FILE | xargs $MYDIR/../src/search_file.py -o search-report-$WEIGHTS_ID -P --weightsfile=$MYDIR/../data/polyarg-weights-$WEIGHTS_ID.dat $@
+cat $TEST_FILES_FILE | xargs $MYDIR/../src/search_file.py -o search-report-$WEIGHTS_ID -P --weightsfile=$MYDIR/../data/polyarg-weights-$WEIGHTS_ID.dat $PARAMS
