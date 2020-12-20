@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proverbot-pod
+  labels:
+    k8s-app: proverbot
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      k8s-app: proverbot
+  template:
+    metadata:
+      labels:
+        k8s-app: proverbot
+    spec:
+      containers:
+      - name: proverbot-pod
+        image: gitlab-registry.nautilus.optiputer.net/alexsanchezstern/proverbot9001-image:latest
+        resources:
+           limits:
+             memory: 50G
+             cpu: 64
+           requests:
+             memory: 32G
+             cpu: 16
+        volumeMounts:
+        - mountPath: /proverbot9001
+          name: proverbotvol
+        command: ["sh", "-c", "sleep infinity"]
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+      - name: proverbotvol
+        persistentVolumeClaim:
+          claimName: proverbot9001-storage
