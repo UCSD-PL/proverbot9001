@@ -1316,9 +1316,12 @@ class SerapiInstance(threading.Thread):
     def kill(self) -> None:
         assert self._proc.stdout
         self._proc.terminate()
-        self._proc.stdout.close()
-        if self._proc.stdin:
-            self._proc.stdin.close()
+        try:
+            self._proc.stdout.close()
+            if self._proc.stdin:
+                self._proc.stdin.close()
+        except BrokenPipeError:
+            pass
         self._proc.kill()
         self.__zombie = True
         threading.Thread.join(self)
