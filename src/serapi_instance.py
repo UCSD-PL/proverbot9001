@@ -1697,7 +1697,7 @@ def tacticTakesIdentifierArg(stem: str) -> bool:
 
 
 def lemma_name_from_statement(stmt: str) -> str:
-    if ("Goal" in stmt or "Obligation" in stmt):
+    if ("Goal" in stmt or "Obligation" in stmt or "Morphism" in stmt):
         return ""
     stripped_stmt = kill_comments(stmt).strip()
     derive_match = re.fullmatch(
