@@ -700,6 +700,10 @@ class SerapiInstance(threading.Thread):
                 self.get_completed()
                 self.cancel_failed()
                 raise CoqExn(coqexn_msg)
+            elif re.match(".*The identifier (.*) is reserved\..*",
+                          coqexn_msg):
+                self.get_completed()
+                raise CoqExn(coqexn_msg)
             else:
                 self.get_completed()
                 self.cancel_failed()
