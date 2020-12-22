@@ -284,7 +284,7 @@ class SerapiInstance(threading.Thread):
         # Set up the message queue, which we'll populate with the
         # messages from serapi.
         self.message_queue = queue.Queue()  # type: queue.Queue[str]
-        # Set the debug flag to default to false.
+        # Verbosity is zero until set otherwise
         self.verbose = 0
         # Set the "extra quiet" flag (don't print on failures) to false
         self.quiet = False
