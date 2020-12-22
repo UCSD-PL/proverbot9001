@@ -313,6 +313,7 @@ def admit_proof_cmds(lemma_statement: str) -> List[str]:
         prebinders_match = re.match(
             "\s*([\w']*)\s+([^{}]*)",
             name_and_prebinders)
+        assert prebinders_match, f"{name_and_prebinders} doesn't match prebinders pattern"
         name = prebinders_match.group(1)
         prebinders = prebinders_match.group(2)
         if prebinders.strip() != "":
