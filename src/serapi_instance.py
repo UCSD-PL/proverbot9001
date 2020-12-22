@@ -208,9 +208,9 @@ class TacticHistory:
 
     def getFullHistory(self) -> List[str]:
         def generate(tree: TacticTree) -> Iterable[str]:
-            for child in tree.children:
+            for idx, child in enumerate(tree.children):
                 if isinstance(child, TacticTree):
-                    yield "{"
+                    yield f"{idx}: {{"
                     yield from generate(child)
                     yield "}"
                 else:
