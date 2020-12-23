@@ -311,7 +311,7 @@ def admit_proof_cmds(lemma_statement: str) -> List[str]:
             split_by_char_outside_matching(r"\(", r"\)", ":",
                                            let_match.group(1))
         prebinders_match = re.match(
-            "\s*([\w']*)\s+([^{}]*)",
+            "\s*([\w']*)([^{}]*)",
             name_and_prebinders)
         assert prebinders_match, f"{name_and_prebinders} doesn't match prebinders pattern"
         name = prebinders_match.group(1)
