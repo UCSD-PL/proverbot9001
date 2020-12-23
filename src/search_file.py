@@ -299,7 +299,7 @@ def append_time(args: argparse.Namespace, action: str, seconds: float):
 
 
 def admit_proof_cmds(lemma_statement: str) -> List[str]:
-    let_match = re.match(r"\s*Let\s+(?:Fixpoint)?\s+(.*)\.$",
+    let_match = re.match(r"\s*Let(?:\s+Fixpoint)?\s+(.*)\.$",
                          lemma_statement,
                          flags=re.DOTALL)
     if let_match and ":=" not in lemma_statement:
