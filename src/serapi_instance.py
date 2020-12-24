@@ -865,6 +865,7 @@ class SerapiInstance(threading.Thread):
         ack = self.get_message()
         match(normalizeMessage(ack),
               ["Answer", _, "Ack"], lambda state: None,
+              ["Feedback", TAIL], lambda rest: self.get_ack(),
               _, lambda msg: raise_(AckError(dumps(ack))))
 
     # Get the next message from the message queue, and make sure it's
