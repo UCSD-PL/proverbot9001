@@ -22,7 +22,7 @@ spec:
              memory: 50G
              cpu: 64
            requests:
-             memory: 32G
+             memory: 16G
              cpu: 16
         volumeMounts:
         - mountPath: /proverbot9001
