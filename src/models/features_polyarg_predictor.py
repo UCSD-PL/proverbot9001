@@ -286,11 +286,11 @@ class FeaturesPolyargPredictor(
 
         predictions = list(generate())
 
-        for context, pred_list in zip(contexts, predictions):
-            for batch_pred, single_pred in zip(
-                    pred_list, self.predictKTactics(context, k)):
-                assert batch_pred.prediction == single_pred.prediction, \
-                    (batch_pred, single_pred)
+        # for context, pred_list in zip(contexts, predictions):
+        #     for batch_pred, single_pred in zip(
+        #             pred_list, self.predictKTactics(context, k)):
+        #         assert batch_pred.prediction == single_pred.prediction, \
+        #             (batch_pred, single_pred)
         return predictions
 
     def getAllPredictionIdxs(self, context: TacticContext
