@@ -198,7 +198,7 @@ class TopLevelTokenInBestHyp(WordFeature):
             result = TopLevelTokenInBestHyp(
                 args, torch.load(args.load_head_keywords))
         else:
-            result = TopLevelTokenInBestHyp(
+            result = TopLevelTokenInBestHyp(args,
                 [word for word, count in
                  headTokenCounts.most_common(args.num_head_keywords)])
         eprint("Hypothesis head keywords are {}".format(result.headKeywords),
@@ -394,7 +394,7 @@ def load_features(args: argparse.Namespace, features_json_path: str) -> \
     with open(features_json_path, 'r') as f:
         features_state = json.load(f)
 
-    vec_features = [BestHypScore([], args)]
+    vec_features: List[VecFeature] = [BestHypScore([], args)]
     word_features = [
         PrevTactic(features_state["tactics"]),
         TopLevelTokenInGoal(features_state["goal_tokens"]),
