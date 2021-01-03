@@ -56,6 +56,7 @@ class SimpleEmbedding(Embedding):
     def has_token(self, token : str) -> bool :
         return token in self.tokens_to_indices
 
+    @staticmethod
     def from_file(filepath: str) -> 'SimpleEmbedding':
         embedding = SimpleEmbedding()
         embedding.tokens_to_indices["NOSTEM"] = 0
@@ -70,7 +71,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from util import maybe_cuda, eprint
+from util import maybe_cuda, eprint, timeSince, FloatTensor
 from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
 
@@ -289,6 +290,7 @@ class DecoderGRU(nn.Module):
         return self.softmax(input), hidden[0]
 
 import sys
+import time
 from sklearn import svm
 
 svm_kernels = [

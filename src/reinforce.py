@@ -22,16 +22,21 @@
 
 import argparse
 import random
-import torch
 import os
 import errno
 import signal
 import traceback
 import re
+from dataclasses import dataclass
+from typing import List, Tuple, Iterator, Optional, cast
+
+import torch
+from pathlib_revised import Path2
+import pygraphviz as pgv
+from tqdm import trange, tqdm
 
 import serapi_instance
 import dataloader
-import tokenizer
 from models import tactic_predictor, q_estimator
 from models.features_q_estimator import FeaturesQEstimator
 from models.q_estimator import QEstimator
@@ -40,13 +45,8 @@ import predict_tactic
 import util
 from util import eprint, print_time, nostderr, unwrap, progn
 
-from dataclasses import dataclass
-from typing import List, Tuple, Iterator, Optional, cast
 from format import (TacticContext, ProofContext, Obligation)
-from pathlib_revised import Path2
 
-import pygraphviz as pgv
-from tqdm import trange, tqdm
 
 
 def main() -> None:

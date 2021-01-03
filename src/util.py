@@ -27,15 +27,15 @@ import re
 import itertools
 import argparse
 
+from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
+                    Callable, Optional, Pattern, Match, Union)
+
 import torch
 import torch.cuda
 import torch.autograd as autograd
 
-from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
-                    Callable, Optional, Pattern, Match, Union)
-
-from dataloader import rust_parse_sexp_one_level
 from sexpdata import Symbol
+from dataloader import rust_parse_sexp_one_level
 
 
 def maybe_cuda(component):
