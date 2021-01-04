@@ -48,7 +48,7 @@ class FeaturesQEstimator(QEstimator):
         self._num_tactics = 32
         self._num_tokens = 128
         self.model = FeaturesQModel(self._num_tactics, self._num_tokens,
-                                    2, 128, 2)
+                                    3, 128, 2)
         # self.model = SimplifiedQModel(self._num_tactics, 4, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
         # self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
@@ -58,11 +58,12 @@ class FeaturesQEstimator(QEstimator):
         self.token_map: Dict[str, int] = {}
         pass
 
-    def __call__(self, inputs: List[Tuple[TacticContext, str]]) -> List[float]:
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
         state_word_features_batch, vec_features_batch \
-            = zip(*[self._features(state) for (state, action) in inputs])
+            = zip(*[self._features(state, certainty) for
+                    (state, action, certainty) in inputs])
         encoded_actions_batch = [self._encode_action(state, action)
-                                 for (state, action) in inputs]
+                                 for (state, action, certainty) in inputs]
         all_word_features_batch = [list(encoded_action) + state_word_features
                                    for encoded_action, state_word_features in
                                    zip(encoded_actions_batch,
@@ -73,19 +74,19 @@ class FeaturesQEstimator(QEstimator):
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
 
-    def train(self, samples: List[Tuple[TacticContext, str, float]],
+    def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,
               num_epochs: int = 1) -> None:
-        for context, action, score in samples:
+        for context, action, certainty, score in samples:
             assert score != float("-Inf") and score != float("Inf") and score == score
         self.optimizer.zero_grad()
-        state_word_features, vec_features = zip(*[self._features(state)
-                                                  for state, _, _ in samples])
+        state_word_features, vec_features = zip(*[self._features(state, certainty)
+                                                  for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
-                           for state, action, _ in samples]
+                           for state, action, _, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in
                              zip(encoded_actions, state_word_features)]
-        expected_outputs = [output for _, _, output in samples]
+        expected_outputs = [output for _, _, certainty, output in samples]
         if batch_size:
             batches: Iterable[Sequence[torch.Tensor]] = data.DataLoader(
                 data.TensorDataset(
@@ -112,7 +113,7 @@ class FeaturesQEstimator(QEstimator):
                 loss.backward()
                 self.optimizer.step()
 
-    def _features(self, context: TacticContext) \
+    def _features(self, context: TacticContext, certainty: float) \
             -> Tuple[List[int], List[float]]:
         if len(context.prev_tactics) > 1:
             prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
@@ -128,7 +129,7 @@ class FeaturesQEstimator(QEstimator):
                                   100) / 100
         num_hyps_feature = min(len(context.hypotheses), 30) / 30
         return [prev_tactic_index, goal_head_index], \
-            [goal_length_feature, num_hyps_feature]
+            [goal_length_feature, num_hyps_feature, certainty]
 
     def _encode_action(self, context: TacticContext, action: str) \
             -> Tuple[int, int]:

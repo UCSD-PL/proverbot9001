@@ -74,8 +74,10 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
         assert self._estimator
         # eprint(f"In goal: {in_data.goal}")
         inner_predictions = self._fpa.predictKTactics(in_data, 16)
+        # q_choices = list(zip([p.certainty for p in inner_predictions],
+        #                      inner_predictions))
         q_choices = list(zip(self._estimator(
-            [(in_data, prediction.prediction)
+            [(in_data, prediction.prediction, prediction.certainty)
              for prediction in inner_predictions]),
                         inner_predictions))
         # eprint("Scored predictions:")

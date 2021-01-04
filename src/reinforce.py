@@ -198,13 +198,13 @@ class ReinforceGraph:
 
 def reinforce(args: argparse.Namespace) -> None:
 
+    predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
+
     # Load the scraped (demonstrated) samples, the proof environment
     # commands, and the predictor
-    replay_memory = assign_rewards(
+    replay_memory = assign_rewards(args, predictor,
         dataloader.tactic_transitions_from_file(args.scrape_file,
                                                 args.buffer_size))
-
-    predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
     q_estimator = FeaturesQEstimator(args.learning_rate,
                                      args.batch_step,
@@ -220,7 +220,7 @@ def reinforce(args: argparse.Namespace) -> None:
             torch.load(args.start_from)
         q_estimator.load_saved_state(*saved)
     elif args.pretrain:
-        pre_train(args, q_estimator,
+        pre_train(args, predictor, q_estimator,
                   dataloader.tactic_transitions_from_file(
                       args.scrape_file, args.buffer_size * 10))
 
@@ -342,6 +342,7 @@ class LabeledTransition:
     before: ProofContext
     after: ProofContext
     action: str
+    original_certainty: float
     reward: float
     graph_node: Optional[LabeledNode]
 
@@ -382,16 +383,17 @@ def reinforce_lemma(args: argparse.Namespace,
                 predictions = predictor.predictKTactics(
                     context_before, args.num_predictions)
             if random.random() < epsilon:
-                ordered_actions = [p.prediction for p in
+                ordered_actions = [p for p in
                                    random.sample(predictions,
                                                  len(predictions))]
             else:
                 with print_time("Picking actions using q_estimator",
                                 guard=args.verbose):
                     q_choices = zip(estimator(
-                        [(context_before, prediction.prediction)
+                        [(context_before, prediction.prediction,
+                          prediction.certainty)
                          for prediction in predictions]),
-                                    [p.prediction for p in predictions])
+                                    predictions)
                     ordered_actions = [p[1] for p in
                                        sorted(q_choices,
                                               key=lambda q: q[0],
@@ -399,7 +401,7 @@ def reinforce_lemma(args: argparse.Namespace,
 
             with print_time("Running actions", guard=args.verbose):
                 action = None
-                for try_action in ordered_actions:
+                for try_action, original_certainty in ordered_actions:
                     try:
                         coq.run_stmt(try_action)
                         proof_context_after = unwrap(coq.proof_context)
@@ -413,6 +415,7 @@ def reinforce_lemma(args: argparse.Namespace,
                                 proof_context_before,
                                 proof_context_after,
                                 try_action,
+                                original_certainty,
                                 -1)
                             assert transition.reward < 2000
                             memory.append(transition)
@@ -432,6 +435,7 @@ def reinforce_lemma(args: argparse.Namespace,
                             proof_context_before,
                             proof_context_before,
                             try_action,
+                            original_certainty,
                             -5)
                         assert transition.reward < 2000
                         memory.append(transition)
@@ -450,7 +454,8 @@ def reinforce_lemma(args: argparse.Namespace,
                                        context_before.prev_tactics,
                                        proof_context_before,
                                        proof_context_after,
-                                       action)
+                                       action,
+                                       original_certainty)
             cur_node = graph.addTransition(cur_node, action,
                                            transition.reward)
             transition.graph_node = cur_node
@@ -497,14 +502,15 @@ def sample_batch(transitions: List[LabeledTransition], k: int) -> \
 
 def assign_failed_reward(relevant_lemmas: List[str], prev_tactics: List[str],
                          before: ProofContext, after: ProofContext,
-                         tactic: str, reward: int) \
+                         tactic: str, certainty: float, reward: int) \
                          -> LabeledTransition:
     return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
-                             tactic, reward, None)
+                             tactic, certainty, reward, None)
 
 
 def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
-                  before: ProofContext, after: ProofContext, tactic: str) \
+                  before: ProofContext, after: ProofContext, tactic: str,
+                  certainty: float) \
       -> LabeledTransition:
     goals_changed = len(after.all_goals) - len(before.all_goals)
     if len(after.all_goals) == 0:
@@ -519,19 +525,32 @@ def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
     #     num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
     #     reward = goal_size_reward * 3 + num_hyps_reward
     return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
-                             tactic, reward, None)
+                             tactic, certainty, reward, None)
 
 
-def assign_rewards(transitions: List[dataloader.ScrapedTransition]) -> \
+def assign_rewards(args: argparse.Namespace,
+                   predictor: tactic_predictor.TacticPredictor,
+                   transitions: List[dataloader.ScrapedTransition]) -> \
       List[LabeledTransition]:
     def generate() -> Iterator[LabeledTransition]:
         for transition in transitions:
+            if len(transition.before.fg_goals) == 0:
+                context = TacticContext(transition.relevant_lemmas,
+                                        transition.prev_tactics,
+                                        [], "")
+            else:
+                context = TacticContext(transition.relevant_lemmas,
+                                        transition.prev_tactics,
+                                        transition.before.fg_goals[0].hypotheses,
+                                        transition.before.fg_goals[0].goal)
             yield assign_reward(transition.relevant_lemmas,
                                 transition.prev_tactics,
                                 context_r2py(transition.before),
                                 context_r2py(transition.after),
-                                transition.tactic)
-
+                                transition.tactic,
+                                certainty_of(predictor, args.num_predictions * 2,
+                                             context,
+                                             transition.tactic))
     return list(generate())
 
 
@@ -541,8 +560,8 @@ def assign_scores(transitions: List[LabeledTransition],
                   num_predictions: int,
                   discount: float,
                   graph: ReinforceGraph) -> \
-                  List[Tuple[TacticContext, str, float]]:
-    def generate() -> Iterator[Tuple[TacticContext, str, float]]:
+                  List[Tuple[TacticContext, str, float, float]]:
+    def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
         prediction_lists = cast(features_polyarg_predictor
                                 .FeaturesPolyargPredictor,
                                 predictor) \
@@ -557,12 +576,13 @@ def assign_scores(transitions: List[LabeledTransition],
                 new_q = transition.reward
             else:
                 estimates = q_estimator(
-                    [(tactic_ctxt, prediction.prediction)
+                    [(tactic_ctxt, prediction.prediction, prediction.certainty)
                      for prediction in predictions])
                 estimated_future_q = \
                     discount * max(estimates)
                 estimated_current_q = q_estimator([(transition.before_context,
-                                                    transition.action)])[0]
+                                                    transition.action,
+                                                    transition.original_certainty)])[0]
                 new_q = transition.reward + estimated_future_q \
                     - estimated_current_q
 
@@ -575,7 +595,8 @@ def assign_scores(transitions: List[LabeledTransition],
                 transition.relevant_lemmas,
                 transition.prev_tactics,
                 transition.before.focused_hyps,
-                transition.before.focused_goal), transition.action, new_q
+                transition.before.focused_goal), \
+                transition.action, transition.original_certainty, new_q
     return list(generate())
 
 
@@ -590,15 +611,32 @@ def context_r2py(r_context: dataloader.ProofContext) -> ProofContext:
                         list(map(obligation_r2py, r_context.given_up_goals)))
 
 
-def pre_train(args: argparse.Namespace, estimator: QEstimator,
+def pre_train(args: argparse.Namespace,
+              predictor: tactic_predictor.TacticPredictor,
+              estimator: QEstimator,
               transitions: List[dataloader.ScrapedTransition]) -> None:
-    samples = [(TacticContext(transition.relevant_lemmas,
-                              transition.prev_tactics,
-                              transition.before.fg_goals[0].hypotheses,
-                              transition.before.fg_goals[0].goal),
-                transition.tactic, 0.0) for transition in transitions
-               if len(transition.before.fg_goals) > 0]
+    def gen_samples():
+        for transition in transitions:
+            if len(transition.before.fg_goals) == 0:
+                continue
+            context = TacticContext(transition.relevant_lemmas,
+                                    transition.prev_tactics,
+                                    transition.before.fg_goals[0].hypotheses,
+                                    transition.before.fg_goals[0].goal)
+            certainty = certainty_of(predictor, args.num_predictions * 2,
+                                     context, transition.tactic)
+            yield (context, transition.tactic, certainty, 0.0)
+
+    samples = list(gen_samples())
     estimator.train(samples, args.batch_size, args.pretrain_epochs)
+
+def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
+                 context: TacticContext, tactic: str) -> float:
+    predictions = predictor.predictKTactics(context, k)
+    for p in predictions:
+        if p.prediction == tactic:
+            return p.certainty
+    return 0.0
 
 
 if __name__ == "__main__":
