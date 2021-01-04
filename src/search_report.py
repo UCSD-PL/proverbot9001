@@ -74,6 +74,7 @@ def write_summary_html(filename : Path2,
                        options : Sequence[Tuple[str, str]],
                        unparsed_args : List[str],
                        cur_commit : str, cur_date : datetime.datetime,
+                       weights_hash: str,
                        individual_stats : List[ReportStats],
                        combined_stats : ReportStats) -> None:
     def report_header(tag : Any, doc : Doc, text : Text) -> None:
@@ -151,6 +152,8 @@ def write_summary_html(filename : Path2,
             text(f'Trained as: {unparsed_args}')
             doc.stag('br')
             text(f"Reported as: {sys.argv}")
+            doc.stag('br')
+            text(f"Weights hash: {weights_hash}")
 
     with filename.open("w") as fout:
         fout.write(doc.getvalue())
@@ -169,11 +172,13 @@ def write_summary_csv(filename : str, combined_stats : ReportStats,
 def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
                   unparsed_args : List[str],
                   cur_commit : str, cur_date : datetime.datetime,
+                  weights_hash: str,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
     write_summary_html(args.output_dir / "report.html",
                        options, unparsed_args,
-                       cur_commit, cur_date, individual_stats, combined_stats)
+                       cur_commit, cur_date, weights_hash,
+                       individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output_dir), combined_stats, options)
     write_proof_summary_csv(args.output_dir, [s.filename for s in individual_stats])
     base = Path2(os.path.abspath(__file__)).parent.parent / "reports"

@@ -236,14 +236,14 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
 def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
                   report_stats: List[search_report.ReportStats]) -> None:
     predictorOptions = predictor.getOptions()
-    commit, date = get_metadata()
+    commit, date, weightshash = get_metadata(args)
     search_report.write_summary(args,
                                 predictorOptions +
                                 [("report type", "search"),
                                  ("search width", args.search_width),
                                  ("search depth", args.search_depth)],
                                 predictor.unparsed_args,
-                                commit, date, report_stats)
+                                commit, date, weightshash, report_stats)
 
 
 def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
@@ -264,11 +264,15 @@ def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
     pass
 
 
-def get_metadata() -> Tuple[str, datetime.datetime]:
+def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime]:
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
-    return cur_commit, cur_date
+    if args.weightsfile:
+        weights_hash = subprocess.check_output(["sha256sum {args.weightsfile}"])
+    else:
+        weights_hash = ""
+    return cur_commit, cur_date, weights_hash
 
 
 def get_predictor(parser: argparse.ArgumentParser,
