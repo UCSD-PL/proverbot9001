@@ -443,8 +443,6 @@ class SerapiInstance(threading.Thread):
 
     # Hammer prints a lot of stuff when it gets imported. Discard all of it.
     def init_hammer(self):
-        normal_timeout = self.timeout
-        self.timeout = 360
         self.hammer_timeout = 100
         atp_limit = 29 * self.hammer_timeout // 60
         reconstr_limit = 28 * self.hammer_timeout // 60
@@ -454,8 +452,6 @@ class SerapiInstance(threading.Thread):
         self.run_stmt(f"Set Hammer ATPLimit {atp_limit}.")
         self.run_stmt(f"Set Hammer ReconstrLimit {reconstr_limit}.")
         self.run_stmt(f"Set Hammer CrushLimit {crush_limit}.")
-
-        self.timeout = normal_timeout
 
     # Send some text to serapi, and flush the stream to make sure they
     # get it. NOT FOR EXTERNAL USE
