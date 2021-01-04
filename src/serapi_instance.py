@@ -309,7 +309,11 @@ class SerapiInstance(threading.Thread):
         # Set up CoqHammer
         self.use_hammer = use_hammer
         if self.use_hammer:
-            self.init_hammer()
+            try:
+                self.init_hammer()
+            except TimeoutError:
+                eprint("Failed to initialize hammer!")
+                raise
 
     @property
     def module_stack(self) -> List[str]:
