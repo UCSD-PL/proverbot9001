@@ -133,7 +133,7 @@ predictor: TacticPredictor
 unnamed_goal_number: int
 
 
-def main(arg_list: List[str], bar_idx: int) -> None:
+def main(arg_list: List[str]) -> None:
     sys.setrecursionlimit(100000)
     global predictor
 

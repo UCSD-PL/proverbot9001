@@ -68,7 +68,7 @@ dynamic-report:
 
 search-report:
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
-	xargs ./src/proverbot9001.py search-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude=./CompCert --search-depth=6 --search-width=3 -P $(FLAGS))
+	xargs ./src/proverbot9001.py search-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude=./CompCert --search-depth=6 --search-width=5 -P $(FLAGS))
 
 search-test:
 	./src/proverbot9001.py search-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude=./CompCert --search-depth=5 --search-width=5 -P --use-hammer -o=test-report --debug ./backend/Locations.v $(FLAGS)
