@@ -261,7 +261,6 @@ def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
                 num_proofs_failed += 1
     return search_report.ReportStats(vfilename, num_proofs,
                                      num_proofs_failed, num_proofs_completed)
-    pass
 
 
 def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime]:
@@ -300,41 +299,6 @@ def append_time(args: argparse.Namespace, action: str, seconds: float):
     if args.proof_times:
         with args.proof_times.open('a') as f:
             f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
-
-
-def admit_proof_cmds(lemma_statement: str) -> List[str]:
-    let_match = re.match(r"\s*Let(?:\s+Fixpoint)?\s+(.*)\.$",
-                         lemma_statement,
-                         flags=re.DOTALL)
-    if let_match and ":=" not in lemma_statement:
-        split = split_by_char_outside_matching(r"\(", r"\)", ":=",
-                                               let_match.group(1))
-        assert not split
-        name_and_type = let_match.group(1)
-        name_and_prebinders, ty = \
-            split_by_char_outside_matching(r"\(", r"\)", ":",
-                                           let_match.group(1))
-        prebinders_match = re.match(
-            "\s*([\w']*)([^{}]*)",
-            name_and_prebinders)
-        assert prebinders_match, f"{name_and_prebinders} doesn't match prebinders pattern"
-        name = prebinders_match.group(1)
-        prebinders = prebinders_match.group(2)
-        if prebinders.strip() != "":
-            prebinders = f"forall {prebinders},"
-
-        admitted_defn = f"Hypothesis {name} : {prebinders} {ty[1:]}."
-        return ["Abort.", admitted_defn]
-    else:
-        return ["Admitted."]
-
-
-def admit_proof(coq: serapi_instance.SerapiInstance,
-                lemma_statement: str) -> List[str]:
-    admit_cmds = admit_proof_cmds(lemma_statement)
-    for cmd in admit_cmds:
-        coq.run_stmt(cmd)
-    return admit_cmds
 
 
 def search_file_worker_profiled(
@@ -460,7 +424,7 @@ def search_file_worker(args: argparse.Namespace,
                     except Exception:
                         eprint(f"FAILED in file {next_file}, lemma {next_lemma}")
                         raise
-                    admit_proof(coq, lemma_statement)
+                    serapi_instance.admit_proof(coq, lemma_statement)
                     if not tactic_solution:
                         solution = [
                             TacticInteraction("Proof.", initial_context),
@@ -512,7 +476,7 @@ def search_file_worker(args: argparse.Namespace,
                             rest_commands)
                     else:
                         try:
-                            admit_proof(coq, lemma_statement)
+                            serapi_instance.admit_proof(coq, lemma_statement)
                         except serapi_instance.SerapiException:
                             next_lemma_name = \
                                 serapi_instance.lemma_name_from_statement(next_lemma)
@@ -528,34 +492,6 @@ def search_file_worker(args: argparse.Namespace,
     pass
 
 
-def lemmas_in_file(args: argparse.Namespace, filename: str, cmds: List[str]) \
-        -> List[Tuple[str, str]]:
-    lemmas = []
-    proof_relevant = False
-    in_proof = False
-    for cmd_idx, cmd in reversed(list(enumerate(cmds))):
-        if in_proof and serapi_instance.possibly_starting_proof(cmd):
-            in_proof = False
-            if (not proof_relevant or args.include_proof_relevant)\
-               and not re.match(r"\s*Derive", cmd)\
-               and not re.match(r"\s*Equations", cmd):
-                lemmas.append((cmd_idx, cmd))
-        if serapi_instance.ending_proof(cmd):
-            in_proof = True
-            if cmd.strip() == "Defined.":
-                proof_relevant = True
-            else:
-                proof_relevant = False
-    sm_stack = serapi_instance.initial_sm_stack(filename)
-    full_lemmas = []
-    for cmd_idx, cmd in enumerate(cmds):
-        sm_stack = serapi_instance.update_sm_stack(sm_stack, cmd)
-        if (cmd_idx, cmd) in lemmas:
-            full_lemmas.append((serapi_instance.module_prefix_from_stack(
-                sm_stack), cmd))
-    return full_lemmas
-
-
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
@@ -563,9 +499,9 @@ def recover_sol(sol: Dict[str, Any]) -> SearchResult:
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     with multiprocessing.Manager() as manager:
-        jobs: multiprocessing.Queue[
+        jobs: Queue[
             Tuple[str, str, str]] = multiprocessing.Queue()
-        done: multiprocessing.Queue[
+        done: Queue[
             Tuple[Tuple[str, str, str], SearchResult]
         ] = multiprocessing.Queue()
 
@@ -582,7 +518,8 @@ def search_file_multithreaded(args: argparse.Namespace,
             cmds = serapi_instance.load_commands_preserve(
                 args, 0, args.prelude / filename)
             proofs_file = (args.output_dir / (safe_abbrev(filename, args.filenames) + "-proofs.txt"))
-            all_lemma_statements = lemmas_in_file(args, filename, cmds)
+            all_lemma_statements = serapi_instance.lemmas_in_file(
+                filename, cmds, args.include_proof_relevant)
             lemma_statements_todo = list(all_lemma_statements)
 
             if args.resume:

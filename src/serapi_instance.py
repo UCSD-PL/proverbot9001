@@ -1959,6 +1959,68 @@ def contextSurjective(newcontext: ProofContext, oldcontext: ProofContext):
     return len(newcontext.all_goals) >= len(oldcontext.all_goals)
 
 
+def lemmas_in_file(filename: str, cmds: List[str],
+                   include_proof_relevant: bool = False) \
+        -> List[Tuple[str, str]]:
+    lemmas = []
+    proof_relevant = False
+    in_proof = False
+    for cmd_idx, cmd in reversed(list(enumerate(cmds))):
+        if in_proof and possibly_starting_proof(cmd):
+            in_proof = False
+            proof_relevant = proof_relevant or \
+                cmd.strip().startswith("Derive") or \
+                cmd.strip().startswith("Equations")
+            if not proof_relevant or include_proof_relevant:
+                lemmas.append((cmd_idx, cmd))
+        if ending_proof(cmd):
+            in_proof = True
+            proof_relevant = cmd.strip() == "Defined."
+    sm_stack = initial_sm_stack(filename)
+    full_lemmas = []
+    for cmd_idx, cmd in enumerate(cmds):
+        sm_stack = update_sm_stack(sm_stack, cmd)
+        if (cmd_idx, cmd) in lemmas:
+            full_lemmas.append((module_prefix_from_stack(
+                sm_stack), cmd))
+    return full_lemmas
+
+
+def admit_proof_cmds(lemma_statement: str) -> List[str]:
+    let_match = re.match(r"\s*Let(?:\s+Fixpoint)?\s+(.*)\.$",
+                         lemma_statement,
+                         flags=re.DOTALL)
+    if let_match and ":=" not in lemma_statement:
+        split = split_by_char_outside_matching(r"\(", r"\)", ":=",
+                                               let_match.group(1))
+        assert not split
+        name_and_type = let_match.group(1)
+        name_and_prebinders, ty = \
+            split_by_char_outside_matching(r"\(", r"\)", ":",
+                                           name_and_type)
+        prebinders_match = re.match(
+            r"\s*([\w']*)([^{}]*)",
+            name_and_prebinders)
+        assert prebinders_match, \
+            f"{name_and_prebinders} doesn't match prebinders pattern"
+        name = prebinders_match.group(1)
+        prebinders = prebinders_match.group(2)
+        if prebinders.strip() != "":
+            prebinders = f"forall {prebinders},"
+
+        admitted_defn = f"Hypothesis {name} : {prebinders} {ty[1:]}."
+        return ["Abort.", admitted_defn]
+    return ["Admitted."]
+
+
+def admit_proof(coq: SerapiInstance,
+                lemma_statement: str) -> List[str]:
+    admit_cmds = admit_proof_cmds(lemma_statement)
+    for cmd in admit_cmds:
+        coq.run_stmt(cmd)
+    return admit_cmds
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Module for interacting with a coq-serapi instance "
