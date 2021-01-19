@@ -273,7 +273,8 @@ class FeaturesPolyargPredictor(
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int
                               ) -> List[List[Prediction]]:
-        all_predictions_batch = self.getAllPredictionIdxs_batch(contexts)
+        with torch.no_grad():
+            all_predictions_batch = self.getAllPredictionIdxs_batch(contexts)
 
         def generate():
             for context, prediction_idxs in zip(
@@ -424,7 +425,8 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        all_predictions = self.getAllPredictionIdxs(context)
+        with torch.no_grad():
+            all_predictions = self.getAllPredictionIdxs(context)
 
         predictions = self.decodeNonDuplicatePredictions(
             context, all_predictions, k)
