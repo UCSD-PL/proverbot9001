@@ -263,12 +263,13 @@ def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \
                                      num_proofs_failed, num_proofs_completed)
 
 
-def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime]:
+def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime, str]:
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
                                          shell=True).decode('utf-8').strip()
     cur_date = datetime.datetime.now()
     if args.weightsfile:
-        weights_hash = subprocess.check_output(["sha256sum {args.weightsfile}"])
+        weights_hash = str(subprocess.check_output(
+            ["sha256sum", args.weightsfile]))
     else:
         weights_hash = ""
     return cur_commit, cur_date, weights_hash
