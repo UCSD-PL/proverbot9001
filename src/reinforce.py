@@ -20,6 +20,7 @@
 #
 ##########################################################################
 
+from __future__ import annotations
 import argparse
 import random
 import os
@@ -27,9 +28,24 @@ import errno
 import signal
 import traceback
 import re
+import json
+import multiprocessing
+from threading import Lock
+import sys
+import functools
 from dataclasses import dataclass
-from typing import List, Tuple, Iterator, Optional, cast
+from queue import Queue
+import queue
+from typing import List, Tuple, Iterator, Optional, cast, TYPE_CHECKING, Dict, Any
+if TYPE_CHECKING:
+    from multiprocessing.sharedctypes import _Value
+    Value = _Value
+else:
+    Value = int
 
+
+import torch.multiprocessing as tmp
+from torch.multiprocessing import Manager
 import torch
 from pathlib_revised import Path2
 import pygraphviz as pgv
@@ -37,7 +53,7 @@ from tqdm import trange, tqdm
 
 import serapi_instance
 import dataloader
-from models import tactic_predictor, q_estimator
+from models import tactic_predictor
 from models.features_q_estimator import FeaturesQEstimator
 from models.q_estimator import QEstimator
 from models import features_polyarg_predictor
@@ -48,9 +64,7 @@ from util import eprint, print_time, nostderr, unwrap, progn
 from format import (TacticContext, ProofContext, Obligation)
 
 
-
 def main() -> None:
-    util.use_cuda = False
     parser = \
         argparse.ArgumentParser(
             description="A module for exploring deep Q learning "
@@ -60,6 +74,7 @@ def main() -> None:
 
     parser.add_argument("out_weights", type=Path2)
     parser.add_argument("environment_files", type=Path2, nargs="+")
+    parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--proof", default=None)
 
     parser.add_argument("--prelude", default=".", type=Path2)
@@ -70,7 +85,8 @@ def main() -> None:
     parser.add_argument("--start-from", default=None, type=Path2)
     parser.add_argument("--num-predictions", default=16, type=int)
 
-    parser.add_argument("--buffer-size", default=256, type=int)
+    parser.add_argument("--buffer-min-size", default=256, type=int)
+    parser.add_argument("--buffer-max-size", default=32768, type=int)
     parser.add_argument("--batch-size", default=32, type=int)
 
     parser.add_argument("--num-episodes", default=256, type=int)
@@ -79,10 +95,13 @@ def main() -> None:
     parser.add_argument("--learning-rate", default=0.0001, type=float)
     parser.add_argument("--batch-step", default=50, type=int)
     parser.add_argument("--gamma", default=0.8, type=float)
+    parser.add_argument("--exploration-factor", default=0.3, type=float)
+    parser.add_argument("--time-discount", default=0.9, type=float)
 
     parser.add_argument("--pretrain-epochs", default=10, type=int)
     parser.add_argument("--no-pretrain", action='store_false',
                         dest='pretrain')
+    parser.add_argument("--include-proof-relevant", action="store_true")
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
@@ -95,6 +114,8 @@ def main() -> None:
     parser.add_argument("--graphs-dir", default=Path2("graphs"), type=Path2)
 
     parser.add_argument("--success-repetitions", default=10, type=int)
+    parser.add_argument("--careful", action='store_true')
+    parser.add_argument("--train-every", default=128, type=int)
 
     args = parser.parse_args()
 
@@ -104,7 +125,7 @@ def main() -> None:
         if e.errno != errno.EEXIST:
             raise
 
-    reinforce(args)
+    reinforce_multithreaded(args)
 
 
 @dataclass(init=True)
@@ -196,143 +217,7 @@ class ReinforceGraph:
             self.__graph.draw(filename, prog="dot")
 
 
-def reinforce(args: argparse.Namespace) -> None:
-
-    predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
-
-    # Load the scraped (demonstrated) samples, the proof environment
-    # commands, and the predictor
-    replay_memory = assign_rewards(args, predictor,
-        dataloader.tactic_transitions_from_file(args.scrape_file,
-                                                args.buffer_size))
-
-    q_estimator = FeaturesQEstimator(args.learning_rate,
-                                     args.batch_step,
-                                     args.gamma)
-    signal.signal(
-        signal.SIGINT,
-        lambda signal, frame:
-        progn(q_estimator.save_weights(
-            args.out_weights, args),  # type: ignore
-              exit()))
-    if args.start_from:
-        q_estimator_name, *saved = \
-            torch.load(args.start_from)
-        q_estimator.load_saved_state(*saved)
-    elif args.pretrain:
-        pre_train(args, predictor, q_estimator,
-                  dataloader.tactic_transitions_from_file(
-                      args.scrape_file, args.buffer_size * 10))
-
-    epsilon = 0.3
-    gamma = 0.9
-
-    if args.proof is not None:
-        assert len(args.environment_files) == 1, \
-            "Can't use multiple env files with --proof!"
-        env_commands = serapi_instance.load_commands_preserve(
-            args, 0, args.prelude / args.environment_files[0])
-        num_proofs = len([cmd for cmd in env_commands
-                          if cmd.strip() == "Qed."
-                          or cmd.strip() == "Defined."])
-
-        with serapi_instance.SerapiContext(
-                ["sertop", "--implicit"],
-                serapi_instance.get_module_from_filename(
-                    args.environment_files[0]),
-                str(args.prelude)) as coq:
-            coq.quiet = True
-            coq.verbose = args.verbose
-            rest_commands, run_commands = coq.run_into_next_proof(env_commands)
-            lemma_statement = run_commands[-1]
-            while coq.cur_lemma_name != args.proof:
-                if not rest_commands:
-                    eprint("Couldn't find lemma {args.proof}! Exiting...")
-                    return
-                rest_commands, _ = coq.finish_proof(rest_commands)
-                rest_commands, run_commands = coq.run_into_next_proof(
-                    rest_commands)
-                lemma_statement = run_commands[-1]
-            reinforce_lemma(args, predictor, q_estimator, coq,
-                            lemma_statement,
-                            epsilon, gamma, replay_memory)
-            q_estimator.save_weights(args.out_weights, args)
-    else:
-        for env_file in args.environment_files:
-            env_commands = serapi_instance.load_commands_preserve(
-                args, 0, args.prelude / env_file)
-            num_proofs = len([cmd for cmd in env_commands
-                              if cmd.strip() == "Qed."
-                              or cmd.strip() == "Defined."])
-            rest_commands = env_commands
-            all_run_commands: List[str] = []
-            with tqdm(total=num_proofs, disable=(not args.progress),
-                      leave=True, desc=env_file.stem) as pbar:
-                while rest_commands:
-                    with serapi_instance.SerapiContext(
-                            ["sertop", "--implicit"],
-                            serapi_instance.get_module_from_filename(
-                                env_file),
-                            str(args.prelude),
-                            log_outgoing_messages=args.log_outgoing_messages) \
-                            as coq:
-                        coq.quiet = True
-                        coq.verbose = args.verbose
-                        for command in all_run_commands:
-                            coq.run_stmt(command)
-
-                        while rest_commands:
-                            rest_commands, run_commands = \
-                                coq.run_into_next_proof(rest_commands)
-                            if not rest_commands:
-                                break
-                            all_run_commands += run_commands[:-1]
-                            lemma_statement = run_commands[-1]
-
-                            # Check if the definition is
-                            # proof-relevant. If it is, then finishing
-                            # subgoals doesn't necessarily mean you've
-                            # solved the problem, so don't try to
-                            # train on it.
-                            proof_relevant = False
-                            for cmd in rest_commands:
-                                if serapi_instance.ending_proof(cmd):
-                                    if cmd.strip() == "Defined.":
-                                        proof_relevant = True
-                                    break
-                            proof_relevant = proof_relevant or \
-                                bool(re.match(r"\s*Derive", lemma_statement))
-                            for sample in replay_memory:
-                                sample.graph_node = None
-                            if not proof_relevant:
-                                try:
-                                    reinforce_lemma(args, predictor,
-                                                    q_estimator,
-                                                    coq,
-                                                    lemma_statement,
-                                                    epsilon, gamma,
-                                                    replay_memory)
-                                except serapi_instance.CoqAnomaly:
-                                    if args.log_anomalies:
-                                        with args.log_anomalies.open('a') as f:
-                                            traceback.print_exc(file=f)
-                                    if args.hardfail:
-                                        eprint(
-                                            "Hit an anomaly!"
-                                            "Quitting due to --hardfail")
-                                        raise
-                                    eprint(
-                                        "Hit an anomaly! "
-                                        "Restarting coq instance")
-                                    rest_commands.insert(0, lemma_statement)
-                                    break
-                            pbar.update(1)
-                            rest_commands, run_commands = \
-                                coq.finish_proof(rest_commands)
-                            all_run_commands.append(lemma_statement)
-                            all_run_commands += run_commands
-
-            q_estimator.save_weights(args.out_weights, args)
+Job = Tuple[str, str, str]
 
 
 @dataclass
@@ -360,48 +245,342 @@ class LabeledTransition:
                              self.before.focused_hyps,
                              self.before.focused_goal)
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {"relevant_lemmas": self.relevant_lemmas,
+                "prev_tactics": self.prev_tactics,
+                "before": self.before.to_dict(),
+                "after": self.after.to_dict(),
+                "action": self.action,
+                "original_certainty": self.original_certainty,
+                "reward": self.reward}
+    @classmethod
+    def from_dict(cls, data) -> 'LabeledTransition':
+        return LabeledTransition(data["relevant_lemmas"],
+                                 data["prev_tactics"],
+                                 ProofContext.from_dict(data["before"]),
+                                 ProofContext.from_dict(data["after"]),
+                                 data["action"],
+                                 data["original_certainty"],
+                                 data["reward"],
+                                 None)
 
-def reinforce_lemma(args: argparse.Namespace,
-                    predictor: tactic_predictor.TacticPredictor,
-                    estimator: q_estimator.QEstimator,
-                    coq: serapi_instance.SerapiInstance,
-                    lemma_statement: str,
-                    epsilon: float,
-                    gamma: float,
-                    memory: List[LabeledTransition]) -> None:
-    lemma_name = coq.cur_lemma_name
+
+def reinforce_multithreaded(args: argparse.Namespace) -> None:
+
+    # Load the predictor
+    predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
+
+    # Load the scraped (demonstrated) samples and the proof
+    # environment commands. Assigns them an estimated "original
+    # predictor certainty" value for use as a feature.
+    # Create an initial Q Estimator
+    q_estimator = FeaturesQEstimator(args.learning_rate,
+                                     args.batch_step,
+                                     args.gamma)
+    # This sets up a handler so that if the user hits Ctrl-C, we save
+    # the weights as we have them and exit.
+    signal.signal(
+        signal.SIGINT,
+        lambda signal, frame:
+        progn(q_estimator.save_weights(
+            args.out_weights, args),  # type: ignore
+
+              exit()))
+
+    resume_file = args.out_weights.with_suffix('.tmp')
+    if resume_file.exists():
+        eprint("Looks like there was a session in progress for these weights! Resuming")
+        q_estimator_name, *saved = \
+            torch.load(args.out_weights)
+        q_estimator.load_saved_state(*saved)
+        replay_memory = []
+        with resume_file.open('r') as f:
+            for line in f:
+                replay_memory.append(LabeledTransition.from_dict(
+                    json.loads(line)))
+        already_done = []
+        with args.out_weights.with_suffix('.done').open('r') as f:
+            for line in f:
+                next_done = json.loads(line)
+                already_done.append((Path2(next_done[0]), next_done[1],
+                                     next_done[2]))
+    else:
+        with print_time("Loading initial samples from labeled data"):
+            replay_memory = assign_rewards(args, predictor,
+                                           dataloader.tactic_transitions_from_file(
+                                               args.scrape_file, args.buffer_min_size))
+        # Load in any starting weights
+        if args.start_from:
+            q_estimator_name, *saved = \
+                torch.load(args.start_from)
+            q_estimator.load_saved_state(*saved)
+        elif args.pretrain:
+            # Pre-train the q scores to zero
+            with print_time("Pretraining"):
+                pre_train(args, predictor, q_estimator,
+                          dataloader.tactic_transitions_from_file(
+                              args.scrape_file, args.buffer_min_size * 3))
+        already_done = []
+        with args.out_weights.with_suffix('.tmp').open('w') as f:
+            for sample in replay_memory:
+                f.write(json.dumps(sample.to_dict()))
+                f.write("\n")
+        with args.out_weights.with_suffix('.done').open('w'):
+            pass
+
+    ctxt = tmp.get_context('spawn')
+    jobs: Queue[Job] = ctxt.Queue()
+    done: Queue[Job] = ctxt.Queue()
+    samples: Queue[LabeledTransition] = ctxt.Queue()
+
+    # eprint(f"Starting with {len(replay_memory)} samples")
+    for sample in replay_memory:
+        samples.put(sample)
+
+    with tmp.Pool() as pool:
+        jobs_in_files = pool.map(functools.partial(get_proofs, args),
+                                 list(enumerate(args.environment_files)))
+    all_jobs = [job for job_list in jobs_in_files for job in job_list if job not in already_done]
+
+    for job in all_jobs:
+        jobs.put(job)
+
+    with Manager() as manager:
+        manager = cast(multiprocessing.managers.SyncManager, manager)
+        ns = manager.Namespace()
+        ns.predictor = predictor
+        ns.estimator = q_estimator
+        lock = manager.Lock()
+
+        training_worker = ctxt.Process(
+            target=reinforce_training_worker,
+            args=(args, len(replay_memory), lock, ns, samples))
+        workers = [ctxt.Process(
+            target=reinforce_worker,
+            args=(widx,
+                  args,
+                  lock,
+                  ns,
+                  samples,
+                  jobs,
+                  done))
+                   for widx in range(min(args.num_threads, len(all_jobs)))]
+        training_worker.start()
+        for worker in workers:
+            worker.start()
+
+        with tqdm(total=len(all_jobs) + len(already_done), dynamic_ncols=True) as bar:
+            bar.update(len(already_done))
+            bar.refresh()
+            for _ in range(len(all_jobs)):
+                job = done.get()
+                bar.update()
+                with args.out_weights.with_suffix(".done").open('a') as f:
+                    f.write(json.dumps((str(job[0]), job[1], job[2])))
+                    f.write("\n")
+
+        for worker in workers:
+            worker.join()
+        args.out_weights.with_suffix('.tmp').unlink()
+        training_worker.join()
+
+
+def reinforce_worker(worker_idx: int,
+                     args: argparse.Namespace,
+                     lock: Lock,
+                     namespace: multiprocessing.managers.Namespace,
+                     samples: Queue[LabeledTransition],
+                     jobs: Queue[Job],
+                     done: Queue[Job]):
+
+    sys.setrecursionlimit(100000)
+    failing_lemma = ""
+
+    try:
+        next_file, next_module, next_lemma = jobs.get_nowait()
+    except queue.Empty:
+        return
+    with util.silent():
+        all_commands = serapi_instance.load_commands_preserve(
+            args, worker_idx + 1, args.prelude / next_file)
+
+    rest_commands = all_commands
+    while rest_commands:
+        with serapi_instance.SerapiContext(["sertop", "--implicit"],
+                                           serapi_instance.
+                                           get_module_from_filename(next_file),
+                                           str(args.prelude)) as coq:
+            coq.quiet = True
+            coq.verbose = args.verbose
+
+            while next_lemma:
+                try:
+                    rest_commands, run_commands = coq.run_into_next_proof(
+                        rest_commands)
+                    if not rest_commands:
+                        eprint(f"Couldn't find lemma {next_lemma}!")
+                        break
+                except serapi_instance.CoqAnomaly:
+                    with util.silent():
+                        all_commands = serapi_instance.\
+                            load_commands_preserve(
+                                args, 0, args.prelude / next_file)
+                        rest_commands = all_commands
+                    break
+                except serapi_instance.SerapiException:
+                    eprint(f"Failed getting to before: {next_lemma}")
+                    eprint(f"In file {next_file}")
+                    raise
+                lemma_statement = run_commands[-1]
+                if lemma_statement == next_lemma:
+                    try:
+                        reinforce_lemma_multithreaded(args, coq,
+                                                      lock, namespace,
+                                                      worker_idx,
+                                                      samples,
+                                                      next_lemma,
+                                                      next_module)
+                    except serapi_instance.CoqAnomaly:
+                        if args.hardfail:
+                            raise
+                        if failing_lemma == lemma_statement:
+                            eprint("Hit the same anomaly twice! Skipping",
+                                   guard=args.verbose >= 1)
+                            done.put((next_file, next_module, next_lemma))
+
+                            try:
+                                new_file, next_module, next_lemma = jobs.get_nowait()
+                            except queue.Empty:
+                                return
+                            if new_file != next_file:
+                                next_file = new_file
+                                with util.silent():
+                                    all_commands = serapi_instance.\
+                                        load_commands_preserve(
+                                            args, 0, args.prelude / next_file)
+                                    rest_commands = all_commands
+                                    break
+                            else:
+                                rest_commands = all_commands
+                        else:
+                            rest_commands = all_commands
+                            failing_lemma = lemma_statement
+                        break
+                    except Exception as e:
+                        if worker_idx == 0:
+                            eprint(
+                                f"FAILED in file {next_file}, lemma {next_lemma}")
+                            eprint(e)
+                        raise
+                    serapi_instance.admit_proof(coq, lemma_statement)
+                    while not serapi_instance.ending_proof(rest_commands[0]):
+                        rest_commands = rest_commands[1:]
+                    rest_commands = rest_commands[1:]
+                    done.put((next_file, next_module, next_lemma))
+                    try:
+                        new_file, next_module, next_lemma = jobs.get_nowait()
+                    except queue.Empty:
+                        return
+
+                    if new_file != next_file:
+                        next_file = new_file
+                        with util.silent():
+                            all_commands = serapi_instance.\
+                                load_commands_preserve(
+                                    args, 0,
+                                    args.prelude / next_file)
+                        rest_commands = all_commands
+                        break
+                else:
+                    proof_relevant = False
+                    for cmd in rest_commands:
+                        if serapi_instance.ending_proof(cmd):
+                            if cmd.strip() == "Defined.":
+                                proof_relevant = True
+                            break
+                    proof_relevant = proof_relevant or \
+                        bool(re.match(
+                            r"\s*Derive",
+                            serapi_instance.kill_comments(lemma_statement))
+                             ) or\
+                        bool(re.match(
+                            r"\s*Let",
+                            serapi_instance.kill_comments(lemma_statement))
+                             ) or\
+                        bool(re.match(
+                            r"\s*Equations",
+                            serapi_instance.kill_comments(lemma_statement))
+                             ) or\
+                        args.careful
+                    if proof_relevant:
+                        rest_commands, run_commands = coq.finish_proof(
+                            rest_commands)
+                    else:
+                        try:
+                            serapi_instance.admit_proof(coq, lemma_statement)
+                        except serapi_instance.SerapiException:
+                            next_lemma_name = \
+                                serapi_instance.\
+                                lemma_name_from_statement(next_lemma)
+                            eprint(
+                                f"{next_file}: Failed to admit proof {next_lemma_name}")
+                            raise
+
+                        while not serapi_instance.ending_proof(
+                                rest_commands[0]):
+                            rest_commands = rest_commands[1:]
+                        rest_commands = rest_commands[1:]
+
+
+def reinforce_lemma_multithreaded(
+        args: argparse.Namespace,
+        coq: serapi_instance.SerapiInstance,
+        lock: Lock,
+        namespace: multiprocessing.managers.Namespace,
+        worker_idx: int,
+        samples: Queue[LabeledTransition],
+        lemma_statement: str,
+        _module_prefix: str):
+
+    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     graph = ReinforceGraph(lemma_name)
-    for episode in trange(args.num_episodes, disable=(not args.progress),
-                          leave=False):
+    lemma_memory = []
+    for _ in trange(args.num_episodes, disable=(not args.progress),
+                    leave=False, position=worker_idx + 1):
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
-        episode_memory = []
-        for t in range(args.episode_length):
+        episode_memory: List[LabeledTransition] = []
+        for _ in range(args.episode_length):
             with print_time("Getting predictions", guard=args.verbose):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
                 proof_context_before = unwrap(coq.proof_context)
-                predictions = predictor.predictKTactics(
-                    context_before, args.num_predictions)
-            if random.random() < epsilon:
-                ordered_actions = [p for p in
-                                   random.sample(predictions,
-                                                 len(predictions))]
-            else:
-                with print_time("Picking actions using q_estimator",
-                                guard=args.verbose):
-                    q_choices = zip(estimator(
-                        [(context_before, prediction.prediction,
-                          prediction.certainty)
-                         for prediction in predictions]),
-                                    predictions)
-                    ordered_actions = [p[1] for p in
-                                       sorted(q_choices,
-                                              key=lambda q: q[0],
-                                              reverse=True)]
-
+                with lock:
+                    eprint(f"Locked in thread {worker_idx}",
+                           guard=args.verbose >= 2)
+                    predictor = namespace.predictor
+                    estimator = namespace.estimator
+                    predictions = predictor.predictKTactics(
+                        context_before, args.num_predictions)
+                    if random.random() < args.exploration_factor:
+                        ordered_actions = list(random.sample(predictions,
+                                                             len(predictions)))
+                    else:
+                        with print_time("Picking actions with q_estimator",
+                                        guard=args.verbose):
+                            q_choices = zip(estimator(
+                                [(context_before, p.prediction, p.certainty)
+                                 for p in predictions]),
+                                            predictions)
+                            ordered_actions = [p[1] for p in
+                                               sorted(q_choices,
+                                                      key=lambda q: q[0],
+                                                      reverse=True)]
+                eprint(f"Unlocked in thread {worker_idx}",
+                       guard=args.verbose >= 2)
             with print_time("Running actions", guard=args.verbose):
                 action = None
-                for try_action, original_certainty in ordered_actions:
+                original_certainty = None
+                for try_action, try_original_certainty in ordered_actions:
                     try:
                         coq.run_stmt(try_action)
                         proof_context_after = unwrap(coq.proof_context)
@@ -415,16 +594,18 @@ def reinforce_lemma(args: argparse.Namespace,
                                 proof_context_before,
                                 proof_context_after,
                                 try_action,
-                                original_certainty,
+                                try_original_certainty,
                                 -1)
                             assert transition.reward < 2000
-                            memory.append(transition)
+                            # eprint(f"Pushing one sample in thread {worker_idx}")
+                            samples.put(transition)
                             if args.ghosts:
                                 ghost_node = graph.addGhostTransition(
                                     cur_node, try_action)
                                 transition.graph_node = ghost_node
                             continue
                         action = try_action
+                        original_certainty = try_original_certainty
                         break
                     except (serapi_instance.ParseError,
                             serapi_instance.CoqExn,
@@ -435,66 +616,97 @@ def reinforce_lemma(args: argparse.Namespace,
                             proof_context_before,
                             proof_context_before,
                             try_action,
-                            original_certainty,
+                            try_original_certainty,
                             -5)
                         assert transition.reward < 2000
-                        memory.append(transition)
+                        # eprint(f"Pushing one sample in thread {worker_idx}")
+                        samples.put(transition)
                         if args.ghosts:
                             ghost_node = graph.addGhostTransition(cur_node,
                                                                   try_action)
                             transition.graph_node = ghost_node
-                        pass
                 if action is None:
                     # We'll hit this case of we tried all of the
                     # predictions, and none worked
                     graph.setNodeColor(cur_node, "red")
                     break  # Break from episode
-
             transition = assign_reward(context_before.relevant_lemmas,
                                        context_before.prev_tactics,
                                        proof_context_before,
                                        proof_context_after,
                                        action,
-                                       original_certainty)
+                                       unwrap(original_certainty))
             cur_node = graph.addTransition(cur_node, action,
                                            transition.reward)
             transition.graph_node = cur_node
             assert transition.reward < 2000
-            episode_memory.append(transition)
-            memory.append(transition)
-            proof_contexts_seen.append(proof_context_after)
+            # eprint(f"Pushing one sample in thread {worker_idx}")
+            samples.put(transition)
 
+            lemma_memory += episode_memory
             if coq.goals == "":
                 graph.mkQED(cur_node)
-                memory += (episode_memory * (args.success_repetitions - 1))
+                for sample in (episode_memory *
+                               (args.success_repetitions - 1)):
+                    samples.put(sample)
                 break
-
-        with print_time("Assigning scores", guard=args.verbose):
-            transition_samples = sample_batch(memory,
-                                              args.batch_size)
-            training_samples = assign_scores(transition_samples,
-                                             estimator, predictor,
-                                             args.num_predictions,
-                                             gamma,
-                                             # Passing this graph
-                                             # in so we can
-                                             # maintain a record
-                                             # of the most recent
-                                             # q score estimates
-                                             # in the graph
-                                             graph)
-        with print_time("Training", guard=args.verbose):
-            estimator.train(training_samples)
 
         # Clean up episode
         coq.run_stmt("Admitted.")
         coq.run_stmt(f"Reset {lemma_name}.")
         coq.run_stmt(lemma_statement)
+
+        # Write out lemma memory to progress file for resuming
+        for sample in lemma_memory:
+            with args.out_weights.with_suffix('.tmp').open('a') as f:
+                f.write(json.dumps(sample.to_dict()))
+                f.write("\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
     graph.draw(str(graphpath))
+
+
+def reinforce_training_worker(args: argparse.Namespace,
+                              initial_buffer_size: int,
+                              lock: Lock,
+                              namespace: multiprocessing.managers.Namespace,
+                              samples: Queue[LabeledTransition]):
+    memory: List[LabeledTransition] = []
+    while True:
+        next_sample = samples.get()
+        memory.append(next_sample)
+        if len(memory) > args.buffer_max_size:
+            del memory[0:args.train_every+1]
+        if len(memory) > initial_buffer_size and \
+           (len(memory) - initial_buffer_size) % args.train_every == 0:
+            transition_samples = sample_batch(memory, args.batch_size)
+            with print_time("Assigning scores", guard=args.verbose):
+                with lock:
+                    eprint(
+                        f"Locked in training thread for {len(memory)} samples",
+                        guard=args.verbose >= 2)
+                    q_estimator = namespace.estimator
+                    predictor = namespace.predictor
+                    training_samples = assign_scores(transition_samples,
+                                                     q_estimator,
+                                                     predictor,
+                                                     args.num_predictions,
+                                                     args.time_discount)
+                    q_estimator.train(training_samples)
+                    q_estimator.save_weights(args.out_weights, args)
+                eprint("Unlocked in training thread",
+                       guard=args.verbose >= 2)
+
     pass
 
 
+def get_proofs(args: argparse.Namespace,
+               t: Tuple[int, str]) -> List[Tuple[str, str, str]]:
+    idx, filename = t
+    cmds = serapi_instance.load_commands_preserve(
+        args, idx, args.prelude / filename)
+    return [(filename, module, cmd) for module, cmd in
+            serapi_instance.lemmas_in_file(
+                filename, cmds, args.include_proof_relevant)]
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
       List[LabeledTransition]:
     return random.sample(transitions, k)
@@ -555,11 +767,10 @@ def assign_rewards(args: argparse.Namespace,
 
 
 def assign_scores(transitions: List[LabeledTransition],
-                  q_estimator: q_estimator.QEstimator,
+                  q_estimator: FeaturesQEstimator,
                   predictor: tactic_predictor.TacticPredictor,
                   num_predictions: int,
-                  discount: float,
-                  graph: ReinforceGraph) -> \
+                  discount: float) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
         prediction_lists = cast(features_polyarg_predictor
@@ -589,8 +800,8 @@ def assign_scores(transitions: List[LabeledTransition],
             assert transition.reward == transition.reward
             assert discount == discount
             assert new_q == new_q
-            if transition.graph_node:
-                graph.setNodeApproxQScore(transition.graph_node, new_q)
+            # if transition.graph_node:
+            #     graph.setNodeApproxQScore(transition.graph_node, new_q)
             yield TacticContext(
                 transition.relevant_lemmas,
                 transition.prev_tactics,
@@ -629,6 +840,7 @@ def pre_train(args: argparse.Namespace,
 
     samples = list(gen_samples())
     estimator.train(samples, args.batch_size, args.pretrain_epochs)
+
 
 def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
                  context: TacticContext, tactic: str) -> float:
