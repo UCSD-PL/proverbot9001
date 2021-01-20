@@ -693,9 +693,7 @@ def reinforce_training_worker(args: argparse.Namespace,
                     predictor = namespace.predictor
                     training_samples = assign_scores(transition_samples,
                                                      q_estimator,
-                                                     predictor,
-                                                     args.num_predictions,
-                                                     args.time_discount)
+                                                     predictor)
                     q_estimator.train(training_samples)
                     q_estimator.save_weights(args.out_weights, args)
                 eprint("Unlocked in training thread",
@@ -771,11 +769,10 @@ def assign_rewards(args: argparse.Namespace,
     return list(generate())
 
 
-def assign_scores(transitions: List[LabeledTransition],
+def assign_scores(args: argparse.Namespace,
+                  transitions: List[LabeledTransition],
                   q_estimator: FeaturesQEstimator,
-                  predictor: tactic_predictor.TacticPredictor,
-                  num_predictions: int,
-                  discount: float) -> \
+                  predictor: tactic_predictor.TacticPredictor) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
         contexts_trunced = [truncate_tactic_context(
@@ -798,16 +795,13 @@ def assign_scores(transitions: List[LabeledTransition],
                     [(tactic_ctxt, prediction.prediction, prediction.certainty)
                      for prediction in predictions])
                 estimated_future_q = \
-                    discount * max(estimates)
+                    args.time_discount * max(estimates)
                 estimated_current_q = q_estimator([(transition.before_context,
                                                     transition.action,
                                                     transition.original_certainty)])[0]
                 new_q = transition.reward + estimated_future_q \
                     - estimated_current_q
 
-            assert transition.reward == transition.reward
-            assert discount == discount
-            assert new_q == new_q
             # if transition.graph_node:
             #     graph.setNodeApproxQScore(transition.graph_node, new_q)
             yield TacticContext(
