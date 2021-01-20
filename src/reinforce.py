@@ -658,8 +658,14 @@ def reinforce_lemma_multithreaded(
                 break
 
         # Clean up episode
-        coq.run_stmt("Admitted.")
-        coq.run_stmt(f"Reset {lemma_name}.")
+        if lemma_name:
+            coq.run_stmt("Admitted.")
+            coq.run_stmt(f"Reset {lemma_name}.")
+        else:
+            coq.cancel_last()
+            while coq.goals:
+                coq.cancel_last()
+
         coq.run_stmt(lemma_statement)
 
         # Write out lemma memory to progress file for resuming
