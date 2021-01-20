@@ -340,8 +340,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         samples.put(sample)
 
     with tmp.Pool() as pool:
-        jobs_in_files = pool.map(functools.partial(get_proofs, args),
-                                 list(enumerate(args.environment_files)))
+        jobs_in_files = list(tqdm(pool.imap(functools.partial(get_proofs, args),
+                                            list(enumerate(args.environment_files))),
+                                  total=len(args.environment_files)))
     all_jobs = [job for job_list in jobs_in_files for job in job_list if job not in already_done]
 
     for job in all_jobs:
@@ -707,8 +708,9 @@ def reinforce_training_worker(args: argparse.Namespace,
 def get_proofs(args: argparse.Namespace,
                t: Tuple[int, str]) -> List[Tuple[str, str, str]]:
     idx, filename = t
-    cmds = serapi_instance.load_commands_preserve(
-        args, idx, args.prelude / filename)
+    with util.silent():
+        cmds = serapi_instance.load_commands_preserve(
+            args, idx, args.prelude / filename)
     return [(filename, module, cmd) for module, cmd in
             serapi_instance.lemmas_in_file(
                 filename, cmds, args.include_proof_relevant)]
