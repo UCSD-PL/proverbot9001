@@ -98,6 +98,17 @@ class TacticContext(NamedTuple):
     goal: str
 
 
+def truncate_tactic_context(context: TacticContext,
+                            max_term_length: int):
+    return TacticContext(
+        [lemma[:max_term_length] for lemma
+         in context.relevant_lemmas],
+        context.prev_tactics,
+        [hyp[:max_term_length] for hyp
+         in context.hypotheses],
+        context.goal[:max_term_length])
+
+
 ScrapedCommand = Union[ScrapedTactic, str]
 
 

@@ -61,7 +61,7 @@ import predict_tactic
 import util
 from util import eprint, print_time, nostderr, unwrap, progn
 
-from format import (TacticContext, ProofContext, Obligation)
+from format import (TacticContext, ProofContext, Obligation, truncate_tactic_context)
 
 
 def main() -> None:
@@ -97,6 +97,8 @@ def main() -> None:
     parser.add_argument("--gamma", default=0.8, type=float)
     parser.add_argument("--exploration-factor", default=0.3, type=float)
     parser.add_argument("--time-discount", default=0.9, type=float)
+
+    parser.add_argument("--max-term-length", default=512, type=float)
 
     parser.add_argument("--pretrain-epochs", default=10, type=int)
     parser.add_argument("--no-pretrain", action='store_false',
@@ -559,8 +561,11 @@ def reinforce_lemma_multithreaded(
                            guard=args.verbose >= 2)
                     predictor = namespace.predictor
                     estimator = namespace.estimator
-                    predictions = predictor.predictKTactics(
-                        context_before, args.num_predictions)
+                    with print_time("Making predictions", guard=args.verbose >= 3):
+                        context_trunced = truncate_tactic_context(
+                            context_before, args.max_term_length)
+                        predictions = predictor.predictKTactics(
+                            context_trunced, args.num_predictions)
                     if random.random() < args.exploration_factor:
                         ordered_actions = list(random.sample(predictions,
                                                              len(predictions)))
@@ -773,13 +778,16 @@ def assign_scores(transitions: List[LabeledTransition],
                   discount: float) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
+        contexts_trunced = [truncate_tactic_context(
+            transition.after_context,
+            args.max_term_length)
+                            for transition in transitions]
         prediction_lists = cast(features_polyarg_predictor
                                 .FeaturesPolyargPredictor,
                                 predictor) \
                                 .predictKTactics_batch(
-                                    [transition.after_context for
-                                     transition in transitions],
-                                    num_predictions)
+                                    contexts_trunced,
+                                    args.num_predictions)
         for transition, predictions in zip(transitions, prediction_lists):
             tactic_ctxt = transition.after_context
 
