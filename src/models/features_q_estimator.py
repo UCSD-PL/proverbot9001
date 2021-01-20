@@ -68,8 +68,9 @@ class FeaturesQEstimator(QEstimator):
                                    for encoded_action, state_word_features in
                                    zip(encoded_actions_batch,
                                        state_word_features_batch)]
-        output = self.model(torch.LongTensor(all_word_features_batch),
-                            torch.FloatTensor(vec_features_batch))
+        with torch.no_grad():
+            output = self.model(torch.LongTensor(all_word_features_batch),
+                                torch.FloatTensor(vec_features_batch))
         for item in output:
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
