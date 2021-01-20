@@ -684,18 +684,20 @@ def reinforce_training_worker(args: argparse.Namespace,
         if len(memory) > initial_buffer_size and \
            (len(memory) - initial_buffer_size) % args.train_every == 0:
             transition_samples = sample_batch(memory, args.batch_size)
-            with print_time("Assigning scores", guard=args.verbose):
-                with lock:
-                    eprint(
-                        f"Locked in training thread for {len(memory)} samples",
-                        guard=args.verbose >= 2)
-                    q_estimator = namespace.estimator
-                    predictor = namespace.predictor
-                    training_samples = assign_scores(transition_samples,
+            with lock:
+                eprint(
+                    f"Locked in training thread for {len(memory)} samples",
+                    guard=args.verbose >= 2)
+                q_estimator = namespace.estimator
+                predictor = namespace.predictor
+                with print_time("Assigning scores", guard=args.verbose):
+                    training_samples = assign_scores(args,
+                                                     transition_samples,
                                                      q_estimator,
                                                      predictor)
+                with print_time("Training", guard=args.verbose):
                     q_estimator.train(training_samples)
-                    q_estimator.save_weights(args.out_weights, args)
+                q_estimator.save_weights(args.out_weights, args)
                 eprint("Unlocked in training thread",
                        guard=args.verbose >= 2)
 
