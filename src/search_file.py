@@ -44,7 +44,7 @@ import serapi_instance
 from serapi_instance import (ProofContext, Obligation, SerapiInstance)
 
 import data
-from format import TacticContext, ScrapedTactic
+from format import TacticContext, ScrapedTactic, truncate_context
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import search_report
@@ -226,6 +226,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--log-anomalies", type=Path2, default=None)
     parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
+    parser.add_argument("--max-term-length", type=int, default=256)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
     else:
@@ -1105,8 +1106,10 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                               coq.goals)
         with predictor_lock:
             with util.silent():
-                predictions = predictor.predictKTactics(tactic_context_before,
-                                                        args.max_attempts)
+                predictions = predictor.predictKTactics(
+                    truncate_context(tactic_context_before,
+                                     args.max_term_length),
+                    args.max_attempts)
                 assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
