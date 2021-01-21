@@ -1265,4 +1265,4 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')
-    main(sys.argv[1:], 0)
+    main(sys.argv[1:])
