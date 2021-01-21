@@ -385,7 +385,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         for worker in workers:
             worker.join()
         args.out_weights.with_suffix('.tmp').unlink()
-        training_worker.join()
+        training_worker.kill()
 
 
 def reinforce_worker(worker_idx: int,
