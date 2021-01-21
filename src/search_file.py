@@ -44,7 +44,7 @@ import serapi_instance
 from serapi_instance import (ProofContext, Obligation, SerapiInstance)
 
 import data
-from format import TacticContext, ScrapedTactic, truncate_context
+from format import TacticContext, ScrapedTactic, truncate_tactic_context
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import search_report
@@ -1107,8 +1107,8 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         with predictor_lock:
             with util.silent():
                 predictions = predictor.predictKTactics(
-                    truncate_context(tactic_context_before,
-                                     args.max_term_length),
+                    truncate_tactic_context(tactic_context_before,
+                                            args.max_term_length),
                     args.max_attempts)
                 assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
