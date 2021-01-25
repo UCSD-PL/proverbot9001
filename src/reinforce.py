@@ -342,7 +342,8 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     with tmp.Pool() as pool:
         jobs_in_files = list(tqdm(pool.imap(functools.partial(get_proofs, args),
                                             list(enumerate(args.environment_files))),
-                                  total=len(args.environment_files)))
+                                  total=len(args.environment_files),
+                                  leave=False))
     all_jobs = [job for job_list in jobs_in_files for job in job_list if job not in already_done]
 
     for job in all_jobs:
