@@ -857,7 +857,7 @@ def pre_train(args: argparse.Namespace,
                                     transition.before.fg_goals[0].goal)
             certainty = certainty_of(predictor, args.num_predictions * 2,
                                      context, transition.tactic)
-            yield (context, transition.tactic, certainty, 0.0)
+            yield (context, transition.tactic, certainty, certainty)
 
     samples = list(gen_samples())
     estimator.train(samples, args.batch_size,
