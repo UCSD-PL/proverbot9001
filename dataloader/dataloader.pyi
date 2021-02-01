@@ -173,6 +173,10 @@ def decode_fpa_result(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                       arg_idx: int) -> str:
     ...
 
+def encode_fpa_stem(args: DataloaderArgs, metadata: PickleableFPAMetadata,
+                    tac_stem: str) -> int:
+    ...
+
 
 def features_vocab_sizes(tmap: TokenMap) -> Tuple[List[int], int]:
     ...
