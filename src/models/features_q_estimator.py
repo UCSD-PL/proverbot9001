@@ -77,7 +77,8 @@ class FeaturesQEstimator(QEstimator):
 
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,
-              num_epochs: int = 1) -> None:
+              num_epochs: int = 1,
+              show_loss: bool = False) -> None:
         for context, action, certainty, score in samples:
             assert score != float("-Inf") and score != float("Inf") and score == score
         self.optimizer.zero_grad()
@@ -103,7 +104,7 @@ class FeaturesQEstimator(QEstimator):
                         torch.FloatTensor(vec_features),
                         torch.FloatTensor(expected_outputs)]]
         for epoch in range(0, num_epochs):
-            for batch in batches:
+            for idx, batch in enumerate(batches):
                 self.optimizer.zero_grad()
                 word_features_batch, vec_features_batch, \
                     expected_outputs_batch = batch
@@ -111,6 +112,10 @@ class FeaturesQEstimator(QEstimator):
                                      vec_features_batch)
                 loss = self.criterion(
                     outputs, maybe_cuda(expected_outputs_batch))
+
+                eprint(loss.data,
+                       guard=show_loss and epoch % 10 == 9
+                       and idx == len(batches) - 1)
                 loss.backward()
                 self.optimizer.step()
 
