@@ -118,6 +118,7 @@ def main() -> None:
     parser.add_argument("--success-repetitions", default=10, type=int)
     parser.add_argument("--careful", action='store_true')
     parser.add_argument("--train-every", default=128, type=int)
+    parser.add_argument("--show-loss", action='store_true')
 
     args = parser.parse_args()
 
@@ -852,7 +853,9 @@ def pre_train(args: argparse.Namespace,
             yield (context, transition.tactic, certainty, 0.0)
 
     samples = list(gen_samples())
-    estimator.train(samples, args.batch_size, args.pretrain_epochs)
+    estimator.train(samples, args.batch_size,
+                    args.pretrain_epochs,
+                    show_loss=args.show_loss)
 
 
 def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
