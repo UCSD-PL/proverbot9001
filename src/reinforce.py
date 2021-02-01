@@ -331,6 +331,12 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         with args.out_weights.with_suffix('.done').open('w'):
             pass
 
+    q_estimator.save_weights(args.out_weights, args)
+    if args.num_episodes == 0:
+        args.out_weights.with_suffix('.tmp').unlink()
+        args.out_weights.with_suffix('.done').unlink()
+        return
+
     ctxt = tmp.get_context('spawn')
     jobs: Queue[Job] = ctxt.Queue()
     done: Queue[Job] = ctxt.Queue()
@@ -387,6 +393,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         for worker in workers:
             worker.join()
         args.out_weights.with_suffix('.tmp').unlink()
+        args.out_weights.with_suffix('.done').unlink()
         training_worker.kill()
 
 
