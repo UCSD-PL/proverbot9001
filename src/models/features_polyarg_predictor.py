@@ -25,7 +25,6 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn.utils.rnn import pad_sequence
 
-import serapi_instance
 from features import (WordFeature, VecFeature, Feature,
                       word_feature_constructors, vec_feature_constructors)
 from tokenizer import Tokenizer
@@ -33,6 +32,7 @@ from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
                   ByteTensor, print_time)
+import math
 from format import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
@@ -46,7 +46,6 @@ from dataloader import (features_polyarg_tensors,
                         sample_fpa,
                         sample_fpa_batch,
                         decode_fpa_result,
-                        encode_fpa_stem,
                         # decode_fpa_stem,
                         # decode_fpa_arg,
                         # features_vocab_sizes,
@@ -64,7 +63,6 @@ from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
                     cast, Union, Set, Type, Any, Iterable)
 
-import math
 from enum import Enum, auto
 
 
@@ -758,21 +756,14 @@ class FeaturesPolyargPredictor(
         stem_var = maybe_cuda(Variable(stem_idxs_batch))
         predictedProbs, predictedStemIdxs = stemDistributions.topk(stem_width)
         mergedStemIdxs = []
-        mergedStemProbs = []
-        for stem_idx, predictedStemIdxList, predictedProbList, distribution in \
-            zip(stem_idxs_batch, predictedStemIdxs, predictedProbs, stemDistributions):
+        for stem_idx, predictedStemIdxList in zip(stem_idxs_batch, predictedStemIdxs):
             if stem_idx.item() in predictedStemIdxList:
                 mergedStemIdxs.append(predictedStemIdxList)
-                mergedStemProbs.append(predictedProbList)
             else:
                 mergedStemIdxs.append(
                     torch.cat((maybe_cuda(stem_idx.view(1)),
                                predictedStemIdxList[:stem_width-1])))
-                mergedStemProbs.append(
-                    torch.cat((distribution[stem_idx],
-                               predictedProbList[:stem_width-1])))
         mergedStemIdxsT = torch.stack(mergedStemIdxs)
-        mergedStemProbsT = torch.stack(mergedStemProbs)
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
@@ -839,16 +830,13 @@ class FeaturesPolyargPredictor(
                                      dim=2)
         num_probs = hyp_lists_length + goal_size + 1
         total_arg_distribution = \
-            self._softmax((total_arg_values +
-                           mergedStemProbsT.view(batch_size, stem_width, 1)
-                           .expand(-1, -1, num_probs))
-                          .contiguous()
-                          .view(batch_size, stem_width * num_probs))
+            self._softmax(total_arg_values.view(
+                batch_size, stem_width * num_probs))
         total_arg_var = maybe_cuda(Variable(arg_total_idxs_batch +
                                             (correctPredictionIdxs * num_probs)))\
             .view(batch_size)
         loss = FloatTensor([0.])
-        # loss += self._criterion(stemDistributions, stem_var)
+        loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
 
