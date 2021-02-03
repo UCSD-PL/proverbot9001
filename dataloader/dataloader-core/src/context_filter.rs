@@ -61,7 +61,13 @@ pub fn filter_data(
         .collect()
 }
 
-fn apply_filter(
+pub fn parse_filter(filter_spec: &str) -> ContextFilterAST {
+    context_filter_parser::ToplevelFilterParser::new()
+        .parse(filter_spec)
+        .expect(&format!("Invalid context filter: {}", filter_spec))
+}
+
+pub fn apply_filter(
     args: &DataloaderArgs,
     parsed_filter: &ContextFilterAST,
     scraped: &ScrapedTactic,
