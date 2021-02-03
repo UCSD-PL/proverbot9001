@@ -991,6 +991,7 @@ class SerapiInstance(threading.Thread):
         msg = self.get_message()
         while match(normalizeMessage(msg),
                     ["Feedback", TAIL], lambda tail: True,
+                    ["Answer", int, "Completed"], lambda sidx: True,
                     _, lambda x: False):
             msg = self.get_message()
 
