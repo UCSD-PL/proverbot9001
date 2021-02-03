@@ -24,20 +24,21 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use std::fs::File;
 
-mod scraped_data;
 mod context_filter;
 mod context_filter_ast;
-mod paren_util;
-mod tokenizer;
 mod features;
 mod models;
-use scraped_data::*;
+mod paren_util;
+mod scraped_data;
+mod tokenizer;
+use context_filter::*;
 use features::*;
+use models::features_dnn_evaluator::*;
 use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
-use models::features_dnn_evaluator::*;
-use tokenizer::get_words;
 use paren_util::parse_sexp_one_level;
+use scraped_data::*;
+use tokenizer::get_words;
 
 #[macro_use]
 extern crate lazy_static;
@@ -126,7 +127,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
-        context_batch: Vec<TacticContext>
+        context_batch: Vec<TacticContext>,
     ) -> (
         LongUnpaddedTensor3D,
         FloatUnpaddedTensor3D,
@@ -136,11 +137,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         LongTensor2D,
         FloatTensor2D,
     ) {
-        sample_fpa_batch(
-            args,
-            metadata,
-            context_batch
-        )
+        sample_fpa_batch(args, metadata, context_batch)
     }
     #[pyfn(m, "sample_fpa")]
     fn sample_fpa_py(
@@ -242,7 +239,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<(GoalEncMetadata, LongTensor2D, FloatTensor1D)> {
         py.allow_threads(move || {
             Ok(goals_to_total_distances_tensors(args, filename, None)
-               .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?)
+                .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?)
         })
     }
     #[pyfn(m, "goals_to_total_distances_tensors_with_meta")]
@@ -255,7 +252,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         py.allow_threads(move || {
             let (_, goals, outputs) =
                 goals_to_total_distances_tensors(args, filename, Some(metadata))
-                .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?;
+                    .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?;
             Ok((goals, outputs))
         })
     }
@@ -264,22 +261,28 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         goal_enc_get_num_tokens(metadata)
     }
     #[pyfn(m, "goal_enc_tokenize_goal")]
-    fn _goal_enc_tokenize_goal(_py: Python, args: DataloaderArgs,
-                               metadata: &GoalEncMetadata,
-                               s: String) -> Vec<i64> {
+    fn _goal_enc_tokenize_goal(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: &GoalEncMetadata,
+        s: String,
+    ) -> Vec<i64> {
         tokenize_goal(args, metadata, s)
     }
     #[pyfn(m, "scraped_tactics_from_file")]
-    fn _scraped_tactics_from_file(_py: Python, filename: String,
-                                  num_tactics: Option<usize>) -> PyResult<Vec<ScrapedTactic>> {
+    fn _scraped_tactics_from_file(
+        _py: Python,
+        filename: String,
+        num_tactics: Option<usize>,
+    ) -> PyResult<Vec<ScrapedTactic>> {
         let iter = scraped_from_file(
-            File::open(filename).map_err(|_err| PyErr::new::<exceptions::IOError, _>(
-            "Failed to open file"))?
-        ).flat_map(|datum|
-                   match datum {
-                       ScrapedData::Vernac(_) => None,
-                       ScrapedData::Tactic(t) => Some(t),
-                   });
+            File::open(filename)
+                .map_err(|_err| PyErr::new::<exceptions::IOError, _>("Failed to open file"))?,
+        )
+        .flat_map(|datum| match datum {
+            ScrapedData::Vernac(_) => None,
+            ScrapedData::Tactic(t) => Some(t),
+        });
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
             None => Ok(iter.collect()),
@@ -325,7 +328,14 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         hypotheses: Vec<String>,
         goal: String,
     ) -> (LongTensor1D, FloatTensor1D) {
-        crate::features::sample_context_features(args, tmap, &relevant_lemmas, &prev_tactics, &hypotheses, &goal)
+        crate::features::sample_context_features(
+            args,
+            tmap,
+            &relevant_lemmas,
+            &prev_tactics,
+            &hypotheses,
+            &goal,
+        )
     }
 
     #[pyfunction]

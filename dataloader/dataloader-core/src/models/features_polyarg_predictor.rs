@@ -187,9 +187,7 @@ pub fn features_polyarg_tensors(
         .collect();
     let goal_symbols_mask = raw_data
         .par_iter()
-        .map(|scraped| {
-            get_goal_mask(&scraped.context.focused_goal(), args.max_length)
-        })
+        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
         .collect();
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
         .par_iter()
@@ -267,11 +265,11 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
     }
 
     let words = get_words(goal);
-    let mut mask_vec: Vec<_> = words.into_iter()
+    let mut mask_vec: Vec<_> = words
+        .into_iter()
         .take(max_length)
-        .map(|goal_word| {
-            STARTS_WITH_LETTER.is_match(goal_word)
-        }).collect();
+        .map(|goal_word| STARTS_WITH_LETTER.is_match(goal_word))
+        .collect();
     if mask_vec.len() < max_length {
         mask_vec.extend([false].repeat(max_length - mask_vec.len()));
     }
@@ -352,9 +350,7 @@ pub fn sample_fpa_batch(
         .collect();
     let goal_symbols_mask = context_batch
         .par_iter()
-        .map(|ctxt| {
-            get_goal_mask(&ctxt.obligation.goal, args.max_length)
-        })
+        .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
         .into_iter()

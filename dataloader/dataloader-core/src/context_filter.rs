@@ -19,13 +19,14 @@
 //
 /* *********************************************************************** */
 
-use crate::scraped_data::*;
-
-use crate::context_filter_ast::ContextFilterAST;
 
 extern crate regex;
 use rayon::prelude::*;
 use regex::Regex;
+
+use crate::scraped_data::*;
+
+use crate::context_filter_ast::ContextFilterAST;
 
 use crate::tokenizer::get_words;
 use lalrpop_util::lalrpop_mod;
@@ -93,8 +94,12 @@ fn apply_filter(
             if (tactic_stem == "intros" || tactic_stem == "intro") && arg_tokens.len() > 0 {
                 return false;
             }
-            arg_tokens.into_iter()
-                .all(|arg_token| goal_symbols.iter().find(|symbol| symbol_matches(*symbol, arg_token)).is_some())
+            arg_tokens.into_iter().all(|arg_token| {
+                goal_symbols
+                    .iter()
+                    .find(|symbol| symbol_matches(*symbol, arg_token))
+                    .is_some()
+            })
         }
         ContextFilterAST::HypArgs => {
             let hyp_names: Vec<String> =

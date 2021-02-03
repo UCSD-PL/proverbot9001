@@ -46,7 +46,6 @@ pub type BoolTensor2D = Vec<Vec<bool>>;
 pub type LongTensor1D = Vec<i64>;
 pub type FloatTensor1D = Vec<f64>;
 
-
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ScrapedTactic {
@@ -99,8 +98,19 @@ impl<'source> FromPyObject<'source> for TacticContext {
 #[pymethods]
 impl TacticContext {
     #[new]
-    fn new(obj: &PyRawObject, relevant_lemmas: Vec<String>, prev_tactics: Vec<String>, obligation: Obligation) {
-        obj.init({ TacticContext{relevant_lemmas, prev_tactics, obligation} });
+    fn new(
+        obj: &PyRawObject,
+        relevant_lemmas: Vec<String>,
+        prev_tactics: Vec<String>,
+        obligation: Obligation,
+    ) {
+        obj.init({
+            TacticContext {
+                relevant_lemmas,
+                prev_tactics,
+                obligation,
+            }
+        });
     }
 }
 
@@ -116,7 +126,7 @@ pub struct Obligation {
 impl Obligation {
     #[new]
     fn new(obj: &PyRawObject, hypotheses: Vec<String>, goal: String) {
-        obj.init({ Obligation{hypotheses, goal} });
+        obj.init({ Obligation { hypotheses, goal } });
     }
 }
 
@@ -265,7 +275,7 @@ pub fn kill_comments(source: &str) -> String {
     while cur_pos < source.len() {
         let next_open = lookup!("(*");
         let next_close = lookup!("*)");
-        if depth == 0{
+        if depth == 0 {
             // assert!(
             //     next_open <= next_close,
             //     "Unbalanced comment delimiters! Too many closes"
@@ -380,9 +390,11 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
                 let new_argstr = argstr_tokens
                     .into_iter()
                     .map(|token| match token.parse::<i64>() {
-                        Ok(var_idx) => match get_binder_var(datum.context.focused_goal(), var_idx) {
-                            Some(var) => var,
-                            None => token,
+                        Ok(var_idx) => {
+                            match get_binder_var(datum.context.focused_goal(), var_idx) {
+                                Some(var) => var,
+                                None => token,
+                            }
                         }
                         Err(_) => token,
                     })
@@ -501,7 +513,6 @@ pub fn symbol_matches(full_symbol: &str, shorthand_symbol: &str) -> bool {
         full_symbol.split(".").last().unwrap() == shorthand_symbol
     }
 }
-
 
 #[pyclass]
 #[derive(Default, Clone)]
