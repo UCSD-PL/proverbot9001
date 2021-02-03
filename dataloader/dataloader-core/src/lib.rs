@@ -207,6 +207,17 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> String {
         decode_fpa_arg(&args, hyps, goal, arg_idx)
     }
+    #[pyfn(m, "encode_fpa_arg")]
+    fn encode_fpa_arg_py(
+        _py: Python,
+        args: DataloaderArgs,
+        _metadata: PickleableFPAMetadata,
+        hyps: Vec<String>,
+        goal: &str,
+        arg: &str,
+    ) -> i64 {
+        encode_fpa_arg_unbounded(&args, hyps, goal, arg)
+    }
     #[pyfn(m, "get_num_tokens")]
     fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);

@@ -546,6 +546,48 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
 }
 
+pub fn encode_fpa_arg_unbounded(
+    args: &DataloaderArgs,
+    hyps: Vec<String>,
+    goal: &str,
+    arg: &str,
+) -> i64 {
+    let argstr_tokens: Vec<&str> = arg[..arg.len() - 1].split_whitespace().collect();
+    if argstr_tokens.len() == 0 {
+        arg_to_index(args, TacticArgument::NoArg)
+    } else if argstr_tokens.len() > 1 {
+        panic!("A multi argument tactic made it past the context filter!");
+    } else {
+        let goal_symbols = get_words(goal);
+        let arg_token = argstr_tokens[0];
+        match goal_symbols
+            .into_iter()
+            .take(args.max_length)
+            .enumerate()
+            .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
+        {
+            Some((idx, _symbol)) => {
+                return arg_to_index(args, TacticArgument::GoalToken(idx));
+            }
+            None => (),
+        }
+        match indexed_premises(hyps.iter().map(|s| s.as_ref()))
+            .into_iter()
+            .find(|(_idx, hname)| *hname == arg_token)
+        {
+            Some((idx, _hname)) => {
+                return arg_to_index(args, TacticArgument::HypVar(idx));
+            }
+            None => panic!(
+                "An unknown tactic made it past the context filter with args: {}\n\
+                            Hyps are {:?}\n\
+                            Goal is {}",
+                arg, hyps, goal
+            ),
+        }
+    }
+}
+
 fn get_argument<'a>(
     args: &DataloaderArgs,
     scraped: &'a ScrapedTactic,
