@@ -21,7 +21,7 @@ edit-distance = "*"
 rayon = "*"
 regex = "*"
 lazy_static = "*"
-rand = "*"
+rand = "0.7.3"
 lalrpop-util = "0.18.1"
 bincode = "*"
 gestalt_ratio = { path = "../gestalt-ratio" }
