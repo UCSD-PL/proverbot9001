@@ -301,33 +301,21 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     }
 
     #[pyfn(m, "tactic_transitions_from_file")]
-    fn _tactic_transitions_from_file(_py: Python, filename: String,
-                                     num_tactics: usize) -> PyResult<Vec<ScrapedTransition>> {
-        let raw: Vec<ScrapedData> = scraped_from_file(
-            File::open(filename).map_err(|_err| PyErr::new::<exceptions::IOError, _>(
-            "Failed to open file"))?
-        ).take(num_tactics).collect();
-        let transitioned = raw.iter()
-            .zip(raw.iter().skip(1))
-            .flat_map(|(datum, next)|
-                      match datum {
-                          ScrapedData::Vernac(_) => None,
-                          ScrapedData::Tactic(t) => {
-                              let context_after = match next {
-                                  ScrapedData::Vernac(_) => ProofContext::empty(),
-                                  ScrapedData::Tactic(t_after) =>
-                                      t_after.context.clone(),
-                              };
-                              Some(ScrapedTransition{
-                                  relevant_lemmas: t.relevant_lemmas.iter().map(String::clone).collect(),
-                                  prev_tactics: t.prev_tactics.iter().map(String::clone).collect(),
-                                  before: t.context.clone(),
-                                  after: context_after,
-                                  tactic: t.tactic.clone()})
-                          }
-                      })
-            .collect();
-        Ok(transitioned)
+    fn _tactic_transitions_from_file(
+        _py: Python,
+        args: &DataloaderArgs,
+        filename: String,
+        num_tactics: usize,
+    ) -> PyResult<Vec<ScrapedTransition>> {
+        let filter = parse_filter(&args.context_filter);
+        let raw_iter = scraped_from_file(
+            File::open(filename)
+                .map_err(|_err| PyErr::new::<exceptions::IOError, _>("Failed to open file"))?,
+        );
+        let transition_iter = scraped_transition_iter(raw_iter);
+        let filtered_iter = transition_iter
+            .filter(|transition| apply_filter(args, &filter, &transition.scraped_before()));
+        Ok(filtered_iter.take(num_tactics).collect::<Vec<_>>())
     }
 
     #[pyfunction]

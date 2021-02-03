@@ -309,9 +309,11 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                                      next_done[2]))
     else:
         with print_time("Loading initial samples from labeled data"):
-            replay_memory = assign_rewards(args, predictor,
-                                           dataloader.tactic_transitions_from_file(
-                                               args.scrape_file, args.buffer_min_size))
+            replay_memory = assign_rewards(
+                args, predictor,
+                dataloader.tactic_transitions_from_file(
+                    predictor.dataloader_args,
+                    args.scrape_file, args.buffer_min_size))
         # Load in any starting weights
         if args.start_from:
             q_estimator_name, *saved = \

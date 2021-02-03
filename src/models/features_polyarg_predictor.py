@@ -583,6 +583,10 @@ class FeaturesPolyargPredictor(
     def shortname(self) -> str:
         return "polyarg"
 
+    @property
+    def dataloader_args(self) -> DataloaderArgs:
+        return extract_dataloader_args(self.training_args)
+
     def add_args_to_parser(self, parser: argparse.ArgumentParser,
                            default_values: Dict[str, Any] = {}) -> None:
         new_defaults = {"batch-size": 128, "learning-rate": 0.4, "epoch-step": 3,

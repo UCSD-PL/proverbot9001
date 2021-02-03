@@ -233,7 +233,9 @@ def tmap_from_picklable(tmap: PickleableTokenMap) -> TokenMap:
     ...
 
 
-def tactic_transitions_from_file(filename: str, num_transitions: int) \
+def tactic_transitions_from_file(args: DataloaderArgs,
+                                 filename: str,
+                                 num_transitions: int) \
         -> List[ScrapedTransition]:
     ...
 
