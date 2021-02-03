@@ -869,11 +869,15 @@ def pre_train(args: argparse.Namespace,
 
 def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
                  context: TacticContext, tactic: str) -> float:
-    predictions = predictor.predictKTactics(context, k)
-    for p in predictions:
-        if p.prediction == tactic:
-            return p.certainty
-    return 0.0
+    predictor = cast(features_polyarg_predictor.
+                     FeaturesPolyargPredictor,
+                     predictor)
+    return predictor.predictionCertainty(context, tactic)
+    # predictions = predictor.predictKTactics(context, k)
+    # for p in predictions:
+    #     if p.prediction == tactic:
+    #         return p.certainty
+    # return 0.0
 
 
 if __name__ == "__main__":

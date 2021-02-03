@@ -46,7 +46,9 @@ from dataloader import (features_polyarg_tensors,
                         sample_fpa,
                         sample_fpa_batch,
                         decode_fpa_result,
-                        # decode_fpa_stem,
+                        encode_fpa_stem,
+                        encode_fpa_arg,
+                        decode_fpa_stem,
                         # decode_fpa_arg,
                         # features_vocab_sizes,
                         get_num_tokens,
@@ -55,6 +57,8 @@ from dataloader import (features_polyarg_tensors,
                         get_vec_features_size,
                         DataloaderArgs,
                         get_fpa_words)
+
+import serapi_instance
 
 import argparse
 import sys
@@ -432,6 +436,80 @@ class FeaturesPolyargPredictor(
             context, all_predictions, k)
 
         return predictions
+
+    def predictionCertainty(self, context: TacticContext, prediction: str) -> float:
+
+        assert self.training_args
+        assert self._model
+
+        num_stem_poss = get_num_tokens(self._metadata)
+        stem_width = min(self.training_args.max_beam_width, num_stem_poss)
+
+        tokenized_premises, hyp_features, \
+            nhyps_batch, tokenized_goal, \
+            goal_mask, \
+            word_features, vec_features = \
+            sample_fpa(extract_dataloader_args(self.training_args),
+                       self._metadata,
+                       context.relevant_lemmas,
+                       context.prev_tactics,
+                       context.hypotheses,
+                       context.goal)
+
+        prediction_stem, prediction_args = \
+            serapi_instance.split_tactic(prediction)
+        prediction_stem_idx = encode_fpa_stem(extract_dataloader_args(self.training_args),
+                                              self._metadata, prediction_stem)
+        stem_distributions = self._model.stem_classifier(
+            maybe_cuda(torch.LongTensor(word_features)),
+            maybe_cuda(torch.FloatTensor(vec_features)))
+        stem_certainties, stem_idxs = stem_distributions.topk(stem_width)
+        if prediction_stem_idx in stem_idxs[0]:
+            merged_stem_idxs = stem_idxs
+            merged_stem_certainties = stem_certainties
+        else:
+            merged_stem_idxs = torch.cat(
+                (maybe_cuda(torch.LongTensor([[prediction_stem_idx]])),
+                 stem_idxs[:, :stem_width-1]),
+                dim=1)
+            cother = stem_certainties[:, :stem_width-1]
+            val = stem_distributions[0][prediction_stem_idx]
+            merged_stem_certainties = \
+                torch.cat((val.view(1, 1), cother),dim=1)
+
+        prediction_stem_idx_idx = list(merged_stem_idxs[0]).index(
+            prediction_stem_idx)
+        prediction_arg_idx = encode_fpa_arg(
+            extract_dataloader_args(self.training_args),
+            self._metadata,
+            context.hypotheses,
+            context.goal,
+            prediction_args)
+
+        goal_arg_values = self.goal_token_scores(
+            merged_stem_idxs, tokenized_goal, goal_mask)
+
+        if len(tokenized_premises[0]) > 0:
+            hyp_arg_values = self.hyp_name_scores(
+                merged_stem_idxs[0], tokenized_goal[0],
+                tokenized_premises[0], hyp_features[0])
+
+            total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
+        else:
+            total_scores = goal_arg_values
+
+        final_probs, predicted_stem_idxs, predicted_arg_idxs = \
+            self.predict_args(total_scores, merged_stem_certainties,
+                              merged_stem_idxs)
+
+        for prob, stem_idx_idx, arg_idx in zip(final_probs,
+                                               predicted_stem_idxs,
+                                               predicted_arg_idxs):
+            if stem_idx_idx == prediction_stem_idx and \
+               arg_idx == prediction_arg_idx:
+                return prob.item()
+
+        assert False, "Shouldn't be able to get here"
 
     def predict_stems(self, k: int,
                       word_features: List[List[int]],
