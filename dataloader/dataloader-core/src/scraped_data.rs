@@ -224,6 +224,32 @@ pub enum ScrapedData {
     Tactic(ScrapedTactic),
 }
 
+pub struct AdjacentPairs<I, T>
+where
+    I: Iterator<Item = T>,
+    T: Clone,
+{
+    pk: iter::Peekable<I>,
+}
+impl<I, T> AdjacentPairs<I, T>
+where
+    I: Iterator<Item = T>,
+    T: Clone,
+{
+    fn new(it: I) -> Self {
+        AdjacentPairs { pk: it.peekable() }
+    }
+}
+impl<I: Iterator<Item = T>, T: Clone> Iterator for AdjacentPairs<I, T> {
+    type Item = (I::Item, Option<I::Item>);
+    fn next(&mut self) -> Option<(I::Item, Option<I::Item>)> {
+        match self.pk.next() {
+            Some(v) => Some((v, self.pk.peek().cloned())),
+            None => None,
+        }
+    }
+}
+
 pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> {
     BufReader::new(file).lines().map(|line: Result<String>| {
         let actual_line = line.expect("Couldn't read line");
