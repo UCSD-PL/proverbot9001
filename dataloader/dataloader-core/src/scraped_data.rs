@@ -215,10 +215,12 @@ pub struct ScrapedTransition {
     pub tactic: String,
 }
 
+#[derive(Clone)]
 pub struct VernacCommand {
     pub command: String,
 }
 
+#[derive(Clone)]
 pub enum ScrapedData {
     Vernac(VernacCommand),
     Tactic(ScrapedTactic),
