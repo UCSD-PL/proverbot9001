@@ -215,6 +215,17 @@ pub struct ScrapedTransition {
     pub tactic: String,
 }
 
+impl ScrapedTransition {
+    pub fn scraped_before(&self) -> ScrapedTactic {
+        ScrapedTactic {
+            relevant_lemmas: self.relevant_lemmas.clone(),
+            prev_tactics: self.prev_tactics.clone(),
+            context: self.before.clone(),
+            tactic: self.tactic.clone(),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct VernacCommand {
     pub command: String,
@@ -250,6 +261,28 @@ impl<I: Iterator<Item = T>, T: Clone> Iterator for AdjacentPairs<I, T> {
             None => None,
         }
     }
+}
+
+pub fn scraped_transition_iter(
+    scraped: impl iter::Iterator<Item = ScrapedData>,
+) -> impl iter::Iterator<Item = ScrapedTransition> {
+    AdjacentPairs::new(scraped).flat_map(|(first, next)| match first {
+        ScrapedData::Vernac(_) => None,
+        ScrapedData::Tactic(t) => {
+            let context_after = match next {
+                Some(ScrapedData::Tactic(t_after)) => t_after.context.clone(),
+                _ => ProofContext::empty(),
+            };
+            let p = preprocess_datum(t);
+            Some(ScrapedTransition {
+                relevant_lemmas: p.relevant_lemmas.clone(),
+                prev_tactics: p.prev_tactics.clone(),
+                before: p.context.clone(),
+                after: context_after,
+                tactic: p.tactic.clone(),
+            })
+        }
+    })
 }
 
 pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> {
