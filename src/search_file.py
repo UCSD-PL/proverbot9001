@@ -139,8 +139,8 @@ def main(arg_list: List[str]) -> None:
 
     args, parser = parse_arguments(arg_list)
     util.use_cuda = False
-    with util.silent():
-        predictor = get_predictor(parser, args)
+    # with util.silent():
+    predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
