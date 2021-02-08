@@ -482,7 +482,7 @@ class FeaturesPolyargPredictor(
         prediction_arg_idx = encode_fpa_arg(
             extract_dataloader_args(self.training_args),
             self._metadata,
-            context.hypotheses,
+            context.hypotheses + context.relevant_lemmas,
             context.goal,
             prediction_args)
 
