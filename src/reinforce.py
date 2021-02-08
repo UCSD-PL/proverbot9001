@@ -26,10 +26,10 @@ import random
 import os
 import errno
 import signal
-import traceback
 import re
 import json
 import multiprocessing
+import random
 from threading import Lock
 import sys
 import functools
@@ -857,9 +857,12 @@ def pre_train(args: argparse.Namespace,
                                     transition.prev_tactics,
                                     transition.before.fg_goals[0].hypotheses,
                                     transition.before.fg_goals[0].goal)
-            certainty = certainty_of(predictor, args.num_predictions * 2,
-                                     context, transition.tactic)
-            yield (context, transition.tactic, certainty, certainty)
+
+            random_certainty = random.random()
+            # certainty = certainty_of(predictor, args.num_predictions * 2,
+            #                          context, transition.tactic)
+            yield (context, transition.tactic,
+                   random_certainty, random_certainty)
 
     samples = list(gen_samples())
     estimator.train(samples, args.batch_size,
