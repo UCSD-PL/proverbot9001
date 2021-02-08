@@ -75,7 +75,9 @@ def main() -> None:
     parser.add_argument("out_weights", type=Path2)
     parser.add_argument("environment_files", type=Path2, nargs="+")
     parser.add_argument("-j", "--num-threads", type=int, default=5)
-    parser.add_argument("--proof", default=None)
+    proofsGroup = parser.add_mutually_exclusive_group()
+    proofsGroup.add_argument("--proof", default=None)
+    proofsGroup.add_argument("--proofs-file", default=None)
 
     parser.add_argument("--prelude", default=".", type=Path2)
 
@@ -354,7 +356,23 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                                             list(enumerate(args.environment_files))),
                                   total=len(args.environment_files),
                                   leave=False))
-    all_jobs = [job for job_list in jobs_in_files for job in job_list if job not in already_done]
+    unfiltered_jobs = [job for job_list in jobs_in_files for job in job_list
+                       if job not in already_done]
+    if args.proofs_file:
+        with open(args.proofs_file, 'r') as f:
+            proof_names = [l.strip() for l in f]
+        all_jobs = [
+            job for job in unfiltered_jobs if
+            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
+    elif args.proof:
+        all_jobs = [
+            job for job in unfiltered_jobs if
+            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
+             * args.num_threads
+    else:
+        all_jobs = unfiltered_jobs
+
+    assert len(all_jobs) > 0, "No jobs!"
 
     for job in all_jobs:
         jobs.put(job)
