@@ -324,6 +324,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
             with print_time("Pretraining"):
                 pre_train(args, predictor, q_estimator,
                           dataloader.tactic_transitions_from_file(
+                              predictor.dataloader_args,
                               args.scrape_file, args.buffer_min_size * 3))
         already_done = []
         with args.out_weights.with_suffix('.tmp').open('w') as f:
