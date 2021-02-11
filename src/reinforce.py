@@ -54,6 +54,7 @@ from tqdm import trange, tqdm
 import serapi_instance
 import dataloader
 from models import tactic_predictor
+from models.polyarg_q_estimator import PolyargQEstimator
 from models.features_q_estimator import FeaturesQEstimator
 from models.q_estimator import QEstimator
 from models import features_polyarg_predictor
@@ -84,6 +85,10 @@ def main() -> None:
     parser.add_argument("--predictor-weights",
                         default=Path2("data/polyarg-weights.dat"),
                         type=Path2)
+    parser.add_argument("--estimator",
+                        choices=["polyarg", "features"],
+                        default="features")
+
     parser.add_argument("--start-from", default=None, type=Path2)
     parser.add_argument("--num-predictions", default=16, type=int)
 
@@ -279,9 +284,15 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     # environment commands. Assigns them an estimated "original
     # predictor certainty" value for use as a feature.
     # Create an initial Q Estimator
-    q_estimator = FeaturesQEstimator(args.learning_rate,
-                                     args.batch_step,
-                                     args.gamma)
+    if args.estimator == "polyarg":
+        q_estimator = PolyargQEstimator(args.learning_rate,
+                                        args.batch_step,
+                                        args.gamma,
+                                        predictor)
+    else:
+        q_estimator = FeaturesQEstimator(args.learning_rate,
+                                         args.batch_size,
+                                         args.gamma)
     # This sets up a handler so that if the user hits Ctrl-C, we save
     # the weights as we have them and exit.
     signal.signal(
@@ -811,7 +822,7 @@ def assign_rewards(args: argparse.Namespace,
 
 def assign_scores(args: argparse.Namespace,
                   transitions: List[LabeledTransition],
-                  q_estimator: FeaturesQEstimator,
+                  q_estimator: QEstimator,
                   predictor: tactic_predictor.TacticPredictor) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:

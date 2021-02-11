@@ -19,10 +19,14 @@
 #
 ##########################################################################
 
+import argparse
+
+from typing import List, Tuple, Optional, Dict, Any
+from abc import ABCMeta, abstractmethod
+from pathlib_revised import Path2
+
 from format import TacticContext
 
-from typing import List, Tuple, Optional
-from abc import ABCMeta, abstractmethod
 
 
 class QEstimator(metaclass=ABCMeta):
@@ -33,5 +37,16 @@ class QEstimator(metaclass=ABCMeta):
     @abstractmethod
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,
-              num_epochs: int = 1) -> None:
+              num_epochs: int = 1,
+              show_loss: bool = False) -> None:
+        pass
+
+    @abstractmethod
+    def save_weights(self, filename: Path2, args: argparse.Namespace) -> None:
+        pass
+    @abstractmethod
+    def load_saved_state(self, args: argparse.Namespace,
+                         unparsed_args: List[str],
+                         metadata: Any,
+                         state: Dict[str, Any]) -> None:
         pass
