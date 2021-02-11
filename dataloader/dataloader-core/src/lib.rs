@@ -321,7 +321,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfunction]
     pub fn sample_context_features(
         args: &DataloaderArgs,
-        tmap: &TokenMap,
+        metadata: PickleableFPAMetadata,
         relevant_lemmas: Vec<String>,
         prev_tactics: Vec<String>,
         hypotheses: Vec<String>,
@@ -329,7 +329,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> (LongTensor1D, FloatTensor1D) {
         crate::features::sample_context_features(
             args,
-            tmap,
+            &TokenMap::from_dicts(metadata.2),
             &relevant_lemmas,
             &prev_tactics,
             &hypotheses,
