@@ -1997,8 +1997,8 @@ def admit_proof_cmds(lemma_statement: str) -> List[str]:
         assert not split
         name_and_type = let_match.group(1)
         name_and_prebinders, ty = \
-            split_by_char_outside_matching(r"\(", r"\)", ":",
-                                           name_and_type)
+            unwrap(split_by_char_outside_matching(r"\(", r"\)", ":",
+                                                  name_and_type))
         prebinders_match = re.match(
             r"\s*([\w']*)([^{}]*)",
             name_and_prebinders)
