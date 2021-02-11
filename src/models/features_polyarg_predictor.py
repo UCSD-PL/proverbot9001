@@ -302,7 +302,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self._metadata)
+        num_stem_poss = get_num_tokens(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
@@ -310,7 +310,7 @@ class FeaturesPolyargPredictor(
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
-                       self._metadata,
+                       self.metadata,
                        context.relevant_lemmas,
                        context.prev_tactics,
                        context.hypotheses,
@@ -343,7 +343,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self._metadata)
+        num_stem_poss = get_num_tokens(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises_batch, premise_features_batch, \
@@ -351,7 +351,7 @@ class FeaturesPolyargPredictor(
             goal_mask, \
             word_features, vec_features = \
             sample_fpa_batch(extract_dataloader_args(self.training_args),
-                             self._metadata,
+                             self.metadata,
                              [context_py2r(context)
                               for context in contexts])
 
@@ -393,7 +393,7 @@ class FeaturesPolyargPredictor(
             all_idxs: List[Tuple[float, int, int]],
             k: int) -> List[Prediction]:
         assert self.training_args
-        num_stem_poss = get_num_tokens(self._metadata)
+        num_stem_poss = get_num_tokens(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         if self.training_args.lemma_args:
@@ -409,7 +409,7 @@ class FeaturesPolyargPredictor(
         while len(prediction_strs) < k and next_i < num_valid_probs:
             next_pred_str = decode_fpa_result(
                 extract_dataloader_args(self.training_args),
-                self._metadata,
+                self.metadata,
                 all_hyps, context.goal,
                 all_idxs[next_i][1],
                 all_idxs[next_i][2])
@@ -442,7 +442,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self._metadata)
+        num_stem_poss = get_num_tokens(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
@@ -450,7 +450,7 @@ class FeaturesPolyargPredictor(
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
-                       self._metadata,
+                       self.metadata,
                        context.relevant_lemmas,
                        context.prev_tactics,
                        context.hypotheses,
@@ -459,7 +459,7 @@ class FeaturesPolyargPredictor(
         prediction_stem, prediction_args = \
             serapi_instance.split_tactic(prediction)
         prediction_stem_idx = encode_fpa_stem(extract_dataloader_args(self.training_args),
-                                              self._metadata, prediction_stem)
+                                              self.metadata, prediction_stem)
         stem_distributions = self._model.stem_classifier(
             maybe_cuda(torch.LongTensor(word_features)),
             maybe_cuda(torch.FloatTensor(vec_features)))
@@ -481,7 +481,7 @@ class FeaturesPolyargPredictor(
             prediction_stem_idx)
         prediction_arg_idx = encode_fpa_arg(
             extract_dataloader_args(self.training_args),
-            self._metadata,
+            self.metadata,
             context.hypotheses + context.relevant_lemmas,
             context.goal,
             prediction_args)
@@ -797,7 +797,7 @@ class FeaturesPolyargPredictor(
         self.num_epochs = state.epoch
         self.training_args = args
         self.unparsed_args = unparsed_args
-        self._metadata = metadata
+        self.metadata = metadata
 
     def _get_model(self, arg_values: Namespace,
                    wordf_sizes: List[int],
