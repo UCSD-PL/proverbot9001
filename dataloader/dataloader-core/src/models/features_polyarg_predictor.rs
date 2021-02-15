@@ -8,7 +8,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 
-use crate::context_filter::filter_data;
+use crate::context_filter::{filter_data, parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
@@ -84,24 +84,20 @@ pub fn features_polyarg_tensors(
     ),
     (Vec<i64>, i64),
 )> {
-    let all_points: Vec<_> = scraped_from_file(
+    let filter = parse_filter(&args.context_filter);
+    let mut raw_data: Vec<ScrapedTactic> = scraped_from_file(
         File::open(filename)
-            .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file"))?,
-    )
-    .collect();
-    let unfiltered_data: Vec<ScrapedTactic> = all_points
-        .into_par_iter()
-        .flat_map(|data| match data {
+            .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file")
+            )?)
+        .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
         })
-        .collect();
-    let preprocessed_data: Vec<ScrapedTactic> = unfiltered_data
-        .into_par_iter()
         .map(preprocess_datum)
+        .filter(|datum| apply_filter(&args, &filter, datum))
+        .take(args.max_tuples)
         .collect();
-    let mut raw_data: Vec<ScrapedTactic> =
-        filter_data(&args, &args.context_filter, preprocessed_data);
+
     scraped_to_file(
         File::create("filtered-data.json").unwrap(),
         raw_data.iter().cloned().map(ScrapedData::Tactic),

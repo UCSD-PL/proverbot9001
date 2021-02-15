@@ -933,7 +933,7 @@ def hypFeaturesSize() -> int:
 
 def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs = DataloaderArgs()
-    # dargs.max_distance = args.max_distance
+    dargs.max_tuples = args.max_tuples
     dargs.max_length = args.max_length
     dargs.num_keywords = args.num_keywords
     dargs.max_string_distance = args.max_string_distance

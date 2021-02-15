@@ -579,6 +579,8 @@ pub fn symbol_matches(full_symbol: &str, shorthand_symbol: &str) -> bool {
 #[derive(Default, Clone)]
 pub struct DataloaderArgs {
     #[pyo3(get, set)]
+    pub max_tuples: usize,
+    #[pyo3(get, set)]
     pub max_distance: usize,
     #[pyo3(get, set)]
     pub max_string_distance: usize,
