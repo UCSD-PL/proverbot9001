@@ -546,6 +546,11 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
 }
 
+pub fn fpa_get_num_possible_args(
+    args: &DataloaderArgs) -> i64 {
+    (args.max_length + args.max_premises + 1) as i64
+}
+
 pub fn encode_fpa_arg_unbounded(
     args: &DataloaderArgs,
     hyps: Vec<String>,
