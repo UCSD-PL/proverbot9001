@@ -108,7 +108,7 @@ FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
 
 class GoalTokenArgModel(nn.Module):
     def __init__(self, stem_vocab_size: int,
-                 input_vocab_size: int, input_length: int,
+                 input_vocab_size: int,
                  hidden_size: int) -> None:
         super().__init__()
         self.hidden_size = hidden_size
@@ -810,7 +810,7 @@ class FeaturesPolyargPredictor(
                                arg_values.hidden_size,
                                arg_values.num_layers,
                                stem_vocab_size),
-            GoalTokenArgModel(stem_vocab_size, goal_vocab_size, arg_values.max_length,
+            GoalTokenArgModel(stem_vocab_size, goal_vocab_size,
                               arg_values.hidden_size),
             EncoderRNN(goal_vocab_size, arg_values.hidden_size,
                        arg_values.hidden_size),
