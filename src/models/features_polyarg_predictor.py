@@ -106,7 +106,7 @@ class FeaturesPolyArgDataset(ListDataset[FeaturesPolyArgSample]):
 FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
 
 
-class GoalTokenArgModel(nn.Module):
+class GoalTokenEncoderModel(nn.Module):
     def __init__(self, stem_vocab_size: int,
                  input_vocab_size: int,
                  hidden_size: int) -> None:
@@ -117,9 +117,7 @@ class GoalTokenArgModel(nn.Module):
         self._token_embedding = maybe_cuda(
             nn.Embedding(input_vocab_size, hidden_size))
         self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._likelyhood_layer = maybe_cuda(
-            EncoderDNN(hidden_size, hidden_size, 1, 2))
-        self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
+
     def forward(self, stem_batch: torch.LongTensor, goal_batch: torch.LongTensor) \
             -> torch.FloatTensor:
         goal_var = maybe_cuda(Variable(goal_batch))
@@ -129,33 +127,39 @@ class GoalTokenArgModel(nn.Module):
         initial_hidden = self._stem_embedding(stem_var)\
                              .view(1, batch_size, self.hidden_size)
         hidden = initial_hidden
-        copy_likelyhoods: List[torch.FloatTensor] = []
+        encoded_tokens: List[torch.FloatTensor] = []
         for i in range(goal_batch.size()[1]):
-            try:
-                token_batch = self._token_embedding(goal_var[:, i])\
-                                  .view(1, batch_size, self.hidden_size)
-                token_batch2 = F.relu(token_batch)
-                token_out, hidden = self._gru(token_batch2, hidden)
-                copy_likelyhood = self._likelyhood_layer(F.relu(token_out))
-                copy_likelyhoods.append(copy_likelyhood[0])
-            except RuntimeError:
-                eprint("Tokenized goal:")
-                for j in range(goal_batch.size()[0]):
-                    eprint(goal_batch[j, i].item(), end=" ")
-                    assert goal_batch[j, i] < 123
-                eprint()
-                eprint(f"goal_var: {goal_var}")
-                eprint("Token batch")
-                eprint(token_batch)
-                raise
+            token_batch = self._token_embedding(goal_var[:, i])\
+                              .view(1, batch_size, self.hidden_size)
+            token_batch2 = F.relu(token_batch)
+            token_out, hidden = self._gru(token_batch2, hidden)
+            encoded_tokens.append(token_out.view(-1, 1))
         end_token_embedded = self._token_embedding(LongTensor([EOS_token])
                                                    .expand(batch_size))\
             .view(1, batch_size, self.hidden_size)
-        final_out, final_hidden = self._gru(F.relu(end_token_embedded), hidden)
-        final_likelyhood = self._likelyhood_layer(F.relu(final_out))
-        copy_likelyhoods.insert(0, final_likelyhood[0])
-        catted = torch.cat(copy_likelyhoods, dim=1)
+        final_out, _final_hidden = self._gru(F.relu(end_token_embedded), hidden)
+        encoded_tokens.insert(0, final_out.view(-1, 1))
+        catted = torch.cat(encoded_tokens, dim=1)
         return catted
+
+
+class GoalTokenArgModel(nn.Module):
+    def __init__(self, stem_vocab_size: int,
+                 input_vocab_size: int,
+                 hidden_size: int) -> None:
+        super().__init__()
+        self.encoder_model = GoalTokenEncoderModel(
+            stem_vocab_size,
+            input_vocab_size,
+            hidden_size)
+        self._likelyhood_layer = maybe_cuda(
+            EncoderDNN(hidden_size, hidden_size, 1, 2))
+
+    def forward(self, stem_batch: torch.LongTensor,
+                goal_batch: torch.LongTensor) -> torch.FloatTensor:
+        encoded = self.encoder_model(stem_batch, goal_batch)
+        score = self._likelyhood_layer(F.relu(encoded))
+        return score
 
 
 class HypArgModel(nn.Module):
