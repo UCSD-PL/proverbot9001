@@ -181,8 +181,7 @@ class HypArgEncoder(nn.Module):
     def forward(self,
                 stems_batch: torch.LongTensor,
                 goals_encoded_batch: torch.FloatTensor,
-                hyps_batch: torch.LongTensor,
-                hypfeatures_batch: torch.FloatTensor) -> torch.FloatTensor:
+                hyps_batch: torch.LongTensor) -> torch.FloatTensor:
         stems_var = maybe_cuda(Variable(stems_batch))
         hyps_var = maybe_cuda(Variable(hyps_batch))
         batch_size = stems_batch.size()[0]
@@ -190,7 +189,6 @@ class HypArgEncoder(nn.Module):
         assert hyps_batch.size()[0] == batch_size, \
             "batch_size: {}; hyps_batch_size()[0]: {}"\
             .format(batch_size, hyps_batch.size()[0])
-        assert hypfeatures_batch.size()[0] == batch_size
         stem_encoded = self._stem_embedding(stems_var)\
                            .view(batch_size, self.hidden_size)
         initial_hidden = self._in_hidden(torch.cat(
@@ -203,11 +201,7 @@ class HypArgEncoder(nn.Module):
             token_batch = F.relu(token_batch)
             token_out, hidden = self._hyp_gru(token_batch, hidden)
 
-        hypfeatures_var = maybe_cuda(Variable(hypfeatures_batch))
-        return torch.cat(
-            (token_out.view(batch_size, self.hidden_size), hypfeatures_var),
-            dim=1)
-
+        return token_out.squeeze()
 
 class HypArgModel(nn.Module):
     def __init__(self, goal_data_size: int,
@@ -231,7 +225,8 @@ class HypArgModel(nn.Module):
         batch_size = stems_batch.size()[0]
         encoded = self.arg_encoder(stems_batch, goals_encoded_batch,
                                    hyps_batch, hypfeatures_batch)
-        hyp_likelyhoods = self._likelyhood_decoder(encoded)
+        hyp_likelyhoods = self._likelyhood_decoder(
+            torch.cat((encoded, Variable(hypfeatures_batch)), dim=1))
         return hyp_likelyhoods
 
 
