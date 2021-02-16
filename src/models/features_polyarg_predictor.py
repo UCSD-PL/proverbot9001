@@ -133,12 +133,12 @@ class GoalTokenEncoderModel(nn.Module):
                               .view(1, batch_size, self.hidden_size)
             token_batch2 = F.relu(token_batch)
             token_out, hidden = self._gru(token_batch2, hidden)
-            encoded_tokens.append(token_out.view(-1, 1))
+            encoded_tokens.append(token_out.squeeze(dim=0).unsqueeze(1))
         end_token_embedded = self._token_embedding(LongTensor([EOS_token])
                                                    .expand(batch_size))\
             .view(1, batch_size, self.hidden_size)
         final_out, _final_hidden = self._gru(F.relu(end_token_embedded), hidden)
-        encoded_tokens.insert(0, final_out.view(-1, 1))
+        encoded_tokens.insert(0, final_out.squeeze(dim=0).unsqueeze(1))
         catted = torch.cat(encoded_tokens, dim=1)
         return catted
 
