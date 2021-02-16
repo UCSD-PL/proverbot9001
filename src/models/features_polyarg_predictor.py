@@ -161,12 +161,12 @@ class GoalTokenArgModel(nn.Module):
         score = self._likelyhood_layer(F.relu(encoded))
         return score
 
-
-class HypArgModel(nn.Module):
-    def __init__(self, goal_data_size: int,
+class HypArgEncoder(nn.Module):
+    def __init__(self,
                  stem_vocab_size: int,
                  token_vocab_size: int,
                  hyp_features_size: int,
+                 goal_data_size: int,
                  hidden_size: int) -> None:
         super().__init__()
         self.hidden_size = hidden_size
@@ -177,15 +177,14 @@ class HypArgModel(nn.Module):
         self._in_hidden = maybe_cuda(EncoderDNN(
             hidden_size + goal_data_size, hidden_size, hidden_size, 1))
         self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._likelyhood_decoder = maybe_cuda(EncoderDNN(
-            hidden_size + hyp_features_size, hidden_size, 1, 2))
 
-    def forward(self, stems_batch: torch.LongTensor,
-                goals_encoded_batch: torch.FloatTensor, hyps_batch: torch.LongTensor,
-                hypfeatures_batch: torch.FloatTensor):
+    def forward(self,
+                stems_batch: torch.LongTensor,
+                goals_encoded_batch: torch.FloatTensor,
+                hyps_batch: torch.LongTensor,
+                hypfeatures_batch: torch.FloatTensor) -> torch.FloatTensor:
         stems_var = maybe_cuda(Variable(stems_batch))
         hyps_var = maybe_cuda(Variable(hyps_batch))
-        hypfeatures_var = maybe_cuda(Variable(hypfeatures_batch))
         batch_size = stems_batch.size()[0]
         assert goals_encoded_batch.size()[0] == batch_size
         assert hyps_batch.size()[0] == batch_size, \
@@ -203,9 +202,36 @@ class HypArgModel(nn.Module):
                 .view(1, batch_size, self.hidden_size)
             token_batch = F.relu(token_batch)
             token_out, hidden = self._hyp_gru(token_batch, hidden)
-        hyp_likelyhoods = self._likelyhood_decoder(
-            torch.cat((token_out.view(batch_size, self.hidden_size), hypfeatures_var),
-                      dim=1))
+
+        hypfeatures_var = maybe_cuda(Variable(hypfeatures_batch))
+        return torch.cat(
+            (token_out.view(batch_size, self.hidden_size), hypfeatures_var),
+            dim=1)
+
+
+class HypArgModel(nn.Module):
+    def __init__(self, goal_data_size: int,
+                 stem_vocab_size: int,
+                 token_vocab_size: int,
+                 hyp_features_size: int,
+                 hidden_size: int) -> None:
+        super().__init__()
+        self.arg_encoder = HypArgEncoder(stem_vocab_size,
+                                         token_vocab_size,
+                                         hyp_features_size,
+                                         goal_data_size,
+                                         hidden_size)
+        self.hidden_size = hidden_size
+        self._likelyhood_decoder = maybe_cuda(EncoderDNN(
+            hidden_size + hyp_features_size, hidden_size, 1, 2))
+
+    def forward(self, stems_batch: torch.LongTensor,
+                goals_encoded_batch: torch.FloatTensor, hyps_batch: torch.LongTensor,
+                hypfeatures_batch: torch.FloatTensor):
+        batch_size = stems_batch.size()[0]
+        encoded = self.arg_encoder(stems_batch, goals_encoded_batch,
+                                   hyps_batch, hypfeatures_batch)
+        hyp_likelyhoods = self._likelyhood_decoder(encoded)
         return hyp_likelyhoods
 
 
@@ -267,6 +293,10 @@ class FeaturesPolyargPredictor(
         # self._tokenizer : Optional[Tokenizer] = None
         # self._embedding : Optional[Embedding] = None
         self._model: Optional[FeaturesPolyArgModel] = None
+
+    @property
+    def goal_token_encoder(self) -> GoalTokenEncoderModel:
+        return self._model.goal_args_model.encoder_model
 
     def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())
