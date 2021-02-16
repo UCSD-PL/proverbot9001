@@ -85,7 +85,7 @@ pub fn features_polyarg_tensors(
     (Vec<i64>, i64),
 )> {
     let filter = parse_filter(&args.context_filter);
-    let mut raw_data: Vec<ScrapedTactic> = scraped_from_file(
+    let raw_data_iter = scraped_from_file(
         File::open(filename)
             .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file")
             )?)
@@ -94,9 +94,11 @@ pub fn features_polyarg_tensors(
             ScrapedData::Tactic(t) => Some(t),
         })
         .map(preprocess_datum)
-        .filter(|datum| apply_filter(&args, &filter, datum))
-        .take(args.max_tuples)
-        .collect();
+        .filter(|datum| apply_filter(&args, &filter, datum));
+    let mut raw_data: Vec<ScrapedTactic> = match args.max_tuples {
+        Some(max) => raw_data_iter.take(max).collect(),
+        None => raw_data_iter.collect(),
+    };
 
     scraped_to_file(
         File::create("filtered-data.json").unwrap(),
