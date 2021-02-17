@@ -44,7 +44,10 @@ from dataloader import (sample_context_features,
                         encode_fpa_stem,
                         encode_fpa_arg,
                         get_num_indices,
-                        get_num_tokens)
+                        get_num_tokens,
+                        get_premise_features,
+                        get_premise_features_size,
+                        tokenize)
 
 PolyargQMetadata = Tuple[Dict[str, int], Dict[str, int]]
 
@@ -55,38 +58,42 @@ class PolyargQEstimator(QEstimator):
             -> None:
         self.predictor = fpa_predictor
         self.model = PolyargQModel(
-            get_vec_features_size(fpa_predictor.metadata) + 1,
-            [get_num_indices(self.fpa_metadata),
-             get_num_tokens(self.fpa_metadata) * 2 + 2] +
+            get_vec_features_size(fpa_predictor.metadata) +
+            self.action_vec_features_size(),
+            self.action_word_features_sizes() +
             get_word_feature_vocab_sizes(fpa_predictor.metadata),
             128, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
         self.criterion = nn.MSELoss()
 
-        pass
-
     @property
     def fpa_metadata(self):
         return self.predictor.metadata
+
     @property
     def dataloader_args(self):
         return self.predictor.dataloader_args
 
-    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
-        state_word_features_batch, vec_features_batch \
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) \
+        -> List[float]:
+        state_word_features_batch, state_vec_features_batch \
             = zip(*[self._features(state, certainty) for
                     (state, action, certainty) in inputs])
         encoded_actions_batch = [self._encode_action(state, action)
                                  for (state, action, certainty) in inputs]
-        all_word_features_batch = [list(encoded_action) + state_word_features
-                                   for encoded_action, state_word_features in
+        all_vec_features_batch = [action_vec + svf for (_, action_vec), svf in
+                                  zip(encoded_actions_batch,
+                                      state_vec_features_batch)]
+        all_word_features_batch = [action_words + swf
+                                   for (action_words, _), swf in
                                    zip(encoded_actions_batch,
                                        state_word_features_batch)]
         with torch.no_grad():
             output = self.model(torch.LongTensor(all_word_features_batch),
-                                torch.FloatTensor(vec_features_batch))
+                                torch.FloatTensor(all_vec_features_batch))
         for item in output:
-            assert item == item, (all_word_features_batch, vec_features_batch)
+            assert item == item, (all_word_features_batch,
+                                  all_vec_features_batch)
         return list(output)
 
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
@@ -96,18 +103,21 @@ class PolyargQEstimator(QEstimator):
         for context, action, certainty, score in samples:
             assert score != float("-Inf") and score != float("Inf") and score == score
         self.optimizer.zero_grad()
-        state_word_features, vec_features = zip(*[self._features(state, certainty)
-                                                  for state, _, certainty, _ in samples])
+        state_word_features, state_vec_features = zip(
+            *[self._features(state, certainty)
+              for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
-        all_word_features = [list(ea) + swf for ea, swf in
+        all_vec_features = [action_vec + svf for (_, action_vec), svf in
+                            zip(encoded_actions, state_vec_features)]
+        all_word_features = [action_words + swf for (action_words, _), swf in
                              zip(encoded_actions, state_word_features)]
         expected_outputs = [output for _, _, certainty, output in samples]
         if batch_size:
             batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
                 data.TensorDataset(
                     torch.LongTensor(all_word_features),
-                    torch.FloatTensor(vec_features),
+                    torch.FloatTensor(all_vec_features),
                     torch.FloatTensor(expected_outputs)),
                 batch_size=batch_size,
                 num_workers=0,
@@ -115,7 +125,7 @@ class PolyargQEstimator(QEstimator):
                 drop_last=True)
         else:
             batches = [[torch.LongTensor(all_word_features),
-                        torch.FloatTensor(vec_features),
+                        torch.FloatTensor(all_vec_features),
                         torch.FloatTensor(expected_outputs)]]
         for epoch in range(0, num_epochs):
             for idx, batch in enumerate(batches):
@@ -144,8 +154,18 @@ class PolyargQEstimator(QEstimator):
                                     context.goal)
         return cword_feats, cvec_feats + [certainty]
 
+    def action_vec_features_size(self) -> int:
+        premise_features_size = get_premise_features_size(
+            self.dataloader_args,
+            self.fpa_metadata)
+        return 128 + premise_features_size
+
+    def action_word_features_sizes(self) -> int:
+        return [get_num_indices(self.dataloader_args),
+                3]
+
     def _encode_action(self, context: TacticContext, action: str) \
-            -> Tuple[int, int]:
+            -> Tuple[List[int], torch.FloatTensor]:
         stem, argument = serapi_instance.split_tactic(action)
         stem_idx = encode_fpa_stem(self.dataloader_args,
                                    self.fpa_metadata,
@@ -155,7 +175,50 @@ class PolyargQEstimator(QEstimator):
                                  context.hypotheses + context.relevant_lemmas,
                                  context.goal,
                                  argument.strip())
-        return stem_idx, arg_idx
+
+        tokenized_goal = tokenize(self.dataloader_args,
+                                  self.fpa_metadata,
+                                  context.goal)
+        premise_features_size = get_premise_features_size(
+            self.dataloader_args,
+            self.fpa_metadata)
+        if arg_idx == 0:
+            # No arg
+            arg_type_idx = 0
+            encoded_arg = torch.zeros(128 + premise_features_size)
+        elif arg_idx <= self.dataloader_args.max_length:
+            # Goal token arg
+            arg_type_idx = 1
+            encoded_arg = torch.cat((
+                self.predictor.goal_token_encoder(
+                    torch.LongTensor([stem_idx]),
+                    torch.LongTensor([tokenized_goal])
+                ).squeeze(0)[arg_idx],
+                torch.zeros(premise_features_size)),
+                                    dim=0)
+        else:
+            # Hyp arg
+            arg_type_idx = 2
+            arg_hyp = context.hypotheses[
+                arg_idx - (self.dataloader_args.max_length + 1)]
+            entire_encoded_goal = self.predictor.entire_goal_encoder(
+                torch.LongTensor([tokenized_goal]))
+            tokenized_arg_hyp = tokenize(
+                self.dataloader_args,
+                self.fpa_metadata,
+                serapi_instance.get_hyp_type(arg_hyp))
+            encoded_arg = torch.cat((
+                self.predictor.hyp_encoder(
+                    torch.LongTensor([stem_idx]),
+                    entire_encoded_goal,
+                    torch.LongTensor([tokenized_arg_hyp])),
+                get_premise_features(self.dataloader_args,
+                                     self.fpa_metadata,
+                                     context.goal,
+                                     arg_hyp)),
+                                     dim=0)
+
+        return [stem_idx, arg_type_idx], encoded_arg
 
     def save_weights(self, filename: Path2, args: argparse.Namespace) -> None:
         with cast(BinaryIO, filename.open('wb')) as f:

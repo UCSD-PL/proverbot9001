@@ -161,6 +161,7 @@ class GoalTokenArgModel(nn.Module):
         score = self._likelyhood_layer(F.relu(encoded))
         return score
 
+
 class HypArgEncoder(nn.Module):
     def __init__(self,
                  stem_vocab_size: int,
@@ -224,7 +225,7 @@ class HypArgModel(nn.Module):
                 hypfeatures_batch: torch.FloatTensor):
         batch_size = stems_batch.size()[0]
         encoded = self.arg_encoder(stems_batch, goals_encoded_batch,
-                                   hyps_batch, hypfeatures_batch)
+                                   hyps_batch)
         hyp_likelyhoods = self._likelyhood_decoder(
             torch.cat((encoded, Variable(hypfeatures_batch)), dim=1))
         return hyp_likelyhoods
@@ -292,6 +293,14 @@ class FeaturesPolyargPredictor(
     @property
     def goal_token_encoder(self) -> GoalTokenEncoderModel:
         return self._model.goal_args_model.encoder_model
+
+    @property
+    def entire_goal_encoder(self) -> EncoderRNN:
+        return self._model.goal_encoder
+
+    @property
+    def hyp_encoder(self) -> HypArgEncoder:
+        return self._model.hyp_model.arg_encoder
 
     def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())

@@ -178,6 +178,28 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> String {
         decode_fpa_result(args, metadata, hyps, goal, tac_idx, arg_idx)
     }
+    #[pyfn(m, "tokenize")]
+    fn tokenize_fpa_py(
+        _py: Python,
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        term: String) -> LongTensor1D {
+        tokenize_fpa(args, metadata, term)
+    }
+    #[pyfn(m, "get_premise_features")]
+    pub fn get_premise_features_py(
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata,
+        goal: String,
+        premise: String) -> FloatTensor1D {
+        get_premise_features(args, metadata, goal, premise)
+    }
+    #[pyfn(m, "get_premise_features_size")]
+    pub fn get_premise_features_size_py(
+        args: DataloaderArgs,
+        metadata: PickleableFPAMetadata) -> i64 {
+        get_premise_features_size(args, metadata)
+    }
     #[pyfn(m, "decode_fpa_stem")]
     fn decode_fpa_stem_py(
         _py: Python,

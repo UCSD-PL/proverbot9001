@@ -18,6 +18,7 @@ use crate::tokenizer::{
     get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
     Token, Tokenizer,
 };
+use gestalt_ratio::gestalt_ratio;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TacticArgument {
@@ -273,6 +274,32 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
     }
     mask_vec.insert(0, true);
     mask_vec
+}
+
+pub fn tokenize_fpa(
+    args: DataloaderArgs,
+    metadata: PickleableFPAMetadata,
+    term: String) -> LongTensor1D {
+
+    let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    normalize_sentence_length(
+        tokenizer.tokenize(&term),
+        args.max_length, 0)
+}
+
+pub fn get_premise_features(
+    args: DataloaderArgs,
+    metadata: PickleableFPAMetadata,
+    goal: String,
+    premise: String) -> FloatTensor1D {
+    let score = gestalt_ratio(&goal, get_hyp_type(&premise));
+    let eq_feat = equality_hyp_feature(&premise, &goal);
+    vec![score, eq_feat]
+}
+pub fn get_premise_features_size(
+    args: DataloaderArgs,
+    metadata: PickleableFPAMetadata) -> i64 {
+    2
 }
 
 pub fn sample_fpa_batch(
