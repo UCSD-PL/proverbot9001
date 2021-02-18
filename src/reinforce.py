@@ -361,20 +361,20 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     done: Queue[Job] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
 
-    # eprint(f"Starting with {len(replay_memory)} samples")
     for sample in replay_memory:
         samples.put(sample)
 
     with tmp.Pool() as pool:
-        jobs_in_files = list(tqdm(pool.imap(functools.partial(get_proofs, args),
-                                            list(enumerate(args.environment_files))),
+        jobs_in_files = list(tqdm(pool.imap(
+            functools.partial(get_proofs, args),
+            list(enumerate(args.environment_files))),
                                   total=len(args.environment_files),
                                   leave=False))
     unfiltered_jobs = [job for job_list in jobs_in_files for job in job_list
                        if job not in already_done]
     if args.proofs_file:
         with open(args.proofs_file, 'r') as f:
-            proof_names = [l.strip() for l in f]
+            proof_names = [line.strip() for line in f]
         all_jobs = [
             job for job in unfiltered_jobs if
             serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
@@ -424,14 +424,17 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         for worker in workers:
             worker.start()
 
-        with tqdm(total=len(all_jobs) + len(already_done), dynamic_ncols=True) as bar:
+        with tqdm(total=len(all_jobs) + len(already_done),
+                  dynamic_ncols=True) as bar:
             bar.update(len(already_done))
             bar.refresh()
             for _ in range(len(all_jobs)):
-                job = done.get()
+                done_job = done.get()
                 bar.update()
                 with args.out_weights.with_suffix(".done").open('a') as f:
-                    f.write(json.dumps((str(job[0]), job[1], job[2])))
+                    f.write(json.dumps((str(done_job[0]),
+                                        done_job[1],
+                                        done_job[2])))
                     f.write("\n")
 
         for worker in workers:
@@ -707,7 +710,6 @@ def reinforce_lemma_multithreaded(
                                            transition.reward)
             transition.graph_node = cur_node
             assert transition.reward < 2000
-            # eprint(f"Pushing one sample in thread {worker_idx}")
             samples.put(transition)
 
             lemma_memory += episode_memory
