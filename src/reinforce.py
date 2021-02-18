@@ -715,6 +715,7 @@ def reinforce_lemma_multithreaded(
 
             lemma_memory += episode_memory
             if coq.goals == "":
+                eprint("QED!", guard=args.verbose >= 2)
                 graph.mkQED(cur_node)
                 for sample in (episode_memory *
                                (args.success_repetitions - 1)):
