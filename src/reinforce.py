@@ -60,7 +60,7 @@ from models.q_estimator import QEstimator
 from models import features_polyarg_predictor
 import predict_tactic
 import util
-from util import eprint, print_time, nostderr, unwrap, progn
+from util import eprint, print_time, nostderr, unwrap, progn, safe_abbrev
 
 from format import (TacticContext, ProofContext, Obligation, truncate_tactic_context)
 
@@ -111,6 +111,8 @@ def main() -> None:
     parser.add_argument("--no-pretrain", action='store_false',
                         dest='pretrain')
     parser.add_argument("--include-proof-relevant", action="store_true")
+    parser.add_argument("--demonstrate-from", default=None, type=Path2)
+    parser.add_argument("--demonstration-steps", default=2, type=int)
 
     parser.add_argument("--progress", "-P", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
@@ -228,6 +230,7 @@ class ReinforceGraph:
 
 
 Job = Tuple[str, str, str]
+Demonstration = List[str]
 
 
 @dataclass
@@ -354,7 +357,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         return
 
     ctxt = tmp.get_context('spawn')
-    jobs: Queue[Job] = ctxt.Queue()
+    jobs: Queue[Tuple[Job, Optional[Demonstration]]] = ctxt.Queue()
     done: Queue[Job] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
 
@@ -385,7 +388,16 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     assert len(all_jobs) > 0, "No jobs!"
 
-    for job in all_jobs:
+    all_jobs_and_dems: List[Tuple[Job, Optional[Demonstration]]]
+    if args.demonstrate_from:
+        all_jobs_and_dems = [(job, extract_solution(args,
+                                                    args.demonstrate_from,
+                                                    job))
+                             for job in all_jobs]
+    else:
+        all_jobs_and_dems = [(job, None) for job in all_jobs]
+
+    for job in all_jobs_and_dems:
         jobs.put(job)
 
     with Manager() as manager:
@@ -434,14 +446,14 @@ def reinforce_worker(worker_idx: int,
                      lock: Lock,
                      namespace: multiprocessing.managers.Namespace,
                      samples: Queue[LabeledTransition],
-                     jobs: Queue[Job],
+                     jobs: Queue[Tuple[Job, Optional[Demonstration]]],
                      done: Queue[Job]):
 
     sys.setrecursionlimit(100000)
     failing_lemma = ""
 
     try:
-        next_file, next_module, next_lemma = jobs.get_nowait()
+        (next_file, next_module, next_lemma), demonstration = jobs.get_nowait()
     except queue.Empty:
         return
     with util.silent():
@@ -483,7 +495,8 @@ def reinforce_worker(worker_idx: int,
                                                       worker_idx,
                                                       samples,
                                                       next_lemma,
-                                                      next_module)
+                                                      next_module,
+                                                      demonstration)
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
@@ -493,7 +506,7 @@ def reinforce_worker(worker_idx: int,
                             done.put((next_file, next_module, next_lemma))
 
                             try:
-                                new_file, next_module, next_lemma = jobs.get_nowait()
+                                (new_file, next_module, next_lemma), demonstration = jobs.get_nowait()
                             except queue.Empty:
                                 return
                             if new_file != next_file:
@@ -522,7 +535,8 @@ def reinforce_worker(worker_idx: int,
                     rest_commands = rest_commands[1:]
                     done.put((next_file, next_module, next_lemma))
                     try:
-                        new_file, next_module, next_lemma = jobs.get_nowait()
+                        (new_file, next_module, next_lemma), demonstration = \
+                          jobs.get_nowait()
                     except queue.Empty:
                         return
 
@@ -584,46 +598,52 @@ def reinforce_lemma_multithreaded(
         worker_idx: int,
         samples: Queue[LabeledTransition],
         lemma_statement: str,
-        _module_prefix: str):
+        _module_prefix: str,
+        demonstration: Optional[Demonstration]):
 
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     graph = ReinforceGraph(lemma_name)
     lemma_memory = []
-    for _ in trange(args.num_episodes, disable=(not args.progress),
+    for i in trange(args.num_episodes, disable=(not args.progress),
                     leave=False, position=worker_idx + 1):
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
         episode_memory: List[LabeledTransition] = []
-        for _ in range(args.episode_length):
+        for t in range(args.episode_length):
             with print_time("Getting predictions", guard=args.verbose):
                 context_before = coq.tactic_context(coq.local_lemmas[:-1])
                 proof_context_before = unwrap(coq.proof_context)
-                with lock:
-                    eprint(f"Locked in thread {worker_idx}",
+                if (demonstration and
+                        t < len(demonstration) -
+                        ((i//args.demonstration_steps)+1)):
+                    ordered_actions = [(demonstration[t], 1.0)]
+                else:
+                    with lock:
+                        eprint(f"Locked in thread {worker_idx}",
+                               guard=args.verbose >= 2)
+                        predictor = namespace.predictor
+                        estimator = namespace.estimator
+                        with print_time("Making predictions", guard=args.verbose >= 3):
+                            context_trunced = truncate_tactic_context(
+                                context_before, args.max_term_length)
+                            predictions = predictor.predictKTactics(
+                                context_trunced, args.num_predictions)
+                        if random.random() < args.exploration_factor:
+                            ordered_actions = list(random.sample(predictions,
+                                                                 len(predictions)))
+                        else:
+                            with print_time("Picking actions with q_estimator",
+                                            guard=args.verbose):
+                                q_choices = zip(estimator(
+                                    [(context_before, p.prediction, p.certainty)
+                                     for p in predictions]),
+                                                predictions)
+                                ordered_actions = [p[1] for p in
+                                                   sorted(q_choices,
+                                                          key=lambda q: q[0],
+                                                          reverse=True)]
+                    eprint(f"Unlocked in thread {worker_idx}",
                            guard=args.verbose >= 2)
-                    predictor = namespace.predictor
-                    estimator = namespace.estimator
-                    with print_time("Making predictions", guard=args.verbose >= 3):
-                        context_trunced = truncate_tactic_context(
-                            context_before, args.max_term_length)
-                        predictions = predictor.predictKTactics(
-                            context_trunced, args.num_predictions)
-                    if random.random() < args.exploration_factor:
-                        ordered_actions = list(random.sample(predictions,
-                                                             len(predictions)))
-                    else:
-                        with print_time("Picking actions with q_estimator",
-                                        guard=args.verbose):
-                            q_choices = zip(estimator(
-                                [(context_before, p.prediction, p.certainty)
-                                 for p in predictions]),
-                                            predictions)
-                            ordered_actions = [p[1] for p in
-                                               sorted(q_choices,
-                                                      key=lambda q: q[0],
-                                                      reverse=True)]
-                eprint(f"Unlocked in thread {worker_idx}",
-                       guard=args.verbose >= 2)
             with print_time("Running actions", guard=args.verbose):
                 action = None
                 original_certainty = None
@@ -761,6 +781,34 @@ def get_proofs(args: argparse.Namespace,
     return [(filename, module, cmd) for module, cmd in
             serapi_instance.lemmas_in_file(
                 filename, cmds, args.include_proof_relevant)]
+
+
+def extract_solution(args: argparse.Namespace,
+                     report_dir: Path2, job: Job) -> Optional[Demonstration]:
+    job_file, job_module, job_lemma = job
+    proofs_filename = report_dir / (safe_abbrev(Path2(job_file),
+                                                args.environment_files)
+                                    + "-proofs.txt")
+    try:
+        with proofs_filename.open('r') as proofs_file:
+            for line in proofs_file:
+                entry, sol = json.loads(line)
+                if (entry[0] == str(job_file) and
+                     entry[1] == job_module and
+                     entry[2] == job_lemma):
+                    return [cmd["tactic"] for cmd in sol["commands"]
+                            if cmd["tactic"] != "Proof."]
+            else:
+                eprint(f"Couldn't find solution for lemma {job_lemma} "
+                       f"in module {job_module} in proofs file")
+                raise FileNotFoundError()
+    except FileNotFoundError:
+        eprint(f"Couldn't find proofs file "
+               f"in search directory for file {job_file}")
+        raise
+    pass
+
+
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
       List[LabeledTransition]:
     return random.sample(transitions, k)
