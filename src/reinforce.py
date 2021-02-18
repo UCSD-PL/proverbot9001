@@ -283,9 +283,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     # Load the predictor
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
-    # Load the scraped (demonstrated) samples and the proof
-    # environment commands. Assigns them an estimated "original
-    # predictor certainty" value for use as a feature.
     # Create an initial Q Estimator
     if args.estimator == "polyarg":
         q_estimator = PolyargQEstimator(args.learning_rate,
@@ -324,6 +321,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
     else:
+        # Load the scraped (demonstrated) samples and the proof
+        # environment commands. Assigns them an estimated "original
+        # predictor certainty" value for use as a feature.
         with print_time("Loading initial samples from labeled data"):
             replay_memory = assign_rewards(
                 args, predictor,
