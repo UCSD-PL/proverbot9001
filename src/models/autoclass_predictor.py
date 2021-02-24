@@ -42,11 +42,11 @@ from context_filter import get_context_filter
 from tokenizer import tokenizers
 
 from util import *
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from models.components import SimpleEmbedding
 from models.tactic_predictor import TacticPredictor, Prediction
 from models.term_autoencoder import EncoderRNN
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, Callable, NamedTuple
 from typing import cast, overload

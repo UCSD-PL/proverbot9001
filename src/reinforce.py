@@ -53,7 +53,9 @@ from pathlib_revised import Path2
 import pygraphviz as pgv
 from tqdm import trange, tqdm
 
-import serapi_instance
+import coq_serapy as serapi_instance
+from coq_serapy.contexts import (TacticContext, ProofContext, Obligation,
+                                 truncate_tactic_context)
 import dataloader
 from models import tactic_predictor
 from models.polyarg_q_estimator import PolyargQEstimator
@@ -64,7 +66,8 @@ import predict_tactic
 import util
 from util import eprint, print_time, nostderr, unwrap, progn, safe_abbrev
 
-from format import (TacticContext, ProofContext, Obligation, truncate_tactic_context)
+
+serapi_instance.set_parseSexpOneLevel_fn(util.parseSexpOneLevel)
 
 
 def main() -> None:

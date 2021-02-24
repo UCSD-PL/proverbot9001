@@ -26,7 +26,7 @@ from typing import List, Tuple, Any, Dict, Optional
 from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import NeuralPredictorState
 from models import features_polyarg_predictor, features_q_estimator
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 # from util import eprint
 

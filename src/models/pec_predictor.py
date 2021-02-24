@@ -24,9 +24,9 @@ from models.tactic_predictor import (NeuralClassifier, Prediction)
 from models.components import Embedding
 from data import (Sentence, Dataset, TokenizedDataset,
                   normalizeSentenceLength)
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from util import *
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from tokenizer import Tokenizer
 
 import torch

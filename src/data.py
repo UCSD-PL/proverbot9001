@@ -40,11 +40,13 @@ import torch
 from tokenizer import (Tokenizer,
                        make_keyword_tokenizer_relevance,
                        make_keyword_tokenizer_topk)
-from format import (read_tactic_tuple, ScrapedTactic, ScrapedCommand,
-                    read_tuple, TacticContext, strip_scraped_output,
-                    ProofContext)
+from coq_serapy.contexts import (read_tactic_tuple, ScrapedTactic,
+                                 ScrapedCommand,
+                                 read_tuple, TacticContext,
+                                 strip_scraped_output,
+                                 ProofContext)
 from models.components import SimpleEmbedding
-import serapi_instance
+import coq_serapy as serapi_instance
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
@@ -52,7 +54,7 @@ from typing import (Tuple, NamedTuple, List, Callable, Optional,
 from util import (eprint, chunks, split_by_char_outside_matching,
                   unwrap, get_possible_arg)
 from context_filter import get_context_filter, ContextFilter
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from pathlib_revised import Path2
 TOKEN_START = 2
 SOS_token = 1

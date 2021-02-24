@@ -19,10 +19,10 @@
 #
 ##########################################################################
 
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from tokenizer import get_symbols, limitNumTokens
 from util import eprint
-import serapi_instance
+import coq_serapy as serapi_instance
 
 import typing
 from typing import List, Dict, Set, Any, overload, Tuple

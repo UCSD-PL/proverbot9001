@@ -35,8 +35,8 @@ from tokenizer import Tokenizer, limitNumTokens, get_symbols
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample)
 from util import maybe_cuda, LongTensor, FloatTensor, topk_with_filter
-from format import TacticContext, strip_scraped_output
-import serapi_instance
+from coq_serapy.contexts import TacticContext, strip_scraped_output
+import coq_serapy as serapi_instance
 
 import threading
 import multiprocessing

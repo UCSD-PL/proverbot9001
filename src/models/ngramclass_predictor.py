@@ -37,14 +37,14 @@ import torch.utils.data as data
 from models.tactic_predictor import (NeuralPredictor,
                                      NeuralPredictorState, Prediction)
 from models.components import Embedding
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, Sentence, getNGramTokenbagVector, ScrapedTactic, \
     TokenizedDataset, encode_ngram_classify_input, Dataset, NGram, NGramSample, NGramDataset
 from context_filter import get_context_filter
 from util import *
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from models.args import start_std_args
 
 from dataclasses import dataclass

@@ -31,9 +31,9 @@ from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
-                  ByteTensor, print_time)
+                  ByteTensor, print_time, unwrap)
 import math
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
                                add_nn_args)
@@ -58,11 +58,10 @@ from dataloader import (features_polyarg_tensors,
                         DataloaderArgs,
                         get_fpa_words)
 
-import serapi_instance
+import coq_serapy as serapi_instance
 
 import argparse
 import sys
-from itertools import islice
 from argparse import Namespace
 from typing import (List, Tuple, NamedTuple, Optional, Sequence, Dict,
                     cast, Union, Set, Type, Any, Iterable)
@@ -701,7 +700,7 @@ class FeaturesPolyargPredictor(
 
     @property
     def dataloader_args(self) -> DataloaderArgs:
-        return extract_dataloader_args(self.training_args)
+        return extract_dataloader_args(unwrap(self.training_args))
 
     def add_args_to_parser(self, parser: argparse.ArgumentParser,
                            default_values: Dict[str, Any] = {}) -> None:

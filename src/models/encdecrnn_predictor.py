@@ -47,7 +47,7 @@ import torch.cuda
 
 from itertools import takewhile
 from models.tactic_predictor import TacticPredictor, Prediction
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 from typing import Dict, List, Union, Any, Tuple, Iterable, cast, overload
 

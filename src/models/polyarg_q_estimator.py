@@ -30,11 +30,11 @@ import torch.utils.data as data
 from torch import optim
 from pathlib_revised import Path2
 
-import serapi_instance
+import coq_serapy as serapi_instance
 import tokenizer
 
 from util import maybe_cuda, eprint
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from models.q_estimator import QEstimator
 from models.components import WordFeaturesEncoder, DNNScorer
 from models.features_polyarg_predictor import FeaturesPolyargPredictor

@@ -31,9 +31,10 @@ from tokenizer import Tokenizer
 from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample, EOS_token)
 from util import maybe_cuda, LongTensor, FloatTensor
-from format import (ScrapedTactic, TacticContext,
-                    strip_scraped_output, Obligation, ProofContext)
-import serapi_instance
+from coq_serapy.contexts import (ScrapedTactic, TacticContext,
+                                 strip_scraped_output, Obligation,
+                                 ProofContext)
+import coq_serapy as serapi_instance
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,

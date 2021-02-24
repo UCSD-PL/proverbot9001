@@ -25,7 +25,7 @@ from typing import List, Tuple, Optional, Dict, Any
 from abc import ABCMeta, abstractmethod
 from pathlib_revised import Path2
 
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 
 class QEstimator(metaclass=ABCMeta):

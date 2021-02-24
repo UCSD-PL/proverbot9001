@@ -26,11 +26,10 @@ from models.tactic_predictor import \
      tokenize_goals, tokenize_hyps)
 from models.components import (Embedding, SimpleEmbedding, DNNClassifier, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
-                  normalizeSentenceLength, getNGramTokenbagVector,
-                  TacticContext)
+                  normalizeSentenceLength, getNGramTokenbagVector)
 from tokenizer import Tokenizer
-import serapi_instance
-from format import ScrapedTactic, TacticContext, strip_scraped_output
+import coq_serapy as serapi_instance
+from coq_serapy.contexts import (ScrapedTactic, TacticContext)
 from util import *
 
 import torch

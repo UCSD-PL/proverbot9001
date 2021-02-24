@@ -38,8 +38,8 @@ from models.tactic_predictor import TacticPredictor, Prediction
 from tokenizer import tokenizers
 from data import get_text_data, encode_bag_classify_data, encode_bag_classify_input
 from util import *
-from format import TacticContext
-from serapi_instance import get_stem
+from coq_serapy.contexts import TacticContext
+from coq_serapy import get_stem
 
 class WordBagSVMClassifier(TacticPredictor):
     def load_saved_state(self, filename : str) -> None:

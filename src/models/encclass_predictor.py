@@ -39,9 +39,9 @@ from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from data import get_text_data, filter_data, \
     encode_seq_classify_data, ScrapedTactic, Sentence, Dataset, TokenizedDataset
 from util import *
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from context_filter import get_context_filter
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from models.args import start_std_args, optimizers
 
 import torch

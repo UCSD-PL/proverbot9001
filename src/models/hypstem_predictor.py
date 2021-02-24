@@ -44,10 +44,10 @@ from models.components import (Embedding, StraightlineClassifierModel,
 from tokenizer import tokenizers, Tokenizer
 
 from data import (getNGramTokenbagVector, ListDataset, RawDataset)
-from format import ScrapedTactic, TacticContext
+from coq_serapy.contexts import ScrapedTactic, TacticContext
 
 from util import maybe_cuda, LongTensor, FloatTensor, list_topk
-import serapi_instance
+import coq_serapy as serapi_instance
 
 class HypStemSample(NamedTuple):
     hypotheses : List[int]

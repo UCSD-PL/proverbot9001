@@ -2,7 +2,7 @@
 
 from typing import (Dict, List, Union, Tuple, Iterable, NamedTuple,
                     Sequence, Any, Optional, cast, BinaryIO)
-from format import ScrapedTactic, TacticContext
+from coq_serapy.contexts import ScrapedTactic, TacticContext
 from abc import ABCMeta, abstractmethod
 import argparse
 from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
@@ -11,6 +11,7 @@ from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
                   EmbeddedDataset, StrictEmbeddedDataset,
                   LazyEmbeddedDataset, DatasetMetadata, tokenize_data,
                   TOKEN_START, Sentence)
+
 
 class Prediction(NamedTuple):
     prediction : str
@@ -41,7 +42,7 @@ from typing import TypeVar, Generic, Sized
 import argparse
 import sys
 from argparse import Namespace
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from pathlib_revised import Path2
 from models.components import NeuralPredictorState, PredictorState
 

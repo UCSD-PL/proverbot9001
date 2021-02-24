@@ -19,12 +19,12 @@
 #
 ##########################################################################
 
-import serapi_instance
+import coq_serapy as serapi_instance
 import tokenizer
 
 from models.q_estimator import QEstimator
 from util import maybe_cuda, eprint
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from models.components import WordFeaturesEncoder, DNNScorer
 
 import torch

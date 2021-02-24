@@ -27,9 +27,9 @@ from models.tactic_predictor import \
 from models.components import (Embedding, SimpleEmbedding, add_nn_args)
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength)
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from util import *
-from format import TacticContext, strip_scraped_output
+from coq_serapy.contexts import TacticContext, strip_scraped_output
 from tokenizer import Tokenizer
 from features import (vec_feature_constructors,
                       word_feature_constructors, VecFeature,

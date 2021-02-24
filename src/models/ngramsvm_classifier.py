@@ -44,8 +44,8 @@ from data import get_text_data, getNGramTokenbagVector, encode_ngram_classify_da
     encode_ngram_classify_input, TokenizedDataset, Dataset, NGram, NGramSample, \
     NGramDataset
 from util import *
-from format import TacticContext
-from serapi_instance import get_stem
+from coq_serapy.contexts import TacticContext
+from coq_serapy import get_stem
 from dataclasses import dataclass
 
 @dataclass

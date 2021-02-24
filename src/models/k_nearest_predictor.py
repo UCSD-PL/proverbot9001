@@ -40,11 +40,11 @@ from tokenizer import tokenizers, Tokenizer
 from data import get_text_data, filter_data, \
     encode_bag_classify_data, encode_bag_classify_input, ScrapedTactic, RawDataset, ClassifyBagDataset
 from context_filter import get_context_filter
-from serapi_instance import get_stem
+from coq_serapy import get_stem
 from models.components import Embedding, PredictorState
 
 from util import *
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from dataclasses import dataclass
 
 V = TypeVar('V')

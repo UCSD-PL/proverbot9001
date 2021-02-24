@@ -27,12 +27,15 @@ import argparse
 from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 
 from tokenizer import get_symbols
-from format import TacticContext
-import serapi_instance
+from coq_serapy.contexts import TacticContext
+import coq_serapy as serapi_instance
 
-ContextFilter = Callable[[TacticContext, str, TacticContext, argparse.Namespace], bool]
-def filter_and(*args : ContextFilter) -> ContextFilter:
-    def filter_and2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
+ContextFilter = Callable[[TacticContext, str,
+                          TacticContext, argparse.Namespace], bool]
+
+
+def filter_and(*args: ContextFilter) -> ContextFilter:
+    def filter_and2(f1: ContextFilter, f2: ContextFilter) -> ContextFilter:
         return lambda in_data, tactic, next_in_data, args: \
             (f1(in_data, tactic, next_in_data, args) and
              f2(in_data, tactic, next_in_data, args))
@@ -40,6 +43,8 @@ def filter_and(*args : ContextFilter) -> ContextFilter:
         return args[0]
     else:
         return filter_and2(args[0], filter_and(*args[1:]))
+
+
 def filter_or(*args : ContextFilter) -> ContextFilter:
     def filter_or2(f1 : ContextFilter, f2 : ContextFilter) -> ContextFilter:
         return lambda in_data, tactic, next_in_data, args:\
