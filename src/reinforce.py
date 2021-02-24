@@ -29,7 +29,6 @@ import signal
 import re
 import json
 import multiprocessing
-import random
 from threading import Lock
 import sys
 import functools
