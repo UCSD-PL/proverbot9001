@@ -222,7 +222,9 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--proof", default=None)
+    proofsGroup = parser.add_mutually_exclusive_group()
+    proofsGroup.add_argument("--proof", default=None)
+    proofsGroup.add_argument("--proofs-file", default=None)
     parser.add_argument("--log-anomalies", type=Path2, default=None)
     parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
@@ -547,12 +549,24 @@ def search_file_multithreaded(args: argparse.Namespace,
                         pass
                 except FileNotFoundError:
                     pass
+            if args.proofs_file:
+                with open(args.proofs_file, 'r') as f:
+                    proof_names = [line.strip() for line in f]
+                lemma_statements_todo = [
+                    (module, stmt) for (module, stmt)
+                    in lemma_statements_todo
+                    if serapi_instance.lemma_name_from_statement(
+                        stmt) in proof_names]
+            elif args.proof:
+                lemma_statements_todo = [
+                    (module, stmt) for (module, stmt)
+                    in lemma_statements_todo
+                    if serapi_instance.lemma_name_from_statement(
+                        stmt) == args.proof]
+
             for module_prefix, lemma_statement in lemma_statements_todo:
-                if not args.proof or \
-                   args.proof == serapi_instance.lemma_name_from_statement(
-                       lemma_statement):
-                    all_jobs.append((str(filename), module_prefix,
-                                     lemma_statement))
+                all_jobs.append((str(filename), module_prefix,
+                                 lemma_statement))
         for job in all_jobs:
             jobs.put(job)
         workers = [multiprocessing.Process(target=search_file_worker,
