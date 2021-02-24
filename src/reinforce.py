@@ -142,68 +142,91 @@ def main() -> None:
 
 @dataclass(init=True)
 class LabeledNode:
-    action: str
-    reward: float
     node_id: int
+    transition: Optional[LabeledTransition]
     parent: Optional["LabeledNode"]
     children: List["LabeledNode"]
+
+    @property
+    def action(self) -> str:
+        return unwrap(self.transition).action
+
+    @property
+    def reward(self) -> float:
+        return unwrap(self.transition).reward
 
 
 class ReinforceGraph:
     __graph: pgv.AGraph
     __next_node_id: int
     start_node: LabeledNode
+    lemma_name: str
 
     def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
-        self.start_node = self.mkNode(lemma_name, 0, None)
+        self.lemma_name = lemma_name
+        self.start_node = self.mkNode(None, None)
         pass
 
-    def addTransition(self, src: LabeledNode, action: str, reward: float,
+    def addTransition(self, src: LabeledNode, transition: LabeledTransition,
                       **kwargs) -> LabeledNode:
         for child in src.children:
-            if child.action == action:
-                assert child.reward == reward
+            if child.action == transition.action:
+                assert child.reward == transition.reward
                 return child
-        return self.mkNode(action, reward, src, **kwargs)
+        return self.mkNode(transition, src, **kwargs)
 
-    def addGhostTransition(self, src: LabeledNode, action: str,
+    def addGhostTransition(self, src: LabeledNode,
+                           transition: LabeledTransition,
                            **kwargs) -> LabeledNode:
         for child in src.children:
-            if child.action == action:
+            if child.action == transition.action:
                 return child
-        return self.mkNode(action, 0, src, fillcolor="grey", **kwargs)
+        return self.mkNode(transition, src, fillcolor="grey", **kwargs)
 
-    def mkNode(self, action: str, reward: float,
+    def mkNode(self, transition: Optional[LabeledTransition],
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
-        if 'fillcolor' not in kwargs:
-            if reward > 0:
+        if 'fillcolor' not in kwargs and transition:
+            if transition.reward > 0:
                 color = "palegreen"
-            elif reward < 0:
+            elif transition.reward < 0:
                 color = "indianred1"
             else:
                 color = "white"
-            self.__graph.add_node(self.__next_node_id, label=action,
+            self.__graph.add_node(self.__next_node_id,
+                                  label=transition.action,
                                   fillcolor=color, style="filled",
                                   **kwargs)
+        elif transition:
+            self.__graph.add_node(self.__next_node_id,
+                                  label=transition.action)
         else:
-            self.__graph.add_node(self.__next_node_id, label=action)
+            self.__graph.add_node(self.__next_node_id,
+                                  label=self.lemma_name)
         self.__next_node_id += 1
-        newNode = LabeledNode(action, reward, self.__next_node_id-1,
+        newNode = LabeledNode(self.__next_node_id-1,
+                              transition,
                               previous_node, [])
         if previous_node:
+            assert transition
             self.__graph.add_edge(previous_node.node_id, newNode.node_id,
-                                  label=str(reward), **kwargs)
+                                  label=f"{transition.reward:.2f}", **kwargs)
             previous_node.children.append(newNode)
         return newNode
 
     def mkQED(self, src: LabeledNode):
         for existing_node in src.children:
-            if existing_node.action == "QED":
+            if existing_node.transition is None:
                 return
-        self.mkNode("QED", 0, src, fillcolor="green", style="filled")
+        self.__graph.add_node(self.__next_node_id,
+                              label="QED")
+        self.__graph.add_edge(src.node_id, self.__next_node_id)
+        newNode = LabeledNode(self.__next_node_id,
+                              None, src, [])
+        src.children.append(newNode)
+        self.__next_node_id += 1
         cur_node = src
         while cur_node != self.start_node:
             self.setNodeOutlineColor(cur_node, "palegreen1")
@@ -223,6 +246,22 @@ class ReinforceGraph:
     def setNodeApproxQScore(self, node: LabeledNode, score: float) -> None:
         node_handle = self.__graph.get_node(node.node_id)
         node_handle.attr["label"] = f"{node.action} (~{score:.2f})"
+
+    def assignApproximateQScores(self, args: argparse.Namespace,
+                                 predictor: tactic_predictor.TacticPredictor,
+                                 estimator: QEstimator,
+                                 node: Optional[LabeledNode] = None) -> None:
+        if node is None:
+            node = self.start_node
+        elif node.transition:
+            self.setNodeApproxQScore(
+                node,
+                assign_scores(args, [unwrap(node.transition)],
+                              estimator,
+                              predictor)[0][3])
+        for child in node.children:
+            self.assignApproximateQScores(
+                args, predictor, estimator, child)
 
     def draw(self, filename: str) -> None:
         with nostderr():
@@ -671,7 +710,7 @@ def reinforce_lemma_multithreaded(
                             samples.put(transition)
                             if args.ghosts:
                                 ghost_node = graph.addGhostTransition(
-                                    cur_node, try_action)
+                                    cur_node, transition)
                                 transition.graph_node = ghost_node
                             continue
                         action = try_action
@@ -693,7 +732,7 @@ def reinforce_lemma_multithreaded(
                         samples.put(transition)
                         if args.ghosts:
                             ghost_node = graph.addGhostTransition(cur_node,
-                                                                  try_action)
+                                                                  transition)
                             transition.graph_node = ghost_node
                 if action is None:
                     # We'll hit this case of we tried all of the
@@ -706,8 +745,7 @@ def reinforce_lemma_multithreaded(
                                        proof_context_after,
                                        action,
                                        unwrap(original_certainty))
-            cur_node = graph.addTransition(cur_node, action,
-                                           transition.reward)
+            cur_node = graph.addTransition(cur_node, transition)
             transition.graph_node = cur_node
             assert transition.reward < 2000
             samples.put(transition)
@@ -739,6 +777,9 @@ def reinforce_lemma_multithreaded(
                 f.write(json.dumps(sample.to_dict()))
                 f.write("\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
+    graph.assignApproximateQScores(args,
+                                   predictor,
+                                   estimator)
     graph.draw(str(graphpath))
 
 
