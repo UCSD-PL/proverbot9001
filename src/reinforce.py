@@ -718,7 +718,7 @@ def reinforce_lemma_multithreaded(
                                 proof_context_after,
                                 try_action,
                                 try_original_certainty,
-                                -1)
+                                0)
                             assert transition.reward < 2000
                             samples.put(transition)
                             if args.ghosts:
@@ -739,7 +739,7 @@ def reinforce_lemma_multithreaded(
                             proof_context_before,
                             try_action,
                             try_original_certainty,
-                            -5)
+                            0)
                         assert transition.reward < 2000
                         samples.put(transition)
                         if args.ghosts:
@@ -751,7 +751,8 @@ def reinforce_lemma_multithreaded(
                     # predictions, and none worked
                     graph.setNodeColor(cur_node, "red")
                     break  # Break from episode
-            transition = assign_reward(context_before.relevant_lemmas,
+            transition = assign_reward(args,
+                                       context_before.relevant_lemmas,
                                        context_before.prev_tactics,
                                        proof_context_before,
                                        proof_context_after,
@@ -879,22 +880,22 @@ def assign_failed_reward(relevant_lemmas: List[str], prev_tactics: List[str],
                              tactic, certainty, reward, None)
 
 
-def assign_reward(relevant_lemmas: List[str], prev_tactics: List[str],
+def assign_reward(args: argparse.Namespace,
+                  relevant_lemmas: List[str], prev_tactics: List[str],
                   before: ProofContext, after: ProofContext, tactic: str,
                   certainty: float) \
       -> LabeledTransition:
-    goals_changed = len(after.all_goals) - len(before.all_goals)
+    # goals_changed = len(after.all_goals) - len(before.all_goals)
     if len(after.all_goals) == 0:
-        reward = 10.0
-    elif goals_changed != 0:
-        reward = -(goals_changed * 2.0)
+        reward = 50.0
+    # elif goals_changed != 0:
+    #     if goals_changed > 0:
+    #         reward = -(goals_changed * 2.0) * \
+    #           (args.time_discount ** goals_changed)
+    #     else:
+    #         reward = -(goals_changed * 2.0)
     else:
         reward = 0
-    # else:
-    #     goal_size_reward = len(tokenizer.get_words(before.focused_goal)) - \
-    #         len(tokenizer.get_words(after.focused_goal))
-    #     num_hyps_reward = len(before.focused_hyps) - len(after.focused_hyps)
-    #     reward = goal_size_reward * 3 + num_hyps_reward
     return LabeledTransition(relevant_lemmas, prev_tactics, before, after,
                              tactic, certainty, reward, None)
 
@@ -910,12 +911,13 @@ def assign_rewards(args: argparse.Namespace,
                                         transition.prev_tactics,
                                         [], "")
             else:
-            yield assign_reward(transition.relevant_lemmas,
                 context = TacticContext(
                     transition.relevant_lemmas,
                     transition.prev_tactics,
                     transition.before.fg_goals[0].hypotheses,
                     transition.before.fg_goals[0].goal)
+            yield assign_reward(args,
+                                transition.relevant_lemmas,
                                 transition.prev_tactics,
                                 context_r2py(transition.before),
                                 context_r2py(transition.after),
