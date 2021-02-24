@@ -304,6 +304,7 @@ class LabeledTransition:
                 "action": self.action,
                 "original_certainty": self.original_certainty,
                 "reward": self.reward}
+
     @classmethod
     def from_dict(cls, data) -> 'LabeledTransition':
         return LabeledTransition(data["relevant_lemmas"],
@@ -435,8 +436,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     else:
         all_jobs = unfiltered_jobs
 
-    assert len(all_jobs) > 0, "No jobs!"
-
     all_jobs_and_dems: List[Tuple[Job, Optional[Demonstration]]]
     if args.demonstrate_from:
         all_jobs_and_dems = [(job, extract_solution(args,
@@ -558,7 +557,8 @@ def reinforce_worker(worker_idx: int,
                             done.put((next_file, next_module, next_lemma))
 
                             try:
-                                (new_file, next_module, next_lemma), demonstration = jobs.get_nowait()
+                                (new_file, next_module, next_lemma), \
+                                  demonstration = jobs.get_nowait()
                             except queue.Empty:
                                 return
                             if new_file != next_file:
@@ -578,7 +578,8 @@ def reinforce_worker(worker_idx: int,
                     except Exception as e:
                         if worker_idx == 0:
                             eprint(
-                                f"FAILED in file {next_file}, lemma {next_lemma}")
+                                f"FAILED in file {next_file}, "
+                                f"lemma {next_lemma}")
                             eprint(e)
                         raise
                     serapi_instance.admit_proof(coq, lemma_statement)
@@ -633,7 +634,8 @@ def reinforce_worker(worker_idx: int,
                                 serapi_instance.\
                                 lemma_name_from_statement(next_lemma)
                             eprint(
-                                f"{next_file}: Failed to admit proof {next_lemma_name}")
+                                f"{next_file}: Failed to admit proof "
+                                f"{next_lemma_name}")
                             raise
 
                         while not serapi_instance.ending_proof(
@@ -675,7 +677,8 @@ def reinforce_lemma_multithreaded(
                                guard=args.verbose >= 2)
                         predictor = namespace.predictor
                         estimator = namespace.estimator
-                        with print_time("Making predictions", guard=args.verbose >= 3):
+                        with print_time("Making predictions",
+                                        guard=args.verbose >= 3):
                             context_trunced = truncate_tactic_context(
                                 context_before, args.max_term_length)
                             predictions = predictor.predictKTactics(
@@ -687,7 +690,8 @@ def reinforce_lemma_multithreaded(
                             with print_time("Picking actions with q_estimator",
                                             guard=args.verbose):
                                 q_choices = zip(estimator(
-                                    [(context_before, p.prediction, p.certainty)
+                                    [(context_before,
+                                      p.prediction, p.certainty)
                                      for p in predictions]),
                                                 predictions)
                                 ordered_actions = [p[1] for p in
@@ -716,7 +720,6 @@ def reinforce_lemma_multithreaded(
                                 try_original_certainty,
                                 -1)
                             assert transition.reward < 2000
-                            # eprint(f"Pushing one sample in thread {worker_idx}")
                             samples.put(transition)
                             if args.ghosts:
                                 ghost_node = graph.addGhostTransition(
@@ -738,7 +741,6 @@ def reinforce_lemma_multithreaded(
                             try_original_certainty,
                             -5)
                         assert transition.reward < 2000
-                        # eprint(f"Pushing one sample in thread {worker_idx}")
                         samples.put(transition)
                         if args.ghosts:
                             ghost_node = graph.addGhostTransition(cur_node,
@@ -908,16 +910,18 @@ def assign_rewards(args: argparse.Namespace,
                                         transition.prev_tactics,
                                         [], "")
             else:
-                context = TacticContext(transition.relevant_lemmas,
-                                        transition.prev_tactics,
-                                        transition.before.fg_goals[0].hypotheses,
-                                        transition.before.fg_goals[0].goal)
             yield assign_reward(transition.relevant_lemmas,
+                context = TacticContext(
+                    transition.relevant_lemmas,
+                    transition.prev_tactics,
+                    transition.before.fg_goals[0].hypotheses,
+                    transition.before.fg_goals[0].goal)
                                 transition.prev_tactics,
                                 context_r2py(transition.before),
                                 context_r2py(transition.after),
                                 transition.tactic,
-                                certainty_of(predictor, args.num_predictions * 2,
+                                certainty_of(predictor,
+                                             args.num_predictions * 2,
                                              context,
                                              transition.tactic))
     return list(generate())
@@ -936,9 +940,9 @@ def assign_scores(args: argparse.Namespace,
         prediction_lists = cast(features_polyarg_predictor
                                 .FeaturesPolyargPredictor,
                                 predictor) \
-                                .predictKTactics_batch(
-                                    contexts_trunced,
-                                    args.num_predictions)
+                            .predictKTactics_batch(
+                                contexts_trunced,
+                                args.num_predictions)
         for transition, predictions in zip(transitions, prediction_lists):
             tactic_ctxt = transition.after_context
 
@@ -986,8 +990,6 @@ def pre_train(args: argparse.Namespace,
                                     transition.before.fg_goals[0].goal)
 
             random_certainty = random.random()
-            # certainty = certainty_of(predictor, args.num_predictions * 2,
-            #                          context, transition.tactic)
             yield (context, transition.tactic,
                    random_certainty, random_certainty)
 
@@ -1003,11 +1005,6 @@ def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
                      FeaturesPolyargPredictor,
                      predictor)
     return predictor.predictionCertainty(context, tactic)
-    # predictions = predictor.predictKTactics(context, k)
-    # for p in predictions:
-    #     if p.prediction == tactic:
-    #         return p.certainty
-    # return 0.0
 
 
 if __name__ == "__main__":
