@@ -319,6 +319,27 @@ class LabeledTransition:
 
 def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
+    def resume(resume_file: Path2, weights: Path2) -> Tuple[List[LabeledTransition],
+                                                            List[Job]]:
+        eprint("Looks like there was a session in progress for these weights! "
+               "Resuming")
+        q_estimator_name, *saved = \
+            torch.load(str(weights))
+        q_estimator.load_saved_state(*saved)
+        replay_memory = []
+        with resume_file.open('r') as f:
+            for line in f:
+                replay_memory.append(LabeledTransition.from_dict(
+                    json.loads(line)))
+        already_done = []
+        with weights.with_suffix('.done').open('r') as f:
+            for line in f:
+                next_done = json.loads(line)
+                already_done.append((next_done[0], next_done[1],
+                                     next_done[2]))
+        return replay_memory, already_done
+
+
     # Load the predictor
     predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
 
@@ -344,21 +365,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     resume_file = args.out_weights.with_suffix('.tmp')
     if resume_file.exists():
-        eprint("Looks like there was a session in progress for these weights! Resuming")
-        q_estimator_name, *saved = \
-            torch.load(args.out_weights)
-        q_estimator.load_saved_state(*saved)
-        replay_memory = []
-        with resume_file.open('r') as f:
-            for line in f:
-                replay_memory.append(LabeledTransition.from_dict(
-                    json.loads(line)))
-        already_done = []
-        with args.out_weights.with_suffix('.done').open('r') as f:
-            for line in f:
-                next_done = json.loads(line)
-                already_done.append((Path2(next_done[0]), next_done[1],
-                                     next_done[2]))
+        replay_memory, already_done = resume(resume_file, args.out_weights)
     else:
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
