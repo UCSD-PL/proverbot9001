@@ -161,7 +161,7 @@ class PolyargQEstimator(QEstimator):
             self.fpa_metadata)
         return 128 + premise_features_size
 
-    def action_word_features_sizes(self) -> int:
+    def action_word_features_sizes(self) -> List[int]:
         return [get_num_indices(self.dataloader_args),
                 3]
 
