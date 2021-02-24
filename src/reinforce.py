@@ -29,13 +29,16 @@ import signal
 import re
 import json
 import multiprocessing
+import math
 from threading import Lock
 import sys
 import functools
 from dataclasses import dataclass
 from queue import Queue
 import queue
-from typing import List, Tuple, Iterator, Optional, cast, TYPE_CHECKING, Dict, Any
+from typing import (List, Tuple, Iterator, Optional,
+                    cast, TYPE_CHECKING, Dict, Any,
+                    TypeVar)
 if TYPE_CHECKING:
     from multiprocessing.sharedctypes import _Value
     Value = _Value
@@ -686,8 +689,9 @@ def reinforce_lemma_multithreaded(
                             predictions = predictor.predictKTactics(
                                 context_trunced, args.num_predictions)
                         if random.random() < args.exploration_factor:
-                            ordered_actions = list(random.sample(predictions,
-                                                                 len(predictions)))
+                            eprint("Picking random action",
+                                   guard=args.verbose >= 2)
+                            ordered_actions = order_by_score(predictions)
                         else:
                             with print_time("Picking actions with q_estimator",
                                             guard=args.verbose):
@@ -1020,6 +1024,41 @@ def pre_train(args: argparse.Namespace,
     estimator.train(samples, args.batch_size,
                     args.pretrain_epochs,
                     show_loss=args.show_loss)
+
+
+T = TypeVar('T')
+
+
+def index_sample_probabilities(probs: List[float]) -> int:
+    interval_val = random.random()
+    for idx, prob in enumerate(probs):
+        if interval_val < prob:
+            return idx
+        else:
+            interval_val -= prob
+    assert False, "Probs don't add up to one!"
+
+
+def sample_by_score(options: List[Tuple[T, float]],
+                    interval_val: float) \
+  -> Tuple[T, float]:
+    vals, scores = cast(Tuple[List[T], List[float]], zip(*options))
+    e_xs = [math.exp(x) for x in scores]
+    e_sum = sum(e_xs)
+    softmax_probs = [e_x / e_sum for e_x in e_xs]
+    selected_idx = index_sample_probabilities(softmax_probs)
+    return options[selected_idx]
+
+
+def order_by_score(items: List[Tuple[T, float]]) \
+  -> List[Tuple[T, float]]:
+    items_left = list(items)
+    result = []
+    for i in range(len(items)):
+        next_item = sample_by_score(items_left, random.random())
+        result.append(next_item)
+        items_left.remove(next_item)
+    return result
 
 
 def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
