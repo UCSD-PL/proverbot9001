@@ -125,7 +125,8 @@ def main() -> None:
 
     parser.add_argument("--success-repetitions", default=10, type=int)
     parser.add_argument("--careful", action='store_true')
-    parser.add_argument("--train-every", default=128, type=int)
+    parser.add_argument("--train-every-min", default=32, type=int)
+    parser.add_argument("--train-every-max", default=2048, type=int)
     parser.add_argument("--show-loss", action='store_true')
 
     args = parser.parse_args()
@@ -805,14 +806,30 @@ def reinforce_training_worker(args: argparse.Namespace,
                               lock: Lock,
                               namespace: multiprocessing.managers.Namespace,
                               samples: Queue[LabeledTransition]):
+    last_trained_at = 0
+    samples_retrieved = 0
     memory: List[LabeledTransition] = []
     while True:
-        next_sample = samples.get()
-        memory.append(next_sample)
+        if samples_retrieved - last_trained_at < args.train_every_min:
+            next_sample = samples.get()
+            memory.append(next_sample)
+            samples_retrieved += 1
+            continue
+        else:
+            try:
+                next_sample = samples.get(timeout=.01)
+                memory.append(next_sample)
+                samples_retrieved += 1
+                if samples_retrieved - last_trained_at > args.train_every_max:
+                    eprint("Forcing training", guard=args.verbose)
+                else:
+                    continue
+            except queue.Empty:
+                pass
         if len(memory) > args.buffer_max_size:
-            del memory[0:args.train_every+1]
-        if len(memory) > initial_buffer_size and \
-           (len(memory) - initial_buffer_size) % args.train_every == 0:
+            del memory[0:args.train_every_max+1]
+        if samples_retrieved - last_trained_at >= args.train_every_min:
+            last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
             with lock:
                 eprint(
