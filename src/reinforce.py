@@ -99,7 +99,7 @@ def main() -> None:
     parser.add_argument("--num-episodes", default=256, type=int)
     parser.add_argument("--episode-length", default=16, type=int)
 
-    parser.add_argument("--learning-rate", default=0.0001, type=float)
+    parser.add_argument("--learning-rate", default=0.02, type=float)
     parser.add_argument("--batch-step", default=50, type=int)
     parser.add_argument("--gamma", default=0.8, type=float)
     parser.add_argument("--exploration-factor", default=0.3, type=float)
