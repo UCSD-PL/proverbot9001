@@ -722,6 +722,7 @@ def reinforce_lemma_multithreaded(
                                 0)
                             assert transition.reward < 2000
                             samples.put(transition)
+                            episode_memory.append(transition)
                             if args.ghosts:
                                 ghost_node = graph.addGhostTransition(
                                     cur_node, transition)
@@ -743,6 +744,7 @@ def reinforce_lemma_multithreaded(
                             0)
                         assert transition.reward < 2000
                         samples.put(transition)
+                        episode_memory.append(transition)
                         if args.ghosts:
                             ghost_node = graph.addGhostTransition(cur_node,
                                                                   transition)
@@ -763,6 +765,7 @@ def reinforce_lemma_multithreaded(
             transition.graph_node = cur_node
             assert transition.reward < 2000
             samples.put(transition)
+            episode_memory.append(transition)
             proof_contexts_seen.append(proof_context_after)
 
             lemma_memory += episode_memory
