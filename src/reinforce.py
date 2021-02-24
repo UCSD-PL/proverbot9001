@@ -940,14 +940,8 @@ def assign_scores(args: argparse.Namespace,
                      for prediction in predictions])
                 estimated_future_q = \
                     args.time_discount * max(estimates)
-                estimated_current_q = q_estimator([(transition.before_context,
-                                                    transition.action,
-                                                    transition.original_certainty)])[0]
-                new_q = transition.reward + estimated_future_q \
-                    - estimated_current_q
+                new_q = transition.reward + estimated_future_q
 
-            # if transition.graph_node:
-            #     graph.setNodeApproxQScore(transition.graph_node, new_q)
             yield TacticContext(
                 transition.relevant_lemmas,
                 transition.prev_tactics,
