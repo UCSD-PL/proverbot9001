@@ -664,14 +664,15 @@ def reinforce_lemma_multithreaded(
         proof_contexts_seen = [unwrap(coq.proof_context)]
         episode_memory: List[LabeledTransition] = []
         for t in range(args.episode_length):
-            with print_time("Getting predictions", guard=args.verbose):
-                context_before = coq.tactic_context(coq.local_lemmas[:-1])
-                proof_context_before = unwrap(coq.proof_context)
-                if (demonstration and
-                        t < len(demonstration) -
-                        ((i//args.demonstration_steps)+1)):
-                    ordered_actions = [(demonstration[t], 1.0)]
-                else:
+            context_before = coq.tactic_context(coq.local_lemmas[:-1])
+            proof_context_before = unwrap(coq.proof_context)
+            if (demonstration and
+                t < len(demonstration) -
+                    ((i//args.demonstration_steps)+1)):
+                eprint("Getting demonstration", guard=args.verbose >= 2)
+                ordered_actions = [(demonstration[t], 1.0)]
+            else:
+                with print_time("Getting predictions", guard=args.verbose):
                     with lock:
                         eprint(f"Locked in thread {worker_idx}",
                                guard=args.verbose >= 2)
