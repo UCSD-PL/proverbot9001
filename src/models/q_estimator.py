@@ -28,10 +28,10 @@ from pathlib_revised import Path2
 from format import TacticContext
 
 
-
 class QEstimator(metaclass=ABCMeta):
     @abstractmethod
-    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) \
+            -> List[float]:
         pass
 
     @abstractmethod
@@ -44,6 +44,7 @@ class QEstimator(metaclass=ABCMeta):
     @abstractmethod
     def save_weights(self, filename: Path2, args: argparse.Namespace) -> None:
         pass
+
     @abstractmethod
     def load_saved_state(self, args: argparse.Namespace,
                          unparsed_args: List[str],

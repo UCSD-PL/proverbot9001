@@ -798,8 +798,8 @@ def extract_solution(args: argparse.Namespace,
             for line in proofs_file:
                 entry, sol = json.loads(line)
                 if (entry[0] == str(job_file) and
-                     entry[1] == job_module and
-                     entry[2] == job_lemma):
+                        entry[1] == job_module and
+                        entry[2] == job_lemma):
                     return [cmd["tactic"] for cmd in sol["commands"]
                             if cmd["tactic"] != "Proof."]
             else:
