@@ -340,8 +340,12 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
 
     # Load the predictor
-    predictor = predict_tactic.loadPredictorByFile(args.predictor_weights)
+    predictor = cast(features_polyarg_predictor.
+                     FeaturesPolyargPredictor,
+                     predict_tactic.loadPredictorByFile(
+                         args.predictor_weights))
 
+    q_estimator: QEstimator
     # Create an initial Q Estimator
     if args.estimator == "polyarg":
         q_estimator = PolyargQEstimator(args.learning_rate,
