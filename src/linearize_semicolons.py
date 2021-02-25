@@ -24,19 +24,19 @@ from tqdm import tqdm
 import argparse
 import re
 import sys
-import asyncio
+from pathlib_revised import Path2
 
 # This dependency is in pip, the python package manager
 from sexpdata import *
 from traceback import *
 from util import *
-from util import eprint, split_by_char_outside_matching
+from util import eprint, split_by_char_outside_matching, hash_file
 from compcert_linearizer_failures import compcert_failures
 
-import serapi_instance
-from serapi_instance import (AckError, CompletedError, CoqExn,
-                             BadResponse, TimeoutError, ParseError,
-                             NoSuchGoalError, CoqAnomaly)
+import coq_serapy as serapi_instance
+from coq_serapy import (AckError, CompletedError, CoqExn,
+                        BadResponse, TimeoutError, ParseError,
+                        NoSuchGoalError, CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
                     Union, cast)
@@ -571,7 +571,7 @@ def timeout_handler(signum, frame):
 def get_linearized(args: argparse.Namespace, coqargs: List[str],
                    bar_idx: int, filename: str) -> List[str]:
     local_filename = args.prelude + "/" + filename
-    loaded_commands = serapi_instance.try_load_lin(
+    loaded_commands = try_load_lin(
         args, bar_idx, local_filename)
     if loaded_commands is None:
         original_commands = \
@@ -596,6 +596,35 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
         return fresh_commands
     else:
         return loaded_commands
+
+
+def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
+        -> Optional[List[str]]:
+    lin_path = Path2(filename + ".lin")
+    if args.verbose:
+        eprint("Attempting to load cached linearized version from {}"
+               .format(lin_path))
+    if not lin_path.exists():
+        return None
+    try:
+        ignore_lin_hash = args.ignore_lin_hash
+    except AttributeError:
+        ignore_lin_hash = False
+
+    with lin_path.open(mode='r') as f:
+        first_line = f.readline().strip()
+        if ignore_lin_hash or hash_file(filename) == first_line:
+            return serapi_instance.read_commands(f.read())
+        else:
+            return None
+
+
+def save_lin(commands: List[str], filename: str) -> None:
+    output_file = filename + '.lin'
+    with open(output_file, 'w') as f:
+        print(hash_file(filename), file=f)
+        for command in commands:
+            print(command, file=f)
 
 
 def main():

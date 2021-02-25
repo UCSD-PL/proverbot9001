@@ -116,9 +116,8 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
         if args.linearize:
             commands = linearize_semicolons.get_linearized(args, coqargs, file_idx, filename)
         else:
-            with Path2(full_filename).open(mode='r') as vf:
-                commands = serapi_instance.read_commands_preserve(
-                    args, file_idx, vf.read())
+            commands = serapi_instance.load_commands_preserve(
+                args, file_idx, str(full_filename))
         with serapi_instance.SerapiContext(
                 coqargs,
                 serapi_instance.get_module_from_filename(filename),

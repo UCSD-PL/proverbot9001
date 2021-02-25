@@ -20,13 +20,16 @@ from pathlib_revised import Path2
 
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
-from serapi_instance import get_stem, try_load_lin, load_commands_preserve
-import serapi_instance
+from coq_serapy import get_stem, load_commands_preserve
+import coq_serapy as serapi_instance
+import linearize_semicolons
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction
 from yattag import Doc
-from format import (read_tuple, ScrapedTactic, ScrapedCommand, TacticContext,
-                    strip_scraped_output)
+from coq_serapy.contexts import (read_tuple, ScrapedTactic,
+                                 ScrapedCommand,
+                                 TacticContext,
+                                 strip_scraped_output)
 from syntax import syntax_highlight, strip_comments, ColoredString
 from util import multipartition, chunks, stringified_percent, escape_filename
 
@@ -569,7 +572,7 @@ def write_csv(output_dir : Path2, filename : Path2, args : argparse.Namespace,
 def get_file_commands(args : argparse.Namespace, file_idx : int,
                       filename : str) -> List[str]:
     local_filename = args.prelude + "/" + filename
-    loaded_commands = try_load_lin(args, file_idx, local_filename)
+    loaded_commands = linearize_semicolons.try_load_lin(args, file_idx, local_filename)
     if loaded_commands is None:
         print("Warning: this version of the reports can't linearize files! "
               "Using original commands.")

@@ -40,15 +40,15 @@ Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
 
-import serapi_instance
-from serapi_instance import (ParseError, LexError, TimeoutError,
-                             BadResponse, CoqExn, CompletedError,
-                             AckError, get_stem)
+import coq_serapy
+from coq_serapy import (ParseError, LexError, TimeoutError,
+                        BadResponse, CoqExn, CompletedError,
+                        AckError, get_stem)
 import linearize_semicolons
 import tokenizer
 
 from util import *
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from context_filter import get_context_filter
 
 from syntax import syntax_highlight, strip_comments
@@ -325,7 +325,8 @@ class Worker(threading.Thread):
     def get_commands(self, args : argparse.Namespace, file_idx : int,
                      filename : str) -> List[str]:
         local_filename = self.prelude + "/" + filename
-        loaded_commands = serapi_instance.try_load_lin(args, file_idx, local_filename)
+        loaded_commands = linearize_semicolons.try_load_lin(args, file_idx,
+                                                            local_filename)
         if loaded_commands is None:
             fresh_commands = linearize_semicolons.preprocess_file_commands(
                 args, file_idx,
