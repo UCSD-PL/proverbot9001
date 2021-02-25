@@ -326,8 +326,9 @@ class LabeledTransition:
 
 def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
-    def resume(resume_file: Path2, weights: Path2) -> Tuple[List[LabeledTransition],
-                                                            List[Job]]:
+    def resume(resume_file: Path2, weights: Path2) -> \
+      Tuple[List[LabeledTransition],
+            List[Job]]:
         eprint("Looks like there was a session in progress for these weights! "
                "Resuming")
         q_estimator_name, *saved = \
@@ -345,7 +346,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 already_done.append((next_done[0], next_done[1],
                                      next_done[2]))
         return replay_memory, already_done
-
 
     # Load the predictor
     predictor = cast(features_polyarg_predictor.
