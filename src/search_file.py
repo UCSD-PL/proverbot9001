@@ -40,11 +40,11 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
-import serapi_instance
-from serapi_instance import (ProofContext, Obligation, SerapiInstance)
+import coq_serapy as serapi_instance
+from coq_serapy import (ProofContext, Obligation, SerapiInstance)
 
 import data
-from format import TacticContext, ScrapedTactic, truncate_tactic_context
+from coq_serapy.contexts import TacticContext, ScrapedTactic, truncate_tactic_context
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import search_report

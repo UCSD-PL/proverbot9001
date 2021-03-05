@@ -30,7 +30,7 @@ import json
 import re
 
 import linearize_semicolons
-import serapi_instance
+import coq_serapy as serapi_instance
 
 from pathlib_revised import Path2
 from util import eprint, mybarfmt
