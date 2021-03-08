@@ -336,9 +336,13 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         q_estimator.load_saved_state(*saved)
         replay_memory = []
         with resume_file.open('r') as f:
-            for line in f:
-                replay_memory.append(LabeledTransition.from_dict(
-                    json.loads(line)))
+            for (idx, line) in enumerate(f, start=1):
+                try:
+                    replay_memory.append(LabeledTransition.from_dict(
+                        json.loads(line)))
+                except json.decoder.JSONDecodeError:
+                    eprint(f"Problem loading line {idx}: {line}")
+                    raise
         already_done = []
         with weights.with_suffix('.done').open('r') as f:
             for line in f:
