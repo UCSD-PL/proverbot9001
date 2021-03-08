@@ -20,7 +20,7 @@ endif
 ifneq ($(MESSAGE),)
 FLAGS+=-m "$(MESSAGE)"
 endif
-REPORT="report"
+REPORT?="report"
 WEIGHTSFILE='data/polyarg-weights.dat'
 TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
