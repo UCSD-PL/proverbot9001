@@ -720,18 +720,15 @@ def reinforce_lemma_multithreaded(
                                 proof_context_after, path_context)
                                 for path_context in proof_contexts_seen]):
                             coq.cancel_last()
-                            transition = assign_failed_reward(
-                                context_before.relevant_lemmas,
-                                context_before.prev_tactics,
-                                proof_context_before,
-                                proof_context_after,
-                                try_action,
-                                try_original_certainty,
-                                0)
-                            assert transition.reward < 2000
-                            samples.put(transition)
-                            episode_memory.append(transition)
                             if args.ghosts:
+                                transition = assign_failed_reward(
+                                    context_before.relevant_lemmas,
+                                    context_before.prev_tactics,
+                                    proof_context_before,
+                                    proof_context_after,
+                                    try_action,
+                                    try_original_certainty,
+                                    0)
                                 ghost_node = graph.addGhostTransition(
                                     cur_node, transition)
                                 transition.graph_node = ghost_node
@@ -742,18 +739,15 @@ def reinforce_lemma_multithreaded(
                     except (serapi_instance.ParseError,
                             serapi_instance.CoqExn,
                             serapi_instance.TimeoutError):
-                        transition = assign_failed_reward(
-                            context_before.relevant_lemmas,
-                            context_before.prev_tactics,
-                            proof_context_before,
-                            proof_context_before,
-                            try_action,
-                            try_original_certainty,
-                            0)
-                        assert transition.reward < 2000
-                        samples.put(transition)
-                        episode_memory.append(transition)
                         if args.ghosts:
+                            transition = assign_failed_reward(
+                                context_before.relevant_lemmas,
+                                context_before.prev_tactics,
+                                proof_context_before,
+                                proof_context_before,
+                                try_action,
+                                try_original_certainty,
+                                0)
                             ghost_node = graph.addGhostTransition(cur_node,
                                                                   transition)
                             transition.graph_node = ghost_node
@@ -761,6 +755,16 @@ def reinforce_lemma_multithreaded(
                     # We'll hit this case of we tried all of the
                     # predictions, and none worked
                     graph.setNodeColor(cur_node, "red")
+                    transition = assign_failed_reward(
+                        context_before.relevant_lemmas,
+                        context_before.prev_tactics,
+                        proof_context_before,
+                        proof_context_before,
+                        "Abort.",
+                        try_original_certainty,
+                        -25)
+                    samples.put(transition)
+                    episode_memory.append(transition)
                     break  # Break from episode
             transition = assign_reward(args,
                                        context_before.relevant_lemmas,
