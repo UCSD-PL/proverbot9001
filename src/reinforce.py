@@ -670,6 +670,7 @@ def reinforce_lemma_multithreaded(
         cur_node = graph.start_node
         proof_contexts_seen = [unwrap(coq.proof_context)]
         episode_memory: List[LabeledTransition] = []
+        reached_qed = False
         for t in range(args.episode_length):
             context_before = coq.tactic_context(coq.local_lemmas[:-1])
             proof_context_before = unwrap(coq.proof_context)
@@ -787,7 +788,23 @@ def reinforce_lemma_multithreaded(
                 for sample in (episode_memory *
                                (args.success_repetitions - 1)):
                     samples.put(sample)
+                reached_qed = True
                 break
+
+        if not reached_qed:
+            # We'll hit this case of we tried all of the
+            # predictions, and none worked
+            graph.setNodeColor(cur_node, "red")
+            transition = assign_failed_reward(
+                context_before.relevant_lemmas,
+                context_before.prev_tactics,
+                proof_context_before,
+                proof_context_before,
+                "Abort.",
+                try_original_certainty,
+                -25)
+            samples.put(transition)
+            episode_memory.append(transition)
 
         # Clean up episode
         if lemma_name:
