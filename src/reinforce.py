@@ -343,7 +343,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         with weights.with_suffix('.done').open('r') as f:
             for line in f:
                 next_done = json.loads(line)
-                already_done.append((next_done[0], next_done[1],
+                already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
         return replay_memory, already_done
 
