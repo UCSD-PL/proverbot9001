@@ -824,8 +824,7 @@ def reinforce_lemma_multithreaded(
         # Write out lemma memory to progress file for resuming
         for sample in lemma_memory:
             with args.out_weights.with_suffix('.tmp').open('a') as f:
-                f.write(json.dumps(sample.to_dict()))
-                f.write("\n")
+                f.write(json.dumps(sample.to_dict()) + "\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
     graph.assignApproximateQScores(args,
                                    predictor,
