@@ -336,7 +336,11 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         q_estimator.load_saved_state(*saved)
         replay_memory = []
         with resume_file.open('r') as f:
+            num_samples = sum(1 for _ in f)
+        with resume_file.open('r') as f:
             for (idx, line) in enumerate(f, start=1):
+                if idx < (num_samples - args.buffer_max_size):
+                    continue
                 try:
                     replay_memory.append(LabeledTransition.from_dict(
                         json.loads(line)))
