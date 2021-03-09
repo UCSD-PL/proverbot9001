@@ -337,9 +337,15 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         replay_memory = []
         with resume_file.open('r') as f:
             num_samples = sum(1 for _ in f)
+        if num_samples > args.buffer_max_size:
+            samples_to_use = random.sample(range(num_samples),
+                                           args.buffer_max_size)
+        else:
+            samples_to_use = None
         with resume_file.open('r') as f:
             for (idx, line) in enumerate(f, start=1):
-                if idx < (num_samples - args.buffer_max_size):
+                if num_samples > args.buffer_max_size and \
+                  idx not in samples_to_use:
                     continue
                 try:
                     replay_memory.append(LabeledTransition.from_dict(
@@ -862,7 +868,9 @@ def reinforce_training_worker(args: argparse.Namespace,
             except queue.Empty:
                 pass
         if len(memory) > args.buffer_max_size:
-            del memory[0:args.train_every_max+1]
+            memory = random.sample(memory, args.buffer_max_size -
+                                   args.train_every_max)
+            # del memory[0:args.train_every_max+1]
         if samples_retrieved - last_trained_at >= args.train_every_min:
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
