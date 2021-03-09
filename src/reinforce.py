@@ -274,7 +274,7 @@ class ReinforceGraph:
             self.__graph.draw(filename, prog="dot")
 
 
-Job = Tuple[str, str, str]
+Job = Tuple[Path2, str, str]
 Demonstration = List[str]
 
 
@@ -526,7 +526,7 @@ def reinforce_worker(worker_idx: int,
     while rest_commands:
         with serapi_instance.SerapiContext(["sertop", "--implicit"],
                                            serapi_instance.
-                                           get_module_from_filename(next_file),
+                                           get_module_from_filename(str(next_file)),
                                            str(args.prelude)) as coq:
             coq.quiet = True
             coq.verbose = args.verbose
