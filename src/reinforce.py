@@ -92,7 +92,7 @@ def main() -> None:
                         type=Path2)
     parser.add_argument("--estimator",
                         choices=["polyarg", "features"],
-                        default="features")
+                        default="polyarg")
 
     parser.add_argument("--start-from", default=None, type=Path2)
     parser.add_argument("--num-predictions", default=16, type=int)
