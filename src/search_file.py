@@ -229,6 +229,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--max-term-length", type=int, default=256)
+    parser.add_argument("--add-env-lemmas", type=Path2, default=None)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
     else:
@@ -881,6 +882,11 @@ def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
     eprint("Finished with prelude",
            guard=args.verbose >= 2)
 
+
+def get_lemma_declaration_from_name(coq: serapi_instance.SerapiInstance,
+                                    lemma_name: str) -> str:
+    return coq.check_term(lemma_name).replace("\n", "")
+
 # The core of the search report
 
 
@@ -893,7 +899,16 @@ def attempt_search(args: argparse.Namespace,
                    predictor: TacticPredictor,
                    predictor_lock: threading.Lock) \
         -> SearchResult:
-    result = dfs_proof_search_with_graph(lemma_statement, module_name, coq,
+    if args.add_env_lemmas:
+        with args.add_env_lemmas.open('r') as f:
+            env_lemmas = [get_lemma_declaration_from_name(coq,
+                                                          lemma_name.strip())
+                          for lemma_name in f]
+    else:
+        env_lemmas = []
+    result = dfs_proof_search_with_graph(lemma_statement, module_name,
+                                         env_lemmas,
+                                         coq,
                                          args, bar_idx, predictor,
                                          predictor_lock)
     return result
@@ -1077,6 +1092,7 @@ class TqdmSpy(tqdm):
 
 def dfs_proof_search_with_graph(lemma_statement: str,
                                 module_name: Optional[str],
+                                extra_env_lemmas: List[str],
                                 coq: serapi_instance.SerapiInstance,
                                 args: argparse.Namespace,
                                 bar_idx: int,
@@ -1089,11 +1105,11 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     g = SearchGraph(lemma_name)
 
     if args.relevant_lemmas == "local":
-        relevant_lemmas = coq.local_lemmas[:-1]
+        relevant_lemmas = coq.local_lemmas[:-1] + extra_env_lemmas
     elif args.relevant_lemmas == "hammer":
-        relevant_lemmas = coq.get_hammer_premises()
+        relevant_lemmas = coq.get_hammer_premises() + extra_env_lemmas
     elif args.relevant_lemmas == "searchabout":
-        relevant_lemmas = coq.get_lemmas_about_head()
+        relevant_lemmas = coq.get_lemmas_about_head() + extra_env_lemmas
     else:
         assert False, args.relevant_lemmas
 
