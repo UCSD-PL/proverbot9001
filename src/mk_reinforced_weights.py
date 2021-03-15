@@ -37,11 +37,12 @@ def main() -> None:
         fpa_saved
 
     q_name, *q_saved = torch.load(args.q_weights, map_location='cpu')
-    assert q_name == "features evaluator"
+    # assert q_name == "features evaluator"
     q_args, q_up_args, q_meta, q_state = q_saved
 
     with args.out_weights.open('wb') as f:
-        torch.save(("refpa", (fpa_args, fpa_up_args, (fpa_meta, q_meta),
+        torch.save(("refpa", (fpa_args, fpa_up_args,
+                              (fpa_meta, q_name, q_meta),
                               (fpa_state, q_state))),
                    f)
 

@@ -235,7 +235,7 @@ class PolyargQEstimator(QEstimator):
 
     def save_weights(self, filename: Path2, args: argparse.Namespace) -> None:
         with cast(BinaryIO, filename.open('wb')) as f:
-            torch.save(("features evaluator", args, sys.argv,
+            torch.save(("polyarg evaluator", args, sys.argv,
                         True,
                         self.model.state_dict()),
                        f)

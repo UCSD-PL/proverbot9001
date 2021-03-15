@@ -25,7 +25,8 @@ from typing import List, Tuple, Any, Dict, Optional
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from models.components import NeuralPredictorState
-from models import features_polyarg_predictor, features_q_estimator
+from models import (features_polyarg_predictor, q_estimator,
+                    features_q_estimator, polyarg_q_estimator)
 from coq_serapy.contexts import TacticContext
 
 # from util import eprint
@@ -40,7 +41,7 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
             features_polyarg_predictor.FeaturesPolyargPredictor
         ] = None
         self._estimator: Optional[
-            features_q_estimator.FeaturesQEstimator
+            q_estimator.QEstimator
         ] = None
 
     def load_saved_state(self,
@@ -48,10 +49,11 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
                          unparsed_args: List[str],
                          metadata: Tuple[
                              Any,
-                             features_q_estimator.FeaturesQMetadata],
+                             str,
+                             Any],
                          state: Tuple[NeuralPredictorState,
                                       Dict[str, Any]]) -> None:
-        fpa_meta, q_meta = metadata
+        fpa_meta, q_name, q_meta = metadata
         fpa_state, q_state = state
         self._fpa = features_polyarg_predictor.FeaturesPolyargPredictor()
         self._fpa.load_saved_state(args, unparsed_args, fpa_meta,
@@ -59,7 +61,13 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
         # The argument values here don't matter if we're not training,
         # so we set them to zero (which will hopefully break if we try
         # to train)
-        self._estimator = features_q_estimator.FeaturesQEstimator(0, 0, 0)
+        if q_name == "features evaluator":
+            self._estimator = features_q_estimator.FeaturesQEstimator(0, 0, 0)
+        elif q_name == "polyarg evaluator":
+            self._estimator = polyarg_q_estimator.PolyargQEstimator(0, 0, 0,
+                                                                    self._fpa)
+        else:
+            assert False
         self._estimator.load_saved_state(args, unparsed_args, q_meta, q_state)
 
         self.unparsed_args = unparsed_args
