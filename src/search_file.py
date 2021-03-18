@@ -182,12 +182,9 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         default=None)
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
                         action='store_false')
-    parser.add_argument("--search-width", dest="search_width", type=int,
-                        default=5)
-    parser.add_argument("--max-attempts", dest="max_attempts", type=int,
-                        default=10)
-    parser.add_argument("--search-depth", dest="search_depth", type=int,
-                        default=6)
+    parser.add_argument("--search-width", type=int, default=5)
+    parser.add_argument("--max-attempts", type=int, default=10)
+    parser.add_argument("--search-depth", type=int, default=6)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=200)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
