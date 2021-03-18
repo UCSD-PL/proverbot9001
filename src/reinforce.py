@@ -163,15 +163,17 @@ class LabeledNode:
 
 
 class ReinforceGraph:
-    __graph: pgv.AGraph
     __next_node_id: int
     start_node: LabeledNode
     lemma_name: str
+    graph_nodes: List[Tuple[int, Dict[str, str]]]
+    graph_edges: List[Tuple[int, int, Dict[str, str]]]
 
     def __init__(self, lemma_name: str) -> None:
-        self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.lemma_name = lemma_name
+        self.graph_nodes = []
+        self.graph_edges = []
         self.start_node = self.mkNode(None, None)
         pass
 
@@ -201,24 +203,27 @@ class ReinforceGraph:
                 color = "indianred1"
             else:
                 color = "white"
-            self.__graph.add_node(self.__next_node_id,
-                                  label=transition.action,
-                                  fillcolor=color, style="filled",
-                                  **kwargs)
+            self.graph_nodes.append((self.__next_node_id,
+                                     {"label": transition.action,
+                                      "fillcolor": color,
+                                      "style": "filled",
+                                      **kwargs}))
         elif transition:
-            self.__graph.add_node(self.__next_node_id,
-                                  label=transition.action)
+            self.graph_nodes.append((self.__next_node_id,
+                                     {"label": transition.action,
+                                      **kwargs}))
         else:
-            self.__graph.add_node(self.__next_node_id,
-                                  label=self.lemma_name)
+            self.graph_nodes.append((self.__next_node_id,
+                                     {"label": self.lemma_name,
+                                      **kwargs}))
         self.__next_node_id += 1
         newNode = LabeledNode(self.__next_node_id-1,
                               transition,
                               previous_node, [])
         if previous_node:
             assert transition
-            self.__graph.add_edge(previous_node.node_id, newNode.node_id,
-                                  label=f"{transition.reward:.2f}", **kwargs)
+            self.graph_edges.append((previous_node.node_id, newNode.node_id,
+                                     {"label": f"{transition.reward:.2f}"}))
             previous_node.children.append(newNode)
         return newNode
 
@@ -226,9 +231,9 @@ class ReinforceGraph:
         for existing_node in src.children:
             if existing_node.transition is None:
                 return
-        self.__graph.add_node(self.__next_node_id,
-                              label="QED")
-        self.__graph.add_edge(src.node_id, self.__next_node_id)
+        self.graph_nodes.append((self.__next_node_id,
+                                 {"label": "QED"}))
+        self.graph_edges.append((src.node_id, self.__next_node_id, {}))
         newNode = LabeledNode(self.__next_node_id,
                               None, src, [])
         src.children.append(newNode)
@@ -241,17 +246,22 @@ class ReinforceGraph:
         pass
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
-        node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["fillcolor"] = color
-        node_handle.attr["style"] = "filled"
+        for (nidx, props) in self.graph_nodes:
+            if nidx == node.node_id:
+                props["fillcolor"] = color
+                props["style"] = "filled"
+                continue
 
     def setNodeOutlineColor(self, node: LabeledNode, color: str) -> None:
-        node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["color"] = color
+        for (nidx, props) in self.graph_nodes:
+            if nidx == node.node_id:
+                props["color"] = color
+                continue
 
     def setNodeApproxQScore(self, node: LabeledNode, score: float) -> None:
-        node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["label"] = f"{node.action} (~{score:.2f})"
+        for (nidx, props) in self.graph_nodes:
+            if nidx == node.node_id:
+                props["label"] = f"{node.action} (~{score:.2f})"
 
     def assignApproximateQScores(self, args: argparse.Namespace,
                                  predictor: tactic_predictor.TacticPredictor,
@@ -270,8 +280,13 @@ class ReinforceGraph:
                 args, predictor, estimator, child)
 
     def draw(self, filename: str) -> None:
+        graph = pgv.AGraph(directed=True)
+        for (nidx, props) in self.graph_nodes:
+            graph.add_node(nidx, **props)
+        for (a, b, props) in self.graph_edges:
+            graph.add_edge(a, b, **props)
         with nostderr():
-            self.__graph.draw(filename, prog="dot")
+            graph.draw(filename, prog="dot")
 
 
 Job = Tuple[Path2, str, str]
@@ -431,6 +446,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     jobs: Queue[Tuple[Job, Optional[Demonstration]]] = ctxt.Queue()
     done: Queue[Job] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
+    graphs: Queue[Tuple[str, ReinforceGraph]] = ctxt.Queue()
 
     for sample in replay_memory:
         samples.put(sample)
@@ -486,6 +502,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                   lock,
                   ns,
                   samples,
+                  graphs,
                   jobs,
                   done))
                    for widx in range(min(args.num_threads, len(all_jobs)))]
@@ -512,12 +529,19 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         args.out_weights.with_suffix('.done').unlink()
         training_worker.kill()
 
+        while not graphs.empty():
+            graphpath, graph = graphs.get()
+            graph.assignApproximateQScores(args, predictor,
+                                           q_estimator)
+            graph.draw(graphpath)
+
 
 def reinforce_worker(worker_idx: int,
                      args: argparse.Namespace,
                      lock: Lock,
                      namespace: multiprocessing.managers.Namespace,
                      samples: Queue[LabeledTransition],
+                     graphs: Queue[Tuple[str, ReinforceGraph]],
                      jobs: Queue[Tuple[Job, Optional[Demonstration]]],
                      done: Queue[Job]):
 
@@ -566,6 +590,7 @@ def reinforce_worker(worker_idx: int,
                                                       lock, namespace,
                                                       worker_idx,
                                                       samples,
+                                                      graphs,
                                                       next_lemma,
                                                       next_module,
                                                       demonstration)
@@ -672,6 +697,7 @@ def reinforce_lemma_multithreaded(
         namespace: multiprocessing.managers.Namespace,
         worker_idx: int,
         samples: Queue[LabeledTransition],
+        graphs: Queue[Tuple[str, ReinforceGraph]],
         lemma_statement: str,
         _module_prefix: str,
         demonstration: Optional[Demonstration]):
@@ -836,10 +862,7 @@ def reinforce_lemma_multithreaded(
             with args.out_weights.with_suffix('.tmp').open('a') as f:
                 f.write(json.dumps(sample.to_dict()) + "\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
-    graph.assignApproximateQScores(args,
-                                   predictor,
-                                   estimator)
-    graph.draw(str(graphpath))
+    graphs.put((str(graphpath), graph))
 
 
 def reinforce_training_worker(args: argparse.Namespace,
