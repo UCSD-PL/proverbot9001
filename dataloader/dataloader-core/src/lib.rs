@@ -251,7 +251,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     }
     #[pyfn(m, "get_num_indices")]
     fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
-        let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        indexer.freeze();
         indexer.num_indices()
     }
     #[pyfn(m, "get_word_feature_vocab_sizes")]
