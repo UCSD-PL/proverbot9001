@@ -182,6 +182,7 @@ class ReinforceGraph:
         for child in src.children:
             if child.action == transition.action:
                 assert child.reward == transition.reward
+                child.transition = transition
                 return child
         return self.mkNode(transition, src, **kwargs)
 
