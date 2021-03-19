@@ -715,6 +715,8 @@ def reinforce_lemma_multithreaded(
         for t in range(args.episode_length):
             context_before = coq.tactic_context(coq.local_lemmas[:-1])
             proof_context_before = unwrap(coq.proof_context)
+            context_trunced = truncate_tactic_context(
+                context_before, args.max_term_length)
             if (demonstration and
                 t < len(demonstration) -
                     ((i//args.demonstration_steps)+1)):
@@ -729,8 +731,6 @@ def reinforce_lemma_multithreaded(
                         estimator = namespace.estimator
                         with print_time("Making predictions",
                                         guard=args.verbose >= 3):
-                            context_trunced = truncate_tactic_context(
-                                context_before, args.max_term_length)
                             predictions = predictor.predictKTactics(
                                 context_trunced, args.num_predictions)
                         if random.random() < args.exploration_factor:
@@ -741,7 +741,7 @@ def reinforce_lemma_multithreaded(
                             with print_time("Picking actions with q_estimator",
                                             guard=args.verbose):
                                 q_choices = zip(estimator(
-                                    [(context_before,
+                                    [(context_trunced,
                                       p.prediction, p.certainty)
                                      for p in predictions]),
                                                 predictions)
@@ -764,8 +764,8 @@ def reinforce_lemma_multithreaded(
                             coq.cancel_last()
                             if args.ghosts:
                                 transition = assign_failed_reward(
-                                    context_before.relevant_lemmas,
-                                    context_before.prev_tactics,
+                                    context_trunced.relevant_lemmas,
+                                    context_trunced.prev_tactics,
                                     proof_context_before,
                                     proof_context_after,
                                     try_action,
@@ -783,8 +783,8 @@ def reinforce_lemma_multithreaded(
                             serapi_instance.TimeoutError):
                         if args.ghosts:
                             transition = assign_failed_reward(
-                                context_before.relevant_lemmas,
-                                context_before.prev_tactics,
+                                context_trunced.relevant_lemmas,
+                                context_trunced.prev_tactics,
                                 proof_context_before,
                                 proof_context_before,
                                 try_action,
@@ -798,8 +798,8 @@ def reinforce_lemma_multithreaded(
                     # predictions, and none worked
                     graph.setNodeColor(cur_node, "red")
                     transition = assign_failed_reward(
-                        context_before.relevant_lemmas,
-                        context_before.prev_tactics,
+                        context_trunced.relevant_lemmas,
+                        context_trunced.prev_tactics,
                         proof_context_before,
                         proof_context_before,
                         "Abort.",
@@ -809,8 +809,8 @@ def reinforce_lemma_multithreaded(
                     episode_memory.append(transition)
                     break  # Break from episode
             transition = assign_reward(args,
-                                       context_before.relevant_lemmas,
-                                       context_before.prev_tactics,
+                                       context_trunced.relevant_lemmas,
+                                       context_trunced.prev_tactics,
                                        proof_context_before,
                                        proof_context_after,
                                        action,
@@ -837,8 +837,8 @@ def reinforce_lemma_multithreaded(
             # predictions, and none worked
             graph.setNodeColor(cur_node, "red")
             transition = assign_failed_reward(
-                context_before.relevant_lemmas,
-                context_before.prev_tactics,
+                context_trunced.relevant_lemmas,
+                context_trunced.prev_tactics,
                 proof_context_before,
                 proof_context_before,
                 "Abort.",
@@ -1034,7 +1034,10 @@ def assign_scores(args: argparse.Namespace,
                                 contexts_trunced,
                                 args.num_predictions)
         for transition, predictions in zip(transitions, prediction_lists):
-            tactic_ctxt = transition.after_context
+            tactic_ctxt = truncate_tactic_context(transition.after_context,
+                                                  args.max_term_length)
+            before_ctxt = truncate_tactic_context(transition.before_context,
+                                                  args.max_term_length)
 
             if len(transition.after.all_goals) == 0:
                 new_q = transition.reward
@@ -1049,8 +1052,8 @@ def assign_scores(args: argparse.Namespace,
             yield TacticContext(
                 transition.relevant_lemmas,
                 transition.prev_tactics,
-                transition.before.focused_hyps,
-                transition.before.focused_goal), \
+                before_ctxt.hypotheses,
+                before_ctxt.goal), \
                 transition.action, transition.original_certainty, new_q
     return list(generate())
 
