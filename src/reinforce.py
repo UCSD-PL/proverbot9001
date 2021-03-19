@@ -271,11 +271,14 @@ class ReinforceGraph:
         if node is None:
             node = self.start_node
         elif node.transition:
+            ctxt = truncate_tactic_context(
+                node.transition.before_context,
+                args.max_term_length)
+            score = estimator([(ctxt,
+                                node.transition.action,
+                                node.transition.original_certainty)])[0]
             self.setNodeApproxQScore(
-                node,
-                assign_scores(args, [unwrap(node.transition)],
-                              estimator,
-                              predictor)[0][3])
+                node, score)
         for child in node.children:
             self.assignApproximateQScores(
                 args, predictor, estimator, child)
