@@ -328,6 +328,7 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int) -> None:
     sys.setrecursionlimit(100000)
     util.use_cuda = False
+    axioms_already_added = False
 
     failing_lemma = ""
     try:
@@ -369,7 +370,8 @@ def search_file_worker(args: argparse.Namespace,
                     raise
                 lemma_statement = run_commands[-1]
                 if lemma_statement == next_lemma:
-                    if args.add_axioms:
+                    if args.add_axioms and not axioms_already_added:
+                        axioms_already_added = True
                         coq.cancel_last()
                         with args.add_axioms.open('r') as f:
                             for signature in f:
