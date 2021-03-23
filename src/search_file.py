@@ -227,6 +227,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--max-term-length", type=int, default=256)
     parser.add_argument("--add-env-lemmas", type=Path2, default=None)
+    parser.add_argument("--add-axioms", type=Path2, default=None)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
     else:
@@ -368,6 +369,19 @@ def search_file_worker(args: argparse.Namespace,
                     raise
                 lemma_statement = run_commands[-1]
                 if lemma_statement == next_lemma:
+                    if args.add_axioms:
+                        coq.cancel_last()
+                        with args.add_axioms.open('r') as f:
+                            for signature in f:
+                                try:
+                                    coq.run_stmt(signature)
+                                    coq.run_stmt("Admitted.")
+                                except CoqExn:
+                                    axiom_name = coq_serapy.lemma_name_from_statement(
+                                        signature)
+                                    eprint(f"Couldn't declare axiom {axiom_name} "
+                                           f"at this point in the proof")
+                        coq.run_stmt(lemma_statement)
                     initial_context = coq.proof_context
                     empty_context = ProofContext([], [], [], [])
                     try:
