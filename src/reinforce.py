@@ -448,9 +448,8 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     ctxt = tmp.get_context('spawn')
     jobs: Queue[Tuple[Job, Optional[Demonstration]]] = ctxt.Queue()
-    done: Queue[Job] = ctxt.Queue()
+    done: Queue[Tuple[Job, Tuple[str, ReinforceGraph]]] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
-    graphs: Queue[Tuple[str, ReinforceGraph]] = ctxt.Queue()
 
     for sample in replay_memory:
         samples.put(sample)
@@ -506,7 +505,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                   lock,
                   ns,
                   samples,
-                  graphs,
                   jobs,
                   done))
                    for widx in range(min(args.num_threads, len(all_jobs)))]
@@ -514,30 +512,31 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         for worker in workers:
             worker.start()
 
+        graphs_done: List[Tuple[str, ReinforceGraph]] = []
         with tqdm(total=len(all_jobs) + len(already_done),
                   dynamic_ncols=True) as bar:
             bar.update(len(already_done))
             bar.refresh()
             for _ in range(len(all_jobs)):
-                done_job = done.get()
+                done_job, graph_job = done.get()
+                if graph_job:
+                    graphs_done.append(graph_job)
                 bar.update()
                 with args.out_weights.with_suffix(".done").open('a') as f:
                     f.write(json.dumps((str(done_job[0]),
                                         done_job[1],
                                         done_job[2])))
-                    f.write("\n")
-
         for worker in workers:
-            worker.join()
-        args.out_weights.with_suffix('.tmp').unlink()
-        args.out_weights.with_suffix('.done').unlink()
+            worker.kill()
         training_worker.kill()
 
-        while not graphs.empty():
-            graphpath, graph = graphs.get()
+        for graphpath, graph in graphs_done:
             graph.assignApproximateQScores(args, predictor,
                                            q_estimator)
             graph.draw(graphpath)
+
+        args.out_weights.with_suffix('.tmp').unlink()
+        args.out_weights.with_suffix('.done').unlink()
 
 
 def reinforce_worker(worker_idx: int,
@@ -545,9 +544,10 @@ def reinforce_worker(worker_idx: int,
                      lock: Lock,
                      namespace: multiprocessing.managers.Namespace,
                      samples: Queue[LabeledTransition],
-                     graphs: Queue[Tuple[str, ReinforceGraph]],
                      jobs: Queue[Tuple[Job, Optional[Demonstration]]],
-                     done: Queue[Job]):
+                     done: Queue[Tuple[Job,
+                                       Optional[Tuple[str,
+                                                      ReinforceGraph]]]]):
 
     sys.setrecursionlimit(100000)
     failing_lemma = ""
@@ -590,21 +590,22 @@ def reinforce_worker(worker_idx: int,
                 lemma_statement = run_commands[-1]
                 if lemma_statement == next_lemma:
                     try:
-                        reinforce_lemma_multithreaded(args, coq,
-                                                      lock, namespace,
-                                                      worker_idx,
-                                                      samples,
-                                                      graphs,
-                                                      next_lemma,
-                                                      next_module,
-                                                      demonstration)
+                        graph_job = \
+                          reinforce_lemma_multithreaded(args, coq,
+                                                        lock, namespace,
+                                                        worker_idx,
+                                                        samples,
+                                                        next_lemma,
+                                                        next_module,
+                                                        demonstration)
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
                         if failing_lemma == lemma_statement:
                             eprint("Hit the same anomaly twice! Skipping",
                                    guard=args.verbose >= 1)
-                            done.put((next_file, next_module, next_lemma))
+                            done.put(((next_file, next_module, next_lemma),
+                                      None))
 
                             try:
                                 (new_file, next_module, next_lemma), \
@@ -636,7 +637,8 @@ def reinforce_worker(worker_idx: int,
                     while not serapi_instance.ending_proof(rest_commands[0]):
                         rest_commands = rest_commands[1:]
                     rest_commands = rest_commands[1:]
-                    done.put((next_file, next_module, next_lemma))
+                    done.put(((next_file, next_module, next_lemma),
+                              graph_job))
                     try:
                         (new_file, next_module, next_lemma), demonstration = \
                           jobs.get_nowait()
@@ -701,10 +703,9 @@ def reinforce_lemma_multithreaded(
         namespace: multiprocessing.managers.Namespace,
         worker_idx: int,
         samples: Queue[LabeledTransition],
-        graphs: Queue[Tuple[str, ReinforceGraph]],
         lemma_statement: str,
         _module_prefix: str,
-        demonstration: Optional[Demonstration]):
+        demonstration: Optional[Demonstration]) -> Tuple[str, ReinforceGraph]:
 
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     graph = ReinforceGraph(lemma_name)
@@ -866,7 +867,7 @@ def reinforce_lemma_multithreaded(
             with args.out_weights.with_suffix('.tmp').open('a') as f:
                 f.write(json.dumps(sample.to_dict()) + "\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
-    graphs.put((str(graphpath), graph))
+    return str(graphpath), graph
 
 
 def reinforce_training_worker(args: argparse.Namespace,
