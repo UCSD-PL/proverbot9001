@@ -727,7 +727,7 @@ def reinforce_lemma_multithreaded(
                 eprint("Getting demonstration", guard=args.verbose >= 2)
                 ordered_actions = [(demonstration[t], 1.0)]
             else:
-                with print_time("Getting predictions", guard=args.verbose):
+                with print_time("Getting predictions", guard=args.verbose >= 2):
                     with lock:
                         eprint(f"Locked in thread {worker_idx}",
                                guard=args.verbose >= 2)
@@ -743,7 +743,7 @@ def reinforce_lemma_multithreaded(
                             ordered_actions = order_by_score(predictions)
                         else:
                             with print_time("Picking actions with q_estimator",
-                                            guard=args.verbose):
+                                            guard=args.verbose >= 2):
                                 q_choices = zip(estimator(
                                     [(context_trunced,
                                       p.prediction, p.certainty)
@@ -755,7 +755,7 @@ def reinforce_lemma_multithreaded(
                                                           reverse=True)]
                     eprint(f"Unlocked in thread {worker_idx}",
                            guard=args.verbose >= 2)
-            with print_time("Running actions", guard=args.verbose):
+            with print_time("Running actions", guard=args.verbose >= 2):
                 action = None
                 original_certainty = None
                 for try_action, try_original_certainty in ordered_actions:
@@ -890,7 +890,7 @@ def reinforce_training_worker(args: argparse.Namespace,
                 memory.append(next_sample)
                 samples_retrieved += 1
                 if samples_retrieved - last_trained_at > args.train_every_max:
-                    eprint("Forcing training", guard=args.verbose)
+                    eprint("Forcing training", guard=args.verbose >= 2)
                 else:
                     continue
             except queue.Empty:
@@ -908,12 +908,12 @@ def reinforce_training_worker(args: argparse.Namespace,
                     guard=args.verbose >= 2)
                 q_estimator = namespace.estimator
                 predictor = namespace.predictor
-                with print_time("Assigning scores", guard=args.verbose):
+                with print_time("Assigning scores", guard=args.verbose >= 2):
                     training_samples = assign_scores(args,
                                                      transition_samples,
                                                      q_estimator,
                                                      predictor)
-                with print_time("Training", guard=args.verbose):
+                with print_time("Training", guard=args.verbose >= 2):
                     q_estimator.train(training_samples)
                 q_estimator.save_weights(args.out_weights, args)
                 eprint("Unlocked in training thread",
