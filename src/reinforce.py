@@ -1094,7 +1094,7 @@ def pre_train(args: argparse.Namespace,
 
             random_certainty = random.random()
             yield (context, transition.tactic,
-                   random_certainty, random_certainty)
+                   random_certainty, random_certainty * 50)
 
     samples = list(gen_samples())
     estimator.train(samples, args.batch_size,
