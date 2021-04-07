@@ -36,7 +36,7 @@ import sys
 from pathlib_revised import Path2
 
 from typing import (Dict, List, Tuple, cast, BinaryIO, TypeVar, Any,
-                    Optional, Iterable, Sequence)
+                    Optional, Sequence)
 
 
 FeaturesQMetadata = Tuple[Dict[str, int], Dict[str, int]]
@@ -90,7 +90,7 @@ class FeaturesQEstimator(QEstimator):
                              zip(encoded_actions, state_word_features)]
         expected_outputs = [output for _, _, certainty, output in samples]
         if batch_size:
-            batches: Iterable[Sequence[torch.Tensor]] = data.DataLoader(
+            batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
                 data.TensorDataset(
                     torch.LongTensor(all_word_features),
                     torch.FloatTensor(vec_features),
