@@ -920,6 +920,7 @@ def reinforce_training_worker(args: argparse.Namespace,
                 with print_time("Training", guard=args.verbose >= 2):
                     q_estimator.train(training_samples)
                 q_estimator.save_weights(args.out_weights, args)
+                namespace.estimator = q_estimator
                 eprint("Unlocked in training thread",
                        guard=args.verbose >= 2)
 
