@@ -725,7 +725,11 @@ def reinforce_lemma_multithreaded(
                 t < len(demonstration) -
                     ((i//args.demonstration_steps)+1)):
                 eprint("Getting demonstration", guard=args.verbose >= 2)
-                ordered_actions = [(demonstration[t], 1.0)]
+                ordered_actions = [(demonstration[t],
+                                    certainty_of(namespace.predictor,
+                                                 args.num_predictions * 2,
+                                                 context_trunced,
+                                                 demonstration[t]))]
             else:
                 with print_time("Getting predictions", guard=args.verbose >= 2):
                     with lock:
