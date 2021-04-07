@@ -918,7 +918,8 @@ def reinforce_training_worker(args: argparse.Namespace,
                                                      q_estimator,
                                                      predictor)
                 with print_time("Training", guard=args.verbose >= 2):
-                    q_estimator.train(training_samples)
+                    q_estimator.train(training_samples,
+                                      show_loss=args.show_loss)
                 q_estimator.save_weights(args.out_weights, args)
                 namespace.estimator = q_estimator
                 eprint("Unlocked in training thread",
