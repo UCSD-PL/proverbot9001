@@ -167,6 +167,7 @@ class DNNScorer(nn.Module):
         for i in range(self.num_layers - 2):
             layer_values = F.relu(layer_values)
             layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+        layer_values = F.relu(layer_values)
         return self.out_layer(layer_values)
 
     def print_weights(self) -> None:
