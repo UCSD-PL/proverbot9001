@@ -509,7 +509,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
 
         yield NeuralPredictorState(epoch,
                                    epoch_loss / num_batches,
-        model.state_dict())
+                                   model.state_dict())
 
 def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
     -> Tuple[Embedding, StrictEmbeddedDataset]:
