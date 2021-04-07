@@ -395,7 +395,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                                         predictor)
     else:
         q_estimator = FeaturesQEstimator(args.learning_rate,
-                                         args.batch_size,
+                                         args.batch_step,
                                          args.gamma)
     # This sets up a handler so that if the user hits Ctrl-C, we save
     # the weights as we have them and exit.
