@@ -57,6 +57,7 @@ class FeaturesQEstimator(QEstimator):
         self.criterion = nn.MSELoss()
         self.tactic_map: Dict[str, int] = {}
         self.token_map: Dict[str, int] = {}
+        self.total_batches = 0
         pass
 
     def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
@@ -116,8 +117,14 @@ class FeaturesQEstimator(QEstimator):
                 loss.backward()
                 self.optimizer.step()
                 self.adjuster.step()
+                self.total_batches += 1
                 epoch_loss += loss.item()
                 eprint(epoch_loss / len(batches),
+                       guard=show_loss and epoch % 10 == 0
+                       and idx == len(batches) - 1)
+                eprint("Batch {}: Learning rate {:.12f}".format(
+                    self.total_batches,
+                    self.optimizer.param_groups[0]['lr']),
                        guard=show_loss and epoch % 10 == 0
                        and idx == len(batches) - 1)
 
