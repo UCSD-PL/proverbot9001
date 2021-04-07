@@ -283,6 +283,42 @@ class ReinforceGraph:
             self.assignApproximateQScores(
                 args, predictor, estimator, child)
 
+    def save(self, filename: str) -> None:
+        def node_to_dict(node: LabeledNode):
+            return {"id": node.node_id,
+                    "transition": node.transition.to_dict()
+                    if node.transition else None,
+                    "children": [node_to_dict(child) for child in
+                                 node.children]}
+
+        with open(filename, 'w') as f:
+            json.dump({"nodes": self.graph_nodes,
+                       "edges": self.graph_edges,
+                       "lemma": self.lemma_name,
+                       "data": node_to_dict(self.start_node)},
+                      f)
+
+    @classmethod
+    def load(cls, filename: str) -> ReinforceGraph:
+        def node_from_dict(d: Dict[str, Any],
+                           parent: Optional[LabeledNode] = None):
+            node = LabeledNode(d["id"],
+                               LabeledTransition.from_dict(d["transition"])
+                               if d["transition"] else None,
+                               parent,
+                               [])
+            node.children = [node_from_dict(child, parent=node)
+                             for child in d["children"]]
+            return node
+
+        with open(filename, 'r') as f:
+            d = json.load(f)
+        graph = ReinforceGraph(d["lemma"])
+        graph.graph_nodes = d["nodes"]
+        graph.graph_edges = d["edges"]
+        graph.start_node = node_from_dict(d["data"])
+        return graph
+
     def draw(self, filename: str) -> None:
         graph = pgv.AGraph(directed=True)
         for (nidx, props) in self.graph_nodes:
@@ -347,7 +383,8 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     def resume(resume_file: Path2, weights: Path2) -> \
       Tuple[List[LabeledTransition],
-            List[Job]]:
+            List[Job],
+            List[Tuple[str, ReinforceGraph]]]:
         eprint("Looks like there was a session in progress for these weights! "
                "Resuming")
         q_estimator_name, *saved = \
@@ -373,12 +410,17 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                     eprint(f"Problem loading line {idx}: {line}")
                     raise
         already_done = []
+        graphs_done = []
         with weights.with_suffix('.done').open('r') as f:
             for line in f:
                 next_done = json.loads(line)
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
-        return replay_memory, already_done
+                graphpath = (args.graphs_dir / next_done[1])\
+                    .with_suffix(".png")
+                graph = ReinforceGraph.load(graphpath + ".json")
+                graphs_done.append((graphpath, graph))
+        return replay_memory, already_done, graphs_done
 
     # Load the predictor
     predictor = cast(features_polyarg_predictor.
@@ -409,7 +451,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     resume_file = args.out_weights.with_suffix('.tmp')
     if resume_file.exists():
-        replay_memory, already_done = resume(resume_file, args.out_weights)
+        replay_memory, already_done, graphs_done = resume(resume_file, args.out_weights)
     else:
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
@@ -512,7 +554,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         for worker in workers:
             worker.start()
 
-        graphs_done: List[Tuple[str, ReinforceGraph]] = []
         with tqdm(total=len(all_jobs) + len(already_done),
                   dynamic_ncols=True) as bar:
             bar.update(len(already_done))
@@ -598,6 +639,8 @@ def reinforce_worker(worker_idx: int,
                                                         next_lemma,
                                                         next_module,
                                                         demonstration)
+                        graphpath, graph = graph_job
+                        graph.draw(graphpath + ".json")
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
