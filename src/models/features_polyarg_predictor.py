@@ -544,7 +544,7 @@ class FeaturesPolyargPredictor(
                                                predicted_arg_idxs):
             if stem_idx_idx == prediction_stem_idx and \
                arg_idx == prediction_arg_idx:
-                return prob.item()
+                return math.exp(prob.item())
 
         assert False, "Shouldn't be able to get here"
 
