@@ -81,7 +81,6 @@ class FeaturesQEstimator(QEstimator):
               show_loss: bool = False) -> None:
         for context, action, certainty, score in samples:
             assert score != float("-Inf") and score != float("Inf") and score == score
-        self.optimizer.zero_grad()
         state_word_features, vec_features = zip(*[self._features(state, certainty)
                                                   for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
