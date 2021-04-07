@@ -1051,6 +1051,7 @@ def assign_scores(args: argparse.Namespace,
 
             if len(transition.after.all_goals) == 0:
                 new_q = transition.reward
+                assert new_q == 50
             else:
                 estimates = q_estimator(
                     [(tactic_ctxt, prediction.prediction, prediction.certainty)
