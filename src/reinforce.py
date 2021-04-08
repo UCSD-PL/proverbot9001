@@ -154,7 +154,8 @@ Demonstration = List[str]
 
 def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
-    def resume(resume_file: Path2, weights: Path2) -> \
+    def resume(resume_file: Path2, weights: Path2,
+               q_estimator: QEstimator) -> \
       Tuple[List[LabeledTransition],
             List[Job],
             List[Tuple[str, ReinforceGraph]]]:
@@ -224,7 +225,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     resume_file = args.out_weights.with_suffix('.tmp')
     if resume_file.exists():
-        replay_memory, already_done, graphs_done = resume(resume_file, args.out_weights)
+        replay_memory, already_done, graphs_done = resume(resume_file,
+                                                          args.out_weights,
+                                                          q_estimator)
     else:
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
