@@ -111,7 +111,7 @@ def main() -> None:
     parser.add_argument("--exploration-factor", default=0.3, type=float)
     parser.add_argument("--time-discount", default=0.9, type=float)
 
-    parser.add_argument("--max-term-length", default=512, type=float)
+    parser.add_argument("--max-term-length", default=512, type=int)
 
     parser.add_argument("--pretrain-epochs", default=10, type=int)
     parser.add_argument("--no-pretrain", action='store_false',
