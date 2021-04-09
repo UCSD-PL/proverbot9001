@@ -29,7 +29,7 @@ from typing import (List, Optional, Dict, Any, Tuple, cast)
 import pygraphviz as pgv
 import torch
 
-from util import unwrap
+from util import unwrap, nostderr
 from coq_serapy.contexts import (TacticContext, ProofContext,
                                  truncate_tactic_context)
 import predict_tactic
@@ -245,8 +245,8 @@ class ReinforceGraph:
             graph.add_node(nidx, **props)
         for (a, b, props) in self.graph_edges:
             graph.add_edge(a, b, **props)
-        # with nostderr():
-        graph.draw(filename, prog="dot")
+        with nostderr():
+            graph.draw(filename, prog="dot")
 
 
 def assignApproximateQScores(graph: ReinforceGraph,
