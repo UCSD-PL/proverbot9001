@@ -229,6 +229,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                                                           args.out_weights,
                                                           q_estimator)
     else:
+        graphs_done = []
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
         # predictor certainty" value for use as a feature.
