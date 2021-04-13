@@ -5,7 +5,7 @@ import torch.utils.data as data
 from util import maybe_cuda, eprint
 
 import predict_tactic
-from models import features_polyarg_predictor 
+from models import features_polyarg_predictor
 from pathlib_revised import Path2
 from typing import (cast, Sequence)
 from rgraph import LabeledTransition
@@ -13,6 +13,7 @@ from rgraph import LabeledTransition
 from models.features_q_estimator import FeaturesQEstimator
 # from models.q_estimator import QEstimator
 from reinforce import assign_scores
+
 
 def supervised_q(args: argparse.Namespace) -> None:
     replay_memory = []
