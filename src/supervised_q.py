@@ -49,6 +49,7 @@ def supervised_q(args: argparse.Namespace) -> None:
             q_estimator_name
         q_estimator.load_saved_state(*saved)
 
+    training_start = time.time()
     with print_time("Assigning scores"):
         training_samples = assign_scores(args,
                                          q_estimator,
@@ -56,7 +57,6 @@ def supervised_q(args: argparse.Namespace) -> None:
                                          replay_memory)
     input_tensors = q_estimator.get_input_tensors(training_samples)
 
-    training_start = time.time()
     for epoch in range(1, args.num_epochs+1):
         scores = torch.FloatTensor([score for _, _, _, score
                                     in training_samples])
