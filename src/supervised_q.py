@@ -92,11 +92,11 @@ def main():
     parser.add_argument("--batch-size", default=32, type=int)
     parser.add_argument("--num-epochs", default=256, type=int)
     parser.add_argument("--predictor-weights",
-                    default=Path2("data/polyarg-weights.dat"),
-                    type=Path2)
+                        default=Path2("data/polyarg-weights.dat"),
+                        type=Path2)
     parser.add_argument("--estimator",
-                    choices=["polyarg", "features"],
-                    default="polyarg")
+                        choices=["polyarg", "features"],
+                        default="polyarg")
     parser.add_argument("--show-loss", action='store_true')
     parser.add_argument("--max-tuples", default=None, type=int)
 
