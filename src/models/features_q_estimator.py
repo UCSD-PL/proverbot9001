@@ -89,7 +89,8 @@ class FeaturesQEstimator(QEstimator):
                            for state, action, _, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in
                              zip(encoded_actions, state_word_features)]
-        return torch.LongTensor(all_word_features), torch.FloatTensor(vec_features)
+        return [torch.LongTensor(all_word_features),
+                torch.FloatTensor(vec_features)]
 
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,
