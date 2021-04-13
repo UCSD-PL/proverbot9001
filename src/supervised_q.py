@@ -12,9 +12,9 @@ from models import features_polyarg_predictor
 from pathlib_revised import Path2
 from typing import (cast, Sequence)
 from rgraph import LabeledTransition
-from models.polyarg_q_estimator import PolyargQEstimator
+# from models.polyarg_q_estimator import PolyargQEstimator
 from models.features_q_estimator import FeaturesQEstimator
-from models.q_estimator import QEstimator
+# from models.q_estimator import QEstimator
 from reinforce import assign_scores
 
 def supervised_q(args: argparse.Namespace) -> None:
@@ -29,18 +29,17 @@ def supervised_q(args: argparse.Namespace) -> None:
                      predict_tactic.loadPredictorByFile(
                          args.predictor_weights))
 
-    q_estimator: QEstimator
+    # q_estimator: QEstimator
     # Create an initial Q Estimator
-    if args.estimator == "polyarg":
-        q_estimator = PolyargQEstimator(args.learning_rate,
-                                        args.batch_step,
-                                        args.gamma,
-                                        predictor)
-    else:
-        q_estimator = FeaturesQEstimator(args.learning_rate,
-                                         args.batch_step,
-                                         args.gamma)
-    input_tensors = q_estimator.get_input_tensors()
+    # if args.estimator == "polyarg":
+    #     q_estimator = PolyargQEstimator(args.learning_rate,
+    #                                     args.batch_step,
+    #                                     args.gamma,
+    #                                     predictor)
+    # else:
+    q_estimator = FeaturesQEstimator(args.learning_rate,
+                                     args.batch_step,
+                                     args.gamma)
 
     for epoch in range(args.num_epochs):
         training_samples = assign_scores(args,
