@@ -1,10 +1,7 @@
 import argparse
 import json
 import torch
-import torch.nn as nn
 import torch.utils.data as data
-from torch import optim
-import torch.optim.lr_scheduler as scheduler
 from util import maybe_cuda, eprint
 
 import predict_tactic
