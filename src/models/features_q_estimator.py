@@ -109,7 +109,7 @@ class FeaturesQEstimator(QEstimator):
                 shuffle=True, pin_memory=True,
                 drop_last=True)
         else:
-            batches = all_tensors
+            batches = [all_tensors]
         for epoch in range(0, num_epochs):
             epoch_loss = 0.
             for idx, batch in enumerate(batches):
