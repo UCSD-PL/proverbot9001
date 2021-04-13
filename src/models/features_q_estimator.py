@@ -78,9 +78,13 @@ class FeaturesQEstimator(QEstimator):
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
 
-    def get_input_tensors(self, samples: List[Tuple[TacticContext, str, float, float]]) -> Sequence[torch.Tensor]:
-        state_word_features, vec_features = zip(*[self._features(state, certainty)
-                                                  for state, _, certainty, _ in samples])
+    def get_input_tensors(self,
+                          samples: List[Tuple[TacticContext, str,
+                                              float, float]]) \
+            -> List[torch.Tensor]:
+        state_word_features, vec_features = \
+          zip(*[self._features(state, certainty)
+                for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in
