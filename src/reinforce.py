@@ -734,9 +734,9 @@ def reinforce_training_worker(args: argparse.Namespace,
                 predictor = namespace.predictor
                 with print_time("Assigning scores", guard=args.verbose >= 2):
                     training_samples = assign_scores(args,
-                                                     transition_samples,
                                                      q_estimator,
-                                                     predictor)
+                                                     predictor,
+                                                     transition_samples)
                 with print_time("Training", guard=args.verbose >= 2):
                     q_estimator.train(training_samples,
                                       show_loss=args.show_loss)
@@ -848,9 +848,9 @@ def assign_rewards(args: argparse.Namespace,
 
 
 def assign_scores(args: argparse.Namespace,
-                  transitions: List[LabeledTransition],
                   q_estimator: QEstimator,
-                  predictor: tactic_predictor.TacticPredictor) -> \
+                  predictor: tactic_predictor.TacticPredictor,
+                  transitions: List[LabeledTransition]) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
         contexts_trunced = [truncate_tactic_context(

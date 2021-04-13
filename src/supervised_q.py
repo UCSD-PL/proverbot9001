@@ -51,9 +51,9 @@ def supervised_q(args: argparse.Namespace) -> None:
 
     with print_time("Assigning scores"):
         training_samples = assign_scores(args,
-                                         replay_memory,
                                          q_estimator,
-                                         predictor)
+                                         predictor,
+                                         replay_memory)
     input_tensors = q_estimator.get_input_tensors(training_samples)
 
     training_start = time.time()
@@ -97,10 +97,11 @@ def supervised_q(args: argparse.Namespace) -> None:
             q_estimator.optimizer.param_groups[0]['lr']),
                 guard=args.show_loss)
 
-        training_samples = assign_scores(args,
-                                         replay_memory,
-                                         q_estimator,
-                                         predictor)
+        with print_time("Assigning scores"):
+            training_samples = assign_scores(args,
+                                             q_estimator,
+                                             predictor,
+                                             replay_memory)
 
         pass
 
