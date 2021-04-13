@@ -20,6 +20,7 @@
 ##########################################################################
 
 import coq_serapy as serapi_instance
+from data import SequenceSequenceDataset
 import tokenizer
 
 from models.q_estimator import QEstimator
@@ -77,33 +78,33 @@ class FeaturesQEstimator(QEstimator):
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
 
-    def train(self, samples: List[Tuple[TacticContext, str, float, float]],
-              batch_size: Optional[int] = None,
-              num_epochs: int = 1,
-              show_loss: bool = False) -> None:
-        for context, action, certainty, score in samples:
-            assert score != float("-Inf") and score != float("Inf") and score == score
+    def get_input_tensors(self, samples: List[Tuple[TacticContext, str, float, float]]) -> Sequence[torch.Tensor]:
         state_word_features, vec_features = zip(*[self._features(state, certainty)
                                                   for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
         all_word_features = [list(ea) + swf for ea, swf in
                              zip(encoded_actions, state_word_features)]
-        expected_outputs = [output for _, _, certainty, output in samples]
+        return torch.LongTensor(all_word_features), torch.FloatTensor(vec_features)
+
+    def train(self, samples: List[Tuple[TacticContext, str, float, float]],
+              batch_size: Optional[int] = None,
+              num_epochs: int = 1,
+              show_loss: bool = False) -> None:
+        for context, action, certainty, score in samples:
+            assert score != float("-Inf") and score != float("Inf") and score == score
+        input_tensors = list(self.get_input_tensors(samples))
+        expected_outputs = torch.FloatTensor([output for _, _, certainty, output in samples])
+        all_tensors = input_tensors + [expected_outputs]
         if batch_size:
             batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
-                data.TensorDataset(
-                    torch.LongTensor(all_word_features),
-                    torch.FloatTensor(vec_features),
-                    torch.FloatTensor(expected_outputs)),
+                data.TensorDataset(*all_tensors),
                 batch_size=batch_size,
                 num_workers=0,
                 shuffle=True, pin_memory=True,
                 drop_last=True)
         else:
-            batches = [[torch.LongTensor(all_word_features),
-                        torch.FloatTensor(vec_features),
-                        torch.FloatTensor(expected_outputs)]]
+            batches = all_tensors
         for epoch in range(0, num_epochs):
             epoch_loss = 0.
             for idx, batch in enumerate(batches):

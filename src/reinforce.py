@@ -353,8 +353,8 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                                      q_estimator)
             graph.draw(graphpath)
 
-        args.out_weights.with_suffix('.tmp').unlink()
-        args.out_weights.with_suffix('.done').unlink()
+        # args.out_weights.with_suffix('.tmp').unlink()
+        # args.out_weights.with_suffix('.done').unlink()
 
 
 def reinforce_worker(worker_idx: int,
