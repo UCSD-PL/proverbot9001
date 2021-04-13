@@ -3,6 +3,7 @@ import json
 import torch
 import torch.utils.data as data
 from util import maybe_cuda, eprint
+from tqdm import tqdm
 
 import predict_tactic
 from models import features_polyarg_predictor
@@ -18,7 +19,7 @@ from reinforce import assign_scores
 def supervised_q(args: argparse.Namespace) -> None:
     replay_memory = []
     with open(args.tmp_file, 'r') as f:
-        for line in f:
+        for idx, line in enumerate(tqdm(f, desc="Loading data")):
             replay_memory.append(LabeledTransition.from_dict(
                 json.loads(line)))
 
