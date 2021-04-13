@@ -57,7 +57,7 @@ def supervised_q(args: argparse.Namespace) -> None:
     input_tensors = q_estimator.get_input_tensors(training_samples)
 
     training_start = time.time()
-    for epoch in range(args.num_epochs):
+    for epoch in range(1, args.num_epochs+1):
         scores = torch.FloatTensor([score for _, _, _, score
                                     in training_samples])
         batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
