@@ -28,6 +28,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 from torch import optim
+import torch.optim.lr_scheduler as scheduler
 from pathlib_revised import Path2
 
 import coq_serapy as serapi_instance
@@ -65,6 +66,8 @@ class PolyargQEstimator(QEstimator):
             get_word_feature_vocab_sizes(fpa_predictor.metadata),
             128, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
+        self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
+                                         gamma=gamma)
         self.criterion = nn.MSELoss()
         self.total_batches = 0
 
@@ -108,7 +111,6 @@ class PolyargQEstimator(QEstimator):
         for context, action, certainty, score in samples:
             assert score != float("-Inf") and \
               score != float("Inf") and score == score
-        self.optimizer.zero_grad()
         state_word_features, state_vec_features = zip(
             *[self._features(state, certainty)
               for state, _, certainty, _ in samples])
@@ -151,6 +153,7 @@ class PolyargQEstimator(QEstimator):
                     outputs, maybe_cuda(expected_outputs_batch))
                 loss.backward()
                 self.optimizer.step()
+                self.adjuster.step()
                 self.total_batches += 1
                 epoch_loss += loss.item()
 
