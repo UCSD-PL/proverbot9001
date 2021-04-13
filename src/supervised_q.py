@@ -54,14 +54,13 @@ def supervised_q(args: argparse.Namespace) -> None:
             shuffle=True, pin_memory=True,
             drop_last=True)
 
-
         epoch_loss = 0.
         for idx, batch in enumerate(batches):
             q_estimator.optimizer.zero_grad()
             word_features_batch, vec_features_batch, \
                 expected_outputs_batch = batch
             outputs = q_estimator.model(word_features_batch,
-                                    vec_features_batch)
+                                        vec_features_batch)
             loss = q_estimator.criterion(
                 outputs, maybe_cuda(expected_outputs_batch))
             loss.backward()
@@ -83,6 +82,7 @@ def supervised_q(args: argparse.Namespace) -> None:
 
     pass
 
+
 def main():
     parser = \
         argparse.ArgumentParser()
@@ -100,6 +100,7 @@ def main():
 
 
     args = parser.parse_args()
+
 
 if __name__ == "__main__":
     main()
