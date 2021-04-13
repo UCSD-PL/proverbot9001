@@ -20,6 +20,8 @@ def supervised_q(args: argparse.Namespace) -> None:
     replay_memory = []
     with open(args.tmp_file, 'r') as f:
         for idx, line in enumerate(tqdm(f, desc="Loading data")):
+            if args.max_tuples is not None and idx >= args.max_tuples:
+                break
             replay_memory.append(LabeledTransition.from_dict(
                 json.loads(line)))
 
@@ -96,6 +98,7 @@ def main():
                     choices=["polyarg", "features"],
                     default="polyarg")
     parser.add_argument("--show-loss", action='store_true')
+    parser.add_argument("--max-tuples", default=None, type=int)
 
 
     args = parser.parse_args()
