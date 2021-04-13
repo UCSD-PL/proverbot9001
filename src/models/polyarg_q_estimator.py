@@ -66,6 +66,7 @@ class PolyargQEstimator(QEstimator):
             128, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
         self.criterion = nn.MSELoss()
+        self.total_batches = 0
 
     @property
     def fpa_metadata(self):
@@ -139,6 +140,7 @@ class PolyargQEstimator(QEstimator):
                         torch.cat(all_vec_features, dim=0),
                         torch.FloatTensor(expected_outputs)]]
         for epoch in range(0, num_epochs):
+            epoch_loss = 0.
             for idx, batch in enumerate(batches):
                 self.optimizer.zero_grad()
                 word_features_batch, vec_features_batch, \
@@ -147,12 +149,19 @@ class PolyargQEstimator(QEstimator):
                                      vec_features_batch)
                 loss = self.criterion(
                     outputs, maybe_cuda(expected_outputs_batch))
-
-                eprint(loss.data,
-                       guard=show_loss and epoch % 10 == 9
-                       and idx == len(batches) - 1)
                 loss.backward()
                 self.optimizer.step()
+                self.total_batches += 1
+                epoch_loss += loss.item()
+
+                eprint(epoch_loss / len(batches),
+                       guard=show_loss and epoch % 10 == 0
+                       and idx == len(batches) - 1)
+                eprint("Batch {}: Learning rate {:.12f}".format(
+                    self.total_batches,
+                    self.optimizer.param_groups[0]['lr']),
+                       guard=show_loss and epoch % 10 == 0
+                       and idx == len(batches) - 1)
 
     def _features(self, context: TacticContext, certainty: float) \
             -> Tuple[List[int], List[float]]:
