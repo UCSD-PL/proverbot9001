@@ -136,8 +136,9 @@ def main():
     parser.add_argument("--max-term-length", default=512, type=int)
     parser.add_argument("--num-predictions", default=16, type=int)
     parser.add_argument("--max-tuples", default=None, type=int)
-
     parser.add_argument("--time-discount", default=0.9, type=float)
+
+    parser.add_argument("--verbose", "-v", action='count', default=0)
 
     args = parser.parse_args()
     supervised_q(args)
