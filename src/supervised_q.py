@@ -50,11 +50,12 @@ def supervised_q(args: argparse.Namespace) -> None:
         q_estimator.load_saved_state(*saved)
 
     training_start = time.time()
-    with print_time("Assigning scores"):
-        training_samples = assign_scores(args,
-                                         q_estimator,
-                                         predictor,
-                                         replay_memory)
+    # with print_time("Assigning scores"):
+    training_samples = assign_scores(args,
+                                     q_estimator,
+                                     predictor,
+                                     replay_memory,
+                                     progress=True)
     input_tensors = q_estimator.get_input_tensors(training_samples)
 
     for epoch in range(1, args.num_epochs+1):
@@ -114,7 +115,7 @@ def main():
         argparse.ArgumentParser()
 
     parser.add_argument("tmp_file")
-    parser.add_argument("out-weights")
+    parser.add_argument("out_weights", type=Path2)
     parser.add_argument("--predictor-weights",
                         default=Path2("data/polyarg-weights.dat"),
                         type=Path2)
