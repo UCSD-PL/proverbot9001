@@ -864,9 +864,12 @@ def assign_scores(args: argparse.Namespace,
                                 predictor) \
                             .predictKTactics_batch(
                                 contexts_trunced,
-        for transition, predictions in zip(transitions, prediction_lists):
                                 args.num_predictions,
                                 args.verbose)
+        for transition, predictions in tqdm(zip(transitions, prediction_lists),
+                                            total=len(transitions),
+                                            desc="Assigning scores",
+                                            disable=(not progress)):
             tactic_ctxt = truncate_tactic_context(transition.after_context,
                                                   args.max_term_length)
             before_ctxt = truncate_tactic_context(transition.before_context,
@@ -889,9 +892,7 @@ def assign_scores(args: argparse.Namespace,
                 before_ctxt.hypotheses,
                 before_ctxt.goal), \
                 transition.action, transition.original_certainty, new_q
-    return list(tqdm(generate(), total=len(transitions),
-                     desc="Assigning scores",
-                     disable=(not progress)))
+    return list(generate())
 
 
 def obligation_r2py(r_obl: dataloader.Obligation) -> Obligation:
