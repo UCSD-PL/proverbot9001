@@ -97,6 +97,7 @@ def supervised_q(args: argparse.Namespace) -> None:
             q_estimator.optimizer.param_groups[0]['lr']),
                 guard=args.show_loss)
 
+        q_estimator.save_weights(args.out_weights, args)
         with print_time("Assigning scores"):
             training_samples = assign_scores(args,
                                              q_estimator,
@@ -113,6 +114,7 @@ def main():
         argparse.ArgumentParser()
 
     parser.add_argument("tmp_file")
+    parser.add_argument("out-weights")
     parser.add_argument("--predictor-weights",
                         default=Path2("data/polyarg-weights.dat"),
                         type=Path2)
