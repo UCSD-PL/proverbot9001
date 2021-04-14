@@ -864,8 +864,9 @@ def assign_scores(args: argparse.Namespace,
                                 predictor) \
                             .predictKTactics_batch(
                                 contexts_trunced,
-                                args.num_predictions)
         for transition, predictions in zip(transitions, prediction_lists):
+                                args.num_predictions,
+                                args.verbose)
             tactic_ctxt = truncate_tactic_context(transition.after_context,
                                                   args.max_term_length)
             before_ctxt = truncate_tactic_context(transition.before_context,

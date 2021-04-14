@@ -19,6 +19,7 @@
 #
 ##########################################################################
 
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -312,10 +313,11 @@ class FeaturesPolyargPredictor(
                 torch.save((self.shortname(),
                             (arg_values, sys.argv, metadata, state)), f)
 
-    def predictKTactics_batch(self, contexts: List[TacticContext], k: int
-                              ) -> List[List[Prediction]]:
+    def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
+                              verbosity:int = 0) -> List[List[Prediction]]:
         with torch.no_grad():
-            all_predictions_batch = self.getAllPredictionIdxs_batch(contexts)
+            all_predictions_batch = self.getAllPredictionIdxs_batch(contexts,
+                                                                    verbosity=verbosity)
 
         def generate():
             for context, prediction_idxs in zip(
@@ -375,8 +377,8 @@ class FeaturesPolyargPredictor(
                           list(predicted_arg_idxs)))
         return result
 
-    def getAllPredictionIdxs_batch(self, contexts: List[TacticContext]
-                                   ) -> List[List[Tuple[float, int, int]]]:
+    def getAllPredictionIdxs_batch(self, contexts: List[TacticContext],
+                                   verbosity:int = 0) -> List[List[Tuple[float, int, int]]]:
         assert self.training_args
         assert self._model
 
@@ -404,9 +406,12 @@ class FeaturesPolyargPredictor(
              goal_arg_values, tokenized_goal,
              tokenized_premises,
              premise_features) in \
-            zip(stem_certainties_batch, stem_idxs_batch,
-                goal_arg_values_batch, tokenized_goal_batch,
-                tokenized_premises_batch, premise_features_batch):
+            tqdm(zip(stem_certainties_batch, stem_idxs_batch,
+                     goal_arg_values_batch, tokenized_goal_batch,
+                     tokenized_premises_batch, premise_features_batch),
+                 desc="Assessing hyp args and decoding indices",
+                 total=len(contexts),
+                 disable=verbosity <= 1):
             if len(tokenized_premises) > 0:
                 premise_arg_values = self.hyp_name_scores(
                     stem_idxs,
