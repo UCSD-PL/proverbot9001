@@ -90,7 +90,6 @@ def supervised_q(args: argparse.Namespace) -> None:
                                items_processed, progress * 100,
                                epoch_loss * (len(batches) / idx)),
                        guard=args.show_loss)
-
         q_estimator.adjuster.step()
         eprint("Epoch {}: Learning rate {:.12f}".format(
             epoch,
@@ -98,11 +97,12 @@ def supervised_q(args: argparse.Namespace) -> None:
                 guard=args.show_loss)
 
         q_estimator.save_weights(args.out_weights, args)
-        with print_time("Assigning scores"):
-            training_samples = assign_scores(args,
-                                             q_estimator,
-                                             predictor,
-                                             replay_memory)
+        # with print_time("Assigning scores"):
+        training_samples = assign_scores(args,
+                                         q_estimator,
+                                         predictor,
+                                         replay_memory,
+                                         progress=True)
 
         pass
 

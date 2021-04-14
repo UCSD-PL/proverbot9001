@@ -847,10 +847,12 @@ def assign_rewards(args: argparse.Namespace,
     return list(generate())
 
 
+# The "progress" parameter is currently only used in another module
 def assign_scores(args: argparse.Namespace,
                   q_estimator: QEstimator,
                   predictor: tactic_predictor.TacticPredictor,
-                  transitions: List[LabeledTransition]) -> \
+                  transitions: List[LabeledTransition],
+                  progress: bool = False) -> \
                   List[Tuple[TacticContext, str, float, float]]:
     def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
         contexts_trunced = [truncate_tactic_context(
@@ -886,7 +888,9 @@ def assign_scores(args: argparse.Namespace,
                 before_ctxt.hypotheses,
                 before_ctxt.goal), \
                 transition.action, transition.original_certainty, new_q
-    return list(generate())
+    return list(tqdm(generate(), total=len(transitions),
+                     desc="Assigning scores",
+                     disable=(not progress)))
 
 
 def obligation_r2py(r_obl: dataloader.Obligation) -> Obligation:
