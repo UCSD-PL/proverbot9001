@@ -11,9 +11,9 @@ from models import features_polyarg_predictor
 from pathlib_revised import Path2
 from typing import (cast, Sequence)
 from rgraph import LabeledTransition
-# from models.polyarg_q_estimator import PolyargQEstimator
+from models.polyarg_q_estimator import PolyargQEstimator
 from models.features_q_estimator import FeaturesQEstimator
-# from models.q_estimator import QEstimator
+from models.q_estimator import QEstimator
 from reinforce import assign_scores
 
 
@@ -31,22 +31,26 @@ def supervised_q(args: argparse.Namespace) -> None:
                      predict_tactic.loadPredictorByFile(
                          args.predictor_weights))
 
-    # q_estimator: QEstimator
+    q_estimator: QEstimator
     # Create an initial Q Estimator
-    # if args.estimator == "polyarg":
-    #     q_estimator = PolyargQEstimator(args.learning_rate,
-    #                                     args.batch_step,
-    #                                     args.gamma,
-    #                                     predictor)
-    # else:
-    q_estimator = FeaturesQEstimator(args.learning_rate,
-                                     args.batch_step,
-                                     args.gamma)
+    if args.estimator == "polyarg":
+        q_estimator = PolyargQEstimator(args.learning_rate,
+                                        args.batch_step,
+                                        args.gamma,
+                                        predictor)
+    else:
+        q_estimator = FeaturesQEstimator(args.learning_rate,
+                                         args.batch_step,
+                                         args.gamma)
     if args.start_from:
         q_estimator_name, *saved = \
           torch.load(args.start_from)
-        assert q_estimator_name == "features evaluator", \
-            q_estimator_name
+        if args.estimator == "polyarg":
+            assert q_estimator_name == "polyarg evaluator", \
+                q_estimator_name
+        else:
+            assert q_estimator_name == "features evaluator", \
+                q_estimator_name
         q_estimator.load_saved_state(*saved)
 
     training_start = time.time()

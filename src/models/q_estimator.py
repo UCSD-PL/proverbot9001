@@ -25,6 +25,7 @@ from typing import List, Tuple, Optional, Dict, Any
 from abc import ABCMeta, abstractmethod
 from pathlib_revised import Path2
 
+import torch
 from coq_serapy.contexts import TacticContext
 
 
@@ -34,6 +35,12 @@ class QEstimator(metaclass=ABCMeta):
             -> List[float]:
         pass
 
+    @abstractmethod
+    def get_input_tensors(self,
+                          samples: List[Tuple[TacticContext, str,
+                                              float, float]]) \
+            -> List[torch.Tensor]:
+        pass
     @abstractmethod
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,

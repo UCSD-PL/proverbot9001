@@ -86,8 +86,8 @@ class PolyargQEstimator(QEstimator):
                     (state, action, certainty) in inputs])
         encoded_actions_batch = [self._encode_action(state, action)
                                  for (state, action, certainty) in inputs]
-        all_vec_features_batch = [torch.cat((action_vec,
-                                             torch.FloatTensor(svf)),
+        all_vec_features_batch = [torch.cat((maybe_cuda(action_vec),
+                                             maybe_cuda(torch.FloatTensor(svf))),
                                             dim=0).unsqueeze(0)
                                   for (_, action_vec), svf in
                                   zip(encoded_actions_batch,
@@ -104,43 +104,41 @@ class PolyargQEstimator(QEstimator):
                                   all_vec_features_batch)
         return list(output)
 
-    def train(self, samples: List[Tuple[TacticContext, str, float, float]],
-              batch_size: Optional[int] = None,
-              num_epochs: int = 1,
-              show_loss: bool = False) -> None:
-        for context, action, certainty, score in samples:
-            assert score != float("-Inf") and \
-              score != float("Inf") and score == score
+    def get_input_tensors(self,
+                          samples: List[Tuple[TacticContext, str,
+                                              float, float]]) \
+            -> List[torch.Tensor]:
         state_word_features, state_vec_features = zip(
             *[self._features(state, certainty)
               for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
         all_vec_features = [torch.cat((action_vec,
-                                       torch.FloatTensor(svf)),
+                                       torch.FloatTensor(svf, device='cpu')),
                                       dim=0).unsqueeze(0)
                             for (_, action_vec), svf in
                             zip(encoded_actions, state_vec_features)]
-        for (_, action_vec), svf in zip(encoded_actions, state_vec_features):
-            assert len(action_vec) == 130, len(action_vec)
-            assert len(svf) == 2, len(svf)
         all_word_features = [action_words + swf for (action_words, _), swf in
                              zip(encoded_actions, state_word_features)]
-        expected_outputs = [output for _, _, certainty, output in samples]
+        return [torch.LongTensor(all_word_features),
+                torch.cat(all_vec_features, dim=0)]
+
+
+    def train(self, samples: List[Tuple[TacticContext, str, float, float]],
+              batch_size: Optional[int] = None,
+              num_epochs: int = 1,
+              show_loss: bool = False) -> None:
+        input_tensors = self.get_input_tensors(samples)
+        expected_outputs = [output for _, _, _, output in samples]
         if batch_size:
             batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
-                data.TensorDataset(
-                    torch.LongTensor(all_word_features),
-                    torch.cat(all_vec_features, dim=0),
-                    torch.FloatTensor(expected_outputs)),
+                data.TensorDataset(*input_tensors),
                 batch_size=batch_size,
                 num_workers=0,
                 shuffle=True, pin_memory=True,
                 drop_last=True)
         else:
-            batches = [[torch.LongTensor(all_word_features),
-                        torch.cat(all_vec_features, dim=0),
-                        torch.FloatTensor(expected_outputs)]]
+            batches = [input_tensors]
         for epoch in range(0, num_epochs):
             epoch_loss = 0.
             for idx, batch in enumerate(batches):
@@ -217,8 +215,8 @@ class PolyargQEstimator(QEstimator):
                 self.predictor.goal_token_encoder(
                     torch.LongTensor([stem_idx]),
                     torch.LongTensor([tokenized_goal])
-                ).squeeze(0)[arg_idx],
-                torch.zeros(premise_features_size)),
+                ).squeeze(0)[arg_idx].to(device=torch.device("cpu")),
+               torch.zeros(premise_features_size)),
                                     dim=0)
         else:
             # Hyp arg
@@ -235,7 +233,7 @@ class PolyargQEstimator(QEstimator):
                 self.predictor.hyp_encoder(
                     torch.LongTensor([stem_idx]),
                     entire_encoded_goal,
-                    torch.LongTensor([tokenized_arg_hyp])),
+                    torch.LongTensor([tokenized_arg_hyp])).to(device=torch.device("cpu")),
                 torch.FloatTensor(get_premise_features(
                     self.dataloader_args,
                     self.fpa_metadata,
