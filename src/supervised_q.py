@@ -103,11 +103,12 @@ def supervised_q(args: argparse.Namespace) -> None:
 
         q_estimator.save_weights(args.out_weights, args)
         # with print_time("Assigning scores"):
-        training_samples = assign_scores(args,
-                                         q_estimator,
-                                         predictor,
-                                         replay_memory,
-                                         progress=True)
+        if epoch % args.score_every == 0:
+            training_samples = assign_scores(args,
+                                             q_estimator,
+                                             predictor,
+                                             replay_memory,
+                                             progress=True)
 
         pass
 
@@ -141,6 +142,7 @@ def main():
     parser.add_argument("--num-predictions", default=16, type=int)
     parser.add_argument("--max-tuples", default=None, type=int)
     parser.add_argument("--time-discount", default=0.9, type=float)
+    parser.add_argument("--score-every", default=1, type=int)
 
     parser.add_argument("--verbose", "-v", action='count', default=0)
 
