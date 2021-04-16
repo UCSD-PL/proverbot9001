@@ -35,12 +35,12 @@ def supervised_q(args: argparse.Namespace) -> None:
     # Create an initial Q Estimator
     if args.estimator == "polyarg":
         q_estimator = PolyargQEstimator(args.learning_rate,
-                                        args.batch_step,
+                                        args.epoch_step,
                                         args.gamma,
                                         predictor)
     else:
         q_estimator = FeaturesQEstimator(args.learning_rate,
-                                         args.batch_step,
+                                         args.epoch_step,
                                          args.gamma)
     if args.start_from:
         q_estimator_name, *saved = \
@@ -132,7 +132,7 @@ def main():
     parser.add_argument("--batch-size", default=32, type=int)
     parser.add_argument("--num-epochs", default=256, type=int)
     parser.add_argument("--learning-rate", default=0.02, type=float)
-    parser.add_argument("--batch-step", default=50, type=int)
+    parser.add_argument("--epoch-step", default=16, type=int)
     parser.add_argument("--gamma", default=0.8, type=float)
     parser.add_argument("--show-loss", action='store_true')
     parser.add_argument("--print-every", dest="print_every",
