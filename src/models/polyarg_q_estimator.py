@@ -21,6 +21,7 @@
 
 import argparse
 import sys
+from tqdm import tqdm
 from typing import (Dict, List, Tuple, cast, BinaryIO, TypeVar, Any,
                     Optional, Sequence)
 
@@ -84,8 +85,10 @@ class PolyargQEstimator(QEstimator):
         state_word_features_batch, state_vec_features_batch \
             = zip(*[self._features(state, certainty) for
                     (state, action, certainty) in inputs])
-        encoded_actions_batch = [self._encode_action(state, action)
-                                 for (state, action, certainty) in inputs]
+        with torch.no_grad():
+            encoded_actions_batch = [self._encode_action(state, action)
+                                     for (state, action, certainty) in
+                                     tqdm(inputs, desc="Encoding actions")]
         all_vec_features_batch = [torch.cat((maybe_cuda(action_vec),
                                              maybe_cuda(torch.FloatTensor(svf))),
                                             dim=0).unsqueeze(0)
