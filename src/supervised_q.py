@@ -54,13 +54,13 @@ def supervised_q(args: argparse.Namespace) -> None:
         q_estimator.load_saved_state(*saved)
 
     training_start = time.time()
-    # with print_time("Assigning scores"):
     training_samples = assign_scores(args,
                                      q_estimator,
                                      predictor,
                                      replay_memory,
                                      progress=True)
     input_tensors = q_estimator.get_input_tensors(training_samples)
+    rescore_lr = args.learning_rate
 
     for epoch in range(1, args.num_epochs+1):
         scores = torch.FloatTensor([score for _, _, _, score
@@ -73,6 +73,10 @@ def supervised_q(args: argparse.Namespace) -> None:
             drop_last=True)
 
         epoch_loss = 0.
+        eprint("Epoch {}: Learning rate {:.12f}".format(
+            epoch,
+            q_estimator.optimizer.param_groups[0]['lr']),
+                guard=args.show_loss)
         for idx, batch in enumerate(batches, start=1):
             q_estimator.optimizer.zero_grad()
             word_features_batch, vec_features_batch, \
@@ -96,19 +100,17 @@ def supervised_q(args: argparse.Namespace) -> None:
                                epoch_loss * (len(batches) / idx)),
                        guard=args.show_loss)
         q_estimator.adjuster.step()
-        eprint("Epoch {}: Learning rate {:.12f}".format(
-            epoch,
-            q_estimator.optimizer.param_groups[0]['lr']),
-                guard=args.show_loss)
 
         q_estimator.save_weights(args.out_weights, args)
-        # with print_time("Assigning scores"):
-        if epoch % args.score_every == 0:
+        if epoch % args.score_every == 0 and epoch < args.num_epochs:
             training_samples = assign_scores(args,
                                              q_estimator,
                                              predictor,
                                              replay_memory,
                                              progress=True)
+            rescore_lr *= args.rescore_gamma
+            q_estimator.optimizer.param_groups[0]['lr'] = rescore_lr
+	
 
         pass
 
@@ -134,6 +136,7 @@ def main():
     parser.add_argument("--learning-rate", default=0.02, type=float)
     parser.add_argument("--epoch-step", default=16, type=int)
     parser.add_argument("--gamma", default=0.8, type=float)
+    parser.add_argument("--rescore-gamma", default=0.5, type=float)
     parser.add_argument("--show-loss", action='store_true')
     parser.add_argument("--print-every", dest="print_every",
                         type=int, default=5)
