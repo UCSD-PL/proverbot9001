@@ -862,26 +862,29 @@ def assign_scores(args: argparse.Namespace,
         prediction_lists = cast(features_polyarg_predictor
                                 .FeaturesPolyargPredictor,
                                 predictor) \
-                            .predictKTactics_batch(
-                                contexts_trunced,
-                                args.num_predictions,
-                                args.verbose)
-        for transition, predictions in tqdm(zip(transitions, prediction_lists),
-                                            total=len(transitions),
-                                            desc="Assigning scores",
-                                            disable=(not progress)):
-            tactic_ctxt = truncate_tactic_context(transition.after_context,
-                                                  args.max_term_length)
-            before_ctxt = truncate_tactic_context(transition.before_context,
-                                                  args.max_term_length)
+            .predictKTactics_batch(
+                contexts_trunced,
+                args.num_predictions,
+                args.verbose)
+        queries = [(truncate_tactic_context(transition.after_context,
+                                            args.max_term_length),
+                    prediction.prediction, prediction.certainty)
+                   for transition, predictions in zip(transitions,
+                                                      prediction_lists)
+                   for prediction in predictions]
+        estimate_lists_flattened = q_estimator(queries)
+        estimate_lists = [estimate_lists_flattened
+                          [i:i+args.num_predictions]
+                          for i in range(0, len(estimate_lists_flattened),
+                                         args.num_predictions)]
+        for transition, estimates in zip(transitions, estimate_lists):
+            before_ctxt = truncate_tactic_context(
+                transition.before_context, args.max_term_length)
 
             if len(transition.after.all_goals) == 0:
                 new_q = transition.reward
                 assert new_q == 50
             else:
-                estimates = q_estimator(
-                    [(tactic_ctxt, prediction.prediction, prediction.certainty)
-                     for prediction in predictions])
                 estimated_future_q = \
                     args.time_discount * max(estimates)
                 new_q = transition.reward + estimated_future_q
