@@ -21,10 +21,10 @@ def supervised_q(args: argparse.Namespace) -> None:
     replay_memory = []
     with open(args.tmp_file, 'r') as f:
         for idx, line in enumerate(tqdm(f, desc="Loading data")):
-            if args.max_tuples is not None and idx >= args.max_tuples:
-                break
             replay_memory.append(LabeledTransition.from_dict(
                 json.loads(line)))
+    if args.max_tuples is not None:
+        replay_memory = replay_memory[-args.max_tuples:]
 
     # Load the predictor
     predictor = cast(features_polyarg_predictor.FeaturesPolyargPredictor,
