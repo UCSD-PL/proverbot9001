@@ -28,7 +28,6 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         coq.run_stmt(proof_commands[cmd_idx])
         if is_goal_open or is_goal_close:
             continue
-        print(coq.proof_context)
         if not coq.proof_context or len(coq.proof_context.all_goals) == 0:
             after_goals = []
             break_after = True
@@ -79,6 +78,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         synth_lemma_name = f"synth_lemma_{cmd_idx}"
         write(f"  Lemma {synth_lemma_name}: {before_state.goal}.")
+        write("Admitted.")
         write(f"End {sec_name}.")
         if break_after:
             break
