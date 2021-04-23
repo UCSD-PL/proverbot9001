@@ -35,6 +35,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         coq.run_stmt(cur_cmd)
 
         if not coq.proof_context or len(coq.proof_context.all_goals) == 0:
+            # Get ready to terminate when we're at the last state
             after_goals = []
             break_after = True
         else:
