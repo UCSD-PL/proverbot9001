@@ -18,17 +18,14 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         print(s, file=f)
     break_after = False
     for cmd_idx in range(len(proof_commands)):
-        if proof_commands[cmd_idx].startswith("intro"):
-            continue
         cur_cmd = proof_commands[cmd_idx]
         assert coq.proof_context
         is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", cur_cmd)
         is_goal_close = re.match(r"\s*[}]\s*", cur_cmd)
+        is_proof_keyword = re.match(r"\s*Proof.*", cur_cmd)
         if coq.count_fg_goals() > 1 and not is_goal_open:
             coq.run_stmt("{")
         before_state = coq.tactic_context([])
-        if is_goal_open or is_goal_close:
-            continue
         coq.run_stmt(cur_cmd)
 
         if not coq.proof_context or len(coq.proof_context.all_goals) == 0:
@@ -36,6 +33,15 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             break_after = True
         else:
             after_goals = coq.proof_context.fg_goals
+
+        # Skip some proof handling commands that don't change the goal
+        # Unfortunately there's no good way to handle evars
+        if re.match(r".*\s+\?\w", before_state.goal) \
+                or is_goal_open or is_goal_close or is_proof_keyword:
+            if break_after:
+                break
+            else:
+                continue
         # NOTE: for now we're generating synth lemmas on anything that doesn't
         # manipulate the goal
 
