@@ -72,6 +72,8 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         for h in reversed(before_state.hypotheses):
             write(f"  Hypothesis {h}.")
         for gidx, goal in enumerate(after_goals):
+            if re.match(r".*\s+\?\w", goal.goal):
+                continue
             gname = f"test_goal{gidx}"
 
             new_hyps = generalized_vars + \
