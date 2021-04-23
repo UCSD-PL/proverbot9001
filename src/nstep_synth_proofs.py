@@ -6,7 +6,7 @@ from pathlib_revised import Path2
 from tqdm import tqdm
 
 import coq_serapy
-import util
+import linearize_semicolons
 
 
 def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
