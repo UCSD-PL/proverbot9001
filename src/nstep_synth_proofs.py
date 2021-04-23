@@ -3,6 +3,7 @@ import re
 from typing import List, IO, Tuple
 
 from pathlib_revised import Path2
+from tqdm import tqdm
 
 import coq_serapy
 import util
@@ -91,35 +92,58 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 def generate_synthetic_file(args: argparse.Namespace,
                             filename: Path2,
                             proof_jobs: List[str]):
-    synth_filename = Path2(str(filename.with_suffix("")) + '-synthetic.v')
+    local_vars = []
+
+    def add_local_vars(cmds: List[str]) -> None:
+        for cmd in cmds:
+            variable_match = re.fullmatch(r"\s*Variable\s+(.*)\.\s*", cmd)
+            if variable_match:
+                local_vars.append(variable_match.group(1))
+            let_match = re.match(r"\s*Let", cmd)
+            if let_match:
+                print(f"Adding {cmd} to local vars as "
+                      f"{coq_serapy.let_to_hyp(cmd)}")
+                local_vars.append(coq_serapy.let_to_hyp(cmd))
+
+    synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
+                                          + '-synthetic.v')
     with synth_filename.open('w') as synth_f:
         pass
 
-    with coq_serapy.SerapiContext(["sertop", "--implicit"],
-                                  None,
-                                  str(args.prelude)) as coq:
-        coq.verbose = args.verbose
-        rest_commands = proof_commands
-        while True:
-            rest_commands, run_commands = coq.run_into_next_proof(
-                rest_commands)
-            with synth_filename.open('a') as synth_f:
-                for cmd in run_commands[:-1]:  # discard starting the proof
-                    print(cmd, file=synth_f, end="")
-                if not coq.proof_context:
-                    break
-                lemma_statement = run_commands[-1]
-                if coq_serapy.lemma_name_from_statement(
-                        run_commands[-1]) in proof_jobs:
-                    generate_synthetic_lemmas(coq, lemma_statement,
-                                              rest_commands, synth_f)
-                rest_commands, run_commands = coq.finish_proof(rest_commands)
-                print(lemma_statement, file=synth_f, end="")
-                for cmd in run_commands:
-                    print(cmd, file=synth_f, end="")
     coqargs = ["sertop", "--implicit"]
     proof_commands = linearize_semicolons.get_linearized(
         args, coqargs, 0, str(filename))
+    with tqdm(desc='Processing proofs', total=len(proof_commands)) as bar:
+        with coq_serapy.SerapiContext(coqargs,
+                                      None,
+                                      str(args.prelude)) as coq:
+            coq.verbose = args.verbose
+            rest_commands = proof_commands
+            while True:
+                rest_commands, run_commands = coq.run_into_next_proof(
+                    rest_commands)
+                add_local_vars(run_commands)
+                bar.update(len(run_commands))
+                with synth_filename.open('a') as synth_f:
+                    for cmd in run_commands[:-1]:  # discard starting the proof
+                        print(cmd, file=synth_f, end="")
+                    if not coq.proof_context:
+                        break
+                    lemma_statement = run_commands[-1]
+                    lemma_name = coq_serapy.lemma_name_from_statement(
+                        lemma_statement)
+                    if lemma_name in proof_jobs:
+                        generate_synthetic_lemmas(coq,
+                                                  proof_jobs.index(lemma_name),
+                                                  lemma_statement,
+                                                  local_vars,
+                                                  rest_commands, synth_f)
+                    rest_commands, run_commands = coq.finish_proof(
+                        rest_commands)
+                    bar.update(len(run_commands))
+                    print(lemma_statement.strip(), file=synth_f)
+                    for cmd in run_commands:
+                        print(cmd, file=synth_f, end="")
 
 
 def main():
