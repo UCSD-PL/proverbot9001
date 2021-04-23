@@ -69,8 +69,8 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             gname = f"test_goal{gidx}"
 
             new_hyps = generalized_vars + \
-                list(reversed(list(set(goal.hypotheses) -
-                                   set(before_hyps))))
+                list(reversed(
+                    hyps_difference(goal.hypotheses, before_hyps)))
             gbody = ""
 
             for new_hyp in new_hyps:
@@ -89,6 +89,21 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
     lemma_name = coq_serapy.lemma_name_from_statement(lemma_stmt)
     coq.run_stmt(f"Reset {lemma_name}.")
     coq.run_stmt(lemma_stmt)
+
+
+def hyps_difference(hyps_base: List[str],
+                    hyps_subtracted: List[str]) -> List[str]:
+    result = []
+    for hyp in hyps_base:
+        vars_in_hyp = [name.strip() for name in
+                       coq_serapy.get_var_term_in_hyp(hyp).split(",")]
+        vars_left = [var for var in vars_in_hyp
+                     if var not in
+                     coq_serapy.get_vars_in_hyps(hyps_subtracted)]
+        if len(vars_left) > 0:
+            result.append(", ".join(vars_left) + " : " +
+                          coq_serapy.get_hyp_type(hyp))
+    return result
 
 
 def generate_synthetic_file(args: argparse.Namespace,
