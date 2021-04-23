@@ -16,6 +16,12 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                               proof_commands: List[str], f: IO[str]):
     def write(s: str) -> None:
         print(s, file=f)
+
+    def termify_hyp(hyp: str) -> str:
+        return coq_serapy.get_var_term_in_hyp(
+            hyp).replace(
+                ",", " ") + " : " + \
+                coq_serapy.get_hyp_type(hyp)
     break_after = False
     for cmd_idx in range(len(proof_commands)):
         cur_cmd = proof_commands[cmd_idx]
@@ -69,8 +75,11 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         sec_name = "test_sec"
         write(f"Section {sec_name}.")
-        for h in reversed(before_state.hypotheses):
-            write(f"  Hypothesis {h}.")
+        for h in reversed(hyps_difference(before_state.hypotheses,
+                                          local_vars)):
+            # assert len(local_vars) == 0
+            assert not re.match(r"\s*iter\s*", h), local_vars
+            write(f"  Hypothesis {termify_hyp(h)}.")
         for gidx, goal in enumerate(after_goals):
             if re.match(r".*\s+\?\w", goal.goal):
                 continue
@@ -82,7 +91,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             gbody = ""
 
             for new_hyp in new_hyps:
-                gbody += f"forall ({new_hyp}), "
+                gbody += f"forall ({termify_hyp(new_hyp)}), "
             gbody += goal.goal
 
             write(f"  Hypothesis {gname}: {gbody}.")
