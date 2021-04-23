@@ -95,7 +95,6 @@ def generate_synthetic_file(args: argparse.Namespace,
     with synth_filename.open('w') as synth_f:
         pass
 
-    proof_commands = coq_serapy.load_commands(str(filename))
     with coq_serapy.SerapiContext(["sertop", "--implicit"],
                                   None,
                                   str(args.prelude)) as coq:
@@ -118,6 +117,9 @@ def generate_synthetic_file(args: argparse.Namespace,
                 print(lemma_statement, file=synth_f, end="")
                 for cmd in run_commands:
                     print(cmd, file=synth_f, end="")
+    coqargs = ["sertop", "--implicit"]
+    proof_commands = linearize_semicolons.get_linearized(
+        args, coqargs, 0, str(filename))
 
 
 def main():
@@ -137,6 +139,8 @@ def main():
     parser.add_argument(
         "--context-filter", dest="context_filter", type=str,
         default="(goal-args+hyp-args+rel-lemma-args)%maxargs:1%default")
+    parser.add_argument("--linearizer-timeout",
+                        type=int, default=(60 * 60 * 2))
     parser.add_argument("--progress", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
 
