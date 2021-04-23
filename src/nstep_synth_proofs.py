@@ -149,25 +149,26 @@ def main():
     else:
         proof_names = None
 
-    for filename in args.filenames:
+    for idx, filename in enumerate(args.filenames):
         if proof_names:
             proof_jobs = proof_names
         else:
             proof_jobs = [coq_serapy.lemma_name_from_statement(stmt)
                           for filename, module, stmt in
-                          get_proofs(args, filename)]
+                          get_proofs(args, (idx, filename))]
         generate_synthetic_file(args, filename, proof_jobs)
 
 
 def get_proofs(args: argparse.Namespace,
-               t: Tuple[int, str]) -> List[Tuple[str, str, str]]:
+               t: Tuple[int, str],
+               include_proof_relevant: bool = False
+               ) -> List[Tuple[str, str, str]]:
     idx, filename = t
-    with util.silent():
-        commands = coq_serapy.load_commands_preserve(
-            args, idx, args.prelude / filename)
+    commands = coq_serapy.load_commands_preserve(
+        args, idx, args.prelude / filename)
     return [(filename, module, cmd) for module, cmd in
             coq_serapy.lemmas_in_file(
-                filename, commands, args.include_proof_relevant)]
+                filename, commands, include_proof_relevant)]
 
 
 if __name__ == "__main__":
