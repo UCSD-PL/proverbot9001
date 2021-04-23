@@ -139,8 +139,6 @@ def generate_synthetic_file(args: argparse.Namespace,
                 local_vars.append(variable_match.group(1))
             let_match = re.match(r"\s*Let", cmd)
             if let_match:
-                print(f"Adding {cmd} to local vars as "
-                      f"{coq_serapy.let_to_hyp(cmd)}")
                 local_vars.append(coq_serapy.let_to_hyp(cmd))
 
     synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
