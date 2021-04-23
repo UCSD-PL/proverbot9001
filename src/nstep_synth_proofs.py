@@ -99,7 +99,10 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
         write(f"  Lemma {synth_lemma_name}: {before_state.goal}.")
-        write("Admitted.")
+        write("  Proof.")
+        cmd_base = cur_cmd.strip()[:-1]
+        write(f"    {cmd_base}; repeat eauto.")
+        write("  Qed.")
         write(f"End {sec_name}.")
         if break_after:
             break
