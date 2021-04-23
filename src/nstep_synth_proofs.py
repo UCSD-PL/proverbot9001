@@ -87,7 +87,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
             write(f"  Hypothesis {gname}: {gbody}.")
 
-        synth_lemma_name = f"synth_lemma_{cmd_idx}"
+        synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
         write(f"  Lemma {synth_lemma_name}: {before_state.goal}.")
         write("Admitted.")
         write(f"End {sec_name}.")
