@@ -10,7 +10,9 @@ import linearize_semicolons
 
 
 def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
+                              lemma_idx: int,
                               lemma_stmt: str,
+                              local_vars: List[str],
                               proof_commands: List[str], f: IO[str]):
     def write(s: str) -> None:
         print(s, file=f)
