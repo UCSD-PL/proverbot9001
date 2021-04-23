@@ -137,6 +137,7 @@ def main():
     parser.add_argument(
         "--context-filter", dest="context_filter", type=str,
         default="(goal-args+hyp-args+rel-lemma-args)%maxargs:1%default")
+    parser.add_argument("--progress", action='store_true')
     parser.add_argument("--verbose", "-v", action='count', default=0)
 
     args = parser.parse_args()
