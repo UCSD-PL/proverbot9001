@@ -20,17 +20,17 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
     for cmd_idx in range(len(proof_commands)):
         if proof_commands[cmd_idx].startswith("intro"):
             continue
+        cur_cmd = proof_commands[cmd_idx]
         assert coq.proof_context
-        is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*",
-                                proof_commands[cmd_idx])
-        is_goal_close = re.match(r"\s*[}]\s*",
-                                 proof_commands[cmd_idx])
+        is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", cur_cmd)
+        is_goal_close = re.match(r"\s*[}]\s*", cur_cmd)
         if coq.count_fg_goals() > 1 and not is_goal_open:
             coq.run_stmt("{")
         before_state = coq.tactic_context([])
-        coq.run_stmt(proof_commands[cmd_idx])
         if is_goal_open or is_goal_close:
             continue
+        coq.run_stmt(cur_cmd)
+
         if not coq.proof_context or len(coq.proof_context.all_goals) == 0:
             after_goals = []
             break_after = True
@@ -49,7 +49,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         generalized_vars = []
         induction_match = re.match(r"\s*induction\s+(?P<var>\S)\.",
-                                   proof_commands[cmd_idx])
+                                   cur_cmd)
         if induction_match:
             var = induction_match.group('var')
             for hyp in before_hyps:
