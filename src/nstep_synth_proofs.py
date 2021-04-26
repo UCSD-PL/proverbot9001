@@ -162,6 +162,7 @@ def generate_synthetic_file(args: argparse.Namespace,
                                       str(args.prelude)) as coq:
             coq.verbose = args.verbose
             rest_commands = proof_commands
+            coq.run_stmt("Set Printing Implicit.")
             while True:
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
