@@ -102,7 +102,13 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         write(f"  Lemma {synth_lemma_name}: {before_state.goal}.")
         write("  Proof.")
         cmd_base = cur_cmd.strip()[:-1]
-        write(f"    {cmd_base}; repeat eauto.")
+        if len(after_goals) > 0:
+            finisher = "[" + "|".join([f"eapply test_goal{idx}" for idx in
+                                       range(len(after_goals))]) + "] ; eauto."
+        else:
+            finisher = "eauto."
+        proof = f"    {cmd_base}; {finisher}"
+        write(proof)
         write("  Qed.")
         write(f"End {sec_name}.")
         if break_after:
