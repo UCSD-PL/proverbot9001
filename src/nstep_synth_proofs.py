@@ -136,6 +136,7 @@ def generate_synthetic_file(args: argparse.Namespace,
     def add_local_vars(cmds: List[str]) -> None:
         for cmd in cmds:
             variable_match = re.fullmatch(r"\s*Variable\s+(.*)\.\s*", cmd)
+            cmd = coq_serapy.kill_comments(cmd).strip()
             if variable_match:
                 local_vars.append(variable_match.group(1))
             let_match = re.match(r"\s*Let", cmd)
