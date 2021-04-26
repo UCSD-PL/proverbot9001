@@ -61,10 +61,10 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         # in the subgoal hyp precedents.
 
         generalized_vars = []
-        induction_match = re.match(r"\s*induction\s+(?P<var>\S)\.",
-                                   cur_cmd)
-        if induction_match:
-            var = induction_match.group('var')
+        generalize_match = re.match(r"\s*(induction|destruct)\s+(?P<var>\S)\.",
+                                    cur_cmd)
+        if generalize_match:
+            var = generalize_match.group('var')
             for hyp in before_hyps:
                 hyp_vars = [h.strip() for h in
                             coq_serapy.get_var_term_in_hyp(hyp).split(",")]
