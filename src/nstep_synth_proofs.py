@@ -82,7 +82,8 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             assert not re.match(r"\s*iter\s*", h), local_vars
             write(f"  Hypothesis {termify_hyp(h)}.")
         for gidx, goal in enumerate(after_goals):
-            if re.match(r".*\s+\?\w", goal.goal):
+            if re.match(r".*\s+\?\w", goal.goal,
+                        re.DOTALL):
                 continue
             gname = f"test_goal{gidx}"
 
