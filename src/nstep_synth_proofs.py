@@ -43,7 +43,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         # Skip some proof handling commands that don't change the goal
         # Unfortunately there's no good way to handle evars
-        if re.match(r".*\s+\?\w", before_state.goal) \
+        if re.match(r".*\s+\?\w", before_state.goal, re.DOTALL) \
                 or is_goal_open or is_goal_close or is_proof_keyword:
             if break_after:
                 break
