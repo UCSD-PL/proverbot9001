@@ -131,7 +131,7 @@ def hyps_difference(hyps_base: List[str],
 def generate_synthetic_file(args: argparse.Namespace,
                             filename: Path2,
                             proof_jobs: List[str]):
-    local_vars = []
+    local_vars: List[List[str]] = [[]]
 
     def add_local_vars(cmds: List[str]) -> None:
         for cmd in cmds:
@@ -140,7 +140,13 @@ def generate_synthetic_file(args: argparse.Namespace,
                 local_vars.append(variable_match.group(1))
             let_match = re.match(r"\s*Let", cmd)
             if let_match:
-                local_vars.append(coq_serapy.let_to_hyp(cmd))
+                local_vars[-1].append(coq_serapy.let_to_hyp(cmd))
+            section_match = re.match(r"\s*Section", cmd)
+            if section_match:
+                local_vars.append([])
+            end_match = re.match(r"\s*End", cmd)
+            if end_match:
+                local_vars.pop()
 
     synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
                                           + '-synthetic.v')
@@ -173,7 +179,9 @@ def generate_synthetic_file(args: argparse.Namespace,
                         generate_synthetic_lemmas(coq,
                                                   proof_jobs.index(lemma_name),
                                                   lemma_statement,
-                                                  local_vars,
+                                                  [var for var_list
+                                                   in local_vars
+                                                   for var in var_list],
                                                   rest_commands, synth_f)
                     rest_commands, run_commands = coq.finish_proof(
                         rest_commands)
