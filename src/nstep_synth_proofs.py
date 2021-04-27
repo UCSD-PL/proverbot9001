@@ -74,13 +74,18 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                         coq_serapy.get_hyp_type(hyp))
                     break
 
-        sec_name = "test_sec"
-        write(f"Section {sec_name}.")
+        # sec_name = "test_sec"
+        # write(f"Section {sec_name}.")
+        synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
+        synth_lemma_stmt = f"  Lemma {synth_lemma_name} "
+        write(synth_lemma_stmt)
+
         for h in reversed(hyps_difference(before_state.hypotheses,
                                           local_vars)):
             # assert len(local_vars) == 0
             assert not re.match(r"\s*iter\s*", h), local_vars
-            write(f"  Hypothesis {termify_hyp(h)}.")
+            # write(f"  Hypothesis {termify_hyp(h)}.")
+            write(f"    ({termify_hyp(h)})")
         num_valid_goals = 0
         for gidx, goal in enumerate(after_goals):
             if re.match(r".*\s+\?\w", goal.goal,
@@ -98,11 +103,9 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                 gbody += f"forall ({termify_hyp(new_hyp)}), "
             gbody += goal.goal
 
-            write(f"  Hypothesis {gname}: {gbody}.")
+            write(f"    ({gname}: {gbody})")
 
-        synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
-        synth_lemma_stmt = f"  Lemma {synth_lemma_name}: {before_state.goal}."
-        write(synth_lemma_stmt)
+        write(f": {before_state.goal}.")
         write("  Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if len(after_goals) > 0:
@@ -113,7 +116,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         proof = f"    {cmd_base}; {finisher}"
         write(proof)
         write("  Qed.")
-        write(f"End {sec_name}.")
+        # write(f"End {sec_name}.")
         if break_after:
             break
 
@@ -290,11 +293,11 @@ def main():
         synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
                                               + '-synthetic.v')
         generate_synthetic_file(args, filename,
-                                Path2(str(synth_filename) + ".partial"),
+                                Path2(str(synth_filename)),
                                 proof_jobs)
         print("Attempting to remove broken proofs")
-        remove_broken_proofs(args, Path2(str(synth_filename) + ".partial"),
-                             synth_filename)
+        # remove_broken_proofs(args, Path2(str(synth_filename) + ".partial"),
+        #                      synth_filename)
 
 
 def get_proofs(args: argparse.Namespace,
