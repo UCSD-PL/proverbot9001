@@ -135,7 +135,8 @@ def hyps_difference(hyps_base: List[str],
 
 
 def generate_synthetic_file(args: argparse.Namespace,
-                            filename: Path2,
+                            in_filename: Path2,
+                            out_filename: Path2,
                             proof_jobs: List[str]):
     local_vars: List[List[str]] = [[]]
 
@@ -158,14 +159,12 @@ def generate_synthetic_file(args: argparse.Namespace,
             if end_match:
                 local_vars.pop()
 
-    synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
-                                          + '-synthetic.v')
-    with synth_filename.open('w') as synth_f:
+    with out_filename.open('w') as synth_f:
         pass
 
     coqargs = ["sertop", "--implicit"]
     proof_commands = linearize_semicolons.get_linearized(
-        args, coqargs, 0, str(filename))
+        args, coqargs, 0, str(in_filename))
     with tqdm(desc='Processing proofs', total=len(proof_commands)) as bar:
         with coq_serapy.SerapiContext(coqargs,
                                       None,
@@ -178,7 +177,7 @@ def generate_synthetic_file(args: argparse.Namespace,
                     rest_commands)
                 add_local_vars(run_commands)
                 bar.update(len(run_commands))
-                with synth_filename.open('a') as synth_f:
+                with out_filename.open('a') as synth_f:
                     for cmd in run_commands[:-1]:  # discard starting the proof
                         print(cmd, file=synth_f, end="")
                     if not coq.proof_context:
@@ -241,7 +240,12 @@ def main():
             proof_jobs = [coq_serapy.lemma_name_from_statement(stmt)
                           for filename, module, stmt in
                           get_proofs(args, (idx, filename))]
-        generate_synthetic_file(args, filename, proof_jobs)
+
+        synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
+                                              + '-synthetic.v')
+        generate_synthetic_file(args, filename,
+                                Path2(str(synth_filename) + ".partial"),
+                                proof_jobs)
 
 
 def get_proofs(args: argparse.Namespace,
