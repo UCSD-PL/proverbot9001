@@ -137,6 +137,49 @@ def hyps_difference(hyps_base: List[str],
     return result
 
 
+def remove_broken_proofs(args: argparse.Namespace,
+                         filein: Path2, fileout: Path2) -> None:
+    in_cmds = coq_serapy.load_commands(str(filein),
+                                       progress_bar=args.progress)
+    section_buffer: List[str] = []
+    in_testsec = False
+    is_broken = False
+    with fileout.open('w') as outf:
+        print("Opening serapi instance")
+        with coq_serapy.SerapiContext(["sertop", "--implicit"], None,
+                                      str(args.prelude)) as coq:
+            coq.verbose = args.verbose
+            for cmd in tqdm(in_cmds, total=len(in_cmds)):
+                if cmd.strip() == "Section test_sec.":
+                    assert not in_testsec
+                    in_testsec = True
+                    is_broken = False
+                elif cmd.strip() == "End test_sec.":
+                    assert in_testsec
+                    in_testsec = False
+                    if not is_broken:
+                        for buf_cmd in section_buffer:
+                            print(buf_cmd, file=outf, end="")
+                        print(cmd, file=outf, end="")
+                        coq.run_stmt(cmd)
+                    continue
+
+                if in_testsec:
+                    if is_broken:
+                        continue
+                    section_buffer.append(cmd)
+                    try:
+                        coq.run_stmt(cmd)
+                    except coq_serapy.SerapiException:
+                        if coq.proof_context:
+                            coq.run_stmt("Admitted.")
+                        coq.run_stmt("End test_sec.")
+                        is_broken = True
+                else:
+                    coq.run_stmt(cmd)
+                    print(cmd, file=outf, end="")
+
+
 def generate_synthetic_file(args: argparse.Namespace,
                             in_filename: Path2,
                             out_filename: Path2,
@@ -249,6 +292,9 @@ def main():
         generate_synthetic_file(args, filename,
                                 Path2(str(synth_filename) + ".partial"),
                                 proof_jobs)
+        print("Attempting to remove broken proofs")
+        remove_broken_proofs(args, Path2(str(synth_filename) + ".partial"),
+                             synth_filename)
 
 
 def get_proofs(args: argparse.Namespace,
