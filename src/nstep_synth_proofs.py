@@ -293,7 +293,7 @@ def main():
         synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
                                               + '-synthetic.v')
         generate_synthetic_file(args, filename,
-                                Path2(str(synth_filename)),
+                                synth_filename,
                                 proof_jobs)
 
 
