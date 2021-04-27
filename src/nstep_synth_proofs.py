@@ -81,10 +81,12 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             # assert len(local_vars) == 0
             assert not re.match(r"\s*iter\s*", h), local_vars
             write(f"  Hypothesis {termify_hyp(h)}.")
+        num_valid_goals = 0
         for gidx, goal in enumerate(after_goals):
             if re.match(r".*\s+\?\w", goal.goal,
                         re.DOTALL):
                 continue
+            num_valid_goals += 1
             gname = f"test_goal{gidx}"
 
             new_hyps = generalized_vars + \
@@ -104,7 +106,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         cmd_base = cur_cmd.strip()[:-1]
         if len(after_goals) > 0:
             finisher = "[" + "|".join([f"eapply test_goal{idx}" for idx in
-                                       range(len(after_goals))]) + "] ; eauto."
+                                       range(num_valid_goals)]) + "] ; eauto."
         else:
             finisher = "eauto."
         proof = f"    {cmd_base}; {finisher}"
