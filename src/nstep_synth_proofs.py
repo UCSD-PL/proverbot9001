@@ -75,12 +75,12 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                     break
 
         synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
-        synth_lemma_stmt = f"  Lemma {synth_lemma_name} "
+        synth_lemma_stmt = f"Lemma {synth_lemma_name} "
         write(synth_lemma_stmt)
 
         for h in reversed(hyps_difference(before_state.hypotheses,
                                           local_vars)):
-            write(f"    ({termify_hyp(h)})")
+            write(f"  ({termify_hyp(h)})")
         num_valid_goals = 0
         for gidx, goal in enumerate(after_goals):
             if re.match(r".*\s+\?\w", goal.goal,
@@ -98,19 +98,19 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                 gbody += f"forall ({termify_hyp(new_hyp)}), "
             gbody += goal.goal
 
-            write(f"    ({gname}: {gbody})")
+            write(f"  ({gname}: {gbody})")
 
-        write(f": {before_state.goal}.")
-        write("  Proof.")
+        write(f"    : {before_state.goal}.")
+        write("Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if len(after_goals) > 0:
             finisher = "[" + "|".join([f"eapply test_goal{idx}" for idx in
                                        range(num_valid_goals)]) + "] ; eauto."
         else:
             finisher = "eauto."
-        proof = f"    {cmd_base}; {finisher}"
+        proof = f"  {cmd_base}; {finisher}"
         write(proof)
-        write("  Qed.")
+        write("Qed.")
         if break_after:
             break
 
