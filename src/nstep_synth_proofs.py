@@ -101,7 +101,8 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             write(f"  Hypothesis {gname}: {gbody}.")
 
         synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
-        write(f"  Lemma {synth_lemma_name}: {before_state.goal}.")
+        synth_lemma_stmt = f"  Lemma {synth_lemma_name}: {before_state.goal}."
+        write(synth_lemma_stmt)
         write("  Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if len(after_goals) > 0:
