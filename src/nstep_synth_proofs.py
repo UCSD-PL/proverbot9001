@@ -87,7 +87,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                         re.DOTALL):
                 continue
             num_valid_goals += 1
-            gname = f"test_goal{gidx}"
+            gname = f"subgoal{gidx}"
 
             new_hyps = generalized_vars + \
                 list(reversed(
@@ -104,7 +104,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         write("Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if len(after_goals) > 0:
-            finisher = "[" + "|".join([f"eapply test_goal{idx}" for idx in
+            finisher = "[" + "|".join([f"eapply subgoal{idx}" for idx in
                                        range(num_valid_goals)]) + "] ; eauto."
         else:
             finisher = "eauto."
