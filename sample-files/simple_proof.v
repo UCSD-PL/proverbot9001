@@ -12,4 +12,12 @@ Proof.
 induction n.
   omega.
   auto.
+Qed.
+
+
+Lemma t : forall n: nat, (S n) > n.
   intros.
+  induction n.
+  { auto. }
+  { auto. }
+Qed.
