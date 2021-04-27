@@ -95,7 +95,12 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             gbody = ""
 
             for new_hyp in new_hyps:
-                gbody += f"forall ({termify_hyp(new_hyp)}), "
+                hyp_vars = coq_serapy.get_vars_in_hyps([new_hyp])
+                hyp_vars_present = [var for var in hyp_vars
+                                    if re.search(rf'\W{var}\W', goal.goal)]
+                if len(hyp_vars_present) > 0:
+                    gbody += f"forall ({' '.join(hyp_vars_present)} : " \
+                             f"{coq_serapy.get_hyp_type(new_hyp)}), "
             gbody += goal.goal
 
             write(f"  ({gname}: {gbody})")
