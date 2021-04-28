@@ -190,18 +190,25 @@ def generate_synthetic_file(args: argparse.Namespace,
                             proof_jobs: List[str]):
     local_vars: List[List[str]] = [[]]
 
-    def add_local_vars(cmds: List[str]) -> None:
+    def add_local_vars(cmds: List[str], coq: coq_serapy.SerapiInstance
+                       ) -> None:
         for cmd in cmds:
             cmd = coq_serapy.kill_comments(cmd).strip()
             variable_match = re.fullmatch(
                 r"\s*Variables?\s+(.*)\.\s*", cmd)
             if variable_match:
                 var_part, type_part = variable_match.group(1).split(":", 1)
-                var_hyp = var_part.replace(" ", ", ") + " :" + type_part
+                first_var = var_part.split()[0].strip()
+                desugared_type = coq.check_term(first_var).split(
+                    ":", 1)[1].strip()
+                var_hyp = var_part.replace(" ", ", ") + " :" + desugared_type
                 local_vars[-1].append(var_hyp)
-            let_match = re.match(r"\s*Let", cmd)
+            let_match = re.match(r"\s*Let\s+([\w']*)\s+", cmd)
             if let_match:
-                local_vars[-1].append(coq_serapy.let_to_hyp(cmd))
+                ident = let_match.group(1)
+                desugared_type = coq.check_term(
+                    ident).split(":", 1)[1].strip()
+                local_vars[-1].append(ident + " : " + desugared_type)
             section_match = re.match(r"\s*Section", cmd)
             if section_match:
                 local_vars.append([])
@@ -225,7 +232,7 @@ def generate_synthetic_file(args: argparse.Namespace,
             while True:
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
-                add_local_vars(run_commands)
+                add_local_vars(run_commands, coq)
                 bar.update(len(run_commands))
                 with out_filename.open('a') as synth_f:
                     for cmd in run_commands[:-1]:  # discard starting the proof
