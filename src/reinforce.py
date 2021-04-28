@@ -147,7 +147,6 @@ def main() -> None:
     reinforce_multithreaded(args)
 
 
-
 Job = Tuple[Path2, str, str]
 Demonstration = List[str]
 
