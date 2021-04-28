@@ -132,9 +132,17 @@ def hyps_difference(hyps_base: List[str],
     for hyp in hyps_base:
         vars_in_hyp = [name.strip() for name in
                        coq_serapy.get_var_term_in_hyp(hyp).split(",")]
-        vars_left = [var for var in vars_in_hyp
-                     if var not in
-                     coq_serapy.get_vars_in_hyps(hyps_subtracted)]
+        vars_left = []
+        for var in vars_in_hyp:
+            already_exists = False
+            for other_hyp in hyps_subtracted:
+                if var in coq_serapy.get_vars_in_hyps([other_hyp]) \
+                        and coq_serapy.get_hyp_type(hyp) == \
+                        coq_serapy.get_hyp_type(other_hyp):
+                    already_exists = True
+                    break
+            if not already_exists:
+                vars_left.append(var)
         if len(vars_left) > 0:
             result.append(", ".join(vars_left) + " : " +
                           coq_serapy.get_hyp_type(hyp))
