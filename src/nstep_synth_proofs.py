@@ -49,6 +49,12 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                 break
             else:
                 continue
+        if any([re.match(r".*\s+\?\w", goal.goal, re.DOTALL)
+                for goal in after_goals]):
+            if break_after:
+                break
+            else:
+                continue
         # NOTE: for now we're generating synth lemmas on anything that doesn't
         # manipulate the goal
 
@@ -76,6 +82,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
         synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
         synth_lemma_stmt = f"Lemma {synth_lemma_name} "
+
         write(synth_lemma_stmt)
 
         for h in reversed(hyps_difference(before_state.hypotheses,
@@ -83,9 +90,6 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
             write(f"  ({termify_hyp(h)})")
         num_valid_goals = 0
         for gidx, goal in enumerate(after_goals):
-            if re.match(r".*\s+\?\w", goal.goal,
-                        re.DOTALL):
-                continue
             num_valid_goals += 1
             gname = f"subgoal{gidx}"
 
