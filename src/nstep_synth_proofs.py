@@ -319,7 +319,7 @@ def main():
                           get_proofs(args, (idx, filename))]
 
         synth_filename = args.prelude / Path2(str(filename.with_suffix(""))
-                                              + '-synthetic.v')
+                                              + '_synthetic.v')
         generate_synthetic_file(args, filename,
                                 synth_filename,
                                 proof_jobs)
