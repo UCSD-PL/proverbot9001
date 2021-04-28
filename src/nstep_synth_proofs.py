@@ -122,9 +122,9 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         write("Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if num_valid_goals > 0:
-            finisher = ";".join([f"try eapply subgoal{idx}" for idx in
-                                 range(num_valid_goals)]) \
-                                 + "; eauto."
+            finisher = "; ".join([f"try eapply subgoal{idx}" for idx in
+                                  range(num_valid_goals)]) \
+                                  + "; eauto."
         else:
             finisher = "eauto."
         proof = f"  {cmd_base}; {finisher}"
