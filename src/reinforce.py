@@ -189,9 +189,10 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 next_done = json.loads(line)
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
-                graphpath = (args.graphs_dir / next_done[1])\
+                graphpath = (args.graphs_dir / next_done[2])\
                     .with_suffix(".png")
-                graph = ReinforceGraph.load(graphpath + ".json")
+                graph = ReinforceGraph.load(
+                    graphpath.with_suffix(".png.json"))
                 graphs_done.append((graphpath, graph))
         return replay_memory, already_done, graphs_done
 
