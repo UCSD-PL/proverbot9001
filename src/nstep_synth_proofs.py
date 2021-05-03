@@ -153,6 +153,10 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
     coq.run_stmt(lemma_stmt)
 
 
+def normalize_term(term: str) -> str:
+    return re.sub(r"\s+", " ", term)
+
+
 def hyps_difference(hyps_base: List[str],
                     hyps_subtracted: List[str]) -> List[str]:
     result = []
@@ -164,8 +168,8 @@ def hyps_difference(hyps_base: List[str],
             already_exists = False
             for other_hyp in hyps_subtracted:
                 if var in coq_serapy.get_vars_in_hyps([other_hyp]) \
-                        and coq_serapy.get_hyp_type(hyp) == \
-                        coq_serapy.get_hyp_type(other_hyp):
+                        and normalize_term(coq_serapy.get_hyp_type(hyp)) == \
+                        normalize_term(coq_serapy.get_hyp_type(other_hyp)):
                     already_exists = True
                     break
             if not already_exists:
