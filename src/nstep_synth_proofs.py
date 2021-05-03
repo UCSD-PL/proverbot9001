@@ -173,7 +173,14 @@ def hyps_difference(hyps_base: List[str],
                     already_exists = True
                     break
             if not already_exists:
-                vars_left.append(var)
+                # Check to see if we have a hyp with the same name, but a new
+                # type, and if so, add a prime to the variable name until we
+                # don't have a variable with that name.
+                new_var = var
+                while any([new_var in coq_serapy.get_vars_in_hyps([other_hyp])
+                           for other_hyp in hyps_subtracted]):
+                    new_var = new_var + "'"
+                vars_left.append(new_var)
         if len(vars_left) > 0:
             result.append(", ".join(vars_left) + " : " +
                           coq_serapy.get_hyp_type(hyp))
