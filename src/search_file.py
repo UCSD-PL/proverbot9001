@@ -378,7 +378,7 @@ def search_file_worker(args: argparse.Namespace,
                                 try:
                                     coq.run_stmt(signature)
                                     coq.run_stmt("Admitted.")
-                                except CoqExn:
+                                except serapi_instance.SerapyException:
                                     axiom_name = serapi_instance.lemma_name_from_statement(
                                         signature)
                                     eprint(f"Couldn't declare axiom {axiom_name} "
