@@ -254,6 +254,7 @@ def generate_synthetic_file(args: argparse.Namespace,
                     for cmd in run_commands[:-1]:  # discard starting the proof
                         print(cmd, file=synth_f, end="")
                     if not coq.proof_context:
+                        print(run_commands[-1], file=synth_f, end="")
                         break
                     lemma_statement = run_commands[-1]
                     lemma_name = coq_serapy.lemma_name_from_statement(
