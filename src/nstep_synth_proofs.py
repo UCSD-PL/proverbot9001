@@ -77,11 +77,10 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         synth_lemma_name = f"synth_lemma_{lemma_idx}_{cmd_idx}"
         synth_lemma_stmt = f"Lemma {synth_lemma_name} "
 
-        write(synth_lemma_stmt)
-
         for h in reversed(hyps_difference(before_state.hypotheses,
                                           local_vars)):
-            write(f"  ({termify_hyp(h)})")
+            assert "reg_eq " not in h, (synth_lemma_stmt, h, local_vars)
+            synth_lemma_stmt += (f"\n  ({termify_hyp(h)})")
         num_valid_goals = 0
         for gidx, goal in enumerate(after_goals):
             num_valid_goals += 1
@@ -110,9 +109,10 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
 
             gbody += goal.goal
 
-            write(f"  ({gname}: {gbody})")
+            synth_lemma_stmt += (f"\n  ({gname}: {gbody})")
 
-        write(f"    : {before_state.goal}.")
+        synth_lemma_stmt += (f"\n    : {before_state.goal}.")
+        write(synth_lemma_stmt)
         write("Proof.")
         cmd_base = cur_cmd.strip()[:-1]
         if num_valid_goals > 0:
