@@ -276,6 +276,7 @@ def generate_synthetic_file(args: argparse.Namespace,
             coq.verbose = args.verbose
             rest_commands = proof_commands
             coq.run_stmt("Set Printing Implicit.")
+            coq.run_stmt("Set Nested Proofs Allowed.")
             while True:
                 rest_commands, run_commands = coq.run_into_next_proof(
                     rest_commands)
