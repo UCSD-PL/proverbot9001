@@ -14,8 +14,28 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                               lemma_stmt: str,
                               local_vars: List[str],
                               proof_commands: List[str], f: IO[str]):
+    proof_buffer: List[str] = []
+
     def write(s: str) -> None:
-        print(s, file=f)
+        proof_buffer.append(s)
+
+    def finalize() -> None:
+        nonlocal proof_buffer
+        try:
+            coq.run_stmt(proof_buffer[0])
+        except coq_serapy.SerapiException:
+            proof_buffer = []
+            return
+        try:
+            for cmd in proof_buffer[1:]:
+                coq.run_stmt(cmd)
+            for cmd in proof_buffer:
+                print(cmd, file=f)
+            proof_buffer = []
+        except coq_serapy.SerapiException:
+            coq.run_stmt("Admitted.")
+            proof_buffer = []
+            pass
 
     def termify_hyp(hyp: str) -> str:
         return coq_serapy.get_var_term_in_hyp(
@@ -124,6 +144,7 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         proof = f"  {cmd_base}; {finisher}"
         write(proof)
         write("Qed.")
+        finalize()
         if break_after:
             break
 
