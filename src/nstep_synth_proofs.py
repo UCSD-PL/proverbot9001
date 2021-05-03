@@ -241,7 +241,8 @@ def generate_synthetic_file(args: argparse.Namespace,
         for cmd in cmds:
             cmd = coq_serapy.kill_comments(cmd).strip()
             variable_match = re.fullmatch(
-                r"\s*Variables?\s+(.*)\.\s*", cmd)
+                r"\s*(?:(?:Variables?)|(?:Hypothesis))\s+(.*)\.\s*",
+                cmd, re.DOTALL)
             if variable_match:
                 var_part, type_part = variable_match.group(1).split(":", 1)
                 first_var = var_part.split()[0].strip()
