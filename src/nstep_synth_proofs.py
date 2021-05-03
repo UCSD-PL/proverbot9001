@@ -29,8 +29,6 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
         is_goal_open = re.match(r"\s*(?:\d+\s*:)?\s*[{]\s*", cur_cmd)
         is_goal_close = re.match(r"\s*[}]\s*", cur_cmd)
         is_proof_keyword = re.match(r"\s*Proof.*", cur_cmd)
-        if coq.count_fg_goals() > 1 and not is_goal_open:
-            coq.run_stmt("{")
         before_state = coq.tactic_context([])
         coq.run_stmt(cur_cmd)
 
