@@ -248,7 +248,7 @@ def generate_synthetic_file(args: argparse.Namespace,
                 first_var = var_part.split()[0].strip()
                 desugared_type = coq.check_term(first_var).split(
                     ":", 1)[1].strip()
-                var_hyp = var_part.replace(" ", ", ") + " :" + desugared_type
+                var_hyp = var_part.strip().replace(" ", ", ") + " : " + desugared_type
                 local_vars[-1].append(var_hyp)
             let_match = re.match(r"\s*Let\s+([\w']*)\s+", cmd)
             if let_match:
