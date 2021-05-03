@@ -55,10 +55,6 @@ def generate_synthetic_lemmas(coq: coq_serapy.SerapiInstance,
                 break
             else:
                 continue
-        # NOTE: for now we're generating synth lemmas on anything that doesn't
-        # manipulate the goal
-
-        # for now only " h1 => g2 => g1 "
 
         before_hyps = before_state.hypotheses
 
