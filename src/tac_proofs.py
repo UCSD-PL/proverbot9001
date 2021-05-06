@@ -37,6 +37,8 @@ def main() -> None:
         description="Count the number of proofs with only certain tactics")
     parser.add_argument('--verbose', "-v", action='count', default=0)
     parser.add_argument('--progress', "-P", action='store_true')
+    parser.add_argument('--mode', choices=["percentages", "proofs"],
+                        default="percentages")
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args()
 
@@ -44,13 +46,15 @@ def main() -> None:
     total_match = 0
     for filename in args.filenames:
         num_proofs, num_match = count_proofs(args, filename)
-        print(f"{filename}: "
-              f"{num_match}/{num_proofs} "
-              f"{stringified_percent(num_match,num_proofs)}%")
+        if args.mode == "percentages":
+            print(f"{filename}: "
+                  f"{num_match}/{num_proofs} "
+                  f"{stringified_percent(num_match,num_proofs)}%")
         total_proofs += num_proofs
         total_match += num_match
-    print(f"{total_match}/{total_proofs} "
-          f"{stringified_percent(total_match,total_proofs)}%")
+    if args.mode == "percentages":
+        print(f"{total_match}/{total_proofs} "
+              f"{stringified_percent(total_match,total_proofs)}%")
 
 
 def count_proofs(args: argparse.Namespace, filename: str) -> Tuple[int, int]:
@@ -70,6 +74,8 @@ def count_proofs(args: argparse.Namespace, filename: str) -> Tuple[int, int]:
             if proof_matches:
                 if args.verbose >= 2:
                     print(f"Proof {lemma_name} matches", file=stderr)
+                if args.mode == "proofs" and lemma_name:
+                    print(lemma_name)
                 num_match += 1
             elif args.verbose >= 2:
                 print(f"Proof {lemma_name} doesnt match", file=stderr)
