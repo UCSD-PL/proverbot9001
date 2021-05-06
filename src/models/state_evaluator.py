@@ -19,7 +19,7 @@
 #
 ##########################################################################
 
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from data import StateScore, StateEvaluationDataset, get_evaluation_data
 
 from abc import ABCMeta, abstractmethod
