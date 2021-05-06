@@ -35,8 +35,8 @@ from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from models.args import start_std_args, optimizers
 from models.components import DNNClassifier, EncoderDNN, DecoderGRU
-import serapi_instance
-from format import TacticContext
+import coq_serapy as serapi_instance
+from coq_serapy.contexts import TacticContext
 
 from typing import List, Dict, Tuple, NamedTuple, Union, Callable, \
     Optional, Iterator, Counter

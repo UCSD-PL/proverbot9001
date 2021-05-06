@@ -21,10 +21,10 @@
 
 from evaluate_state import static_evaluators, loadEvaluatorByFile, loadEvaluatorByName
 from models.state_evaluator import StateEvaluator
-import serapi_instance
+import coq_serapy as serapi_instance
 from context_filter import get_context_filter
-from format import (TacticContext, ScrapedCommand, ScrapedTactic,
-                    strip_scraped_output)
+from coq_serapy.contexts import (TacticContext, ScrapedCommand, ScrapedTactic,
+                                 strip_scraped_output)
 from data import read_all_text_data
 from syntax import syntax_highlight, ColoredString
 

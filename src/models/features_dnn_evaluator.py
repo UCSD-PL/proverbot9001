@@ -19,7 +19,7 @@
 #
 ##########################################################################
 
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 from data import ListDataset, chunks, StateScore
 
 from features import (WordFeature, VecFeature,

@@ -21,7 +21,7 @@
 ##########################################################################
 
 from models.state_evaluator import StateEvaluationDataset, StateScore, StateEvaluator
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 class IdEvaluator(StateEvaluator):
     def scoreState(self, state : TacticContext) -> float:

@@ -30,11 +30,11 @@ import evaluator_report
 import argparse
 import data
 import itertools
-import serapi_instance
+import coq_serapy
 import features
 import json
 from util import eprint, print_time
-from format import strip_scraped_output
+from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
@@ -199,7 +199,7 @@ def get_tokens(args: List[str]):
     subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
     relevance_pairs = [(context.focused_goal,
                         embedding.encode_token(
-                            serapi_instance.get_stem(tactic)))
+                            coq_serapy.get_stem(tactic)))
                        for relevant_lemmas, prev_tactics, context, tactic
                        in subset]
     with print_time("Calculating keywords", guard=arg_values.verbose):

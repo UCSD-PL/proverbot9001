@@ -27,7 +27,7 @@ from pathlib_revised import Path2
 import dataloader
 import predict_tactic
 from models.features_q_estimator import FeaturesQEstimator
-from format import TacticContext
+from coq_serapy.contexts import TacticContext
 
 
 def main() -> None:
