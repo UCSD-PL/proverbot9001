@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
@@ -20,7 +20,7 @@
 #
 ##########################################################################
 import argparse
-import sys
+import re
 
 import coq_serapy as serapi_instance
 from coq_serapy.contexts import (ScrapedCommand, ScrapedTactic,
@@ -30,7 +30,8 @@ from util import eprint, stringified_percent
 from data import read_all_text_data
 from pathlib_revised import Path2
 
-from typing import Dict, Tuple, Any, cast
+from typing import List, Optional, Tuple, cast
+
 
 def main() -> None:
     args, parser = parse_arguments()
@@ -54,8 +55,9 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
         description="Count the number of proofs matching criteria")
     parser.add_argument('--prelude', default=".")
-    parser.add_argument('--debug', default=False, const=True, action='store_const')
-    parser.add_argument("--verbose", "-v", help="verbose output", action='store_true')
+    parser.add_argument('--debug', action='store_true')
+    parser.add_argument("--verbose", "-v", help="verbose output",
+                        action='count')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default="count-default")
     g = parser.add_mutually_exclusive_group()
@@ -104,10 +106,13 @@ def count_proofs(args: argparse.Namespace, filename: str) \
         else:
             context_after = TacticContext([], [], [], "")
 
-        entering_proof = bool((not context_before.goal) and context_after.goal)
-        exiting_proof = bool(context_before.goal and not context_after.goal)
+        entering_proof = bool(isinstance(inter, str) and
+                              isinstance(next_inter, ScrapedTactic))
+        exiting_proof = bool(isinstance(inter, ScrapedTactic) and
+                             isinstance(next_inter, str))
 
         if entering_proof:
+            assert isinstance(next_inter, ScrapedTactic)
             cur_lemma_stmt = next_inter.prev_tactics[0]
             cur_proof_counts = False if args.some else True
             continue
@@ -119,11 +124,13 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                     cur_proof_counts = True
             else:
                 if args.all and cur_proof_counts:
-                    cur_lemma_name = serapi_instance.lemma_name_from_statement(cur_lemma_stmt)
-                    eprint(f"Eliminating proof {cur_lemma_name} "
-                           f"because tactic {command.strip()} doesn't match",
-                           guard=args.debug)
-                    cur_proof_counts = False
+                    cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                        cur_lemma_stmt)
+                    if cur_proof_counts:
+                        eprint(f"Eliminating proof {cur_lemma_name} "
+                               f"because tactic {command.strip()} doesn't match",
+                               guard=args.debug)
+                        cur_proof_counts = False
 
         if exiting_proof:
             if cur_proof_counts:
