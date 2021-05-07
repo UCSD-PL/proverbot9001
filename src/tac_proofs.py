@@ -23,7 +23,7 @@
 import argparse
 import re
 
-from typing import Tuple
+from typing import Tuple, List
 from sys import stderr
 from tqdm import tqdm
 
@@ -45,22 +45,34 @@ def main() -> None:
     total_proofs = 0
     total_match = 0
     for filename in args.filenames:
-        num_proofs, num_match = count_proofs(args, filename)
+        num_proofs, matches = count_proofs(args, filename)
         if args.mode == "percentages":
             print(f"{filename}: "
-                  f"{num_match}/{num_proofs} "
-                  f"{stringified_percent(num_match,num_proofs)}%")
+                  f"{len(matches)}/{num_proofs} "
+                  f"{stringified_percent(len(matches),num_proofs)}%")
+        if args.mode == "proofs":
+            for match in matches:
+                print(match)
         total_proofs += num_proofs
-        total_match += num_match
+        total_match += len(matches)
     if args.mode == "percentages":
         print(f"{total_match}/{total_proofs} "
               f"{stringified_percent(total_match,total_proofs)}%")
 
 
-def count_proofs(args: argparse.Namespace, filename: str) -> Tuple[int, int]:
-    commands = coq_serapy.load_commands(filename, progress_bar=args.progress)
+def count_proofs(args: argparse.Namespace, filename: str) \
+  -> Tuple[int, List[str]]:
+    try:
+        commands = coq_serapy.load_commands(filename + ".lin",
+                                            progress_bar=args.progress)
+    except FileNotFoundError:
+        if args.verbose:
+            print("Couldn't find linearized file, falling back on original.",
+                  file=stderr)
+        commands = coq_serapy.load_commands(filename,
+                                            progress_bar=args.progress)
     num_proofs = 0
-    num_match = 0
+    matches = []
     in_proof = False
     proof_matches = True
     for command in tqdm(reversed(commands), disable=not args.progress,
@@ -74,13 +86,19 @@ def count_proofs(args: argparse.Namespace, filename: str) -> Tuple[int, int]:
             if proof_matches:
                 if args.verbose >= 2:
                     print(f"Proof {lemma_name} matches", file=stderr)
-                if args.mode == "proofs" and lemma_name:
-                    print(lemma_name)
-                num_match += 1
+                matches.append(lemma_name)
             elif args.verbose >= 2:
                 print(f"Proof {lemma_name} doesnt match", file=stderr)
             num_proofs += 1
         elif in_proof and proof_matches:
+            if ";" in command:
+                proof_matches = False
+                if args.verbose >= 2:
+                    print(
+                        f"Command {command} doesn't match, eliminating proof",
+                        file=stderr)
+                continue
+
             stem = coq_serapy.get_stem(command)
             if stem == "Proof":
                 continue
@@ -122,7 +140,7 @@ def count_proofs(args: argparse.Namespace, filename: str) -> Tuple[int, int]:
             proof_matches = False
 
         pass
-    return num_proofs, num_match
+    return num_proofs, matches
 
 
 if __name__ == "__main__":
