@@ -23,9 +23,10 @@ import argparse
 import sys
 
 import coq_serapy as serapi_instance
-from coq_serapy.contexts import *
+from coq_serapy.contexts import (ScrapedCommand, ScrapedTactic,
+                                 strip_scraped_output, TacticContext)
 from context_filter import get_context_filter
-from util import *
+from util import eprint, stringified_percent
 from data import read_all_text_data
 from pathlib_revised import Path2
 
