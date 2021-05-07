@@ -263,23 +263,23 @@ def get_prefix_argstr(prefix_entry : PrefixEntry):
     prefix, func, argstr = prefix_entry
     return "{}{}".format(prefix, argstr)
 
-context_filters : Dict[str, ContextFilter] = {
+
+context_filters: Dict[str, ContextFilter] = {
     "default": filter_and(no_compound_or_bullets,
                           not_proof_keyword,
                           not_background_subgoal,
-                          not_vernac
-    ),
+                          not_vernac),
     "count-default": filter_and(no_compound_or_bullets,
                                 not_background_subgoal),
     "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
     "hyps-change": filter_and(hyps_changed, no_compound_or_bullets),
-    "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
-                                   no_compound_or_bullets),
+    "something-changes": filter_and(filter_or(goal_changed, hyps_changed),
+                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
-    "hyp-args":filter_and(args_vars_in_context, no_compound_or_bullets),
-    "goal-args" : args_token_in_goal,
-    "rel-lemma-args" : relevant_lemma_args,
-    "numeric-args" : numeric_args,
+    "hyp-args": filter_and(args_vars_in_context, no_compound_or_bullets),
+    "goal-args": args_token_in_goal,
+    "rel-lemma-args": relevant_lemma_args,
+    "numeric-args": numeric_args,
 }

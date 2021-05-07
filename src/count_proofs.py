@@ -49,22 +49,24 @@ def main() -> None:
         print(f"Total: {sub_count}/{sub_total} "
               f"({stringified_percent(sub_count, sub_total)}%)")
 
+
 def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
-        description=
-        "Count the number of proofs matching criteria")
+        description="Count the number of proofs matching criteria")
     parser.add_argument('--prelude', default=".")
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--verbose", "-v", help="verbose output", action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default="count-default")
     g = parser.add_mutually_exclusive_group()
-    g.add_argument('--print-name', dest="print_name",
-                        help="Don't print counts just print the names of matching files",
-                        action='store_true')
-    g.add_argument('--print-stmt', dest="print_stmt",
-                        help="Don't print counts just print the names of matching files",
-                        action='store_true')
+    g.add_argument(
+        '--print-name', dest="print_name",
+        help="Don't print counts just print the names of matching lemmas",
+        action='store_true')
+    g.add_argument(
+        '--print-stmt', dest="print_stmt",
+        help="Don't print counts just print the matching lemma statements",
+        action='store_true')
     parser.add_argument("--max-length", dest="max_length", type=int,
                         default=120)
 
@@ -75,19 +77,20 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     return parser.parse_args(), parser
 
-def count_proofs(args : argparse.Namespace, filename : str) \
-    -> Tuple[int, int]:
+
+def count_proofs(args: argparse.Namespace, filename: str) \
+  -> Tuple[int, int]:
     eprint(f"Counting {filename}", guard=args.debug)
-    scrapefile= args.prelude + "/" + filename + ".scrape"
-    interactions = list(read_all_text_data(Path2(args.prelude + "/" + filename + ".scrape")))
+    scrapefile = args.prelude + "/" + filename + ".scrape"
+    interactions = list(read_all_text_data(Path2(scrapefile)))
     filter_func = get_context_filter(args.context_filter)
 
     count = 0
     total_count = 0
     cur_proof_counts = False
     cur_lemma_stmt = ""
-    extended_interactions : List[Optional[ScrapedCommand]] = \
-        cast(List[Optional[ScrapedCommand]], interactions[1:])  + [None]
+    extended_interactions: List[Optional[ScrapedCommand]] = \
+        cast(List[Optional[ScrapedCommand]], interactions[1:]) + [None]
     for inter, next_inter in zip(interactions, extended_interactions):
         if isinstance(inter, ScrapedTactic):
             context_before = strip_scraped_output(inter)
@@ -124,7 +127,8 @@ def count_proofs(args : argparse.Namespace, filename : str) \
 
         if exiting_proof:
             if cur_proof_counts:
-                cur_lemma_name = serapi_instance.lemma_name_from_statement(cur_lemma_stmt)
+                cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                    cur_lemma_stmt)
                 if args.print_name:
                     print(cur_lemma_name)
                 if args.print_stmt:
@@ -139,11 +143,6 @@ def count_proofs(args : argparse.Namespace, filename : str) \
               f"({stringified_percent(count, total_count)}%)")
     return count, total_count
 
-def stringified_percent(total : float, outof : float) -> str:
-    if outof == 0:
-        return "NaN"
-    else:
-        return "{:5.2f}".format(total * 100 / outof)
 
 if __name__ == "__main__":
     main()
