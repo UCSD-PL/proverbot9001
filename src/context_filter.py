@@ -169,6 +169,17 @@ def relevant_lemma_args(in_data : TacticContext, tactic : str,
                         arg_values : argparse.Namespace) -> bool:
     return args_vars_in_list(tactic, in_data.relevant_lemmas)
 
+
+def punctuation(in_data: TacticContext, tactic: str,
+                next_in_data: TacticContext,
+                arg_values: argparse.Namespace) -> bool:
+    if tactic.strip() == "Proof.":
+        return True
+    if re.match(r"\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL):
+        return True
+    return False
+
+
 def get_subexprs(text : str) -> List[str]:
     def inner() -> Iterable[str]:
         cur_expr = ""
@@ -282,4 +293,5 @@ context_filters: Dict[str, ContextFilter] = {
     "goal-args": args_token_in_goal,
     "rel-lemma-args": relevant_lemma_args,
     "numeric-args": numeric_args,
+    "punctuation": punctuation,
 }
