@@ -22,6 +22,8 @@
 
 import argparse
 import re
+import multiprocessing
+import functools
 
 from typing import Tuple, List
 from sys import stderr
@@ -39,22 +41,25 @@ def main() -> None:
     parser.add_argument('--progress', "-P", action='store_true')
     parser.add_argument('--mode', choices=["percentages", "proofs"],
                         default="percentages")
+    parser.add_argument('--num-threads', "-j", default=None, type=int)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     args = parser.parse_args()
 
     total_proofs = 0
     total_match = 0
-    for filename in args.filenames:
-        num_proofs, matches = count_proofs(args, filename)
-        if args.mode == "percentages":
-            print(f"{filename}: "
-                  f"{len(matches)}/{num_proofs} "
-                  f"{stringified_percent(len(matches),num_proofs)}%")
-        if args.mode == "proofs":
-            for match in matches:
-                print(match)
-        total_proofs += num_proofs
-        total_match += len(matches)
+    with multiprocessing.Pool(args.num_threads) as pool:
+        results = pool.imap(functools.partial(count_proofs, args),
+                            args.filenames)
+        for (num_proofs, matches), filename in zip(results, args.filenames):
+            if args.mode == "percentages":
+                print(f"{filename}: "
+                      f"{len(matches)}/{num_proofs} "
+                      f"{stringified_percent(len(matches),num_proofs)}%")
+            if args.mode == "proofs":
+                for match in matches:
+                    print(match)
+            total_proofs += num_proofs
+            total_match += len(matches)
     if args.mode == "percentages":
         print(f"{total_match}/{total_proofs} "
               f"{stringified_percent(total_match,total_proofs)}%")
