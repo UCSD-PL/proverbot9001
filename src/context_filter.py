@@ -180,7 +180,7 @@ def punctuation(in_data: TacticContext, tactic: str,
     return False
 
 
-def get_subexprs(text : str) -> List[str]:
+def get_subexprs(text: str) -> List[str]:
     def inner() -> Iterable[str]:
         cur_expr = ""
         paren_depth = 0
@@ -201,10 +201,11 @@ def get_subexprs(text : str) -> List[str]:
             yield cur_expr.strip()
     return list(inner())
 
-def split_toplevel(specstr : str) -> List[str]:
+
+def split_toplevel(specstr: str) -> List[str]:
     paren_depth = 0
     operators = ["%", "+"]
-    pieces : List[str] = []
+    pieces: List[str] = []
     curPiece = ""
     for c in specstr:
         if paren_depth > 0:
@@ -235,9 +236,10 @@ def split_toplevel(specstr : str) -> List[str]:
         pieces.append(curPiece)
     return pieces
 
-def get_context_filter(specstr : str) -> ContextFilter:
+
+def get_context_filter(specstr: str) -> ContextFilter:
     pieces = split_toplevel(specstr)
-    if not "+" in specstr and not "%" in specstr:
+    if "+" not in specstr and "%" not in specstr:
         for prefix, func, arg_str in special_prefixes:
             match = re.match("^{}(.*)".format(prefix), specstr)
             if match:
