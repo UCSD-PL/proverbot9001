@@ -20,14 +20,17 @@
 #
 ##########################################################################
 import argparse
-import re
+import multiprocessing
+import functools
+import itertools
 
 import coq_serapy as serapi_instance
 from coq_serapy.contexts import (ScrapedCommand, ScrapedTactic,
                                  strip_scraped_output, TacticContext)
 from context_filter import get_context_filter
 from util import eprint, stringified_percent
-from data import read_all_text_data
+from data import (read_all_text_data, read_all_text_data_worker__,
+                  MixedDataset, file_chunks)
 from pathlib_revised import Path2
 
 from typing import List, Optional, Tuple, cast
@@ -41,14 +44,32 @@ def main() -> None:
         args.all = True
 
     # Do the counting
-    sub_counts, sub_totals = zip(*[count_proofs(args, filename)
-                                   for filename in args.filenames])
+    total_proofs = 0
+    total_match = 0
+    with multiprocessing.Pool(args.num_threads) as pool:
+        results = pool.imap(functools.partial(count_proofs, args),
+                            args.filenames)
+        for (matches, num_proofs), filename in zip(results, args.filenames):
+            if not args.print_name and not args.print_stmt:
+                print(f"{filename}: "
+                      f"{len(matches)}/{num_proofs} "
+                      f"{stringified_percent(len(matches),num_proofs)}%")
+            if args.print_stmt:
+                for match in matches:
+                    print(match)
+            elif args.print_name:
+                for match in matches:
+                    print(serapi_instance.lemma_name_from_statement(match))
+            else:
+                print(f"{filename}: "
+                      f"{len(matches)}/{num_proofs} "
+                      f"{stringified_percent(len(matches),num_proofs)}%")
+            total_proofs += num_proofs
+            total_match += len(matches)
 
-    sub_count = sum(sub_counts)
-    sub_total = sum(sub_totals)
     if not args.print_name and not args.print_stmt:
-        print(f"Total: {sub_count}/{sub_total} "
-              f"({stringified_percent(sub_count, sub_total)}%)")
+        print(f"Total: {total_match}/{total_proofs} "
+              f"({stringified_percent(total_match, total_proofs)}%)")
 
 
 def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
@@ -60,6 +81,7 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
                         action='count')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default="count-default")
+    parser.add_argument('--num-threads', "-j", default=None, type=int)
     g = parser.add_mutually_exclusive_group()
     g.add_argument(
         '--print-name', dest="print_name",
@@ -81,13 +103,13 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
 
 
 def count_proofs(args: argparse.Namespace, filename: str) \
-  -> Tuple[int, int]:
+  -> Tuple[List[str], int]:
     eprint(f"Counting {filename}", guard=args.debug)
     scrapefile = args.prelude + "/" + filename + ".scrape"
-    interactions = list(read_all_text_data(Path2(scrapefile)))
+    interactions = list(read_all_text_data_singlethreaded(Path2(scrapefile)))
     filter_func = get_context_filter(args.context_filter)
 
-    count = 0
+    matches = []
     total_count = 0
     cur_proof_counts = False
     cur_lemma_stmt = ""
@@ -128,27 +150,37 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                         cur_lemma_stmt)
                     if cur_proof_counts:
                         eprint(f"Eliminating proof {cur_lemma_name} "
-                               f"because tactic {command.strip()} doesn't match",
+                               f"because tactic {command.strip()} "
+                               "doesn't match",
                                guard=args.debug)
                         cur_proof_counts = False
 
         if exiting_proof:
+            cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                cur_lemma_stmt)
+            if not cur_lemma_name:
+                cur_lemma_stmt = ""
+                continue
             if cur_proof_counts:
-                cur_lemma_name = serapi_instance.lemma_name_from_statement(
-                    cur_lemma_stmt)
-                if args.print_name:
-                    print(cur_lemma_name)
-                if args.print_stmt:
-                    print(re.sub("\n", "\\n", cur_lemma_stmt))
                 eprint(f"Proof of {cur_lemma_name} counts",
                        guard=args.debug)
-                count += 1
+                matches.append(cur_lemma_stmt)
             total_count += 1
             cur_lemma_stmt = ""
-    if not args.print_name and not args.print_stmt:
-        print(f"{filename}: {count}/{total_count} "
-              f"({stringified_percent(count, total_count)}%)")
-    return count, total_count
+
+    return matches, total_count
+
+
+def read_all_text_data_singlethreaded(data_path: Path2,
+                                      num_threads: Optional[int] = None) \
+                                    -> MixedDataset:
+    line_chunks = file_chunks(data_path, 32768)
+    try:
+        yield from itertools.chain.from_iterable((
+            read_all_text_data_worker__(chunk) for chunk in line_chunks))
+    except AssertionError:
+        print(f"Couldn't parse data in {str(data_path)}")
+        raise
 
 
 if __name__ == "__main__":
