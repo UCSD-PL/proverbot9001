@@ -586,7 +586,8 @@ pub fn encode_fpa_arg_unbounded(
     if argstr_tokens.len() == 0 {
         arg_to_index(args, TacticArgument::NoArg)
     } else if argstr_tokens.len() > 1 {
-        panic!("A multi argument tactic made it past the context filter!");
+        panic!("A multi argument tactic made it past the context filter! arg is {}",
+               arg);
     } else {
         let goal_symbols = get_words(goal);
         let arg_token = argstr_tokens[0];
@@ -658,7 +659,8 @@ fn get_argument<'a>(
     } else if argstr_tokens.len() > 1 {
         assert!(
             false,
-            "A multi argument tactic made it past the context filter!"
+            "A multi argument tactic made it past the context filter! {}",
+            scraped.tactic
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
