@@ -484,7 +484,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self.metadata)
+        self.metadata, num_stem_poss = get_num_indices(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
@@ -502,6 +502,7 @@ class FeaturesPolyargPredictor(
             serapi_instance.split_tactic(prediction)
         prediction_stem_idx = encode_fpa_stem(extract_dataloader_args(self.training_args),
                                               self.metadata, prediction_stem)
+        assert prediction_stem_idx < num_stem_poss
         stem_distributions = self._model.stem_classifier(
             maybe_cuda(torch.LongTensor(word_features)),
             maybe_cuda(torch.FloatTensor(vec_features)))
@@ -810,7 +811,7 @@ class FeaturesPolyargPredictor(
                 model = self._get_model(arg_values,
                                         word_features_size,
                                         vec_features_size,
-                                        get_num_indices(metadata),
+                                        get_num_indices(metadata)[1],
                                         get_num_tokens(metadata))
                 epoch_start = 1
 
@@ -831,7 +832,7 @@ class FeaturesPolyargPredictor(
                                            get_word_feature_vocab_sizes(
                                                metadata),
                                            get_vec_features_size(metadata),
-                                           get_num_indices(metadata),
+                                           get_num_indices(metadata)[1],
                                            get_num_tokens(metadata)))
         model.load_state_dict(state.weights)
         self._model = model
