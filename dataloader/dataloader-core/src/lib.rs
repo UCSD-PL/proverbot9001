@@ -250,10 +250,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         fpa_get_num_possible_args(&args)
     }
     #[pyfn(m, "get_num_indices")]
-    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
-        let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> (PickleableFPAMetadata, i64) {
+        let (mut indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         indexer.freeze();
-        indexer.num_indices()
+        let num_indices = indexer.num_indices();
+        (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
     }
     #[pyfn(m, "get_word_feature_vocab_sizes")]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
