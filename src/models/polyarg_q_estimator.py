@@ -80,7 +80,8 @@ class PolyargQEstimator(QEstimator):
     def dataloader_args(self):
         return self.predictor.dataloader_args
 
-    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) \
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]],
+                 progress: bool = False) \
             -> List[float]:
         state_word_features_batch, state_vec_features_batch \
             = zip(*[self._features(state, certainty) for
@@ -88,7 +89,8 @@ class PolyargQEstimator(QEstimator):
         with torch.no_grad():
             encoded_actions_batch = [self._encode_action(state, action)
                                      for (state, action, certainty) in
-                                     tqdm(inputs, desc="Encoding actions")]
+                                     tqdm(inputs, desc="Encoding actions",
+                                          disable=not progress)]
         all_vec_features_batch = [torch.cat((maybe_cuda(action_vec),
                                              maybe_cuda(torch.FloatTensor(svf))),
                                             dim=0).unsqueeze(0)
@@ -135,7 +137,7 @@ class PolyargQEstimator(QEstimator):
         expected_outputs = [output for _, _, _, output in samples]
         if batch_size:
             batches: Sequence[Sequence[torch.Tensor]] = data.DataLoader(
-                data.TensorDataset(*input_tensors),
+                data.TensorDataset(*(input_tensors+[torch.FloatTensor(expected_outputs)])),
                 batch_size=batch_size,
                 num_workers=0,
                 shuffle=True, pin_memory=True,

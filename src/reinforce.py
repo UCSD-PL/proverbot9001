@@ -64,6 +64,8 @@ import predict_tactic
 import util
 from util import eprint, print_time, unwrap, progn, safe_abbrev
 
+util.use_cuda = False
+
 from rgraph import (LabeledTransition,
                     ReinforceGraph, assignApproximateQScores)
 
@@ -278,7 +280,8 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
             functools.partial(get_proofs, args),
             list(enumerate(args.environment_files))),
                                   total=len(args.environment_files),
-                                  leave=False))
+                                  leave=False,
+                                  desc="Finding proofs"))
     unfiltered_jobs = [job for job_list in jobs_in_files for job in job_list
                        if job not in already_done]
     if args.proofs_file:
@@ -304,6 +307,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     else:
         all_jobs_and_dems = [(job, None) for job in all_jobs]
 
+    if len(all_jobs_and_dems) == 0:
+        print("No jobs! Did you pass a file with no proofs, or a mismatched/empty proof names file?")
+        return
     for job in all_jobs_and_dems:
         jobs.put(job)
 
@@ -374,9 +380,8 @@ def reinforce_worker(worker_idx: int,
         (next_file, next_module, next_lemma), demonstration = jobs.get_nowait()
     except queue.Empty:
         return
-    with util.silent():
-        all_commands = serapi_instance.load_commands_preserve(
-            args, worker_idx + 1, args.prelude / next_file)
+    all_commands = serapi_instance.load_commands_preserve(
+        args, worker_idx + 1, args.prelude / next_file)
 
     rest_commands = all_commands
     while rest_commands:
@@ -570,7 +575,8 @@ def reinforce_lemma_multithreaded(
                             q_choices = zip(estimator(
                                 [(context_trunced,
                                   p.prediction, p.certainty)
-                                 for p in predictions]),
+                                 for p in predictions],
+                                 progress=args.verbose >= 2),
                                             predictions)
                             ordered_actions = [p[1] for p in
                                                sorted(q_choices,
@@ -731,7 +737,8 @@ def reinforce_training_worker(args: argparse.Namespace,
                 training_samples = assign_scores(args,
                                                  q_estimator,
                                                  predictor,
-                                                 transition_samples)
+                                                 transition_samples,
+                                                 progress=args.verbose >= 2)
             with print_time("Training", guard=args.verbose >= 2):
                 q_estimator.train(training_samples,
                                   show_loss=args.show_loss)
@@ -865,7 +872,7 @@ def assign_scores(args: argparse.Namespace,
                    for transition, predictions in zip(transitions,
                                                       prediction_lists)
                    for prediction in predictions]
-        estimate_lists_flattened = q_estimator(queries)
+        estimate_lists_flattened = q_estimator(queries, progress=progress)
         estimate_lists = [estimate_lists_flattened
                           [i:i+args.num_predictions]
                           for i in range(0, len(estimate_lists_flattened),
