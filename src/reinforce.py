@@ -104,13 +104,13 @@ def main() -> None:
     parser.add_argument("--buffer-max-size", default=32768, type=int)
     parser.add_argument("--batch-size", default=32, type=int)
 
-    parser.add_argument("--num-episodes", default=256, type=int)
+    parser.add_argument("--num-episodes", default=32, type=int)
     parser.add_argument("--episode-length", default=16, type=int)
 
     parser.add_argument("--learning-rate", default=0.02, type=float)
-    parser.add_argument("--batch-step", default=50, type=int)
-    parser.add_argument("--gamma", default=0.8, type=float)
-    parser.add_argument("--exploration-factor", default=0.3, type=float)
+    parser.add_argument("--batch-step", default=4, type=int)
+    parser.add_argument("--gamma", default=0.5, type=float)
+    parser.add_argument("--exploration-factor", default=0.4, type=float)
     parser.add_argument("--time-discount", default=0.9, type=float)
 
     parser.add_argument("--max-term-length", default=512, type=int)
