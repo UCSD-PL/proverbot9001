@@ -552,33 +552,32 @@ def reinforce_lemma_multithreaded(
                                                  demonstration[t]))]
             else:
                 with print_time("Getting predictions", guard=args.verbose >= 2):
-                    with lock:
-                        eprint(f"Locked in thread {worker_idx}",
+                    # eprint(f"Locked in thread {worker_idx}",
+                    #        guard=args.verbose >= 2)
+                    predictor = namespace.predictor
+                    estimator = namespace.estimator
+                    with print_time("Making predictions",
+                                    guard=args.verbose >= 3):
+                        predictions = predictor.predictKTactics(
+                            context_trunced, args.num_predictions)
+                    if random.random() < args.exploration_factor:
+                        eprint("Picking random action",
                                guard=args.verbose >= 2)
-                        predictor = namespace.predictor
-                        estimator = namespace.estimator
-                        with print_time("Making predictions",
-                                        guard=args.verbose >= 3):
-                            predictions = predictor.predictKTactics(
-                                context_trunced, args.num_predictions)
-                        if random.random() < args.exploration_factor:
-                            eprint("Picking random action",
-                                   guard=args.verbose >= 2)
-                            ordered_actions = order_by_score(predictions)
-                        else:
-                            with print_time("Picking actions with q_estimator",
-                                            guard=args.verbose >= 2):
-                                q_choices = zip(estimator(
-                                    [(context_trunced,
-                                      p.prediction, p.certainty)
-                                     for p in predictions]),
-                                                predictions)
-                                ordered_actions = [p[1] for p in
-                                                   sorted(q_choices,
-                                                          key=lambda q: q[0],
-                                                          reverse=True)]
-                    eprint(f"Unlocked in thread {worker_idx}",
-                           guard=args.verbose >= 2)
+                        ordered_actions = order_by_score(predictions)
+                    else:
+                        with print_time("Picking actions with q_estimator",
+                                        guard=args.verbose >= 2):
+                            q_choices = zip(estimator(
+                                [(context_trunced,
+                                  p.prediction, p.certainty)
+                                 for p in predictions]),
+                                            predictions)
+                            ordered_actions = [p[1] for p in
+                                               sorted(q_choices,
+                                                      key=lambda q: q[0],
+                                                      reverse=True)]
+                    # eprint(f"Unlocked in thread {worker_idx}",
+                    #        guard=args.verbose >= 2)
             with print_time("Running actions", guard=args.verbose >= 2):
                 action = None
                 original_certainty = None
@@ -726,24 +725,18 @@ def reinforce_training_worker(args: argparse.Namespace,
         if samples_retrieved - last_trained_at >= args.train_every_min:
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
-            with lock:
-                eprint(
-                    f"Locked in training thread for {len(memory)} samples",
-                    guard=args.verbose >= 2)
-                q_estimator = namespace.estimator
-                predictor = namespace.predictor
-                with print_time("Assigning scores", guard=args.verbose >= 2):
-                    training_samples = assign_scores(args,
-                                                     q_estimator,
-                                                     predictor,
-                                                     transition_samples)
-                with print_time("Training", guard=args.verbose >= 2):
-                    q_estimator.train(training_samples,
-                                      show_loss=args.show_loss)
-                q_estimator.save_weights(args.out_weights, args)
-                namespace.estimator = q_estimator
-                eprint("Unlocked in training thread",
-                       guard=args.verbose >= 2)
+            q_estimator = namespace.estimator
+            predictor = namespace.predictor
+            with print_time("Assigning scores", guard=args.verbose >= 2):
+                training_samples = assign_scores(args,
+                                                 q_estimator,
+                                                 predictor,
+                                                 transition_samples)
+            with print_time("Training", guard=args.verbose >= 2):
+                q_estimator.train(training_samples,
+                                  show_loss=args.show_loss)
+            q_estimator.save_weights(args.out_weights, args)
+            namespace.estimator = q_estimator
 
     pass
 
