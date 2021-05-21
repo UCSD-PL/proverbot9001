@@ -191,7 +191,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 next_done = json.loads(line)
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
-                graphpath = (args.graphs_dir / next_done[2])\
+                graphpath = (args.graphs_dir / 
+                             serapi_instance.lemma_name_from_statement(
+                               next_done[2]))\
                     .with_suffix(".png")
                 graph = ReinforceGraph.load(
                     graphpath.with_suffix(".png.json"))
