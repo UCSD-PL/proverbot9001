@@ -1146,12 +1146,11 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                               coq.hypotheses,
                                               coq.goals)
         with predictor_lock:
-            with util.silent():
-                predictions = predictor.predictKTactics(
-                    truncate_tactic_context(tactic_context_before,
-                                            args.max_term_length),
-                    args.max_attempts)
-                assert len(predictions) == args.max_attempts
+            predictions = predictor.predictKTactics(
+                truncate_tactic_context(tactic_context_before,
+                                        args.max_term_length),
+                args.max_attempts)
+            assert len(predictions) == args.max_attempts
         proof_context_before = coq.proof_context
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
