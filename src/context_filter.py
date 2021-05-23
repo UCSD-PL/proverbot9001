@@ -278,10 +278,10 @@ def get_prefix_argstr(prefix_entry : PrefixEntry):
 
 
 context_filters: Dict[str, ContextFilter] = {
-    "default": filter_and(no_compound_or_bullets,
-                          not_proof_keyword,
-                          not_background_subgoal,
-                          not_vernac),
+    "~punctuation": filter_and(no_compound_or_bullets,
+                               not_proof_keyword,
+                               not_background_subgoal,
+                               not_vernac),
     "count-default": filter_and(no_compound_or_bullets,
                                 not_background_subgoal),
     "none": lambda *args: False,
