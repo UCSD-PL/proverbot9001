@@ -581,13 +581,13 @@ pub fn encode_fpa_arg_unbounded(
     hyps: Vec<String>,
     goal: &str,
     arg: &str,
-) -> i64 {
+) -> Result<i64, String> {
     let argstr_tokens: Vec<&str> = arg[..arg.len() - 1].split_whitespace().collect();
     if argstr_tokens.len() == 0 {
-        arg_to_index(args, TacticArgument::NoArg)
+        Ok(arg_to_index(args, TacticArgument::NoArg))
     } else if argstr_tokens.len() > 1 {
-        panic!("A multi argument tactic made it past the context filter! arg is {}",
-               arg);
+        Err(format!("A multi argument tactic made it past the context filter! arg is {}",
+                    arg))
     } else {
         let goal_symbols = get_words(goal);
         let arg_token = argstr_tokens[0];
@@ -598,7 +598,7 @@ pub fn encode_fpa_arg_unbounded(
             .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
         {
             Some((idx, _symbol)) => {
-                return arg_to_index(args, TacticArgument::GoalToken(idx));
+                return Ok(arg_to_index(args, TacticArgument::GoalToken(idx)));
             }
             None => (),
         }
@@ -607,14 +607,14 @@ pub fn encode_fpa_arg_unbounded(
             .find(|(_idx, hname)| *hname == arg_token)
         {
             Some((idx, _hname)) => {
-                return arg_to_index(args, TacticArgument::HypVar(idx));
+                return Ok(arg_to_index(args, TacticArgument::HypVar(idx)));
             }
-            None => panic!(
+            None => Err(format!(
                 "An unknown tactic made it past the context filter with args: {}\n\
                             Hyps are {:?}\n\
                             Goal is {}",
                 arg, hyps, goal
-            ),
+            )),
         }
     }
 }
