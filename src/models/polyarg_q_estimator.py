@@ -202,6 +202,7 @@ class PolyargQEstimator(QEstimator):
                                  all_prems,
                                  context.goal,
                                  argument.strip())
+        assert arg_idx is not None, (action, argument.strip(), context.goal)
 
         tokenized_goal = tokenize(self.dataloader_args,
                                   self.fpa_metadata,
