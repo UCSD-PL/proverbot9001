@@ -173,11 +173,7 @@ def relevant_lemma_args(in_data : TacticContext, tactic : str,
 def punctuation(in_data: TacticContext, tactic: str,
                 next_in_data: TacticContext,
                 arg_values: argparse.Namespace) -> bool:
-    if tactic.strip() == "Proof.":
-        return True
-    if tactic.strip() == "Qed.":
-        return True
-    if "Opaque" in tactic:
+    if re.match(r"\s*(Opaque|Proof|Qed|Defined|Unshelve)", tactic):
         return True
     if re.match(r"\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL):
         return True
