@@ -582,7 +582,8 @@ pub fn encode_fpa_arg_unbounded(
     goal: &str,
     arg: &str,
 ) -> Result<i64, String> {
-    let argstr_tokens: Vec<&str> = arg[..arg.len() - 1].split_whitespace().collect();
+    let targ = arg.trim();
+    let argstr_tokens: Vec<&str> = targ[..targ.len() - 1].split_whitespace().collect();
     if argstr_tokens.len() == 0 {
         Ok(arg_to_index(args, TacticArgument::NoArg))
     } else if argstr_tokens.len() > 1 {
