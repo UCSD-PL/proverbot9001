@@ -187,8 +187,8 @@ class PolyargQEstimator(QEstimator):
         return 128 + premise_features_size
 
     def action_word_features_sizes(self) -> List[int]:
-        return [get_num_indices(self.fpa_metadata)[1],
-                3]
+        self.predictor.metadata, num_indices = get_num_indices(self.fpa_metadata)
+        return [num_indices, 3]
 
     def _encode_action(self, context: TacticContext, action: str) \
             -> Tuple[List[int], torch.FloatTensor]:
