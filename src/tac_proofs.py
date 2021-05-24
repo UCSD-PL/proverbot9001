@@ -87,9 +87,9 @@ def count_proofs(args: argparse.Namespace, filename: str) \
             proof_matches = True
         elif in_proof and coq_serapy.possibly_starting_proof(command):
             lemma_name = coq_serapy.lemma_name_from_statement(command)
+            in_proof = False
             if not lemma_name:
                 continue
-            in_proof = False
             if proof_matches:
                 if args.verbose >= 2:
                     print(f"Proof {lemma_name} matches", file=stderr)
