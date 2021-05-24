@@ -28,6 +28,7 @@ import errno
 import signal
 import re
 import json
+import json.decoder
 import multiprocessing
 import math
 from threading import Lock
@@ -187,8 +188,13 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         already_done = []
         graphs_done = []
         with weights.with_suffix('.done').open('r') as f:
-            for line in f:
-                next_done = json.loads(line)
+            for (idx, line) in enumerate(f):
+                try:
+                    next_done = json.loads(line)
+                except json.decoder.JSONDecodeError:
+                    print(f"Loading line {idx} failed")
+                    print(line)
+                    raise
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
                 graphpath = (args.graphs_dir / 
