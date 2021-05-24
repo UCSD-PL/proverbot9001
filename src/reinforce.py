@@ -431,7 +431,7 @@ def reinforce_worker(worker_idx: int,
                                                         next_module,
                                                         demonstration)
                         graphpath, graph = graph_job
-                        graph.draw(graphpath + ".json")
+                        graph.save(graphpath + ".json")
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
