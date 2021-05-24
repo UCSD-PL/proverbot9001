@@ -528,7 +528,10 @@ class FeaturesPolyargPredictor(
             context.hypotheses + context.relevant_lemmas,
             context.goal,
             prediction_args)
-        assert(prediction_arg_idx is not None)
+        assert prediction_arg_idx is not None, \
+            (prediction, prediction_args, context.goal,
+             [serapi_instance.get_var_term_in_hyp(hyp) for hyp
+              in context.hypotheses + context.relevant_lemmas])
 
         goal_arg_values = self.goal_token_scores(
             merged_stem_idxs, tokenized_goal, goal_mask)
