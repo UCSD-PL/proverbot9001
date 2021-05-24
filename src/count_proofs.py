@@ -50,10 +50,6 @@ def main() -> None:
         results = pool.imap(functools.partial(count_proofs, args),
                             args.filenames)
         for (matches, num_proofs), filename in zip(results, args.filenames):
-            if not args.print_name and not args.print_stmt:
-                print(f"{filename}: "
-                      f"{len(matches)}/{num_proofs} "
-                      f"{stringified_percent(len(matches),num_proofs)}%")
             if args.print_stmt:
                 for match in matches:
                     print(match)
