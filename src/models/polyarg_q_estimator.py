@@ -310,12 +310,18 @@ class PolyargQModel(nn.Module):
         self._features_classifier = maybe_cuda(
             DNNScorer(hidden_size + vec_features_size,
                       hidden_size, num_layers))
+        self.word_feature_sizes = word_feature_sizes
 
     def forward(self,
                 word_features_batch: torch.LongTensor,
                 vec_features_batch: torch.FloatTensor) -> torch.FloatTensor:
-        encoded_word_features = self._word_features_encoder(
-            maybe_cuda(word_features_batch))
+        try:
+            encoded_word_features = self._word_features_encoder(
+                maybe_cuda(word_features_batch))
+        except IndexError:
+            for wf_vals in  word_features_batch:
+                for idx, (wf_val, wf_size) in enumerate(zip(wf_vals, self.word_feature_sizes)):
+                    assert wf_val < wf_size, f"Value {wf_val} for word feature {idx} is at least size {wf_size}"
         features = torch.cat((encoded_word_features,
                               maybe_cuda(vec_features_batch)),
                              dim=1)
