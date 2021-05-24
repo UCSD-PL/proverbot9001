@@ -358,6 +358,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                     f.write(json.dumps((str(done_job[0]),
                                         done_job[1],
                                         done_job[2])))
+                    f.write("\n")
         for worker in workers:
             worker.kill()
         training_worker.kill()
