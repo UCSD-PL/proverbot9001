@@ -106,15 +106,35 @@ def args_vars_in_context(in_data : TacticContext, tactic : str,
 
     return args_vars_in_list(tactic, in_data.hypotheses)
 
-def tactic_literal(tactic_to_match : str,
-                   in_data: TacticContext, tactic : str,
-                   new_in_data : TacticContext,
-                   arg_values : argparse.Namespace) -> bool:
-    return re.match("\s*{}(\s.+)?\.".format(tactic_to_match), tactic) != None
+
+def tactic_literal(tactic_to_match: str,
+                   in_data: TacticContext, tactic: str,
+                   new_in_data: TacticContext,
+                   arg_values: argparse.Namespace) -> bool:
+    if tactic_to_match == "rewrite<-":
+        tactic_to_match = "rewrite <-"
+    if tactic_to_match == "simplin":
+        tactic_to_match = "simpl in"
+    if tactic_to_match == "trydiscriminate":
+        tactic_to_match = "try discriminate"
+    if tactic_to_match == "nowapply":
+        tactic_to_match = "now apply"
+    return re.match(r"\s*{}(\s.+)?\.".format(tactic_to_match), tactic) \
+        is not None
+
+
 def tactic_eliteral(tactic_to_match : str,
                     in_data: TacticContext, tactic : str,
                     new_in_data : TacticContext,
                     arg_values : argparse.Namespace) -> bool:
+    if tactic_to_match == "rewrite<-":
+        tactic_to_match = "rewrite <-"
+    if tactic_to_match == "simplin":
+        tactic_to_match = "simpl in"
+    if tactic_to_match == "trydiscriminate":
+        tactic_to_match = "try discriminate"
+    if tactic_to_match == "nowapply":
+        tactic_to_match = "now apply"
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 
 
