@@ -41,7 +41,7 @@ from pathlib_revised import Path2
 
 def maybe_cuda(component):
     if use_cuda:
-        return component.cuda()
+        return component.to(device=torch.device(cuda_device))
     else:
         return component
 
@@ -219,6 +219,7 @@ def silent():
 
 with silent():
     use_cuda = torch.cuda.is_available()
+    cuda_device = 0
     # assert use_cuda
 
 import signal as sig
