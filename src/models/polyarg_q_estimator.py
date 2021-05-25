@@ -120,8 +120,7 @@ class PolyargQEstimator(QEstimator):
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
         all_vec_features = [torch.cat((maybe_cuda(action_vec),
-                                       maybe_cuda(torch.FloatTensor(svf)).to(
-                                         device=torch.device("cuda"))),
+                                       maybe_cuda(torch.FloatTensor(svf))),
                                        dim=0).unsqueeze(0)
                             for (_, action_vec), svf in
                             zip(encoded_actions, state_vec_features)]
@@ -225,7 +224,7 @@ class PolyargQEstimator(QEstimator):
                     torch.LongTensor([tokenized_goal])
                 ).squeeze(0)[arg_idx].to(device=torch.device("cpu")),
                torch.zeros(premise_features_size)),
-                                    dim=0)).to(device=torch.device("cuda"))
+                                    dim=0))
         else:
             # Hyp arg
             arg_type_idx = 2
@@ -247,7 +246,7 @@ class PolyargQEstimator(QEstimator):
                     self.fpa_metadata,
                     context.goal,
                     arg_hyp))),
-                                     dim=0)).to(device=torch.device("cuda"))
+                                     dim=0))
 
         return [stem_idx, arg_type_idx], encoded_arg
 
