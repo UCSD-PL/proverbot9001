@@ -360,7 +360,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
             worker.kill()
         training_worker.kill()
 
-        for graphpath, graph in graphs_done:
+        for graphpath, graph in tqdm(graphs_done, desc="Drawing graphs"):
             assignApproximateQScores(graph, args.max_term_length, predictor,
                                      q_estimator)
             graph.draw(graphpath)
