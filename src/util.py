@@ -219,7 +219,7 @@ def silent():
 
 with silent():
     use_cuda = torch.cuda.is_available()
-    cuda_device = 0
+    cuda_device = "cuda:0"
     # assert use_cuda
 
 import signal as sig
