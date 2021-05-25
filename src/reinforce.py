@@ -31,7 +31,6 @@ import json
 import json.decoder
 import multiprocessing
 import math
-from threading import Lock
 import sys
 import functools
 from queue import Queue
