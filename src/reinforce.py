@@ -322,19 +322,19 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     with Manager() as manager:
         manager = cast(multiprocessing.managers.SyncManager, manager)
         ns = manager.Namespace()
-        ns.predictor = predictor
         ns.estimator = q_estimator
         lock = manager.Lock()
 
         training_worker = ctxt.Process(
             target=reinforce_training_worker,
-            args=(args, len(replay_memory), lock, ns, samples))
+            args=(args, len(replay_memory), lock, ns, predictor, samples))
         workers = [ctxt.Process(
             target=reinforce_worker,
             args=(widx,
                   args,
                   lock,
                   ns,
+                  predictor,
                   samples,
                   jobs,
                   done))
@@ -374,6 +374,7 @@ def reinforce_worker(worker_idx: int,
                      args: argparse.Namespace,
                      lock: Lock,
                      namespace: multiprocessing.managers.Namespace,
+                     predictor: TacticPredictor,
                      samples: Queue[LabeledTransition],
                      jobs: Queue[Tuple[Job, Optional[Demonstration]]],
                      done: Queue[Tuple[Job,
@@ -558,7 +559,7 @@ def reinforce_lemma_multithreaded(
                     ((i//args.demonstration_steps)+1)):
                 eprint("Getting demonstration", guard=args.verbose >= 2)
                 ordered_actions = [(demonstration[t],
-                                    certainty_of(namespace.predictor,
+                                    certainty_of(predictor,
                                                  args.num_predictions * 2,
                                                  context_trunced,
                                                  demonstration[t]))]
@@ -566,7 +567,6 @@ def reinforce_lemma_multithreaded(
                 with print_time("Getting predictions", guard=args.verbose >= 2):
                     # eprint(f"Locked in thread {worker_idx}",
                     #        guard=args.verbose >= 2)
-                    predictor = namespace.predictor
                     estimator = namespace.estimator
                     with print_time("Making predictions",
                                     guard=args.verbose >= 3):
@@ -710,6 +710,7 @@ def reinforce_training_worker(args: argparse.Namespace,
                               initial_buffer_size: int,
                               lock: Lock,
                               namespace: multiprocessing.managers.Namespace,
+                              predictor: TacticPredictor,
                               samples: Queue[LabeledTransition]):
     last_trained_at = 0
     samples_retrieved = 0
@@ -739,7 +740,6 @@ def reinforce_training_worker(args: argparse.Namespace,
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
             q_estimator = namespace.estimator
-            predictor = namespace.predictor
             with print_time("Assigning scores", guard=args.verbose >= 2):
                 training_samples = assign_scores(args,
                                                  q_estimator,
@@ -750,7 +750,7 @@ def reinforce_training_worker(args: argparse.Namespace,
                 q_estimator.train(training_samples,
                                   show_loss=args.show_loss)
             q_estimator.save_weights(args.out_weights, args)
-            namespace.estimator = q_estimator
+            namespace.estimator = q_estimator.clone()
 
     pass
 
