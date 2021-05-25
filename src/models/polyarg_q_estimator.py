@@ -119,9 +119,10 @@ class PolyargQEstimator(QEstimator):
               for state, _, certainty, _ in samples])
         encoded_actions = [self._encode_action(state, action)
                            for state, action, _, _ in samples]
-        all_vec_features = [torch.cat((action_vec,
-                                       torch.FloatTensor(svf, device='cpu')),
-                                      dim=0).unsqueeze(0)
+        all_vec_features = [torch.cat((maybe_cuda(action_vec),
+                                       maybe_cuda(torch.FloatTensor(svf)).to(
+                                         device=torch.device("cuda"))),
+                                       dim=0).unsqueeze(0)
                             for (_, action_vec), svf in
                             zip(encoded_actions, state_vec_features)]
         all_word_features = [action_words + swf for (action_words, _), swf in
@@ -218,13 +219,13 @@ class PolyargQEstimator(QEstimator):
         elif arg_idx <= self.dataloader_args.max_length:
             # Goal token arg
             arg_type_idx = 1
-            encoded_arg = torch.cat((
+            encoded_arg = maybe_cuda(torch.cat((
                 self.predictor.goal_token_encoder(
                     torch.LongTensor([stem_idx]),
                     torch.LongTensor([tokenized_goal])
                 ).squeeze(0)[arg_idx].to(device=torch.device("cpu")),
                torch.zeros(premise_features_size)),
-                                    dim=0)
+                                    dim=0)).to(device=torch.device("cuda"))
         else:
             # Hyp arg
             arg_type_idx = 2
@@ -236,7 +237,7 @@ class PolyargQEstimator(QEstimator):
                 self.dataloader_args,
                 self.fpa_metadata,
                 serapi_instance.get_hyp_type(arg_hyp))
-            encoded_arg = torch.cat((
+            encoded_arg = maybe_cuda(torch.cat((
                 self.predictor.hyp_encoder(
                     torch.LongTensor([stem_idx]),
                     entire_encoded_goal,
@@ -246,7 +247,7 @@ class PolyargQEstimator(QEstimator):
                     self.fpa_metadata,
                     context.goal,
                     arg_hyp))),
-                                     dim=0)
+                                     dim=0)).to(device=torch.device("cuda"))
 
         return [stem_idx, arg_type_idx], encoded_arg
 
