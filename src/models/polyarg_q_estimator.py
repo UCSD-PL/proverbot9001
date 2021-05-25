@@ -105,7 +105,8 @@ class PolyargQEstimator(QEstimator):
             output = self.model(torch.LongTensor(all_word_features_batch),
                                 torch.cat(all_vec_features_batch, dim=0))
         for item in output:
-            assert item == item, (all_word_features_batch,
+            assert item == item, (output,
+                                  all_word_features_batch,
                                   all_vec_features_batch)
         return list(output)
 
