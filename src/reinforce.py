@@ -65,8 +65,6 @@ import predict_tactic
 import util
 from util import eprint, print_time, unwrap, progn, safe_abbrev
 
-util.use_cuda = False
-
 from rgraph import (LabeledTransition,
                     ReinforceGraph, assignApproximateQScores)
 
@@ -283,7 +281,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     for sample in replay_memory:
         samples.put(sample)
 
-    with tmp.Pool() as pool:
+    with ctxt.Pool() as pool:
         jobs_in_files = list(tqdm(pool.imap(
             functools.partial(get_proofs, args),
             list(enumerate(args.environment_files))),
@@ -985,4 +983,5 @@ def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
 
 
 if __name__ == "__main__":
+    tmp.set_start_method('spawn')
     main()
