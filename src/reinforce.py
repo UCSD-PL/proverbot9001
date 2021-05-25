@@ -321,20 +321,18 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
     with Manager() as manager:
         manager = cast(multiprocessing.managers.SyncManager, manager)
-        ns = manager.Namespace()
-        ns.estimator = q_estimator
-        lock = manager.Lock()
+        q_estimator.share_memory()
 
         training_worker = ctxt.Process(
             target=reinforce_training_worker,
-            args=(args, len(replay_memory), lock, ns, predictor, samples))
+            args=(args, len(replay_memory), lock, q_estimator, predictor, samples))
         workers = [ctxt.Process(
             target=reinforce_worker,
             args=(widx,
                   args,
                   lock,
-                  ns,
                   predictor,
+                  q_estimator,
                   samples,
                   jobs,
                   done))
@@ -373,7 +371,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 def reinforce_worker(worker_idx: int,
                      args: argparse.Namespace,
                      lock: Lock,
-                     namespace: multiprocessing.managers.Namespace,
+                     estimator: QEstimator,
                      predictor: TacticPredictor,
                      samples: Queue[LabeledTransition],
                      jobs: Queue[Tuple[Job, Optional[Demonstration]]],
@@ -423,7 +421,7 @@ def reinforce_worker(worker_idx: int,
                     try:
                         graph_job = \
                           reinforce_lemma_multithreaded(args, coq,
-                                                        lock, namespace,
+                                                        lock, estimator, predictor,
                                                         worker_idx,
                                                         samples,
                                                         next_lemma,
@@ -533,7 +531,8 @@ def reinforce_lemma_multithreaded(
         args: argparse.Namespace,
         coq: serapi_instance.SerapiInstance,
         lock: Lock,
-        namespace: multiprocessing.managers.Namespace,
+        predictor: TacticPredictor,
+        estimator: QEstimator,
         worker_idx: int,
         samples: Queue[LabeledTransition],
         lemma_statement: str,
@@ -567,7 +566,6 @@ def reinforce_lemma_multithreaded(
                 with print_time("Getting predictions", guard=args.verbose >= 2):
                     # eprint(f"Locked in thread {worker_idx}",
                     #        guard=args.verbose >= 2)
-                    estimator = namespace.estimator
                     with print_time("Making predictions",
                                     guard=args.verbose >= 3):
                         predictions = predictor.predictKTactics(
@@ -709,7 +707,7 @@ def reinforce_lemma_multithreaded(
 def reinforce_training_worker(args: argparse.Namespace,
                               initial_buffer_size: int,
                               lock: Lock,
-                              namespace: multiprocessing.managers.Namespace,
+                              q_estimator: QEstimator,
                               predictor: TacticPredictor,
                               samples: Queue[LabeledTransition]):
     last_trained_at = 0
@@ -739,7 +737,6 @@ def reinforce_training_worker(args: argparse.Namespace,
         if samples_retrieved - last_trained_at >= args.train_every_min:
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
-            q_estimator = namespace.estimator
             with print_time("Assigning scores", guard=args.verbose >= 2):
                 training_samples = assign_scores(args,
                                                  q_estimator,
@@ -750,7 +747,6 @@ def reinforce_training_worker(args: argparse.Namespace,
                 q_estimator.train(training_samples,
                                   show_loss=args.show_loss)
             q_estimator.save_weights(args.out_weights, args)
-            namespace.estimator = q_estimator.clone()
 
     pass
 
