@@ -263,6 +263,9 @@ class PolyargQEstimator(QEstimator):
         self.model.load_state_dict(state)
         pass
 
+    def share_memory(self):
+        self.model.share_memory()
+
 
 T = TypeVar('T')
 
