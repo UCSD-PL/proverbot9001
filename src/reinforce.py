@@ -325,12 +325,11 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
         training_worker = ctxt.Process(
             target=reinforce_training_worker,
-            args=(args, len(replay_memory), lock, q_estimator, predictor, samples))
+            args=(args, len(replay_memory), q_estimator, predictor, samples))
         workers = [ctxt.Process(
             target=reinforce_worker,
             args=(widx,
                   args,
-                  lock,
                   predictor,
                   q_estimator,
                   samples,
@@ -370,7 +369,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
 def reinforce_worker(worker_idx: int,
                      args: argparse.Namespace,
-                     lock: Lock,
                      estimator: QEstimator,
                      predictor: TacticPredictor,
                      samples: Queue[LabeledTransition],
@@ -421,7 +419,7 @@ def reinforce_worker(worker_idx: int,
                     try:
                         graph_job = \
                           reinforce_lemma_multithreaded(args, coq,
-                                                        lock, estimator, predictor,
+                                                        estimator, predictor,
                                                         worker_idx,
                                                         samples,
                                                         next_lemma,
@@ -530,7 +528,6 @@ def reinforce_worker(worker_idx: int,
 def reinforce_lemma_multithreaded(
         args: argparse.Namespace,
         coq: serapi_instance.SerapiInstance,
-        lock: Lock,
         predictor: TacticPredictor,
         estimator: QEstimator,
         worker_idx: int,
@@ -706,7 +703,6 @@ def reinforce_lemma_multithreaded(
 
 def reinforce_training_worker(args: argparse.Namespace,
                               initial_buffer_size: int,
-                              lock: Lock,
                               q_estimator: QEstimator,
                               predictor: TacticPredictor,
                               samples: Queue[LabeledTransition]):
