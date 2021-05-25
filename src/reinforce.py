@@ -140,6 +140,7 @@ def main() -> None:
     args = parser.parse_args()
 
     torch.cuda.set_device(args.gpu)
+    util.cuda_device = args.gpu
 
     try:
         os.makedirs(str(args.graphs_dir))
@@ -379,6 +380,8 @@ def reinforce_worker(worker_idx: int,
                                        Optional[Tuple[str,
                                                       ReinforceGraph]]]]):
 
+    torch.cuda.set_device(args.gpu)
+    util.cuda_device = args.gpu
     sys.setrecursionlimit(100000)
     failing_lemma = ""
 
@@ -709,6 +712,8 @@ def reinforce_training_worker(args: argparse.Namespace,
                               q_estimator: QEstimator,
                               predictor: TacticPredictor,
                               samples: Queue[LabeledTransition]):
+    torch.cuda.set_device(args.gpu)
+    util.cuda_device = args.gpu
     last_trained_at = 0
     samples_retrieved = 0
     memory: List[LabeledTransition] = []
