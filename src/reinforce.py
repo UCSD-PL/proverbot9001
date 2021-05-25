@@ -97,6 +97,7 @@ def main() -> None:
 
     parser.add_argument("--start-from", default=None, type=Path2)
     parser.add_argument("--num-predictions", default=16, type=int)
+    parser.add_argument("--gpu", default=0, type=int)
 
     parser.add_argument("--buffer-min-size", default=256, type=int)
     parser.add_argument("--buffer-max-size", default=32768, type=int)
@@ -137,6 +138,8 @@ def main() -> None:
     parser.add_argument("--show-loss", action='store_true')
 
     args = parser.parse_args()
+
+    torch.cuda.set_device(args.gpu)
 
     try:
         os.makedirs(str(args.graphs_dir))
