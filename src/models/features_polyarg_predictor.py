@@ -969,6 +969,9 @@ class FeaturesPolyargPredictor(
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
 
+    def share_memory(self) -> None:
+        self._model.share_memory()
+
 
 def hypFeaturesSize() -> int:
     return 2
