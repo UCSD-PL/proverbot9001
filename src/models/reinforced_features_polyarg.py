@@ -107,3 +107,6 @@ class ReinforcedFeaturesPolyargPredictor(TacticPredictor):
                                       k: int, correct: List[str]) -> \
             Tuple[List[List[Prediction]], float]:
         pass
+    def share_memory(self) -> None:
+        self._fpa.share_memory()
+        self._estimator.share_memory()
