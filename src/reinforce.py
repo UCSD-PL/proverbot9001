@@ -157,7 +157,9 @@ Demonstration = List[str]
 
 def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
-    def resume(resume_file: Path2, weights: Path2,
+    def resume(resume_file: Path2,
+               jobs_in_files: List[Job],
+               weights: Path2,
                q_estimator: QEstimator) -> \
       Tuple[List[LabeledTransition],
             List[Job],
@@ -167,25 +169,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         q_estimator_name, *saved = \
             torch.load(str(weights))
         q_estimator.load_saved_state(*saved)
-        replay_memory = []
-        with resume_file.open('r') as f:
-            num_samples = sum(1 for _ in f)
-        if num_samples > args.buffer_max_size:
-            samples_to_use = random.sample(range(num_samples),
-                                           args.buffer_max_size)
-        else:
-            samples_to_use = None
-        with resume_file.open('r') as f:
-            for (idx, line) in enumerate(f, start=1):
-                if num_samples > args.buffer_max_size and \
-                  idx not in samples_to_use:
-                    continue
-                try:
-                    replay_memory.append(LabeledTransition.from_dict(
-                        json.loads(line)))
-                except json.decoder.JSONDecodeError:
-                    eprint(f"Problem loading line {idx}: {line}")
-                    raise
         already_done = []
         graphs_done = []
         with weights.with_suffix('.done').open('r') as f:
@@ -205,7 +188,32 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 graph = ReinforceGraph.load(
                     graphpath.with_suffix(".png.json"))
                 graphs_done.append((graphpath, graph))
-        return replay_memory, already_done, graphs_done
+        jobs_todo = [job for job in jobs_in_files
+                     if job not in already_done]
+
+        replay_memory = []
+        if len(jobs_todo) > 0:
+            with resume_file.open('r') as f:
+                num_samples = sum(1 for _ in f)
+            if num_samples > args.buffer_max_size:
+                samples_to_use = random.sample(range(num_samples),
+                                               args.buffer_max_size)
+            else:
+                samples_to_use = None
+            with resume_file.open('r') as f:
+                for (idx, line) in enumerate(f, start=1):
+                    if num_samples > args.buffer_max_size and \
+                      idx not in samples_to_use:
+                        continue
+                    try:
+                        replay_memory.append(LabeledTransition.from_dict(
+                            json.loads(line)))
+                    except json.decoder.JSONDecodeError:
+                        eprint(f"Problem loading line {idx}: {line}")
+                        raise
+        else:
+            eprint("Warning: no jobs left to do")
+        return replay_memory, jobs_todo, already_done, graphs_done
 
     # Load the predictor
     predictor = cast(features_polyarg_predictor.
@@ -234,12 +242,41 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
               exit()))
 
+    ctxt = tmp.get_context('spawn')
+    with ctxt.Pool() as pool:
+        jobs_in_files = [
+            job
+            for job_list in
+            list(tqdm(pool.imap(
+                 functools.partial(get_proofs, args),
+                 list(enumerate(args.environment_files))),
+                                       total=len(args.environment_files),
+                                       leave=False,
+                                       desc="Finding proofs"))
+            for job in job_list]
+    if args.proofs_file:
+        with open(args.proofs_file, 'r') as f:
+            proof_names = [line.strip() for line in f]
+        all_jobs = [
+            job for job in jobs_in_files if
+            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
+    elif args.proof:
+        all_jobs = [
+            job for job in jobs_in_files if
+            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
+             * args.num_threads
+    else:
+        all_jobs = jobs_in_files
+
     resume_file = args.out_weights.with_suffix('.tmp')
     if resume_file.exists():
-        replay_memory, already_done, graphs_done = resume(resume_file,
-                                                          args.out_weights,
-                                                          q_estimator)
+        replay_memory, jobs_todo, already_done, graphs_done = \
+            resume(resume_file,
+                   all_jobs,
+                   args.out_weights,
+                   q_estimator)
     else:
+        jobs_todo = jobs_in_files
         graphs_done = []
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
@@ -276,7 +313,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         args.out_weights.with_suffix('.done').unlink()
         return
 
-    ctxt = tmp.get_context('spawn')
     jobs: Queue[Tuple[Job, Optional[Demonstration]]] = ctxt.Queue()
     done: Queue[Tuple[Job, Tuple[str, ReinforceGraph]]] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
@@ -284,46 +320,19 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     for sample in replay_memory:
         samples.put(sample)
 
-    with ctxt.Pool() as pool:
-        jobs_in_files = list(tqdm(pool.imap(
-            functools.partial(get_proofs, args),
-            list(enumerate(args.environment_files))),
-                                  total=len(args.environment_files),
-                                  leave=False,
-                                  desc="Finding proofs"))
-    unfiltered_jobs = [job for job_list in jobs_in_files for job in job_list
-                       if job not in already_done]
-    if args.proofs_file:
-        with open(args.proofs_file, 'r') as f:
-            proof_names = [line.strip() for line in f]
-        all_jobs = [
-            job for job in unfiltered_jobs if
-            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
-    elif args.proof:
-        all_jobs = [
-            job for job in unfiltered_jobs if
-            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
-             * args.num_threads
-    else:
-        all_jobs = unfiltered_jobs
-
     all_jobs_and_dems: List[Tuple[Job, Optional[Demonstration]]]
     if args.demonstrate_from:
         all_jobs_and_dems = [(job, extract_solution(args,
                                                     args.demonstrate_from,
                                                     job))
-                             for job in all_jobs]
+                             for job in jobs_todo]
     else:
-        all_jobs_and_dems = [(job, None) for job in all_jobs]
+        all_jobs_and_dems = [(job, None) for job in jobs_todo]
 
-    if len(all_jobs_and_dems) == 0:
-        print("No jobs! Did you pass a file with no proofs, or a mismatched/empty proof names file?")
-        return
-    for job in all_jobs_and_dems:
-        jobs.put(job)
+    if len(all_jobs_and_dems) > 0:
+        for job in all_jobs_and_dems:
+            jobs.put(job)
 
-    with Manager() as manager:
-        manager = cast(multiprocessing.managers.SyncManager, manager)
         q_estimator.share_memory()
 
         training_worker = ctxt.Process(
@@ -361,13 +370,13 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
             worker.kill()
         training_worker.kill()
 
-        for graphpath, graph in tqdm(graphs_done, desc="Drawing graphs"):
-            assignApproximateQScores(graph, args.max_term_length, predictor,
-                                     q_estimator)
-            graph.draw(graphpath)
+    for graphpath, graph in tqdm(graphs_done, desc="Drawing graphs"):
+        assignApproximateQScores(graph, args.max_term_length, predictor,
+                                 q_estimator)
+        graph.draw(graphpath)
 
-        # args.out_weights.with_suffix('.tmp').unlink()
-        # args.out_weights.with_suffix('.done').unlink()
+    args.out_weights.with_suffix('.tmp').unlink()
+    args.out_weights.with_suffix('.done').unlink()
 
 
 def reinforce_worker(worker_idx: int,
