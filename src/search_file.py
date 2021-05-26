@@ -138,7 +138,7 @@ def main(arg_list: List[str]) -> None:
     global predictor
 
     args, parser = parse_arguments(arg_list)
-    util.use_cuda = False
+    # util.use_cuda = False
     # with util.silent():
     predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
@@ -327,7 +327,7 @@ def search_file_worker(args: argparse.Namespace,
                        '  Tuple[Tuple[str, str, str], SearchResult]]',
                        worker_idx: int) -> None:
     sys.setrecursionlimit(100000)
-    util.use_cuda = False
+    # util.use_cuda = False
     axioms_already_added = False
 
     failing_lemma = ""
