@@ -61,7 +61,8 @@ class FeaturesQEstimator(QEstimator):
         self.total_batches = 0
         pass
 
-    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]],
+                 progress: bool = False) -> List[float]:
         state_word_features_batch, vec_features_batch \
             = zip(*[self._features(state, certainty) for
                     (state, action, certainty) in inputs])
@@ -191,6 +192,9 @@ class FeaturesQEstimator(QEstimator):
         self.tactic_map, self.token_map = metadata
         self.model.load_state_dict(state)
         pass
+
+    def share_memory(self) -> None:
+        self.model.share_memory()
 
 
 T = TypeVar('T')
