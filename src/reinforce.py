@@ -658,6 +658,9 @@ def reinforce_lemma_multithreaded(
                     samples.put(transition)
                     episode_memory.append(transition)
                     break  # Break from episode
+                if any([len(obligation.goal) > 512 for
+                        obligation in proof_context_after.all_goals]):
+                    break
             transition = assign_reward(args,
                                        context_trunced.relevant_lemmas,
                                        context_trunced.prev_tactics,
