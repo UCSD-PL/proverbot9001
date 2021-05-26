@@ -56,6 +56,7 @@ from yattag import Doc
 from pathlib_revised import Path2
 from enum import Enum
 import pygraphviz as pgv
+import torch
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
@@ -140,6 +141,10 @@ def main(arg_list: List[str]) -> None:
     args, parser = parse_arguments(arg_list)
     # util.use_cuda = False
     # with util.silent():
+
+    torch.cuda.set_device(args.gpu)
+    util.cuda_device = f"cuda:{args.gpu}"
+
     predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
 
@@ -180,6 +185,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('--weightsfile', default=None, type=Path2)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
+    parser.add_argument('--gpu', default=0, type=int)
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
                         action='store_false')
     parser.add_argument("--search-width", type=int, default=5)
@@ -328,6 +334,8 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int) -> None:
     sys.setrecursionlimit(100000)
     # util.use_cuda = False
+    torch.cuda.set_device(args.gpu)
+    util.cuda_device = f"cuda:{args.gpu}"
     axioms_already_added = False
 
     failing_lemma = ""
