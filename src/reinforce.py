@@ -711,10 +711,10 @@ def reinforce_lemma_multithreaded(
 
         coq.run_stmt(lemma_statement)
 
-        # Write out lemma memory to progress file for resuming
-        for sample in lemma_memory:
-            with args.out_weights.with_suffix('.tmp').open('a') as f:
-                f.write(json.dumps(sample.to_dict()) + "\n")
+        # # Write out lemma memory to progress file for resuming
+        # for sample in lemma_memory:
+        #     with args.out_weights.with_suffix('.tmp').open('a') as f:
+        #         f.write(json.dumps(sample.to_dict()) + "\n")
     graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
     return str(graphpath), graph
 
@@ -763,6 +763,10 @@ def reinforce_training_worker(args: argparse.Namespace,
                 q_estimator.train(training_samples,
                                   show_loss=args.show_loss)
             q_estimator.save_weights(args.out_weights, args)
+            with args.out_weights.with_suffix('.tmp').open('w') as f:
+                for sample in memory:
+                    f.write(json.dumps(sample.to_dict()))
+                    f.write("\n")
 
     pass
 
