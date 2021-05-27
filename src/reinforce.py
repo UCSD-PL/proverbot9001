@@ -537,7 +537,7 @@ def reinforce_worker(worker_idx: int,
                                 rest_commands[0]):
                             rest_commands = rest_commands[1:]
                         rest_commands = rest_commands[1:]
-    del q_estimator
+    del estimator
 
 
 def reinforce_lemma_multithreaded(
