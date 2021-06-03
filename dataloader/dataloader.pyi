@@ -182,7 +182,8 @@ def get_num_tokens(metadata: PickleableFPAMetadata) -> int:
     ...
 
 
-def get_num_indices(metadata: PickleableFPAMetadata) -> int:
+def get_num_indices(metadata: PickleableFPAMetadata) -> \
+  Tuple[PickleableFPAMetadata, int]:
     ...
 
 
