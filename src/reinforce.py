@@ -810,7 +810,10 @@ def extract_solution(args: argparse.Namespace,
 
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
       List[LabeledTransition]:
-    return random.sample(transitions, k)
+    if k >= len(transitions):
+        return transitions
+    else:
+        return random.sample(transitions, k)
 
 
 def assign_failed_reward(relevant_lemmas: List[str], prev_tactics: List[str],
