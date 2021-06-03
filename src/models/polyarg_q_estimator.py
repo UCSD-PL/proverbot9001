@@ -267,6 +267,9 @@ class PolyargQEstimator(QEstimator):
     def share_memory(self):
         self.model.share_memory()
 
+    def to_device(self, device):
+        self.model.to(device=device)
+
 
 T = TypeVar('T')
 

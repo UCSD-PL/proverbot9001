@@ -33,6 +33,7 @@ import queue
 import traceback
 import subprocess
 import cProfile
+import copy
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast,
                     Any)
@@ -130,20 +131,19 @@ class SearchResult(NamedTuple):
 
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
-predictor: TacticPredictor
 unnamed_goal_number: int
 
 
 def main(arg_list: List[str]) -> None:
     sys.setrecursionlimit(100000)
-    global predictor
 
     args, parser = parse_arguments(arg_list)
     # util.use_cuda = False
     # with util.silent():
 
-    torch.cuda.set_device(args.gpu)
-    util.cuda_device = f"cuda:{args.gpu}"
+    if not args.gpus:
+        torch.cuda.set_device(f"cuda:{args.gpu}")
+        util.cuda_device = f"cuda:{args.gpu}"
 
     predictor = get_predictor(parser, args)
     base = Path2(os.path.dirname(os.path.abspath(__file__)))
@@ -332,16 +332,12 @@ def search_file_worker(args: argparse.Namespace,
                        done:
                        'multiprocessing.Queue['
                        '  Tuple[Tuple[str, str, str], SearchResult]]',
-                       worker_idx: int) -> None:
+                       worker_idx: int,
+                       device: str) -> None:
     sys.setrecursionlimit(100000)
     # util.use_cuda = False
-    if args.gpus:
-        gpu_list = args.gpus.split(",")
-        worker_gpu = gpu_list[worker_idx % len(gpu_list)]
-    else:
-        worker_gpu = args.gpu
-    torch.cuda.set_device(worker_gpu)
-    util.cuda_device = f"cuda:{worker_gpu}"
+    torch.cuda.set_device(device)
+    util.cuda_device = device
     axioms_already_added = False
 
     failing_lemma = ""
@@ -537,10 +533,6 @@ def search_file_multithreaded(args: argparse.Namespace,
             Tuple[Tuple[str, str, str], SearchResult]
         ] = multiprocessing.Queue()
 
-        # This cast appears to be needed due to a buggy type stub on
-        # multiprocessing.Manager()
-        predictor_lock = cast(multiprocessing.managers.SyncManager,
-                              manager).Lock()
 
         all_jobs: List[Tuple[str, str, str]] = []
         file_solutions: List[List[Tuple[Tuple[str, str, str], SearchResult]]
@@ -597,11 +589,32 @@ def search_file_multithreaded(args: argparse.Namespace,
                                  lemma_statement))
         for job in all_jobs:
             jobs.put(job)
-        predictor.share_memory()
+
+        if util.use_cuda:
+            if args.gpus:
+                gpu_list = args.gpus.split(",")
+            else:
+                gpu_list = [args.gpu]
+            worker_devices = [f"cuda:{gpu_idx}" for gpu_idx in gpu_list]
+        else:
+            assert args.gpus is None, "Passed --gpus flag, but CUDA is not supported!"
+            worker_devices = ["cpu"]
+        worker_predictors = [copy.deepcopy(predictor)
+                             for device in worker_devices]
+        for predictor, device in zip(worker_predictors, worker_devices):
+            predictor.to_device(device)
+            predictor.share_memory()
+        # This cast appears to be needed due to a buggy type stub on
+        # multiprocessing.Manager()
+        predictor_locks = [cast(multiprocessing.managers.SyncManager,
+                                manager).Lock()
+                           for predictor in worker_predictors]
         workers = [multiprocessing.Process(target=search_file_worker,
-                                           args=(args, predictor,
-                                                 predictor_lock,
-                                                 jobs, done, widx))
+                                           args=(args, 
+                                                 worker_predictors[widx % len(worker_predictors)],
+                                                 predictor_locks[widx % len(worker_predictors)],
+                                                 jobs, done, widx,
+                                                 worker_devices[widx % len(worker_predictors)]))
                    for widx in range(min(args.num_threads,
                                          len(all_jobs)))]
         for worker in workers:

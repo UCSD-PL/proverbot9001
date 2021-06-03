@@ -196,6 +196,9 @@ class FeaturesQEstimator(QEstimator):
     def share_memory(self) -> None:
         self.model.share_memory()
 
+    def to_device(self, device) -> None:
+        self.model.to(device=device)
+
 
 T = TypeVar('T')
 

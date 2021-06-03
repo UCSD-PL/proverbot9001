@@ -975,6 +975,8 @@ class FeaturesPolyargPredictor(
 
     def share_memory(self) -> None:
         self._model.share_memory()
+    def to_device(self, device) -> None:
+        self._model.to(device=device)
 
 
 def hypFeaturesSize() -> int:
