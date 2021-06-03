@@ -186,6 +186,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
+    parser.add_argument("--gpus", default=None, type=str)
     parser.add_argument("--no-truncate_semicolons", dest="truncate_semicolons",
                         action='store_false')
     parser.add_argument("--search-width", type=int, default=5)
@@ -334,8 +335,13 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int) -> None:
     sys.setrecursionlimit(100000)
     # util.use_cuda = False
-    torch.cuda.set_device(args.gpu)
-    util.cuda_device = f"cuda:{args.gpu}"
+    if args.gpus:
+        gpu_list = args.gpus.split(",")
+        worker_gpu = gpu_list[worker_idx % len(gpu_list)]
+    else:
+        worker_gpu = args.gpu
+    torch.cuda.set_device(worker_gpu)
+    util.cuda_device = f"cuda:{worker_gpu}"
     axioms_already_added = False
 
     failing_lemma = ""
