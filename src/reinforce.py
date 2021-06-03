@@ -110,6 +110,8 @@ def main() -> None:
     parser.add_argument("--batch-step", default=4, type=int)
     parser.add_argument("--gamma", default=0.5, type=float)
     parser.add_argument("--exploration-factor", default=0.4, type=float)
+    parser.add_argument("--exploration-smoothing-factor", default=2,
+                        type=float)
     parser.add_argument("--time-discount", default=0.9, type=float)
 
     parser.add_argument("--max-term-length", default=512, type=int)
@@ -585,7 +587,10 @@ def reinforce_lemma_multithreaded(
                     if random.random() < args.exploration_factor:
                         eprint("Picking random action",
                                guard=args.verbose >= 2)
-                        ordered_actions = order_by_score(predictions)
+                        ordered_actions = order_by_score(
+                            [(prediction,
+                             score * (1/args.exploration_smoothing_factor))
+                             for prediction, score in predictions])
                     else:
                         with print_time("Picking actions with q_estimator",
                                         guard=args.verbose >= 2):
