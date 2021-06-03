@@ -19,24 +19,33 @@ MODEL=$2
 PROOFS=$3
 EPISODES=$4
 
-cat data/compcert-test-files.txt|xargs python3 src/reinforce.py \
-  --predictor-weights=data/polyarg-weights.dat \
-  --start-from=data/"$MODEL"-q-pretrain.dat \
-  --prelude=./CompCert \
-  --estimator="$MODEL" \
-  --demonstrate-from=search-report-minimal \
-  --proofs-file=cc-proofs-$PROOFS.txt \
-  --progress \
-  -j5 \
-  --num-episodes=$EPISODES \
-  --gpu=$GPU \
-  data/compcert-scrape.txt \
-  data/$MODEL-q-$PROOFS-$EPISODES.dat || true
+if test ! -f "data/$MODEL-q-$PROOFS-$EPISODES.dat" || test -f "data/$MODEL-q-$PROOFS-$EPISODES.tmp"; then
+    cat data/compcert-test-files.txt|xargs python3 src/reinforce.py \
+      --predictor-weights=data/polyarg-weights.dat \
+      --start-from=data/"$MODEL"-q-pretrain.dat \
+      --prelude=./CompCert \
+      --estimator="$MODEL" \
+      --demonstrate-from=search-report-minimal \
+      --proofs-file=cc-proofs-$PROOFS.txt \
+      --progress \
+      --train-every-min=8 \
+      --train-every-max=16 \
+      --batch-size=512 \
+      -j4 \
+      --num-episodes=$EPISODES \
+      --gpu=$GPU \
+      data/compcert-scrape.txt \
+      data/$MODEL-q-$PROOFS-$EPISODES.dat || true
+
+else
+    echo "Resuming from existing reinforced weights"
+fi
 
 python3 src/mk_reinforced_weights.py \
   data/polyarg-weights.dat \
   data/$MODEL-q-$PROOFS-$EPISODES.dat \
   data/re-$MODEL-$PROOFS-$EPISODES.dat
+
 
 cat data/compcert-test-files.txt|xargs ./src/search_file.py \
   --weightsfile=data/re-$MODEL-$PROOFS-$EPISODES.dat \
