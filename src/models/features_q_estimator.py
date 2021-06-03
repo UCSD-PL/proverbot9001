@@ -143,7 +143,7 @@ class FeaturesQEstimator(QEstimator):
         else:
             prev_tactic_index = 0
         if context.goal != "":
-            goal_head_index = emap_lookup(self.token_map, 128,
+            goal_head_index = emap_lookup(self.token_map, self._num_tokens,
                                           tokenizer.get_words(context.goal)[0])
         else:
             goal_head_index = 0
@@ -167,12 +167,12 @@ class FeaturesQEstimator(QEstimator):
             if stripped_arg in index_hyp_vars:
                 hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]]\
                     .partition(":")
-                arg_idx = emap_lookup(self.token_map, 128,
+                arg_idx = emap_lookup(self.token_map, self._num_tokens,
                                       tokenizer.get_words(rest)[0]) + 2
             else:
                 goal_symbols = tokenizer.get_symbols(context.goal)
                 if stripped_arg in goal_symbols:
-                    arg_idx = emap_lookup(self.token_map, 128,
+                    arg_idx = emap_lookup(self.token_map, self._num_tokens,
                                           stripped_arg) + 128 + 2
                 else:
                     arg_idx = 1
