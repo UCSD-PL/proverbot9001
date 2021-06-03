@@ -33,6 +33,7 @@ from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
                   ByteTensor, print_time, unwrap)
+import util
 import math
 from coq_serapy.contexts import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
@@ -306,6 +307,8 @@ class FeaturesPolyargPredictor(
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
+        torch.cuda.set_device(arg_values.gpu)
+        util.cuda_device = f"cuda:{arg_values.gpu}"
         save_states = self._optimize_model(arg_values)
 
         for metadata, state in save_states:
@@ -751,6 +754,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--save-features-state", type=str, default=None)
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
+        parser.add_argument('--gpu', default=0, type=int)
 
     def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
