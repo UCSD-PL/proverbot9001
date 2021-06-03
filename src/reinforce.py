@@ -96,7 +96,7 @@ def main() -> None:
                         default="polyarg")
 
     parser.add_argument("--start-from", default=None, type=Path2)
-    parser.add_argument("--num-predictions", default=16, type=int)
+    parser.add_argument("--num-predictions", default=32, type=int)
     parser.add_argument("--gpu", default=0, type=int)
 
     parser.add_argument("--buffer-min-size", default=256, type=int)
