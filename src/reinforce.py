@@ -278,17 +278,19 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                    args.out_weights,
                    q_estimator)
     else:
-        jobs_todo = jobs_in_files
+        jobs_todo = all_jobs
         graphs_done = []
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
         # predictor certainty" value for use as a feature.
-        with print_time("Loading initial samples from labeled data"):
-            replay_memory = assign_rewards(
-                args, predictor,
-                dataloader.tactic_transitions_from_file(
-                    predictor.dataloader_args,
-                    args.scrape_file, args.buffer_min_size))
+        replay_memory = []
+        if args.buffer_min_size > 0:
+            with print_time("Loading initial samples from labeled data"):
+                replay_memory = assign_rewards(
+                    args, predictor,
+                    dataloader.tactic_transitions_from_file(
+                        predictor.dataloader_args,
+                        args.scrape_file, args.buffer_min_size))
         # Load in any starting weights
         if args.start_from:
             q_estimator_name, *saved = \
