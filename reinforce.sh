@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 # determine physical directory of this script
 src="${BASH_SOURCE[0]}"
