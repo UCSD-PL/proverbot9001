@@ -10,7 +10,7 @@ while [ -L "$src" ]; do
   [[ $src != /* ]] && src="$dir/$src"
 done
 MYDIR="$(cd -P "$(dirname "$src")" && pwd)"
-[ "$#" -eq 4 ] || [ "$#" -eq 5 ] || (echo "4 argument required, $# provided" ; exit 1)
+[ "$#" -ge 4 ] || (echo "4 argument required, $# provided" ; exit 1)
 
 cd $MYDIR
 
@@ -19,6 +19,16 @@ MODEL=$2
 PROOFS=$3
 EPISODES=$4
 TAG=$5
+
+shift 5
+while (( "$#" )); do
+    case "$1" in
+        *) # preserve all other arguments
+            PARAMS="$PARAMS $1"
+            shift
+            ;;
+    esac
+done
 
 if test ! -f "data/$MODEL-q-$PROOFS-$EPISODES-$TAG.dat" || test -f "data/$MODEL-q-$PROOFS-$EPISODES-$TAG.tmp"; then
     cat data/compcert-test-files.txt|xargs python3 src/reinforce.py \
@@ -36,7 +46,7 @@ if test ! -f "data/$MODEL-q-$PROOFS-$EPISODES-$TAG.dat" || test -f "data/$MODEL-
       --num-episodes=$EPISODES \
       --gpu=$GPU \
       data/compcert-scrape.txt \
-      data/$MODEL-q-$PROOFS-$EPISODES-$TAG.dat || true
+      data/$MODEL-q-$PROOFS-$EPISODES-$TAG.dat $PARAMS || true
 
 else
     echo "Resuming from existing reinforced weights"
