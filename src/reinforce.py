@@ -187,9 +187,9 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 graphpath = (args.graphs_dir /
                              serapi_instance.lemma_name_from_statement(
                                next_done[2]))\
-                    .with_suffix(".png")
+                    .with_suffix(".svg")
                 graph = ReinforceGraph.load(
-                    graphpath.with_suffix(".png.json"))
+                    graphpath.with_suffix(".svg.json"))
                 graphs_done.append((graphpath, graph))
         jobs_todo = [job for job in jobs_in_files
                      if job not in already_done]
@@ -724,7 +724,7 @@ def reinforce_lemma_multithreaded(
         # for sample in lemma_memory:
         #     with args.out_weights.with_suffix('.tmp').open('a') as f:
         #         f.write(json.dumps(sample.to_dict()) + "\n")
-    graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
+    graphpath = (args.graphs_dir / lemma_name).with_suffix(".svg")
     return str(graphpath), graph
 
 
