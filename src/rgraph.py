@@ -293,6 +293,7 @@ def main():
             0, 0, 0,
             cast(features_polyarg_predictor.FeaturesPolyargPredictor,
                  predictor))
+    q_estimator.load_saved_state(*saved)
 
     graph = ReinforceGraph.load(args.graph_json)
     assignApproximateQScores(graph, args.max_term_length,
