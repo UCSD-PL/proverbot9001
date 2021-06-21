@@ -48,6 +48,7 @@ from models import copyarg_predictor
 from models import numeric_induction
 from models import features_polyarg_predictor
 from models import reinforced_features_polyarg
+from models import hammer_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -79,6 +80,7 @@ static_predictors = {
     'apply_similar2' : apply_baselines.ApplyNormalizedSimilarPredictor,
     'apply_wordsim' : apply_baselines.ApplyWordSimlarPredictor,
     'numeric_induction' : numeric_induction.NumericInductionPredictor,
+    "hammer": hammer_predictor.HammerPredictor,
 }
 
 trainable_modules : Dict[str, Callable[[List[str]], None]] = {
