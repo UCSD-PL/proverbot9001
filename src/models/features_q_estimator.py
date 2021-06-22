@@ -76,18 +76,8 @@ class FeaturesQEstimator(QEstimator):
             vec_feats_t = torch.FloatTensor(vec_features_batch)
             word_feats_t = torch.LongTensor(all_word_features_batch)
 
-            for feat_idx in range(len(word_feats_t[0])):
-                vals = [t.item() for t in word_feats_t[:, feat_idx]]
-                print(f"Word feature {feat_idx} vals are {set(vals)}")
-            for feat_idx in range(len(vec_feats_t[0])):
-                vals = [t.item() for t in vec_feats_t[:, feat_idx]]
-                print(f"Feature {feat_idx} "
-                      f"average is {sum(vals)/len(vals)} "
-                      f"max is {max(vals)} "
-                      f"min is {min(vals)}")
-            output = self.model(torch.LongTensor(all_word_features_batch),
+            output = self.model(word_feats_t,
                                 vec_feats_t)
-            print(f"q is {output}")
         for item in output:
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
