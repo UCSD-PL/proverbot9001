@@ -765,11 +765,13 @@ def reinforce_training_worker(args: argparse.Namespace,
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
             with print_time("Assigning scores", guard=args.verbose >= 2):
-                training_samples = assign_scores(args,
-                                                 q_estimator,
-                                                 predictor,
-                                                 transition_samples,
-                                                 progress=args.verbose >= 2)
+                training_samples = normalize_batch_size(
+                    assign_scores(args,
+                                  q_estimator,
+                                  predictor,
+                                  transition_samples,
+                                  progress=args.verbose >= 2),
+                    args.batch_size)
             with print_time("Training", guard=args.verbose >= 2):
                 q_estimator.train(training_samples,
                                   show_loss=args.show_loss,
@@ -818,6 +820,18 @@ def extract_solution(args: argparse.Namespace,
                f"in search directory for file {job_file}")
         raise
     pass
+
+
+def normalize_batch_size(samples: List[Tuple[TacticContext, str,
+                                             float, float]],
+                         k: int) -> \
+      List[Tuple[TacticContext, str, float, float]]:
+    assert k >= len(samples), \
+      "Pre-normalized batch must not exceed target size"
+    result = samples * (k // len(samples)) + \
+        random.sample(samples, k % len(samples))
+    random.shuffle(result)
+    return result
 
 
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
