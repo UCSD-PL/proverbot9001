@@ -379,7 +379,18 @@ def search_file_worker(args: argparse.Namespace,
                     eprint(f"In file {next_file}")
                     raise
                 lemma_statement = run_commands[-1]
-                if lemma_statement == next_lemma:
+                if re.match(r"\s*Next\s+Obligation\s*\.\s*",
+                            lemma_statement):
+                    obligation_num = 1
+                    while coq.local_lemmas[-obligation_num] == ":":
+                        obligation_num += 1
+                    unique_lemma_statement = \
+                        coq.local_lemmas[-obligation_num] + \
+                        f" Obligation {obligation_num}."
+                else:
+                    unique_lemma_statement = lemma_statement
+                if unique_lemma_statement == next_lemma and \
+                        coq.sm_prefix == next_module:
                     if args.add_axioms and not axioms_already_added:
                         axioms_already_added = True
                         coq.cancel_last()
