@@ -129,7 +129,6 @@ class PolyargQEstimator(QEstimator):
         return [torch.LongTensor(all_word_features),
                 torch.cat(all_vec_features, dim=0)]
 
-
     def train(self, samples: List[Tuple[TacticContext, str, float, float]],
               batch_size: Optional[int] = None,
               num_epochs: int = 1,
@@ -161,25 +160,6 @@ class PolyargQEstimator(QEstimator):
                 self.total_batches += 1
                 epoch_loss += loss.item()
 
-                if epoch % 10 == 0 and idx == len(batches) - 1:
-                    qs = [output.data for output in outputs]
-                    certs = [cert for ctxt, action, cert, q in samples]
-                    avg = sum(qs)/len(qs)
-                    print("qs:", set(list(qs)))
-                    print(f"Average q is {avg}, max is {max(*qs)}")
-                    print("certainies:", set(list(certs)))
-                    print(f"Average certainty is {sum(certs)/len(certs)}, "
-                          f"max is {max(*certs)}")
-                    for feat_idx in range(len(word_features_batch[0])):
-                        vals = [t.item() for t in
-                                word_features_batch[:, feat_idx]]
-                        print(f"Word feature {feat_idx} vals are {set(vals)}")
-                    for feat_idx in range(len(vec_features_batch[0])):
-                        vals = list(vec_features_batch[:, feat_idx])
-                        print(f"Feature {feat_idx} "
-                              f"average is {sum(vals)/len(vals)} "
-                              f"max is {max(*vals)} "
-                              f"min is {min(*vals)}")
                 eprint(epoch_loss / len(batches),
                        guard=show_loss and epoch % 10 == 0
                        and idx == len(batches) - 1)
