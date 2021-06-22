@@ -19,7 +19,7 @@ def main():
         q_estimator.load_saved_state(*saved)
 
         assert len(args.feature_vals) == 7
-        word_feature_vals = args.feature_vals[:4]
+        word_feature_vals = [int(val) for val in args.feature_vals[:4]]
         vec_feature_vals = args.feature_vals[4:]
         output = q_estimator.model(torch.LongTensor([word_feature_vals]),
                                    torch.FloatTensor([vec_feature_vals]))
