@@ -906,48 +906,57 @@ def assign_scores(args: argparse.Namespace,
                   transitions: List[LabeledTransition],
                   progress: bool = False) -> \
                   List[Tuple[TacticContext, str, float, float]]:
-    def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
-        contexts_trunced = [truncate_tactic_context(
-            transition.after_context,
-            args.max_term_length)
-                            for transition in transitions]
-        prediction_lists = cast(features_polyarg_predictor
-                                .FeaturesPolyargPredictor,
-                                predictor) \
-            .predictKTactics_batch(
-                contexts_trunced,
-                args.num_predictions,
-                args.verbose)
-        queries = [(truncate_tactic_context(transition.after_context,
-                                            args.max_term_length),
-                    prediction.prediction, prediction.certainty)
-                   for transition, predictions in zip(transitions,
-                                                      prediction_lists)
-                   for prediction in predictions]
-        estimate_lists_flattened = q_estimator(queries, progress=progress)
-        estimate_lists = [estimate_lists_flattened
-                          [i:i+args.num_predictions]
-                          for i in range(0, len(estimate_lists_flattened),
-                                         args.num_predictions)]
-        for transition, estimates in zip(transitions, estimate_lists):
-            before_ctxt = truncate_tactic_context(
-                transition.before_context, args.max_term_length)
+    easy_transitions = [transition for transition in transitions
+                        if len(transition.after.all_goals) == 0 or
+                        transition.action == "Abort."]
+    easy_qs = [(50 if len(transition.after.all_goals) == 0 else -25)
+               for transition in easy_transitions]
+    hard_transitions = [transition for transition in transitions
+                        if len(transition.after.all_goals) != 0 and
+                        transition.action != "Abort."]
+    contexts_trunced = [truncate_tactic_context(
+        transition.after_context,
+        args.max_term_length)
+                        for transition in hard_transitions]
 
-            if len(transition.after.all_goals) == 0:
-                new_q = transition.reward
-                assert new_q == 50
-            else:
-                estimated_future_q = \
-                    args.time_discount * max(estimates)
-                new_q = transition.reward + estimated_future_q
+    prediction_lists = cast(features_polyarg_predictor
+                            .FeaturesPolyargPredictor,
+                            predictor) \
+        .predictKTactics_batch(
+            contexts_trunced,
+            args.num_predictions,
+            args.verbose)
+    queries = [(truncate_tactic_context(transition.after_context,
+                                        args.max_term_length),
+                prediction.prediction, prediction.certainty)
+               for transition, predictions in zip(hard_transitions,
+                                                  prediction_lists)
+               for prediction in predictions]
+    estimate_lists_flattened = q_estimator(queries, progress=progress)
+    estimate_lists = [estimate_lists_flattened
+                      [i:i+args.num_predictions]
+                      for i in range(0, len(estimate_lists_flattened),
+                                     args.num_predictions)]
+    hard_qs = []
+    for transition, estimates in zip(transitions, estimate_lists):
 
-            yield TacticContext(
-                transition.relevant_lemmas,
-                transition.prev_tactics,
-                before_ctxt.hypotheses,
-                before_ctxt.goal), \
-                transition.action, transition.original_certainty, new_q
-    return list(generate())
+        estimated_future_q = args.time_discount * max(estimates)
+        new_q = transition.reward + estimated_future_q
+        hard_qs.append(new_q)
+
+    results = []
+    for transition, new_q in zip(easy_transitions + hard_transitions,
+                                 easy_qs + hard_qs):
+        before_ctxt = truncate_tactic_context(
+            transition.before_context, args.max_term_length)
+        results.append((TacticContext(
+             transition.relevant_lemmas,
+             transition.prev_tactics,
+             before_ctxt.hypotheses,
+             before_ctxt.goal),
+             transition.action, transition.original_certainty, new_q))
+
+    return results
 
 
 def obligation_r2py(r_obl: dataloader.Obligation) -> Obligation:
