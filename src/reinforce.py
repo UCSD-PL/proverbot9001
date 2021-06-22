@@ -137,6 +137,7 @@ def main() -> None:
     parser.add_argument("--careful", action='store_true')
     parser.add_argument("--train-every-min", default=32, type=int)
     parser.add_argument("--train-every-max", default=2048, type=int)
+    parser.add_argument("--epochs-per-batch", default=32, type=int)
     parser.add_argument("--show-loss", action='store_true')
 
     args = parser.parse_args()
@@ -771,7 +772,8 @@ def reinforce_training_worker(args: argparse.Namespace,
                                                  progress=args.verbose >= 2)
             with print_time("Training", guard=args.verbose >= 2):
                 q_estimator.train(training_samples,
-                                  show_loss=args.show_loss)
+                                  show_loss=args.show_loss,
+                                  num_epochs=args.epochs_per_batch)
             q_estimator.save_weights(args.out_weights, args)
             with args.out_weights.with_suffix('.tmp').open('w') as f:
                 for sample in memory:
