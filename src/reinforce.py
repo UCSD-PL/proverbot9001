@@ -686,7 +686,7 @@ def reinforce_lemma_multithreaded(
             proof_contexts_seen.append(proof_context_after)
 
             lemma_memory += episode_memory
-            if coq.goals == "":
+            if len(unwrap(coq.proof_context).all_goals) == 0:
                 eprint("QED!", guard=args.verbose >= 2)
                 graph.mkQED(cur_node)
                 for sample in (episode_memory *
