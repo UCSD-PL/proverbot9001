@@ -20,7 +20,6 @@
 ##########################################################################
 
 import coq_serapy as serapi_instance
-from data import SequenceSequenceDataset
 import tokenizer
 
 from models.q_estimator import QEstimator
