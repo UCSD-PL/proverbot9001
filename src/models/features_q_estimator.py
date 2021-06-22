@@ -53,7 +53,7 @@ class FeaturesQEstimator(QEstimator):
                                     3, 128, 2)
         # self.model = SimplifiedQModel(self._num_tactics, 4, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
-        self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
+        self.scheduler = scheduler.StepLR(self.optimizer, batch_step,
                                          gamma=gamma)
         self.criterion = nn.MSELoss()
         self.tactic_map: Dict[str, int] = {}
@@ -126,7 +126,6 @@ class FeaturesQEstimator(QEstimator):
                     outputs, maybe_cuda(expected_outputs_batch))
                 loss.backward()
                 self.optimizer.step()
-                self.adjuster.step()
                 self.total_batches += 1
                 epoch_loss += loss.item()
                 if epoch % 10 == 0 and idx == len(batches) - 1:
@@ -156,6 +155,7 @@ class FeaturesQEstimator(QEstimator):
                     self.optimizer.param_groups[0]['lr']),
                        guard=show_loss and epoch % 10 == 0
                        and idx == len(batches) - 1)
+            self.scheduler.step()
 
     def _features(self, context: TacticContext, certainty: float) \
             -> Tuple[List[int], List[float]]:
