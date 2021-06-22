@@ -705,7 +705,7 @@ def blocks_from_scrape_and_sols(
             nonlocal cur_lemma_stmt
             nonlocal in_proof
 
-            module_prefix = serapi_instance.module_prefix_from_stack(sm_stack)
+            module_prefix = serapi_instance.sm_prefix_from_stack(sm_stack)
             batch_without_brackets = [t for t in tactics_interactions_batch
                                       if t.tactic.strip() != "{" and
                                       t.tactic.strip() != "}"]
