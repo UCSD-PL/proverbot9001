@@ -339,6 +339,7 @@ def search_file_worker(args: argparse.Namespace,
     torch.cuda.set_device(device)
     util.cuda_device = device
     axioms_already_added = False
+    last_program_statement = ""
 
     failing_lemma = ""
     try:
@@ -378,17 +379,24 @@ def search_file_worker(args: argparse.Namespace,
                     eprint(f"Failed getting to before: {next_lemma}")
                     eprint(f"In file {next_file}")
                     raise
+                for command in run_commands:
+                    if re.match("\s*Program\s+.*",
+                                serapi_instance.kill_comments(
+                                    command).strip()):
+                        last_program_statement = command
                 lemma_statement = run_commands[-1]
                 if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                            lemma_statement):
-                    obligation_num = 1
-                    while coq.local_lemmas[-obligation_num] == ":":
+                            serapi_instance.kill_comments(
+                                lemma_statement).strip()):
+                    obligation_num = 0
+                    while coq.local_lemmas[-(obligation_num+2)] == ":":
                         obligation_num += 1
                     unique_lemma_statement = \
-                        coq.local_lemmas[-obligation_num] + \
+                        last_program_statement + \
                         f" Obligation {obligation_num}."
                 else:
                     unique_lemma_statement = lemma_statement
+
                 if unique_lemma_statement == next_lemma and \
                         coq.sm_prefix == next_module:
                     if args.add_axioms and not axioms_already_added:
@@ -410,7 +418,7 @@ def search_file_worker(args: argparse.Namespace,
                     try:
                         search_status, tactic_solution = \
                             attempt_search(args, lemma_statement,
-                                           coq.module_prefix,
+                                           coq.sm_prefix,
                                            coq, worker_idx,
                                            predictor,
                                            predictor_lock)
@@ -621,7 +629,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                 manager).Lock()
                            for predictor in worker_predictors]
         workers = [multiprocessing.Process(target=search_file_worker,
-                                           args=(args, 
+                                           args=(args,
                                                  worker_predictors[widx % len(worker_predictors)],
                                                  predictor_locks[widx % len(worker_predictors)],
                                                  jobs, done, widx,
@@ -691,6 +699,7 @@ def blocks_from_scrape_and_sols(
 
     def generate():
         cur_lemma_stmt = ""
+        unique_lemma_stmt = ""
 
         sm_stack = serapi_instance.initial_sm_stack(src_filename)
 
@@ -698,26 +707,29 @@ def blocks_from_scrape_and_sols(
         vernac_cmds_batch: List[str] = []
 
         in_proof = False
+        obl_num = 0
+        last_program_statement = ""
 
         def yield_proof():
             nonlocal sm_stack
             nonlocal tactics_interactions_batch
             nonlocal cur_lemma_stmt
+            nonlocal unique_lemma_stmt
             nonlocal in_proof
+            nonlocal obl_num
+            nonlocal last_program_statement
 
-            module_prefix = serapi_instance.sm_prefix_from_stack(sm_stack)
+            sm_prefix = serapi_instance.sm_prefix_from_stack(sm_stack)
             batch_without_brackets = [t for t in tactics_interactions_batch
                                       if t.tactic.strip() != "{" and
                                       t.tactic.strip() != "}"]
-            cur_lemma_name = serapi_instance.lemma_name_from_statement(
-                cur_lemma_stmt)
-            result = lookup(module_prefix, cur_lemma_stmt)
+            result = lookup(sm_prefix, unique_lemma_stmt)
             if result is None:
-                return ProofBlock(cur_lemma_stmt, module_prefix,
+                return ProofBlock(cur_lemma_stmt, sm_prefix,
                                   SearchStatus.SKIPPED, [],
                                   batch_without_brackets)
             else:
-                return ProofBlock(cur_lemma_stmt, module_prefix,
+                return ProofBlock(cur_lemma_stmt, sm_prefix,
                                   result.status, result.commands,
                                   batch_without_brackets)
             tactics_interactions_batch = []
@@ -732,6 +744,14 @@ def blocks_from_scrape_and_sols(
             elif isinstance(interaction, ScrapedTactic):
                 assert not in_proof
                 cur_lemma_stmt = vernac_cmds_batch[-1]
+                if re.match(r"\s*Next\s+Obligation\s*\.\s*",
+                            serapi_instance.kill_comments(
+                                cur_lemma_stmt).strip()):
+                    unique_lemma_stmt = \
+                      f"{last_program_statement} Obligation {obl_num}."
+                    obl_num += 1
+                else:
+                    unique_lemma_stmt = cur_lemma_stmt
                 yield VernacBlock(vernac_cmds_batch[:-1])
                 vernac_cmds_batch = []
                 tactics_interactions_batch = []
@@ -741,6 +761,10 @@ def blocks_from_scrape_and_sols(
             if isinstance(interaction, str):
                 sm_stack = serapi_instance.update_sm_stack(sm_stack, interaction)
                 vernac_cmds_batch.append(interaction)
+                if re.match(r"\s*Program\s+.*",
+                            serapi_instance.kill_comments(interaction).strip()):
+                    last_program_statement = interaction
+                    obl_num = 0
         if in_proof:
             yield yield_proof()
         pass
