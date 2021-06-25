@@ -607,12 +607,15 @@ def search_file_multithreaded(args: argparse.Namespace,
         for job in all_jobs:
             jobs.put(job)
 
+        num_threads = min(args.num_threads,
+                          len(all_jobs))
         if util.use_cuda:
             if args.gpus:
                 gpu_list = args.gpus.split(",")
             else:
                 gpu_list = [args.gpu]
-            worker_devices = [f"cuda:{gpu_idx}" for gpu_idx in gpu_list]
+            worker_devices = [f"cuda:{gpu_idx}" for gpu_idx
+                              in gpu_list[:min(len(gpu_list), num_threads)]]
         else:
             assert args.gpus is None, "Passed --gpus flag, but CUDA is not supported!"
             worker_devices = ["cpu"]
@@ -632,8 +635,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                                  predictor_locks[widx % len(worker_predictors)],
                                                  jobs, done, widx,
                                                  worker_devices[widx % len(worker_predictors)]))
-                   for widx in range(min(args.num_threads,
-                                         len(all_jobs)))]
+                   for widx in range(num_threads)]
         for worker in workers:
             worker.start()
         num_already_done = sum([len(solutions)
