@@ -341,7 +341,6 @@ def search_file_worker(args: argparse.Namespace,
     axioms_already_added = False
     last_program_statement = ""
 
-    failing_lemma = ""
     try:
         next_file, next_module, next_lemma = jobs.get_nowait()
     except queue.Empty:
@@ -352,6 +351,7 @@ def search_file_worker(args: argparse.Namespace,
 
     rest_commands = all_commands
     while rest_commands:
+        first_lemma_since_restart = next_lemma
         with serapi_instance.SerapiContext(["sertop", "--implicit"],
                                            serapi_instance.
                                            get_module_from_filename(next_file),
@@ -430,7 +430,7 @@ def search_file_worker(args: argparse.Namespace,
                                 print(f"ANOMALY at {next_file}:{next_lemma}",
                                       file=f)
                                 traceback.print_exc(file=f)
-                        if failing_lemma == lemma_statement:
+                        if first_lemma_since_restart == lemma_statement:
                             eprint("Hit the same anomaly twice! Skipping",
                                    guard=args.verbose >= 1)
                             if args.log_hard_anomalies:
@@ -466,7 +466,6 @@ def search_file_worker(args: argparse.Namespace,
                                 rest_commands = all_commands
                         else:
                             rest_commands = all_commands
-                            failing_lemma = lemma_statement
                         break
                     except Exception:
                         eprint(f"FAILED in file {next_file}, lemma {next_lemma}")
@@ -535,7 +534,6 @@ def search_file_worker(args: argparse.Namespace,
                         rest_commands = rest_commands[1:]
 
                 pass
-
     pass
 
 
