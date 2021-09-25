@@ -22,9 +22,9 @@ rayon = "*"
 regex = "*"
 lazy_static = "*"
 rand = "0.7.3"
-lalrpop-util = "0.18.1"
+lalrpop-util = "0.19.0"
 bincode = "*"
 gestalt_ratio = { path = "../gestalt-ratio" }
 
 [build-dependencies]
-lalrpop = { version = "0.18.1", features = ["lexer"] }
+lalrpop = { version = "0.19.0", features = ["lexer"] }
