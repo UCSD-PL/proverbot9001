@@ -9,4 +9,4 @@
 	url = https://github.com/HazardousPeach/gestalt-ratio-rust.git
 [submodule "src/coq_serapy"]
 	path = src/coq_serapy
-	url = git@github.com:HazardousPeach/coq_serapy.git
+	url = https://github.com/HazardousPeach/coq_serapy.git
