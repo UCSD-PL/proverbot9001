@@ -31,7 +31,6 @@ use crate::context_filter_ast::ContextFilterAST;
 use crate::tokenizer::get_words;
 use lalrpop_util::lalrpop_mod;
 
-#[allow(dead_code)]
 lalrpop_mod!(context_filter_parser);
 
 pub fn filter_data_by_key<A: Send>(

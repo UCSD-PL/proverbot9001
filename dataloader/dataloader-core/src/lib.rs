@@ -277,7 +277,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<(GoalEncMetadata, LongTensor2D, FloatTensor1D)> {
         py.allow_threads(move || {
             Ok(goals_to_total_distances_tensors(args, filename, None)
-                .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?)
+                .map_err(|err| exceptions::PyValueError::new_err(err))?)
         })
     }
     #[pyfn(m, "goals_to_total_distances_tensors_with_meta")]
@@ -290,7 +290,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         py.allow_threads(move || {
             let (_, goals, outputs) =
                 goals_to_total_distances_tensors(args, filename, Some(metadata))
-                    .map_err(|err| PyErr::new::<exceptions::IOError, _>(err))?;
+                    .map_err(|err| exceptions::PyValueError::new_err(err))?;
             Ok((goals, outputs))
         })
     }
@@ -315,7 +315,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<Vec<ScrapedTactic>> {
         let iter = scraped_from_file(
             File::open(filename)
-                .map_err(|_err| PyErr::new::<exceptions::IOError, _>("Failed to open file"))?,
+                .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
         )
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
@@ -337,7 +337,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         let filter = parse_filter(&args.context_filter);
         let raw_iter = scraped_from_file(
             File::open(filename)
-                .map_err(|_err| PyErr::new::<exceptions::IOError, _>("Failed to open file"))?,
+                .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
         );
         let transition_iter = scraped_transition_iter(raw_iter);
         let filtered_iter = transition_iter

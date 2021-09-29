@@ -292,15 +292,15 @@ class FeaturesPolyargPredictor(
 
     @property
     def goal_token_encoder(self) -> GoalTokenEncoderModel:
-        return self._model.goal_args_model.encoder_model
+        return unwrap(self._model).goal_args_model.encoder_model
 
     @property
     def entire_goal_encoder(self) -> EncoderRNN:
-        return self._model.goal_encoder
+        return unwrap(self._model).goal_encoder
 
     @property
     def hyp_encoder(self) -> HypArgEncoder:
-        return self._model.hyp_model.arg_encoder
+        return unwrap(self._model).hyp_model.arg_encoder
 
     def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())

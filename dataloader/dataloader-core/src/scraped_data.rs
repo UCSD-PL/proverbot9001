@@ -80,37 +80,19 @@ pub struct TacticContext {
     pub obligation: Obligation,
 }
 
-impl<'source> FromPyObject<'source> for TacticContext {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        let obj: PyObject = ob.to_object(py);
-        let relevant_lemmas: Vec<String> = obj.getattr(py, "relevant_lemmas")?.extract(py)?;
-        let prev_tactics: Vec<String> = obj.getattr(py, "prev_tactics")?.extract(py)?;
-        let obligation: Obligation = obj.getattr(py, "obligation")?.extract(py)?;
-        Ok(TacticContext {
-            relevant_lemmas,
-            prev_tactics,
-            obligation,
-        })
-    }
-}
 #[pymethods]
 impl TacticContext {
     #[new]
     fn new(
-        obj: &PyRawObject,
         relevant_lemmas: Vec<String>,
         prev_tactics: Vec<String>,
         obligation: Obligation,
-    ) {
-        obj.init({
-            TacticContext {
-                relevant_lemmas,
-                prev_tactics,
-                obligation,
-            }
-        });
+    ) -> Self {
+        TacticContext {
+            relevant_lemmas,
+            prev_tactics,
+            obligation,
+        }
     }
 }
 
@@ -122,24 +104,15 @@ pub struct Obligation {
     #[pyo3(get, set)]
     pub goal: String,
 }
+
 #[pymethods]
 impl Obligation {
     #[new]
-    fn new(obj: &PyRawObject, hypotheses: Vec<String>, goal: String) {
-        obj.init({ Obligation { hypotheses, goal } });
+    fn new(hypotheses: Vec<String>, goal: String) -> Self {
+        Obligation { hypotheses, goal }
     }
 }
 
-impl<'source> FromPyObject<'source> for Obligation {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        let obj: PyObject = ob.to_object(py);
-        let hypotheses: Vec<String> = obj.getattr(py, "hypotheses")?.extract(py)?;
-        let goal: String = obj.getattr(py, "goal")?.extract(py)?;
-        Ok(Obligation { hypotheses, goal })
-    }
-}
 
 #[pyclass]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -183,23 +156,6 @@ impl ProofContext {
     }
 }
 
-impl<'source> FromPyObject<'source> for ProofContext {
-    fn extract(ob: &'source PyAny) -> PyResult<Self> {
-        let gil = Python::acquire_gil();
-        let py = gil.python();
-        let obj: PyObject = ob.to_object(py);
-        let fg_goals: Vec<Obligation> = obj.getattr(py, "fg_goals")?.extract(py)?;
-        let bg_goals: Vec<Obligation> = obj.getattr(py, "bg_goals")?.extract(py)?;
-        let shelved_goals: Vec<Obligation> = obj.getattr(py, "shelved_goals")?.extract(py)?;
-        let given_up_goals: Vec<Obligation> = obj.getattr(py, "given_up_goals")?.extract(py)?;
-        Ok(ProofContext {
-            fg_goals,
-            bg_goals,
-            shelved_goals,
-            given_up_goals,
-        })
-    }
-}
 #[pyclass]
 #[derive(Clone)]
 pub struct ScrapedTransition {
@@ -608,15 +564,9 @@ pub struct DataloaderArgs {
 #[pymethods]
 impl DataloaderArgs {
     #[new]
-    fn new(obj: &PyRawObject) {
+    fn new() -> Self {
         let d: DataloaderArgs = Default::default();
-        obj.init({ d });
-    }
-}
-impl<'source> pyo3::FromPyObject<'source> for DataloaderArgs {
-    fn extract(ob: &'source pyo3::types::PyAny) -> pyo3::PyResult<DataloaderArgs> {
-        let cls: &DataloaderArgs = pyo3::PyTryFrom::try_from(ob)?;
-        Ok(cls.clone())
+        d
     }
 }
 

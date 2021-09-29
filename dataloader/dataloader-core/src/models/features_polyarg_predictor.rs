@@ -88,7 +88,7 @@ pub fn features_polyarg_tensors(
     let filter = parse_filter(&args.context_filter);
     let raw_data_iter = scraped_from_file(
         File::open(filename)
-            .map_err(|_err| PyErr::new::<exceptions::TypeError, _>("Failed to open file")
+            .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file")
             )?)
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
