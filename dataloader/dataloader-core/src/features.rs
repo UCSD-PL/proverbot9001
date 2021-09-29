@@ -147,12 +147,6 @@ pub type PickleableTokenMap = (
     HashMap<String, usize>,
 );
 
-impl<'source> pyo3::FromPyObject<'source> for TokenMap {
-    fn extract(ob: &'source pyo3::types::PyAny) -> pyo3::PyResult<TokenMap> {
-        let cls: &TokenMap = pyo3::PyTryFrom::try_from(ob)?;
-        Ok(cls.clone())
-    }
-}
 
 fn flip_vec<T>(vec: Vec<T>) -> HashMap<T, usize>
 where

@@ -66,7 +66,7 @@ pub fn features_to_total_distances_tensors(
                 VEC_FEATURES_SIZE,
             ))
         }
-        Result::Err(_err) => Err(PyErr::new::<exceptions::TypeError, _>(
+        Result::Err(_err) => Err(exceptions::PyValueError::new_err(
             "Failed to open file",
         )),
     }

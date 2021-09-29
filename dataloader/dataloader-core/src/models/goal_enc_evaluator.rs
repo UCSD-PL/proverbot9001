@@ -18,8 +18,8 @@ pub struct GoalEncMetadata {
 #[pymethods]
 impl GoalEncMetadata {
     #[new]
-    fn new(obj: &PyRawObject) {
-        obj.init({ GoalEncMetadata { tokenizer: None } })
+    fn new() -> Self {
+        GoalEncMetadata { tokenizer: None }
     }
     fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
         Ok(PyBytes::new(
