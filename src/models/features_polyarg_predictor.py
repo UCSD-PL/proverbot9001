@@ -595,7 +595,7 @@ class FeaturesPolyargPredictor(
             .view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
-            maybe_cuda(torch.ByteTensor(goal_masks))
+            maybe_cuda(torch.BoolTensor(goal_masks))
             .view(batch_size, 1, num_goal_probs)
             .expand(-1, stem_width, -1),
             unmasked_probabilities,
@@ -644,7 +644,8 @@ class FeaturesPolyargPredictor(
             [batch_size, stem_width * num_probs_per_stem])
         assert arg_idxs.size() == torch.Size(
             [batch_size, stem_width * num_probs_per_stem])
-        predicted_stem_keys = arg_idxs // num_probs_per_stem
+        predicted_stem_keys = torch.div(arg_idxs, num_probs_per_stem,
+                                        rounding_mode="floor")
         predicted_stem_idxs = stem_idxs.view(stem_width)\
                                        .index_select(
                                            0, predicted_stem_keys.squeeze(
