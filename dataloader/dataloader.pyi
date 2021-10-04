@@ -31,6 +31,7 @@ class TacticContext:
 
 
 class DataloaderArgs:
+    max_tuples: int
     max_distance: int
     max_string_distance: int
     max_length: int
