@@ -141,7 +141,7 @@ def main(arg_list: List[str]) -> None:
     # util.use_cuda = False
     # with util.silent():
 
-    if not args.gpus:
+    if not args.gpus and util.use_cuda:
         torch.cuda.set_device(f"cuda:{args.gpu}")
         util.cuda_device = f"cuda:{args.gpu}"
 
@@ -336,7 +336,8 @@ def search_file_worker(args: argparse.Namespace,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
     # util.use_cuda = False
-    torch.cuda.set_device(device)
+    if util.use_cuda:
+        torch.cuda.set_device(device)
     util.cuda_device = device
     axioms_already_added = False
     last_program_statement = ""
