@@ -134,6 +134,7 @@ unnamed_goal_number: int
 
 
 def main(arg_list: List[str]) -> None:
+    multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
     global predictor
 
@@ -1311,5 +1312,4 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
 
 
 if __name__ == "__main__":
-    multiprocessing.set_start_method('spawn')
     main(sys.argv[1:])
