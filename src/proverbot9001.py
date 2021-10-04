@@ -38,6 +38,7 @@ from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
+import interactive_predictor
 from pathlib_revised import Path2
 
 from typing import List
@@ -212,14 +213,16 @@ def get_tokens(args: List[str]):
         for keyword in keywords:
             f.write(keyword + "\n")
 
+
 modules = {
-    "train" : train,
-    "search-report":search_file.main,
-    "dynamic-report":dynamic_report.main,
-    "static-report":static_report.main,
-    "evaluator-report":evaluator_report.main,
+    "train": train,
+    "search-report": search_file.main,
+    "dynamic-report": dynamic_report.main,
+    "static-report": static_report.main,
+    "evaluator-report": evaluator_report.main,
     "data": get_data,
     "tokens": get_tokens,
+    "predict": interactive_predictor.predict,
 }
 
 if __name__ == "__main__":
