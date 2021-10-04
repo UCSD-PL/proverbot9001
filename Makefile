@@ -3,8 +3,8 @@ SHELL=/usr/bin/env bash
 
 ENV_PREFIX=export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
-NTHREADS=16
-FLAGS=
+NTHREADS?=16
+FLAGS?=
 HIDDEN_SIZE=512
 
 SITE_SERVER=goto
