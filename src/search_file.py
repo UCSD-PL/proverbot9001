@@ -35,7 +35,7 @@ import subprocess
 import cProfile
 import copy
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
-                    Union, Callable, cast,
+                    Union, Callable, cast, IO, TypeVar,
                     Any)
 
 from models.tactic_predictor import TacticPredictor, Prediction
@@ -45,11 +45,13 @@ import coq_serapy as serapi_instance
 from coq_serapy import (ProofContext, Obligation, SerapiInstance)
 
 import data
-from coq_serapy.contexts import TacticContext, ScrapedTactic, truncate_tactic_context
+from coq_serapy.contexts import (TacticContext, ScrapedTactic,
+                                 truncate_tactic_context, FullContext)
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import search_report
 import util
+import tokenizer
 from dataclasses import dataclass
 
 from tqdm import tqdm
@@ -992,35 +994,114 @@ def attempt_search(args: argparse.Namespace,
     return result
 
 
+T = TypeVar('T')
+
+
+def emap_lookup(emap: Dict[T, int], size: int, item: T):
+    if item in emap:
+        return emap[item]
+    elif len(emap) < size - 1:
+        emap[item] = len(emap) + 1
+        return emap[item]
+    else:
+        return 0
+
+
+class FeaturesExtractor:
+    tactic_map: Dict[str, int]
+    token_map: Dict[str, int]
+    _num_tactics: int
+    _num_tokens: int
+
+    def __init__(self) -> None:
+        self._num_tactics = 32
+        self._num_tokens = 32
+        self.tactic_map = {}
+        self.token_map = {}
+
+    def state_features(self, context: TacticContext) -> \
+            Tuple[List[int], List[float]]:
+        if len(context.prev_tactics) > 1:
+            prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
+            prev_tactic_index = emap_lookup(self.tactic_map, self._num_tactics,
+                                            prev_tactic)
+        else:
+            prev_tactic_index = 0
+
+        if context.goal != "":
+            goal_head_index = emap_lookup(self.token_map, self._num_tokens,
+                                          tokenizer.get_words(context.goal)[0])
+        else:
+            goal_head_index = 0
+
+        goal_length_feature = min(len(tokenizer.get_words(context.goal)),
+                                  100) / 100
+        num_hyps_feature = min(len(context.hypotheses), 30) / 30
+        return [prev_tactic_index, goal_head_index], \
+               [goal_length_feature, num_hyps_feature]
+
+    def state_features_bounds(self) -> Tuple[List[int], List[float]]:
+        return [self._num_tactics, self._num_tokens], [1.0, 1.0]
+
+    def action_features(self, context: TacticContext,
+                        action: str, certainty: float) \
+            -> Tuple[List[int], List[float]]:
+        stem, argument = serapi_instance.split_tactic(action)
+        stem_idx = emap_lookup(self.tactic_map, self._num_tactics, stem)
+        all_premises = context.hypotheses + context.relevant_lemmas
+        stripped_arg = argument.strip(".").strip()
+        if stripped_arg == "":
+            arg_idx = 0
+        else:
+            index_hyp_vars = dict(serapi_instance.get_indexed_vars_in_hyps(
+                all_premises))
+            if stripped_arg in index_hyp_vars:
+                hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]
+                                                 ].partition(":")
+                arg_idx = emap_lookup(self.token_map, self._num_tokens,
+                                      tokenizer.get_words(rest)[0]) + 2
+            else:
+                goal_symbols = tokenizer.get_symbols(context.goal)
+                if stripped_arg in goal_symbols:
+                    arg_idx = emap_lookup(self.token_map, self._num_tokens,
+                                          stripped_arg) + self._num_tokens + 2
+                else:
+                    arg_idx = 1
+        return [stem_idx, arg_idx], [certainty]
+
+    def action_features_bounds(self) -> Tuple[List[int], List[float]]:
+        return [self._num_tactics, self._num_tokens * 2 + 2], [1.0]
+
+
 @dataclass(init=True)
 class LabeledNode:
     prediction: str
     certainty: float
     time_taken: Optional[float]
     node_id: int
-    context_before: ProofContext
+    context_before: FullContext
     previous: Optional["LabeledNode"]
+    children: List["LabeledNode"]
 
 
 class SearchGraph:
     __graph: pgv.AGraph
     __next_node_id: int
+    feature_extractor: FeaturesExtractor
     start_node: LabeledNode
 
     def __init__(self, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
-                                      ProofContext([], [], [], []),
+                                      FullContext(
+                                          [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
+        self.feature_extractor = FeaturesExtractor()
         pass
 
-    def addPredictions(self, src: LabeledNode, context_before: ProofContext,
-                       predictions: List[Prediction]) -> List[LabeledNode]:
-        return [self.mkNode(pred, context_before, src) for pred in predictions]
-
-    def mkNode(self, prediction: Prediction, context_before: ProofContext,
+    def mkNode(self, prediction: Prediction, context_before: FullContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
         self.__graph.add_node(self.__next_node_id,
@@ -1031,14 +1112,16 @@ class SearchGraph:
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
                               None, self.__next_node_id-1,
-                              context_before, previous_node)
+                              context_before, previous_node, [])
         if previous_node:
             self.__graph.add_edge(previous_node.node_id,
                                   newNode.node_id, **kwargs)
+            previous_node.children.append(newNode)
         return newNode
 
     def mkQED(self, predictionNode: LabeledNode):
-        self.mkNode(Prediction("QED", 1.0), ProofContext([], [], [], []),
+        self.mkNode(Prediction("QED", 1.0), FullContext(
+            [], [], ProofContext([], [], [], [])),
                     predictionNode,
                     fillcolor="green", style="filled")
         cur_node = predictionNode
@@ -1048,7 +1131,7 @@ class SearchGraph:
             cur_path.append(cur_node)
             assert cur_node.previous
             cur_node = cur_node.previous
-        return [TacticInteraction(n.prediction, n.context_before)
+        return [TacticInteraction(n.prediction, n.context_before.obligations)
                 for n in reversed(cur_path)]
         pass
 
@@ -1061,6 +1144,39 @@ class SearchGraph:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
 
+    def write_feat_json(self, filename: str) -> None:
+        def write_node(node: LabeledNode, f: IO[str]) -> None:
+            if len(node.children) == 0:
+                return
+            state_feats = self.feature_extractor.state_features(
+                node.children[0].context_before.as_tcontext())
+            action_feats = [self.feature_extractor.action_features(
+                child.context_before.as_tcontext(),
+                child.prediction, child.certainty)
+                            for child in node.children]
+            action_rewards = [50 if child.prediction == "QED" else 0
+                              for child in node.children]
+            json.dump({"node_id": node.node_id,
+                       "state_features": state_feats,
+                       "actions": [{"features": feats,
+                                    "reward": reward,
+                                    "result_node": child.node_id}
+                                   for feats, reward, child
+                                   in zip(action_feats,
+                                          action_rewards,
+                                          node.children)]},
+                      f)
+            f.write("\n")
+            for child in node.children:
+                write_node(child, f)
+        with Path2(filename).open('w') as f:
+            json.dump({"state_features_max_values":
+                       self.feature_extractor.state_features_bounds(),
+                       "action_features_max_values":
+                       self.feature_extractor.action_features_bounds()},
+                      f)
+            write_node(self.start_node, f)
+
 
 class SubSearchResult (NamedTuple):
     solution: Optional[List[TacticInteraction]]
@@ -1069,7 +1185,7 @@ class SubSearchResult (NamedTuple):
 
 def contextInPath(full_context: ProofContext, path: List[LabeledNode]):
     return any([serapi_instance.contextSurjective(full_context,
-                                                  n.context_before)
+                                                  n.context_before.obligations)
                 for n in path])
 
 
@@ -1206,17 +1322,15 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         nonlocal predictor_lock
         nonlocal relevant_lemmas
         global unnamed_goal_number
-        tactic_context_before = TacticContext(relevant_lemmas,
-                                              coq.prev_tactics,
-                                              coq.hypotheses,
-                                              coq.goals)
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          coq.proof_context)
         with predictor_lock:
             predictions = predictor.predictKTactics(
-                truncate_tactic_context(tactic_context_before,
+                truncate_tactic_context(full_context_before.as_tcontext(),
                                         args.max_term_length),
                 args.max_attempts)
             assert len(predictions) == args.max_attempts
-        proof_context_before = coq.proof_context
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
                                       prediction.certainty)
@@ -1236,7 +1350,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                         num_successful_predictions += 1
                     if args.show_failing_predictions:
                         predictionNode = g.mkNode(prediction,
-                                                  unwrap(proof_context_before),
+                                                  full_context_before,
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
                         if isinstance(error, RecursionError):
@@ -1249,12 +1363,12 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                 assert cast(TqdmSpy, pbar).n > 0
 
                 predictionNode = g.mkNode(prediction,
-                                          unwrap(proof_context_before),
+                                          full_context_before,
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
                     predictionNode = g.mkNode(Prediction("Unshelve.", 1.0),
-                                              unwrap(proof_context_before),
+                                              full_context_before,
                                               predictionNode)
                     predictionNode.time_taken = 0
 
@@ -1317,7 +1431,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                         return SubSearchResult(None, subgoals_closed)
             except serapi_instance.CoqAnomaly:
                 predictionNode = g.mkNode(prediction,
-                                          unwrap(proof_context_before),
+                                          full_context_before,
                                           current_path[-1])
                 g.setNodeColor(predictionNode, "grey25")
                 if module_name:
@@ -1329,8 +1443,11 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     g.draw(f"{args.output_dir}/{module_prefix}"
                            f"{unnamed_goal_number}.svg")
                 else:
+                    g.write_feat_json(f"{args.output_dir}/{module_prefix}"
+                                      f"{lemma_name}.json")
                     g.draw(f"{args.output_dir}/{module_prefix}"
                            f"{lemma_name}.svg")
+
                 raise
         return SubSearchResult(None, 0)
     total_nodes = numNodesInTree(args.search_width,
@@ -1351,10 +1468,12 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
-        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}"
+        g.draw(f"{args.output_dir}/{module_prefix}"
                f"{unnamed_goal_number}.svg")
     else:
         g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.svg")
+        g.write_feat_json(f"{args.output_dir}/{module_prefix}"
+                          f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
