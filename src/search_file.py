@@ -1166,9 +1166,13 @@ def attempt_search(args: argparse.Namespace,
     timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
     timer.start()
     try:
-        result = dfs_proof_search_with_graph(lemma_statement, module_name,
-                                             env_lemmas + relevant_lemmas, coq, output_dir,
-                                             args, bar_idx, predictor)
+        result = bfs_beam_proof_search(lemma_statement, module_name,
+                                       env_lemmas + relevant_lemmas, coq,
+                                       args, bar_idx, predictor,
+                                       predictor_lock)
+        # result = dfs_proof_search_with_graph(lemma_statement, module_name,
+        #                                      env_lemmas + relevant_lemmas, coq, output_dir,
+        #                                      args, bar_idx, predictor)
     except:
         raise KilledException("Lemma timeout")
     finally:
@@ -1659,6 +1663,124 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
             coq.tactic_history.curDepth() == 0
     else:
         return False
+
+
+@dataclass(init=True)
+class BFSNode:
+    prediction: Prediction
+    score: float
+    time_taken: float
+    context_before: FullContext
+    previous: Optional["BFSNode"]
+
+
+def node_commands(node: BFSNode) -> List[str]:
+    if node.previous is None:
+        return [node.prediction.prediction]
+    else:
+        return [node.prediction.prediction] + \
+          node_commands(node.previous)
+
+
+def node_interactions(node: BFSNode) -> List[TacticInteraction]:
+    return [TacticInteraction(n.prediction.prediction,
+                              n.context_before.obligations)
+            for n in node_path(node)]
+
+
+def node_total_time(node: BFSNode) -> float:
+    return sum(node.time_taken for node in
+               node_path(node))
+
+
+def node_path(node: BFSNode) -> List[BFSNode]:
+    if node.previous is None:
+        return [node]
+    else:
+        return [node] + node_path(node.previous)
+
+
+def contextInHistory(full_context: ProofContext, node: BFSNode):
+    return any([serapi_instance.contextSurjective(full_context,
+                                                  n.context_before.obligations)
+                for n in node_path(node)])
+
+
+def bfs_beam_proof_search(lemma_statement: str,
+                          module_name: Optional[str],
+                          relevant_lemmas: List[str],
+                          coq: serapi_instance.SerapiInstance,
+                          args: argparse.Namespace,
+                          bar_idx: int,
+                          predictor: TacticPredictor,
+                          predictor_lock: threading.Lock) \
+                          -> SearchResult:
+    BEAM_WIDTH = 10
+    hasUnexploredNode = False
+    # unnamed_goal_number = 0
+    # lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+
+    nodes_todo = [BFSNode(Prediction(lemma_statement, 1.0), 0.0, 0.0,
+                          FullContext([], [],
+                                      ProofContext([], [], [], [])),
+                          None)]
+    while len(nodes_todo) > 0:
+        next_nodes_todo: List[BFSNode] = []
+        for next_node in nodes_todo:
+            # Return to the beginning of the proof
+            while coq.proof_context:
+                coq.cancel_last()
+            for command in node_commands(next_node):
+                coq.run_stmt(command)
+            full_context_before = FullContext(relevant_lemmas,
+                                              coq.prev_tactics,
+                                              unwrap(coq.proof_context))
+            num_successful_predictions = 0
+            with predictor_lock:
+                predictions = predictor.predictKTactics(
+                    truncate_tactic_context(full_context_before.as_tcontext(),
+                                            args.max_term_length),
+                    args.max_attempts)
+            for prediction in predictions:
+                if num_successful_predictions >= args.search_width:
+                    break
+                context_after, num_stmts, \
+                    subgoals_closed, subgoals_opened, \
+                    error, time_taken, unshelved = \
+                    tryPrediction(args, coq, prediction.prediction,
+                                  node_total_time(next_node))
+                if error:
+                    if args.count_failing_predictions:
+                        num_successful_predictions += 1
+                    continue
+                if contextIsBig(context_after) or \
+                        contextInHistory(context_after, next_node):
+                    if args.count_softfail_predicitons:
+                        num_successful_predictions += 1
+                    continue
+
+                num_successful_predictions += 1
+
+                if completed_proof(coq):
+                    return SearchResult(SearchStatus.SUCCESS,
+                                        node_interactions(next_node))
+
+                next_nodes_todo.append(BFSNode(
+                    prediction,
+                    next_node.score * prediction.certainty,
+                    time_taken, full_context_before, next_node))
+        nodes_todo = []
+        next_nodes_todo.sort(key=lambda n: n.score, reverse=True)
+        while len(nodes_todo) < BEAM_WIDTH and len(next_nodes_todo) > 0:
+            next_node = next_nodes_todo.pop(0)
+            if len(node_path(next_node)) < args.search_depth:
+                nodes_todo.append(next_node)
+            else:
+                hasUnexploredNode = True
+    if hasUnexploredNode:
+        return SearchResult(SearchStatus.INCOMPLETE, None)
+    else:
+        return SearchResult(SearchStatus.FAILURE, None)
 
 
 if __name__ == "__main__":
