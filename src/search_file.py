@@ -1389,11 +1389,11 @@ def time_on_path(node: LabeledNode) -> float:
 def tryPrediction(args: argparse.Namespace,
                   coq: serapi_instance.SerapiInstance,
                   prediction: str,
-                  previousNode: LabeledNode) \
+                  previousTime: float) \
                   -> Tuple[ProofContext, int, int, int,
                            Optional[Exception], float, bool]:
     coq.quiet = True
-    time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
+    time_left = max(args.max_proof_time - previousTime, 0)
     start_time = time.time()
     time_per_command = (coq.hammer_timeout + args.max_tactic_time
                         if coq.use_hammer else args.max_tactic_time)
@@ -1515,7 +1515,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     subgoals_closed, subgoals_opened, \
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
-                                  current_path[-1])
+                                  time_on_path(current_path[-1]))
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
