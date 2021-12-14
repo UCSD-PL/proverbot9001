@@ -1675,11 +1675,8 @@ class BFSNode:
 
 
 def node_commands(node: BFSNode) -> List[str]:
-    if node.previous is None:
-        return [node.prediction.prediction]
-    else:
-        return [node.prediction.prediction] + \
-          node_commands(node.previous)
+    return [node.prediction.prediction for node in
+            node_path(node)]
 
 
 def node_interactions(node: BFSNode) -> List[TacticInteraction]:
@@ -1697,13 +1694,13 @@ def node_path(node: BFSNode) -> List[BFSNode]:
     if node.previous is None:
         return [node]
     else:
-        return [node] + node_path(node.previous)
+        return node_path(node.previous) + [node]
 
 
 def contextInHistory(full_context: ProofContext, node: BFSNode):
     return any([serapi_instance.contextSurjective(full_context,
                                                   n.context_before.obligations)
-                for n in node_path(node)])
+                for n in node_path(node)[1:]])
 
 
 def bfs_beam_proof_search(lemma_statement: str,
@@ -1728,9 +1725,9 @@ def bfs_beam_proof_search(lemma_statement: str,
         next_nodes_todo: List[BFSNode] = []
         for next_node in nodes_todo:
             # Return to the beginning of the proof
-            while coq.proof_context:
+            while len(coq.prev_tactics) > 1:
                 coq.cancel_last()
-            for command in node_commands(next_node):
+            for command in node_commands(next_node)[1:]:
                 coq.run_stmt(command)
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
@@ -1749,26 +1746,44 @@ def bfs_beam_proof_search(lemma_statement: str,
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
                                   node_total_time(next_node))
+
+                if unshelved:
+                    prev_node = BFSNode(Prediction("Unshelve.", 1.0),
+                                        next_node.score, 0,
+                                        full_context_before, next_node)
+                else:
+                    prev_node = next_node
+
+                prediction_node = BFSNode(
+                    prediction,
+                    prev_node.score * prediction.certainty,
+                    time_taken, full_context_before, prev_node)
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
                     continue
                 if contextIsBig(context_after) or \
-                        contextInHistory(context_after, next_node):
-                    if args.count_softfail_predicitons:
+                        contextInHistory(context_after, prediction_node):
+                    # if contextIsBig(context_after):
+                        # eprint(f"Context is too big!")
+                    #if contextInHistory(context_after, prediction_node):
+                        # eprint(f"Context is in history")
+                    if args.count_softfail_predictions:
                         num_successful_predictions += 1
+                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                    coq.cancel_last()
                     continue
 
                 num_successful_predictions += 1
 
                 if completed_proof(coq):
                     return SearchResult(SearchStatus.SUCCESS,
-                                        node_interactions(next_node))
+                                        node_interactions(prediction_node)[1:])
 
-                next_nodes_todo.append(BFSNode(
-                    prediction,
-                    next_node.score * prediction.certainty,
-                    time_taken, full_context_before, next_node))
+                next_nodes_todo.append(prediction_node)
+
+                for _ in range(num_stmts):
+                    coq.cancel_last()
         nodes_todo = []
         next_nodes_todo.sort(key=lambda n: n.score, reverse=True)
         while len(nodes_todo) < BEAM_WIDTH and len(next_nodes_todo) > 0:
