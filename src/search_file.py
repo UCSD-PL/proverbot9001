@@ -208,6 +208,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
+    parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
@@ -1786,7 +1787,7 @@ def bfs_beam_proof_search(lemma_statement: str,
                     coq.cancel_last()
         nodes_todo = []
         next_nodes_todo.sort(key=lambda n: n.score, reverse=True)
-        while len(nodes_todo) < BEAM_WIDTH and len(next_nodes_todo) > 0:
+        while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
             next_node = next_nodes_todo.pop(0)
             if len(node_path(next_node)) < args.search_depth:
                 nodes_todo.append(next_node)
