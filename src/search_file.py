@@ -1328,8 +1328,11 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["fillcolor"] = color
-        node_handle.attr["style"] = "filled"
+        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] is not "":
+            node_handle.attr["fillcolor"] += (":" + color)
+        else:
+            node_handle.attr["fillcolor"] = color
+            node_handle.attr["style"] = "filled"
 
     def draw(self, filename: str) -> None:
         with nostderr():
