@@ -244,6 +244,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
+    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'])
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -1164,16 +1165,19 @@ def attempt_search(args: argparse.Namespace,
         relevant_lemmas = coq.get_lemmas_about_head()
     else:
         assert False, args.relevant_lemmas
+
     timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
     timer.start()
     try:
-        result = bfs_beam_proof_search(lemma_statement, module_name,
-                                       env_lemmas + relevant_lemmas, coq,
-                                       args, bar_idx, predictor,
-                                       predictor_lock)
-        # result = dfs_proof_search_with_graph(lemma_statement, module_name,
-        #                                      env_lemmas + relevant_lemmas, coq, output_dir,
-        #                                      args, bar_idx, predictor)
+        if args.search_type == 'dfs':
+            result = dfs_proof_search_with_graph(lemma_statement, module_name,
+                                                 env_lemmas + relevant_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor)
+        elif args.search_type == 'beam-bfs':
+            result = bfs_beam_proof_search(lemma_statement, module_name,
+                                           env_lemmas + relevant_lemmas, coq,
+                                           args, bar_idx, predictor)
     except:
         raise KilledException("Lemma timeout")
     finally:
@@ -1710,8 +1714,7 @@ def bfs_beam_proof_search(lemma_statement: str,
                           coq: serapi_instance.SerapiInstance,
                           args: argparse.Namespace,
                           bar_idx: int,
-                          predictor: TacticPredictor,
-                          predictor_lock: threading.Lock) \
+                          predictor: TacticPredictor) \
                           -> SearchResult:
     BEAM_WIDTH = 10
     hasUnexploredNode = False
@@ -1734,11 +1737,10 @@ def bfs_beam_proof_search(lemma_statement: str,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
             num_successful_predictions = 0
-            with predictor_lock:
-                predictions = predictor.predictKTactics(
-                    truncate_tactic_context(full_context_before.as_tcontext(),
-                                            args.max_term_length),
-                    args.max_attempts)
+            predictions = predictor.predictKTactics(
+                truncate_tactic_context(full_context_before.as_tcontext(),
+                                        args.max_term_length),
+                        args.max_attempts)
             for prediction in predictions:
                 if num_successful_predictions >= args.search_width:
                     break
