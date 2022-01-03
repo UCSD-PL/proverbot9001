@@ -1670,13 +1670,58 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
         return False
 
 
-@dataclass(init=True)
+@dataclass
 class BFSNode:
     prediction: Prediction
     score: float
     time_taken: float
     context_before: FullContext
     previous: Optional["BFSNode"]
+    children: List["BFSNode"]
+    color: Optional[str]
+
+    def __init__(self, prediction: Prediction, score: float, time_taken: float,
+                 context_before: FullContext, previous: Optional["BFSNode"], 
+                 color: Optional[str] = None) -> None:
+        self.prediction = prediction
+        self.score = score
+        self.time_taken = time_taken
+        self.context_before = context_before
+        self.previous = previous
+        self.children = []
+        if self.previous:
+            self.previous.children.append(self)
+        self.color = color
+        pass
+
+    def draw_graph(self, path: str) -> None:
+        graph = pgv.AGraph(directed=True)
+        next_node_id = 0
+        def add_subgraph(root: "BFSNode") -> int:
+            nonlocal graph
+            nonlocal next_node_id
+            label=f"{root.prediction.prediction}\n{root.score:.2e}"
+            if root.color:
+                fillcolor = root.color
+                style="filled"
+            else:
+                fillcolor = "lightgrey"
+                style=""
+
+            tooltip = ""
+
+            graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
+                           tooltip=tooltip)
+
+            root_node_id = next_node_id
+            next_node_id += 1
+            for child in root.children:
+                child_id = add_subgraph(child)
+                graph.add_edge(root_node_id, child_id)
+            return root_node_id
+        add_subgraph(self)
+        with nostderr():
+            graph.draw(path, prog="dot")
 
 
 def node_commands(node: BFSNode) -> List[str]:
@@ -1718,8 +1763,18 @@ def bfs_beam_proof_search(lemma_statement: str,
                           -> SearchResult:
     BEAM_WIDTH = 10
     hasUnexploredNode = False
-    # unnamed_goal_number = 0
-    # lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    if module_name:
+        module_prefix = escape_lemma_name(module_name)
+    else:
+        module_prefix = ""
+    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    if lemma_name == "":
+        unnamed_goal_number += 1
+        graph_file = f"{args.output_dir}/{module_prefix}"\
+                     f"{unnamed_goal_number}.svg"
+    else:
+        graph_file = f"{args.output_dir}/{module_prefix}"\
+                     f"{lemma_name}.svg"
 
     nodes_todo = [BFSNode(Prediction(lemma_statement, 1.0), 0.0, 0.0,
                           FullContext([], [],
@@ -1764,6 +1819,7 @@ def bfs_beam_proof_search(lemma_statement: str,
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
+                    prediction_node.color = "red"
                     continue
                 if contextIsBig(context_after) or \
                         contextInHistory(context_after, prediction_node):
@@ -1775,11 +1831,17 @@ def bfs_beam_proof_search(lemma_statement: str,
                         num_successful_predictions += 1
                     eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
                     coq.cancel_last()
+                    prediction_node.color = "orange"
                     continue
 
                 num_successful_predictions += 1
 
+                if subgoals_closed > 0:
+                    prediction_node.color = "blue"
+
                 if completed_proof(coq):
+                    prediction_node.color = "green"
+                    start_node.draw_graph(graph_file)
                     return SearchResult(SearchStatus.SUCCESS,
                                         node_interactions(prediction_node)[1:])
 
@@ -1795,6 +1857,8 @@ def bfs_beam_proof_search(lemma_statement: str,
                 nodes_todo.append(next_node)
             else:
                 hasUnexploredNode = True
+
+    start_node.draw_graph(graph_file)
     if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, None)
     else:
