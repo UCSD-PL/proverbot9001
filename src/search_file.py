@@ -1833,8 +1833,9 @@ def bfs_beam_proof_search(lemma_statement: str,
                     if args.count_softfail_predictions:
                         num_successful_predictions += 1
                     eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                    coq.cancel_last()
                     prediction_node.color = "orange"
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
                     continue
 
                 num_successful_predictions += 1
