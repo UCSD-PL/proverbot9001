@@ -1785,13 +1785,14 @@ def bfs_beam_proof_search(lemma_statement: str,
         graph_file = f"{args.output_dir}/{module_prefix}"\
                      f"{lemma_name}.svg"
 
-    nodes_todo = [BFSNode(Prediction(lemma_statement, 1.0), 0.0, 0.0,
-                          FullContext([], [],
-                                      ProofContext([], [], [], [])),
-                          None)]
+    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0,
+                         FullContext([], [],
+                                     ProofContext([], [], [], [])), None)
+    nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
+        [(start_node, subgoals_stack_start, 0)]
     while len(nodes_todo) > 0:
-        next_nodes_todo: List[BFSNode] = []
-        for next_node in nodes_todo:
+        next_nodes_todo: List[Tuple[BFSNode, List[int], int]] = []
+        for next_node, subgoal_distance_stack, extra_depth in nodes_todo:
             # Return to the beginning of the proof
             while len(coq.prev_tactics) > 1:
                 coq.cancel_last()
@@ -1849,22 +1850,39 @@ def bfs_beam_proof_search(lemma_statement: str,
                 if subgoals_closed > 0:
                     prediction_node.color = "blue"
 
+                # ### 1.
+                if subgoal_distance_stack:
+                    new_distance_stack = (subgoal_distance_stack[:-1] +
+                                          [subgoal_distance_stack[-1]+1])
+                else:
+                    new_distance_stack = []
+
+                # ### 2.
+                new_extra_depth = extra_depth
+                for _ in range(subgoals_closed):
+                    closed_goal_distance = new_distance_stack.pop()
+                    new_extra_depth += closed_goal_distance
+
+                # ### 3.
+                new_distance_stack += [0] * subgoals_opened
+
                 if completed_proof(coq):
                     prediction_node.color = "green"
                     start_node.draw_graph(graph_file)
                     return SearchResult(SearchStatus.SUCCESS,
                                         node_interactions(prediction_node)[1:])
 
-                next_nodes_todo.append(prediction_node)
+                next_nodes_todo.append((prediction_node, new_distance_stack,
+                                        new_extra_depth))
 
                 for _ in range(num_stmts):
                     coq.cancel_last()
         nodes_todo = []
-        next_nodes_todo.sort(key=lambda n: n.score, reverse=True)
+        next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
         while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
-            next_node = next_nodes_todo.pop(0)
-            if len(node_path(next_node)) < args.search_depth:
-                nodes_todo.append(next_node)
+            next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
+            if len(node_path(next_node)) < args.search_depth + extra_depth:
+                nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
             else:
                 hasUnexploredNode = True
 
