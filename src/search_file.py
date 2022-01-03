@@ -1698,7 +1698,7 @@ class BFSNode:
     color: Optional[str]
 
     def __init__(self, prediction: Prediction, score: float, time_taken: float,
-                 context_before: FullContext, previous: Optional["BFSNode"], 
+                 context_before: FullContext, previous: Optional["BFSNode"],
                  color: Optional[str] = None) -> None:
         self.prediction = prediction
         self.score = score
