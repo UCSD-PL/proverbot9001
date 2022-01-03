@@ -1638,12 +1638,18 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
+
     with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
                  desc=desc_name, disable=(not args.progress),
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        command_list, _ = search(pbar, [g.start_node], [], 0)
+        command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
         pbar.clear()
     if module_name:
         module_prefix = escape_lemma_name(module_name)
