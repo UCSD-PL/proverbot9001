@@ -1783,7 +1783,8 @@ def bfs_beam_proof_search(lemma_statement: str,
                           bar_idx: int,
                           predictor: TacticPredictor) \
                           -> SearchResult:
-    BEAM_WIDTH = 10
+    global unnamed_goal_number
+    unnamed_goal_number = 0
     hasUnexploredNode = False
     if module_name:
         module_prefix = escape_lemma_name(module_name)
