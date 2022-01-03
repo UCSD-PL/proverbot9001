@@ -1785,6 +1785,11 @@ def bfs_beam_proof_search(lemma_statement: str,
         graph_file = f"{args.output_dir}/{module_prefix}"\
                      f"{lemma_name}.svg"
 
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0,
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
@@ -1798,6 +1803,13 @@ def bfs_beam_proof_search(lemma_statement: str,
                 coq.cancel_last()
             for command in node_commands(next_node)[1:]:
                 coq.run_stmt(command)
+                just_closed = False
+                while coq.count_fg_goals() == 0:
+                    coq.run_stmt("}")
+                    just_closed = True
+                if coq.count_fg_goals() > 1 or \
+                   (coq.count_fg_goals() > 0 and just_closed):
+                    coq.run_stmt("{")
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
