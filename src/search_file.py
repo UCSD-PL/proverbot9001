@@ -1295,10 +1295,18 @@ class SearchGraph:
     def mkNode(self, prediction: Prediction, context_before: FullContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
+
+        tooltip = ""
+        for hyp in context_before.obligations.focused_hyps:
+            tooltip += hyp[:64] + "&#10;"
+        tooltip += "-" * 64 + "&#10;"
+        tooltip += context_before.obligations.focused_goal[:64]
+
         self.__graph.add_node(self.__next_node_id,
                               label="{}\n({:.2f})".format(
                                   prediction.prediction,
                                   prediction.certainty),
+                              tooltip=tooltip,
                               **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
@@ -1718,6 +1726,11 @@ class BFSNode:
                 style=""
 
             tooltip = ""
+            for hyp in root.context_before.obligations.focused_hyps:
+                tooltip += hyp[:64] + "&#10;"
+            tooltip += "-" * 64 + "&#10;"
+            tooltip += root.context_before.obligations.focused_goal[:64]
+
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
                            tooltip=tooltip)
