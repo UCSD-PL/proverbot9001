@@ -1690,6 +1690,7 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
 @dataclass
 class BFSNode:
     prediction: Prediction
+    postfix: List[str]
     score: float
     time_taken: float
     context_before: FullContext
@@ -1698,11 +1699,12 @@ class BFSNode:
     color: Optional[str]
 
     def __init__(self, prediction: Prediction, score: float, time_taken: float,
-                 context_before: FullContext, previous: Optional["BFSNode"],
+                 postfix: List[str], context_before: FullContext, previous: Optional["BFSNode"],
                  color: Optional[str] = None) -> None:
         self.prediction = prediction
         self.score = score
         self.time_taken = time_taken
+        self.postfix = postfix
         self.context_before = context_before
         self.previous = previous
         self.children = []
@@ -1805,7 +1807,7 @@ def bfs_beam_proof_search(lemma_statement: str,
     else:
         subgoals_stack_start = []
     initial_history_len = len(coq.tactic_history.getFullHistory())
-    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0,
+    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
     nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
@@ -1816,15 +1818,10 @@ def bfs_beam_proof_search(lemma_statement: str,
             # Return to the beginning of the proof
             while len(coq.tactic_history.getFullHistory()) > initial_history_len:
                 coq.cancel_last()
-            for command in node_commands(next_node)[1:]:
-                coq.run_stmt(command)
-                just_closed = False
-                while coq.count_fg_goals() == 0:
-                    coq.run_stmt("}")
-                    just_closed = True
-                if coq.count_fg_goals() > 1 or \
-                   (coq.count_fg_goals() > 0 and just_closed):
-                    coq.run_stmt("{")
+            for replay_node in node_path(next_node)[1:]:
+                coq.run_stmt(replay_node.prediction.prediction)
+                for cmd in replay_node.postfix:
+                    coq.run_stmt(cmd)
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
@@ -1842,17 +1839,16 @@ def bfs_beam_proof_search(lemma_statement: str,
                     tryPrediction(args, coq, prediction.prediction,
                                   node_total_time(next_node))
 
+                postfix = []
                 if unshelved:
-                    prev_node = BFSNode(Prediction("Unshelve.", 1.0),
-                                        next_node.score, 0,
-                                        full_context_before, next_node)
-                else:
-                    prev_node = next_node
+                    postfix.append("Unshelve.")
+                postfix += ["}"] * subgoals_closed
+                postfix += ["{"] * subgoals_opened
 
                 prediction_node = BFSNode(
                     prediction,
-                    prev_node.score * prediction.certainty,
-                    time_taken, full_context_before, prev_node)
+                    next_node.score * prediction.certainty,
+                    time_taken, postfix, full_context_before, next_node)
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
