@@ -1908,7 +1908,7 @@ def bfs_beam_proof_search(lemma_statement: str,
         next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
         while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
             next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
-            if len(node_path(next_node)) < args.search_depth + extra_depth:
+            if len(node_path(next_node)) <= args.search_depth + extra_depth:
                 nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
             else:
                 hasUnexploredNode = True
