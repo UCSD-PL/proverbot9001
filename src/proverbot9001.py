@@ -22,6 +22,7 @@
 
 import signal
 import sys
+from collections import Counter
 from tokenizer import tokenizers
 import search_file
 import dynamic_report
@@ -178,6 +179,35 @@ import contextlib
 from pathlib_revised import Path2
 from tokenizer import get_relevant_k_keywords2
 
+def get_tactics(args: List[str]):
+    parser = argparse.ArgumentParser(description="Pick a set of common tactics")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-tactics", type=int, default=128)
+    parser.add_argument("-j", "--num-threads", default=None, type=int)
+    parser.add_argument("--no-truncate-semicolons", dest="truncate_semicolons",
+                        action='store_false')
+    parser.add_argument("--no-use-substitutions", action='store_false',
+                        dest='use_substitutions')
+    parser.add_argument("--no-normalize-numeric-args", action='store_false',
+                        dest='normalize_numeric_args')
+    parser.add_argument("--context-filter", dest="context_filter", default="goal-changes")
+    parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
+    parser.add_argument("scrape_file", type=Path2)
+    parser.add_argument("dest")
+    arg_values = parser.parse_args(args)
+
+    raw_data = list(data.get_text_data(arg_values))
+
+    count = Counter()
+    for _, _, _, tactic in raw_data:
+        stem = coq_serapy.get_stem(tactic)
+        if stem != "":
+            count[stem] += 1
+    with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
+          else contextlib.nullcontext(sys.stdout)) as f:
+        for tactic, count in count.most_common(arg_values.num_tactics):
+            print(tactic)
+            f.write(tactic + "\n")
 
 def get_tokens(args: List[str]):
     parser = argparse.ArgumentParser(description="Pick a set of tokens")
@@ -218,6 +248,7 @@ modules = {
     "evaluator-report": evaluator_report.main,
     "data": get_data,
     "tokens": get_tokens,
+    "tactics": get_tactics,
     "predict": interactive_predictor.predict,
 }
 
