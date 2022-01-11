@@ -255,6 +255,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--add-env-lemmas", type=Path2, default=None)
     parser.add_argument("--add-axioms", type=Path2, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
+    parser.add_argument("--tactics-file", type=Path2, default=Path2("tactics.txt"))
+    parser.add_argument("--tokens-file", type=Path2, default=Path2("tokens.txt"))
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -1187,41 +1189,34 @@ def attempt_search(args: argparse.Namespace,
 
 T = TypeVar('T')
 
-
-def emap_lookup(emap: Dict[T, int], size: int, item: T):
-    if item in emap:
-        return emap[item]
-    elif len(emap) < size - 1:
-        emap[item] = len(emap) + 1
-        return emap[item]
-    else:
-        return 0
-
-
 class FeaturesExtractor:
     tactic_map: Dict[str, int]
     token_map: Dict[str, int]
     _num_tactics: int
     _num_tokens: int
 
-    def __init__(self) -> None:
-        self._num_tactics = 32
-        self._num_tokens = 32
+    def __init__(self, tacticsfile: str, tokensfile: str) -> None:
         self.tactic_map = {}
         self.token_map = {}
+        with open(tacticsfile, 'r') as f:
+            for idx, line in enumerate(f, start=2):
+                self.tactic_map[line.strip()] = idx
+        with open(tokensfile, 'r') as f:
+            for idx, line in enumerate(f, start=2):
+                self.token_map[line.strip()] = idx
+        self._num_tactics = len(self.tactic_map)
+        self._num_tokens = len(self.token_map)
 
     def state_features(self, context: TacticContext) -> \
             Tuple[List[int], List[float]]:
         if len(context.prev_tactics) > 1:
             prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
-            prev_tactic_index = emap_lookup(self.tactic_map, self._num_tactics,
-                                            prev_tactic)
+            prev_tactic_index = self.tactic_map.get(prev_tactic, 1)
         else:
             prev_tactic_index = 0
 
         if context.goal != "":
-            goal_head_index = emap_lookup(self.token_map, self._num_tokens,
-                                          tokenizer.get_words(context.goal)[0])
+            goal_head_index = self.token_map.get(tokenizer.get_words(context.goal)[0], 1)
         else:
             goal_head_index = 0
 
@@ -1238,7 +1233,7 @@ class FeaturesExtractor:
                         action: str, certainty: float) \
             -> Tuple[List[int], List[float]]:
         stem, argument = serapi_instance.split_tactic(action)
-        stem_idx = emap_lookup(self.tactic_map, self._num_tactics, stem)
+        stem_idx = self.tactic_map.get(stem, 1)
         all_premises = context.hypotheses + context.relevant_lemmas
         stripped_arg = argument.strip(".").strip()
         if stripped_arg == "":
@@ -1249,13 +1244,12 @@ class FeaturesExtractor:
             if stripped_arg in index_hyp_vars:
                 hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]
                                                  ].partition(":")
-                arg_idx = emap_lookup(self.token_map, self._num_tokens,
-                                      tokenizer.get_words(rest)[0]) + 2
+                arg_idx = self.token_map.get(tokenizer.get_words(rest)[0], 1) + 2
             else:
                 goal_symbols = tokenizer.get_symbols(context.goal)
                 if stripped_arg in goal_symbols:
-                    arg_idx = emap_lookup(self.token_map, self._num_tokens,
-                                          stripped_arg) + self._num_tokens + 2
+                    arg_idx = self.token_map.get(stripped_arg, 1) \
+                                         + self._num_tokens + 2
                 else:
                     arg_idx = 1
         return [stem_idx, arg_idx], [certainty]
@@ -1281,7 +1275,7 @@ class SearchGraph:
     feature_extractor: FeaturesExtractor
     start_node: LabeledNode
 
-    def __init__(self, lemma_name: str) -> None:
+    def __init__(self, tactics_file: Path2, tokens_file: Path2, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -1289,7 +1283,7 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor()
+        self.feature_extractor = FeaturesExtractor(tactics_file, tokens_file)
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
@@ -1377,6 +1371,7 @@ class SearchGraph:
                        "action_features_max_values":
                        self.feature_extractor.action_features_bounds()},
                       f)
+            f.write("\n")
             write_node(self.start_node, f)
 
 
@@ -1498,7 +1493,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     global unnamed_goal_number
     unnamed_goal_number = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-    g = SearchGraph(lemma_name)
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -1800,6 +1795,8 @@ def bfs_beam_proof_search(lemma_statement: str,
     else:
         graph_file = f"{args.output_dir}/{module_prefix}"\
                      f"{lemma_name}.svg"
+
+    features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
 
     if coq.count_fg_goals() > 1:
         coq.run_stmt("{")
