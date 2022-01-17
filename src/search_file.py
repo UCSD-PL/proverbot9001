@@ -1818,13 +1818,24 @@ def bfs_beam_proof_search(lemma_statement: str,
     while len(nodes_todo) > 0:
         next_nodes_todo: List[Tuple[BFSNode, List[int], int]] = []
         for next_node, subgoal_distance_stack, extra_depth in nodes_todo:
-            # Return to the beginning of the proof
-            while len(coq.tactic_history.getFullHistory()) > initial_history_len:
+            next_node_history = [item for replay_node in node_path(next_node)[1:]
+                                 for item in [replay_node.prediction.prediction] + replay_node.postfix]
+            cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
+            # Get the number of commands common to the beginning of the current
+            # history and the history of the next node
+            common_prefix_len = 0
+            for item1, item2, in zip(next_node_history, cur_node_history):
+                if item1 != item2:
+                    break
+                common_prefix_len += 1
+            # Return to the place where the current history and the history of
+            # the next node diverged.
+            while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
                 coq.cancel_last()
-            for replay_node in node_path(next_node)[1:]:
-                coq.run_stmt(replay_node.prediction.prediction)
-                for cmd in replay_node.postfix:
-                    coq.run_stmt(cmd)
+            # Run the next nodes history from that point.
+            for cmd in next_node_history[common_prefix_len:]:
+                coq.run_stmt(cmd)
+
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
