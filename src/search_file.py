@@ -247,6 +247,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'])
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty"], default="lstd")
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -1848,13 +1849,16 @@ def bfs_beam_proof_search(lemma_statement: str,
                 postfix += ["{"] * subgoals_opened
 
 
-                # state_score = next_node.score * prediction.certainty
-                state_score = state_estimator.estimateVal(
-                                  features_extractor.state_features(
-                                      TacticContext(full_context_before.relevant_lemmas,
-                                                    full_context_before.prev_tactics,
-                                                    context_after.focused_hyps,
-                                                    context_after.focused_goal)))
+                if args.scoring_function == "certainty":
+                    state_score = next_node.score * prediction.certainty
+                else:
+                    assert args.scoring_function == "lstd"
+                    state_score = state_estimator.estimateVal(
+                                      features_extractor.state_features(
+                                          TacticContext(full_context_before.relevant_lemmas,
+                                                        full_context_before.prev_tactics,
+                                                        context_after.focused_hyps,
+                                                        context_after.focused_goal)))
                 prediction_node = BFSNode(
                     prediction,
                     state_score,
