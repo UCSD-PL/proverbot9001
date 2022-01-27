@@ -165,6 +165,8 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         help="output data folder name",
                         default="search-report",
                         type=Path2)
+    parser.add_argument("--no-generate-report", dest="generate_report",
+                        action="store_false")
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
@@ -615,22 +617,23 @@ def search_file_multithreaded(args: argparse.Namespace,
         for worker in workers:
             worker.join()
 
-        model_name = dict(predictor.getOptions())["predictor"]
-        stats: List[search_report.ReportStats] = []
-        for filename, solutions in tqdm(zip(args.filenames, file_solutions),
-                                        desc="Generating output",
-                                        total=len(args.filenames)):
-            blocks = blocks_from_scrape_and_sols(
-                args.prelude / filename,
-                [(lemma_stmt, module_name, sol)
-                 for (filename, module_name, lemma_stmt), sol
-                 in solutions])
-            write_solution_vfile(args, filename, model_name, blocks)
-            write_html(args, args.output_dir, filename, blocks)
-            write_csv(args, filename, blocks)
-            stats.append(stats_from_blocks(blocks, str(filename)))
+        if args.generate_report:
+            model_name = dict(predictor.getOptions())["predictor"]
+            stats: List[search_report.ReportStats] = []
+            for filename, solutions in tqdm(zip(args.filenames, file_solutions),
+                                            desc="Generating output",
+                                            total=len(args.filenames)):
+                blocks = blocks_from_scrape_and_sols(
+                    args.prelude / filename,
+                    [(lemma_stmt, module_name, sol)
+                     for (filename, module_name, lemma_stmt), sol
+                     in solutions])
+                write_solution_vfile(args, filename, model_name, blocks)
+                write_html(args, args.output_dir, filename, blocks)
+                write_csv(args, filename, blocks)
+                stats.append(stats_from_blocks(blocks, str(filename)))
 
-        produce_index(args, predictor, stats)
+            produce_index(args, predictor, stats)
     pass
 
 
