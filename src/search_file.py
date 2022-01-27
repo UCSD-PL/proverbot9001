@@ -184,6 +184,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         help="output data folder name",
                         default="search-report",
                         type=Path2)
+    parser.add_argument("--no-generate-report", dest="generate_report",
+                        action="store_false")
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
@@ -809,46 +811,47 @@ def search_file_multithreaded(args: argparse.Namespace,
     generate_report(args, predictor)
 
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> None:
-    stats: List[search_report.ReportStats] = []
-    model_name = dict(predictor.getOptions())["predictor"]
+    if args.generate_report:
+        stats: List[search_report.ReportStats] = []
+        model_name = dict(predictor.getOptions())["predictor"]
 
-    project_dicts = project_dicts_from_args(args)
-    for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
-            file_solutions = []
-            output_file_prefix = args.output_dir / project_dict["project_name"] / \
-                  (util.safe_abbrev(Path2(filename),
-                                    [Path2(path) for path in
-                                     project_dict["test_files"]]))
-            source_file = args.prelude / project_dict["project_name"] / filename
-            try:
-                with (Path2(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
-                    for line in f:
-                        job, sol = json.loads(line)
-                        file_solutions.append((job, SearchResult.from_dict(sol)))
-            except FileNotFoundError:
-                cmds = serapi_instance.load_commands(source_file)
-                lemmas = serapi_instance.lemmas_in_file(source_file, cmds, args.include_proof_relevant)
-                assert len(lemmas) == 0
-                stats.append(search_report.ReportStats(filename, 0, 0, 0))
-                continue
-            blocks = blocks_from_scrape_and_sols(
-                source_file,
-                [(lemma_stmt, module_name, sol)
-                for (project, filename, module_name, lemma_stmt), sol
-                in file_solutions])
+        project_dicts = project_dicts_from_args(args)
+        for project_dict in project_dicts:
+            for filename in project_dict["test_files"]:
+                file_solutions = []
+                output_file_prefix = args.output_dir / project_dict["project_name"] / \
+                      (util.safe_abbrev(Path2(filename),
+                                        [Path2(path) for path in
+                                         project_dict["test_files"]]))
+                source_file = args.prelude / project_dict["project_name"] / filename
+                try:
+                    with (Path2(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                        for line in f:
+                            job, sol = json.loads(line)
+                            file_solutions.append((job, SearchResult.from_dict(sol)))
+                except FileNotFoundError:
+                    cmds = serapi_instance.load_commands(source_file)
+                    lemmas = serapi_instance.lemmas_in_file(source_file, cmds, args.include_proof_relevant)
+                    assert len(lemmas) == 0
+                    stats.append(search_report.ReportStats(filename, 0, 0, 0))
+                    continue
+                blocks = blocks_from_scrape_and_sols(
+                    source_file,
+                    [(lemma_stmt, module_name, sol)
+                    for (project, filename, module_name, lemma_stmt), sol
+                    in file_solutions])
 
-            write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
-                                 model_name, blocks)
-            write_html(args, output_file_prefix.with_suffix(".html"),
-                       filename, blocks)
-            write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
-            stats.append(stats_from_blocks(blocks, str(filename)))
-        produce_index(args, predictor,
-                      args.output_dir / project_dict["project_name"],
-                      stats)
-    if len(project_dicts) > 1:
-        multi_project_report.multi_project_index(args.output_dir)
+                write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
+                                     model_name, blocks)
+                write_html(args, output_file_prefix.with_suffix(".html"),
+                           filename, blocks)
+                write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
+                stats.append(stats_from_blocks(blocks, str(filename)))
+            produce_index(args, predictor,
+                          args.output_dir / project_dict["project_name"],
+                          stats)
+        if len(project_dicts) > 1:
+            multi_project_report.multi_project_index(args.output_dir)
 
 def blocks_from_scrape_and_sols(
         src_filename: Path2,
