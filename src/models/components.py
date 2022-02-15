@@ -292,40 +292,40 @@ class DecoderGRU(nn.Module):
 
 import sys
 import time
-from sklearn import svm
-
-svm_kernels = [
-    "rbf",
-    "linear",
-]
-class SVMClassifierModel(StraightlineClassifierModel[svm.SVC]):
-    @staticmethod
-    def add_args_to_parser(parser : argparse.ArgumentParser,
-                           default_values : Dict[str, Any] = {}) \
-                           -> None:
-        parser.add_argument("--kernel", choices=svm_kernels, type=str,
-                            default=svm_kernels[0])
-        parser.add_argument("--gamma",type=float,
-                            default=svm_kernels[0])
-    def __init__(self, args : argparse.Namespace,
-                 input_vocab_size : int, output_vocab_size : int) -> None:
-        self._model = svm.SVC(gamma=args.gamma, kernel=args.kernel,
-                              probability=args.probability,
-                              verbose=args.verbose)
-    def checkpoints(self, inputs : List[List[float]], outputs : List[int]) \
-        -> Iterable[svm.SVC]:
-        curtime = time.time()
-        print("Training SVM...", end="")
-        sys.stdout.flush()
-        self._model.fit(inputs, outputs)
-        print(" {:.2f}s".format(time.time() - curtime))
-        loss = self._model.score(inputs, outputs)
-        print("Training loss: {}".format(loss))
-        yield self._model
-    def predict(self, inputs : List[List[float]]) -> List[List[float]]:
-        return self._model.predict_log_proba(inputs)
-    def setState(self, state : svm.SVC) -> None:
-        self._model = state
+# from sklearn import svm
+# 
+# svm_kernels = [
+#     "rbf",
+#     "linear",
+# ]
+# class SVMClassifierModel(StraightlineClassifierModel[svm.SVC]):
+#     @staticmethod
+#     def add_args_to_parser(parser : argparse.ArgumentParser,
+#                            default_values : Dict[str, Any] = {}) \
+#                            -> None:
+#         parser.add_argument("--kernel", choices=svm_kernels, type=str,
+#                             default=svm_kernels[0])
+#         parser.add_argument("--gamma",type=float,
+#                             default=svm_kernels[0])
+#     def __init__(self, args : argparse.Namespace,
+#                  input_vocab_size : int, output_vocab_size : int) -> None:
+#         self._model = svm.SVC(gamma=args.gamma, kernel=args.kernel,
+#                               probability=args.probability,
+#                               verbose=args.verbose)
+#     def checkpoints(self, inputs : List[List[float]], outputs : List[int]) \
+#         -> Iterable[svm.SVC]:
+#         curtime = time.time()
+#         print("Training SVM...", end="")
+#         sys.stdout.flush()
+#         self._model.fit(inputs, outputs)
+#         print(" {:.2f}s".format(time.time() - curtime))
+#         loss = self._model.score(inputs, outputs)
+#         print("Training loss: {}".format(loss))
+#         yield self._model
+#     def predict(self, inputs : List[List[float]]) -> List[List[float]]:
+#         return self._model.predict_log_proba(inputs)
+#     def setState(self, state : svm.SVC) -> None:
+#         self._model = state
 
 import threading
 from torch import optim
