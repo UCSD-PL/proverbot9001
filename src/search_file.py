@@ -1346,7 +1346,7 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] != "":
+        if node_handle.attr["fillcolor"] != None and node_handle.attr["fillcolor"] != "":
             node_handle.attr["fillcolor"] += (":" + color)
         else:
             node_handle.attr["fillcolor"] = color
@@ -1805,8 +1805,7 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
         return []
     num_opens = len([cmd for cmd in node.postfix if cmd == "{"])
     significant_parent = node
-    while num_opens <= num_closes:
-        assert significant_parent.previous is not None, (num_opens, num_closes)
+    while num_opens < num_closes and significant_parent.previous is not None:
         num_opens += len([cmd for cmd in significant_parent.previous.postfix if cmd == "{"])
         num_closes += len([cmd for cmd in significant_parent.previous.postfix if cmd == "}"])
         significant_parent = significant_parent.previous
