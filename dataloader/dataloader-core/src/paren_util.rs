@@ -130,12 +130,19 @@ pub fn parse_sexp_one_level<'a>(sexp_str: &'a str) -> Vec<&'a str> {
             }
             " " => {
                 if paren_level == 0 {
-                    items.push(sexp_str[item_start_pos..smatch.end()+1].trim());
+                    let new_item = sexp_str[item_start_pos..smatch.end()+1].trim();
+                    if new_item.len() > 0 {
+                        items.push(new_item);
+                    }
                     item_start_pos = smatch.end()+1;
                 }
             }
             _ => panic!("Bad match!")
         }
+    }
+    let last_item = sexp_str[item_start_pos..sexp_str.len()-1].trim();
+    if last_item.len() > 0 {
+        items.push(last_item);
     }
     items
 }
