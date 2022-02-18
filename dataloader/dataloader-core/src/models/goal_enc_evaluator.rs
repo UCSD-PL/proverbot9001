@@ -51,7 +51,8 @@ pub fn goals_to_total_distances_tensors_rs(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file)
+            let keywords_file = args.keywords_file.clone().expect("no keywords file!");
+            Tokenizer::new(use_unknowns, num_reserved_tokens, &keywords_file)
         }
     };
     let tokenized_goals: Vec<Vec<i64>> = tactics

@@ -1,4 +1,8 @@
+use crate::trie::IndexedTrie;
 use pyo3::prelude::*;
+use pyo3::types::PyBytes;
+use pyo3::ToPyObject;
+use bincode::{deserialize, serialize};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -79,7 +83,7 @@ where
                 .unwrap();
         }
     }
-    pub fn load_from_text(path: &str) -> OpenIndexer::<String> {
+    pub fn load_from_text(path: &str) -> OpenIndexer<String> {
         let mut indexer = OpenIndexer::<String>::new();
         let stems = io::BufReader::new(
             File::open(path).expect(&format!("Couldn't find stem file \"{}\"", path)),
@@ -91,6 +95,93 @@ where
             indexer.next_idx += 1;
         }
         indexer
+    }
+}
+
+#[pyclass(module="dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct LongestMatchTokenizer {
+    use_unknowns: bool,
+    vocab_size: i64,
+    tok_trie: IndexedTrie,
+}
+
+#[pymethods]
+impl LongestMatchTokenizer {
+    #[new]
+    pub fn pynew() -> Self {
+        Self::new_from_vocab(false, 0, vec![])
+    }
+    pub fn __setstate__(&mut self, py: Python, state: PyObject) -> PyResult<()> {
+        match state.extract::<&PyBytes>(py) {
+            Ok(s) => {
+                let result: Self = deserialize(s.as_bytes()).unwrap();
+                self.use_unknowns = result.use_unknowns;
+                self.vocab_size = result.vocab_size;
+                self.tok_trie = result.tok_trie;
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+    pub fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
+        Ok(PyBytes::new(py, &serialize(&self).unwrap()).to_object(py))
+    }
+}
+impl LongestMatchTokenizer {
+    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
+        let vocab: Vec<_> = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
+            "Couldn't open keywords file \"{}\"",
+            keywords_filepath
+        )))
+        .lines()
+        .map(|keyword| keyword.unwrap())
+        .collect();
+        Self::new_from_vocab(use_unknowns, num_reserved_tokens, vocab)
+    }
+    pub fn new_from_vocab(
+        use_unknowns: bool,
+        num_reserved_tokens: usize,
+        vocab: Vec<String>,
+    ) -> Self {
+        let mut trie = IndexedTrie::new();
+        let mut next_vocab_idx = num_reserved_tokens as i64;
+        for item in vocab {
+            trie.insert(next_vocab_idx, &item);
+            next_vocab_idx += 1;
+        }
+        LongestMatchTokenizer {
+            use_unknowns: use_unknowns,
+            vocab_size: next_vocab_idx + if use_unknowns { 1 } else { 0 },
+            tok_trie: trie,
+        }
+    }
+    pub fn num_tokens(&self) -> i64 {
+        self.vocab_size
+    }
+    pub fn tokenize(&self, sentence: &str) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        let words = get_symbols(sentence);
+        for word in words {
+            let mut word_tokens = Vec::new();
+            let mut cur_pos = 0;
+            while cur_pos < word.len() {
+                match self.tok_trie.longest_prefix(&word[cur_pos..]) {
+                    Some((idx, prefix)) => {
+                        word_tokens.push(idx);
+                        cur_pos += prefix.len()
+                    }
+                    None => {
+                        if self.use_unknowns {
+                            word_tokens.push(self.vocab_size - 1)
+                        }
+                        cur_pos += 1
+                    }
+                }
+            }
+            tokens.append(&mut word_tokens);
+        }
+        tokens
     }
 }
 
@@ -198,4 +289,20 @@ pub fn normalize_sentence_length(
         tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
     }
     tokenlist
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn longest_match_test() {
+        let mut tokenizer = LongestMatchTokenizer::new_from_vocab(true, 2,
+                                                                  vec!["some".to_string(),
+                                                                       "thing".to_string()]);
+        assert_eq!(
+            tokenizer.tokenize("something some athing a some"),
+            vec![2, 3, 2, 4, 3, 4, 2]
+        );
+    }
 }
