@@ -31,6 +31,7 @@ mod models;
 mod paren_util;
 mod scraped_data;
 mod tokenizer;
+mod trie;
 use context_filter::*;
 use features::*;
 use models::features_dnn_evaluator::*;
@@ -38,7 +39,7 @@ use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
 use paren_util::parse_sexp_one_level;
 use scraped_data::*;
-use tokenizer::get_words;
+use tokenizer::{get_words, LongestMatchTokenizer};
 
 #[macro_use]
 extern crate lazy_static;
@@ -399,5 +400,6 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ScrapedTransition>()?;
     m.add_class::<Obligation>()?;
     m.add_class::<TacticContext>()?;
+    m.add_class::<LongestMatchTokenizer>()?;
     Ok(())
 }

@@ -549,7 +549,9 @@ pub struct DataloaderArgs {
     #[pyo3(get, set)]
     pub num_relevance_samples: usize,
     #[pyo3(get, set)]
-    pub keywords_file: String,
+    pub keywords_file: Option<String>,
+    #[pyo3(get, set)]
+    pub subwords_file: Option<String>,
     #[pyo3(get, set)]
     pub context_filter: String,
     #[pyo3(get, set)]

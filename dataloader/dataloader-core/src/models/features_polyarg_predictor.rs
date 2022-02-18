@@ -15,8 +15,8 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
-    Token, Tokenizer,
+    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer,
+    Token, LongestMatchTokenizer,
 };
 use gestalt_ratio::gestalt_ratio;
 
@@ -43,17 +43,17 @@ pub struct FPAOutput {
     argument: TacticArgument,
 }
 
-pub type FPAMetadata = (OpenIndexer<String>, Tokenizer, FeaturesTokenMap);
+pub type FPAMetadata = (OpenIndexer<String>, LongestMatchTokenizer, FeaturesTokenMap);
 pub type PickleableFPAMetadata = (
     PickleableIndexer<String>,
-    PickleableTokenizer,
+    LongestMatchTokenizer,
     PickleableFeaturesTokenMap,
 );
 
 pub fn fpa_metadata_to_pickleable(metadata: FPAMetadata) -> PickleableFPAMetadata {
     (
         metadata.0.to_pickleable(),
-        metadata.1.to_pickleable(),
+        metadata.1,
         metadata.2.to_dicts(),
     )
 }
@@ -61,7 +61,7 @@ pub fn fpa_metadata_to_pickleable(metadata: FPAMetadata) -> PickleableFPAMetadat
 pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata {
     (
         OpenIndexer::from_pickleable(pick.0),
-        Tokenizer::from_pickleable(pick.1),
+        pick.1,
         FeaturesTokenMap::from_dicts(pick.2),
     )
 }
@@ -121,13 +121,15 @@ pub fn features_polyarg_tensors(
     };
     let (tokenizer, features_token_map) = match rest_meta {
         Some((ptok, ptmap)) => (
-            Tokenizer::from_pickleable(ptok),
+            ptok,
             FeaturesTokenMap::from_dicts(ptmap),
         ),
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            let tokenizer = Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file);
+            let subwords_file = args.subwords_file.clone().expect("No subwords file passed!");
+            let tokenizer = LongestMatchTokenizer::new(use_unknowns, num_reserved_tokens,
+                                                       &subwords_file);
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
                 None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
