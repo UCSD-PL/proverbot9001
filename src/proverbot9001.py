@@ -43,8 +43,10 @@ import interactive_predictor
 from pathlib import Path
 from pathlib_revised import Path2
 import dataloader
+from tqdm import tqdm
 
 from typing import List
+from collections import Counter
 
 
 def exit_early(signal, frame):
@@ -180,7 +182,8 @@ def get_data(args : List[str]) -> None:
 import random
 import contextlib
 from pathlib_revised import Path2
-from tokenizer import get_relevant_k_keywords2
+from tokenizer import get_relevant_k_keywords2, get_symbols
+import bpe
 
 def get_tactics(args: List[str]):
     parser = argparse.ArgumentParser(description="Pick a set of common tactics")
@@ -216,6 +219,28 @@ def get_tactics(args: List[str]):
           else contextlib.nullcontext(sys.stdout)) as f:
         for tactic, tac_count in count.most_common(arg_values.num_tactics):
             f.write(tactic + "\n")
+
+def get_subwords(args: List[str]) -> None:
+    parser = argparse.ArgumentParser(description="Pick a set of subwords")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-merges", type=int, default=4096)
+    parser.add_argument("scrapefile", type=Path2)
+    parser.add_argument("dest")
+    arg_values = parser.parse_args(args)
+
+    with print_time("Reading scraped data", guard=arg_values.verbose):
+        raw_data = list(data.read_text_data(arg_values.scrapefile))
+    word_counts = Counter()
+    for relevant_lemmas, prev_tactics, context, tactic in tqdm(raw_data, desc="Counting words"):
+        for word in get_symbols(context.focused_goal):
+            word_counts[word] += 1
+        for hyp in context.focused_hyps:
+            for word in get_symbols(coq_serapy.get_hyp_type(hyp)):
+                word_counts[word] += 1
+    vocab = bpe.get_bpe_vocab(word_counts, arg_values.num_merges)
+    with open(arg_values.dest, 'w') as f:
+        for subword in vocab:
+            print(subword, file=f)
 
 def get_tokens(args: List[str]):
     parser = argparse.ArgumentParser(description="Pick a set of tokens")
@@ -261,6 +286,7 @@ modules = {
     "data": get_data,
     "tokens": get_tokens,
     "tactics": get_tactics,
+    "subwords": get_subwords,
     "predict": interactive_predictor.predict,
 }
 
