@@ -102,6 +102,7 @@ where
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LongestMatchTokenizer {
     use_unknowns: bool,
+    space_token: Option<i64>,
     vocab_size: i64,
     tok_trie: IndexedTrie,
 }
@@ -110,13 +111,14 @@ pub struct LongestMatchTokenizer {
 impl LongestMatchTokenizer {
     #[new]
     pub fn pynew() -> Self {
-        Self::new_from_vocab(false, 0, vec![])
+        Self::new_from_vocab(false, false, 0, vec![])
     }
     pub fn __setstate__(&mut self, py: Python, state: PyObject) -> PyResult<()> {
         match state.extract::<&PyBytes>(py) {
             Ok(s) => {
                 let result: Self = deserialize(s.as_bytes()).unwrap();
                 self.use_unknowns = result.use_unknowns;
+                self.space_token  = result.space_token;
                 self.vocab_size = result.vocab_size;
                 self.tok_trie = result.tok_trie;
                 Ok(())
@@ -129,7 +131,8 @@ impl LongestMatchTokenizer {
     }
 }
 impl LongestMatchTokenizer {
-    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
+    pub fn new(use_unknowns: bool, use_spaces: bool,
+               num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
         let vocab: Vec<_> = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
             "Couldn't open keywords file \"{}\"",
             keywords_filepath
@@ -137,21 +140,24 @@ impl LongestMatchTokenizer {
         .lines()
         .map(|keyword| keyword.unwrap())
         .collect();
-        Self::new_from_vocab(use_unknowns, num_reserved_tokens, vocab)
+        Self::new_from_vocab(use_unknowns, use_spaces, num_reserved_tokens, vocab)
     }
     pub fn new_from_vocab(
         use_unknowns: bool,
+        use_spaces: bool,
         num_reserved_tokens: usize,
         vocab: Vec<String>,
     ) -> Self {
         let mut trie = IndexedTrie::new();
-        let mut next_vocab_idx = num_reserved_tokens as i64;
+        let mut next_vocab_idx = num_reserved_tokens as i64 +
+            if use_spaces { 1 } else { 0 };
         for item in vocab {
             trie.insert(next_vocab_idx, &item);
             next_vocab_idx += 1;
         }
         LongestMatchTokenizer {
             use_unknowns: use_unknowns,
+            space_token: if use_spaces { Some(num_reserved_tokens as i64) } else { None },
             vocab_size: next_vocab_idx + if use_unknowns { 1 } else { 0 },
             tok_trie: trie,
         }
@@ -180,6 +186,10 @@ impl LongestMatchTokenizer {
                 }
             }
             tokens.append(&mut word_tokens);
+            match self.space_token {
+                Some(tok) => tokens.push(tok),
+                None => (),
+            }
         }
         tokens
     }

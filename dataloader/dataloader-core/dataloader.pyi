@@ -40,6 +40,7 @@ class DataloaderArgs:
     num_relevance_samples: int
     keywords_file: Optional[str]
     subwords_file: Optional[str]
+    use_spaces: bool
     context_filter: str
     save_embedding: Optional[str]
     save_features_state: Optional[str]

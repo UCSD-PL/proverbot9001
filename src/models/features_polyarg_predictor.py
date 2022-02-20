@@ -762,6 +762,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-tensors", default=None)
         parser.add_argument("--load-subwords", dest="load_subwords",
                             default=default_values.get("load-subwords", None))
+        parser.add_argument("--use-spaces", action="store_true", dest="use_spaces")
 
         parser.add_argument("--save-embedding", type=str, default=None)
         parser.add_argument("--save-features-state", type=str, default=None)
@@ -1004,6 +1005,7 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
         "Must have a subwords file for the new rust dataloader"
     dargs.keywords_file = args.load_tokens
     dargs.subwords_file = args.load_subwords
+    dargs.use_spaces = args.use_spaces
     dargs.context_filter = args.context_filter
     dargs.save_embedding = args.save_embedding
     dargs.save_features_state = args.save_features_state

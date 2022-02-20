@@ -137,7 +137,8 @@ pub fn features_polyarg_tensors_rs(
             let use_unknowns = true;
             let num_reserved_tokens = 2;
             let subwords_file = args.subwords_file.clone().expect("No subwords file passed!");
-            let tokenizer = LongestMatchTokenizer::new(use_unknowns, num_reserved_tokens,
+            let tokenizer = LongestMatchTokenizer::new(use_unknowns, args.use_spaces,
+                                                       num_reserved_tokens,
                                                        &subwords_file);
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
