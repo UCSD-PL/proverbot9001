@@ -553,6 +553,8 @@ pub struct DataloaderArgs {
     #[pyo3(get, set)]
     pub subwords_file: Option<String>,
     #[pyo3(get, set)]
+    pub use_spaces: bool,
+    #[pyo3(get, set)]
     pub context_filter: String,
     #[pyo3(get, set)]
     pub save_embedding: Option<String>,
