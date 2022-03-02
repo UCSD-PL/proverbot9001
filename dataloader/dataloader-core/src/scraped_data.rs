@@ -635,6 +635,8 @@ pub struct DataloaderArgs {
     #[pyo3(get, set)]
     pub max_length: usize,
     #[pyo3(get, set)]
+    pub max_subwords: usize,
+    #[pyo3(get, set)]
     pub max_premises: usize,
     #[pyo3(get, set)]
     pub num_keywords: usize,

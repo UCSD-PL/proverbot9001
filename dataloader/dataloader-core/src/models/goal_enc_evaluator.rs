@@ -8,7 +8,7 @@ use std::fs::File;
 use crate::context_filter::filter_data_by_key;
 use crate::models::evaluator_common::*;
 use crate::scraped_data::*;
-use crate::tokenizer::{normalize_sentence_length, Tokenizer};
+use crate::tokenizer::{normalize_sequence_length, Tokenizer};
 
 #[pyclass(module = "dataloader")]
 pub struct GoalEncMetadata {
@@ -77,7 +77,7 @@ pub fn goal_enc_get_num_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
 }
 
 pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: String) -> Vec<i64> {
-    normalize_sentence_length(
+    normalize_sequence_length(
         metadata
             .tokenizer
             .as_ref()

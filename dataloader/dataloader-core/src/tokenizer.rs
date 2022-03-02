@@ -100,6 +100,125 @@ where
 
 #[pyclass(module="dataloader")]
 #[derive(Serialize, Deserialize, Clone)]
+pub struct IdentChunkTokenizer {
+    use_unknowns: bool,
+    subword_vocab_size: i64,
+    tok_trie: IndexedTrie,
+    keywords: HashMap<String, i64>,
+}
+pub type IdentChunk = (Token, Vec<Token>);
+
+impl IdentChunkTokenizer {
+    pub fn new_from_files(use_unknowns: bool, num_reserved_tokens: usize,
+                          keywords_filepath: &str, subwords_filepath: &str) -> Self {
+
+        let keywords: Vec<_> = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
+            "Couldn't open keywords file \"{}\"",
+            keywords_filepath
+        )))
+        .lines()
+        .map(|keyword| keyword.unwrap())
+        .collect();
+        let subwords: Vec<_> = io::BufReader::new(File::open(subwords_filepath).expect(&format!(
+            "Couldn't open keywords file \"{}\"",
+            subwords_filepath
+        )))
+        .lines()
+        .map(|subword| subword.unwrap())
+        .collect();
+        Self::new_from_vocabs(use_unknowns, num_reserved_tokens, keywords, &subwords)
+    }
+    pub fn new_from_vocabs(use_unknowns: bool, num_reserved_tokens: usize,
+                           keywords: Vec<String>, subwords: &Vec<String>) -> Self {
+        let mut trie = IndexedTrie::new();
+        let mut next_vocab_idx = num_reserved_tokens as i64;
+        for item in subwords {
+            trie.insert(next_vocab_idx, &item);
+            next_vocab_idx += 1;
+        }
+        let mut keywords_map = HashMap::new();
+        for (idx, keyword) in keywords.into_iter().enumerate() {
+            assert!(!keywords_map.contains_key(&keyword), "Duplicate keyword {}", &keyword);
+            keywords_map.insert(keyword, (idx+2) as i64);
+        }
+
+        IdentChunkTokenizer {
+            use_unknowns: use_unknowns,
+            subword_vocab_size: next_vocab_idx + if use_unknowns { 1 } else { 0 },
+            tok_trie: trie,
+            keywords: keywords_map,
+        }
+    }
+    pub fn num_subwords(&self) -> i64 {
+        self.subword_vocab_size
+    }
+    pub fn num_keywords(&self) -> i64 {
+        self.keywords.len() as i64
+    }
+    pub fn tokenize(&self, sentence: &str) -> Vec<(Token, Vec<Token>)> {
+        let mut tokens = Vec::new();
+        let words = get_symbols(sentence);
+        for word in words {
+            match self.keywords.get(word) {
+                Some(kidx) => tokens.push((*kidx, vec![])),
+                None => {
+                    let mut word_tokens = Vec::new();
+                    let mut cur_pos = 0;
+                    while cur_pos < word.len() {
+                        match self.tok_trie.longest_prefix(&word[cur_pos..]) {
+                            Some((idx, prefix)) => {
+                                word_tokens.push(idx);
+                                cur_pos += prefix.len()
+                            }
+                            None => {
+                                if self.use_unknowns {
+                                    word_tokens.push(self.subword_vocab_size - 1)
+                                }
+                                cur_pos += 1
+                            }
+                        }
+                    }
+                    tokens.push((1, word_tokens));
+                }
+            }
+        }
+        tokens
+    }
+}
+
+#[pyclass(module="dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct PyIdentChunkTokenizer {
+    pub inner: Option<IdentChunkTokenizer>,
+}
+
+#[pymethods]
+impl PyIdentChunkTokenizer {
+    #[new]
+    pub fn pynew() -> Self {
+        PyIdentChunkTokenizer{inner: None}
+    }
+    pub fn __setstate__(&mut self, py: Python, state: PyObject) -> PyResult<()> {
+        match state.extract::<&PyBytes>(py) {
+            Ok(s) => {
+                self.inner = Some(deserialize(s.as_bytes()).unwrap());
+                Ok(())
+            }
+            Err(e) => Err(e),
+        }
+    }
+    pub fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
+        Ok(PyBytes::new(py, &serialize(&self).unwrap()).to_object(py))
+    }
+}
+impl PyIdentChunkTokenizer {
+    pub fn new(inner: IdentChunkTokenizer) -> Self {
+        PyIdentChunkTokenizer{inner: Some(inner)}
+    }
+}
+
+#[pyclass(module="dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LongestMatchTokenizer {
     use_unknowns: bool,
     space_token: Option<i64>,
@@ -288,17 +407,39 @@ pub fn get_symbols(string: &str) -> Vec<&str> {
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
 
-pub fn normalize_sentence_length(
-    mut tokenlist: Vec<i64>,
+pub fn normalize_sequence_length<T>(
+    mut seq: Vec<T>,
     length: usize,
-    pad_value: i64,
-) -> Vec<i64> {
-    if tokenlist.len() > length {
-        tokenlist.truncate(length);
-    } else if tokenlist.len() < length {
-        tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
+    pad_value: T,
+) -> Vec<T>
+where T: Copy {
+    if seq.len() > length {
+        seq.truncate(length);
+    } else if seq.len() < length {
+        seq.extend([pad_value].repeat(length - seq.len()));
     }
-    tokenlist
+    assert_eq!(seq.len(), length);
+    seq
+}
+pub fn normalize_sentence_length(
+    mut tokenlist: Vec<IdentChunk>,
+    length: usize,
+    chunk_length: usize,
+    pad_value: i64,
+) -> Vec<IdentChunk> {
+    let mut normalized_sentence: Vec<(i64, Vec<i64>)> =
+        tokenlist.into_iter().take(length).map(
+            |(key_idx, subwords)| {
+                let norm_chunks = normalize_sequence_length(subwords, chunk_length, 0);
+                (key_idx, norm_chunks)
+            }).collect();
+    while normalized_sentence.len() < length {
+        normalized_sentence.push((0, vec![0; chunk_length]))
+    }
+    normalized_sentence.truncate(length);
+    for (keyword_idx, subwords) in normalized_sentence.iter() {
+    }
+    normalized_sentence
 }
 
 #[cfg(test)]
