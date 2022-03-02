@@ -39,7 +39,7 @@ use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
 use paren_util::parse_sexp_one_level;
 use scraped_data::*;
-use tokenizer::{get_words, LongestMatchTokenizer};
+use tokenizer::{get_words, PyIdentChunkTokenizer, IdentChunk};
 
 #[macro_use]
 extern crate lazy_static;
@@ -86,10 +86,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<(
         PickleableFPAMetadata,
         (
-            LongUnpaddedTensor3D,
+            (Vec<Vec<Vec<i64>>>,
+             Vec<Vec<Vec<Vec<i64>>>>),
             FloatUnpaddedTensor3D,
             LongTensor1D,
-            LongTensor2D,
+            (Vec<Vec<i64>>,
+             Vec<Vec<Vec<i64>>>),
             BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
@@ -109,10 +111,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<(
         PickleableFPAMetadata,
         (
-            LongUnpaddedTensor3D,
+            (Vec<Vec<Vec<i64>>>,
+             Vec<Vec<Vec<Vec<i64>>>>),
             FloatUnpaddedTensor3D,
             LongTensor1D,
-            LongTensor2D,
+            (Vec<Vec<i64>>,
+             Vec<Vec<Vec<i64>>>),
             BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
@@ -130,10 +134,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         metadata: PickleableFPAMetadata,
         context_batch: Vec<TacticContext>,
     ) -> (
-        LongUnpaddedTensor3D,
+        (Vec<Vec<Vec<i64>>>,
+         Vec<Vec<Vec<Vec<i64>>>>),
         FloatUnpaddedTensor3D,
         LongTensor1D,
-        LongTensor2D,
+        (Vec<Vec<i64>>,
+         Vec<Vec<Vec<i64>>>),
         BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
@@ -150,10 +156,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         hypotheses: Vec<String>,
         goal: String,
     ) -> (
-        LongUnpaddedTensor3D,
+        (Vec<Vec<Vec<i64>>>,
+         Vec<Vec<Vec<Vec<i64>>>>),
         FloatUnpaddedTensor3D,
         LongTensor1D,
-        LongTensor2D,
+        (Vec<Vec<i64>>,
+         Vec<Vec<Vec<i64>>>),
         BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
@@ -184,7 +192,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
-        term: String) -> LongTensor1D {
+        term: String) -> Vec<IdentChunk> {
         tokenize_fpa(args, metadata, term)
     }
     #[pyfn(m, "get_premise_features")]
@@ -244,10 +252,15 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             Err(err) => None
         }
     }
-    #[pyfn(m, "get_num_tokens")]
-    fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
+    #[pyfn(m, "get_num_keywords")]
+    fn get_num_keywords(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
-        tokenizer.num_tokens()
+        tokenizer.num_keywords()
+    }
+    #[pyfn(m, "get_num_subwords")]
+    fn get_num_subwords(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
+        let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        tokenizer.num_subwords()
     }
     #[pyfn(m, "fpa_get_num_possible_args")]
     fn get_num_possible_args(_py: Python, args: DataloaderArgs) -> i64 {
@@ -400,6 +413,6 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ScrapedTransition>()?;
     m.add_class::<Obligation>()?;
     m.add_class::<TacticContext>()?;
-    m.add_class::<LongestMatchTokenizer>()?;
+    m.add_class::<PyIdentChunkTokenizer>()?;
     Ok(())
 }

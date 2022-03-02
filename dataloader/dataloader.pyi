@@ -35,6 +35,7 @@ class DataloaderArgs:
     max_distance: int
     max_string_distance: int
     max_length: int
+    max_subwords: int
     max_premises: int
     num_keywords: int
     num_relevance_samples: int
@@ -46,6 +47,9 @@ class DataloaderArgs:
     save_features_state: Optional[str]
     load_embedding: Optional[str]
     load_features_state: Optional[str]
+
+class PyIdentChunkTokenizer:
+    ...
 
 
 class ScrapedTransition:
@@ -76,13 +80,10 @@ PickleableTokenizer = Tuple[bool, int, int, Dict[str, int]]
 PickleableFeaturesTokenMap = Tuple[Dict[str, int],
                                    Dict[str, int],
                                    Dict[str, int]]
-
-PickleableTokenMap = PickleableFeaturesTokenMap
-
 PickleableFPAMetadata = Tuple[PickleableIndexer,
-                              PickleableTokenizer,
+                              PyIdentChunkTokenizer,
                               PickleableFeaturesTokenMap]
-
+PickleableTokenMap = PickleableFeaturesTokenMap
 
 def features_to_total_distances_tensors(args: DataloaderArgs,
                                         filename: str) -> \
@@ -108,10 +109,12 @@ def scraped_tactics_from_file(filename: str,
 def features_polyarg_tensors(args: DataloaderArgs, filename: str) \
     -> Tuple[PickleableFPAMetadata,
              Tuple[
-                 List[List[List[int]]],
+                 Tuple[List[List[List[int]]],
+                       List[List[List[List[int]]]]],
                  List[List[List[float]]],
                  List[int],
-                 List[List[int]],
+                 Tuple[List[List[int]],
+                       List[List[List[int]]]],
                  List[List[bool]],
                  List[List[int]],
                  List[List[float]],
@@ -125,10 +128,12 @@ def features_polyarg_tensors_with_meta(args: DataloaderArgs, filename: str,
                                        meta: PickleableFPAMetadata) -> \
     Tuple[PickleableFPAMetadata,
           Tuple[
-              List[List[List[int]]],
+              Tuple[List[List[List[int]]],
+                    List[List[List[List[int]]]]],
               List[List[List[float]]],
               List[int],
-              List[List[int]],
+              Tuple[List[List[int]],
+                    List[List[List[int]]]],
               List[List[bool]],
               List[List[int]],
               List[List[float]],
@@ -144,10 +149,12 @@ def sample_fpa(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                hypotheses: List[str],
                goal: str) -> \
                Tuple[
-                   List[List[List[int]]],
+                   Tuple[List[List[List[int]]],
+                         List[List[List[List[int]]]]],
                    List[List[List[float]]],
                    List[int],
-                   List[List[int]],
+                   Tuple[List[List[int]],
+                         List[List[List[int]]]],
                    List[List[bool]],
                    List[List[int]],
                    List[List[float]]]:
@@ -157,10 +164,12 @@ def sample_fpa(args: DataloaderArgs, metadata: PickleableFPAMetadata,
 def sample_fpa_batch(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                      context_batch: List[TacticContext]) -> \
                      Tuple[
-                         List[List[List[int]]],
+                         Tuple[List[List[List[int]]],
+                               List[List[List[List[int]]]]],
                          List[List[List[float]]],
                          List[int],
-                         List[List[int]],
+                         Tuple[List[List[int]],
+                               List[List[List[int]]]],
                          List[List[bool]],
                          List[List[int]],
                          List[List[float]]]:
@@ -181,9 +190,11 @@ def features_vocab_sizes(tmap: TokenMap) -> Tuple[List[int], int]:
     ...
 
 
-def get_num_tokens(metadata: PickleableFPAMetadata) -> int:
+def get_num_keywords(metadata: PickleableFPAMetadata) -> int:
     ...
 
+def get_num_subwords(metadata: PickleableFPAMetadata) -> int:
+    ...
 
 def get_num_indices(metadata: PickleableFPAMetadata) -> \
   Tuple[PickleableFPAMetadata, int]:
@@ -245,4 +256,21 @@ def tactic_transitions_from_file(args: DataloaderArgs,
 
 
 def rust_parse_sexp_one_level(sexpstr: str) -> List[str]:
+    ...
+
+def encode_fpa_stem(args: DataloaderArgs,
+                    metadata: PickleableFPAMetadata,
+                    tac_stem: str) -> int:
+    ...
+
+def encode_fpa_arg(args: DataloaderArgs,
+                   metadata: PickleableFPAMetadata,
+                   hyps: List[str],
+                   goal: str,
+                   arg: str) -> Optional[int]:
+    ...
+
+def decode_fpa_stem(args: DataloaderArgs,
+                    metadata: PickleableFPAMetadata,
+                    tac_idx: int) -> str:
     ...

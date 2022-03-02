@@ -254,6 +254,26 @@ class EncoderRNN(nn.Module):
         result = self._out_layer(token_out.view(batch_size, self.hidden_size))
         return result
 
+class EncoderRNNFloat(nn.Module):
+    def __init__(self, input_size: int, hidden_size: int, output_size: int) -> None:
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.input_size = input_size
+        self._gru = maybe_cuda(nn.GRU(input_size, hidden_size))
+        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_size))
+
+    def forward(self, input_seq: torch.FloatTensor) -> torch.FloatTensor:
+        batch_size = input_seq.size()[0]
+        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        for i in range(input_seq.size()[1]):
+            token_batch = input_seq[:,i]\
+                .view(1, batch_size, self.input_size)
+            token_batch = F.relu(token_batch)
+            token_out, hidden = self._gru(token_batch, hidden)
+        result = self._out_layer(token_out.view(batch_size, self.hidden_size))
+        return result
+
+
 
 class EncoderDNN(nn.Module):
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,

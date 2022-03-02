@@ -46,7 +46,6 @@ from dataloader import (sample_context_features,
                         encode_fpa_stem,
                         encode_fpa_arg,
                         get_num_indices,
-                        get_num_tokens,
                         get_premise_features,
                         get_premise_features_size,
                         tokenize)

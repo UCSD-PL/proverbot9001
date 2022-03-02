@@ -16,7 +16,7 @@ use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
     get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer,
-    Token, LongestMatchTokenizer,
+    Token, IdentChunkTokenizer, PyIdentChunkTokenizer, IdentChunk,
 };
 use gestalt_ratio::gestalt_ratio;
 
@@ -43,17 +43,17 @@ pub struct FPAOutput {
     argument: TacticArgument,
 }
 
-pub type FPAMetadata = (OpenIndexer<String>, LongestMatchTokenizer, FeaturesTokenMap);
+pub type FPAMetadata = (OpenIndexer<String>, IdentChunkTokenizer, FeaturesTokenMap);
 pub type PickleableFPAMetadata = (
     PickleableIndexer<String>,
-    LongestMatchTokenizer,
+    PyIdentChunkTokenizer,
     PickleableFeaturesTokenMap,
 );
 
 pub fn fpa_metadata_to_pickleable(metadata: FPAMetadata) -> PickleableFPAMetadata {
     (
         metadata.0.to_pickleable(),
-        metadata.1,
+        PyIdentChunkTokenizer::new(metadata.1),
         metadata.2.to_dicts(),
     )
 }
@@ -61,7 +61,7 @@ pub fn fpa_metadata_to_pickleable(metadata: FPAMetadata) -> PickleableFPAMetadat
 pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata {
     (
         OpenIndexer::from_pickleable(pick.0),
-        pick.1,
+        pick.1.inner.unwrap(),
         FeaturesTokenMap::from_dicts(pick.2),
     )
 }
@@ -73,10 +73,12 @@ pub fn features_polyarg_tensors(
 ) -> PyResult<(
     PickleableFPAMetadata,
     (
-        LongUnpaddedTensor3D,
+        (Vec<Vec<Vec<i64>>>,
+         Vec<Vec<Vec<Vec<i64>>>>),
         FloatUnpaddedTensor3D,
         LongTensor1D,
-        LongTensor2D,
+        (Vec<Vec<i64>>,
+         Vec<Vec<Vec<i64>>>),
         BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
@@ -121,16 +123,19 @@ pub fn features_polyarg_tensors(
     };
     let (tokenizer, features_token_map) = match rest_meta {
         Some((ptok, ptmap)) => (
-            ptok,
+            ptok.inner.unwrap(),
             FeaturesTokenMap::from_dicts(ptmap),
         ),
         None => {
-            let use_unknowns = true;
+            let use_unknowns = false;
             let num_reserved_tokens = 2;
+            let keywords_file = args.keywords_file.clone().expect("No keywords file passed!");
             let subwords_file = args.subwords_file.clone().expect("No subwords file passed!");
-            let tokenizer = LongestMatchTokenizer::new(use_unknowns, args.use_spaces,
-                                                       num_reserved_tokens,
-                                                       &subwords_file);
+            let tokenizer = IdentChunkTokenizer::new_from_files(
+                use_unknowns,
+                num_reserved_tokens,
+                &keywords_file,
+                &subwords_file);
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
                 None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
@@ -177,16 +182,17 @@ pub fn features_polyarg_tensors(
         .map(|prems| prems.len() as i64)
         .collect();
     let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
-    let tokenized_goals: Vec<_> = raw_data
+    let tokenized_goals: (Vec<_>, Vec<_>) = raw_data
         .par_iter()
         .map(|tac| {
             normalize_sentence_length(
                 tokenizer.tokenize(&tac.context.focused_goal()),
                 args.max_length,
+                args.max_subwords,
                 0,
-            )
+            ).into_iter().unzip()
         })
-        .collect();
+        .unzip();
     let goal_symbols_mask = raw_data
         .par_iter()
         .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
@@ -198,7 +204,7 @@ pub fn features_polyarg_tensors(
             (arg_to_index(&args, arg), selected)
         })
         .unzip();
-    let tokenized_hyps: Vec<Vec<Vec<i64>>> = selected_prems
+    let tokenized_hyps: (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>) = selected_prems
         .par_iter()
         .map(|hyps| {
             hyps.iter()
@@ -206,12 +212,26 @@ pub fn features_polyarg_tensors(
                     normalize_sentence_length(
                         tokenizer.tokenize(get_hyp_type(hyp)),
                         args.max_length,
+                        args.max_subwords,
                         0,
-                    )
+                    ).into_iter().unzip()
                 })
-                .collect()
+                .unzip()
         })
-        .collect();
+        .unzip();
+    // BATCH
+    for (keyword_idx_lists, subword_list_lists) in tokenized_hyps.0.iter().zip(tokenized_hyps.1.iter()) {
+        // HYP_LIST
+        for (keyword_idxs, subword_lists) in keyword_idx_lists.iter().zip(subword_list_lists.iter()) {
+            assert_eq!(keyword_idxs.len(), args.max_length);
+            assert_eq!(subword_lists.len(), args.max_length);
+            // HYP
+            for subword_list in subword_lists.iter() {
+                 // TOKEN
+                 assert_eq!(subword_list.len(), args.max_subwords);
+            }
+        }
+    }
     let hyp_features = raw_data
         .par_iter()
         .zip(selected_prems)
@@ -282,12 +302,12 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
 pub fn tokenize_fpa(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
-    term: String) -> LongTensor1D {
+    term: String) -> Vec<IdentChunk> {
 
     let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
     normalize_sentence_length(
         tokenizer.tokenize(&term),
-        args.max_length, 0)
+        args.max_length, args.max_subwords, 0)
 }
 
 pub fn get_premise_features(
@@ -310,10 +330,12 @@ pub fn sample_fpa_batch(
     metadata: PickleableFPAMetadata,
     context_batch: Vec<TacticContext>,
 ) -> (
-    LongUnpaddedTensor3D,
+    (Vec<Vec<Vec<i64>>>,
+     Vec<Vec<Vec<Vec<i64>>>>),
     FloatUnpaddedTensor3D,
     LongTensor1D,
-    LongTensor2D,
+    (Vec<Vec<i64>>,
+     Vec<Vec<Vec<i64>>>),
     BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
@@ -372,15 +394,16 @@ pub fn sample_fpa_batch(
             normalize_sentence_length(
                 tokenizer.tokenize(&ctxt.obligation.goal),
                 args.max_length,
+                args.max_subwords,
                 0,
-            )
+            ).into_iter().unzip()
         })
-        .collect();
-    let goal_symbols_mask = context_batch
+        .unzip();
+    let goal_symbols_mask: BoolTensor2D = context_batch
         .par_iter()
         .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
         .collect();
-    let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
+    let tprems_batch: (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>) = premises_batch
         .into_iter()
         .map(|premises| {
             premises
@@ -389,14 +412,15 @@ pub fn sample_fpa_batch(
                     normalize_sentence_length(
                         tokenizer.tokenize(get_hyp_type(&premise)),
                         args.max_length,
+                        args.max_subwords,
                         0,
-                    )
+                    ).into_iter().unzip()
                 })
-                .collect()
+                .unzip()
         })
-        .collect();
+        .unzip();
 
-    let num_hyps_batch = tprems_batch
+    let num_hyps_batch = tprems_batch.0
         .iter()
         .map(|tprems| tprems.len() as i64)
         .collect();
@@ -420,10 +444,12 @@ pub fn sample_fpa(
     hypotheses: Vec<String>,
     goal: String,
 ) -> (
-    LongUnpaddedTensor3D,
+    (Vec<Vec<Vec<i64>>>,
+     Vec<Vec<Vec<Vec<i64>>>>),
     FloatUnpaddedTensor3D,
     LongTensor1D,
-    LongTensor2D,
+    (Vec<Vec<i64>>,
+     Vec<Vec<Vec<i64>>>),
     BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
@@ -447,26 +473,32 @@ pub fn sample_fpa(
         .zip(premise_scores.iter())
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal),
+                                                   args.max_length,
+                                                   args.max_subwords,
+                                                   0).into_iter().unzip();
 
     let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
 
-    let tokenized_premises: Vec<Vec<i64>> = all_premises
+    let tokenized_premises: (Vec<Vec<i64>>, Vec<Vec<Vec<i64>>>) = all_premises
         .into_iter()
         .map(|premise| {
             normalize_sentence_length(
                 tokenizer.tokenize(get_hyp_type(&premise)),
                 args.max_length,
+                args.max_subwords,
                 0,
-            )
+            ).into_iter().unzip()
         })
-        .collect();
-    let num_hyps = tokenized_premises.len();
+        .unzip();
+    let num_hyps = tokenized_premises.0.len();
     (
-        vec![tokenized_premises],
+        (vec![tokenized_premises.0],
+         vec![tokenized_premises.1]),
         vec![premise_features],
         vec![num_hyps as i64],
-        vec![tokenized_goal],
+        (vec![tokenized_goal.0],
+         vec![tokenized_goal.1]),
         vec![goal_symbols_mask],
         vec![word_features],
         vec![vec_features],
