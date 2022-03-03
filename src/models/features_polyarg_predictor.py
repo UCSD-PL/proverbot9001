@@ -286,7 +286,7 @@ class IdentChunkEncoder(nn.Module):
         subwords_embedded = self._subword_embedding(subwords_var.view(batch_size * self._term_length * self._subwords_length))\
           .view(batch_size * self._term_length, self._subwords_length, self._subword_hidden_size)
         initial_hidden = maybe_cuda(torch.zeros(1, batch_size * self._term_length,
-                                                self._subword_hidden_size)
+                                                self._subword_hidden_size))
         tokens_out, hidden_out = self._subword_gru(subwords_embedded, initial_hidden)
         for keyword_lists in keywords_batch:
             for keyword in keyword_lists:
@@ -443,7 +443,7 @@ class FeaturesPolyargPredictor(
                                                     (LongTensor(premise_chunks[0][0]),
                                                      LongTensor(premise_chunks[1][0]))).view(
             1, nhyps_batch[0], self.training_args.max_length,
-            self.training_args.hidden_size)
+            self._model.ident_chunk_encoder.out_size())
         tokenized_goals = self.encode_goal_chunks(self.training_args, self._model, goal_chunks)
 
         stem_certainties, stem_idxs = self.predict_stems(
@@ -454,8 +454,8 @@ class FeaturesPolyargPredictor(
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
-                stem_idxs[0], tokenized_goals[0],
-                tokenized_premises[0], hyp_features[0])
+                stem_idxs[0], tokenized_goals,
+                tokenized_premises, hyp_features[0])
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
         else:
@@ -637,7 +637,7 @@ class FeaturesPolyargPredictor(
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
-                merged_stem_idxs[0], tokenized_goal[0],
+                merged_stem_idxs[0], tokenized_goal,
                 tokenized_premises[0], hyp_features[0])
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
@@ -685,9 +685,9 @@ class FeaturesPolyargPredictor(
         unmasked_probabilities = self._model.goal_args_model(
             stem_idxs.view(batch_size * stem_width),
             tokenized_goals.view(
-                batch_size, 1, goal_len, self.training_args.hidden_size)
-            .expand(-1, stem_width, -1).contiguous()
-            .view(batch_size * stem_width, goal_len))\
+                batch_size, 1, goal_len, self._model.ident_chunk_encoder.out_size())
+            .expand(-1, stem_width, -1, -1).contiguous()
+            .view(batch_size * stem_width, goal_len, self._model.ident_chunk_encoder.out_size()))\
             .view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
@@ -703,20 +703,20 @@ class FeaturesPolyargPredictor(
 
     def hyp_name_scores(self,
                         stem_idxs: torch.LongTensor,
-                        tokenized_goal: List[Tuple[int, List[int]]],
-                        tokenized_premises: List[List[Tuple[int, List[int]]]],
+                        tokenized_goal: FloatTensor,
+                        tokenized_premises: FloatTensor,
                         premise_features: List[List[float]]
                         ) -> torch.FloatTensor:
         assert self._model
         assert len(stem_idxs.size()) == 1
         stem_width = stem_idxs.size()[0]
-        num_hyps = len(tokenized_premises)
-        encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
+        num_hyps = tokenized_premises.size()[1]
+        encoded_goals = self._model.goal_encoder(tokenized_goal)
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
                                           encoded_goals,
                                           tokenized_premises,
                                           FloatTensor([premise_features]))
-        assert hyp_arg_values.size() == torch.Size([1, stem_width, num_hyps])
+        assert hyp_arg_values.size() == torch.Size([1, stem_width, num_hyps]), (hyp_arg_values.size(), stem_width, num_hyps)
         return hyp_arg_values
 
     def predict_args(self,
@@ -770,22 +770,23 @@ class FeaturesPolyargPredictor(
         if hypfeatures_batch.size()[1] == 0:
             return maybe_cuda(torch.zeros(batch_size, beam_width, 0))
         features_size = hypfeatures_batch.size()[2]
+        token_size = self._model.ident_chunk_encoder.out_size()
+        hidden_size = self.training_args.hidden_size
         hyp_arg_values = \
             self._model.hyp_model(stem_idxs.view(batch_size, beam_width, 1)
                                   .expand(-1, -1, num_hyps).contiguous()
                                   .view(batch_size * beam_width * num_hyps),
-                                  encoded_goals.view(batch_size, 1,
-                                                     self.training_args.hidden_size)
+                                  encoded_goals.view(batch_size, 1, hidden_size)
                                   .expand(-1, beam_width * num_hyps, -1)
                                   .contiguous()
                                   .view(batch_size * beam_width * num_hyps,
-                                        self.training_args.hidden_size),
+                                        hidden_size),
                                   hyps_batch.view(batch_size, 1, num_hyps,
                                                   self.training_args.max_length,
-                                                  self.training_args.hidden_size)
-                                  .expand(-1, beam_width, -1, -1).contiguous()
+                                                  token_size)
+                                  .expand(-1, beam_width, -1, -1, -1).contiguous()
                                   .view(batch_size * beam_width * num_hyps,
-                                        self.training_args.max_length),
+                                        self.training_args.max_length, token_size),
                                   hypfeatures_batch
                                   .view(batch_size, 1, num_hyps, features_size)
                                   .expand(-1, beam_width, -1, -1).contiguous()
