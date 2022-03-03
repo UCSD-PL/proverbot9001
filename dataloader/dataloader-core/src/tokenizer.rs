@@ -205,7 +205,7 @@ impl PyIdentChunkTokenizer {
         }
     }
     pub fn __getstate__(&self, py: Python) -> PyResult<PyObject> {
-        Ok(PyBytes::new(py, &serialize(&self).unwrap()).to_object(py))
+        Ok(PyBytes::new(py, &serialize(&self.inner).unwrap()).to_object(py))
     }
 }
 impl PyIdentChunkTokenizer {
