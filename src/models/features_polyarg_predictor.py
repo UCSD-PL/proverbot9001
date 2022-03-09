@@ -267,7 +267,7 @@ class FeaturesClassifier(nn.Module):
 
 class IdentChunkEncoder(nn.Module):
     def __init__(self, num_keywords: int, num_subwords: int, term_length: int,
-                 subwords_length: int, subword_hidden_size: int) \
+                 subwords_length: int, subword_hidden_size: int, keyword_hidden_size: int) \
       -> None:
         super().__init__()
         self._subword_embedding = maybe_cuda(
@@ -275,13 +275,14 @@ class IdentChunkEncoder(nn.Module):
         self._subword_gru = maybe_cuda(
             nn.GRU(subword_hidden_size, subword_hidden_size, batch_first=True))
         self._keyword_embedding = maybe_cuda(
-            nn.Embedding(num_keywords + 2, subword_hidden_size))
+            nn.Embedding(num_keywords + 2, keyword_hidden_size))
         self._subword_hidden_size = subword_hidden_size
+        self._keyword_hidden_size = keyword_hidden_size
         self._num_keywords = num_keywords
         self._term_length = term_length
         self._subwords_length = subwords_length
     def out_size(self) -> int:
-        return self._subword_hidden_size * 2
+        return self._subword_hidden_size + self._keyword_hidden_size
     # keywords_batch: [batch_size, max_length]
     # subwords_batch: [batch_size, max_length, max_subwords]
     def forward(self, keywords_batch: torch.LongTensor,
@@ -869,6 +870,8 @@ class FeaturesPolyargPredictor(
                             default=default_values.get("load-subwords", None))
         parser.add_argument("--use-spaces", action="store_true", dest="use_spaces")
         parser.add_argument("--max-subwords", type=int, default=5)
+        parser.add_argument("--subwords-size", type=int, default=8)
+        parser.add_argument("--keyword-embedded-size", type=int, default=8)
 
         parser.add_argument("--save-embedding", type=str, default=None)
         parser.add_argument("--save-features-state", type=str, default=None)
@@ -988,7 +991,8 @@ class FeaturesPolyargPredictor(
         ident_chunk_encoder = IdentChunkEncoder(num_keywords, num_subwords,
                                                 arg_values.max_length,
                                                 arg_values.max_subwords,
-                                                arg_values.hidden_size)
+                                                arg_values.subwords_size,
+                                                arg_values.keyword_embedded_size)
         return FeaturesPolyArgModel(
             FeaturesClassifier(wordf_sizes, vecf_size,
                                arg_values.hidden_size,
