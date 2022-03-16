@@ -22,9 +22,9 @@
 import argparse
 import sys
 
-import serapi_instance
+import coq_serapy as serapi_instance
 from context_filter import get_context_filter
-from format import *
+from coq_serapy.contexts import *
 from util import *
 from data import read_all_text_data
 from pathlib_revised import Path2

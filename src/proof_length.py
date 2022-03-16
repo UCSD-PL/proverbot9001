@@ -23,8 +23,8 @@ import argparse
 import csv
 import itertools
 
-import serapi_instance
-from format import *
+import coq_serapy as serapi_instance
+from coq_serapy.contexts import *
 from util import *
 from data import read_all_text_data
 from pathlib_revised import Path2

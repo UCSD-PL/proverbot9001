@@ -30,11 +30,11 @@ import evaluator_report
 import argparse
 import data
 import itertools
-import serapi_instance
+import coq_serapy as serapi_instance
 import features
 import json
 from util import eprint, print_time
-from format import strip_scraped_output
+from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
