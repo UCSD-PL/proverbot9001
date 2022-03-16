@@ -293,10 +293,10 @@ class IdentChunkEncoder(nn.Module):
             for keyword in keyword_lists:
                 assert keyword < self._num_keywords + 2, keyword
         keywords_embedded = self._keyword_embedding(keywords_var)\
-          .view(batch_size * self._term_length, self._subword_hidden_size)
+          .view(batch_size * self._term_length, self._keyword_hidden_size)
         return torch.cat((keywords_embedded,
                           hidden_out.view(batch_size * self._term_length, self._subword_hidden_size)),
-                         dim=1).view(batch_size, self._term_length, self._subword_hidden_size * 2)
+                         dim=1).view(batch_size, self._term_length, self._subword_hidden_size + self._keyword_hidden_size)
 
 class FeaturesPolyArgModel(nn.Module):
     def __init__(self,
