@@ -213,9 +213,11 @@ def silent():
     save_stdout = sys.stdout
     sys.stderr = DummyFile()
     sys.stdout = DummyFile()
-    yield
-    sys.stderr = save_stderr
-    sys.stdout = save_stdout
+    try:
+        yield
+    finally:
+        sys.stderr = save_stderr
+        sys.stdout = save_stdout
 
 with silent():
     use_cuda = torch.cuda.is_available()
