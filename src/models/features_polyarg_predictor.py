@@ -349,7 +349,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(16, num_stem_poss)
 
         (tokenized_premises, premise_subwords), hyp_features, \
-            nhyps_batch, (tokenized_goal, goal_subwords)\
+            nhyps_batch, (tokenized_goal, goal_subwords), \
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
@@ -398,7 +398,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         (tokenized_premises_batch, premise_subwords), premise_features_batch, \
-            nhyps_batch, (tokenized_goal_batch, goal_subwords)\
+            nhyps_batch, (tokenized_goal_batch, goal_subwords), \
             goal_mask, \
             word_features, vec_features = \
             sample_fpa_batch(extract_dataloader_args(self.training_args),
@@ -793,7 +793,7 @@ class FeaturesPolyargPredictor(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
         with print_time("Converting data to tensors", guard=arg_values.verbose):
-            (unpadded_tokenized_hyp_types, unpadded_hyp_subwords) \
+            (unpadded_tokenized_hyp_types, unpadded_hyp_subwords), \
                 unpadded_hyp_features, \
                 num_hyps, \
                 (tokenized_goals, goal_subwords), \
