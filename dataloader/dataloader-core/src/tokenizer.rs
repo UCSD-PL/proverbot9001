@@ -159,25 +159,25 @@ impl IdentChunkTokenizer {
         let mut tokens = Vec::new();
         let words = get_symbols(sentence);
         for word in words {
-            match self.keywords.get(word) {
-                Some(kidx) => tokens.push((*kidx, vec![])),
-                None => {
-                    let mut word_tokens = Vec::new();
-                    let mut cur_pos = 0;
-                    while cur_pos < word.len() {
-                        match self.tok_trie.longest_prefix(&word[cur_pos..]) {
-                            Some((idx, prefix)) => {
-                                word_tokens.push(idx);
-                                cur_pos += prefix.len()
-                            }
-                            None => {
-                                if self.use_unknowns {
-                                    word_tokens.push(self.subword_vocab_size - 1)
-                                }
-                                cur_pos += 1
-                            }
-                        }
+            let mut word_tokens = Vec::new();
+            let mut cur_pos = 0;
+            while cur_pos < word.len() {
+                match self.tok_trie.longest_prefix(&word[cur_pos..]) {
+                    Some((idx, prefix)) => {
+                        word_tokens.push(idx);
+                        cur_pos += prefix.len()
                     }
+                    None => {
+                        if self.use_unknowns {
+                            word_tokens.push(self.subword_vocab_size - 1)
+                        }
+                        cur_pos += 1
+                    }
+                }
+            }
+            match self.keywords.get(word) {
+                Some(kidx) => tokens.push((*kidx, word_tokens)),
+                None => {
                     tokens.push((1, word_tokens));
                 }
             }
