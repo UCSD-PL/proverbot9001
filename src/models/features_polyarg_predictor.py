@@ -52,7 +52,7 @@ from dataloader import (features_polyarg_tensors,
                         decode_fpa_stem,
                         # decode_fpa_arg,
                         # features_vocab_sizes,
-                        get_num_tokens,
+                        get_num_keywords,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
@@ -834,7 +834,7 @@ class FeaturesPolyargPredictor(
                                         word_features_size,
                                         vec_features_size,
                                         get_num_indices(metadata)[1],
-                                        get_num_tokens(metadata))
+                                        get_num_keywords(metadata))
                 epoch_start = 1
 
         assert model
@@ -855,7 +855,7 @@ class FeaturesPolyargPredictor(
                                                metadata),
                                            get_vec_features_size(metadata),
                                            get_num_indices(metadata)[1],
-                                           get_num_tokens(metadata)))
+                                           get_num_keywords(metadata)))
         model.load_state_dict(state.weights)
         self._model = model
         self.training_loss = state.loss
