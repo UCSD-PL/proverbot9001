@@ -110,6 +110,16 @@ impl TacticContext {
     }
 }
 
+impl From<ScrapedTactic> for TacticContext {
+    fn from(scraped: ScrapedTactic) -> Self {
+        TacticContext {
+            relevant_lemmas: scraped.relevant_lemmas,
+            prev_tactics: scraped.prev_tactics,
+            obligation: scraped.context.fg_goals.first().unwrap().clone(),
+        }
+    }
+}
+
 #[pyclass]
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct Obligation {

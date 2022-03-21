@@ -1,3 +1,4 @@
+use itertools::multiunzip;
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use rand::seq::SliceRandom;
@@ -10,15 +11,15 @@ use std::fs::File;
 use std::io::{Write, stdout};
 use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
-use crate::context_filter::{parse_filter, apply_filter};
+use crate::context_filter::{apply_filter, filter_data, parse_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer,
-    Token, IdentChunkTokenizer, PyIdentChunkTokenizer, IdentChunk,
+    get_words, normalize_sentence_length, IdentChunk, IdentChunkTokenizer, OpenIndexer,
+    PickleableIndexer, PyIdentChunkTokenizer, Token,
 };
 use gestalt_ratio::gestalt_ratio;
 
@@ -68,55 +69,382 @@ pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata 
     )
 }
 
+pub struct FPAInputTensorSample {
+    premise_keywords: Vec<Vec<i64>>,
+    premise_subwords: Vec<Vec<Vec<i64>>>,
+    premise_features: Vec<Vec<f64>>,
+    num_premises: i64,
+
+    goal_keywords: Vec<i64>,
+    goal_subwords: Vec<Vec<i64>>,
+    goal_mask: Vec<bool>,
+
+    word_features: Vec<i64>,
+    vec_features: Vec<f64>,
+}
+#[pyclass(module = "dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FPAInputTensorDataset {
+    #[pyo3(get, set)]
+    premise_keywords: Vec<Vec<Vec<i64>>>,
+    #[pyo3(get, set)]
+    premise_subwords: Vec<Vec<Vec<Vec<i64>>>>,
+    #[pyo3(get, set)]
+    premise_features: Vec<Vec<Vec<f64>>>,
+    #[pyo3(get, set)]
+    num_premises: Vec<i64>,
+
+    #[pyo3(get, set)]
+    goal_keywords: Vec<Vec<i64>>,
+    #[pyo3(get, set)]
+    goal_subwords: Vec<Vec<Vec<i64>>>,
+    #[pyo3(get, set)]
+    goal_masks: Vec<Vec<bool>>,
+
+    #[pyo3(get, set)]
+    word_features: Vec<Vec<i64>>,
+    #[pyo3(get, set)]
+    vec_features: Vec<Vec<f64>>,
+}
+
+pub struct FPAOutputTensorSample {
+    tactic_stem_idx: i64,
+    tactic_arg_idx: i64,
+}
+
+impl FPAOutput {
+    fn as_tensors(&self, dargs: &DataloaderArgs) -> FPAOutputTensorSample {
+        FPAOutputTensorSample {
+            tactic_stem_idx: self.tactic as i64,
+            tactic_arg_idx: arg_to_index(dargs, self.argument.clone()),
+        }
+    }
+}
+#[pyclass(module = "dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FPAOutputTensorDataset {
+    #[pyo3(get, set)]
+    tactic_stem_idxs: Vec<i64>,
+    #[pyo3(get, set)]
+    tactic_arg_idxs: Vec<i64>,
+}
+
+pub struct FPATensorSample {
+    input: FPAInputTensorSample,
+    output: FPAOutputTensorSample,
+}
+
+#[pyclass(module = "dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FPATensorDataset {
+    #[pyo3(get, set)]
+    inputs: FPAInputTensorDataset,
+    #[pyo3(get, set)]
+    outputs: FPAOutputTensorDataset,
+}
+
+impl From<Vec<FPAInputTensorSample>> for FPAInputTensorDataset {
+    fn from(input_samples: Vec<FPAInputTensorSample>) -> Self {
+        let (
+            prem_keys,
+            prem_subs,
+            prem_feats,
+            num_prems,
+            goal_keys,
+            goal_subs,
+            goal_masks,
+            word_feats,
+            vec_feats,
+        ) = multiunzip(input_samples.into_iter().map(|input| {
+            (
+                input.premise_keywords,
+                input.premise_subwords,
+                input.premise_features,
+                input.num_premises,
+                input.goal_keywords,
+                input.goal_subwords,
+                input.goal_mask,
+                input.word_features,
+                input.vec_features,
+            )
+        }));
+        FPAInputTensorDataset {
+            premise_keywords: prem_keys,
+            premise_subwords: prem_subs,
+            premise_features: prem_feats,
+            num_premises: num_prems,
+
+            goal_keywords: goal_keys,
+            goal_subwords: goal_subs,
+            goal_masks: goal_masks,
+
+            word_features: word_feats,
+            vec_features: vec_feats,
+        }
+    }
+}
+
+impl From<Vec<FPAOutputTensorSample>> for FPAOutputTensorDataset {
+    fn from(output_samples: Vec<FPAOutputTensorSample>) -> Self {
+        let (tactic_stem_idxs, tactic_arg_idxs) = output_samples
+            .into_iter()
+            .map(|output| (output.tactic_stem_idx, output.tactic_arg_idx))
+            .unzip();
+        FPAOutputTensorDataset {
+            tactic_stem_idxs: tactic_stem_idxs,
+            tactic_arg_idxs: tactic_arg_idxs,
+        }
+    }
+}
+
+impl From<Vec<FPATensorSample>> for FPATensorDataset {
+    fn from(samples: Vec<FPATensorSample>) -> Self {
+        let (inputs, outputs): (Vec<_>, Vec<_>) = samples
+            .into_iter()
+            .map(|sample| (sample.input, sample.output))
+            .unzip();
+        FPATensorDataset {
+            inputs: inputs.into(),
+            outputs: outputs.into(),
+        }
+    }
+}
+
+fn trim_premises<'a>(
+    premises: &'a Vec<String>,
+    tac_arg: TacticArgument,
+    max_premises: i64,
+) -> Vec<&'a String> {
+    if premises.len() > args.max_premises {
+        match tac_arg {
+            TacticArgument::HypVar(hyp_idx) => {
+                let mut other_prems = premises.clone();
+                let arg_hyp = other_prems.remove(hyp_idx);
+                let mut selected: Vec<&String> = other_prems
+                    .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                    .copied()
+                    .collect();
+                selected.insert(thread_rng().gen_range(0, args.max_premises), arg_hyp);
+                selected
+            }
+            _ => premises
+                .choose_multiple(&mut thread_rng(), args.max_premises)
+                .copied()
+                .collect(),
+        }
+    } else if all_premises.len() == 0 {
+        lazy_static! {
+            static ref COLONSTRING: String = ":".to_string();
+        }
+        vec![&COLONSTRING]
+    } else {
+        all_premises.iter().collect()
+    };
+}
+
+fn fpa_input_tensors(
+    sample: TacticContext,
+    tac_arg: TacticArgument,
+    metadata: &FPAMetadata,
+    args: &DataloaderArgs,
+) -> FPAInputTensorSample {
+    let (_, tokenizer, tokenmap) = metadata;
+    let all_premises = sample
+        .obligation
+        .hypotheses
+        .iter()
+        .chain(sample.relevant_lemmas.iter())
+        .collect::<Vec<_>>();
+    let (word_features, vec_features) = sample_context_features(
+        &args,
+        tokenmap,
+        &sample.relevant_lemmas,
+        &sample.prev_tactics,
+        &sample.obligation.hypotheses,
+        &sample.obligation.goal,
+    );
+    let (goal_keywords, goal_subwords) = normalize_sentence_length(
+        tokenizer.tokenize(&sample.obligation.goal),
+        args.max_length,
+        args.max_subwords,
+        0,
+    )
+    .into_iter()
+    .unzip();
+    let goal_mask = get_goal_mask(&sample.obligation.goal, args.max_length);
+    let selected_prems: Vec<&String> = if all_premises.len() > args.max_premises {
+        match tac_arg {
+            TacticArgument::HypVar(hyp_idx) => {
+                let mut other_prems = all_premises.clone();
+                let arg_hyp = other_prems.remove(hyp_idx);
+                let mut selected: Vec<&String> = other_prems
+                    .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                    .copied()
+                    .collect();
+                selected.insert(thread_rng().gen_range(0, args.max_premises), arg_hyp);
+                selected
+            }
+            _ => all_premises
+                .choose_multiple(&mut thread_rng(), args.max_premises)
+                .copied()
+                .collect(),
+        }
+    } else if all_premises.len() == 0 {
+        lazy_static! {
+            static ref COLONSTRING: String = ":".to_string();
+        }
+        vec![&COLONSTRING]
+    } else {
+        all_premises.clone()
+    };
+    let (premise_keywords, premise_subwords): (Vec<Vec<_>>, Vec<Vec<_>>) = selected_prems
+        .iter()
+        .map(|prem| {
+            normalize_sentence_length(
+                tokenizer.tokenize(get_hyp_type(prem)),
+                args.max_length,
+                args.max_subwords,
+                0,
+            )
+            .into_iter()
+            .unzip()
+        })
+        .unzip();
+
+    let premise_features: Vec<Vec<f64>> = score_hyps(
+        &selected_prems.iter().cloned().cloned().collect(),
+        &sample.obligation.goal,
+    )
+    .into_iter()
+    .zip(selected_prems)
+    .map(|(score, hyp)| vec![score, equality_hyp_feature(hyp, &sample.obligation.goal)])
+    .collect();
+    FPAInputTensorSample {
+        premise_keywords,
+        premise_subwords,
+        premise_features,
+        num_premises: all_premises.len() as i64,
+        goal_keywords,
+        goal_subwords,
+        goal_mask,
+        word_features,
+        vec_features,
+    }
+}
+
+// Note: This is probably wrong since the premises get trimmed, invalidating indices.
+fn parse_fpa_argument(
+    dargs: &DataloaderArgs,
+    hyps: Vec<String>,
+    goal: &str,
+    arg: &str,
+) -> TacticArgument {
+    let targ = arg.trim();
+    let argstr_tokens: Vec<&str> = targ[..targ.len() - 1].split_whitespace().collect();
+    if argstr_tokens.len() == 0 {
+        TacticArgument::NoArg
+    } else if argstr_tokens.len() > 1 {
+        panic!(
+            "A multi argument tactic made it past the context filter! arg is {}",
+            arg
+        )
+    } else {
+        let goal_symbols = get_words(goal);
+        let arg_token = argstr_tokens[0];
+        match goal_symbols
+            .into_iter()
+            .take(dargs.max_length)
+            .enumerate()
+            .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
+        {
+            Some((idx, _symbol)) => {
+                return TacticArgument::GoalToken(idx);
+            }
+            None => (),
+        }
+        match indexed_premises(hyps.iter().map(|s| s.as_ref()))
+            .into_iter()
+            .find(|(_idx, hname)| *hname == arg_token)
+        {
+            Some((idx, _hname)) => {
+                return TacticArgument::HypVar(idx);
+            }
+            None => panic!(
+                "An unknown tactic made it past the context filter with args: {}\n\
+                            Hyps are {:?}\n\
+                            Goal is {}",
+                arg, hyps, goal
+            ),
+        }
+    }
+}
+fn parse_tactic(
+    tactic: &str,
+    context: TacticContext,
+    metadata: &FPAMetadata,
+    dargs: &DataloaderArgs,
+) -> FPAOutput {
+    let (tac, arg) = split_tactic(tactic).expect(&format!("Couldn't split tactic {}", tactic));
+    FPAOutput {
+        tactic: metadata.0.lookup(tac.to_string()) as usize,
+        argument: parse_fpa_argument(
+            dargs,
+            context.obligation.hypotheses,
+            &context.obligation.goal,
+            &arg,
+        ),
+    }
+}
+
+fn fpa_tensors(
+    sample: ScrapedTactic,
+    metadata: &FPAMetadata,
+    args: &DataloaderArgs,
+) -> FPATensorSample {
+    let sample_output: FPAOutput =
+        parse_tactic(&sample.tactic, sample.clone().into(), metadata, args);
+    FPATensorSample {
+        input: fpa_input_tensors(
+            sample.into(),
+            sample_output.argument.clone(),
+            metadata,
+            args,
+        ),
+        output: sample_output.as_tensors(args),
+    }
+}
+
 pub fn features_polyarg_tensors_rs(
     args: DataloaderArgs,
     filename: String,
     metadata: Option<PickleableFPAMetadata>,
-) -> PyResult<(
-    PickleableFPAMetadata,
-    (
-        (Vec<Vec<Vec<i64>>>,
-         Vec<Vec<Vec<Vec<i64>>>>),
-        FloatUnpaddedTensor3D,
-        LongTensor1D,
-        (Vec<Vec<i64>>,
-         Vec<Vec<Vec<i64>>>),
-        BoolTensor2D,
-        LongTensor2D,
-        FloatTensor2D,
-        LongTensor1D,
-        LongTensor1D,
-    ),
-    (Vec<i64>, i64),
-)> {
+) -> PyResult<(PickleableFPAMetadata, FPATensorDataset, (Vec<i64>, i64))> {
+    let filter = parse_filter(&args.context_filter);
     let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
     let spinner = ProgressBar::new(341028).with_message("Loading data from file").with_style(my_bar_style.clone());
-    let filter = parse_filter(&args.context_filter);
-    let raw_data_iter = scraped_from_file(
+
+    let mut raw_data_iter = scraped_from_file(
         File::open(filename)
-            .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file")
-            )?)
-        .flat_map(|datum| match datum {
-            ScrapedData::Vernac(_) => None,
-            ScrapedData::Tactic(t) => { spinner.inc(1); Some(t)},
-        })
-        .flat_map(preprocess_datum)
-        .filter(|datum| apply_filter(args.max_length, &filter, datum));
+            .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
+    )
+    .flat_map(|datum| match datum {
+        ScrapedData::Vernac(_) => None,
+        ScrapedData::Tactic(t) => { spinner.inc(1); Some(t)},
+    })
+    .flat_map(preprocess_datum)
+    .filter(|datum| apply_filter(&args, &filter, datum));
+
+    let length: u64 = raw_data.len().try_into().unwrap();
+    let features_data_sample: Vec<ScrapedTactic> = raw_data_iter.by_ref().take(4096).collect();
+    // Put the data used for constructing the features metadata back
+    // at the beginning of the raw data iter.
+    let raw_data_iter = features_data_sample.into_iter().chain(raw_data_iter);
+
     let mut raw_data: Vec<ScrapedTactic> = match args.max_tuples {
         Some(max) => raw_data_iter.take(max).collect(),
         None => raw_data_iter.collect(),
     };
-    spinner.finish();
-    let length: u64 = raw_data.len().try_into().unwrap();
-
-    // scraped_to_file(
-    //     File::create("filtered-data.json").unwrap(),
-    //     raw_data.iter().progress_with(ProgressBar::new(length).with_message("Writing filetered data to file")
-    //                                                           .with_style(my_bar_style.clone())
-    //                                                           .with_finish(ProgressFinish::AndLeave))
-    //                    .cloned().map(ScrapedData::Tactic),
-    // );
-    let (mut indexer, rest_meta) = match metadata {
+    let (indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
             OpenIndexer::from_pickleable(indexer),
             Some((tokenizer, tmap)),
@@ -127,27 +455,40 @@ pub fn features_polyarg_tensors_rs(
                 // embedding.freeze();
                 (embedding, None)
             }
-            None => (OpenIndexer::new(), None),
+            None => {
+                let mut indexer = OpenIndexer::new();
+                for sample in features_data_sample.iter() {
+                    match get_stem(&sample.tactic) {
+                        Some(stem) => indexer.add(stem),
+                        None => (),
+                    }
+                }
+                (indexer, None)
+            }
         },
     };
     let (tokenizer, features_token_map) = match rest_meta {
-        Some((ptok, ptmap)) => (
-            ptok.inner.unwrap(),
-            FeaturesTokenMap::from_dicts(ptmap),
-        ),
+        Some((ptok, ptmap)) => (ptok.inner.unwrap(), FeaturesTokenMap::from_dicts(ptmap)),
         None => {
             let use_unknowns = false;
             let num_reserved_tokens = 2;
-            let keywords_file = args.keywords_file.clone().expect("No keywords file passed!");
-            let subwords_file = args.subwords_file.clone().expect("No subwords file passed!");
+            let keywords_file = args
+                .keywords_file
+                .clone()
+                .expect("No keywords file passed!");
+            let subwords_file = args
+                .subwords_file
+                .clone()
+                .expect("No subwords file passed!");
             let tokenizer = IdentChunkTokenizer::new_from_files(
                 use_unknowns,
                 num_reserved_tokens,
                 &keywords_file,
-                &subwords_file);
+                &subwords_file,
+            );
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
-                None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
+                None => FeaturesTokenMap::initialize(&features_data_sample, args.num_keywords),
             };
             (tokenizer, tmap)
         }
@@ -156,140 +497,19 @@ pub fn features_polyarg_tensors_rs(
         Some(path) => features_token_map.save_to_text(path),
         None => (),
     };
-    raw_data.sort_by_key(|pnt| -(pnt.context.focused_hyps().len() as i64));
 
-    // This seems to finish in less than a second so no need for a progress bar
-    let tactic_stem_indices: Vec<i64> = raw_data
-        .iter()
-        .map(|data| {
-            indexer.lookup(
-                get_stem(&data.tactic)
-                    .expect(&format!("Couldn't get the stem for {}", data.tactic))
-                    .to_string(),
-            )
-        })
-        .collect();
-    indexer.freeze();
-
-    match &args.save_embedding {
-        Some(path) => indexer.save_to_text(path),
-        None => (),
-    };
-
-    // This seems to finish in less than a second so no need for a progress bar
-    let all_premises: Vec<Vec<&String>> = raw_data
-        .par_iter()
-        .map(|scraped| {
-            scraped
-                .context
-                .focused_hyps()
-                .iter()
-                .chain(scraped.relevant_lemmas.iter())
-                .collect()
-        })
-        .collect();
-    let num_prems = all_premises
-        .iter()
-        .map(|prems| prems.len() as i64)
-        .collect();
-    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
-    let tokenized_goals: (Vec<_>, Vec<_>) = raw_data
-        .par_iter()
-        .map(|tac| {
-            normalize_sentence_length(
-                tokenizer.tokenize(&tac.context.focused_goal()),
-                args.max_length,
-                args.max_subwords,
-                0,
-            ).into_iter().unzip()
-        }).progress_with(ProgressBar::new(length).with_message("Tokenizing goals")
-                                                 .with_style(my_bar_style.clone())
-                                                 .with_finish(ProgressFinish::AndLeave))
-        .unzip();
-    let goal_symbols_mask = raw_data
-        .par_iter()
-        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
-        .collect();
-    let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
-        .par_iter()
-        .map(|scraped| {
-            let (arg, selected) = get_argument(&args, scraped);
-            (arg_to_index(&args, arg), selected)
-        })
-        .unzip();
-    let tokenized_hyps: (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>) = selected_prems
-        .par_iter()
-        .map(|hyps| {
-            hyps.iter()
-                .map(|hyp| {
-                    normalize_sentence_length(
-                        tokenizer.tokenize(get_hyp_type(hyp)),
-                        args.max_length,
-                        args.max_subwords,
-                        0,
-                    ).into_iter().unzip()
-                })
-                .unzip()
-        }).progress_with(ProgressBar::new(length).with_message("Tokenizing hypotheses")
-                                                 .with_style(my_bar_style.clone())
-                                                 .with_finish(ProgressFinish::AndLeave))
-        .unzip();
-    // BATCH
-    for (keyword_idx_lists, subword_list_lists) in tokenized_hyps.0.iter().zip(tokenized_hyps.1.iter()) {
-        // HYP_LIST
-        for (keyword_idxs, subword_lists) in keyword_idx_lists.iter().zip(subword_list_lists.iter()) {
-            assert_eq!(keyword_idxs.len(), args.max_length);
-            assert_eq!(subword_lists.len(), args.max_length);
-            // HYP
-            for subword_list in subword_lists.iter() {
-                 // TOKEN
-                 assert_eq!(subword_list.len(), args.max_subwords);
-            }
-        }
-    }
-    let hyp_features = raw_data
-        .par_iter()
-        .zip(selected_prems)
-        .map(|(scraped, selected)| {
-            score_hyps(
-                &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
-                &scraped.context.focused_goal(),
-            )
-            .iter()
-            .zip(selected)
-            .map(|(score, hyp)| {
-                vec![
-                    *score,
-                    equality_hyp_feature(hyp, &scraped.context.focused_goal()),
-                ]
-            })
-            .collect()
-        }).progress_with(ProgressBar::new(length).with_message("Getting hypotheses features")
-                                                 .with_style(my_bar_style.clone())
-                                                 .with_finish(ProgressFinish::AndLeave))
-        .collect();
-    let goal_symbols_mask = raw_data
-        .par_iter()
-        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
-        .progress_with(ProgressBar::new(length).with_message("Getting goal masks")
+    let metadata = (indexer, tokenizer, features_token_map.clone());
+    let samples: Vec<FPATensorSample> = raw_data_iter
+        .par_bridge()
+        .map(|sample| fpa_tensors(sample, &metadata, &args))
+        .progress_with(ProgressBar::new(length).with_message("Processing samples")
                                                .with_style(my_bar_style)
                                                .with_finish(ProgressFinish::AndLeave))
         .collect();
-    let word_features_sizes = features_token_map.word_features_sizes();
     Ok((
-        fpa_metadata_to_pickleable((indexer, tokenizer, features_token_map)),
-        (
-            tokenized_hyps,
-            hyp_features,
-            num_prems,
-            tokenized_goals,
-            goal_symbols_mask,
-            word_features,
-            vec_features,
-            tactic_stem_indices,
-            arg_indices,
-        ),
-        (word_features_sizes, VEC_FEATURES_SIZE),
+        fpa_metadata_to_pickleable(metadata),
+        samples.into(),
+        (features_token_map.word_features_sizes(), VEC_FEATURES_SIZE),
     ))
 }
 
@@ -326,19 +546,23 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
 pub fn tokenize_fpa(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
-    term: String) -> Vec<IdentChunk> {
-
+    term: String,
+) -> Vec<IdentChunk> {
     let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
     normalize_sentence_length(
         tokenizer.tokenize(&term),
-        args.max_length, args.max_subwords, 0)
+        args.max_length,
+        args.max_subwords,
+        0,
+    )
 }
 
 pub fn get_premise_features_rs(
     _args: DataloaderArgs,
     _metadata: PickleableFPAMetadata,
     goal: String,
-    premise: String) -> FloatTensor1D {
+    premise: String,
+) -> FloatTensor1D {
     let score = gestalt_ratio(&goal, get_hyp_type(&premise));
     let eq_feat = equality_hyp_feature(&premise, &goal);
     vec![score, eq_feat]
@@ -353,18 +577,9 @@ pub fn sample_fpa_batch_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     context_batch: Vec<TacticContext>,
-) -> (
-    (Vec<Vec<Vec<i64>>>,
-     Vec<Vec<Vec<Vec<i64>>>>),
-    FloatUnpaddedTensor3D,
-    LongTensor1D,
-    (Vec<Vec<i64>>,
-     Vec<Vec<Vec<i64>>>),
-    BoolTensor2D,
-    LongTensor2D,
-    FloatTensor2D,
-) {
+) -> FPAInputTensorDataset {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
+    // context_batch.par_iter().map(|sample| fpa_input_tensors(sample,
     let (word_features_batch, vec_features_batch) = context_batch
         .iter()
         .map(|ctxt| {
@@ -420,7 +635,9 @@ pub fn sample_fpa_batch_rs(
                 args.max_length,
                 args.max_subwords,
                 0,
-            ).into_iter().unzip()
+            )
+            .into_iter()
+            .unzip()
         })
         .unzip();
     let goal_symbols_mask: BoolTensor2D = context_batch
@@ -438,13 +655,16 @@ pub fn sample_fpa_batch_rs(
                         args.max_length,
                         args.max_subwords,
                         0,
-                    ).into_iter().unzip()
+                    )
+                    .into_iter()
+                    .unzip()
                 })
                 .unzip()
         })
         .unzip();
 
-    let num_hyps_batch = tprems_batch.0
+    let num_hyps_batch = tprems_batch
+        .0
         .iter()
         .map(|tprems| tprems.len() as i64)
         .collect();
@@ -468,12 +688,10 @@ pub fn sample_fpa_rs(
     hypotheses: Vec<String>,
     goal: String,
 ) -> (
-    (Vec<Vec<Vec<i64>>>,
-     Vec<Vec<Vec<Vec<i64>>>>),
+    (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>),
     FloatUnpaddedTensor3D,
     LongTensor1D,
-    (Vec<Vec<i64>>,
-     Vec<Vec<Vec<i64>>>),
+    (Vec<Vec<i64>>, Vec<Vec<Vec<i64>>>),
     BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
@@ -497,10 +715,14 @@ pub fn sample_fpa_rs(
         .zip(premise_scores.iter())
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal),
-                                                   args.max_length,
-                                                   args.max_subwords,
-                                                   0).into_iter().unzip();
+    let tokenized_goal = normalize_sentence_length(
+        tokenizer.tokenize(&goal),
+        args.max_length,
+        args.max_subwords,
+        0,
+    )
+    .into_iter()
+    .unzip();
 
     let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
 
@@ -512,17 +734,17 @@ pub fn sample_fpa_rs(
                 args.max_length,
                 args.max_subwords,
                 0,
-            ).into_iter().unzip()
+            )
+            .into_iter()
+            .unzip()
         })
         .unzip();
     let num_hyps = tokenized_premises.0.len();
     (
-        (vec![tokenized_premises.0],
-         vec![tokenized_premises.1]),
+        (vec![tokenized_premises.0], vec![tokenized_premises.1]),
         vec![premise_features],
         vec![num_hyps as i64],
-        (vec![tokenized_goal.0],
-         vec![tokenized_goal.1]),
+        (vec![tokenized_goal.0], vec![tokenized_goal.1]),
         vec![goal_symbols_mask],
         vec![word_features],
         vec![vec_features],
@@ -646,8 +868,10 @@ pub fn encode_fpa_arg_unbounded(
     if argstr_tokens.len() == 0 {
         Ok(arg_to_index(args, TacticArgument::NoArg))
     } else if argstr_tokens.len() > 1 {
-        Err(format!("A multi argument tactic made it past the context filter! arg is {}",
-                    arg))
+        Err(format!(
+            "A multi argument tactic made it past the context filter! arg is {}",
+            arg
+        ))
     } else {
         let goal_symbols = get_words(goal);
         let arg_token = argstr_tokens[0];
@@ -717,12 +941,10 @@ fn get_argument<'a>(
     if argstr_tokens.len() == 0 {
         (TacticArgument::NoArg, rand_bounded_hyps!())
     } else if argstr_tokens.len() > 1 {
-        assert!(
-            false,
+        panic!(
             "A multi argument tactic made it past the context filter! {}",
             scraped.tactic
-        );
-        (TacticArgument::Unrecognized, rand_bounded_hyps!())
+        )
     } else {
         let goal_symbols = get_words(scraped.context.focused_goal());
         let arg_token = argstr_tokens[0];

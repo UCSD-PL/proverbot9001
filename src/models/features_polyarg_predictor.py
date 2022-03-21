@@ -780,28 +780,33 @@ class FeaturesPolyargPredictor(
             if arg_values.start_from:
                 _, (old_arg_values, unparsed_args,
                     metadata, state) = torch.load(arg_values.start_from)
-                _, data_lists, \
+                _, dataset, \
                     (word_features_size, vec_features_size) = \
                     features_polyarg_tensors_with_meta(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file),
                         metadata)
             else:
-                metadata, data_lists, \
+                metadata, dataset, \
                     (word_features_size, vec_features_size) = \
                     features_polyarg_tensors(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
         with print_time("Converting data to tensors", guard=arg_values.verbose):
-            (unpadded_tokenized_hyp_types, unpadded_hyp_subwords), \
-                unpadded_hyp_features, \
-                num_hyps, \
-                (tokenized_goals, goal_subwords), \
-                goal_masks, \
-                word_features, \
-                vec_features, \
-                tactic_stem_indices, \
-                arg_indices = data_lists
+            unpadded_tokenized_hyp_types = dataset.inputs.premise_keywords
+            unpadded_hyp_subwords = dataset.inputs.premise_subwords
+            unpadded_hyp_features = dataset.inputs.premise_features
+            num_hyps = dataset.inputs.num_premises
+
+            tokenized_goals = dataset.inputs.goal_keywords
+            goal_subwords = dataset.inputs.goal_subwords
+            goal_masks = dataset.inputs.goal_masks
+
+            word_features = dataset.inputs.word_features
+            vec_features = dataset.inputs.vec_features
+
+            tactic_stem_indices = dataset.outputs.tactic_stem_idxs
+            arg_indices = dataset.outputs.tactic_arg_idxs
 
             tensors = [pad_sequence([torch.LongTensor(tokenized_hyps_list)
                                      for tokenized_hyps_list

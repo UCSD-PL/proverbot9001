@@ -85,19 +85,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         filename: String,
     ) -> PyResult<(
         PickleableFPAMetadata,
-        (
-            (Vec<Vec<Vec<i64>>>,
-             Vec<Vec<Vec<Vec<i64>>>>),
-            FloatUnpaddedTensor3D,
-            LongTensor1D,
-            (Vec<Vec<i64>>,
-             Vec<Vec<Vec<i64>>>),
-            BoolTensor2D,
-            LongTensor2D,
-            FloatTensor2D,
-            LongTensor1D,
-            LongTensor1D,
-        ),
+        FPATensorDataset,
         (Vec<i64>, i64),
     )> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, None))
@@ -110,19 +98,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         meta: PickleableFPAMetadata,
     ) -> PyResult<(
         PickleableFPAMetadata,
-        (
-            (Vec<Vec<Vec<i64>>>,
-             Vec<Vec<Vec<Vec<i64>>>>),
-            FloatUnpaddedTensor3D,
-            LongTensor1D,
-            (Vec<Vec<i64>>,
-             Vec<Vec<Vec<i64>>>),
-            BoolTensor2D,
-            LongTensor2D,
-            FloatTensor2D,
-            LongTensor1D,
-            LongTensor1D,
-        ),
+        FPATensorDataset,
         (Vec<i64>, i64),
     )> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, Some(meta)))
@@ -404,5 +380,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Obligation>()?;
     m.add_class::<TacticContext>()?;
     m.add_class::<PyIdentChunkTokenizer>()?;
+    m.add_class::<FPATensorDataset>()?;
+    m.add_class::<FPAInputTensorDataset>()?;
+    m.add_class::<FPAOutputTensorDataset>()?;
     Ok(())
 }
