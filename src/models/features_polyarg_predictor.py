@@ -763,6 +763,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--print-tensors", action="store_true")
         parser.add_argument("--load-text-tokens", default=None)
         parser.add_argument("--load-tensors", default=None)
+        parser.add_argument("--load-subwords", default=None)
 
         parser.add_argument("--save-embedding", type=str, default=None)
         parser.add_argument("--save-features-state", type=str, default=None)
@@ -1018,6 +1019,7 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     assert args.load_tokens, \
         "Must have a keywords file for the rust dataloader"
     dargs.keywords_file = args.load_tokens
+    dargs.subwords_file = args.load_subwords
     dargs.context_filter = args.context_filter
     dargs.save_embedding = args.save_embedding
     dargs.save_features_state = args.save_features_state

@@ -48,7 +48,7 @@ where
         }
     }
     pub fn lookup(&self, v: T) -> i64 {
-        *self.map.get(&v).unwrap()
+        self.map.get(&v).unwrap().copied()
     }
     pub fn reverse_lookup(&self, i: i64) -> T {
         self.map
