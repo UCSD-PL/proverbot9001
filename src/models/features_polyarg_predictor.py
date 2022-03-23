@@ -813,12 +813,17 @@ class FeaturesPolyargPredictor(
                                      for tokenized_hyps_list
                                      in unpadded_tokenized_hyp_types],
                                     batch_first=True),
+                       pad_sequence([torch.LongTensor(hyp_subword_idxs)
+                                     for hyp_subword_idxs
+                                     in unpadded_hyp_subwords],
+                                     batch_first=True),
                        pad_sequence([torch.FloatTensor(hyp_features_vec)
                                      for hyp_features_vec
                                      in unpadded_hyp_features],
                                     batch_first=True),
                        torch.LongTensor(num_hyps),
                        torch.LongTensor(tokenized_goals),
+                       torch.LongTensor(goal_subwords),
                        torch.ByteTensor(goal_masks),
                        torch.LongTensor(word_features),
                        torch.FloatTensor(vec_features),
@@ -892,12 +897,14 @@ class FeaturesPolyargPredictor(
                                 metadata,
                                 batch: Sequence[torch.Tensor],
                                 model: FeaturesPolyArgModel) -> torch.FloatTensor:
-        tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
-            tokenized_goals_batch, goal_masks_batch, \
+        tokenized_hyp_types_batch, hyp_subwords, \
+            hyp_features_batch, num_hyps_batch, \
+            tokenized_goals_batch, goal_subwords, goal_masks_batch, \
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
-            cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
-                       torch.LongTensor, torch.ByteTensor,
+            cast(Tuple[torch.LongTensor, torch.LongTensor,
+                       torch.FloatTensor, torch.LongTensor,
+                       torch.LongTensor, torch.LongTensor, torch.ByteTensor,
                        torch.LongTensor, torch.FloatTensor,
                        torch.LongTensor, torch.LongTensor],
                  batch)
