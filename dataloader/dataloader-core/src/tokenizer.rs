@@ -199,8 +199,7 @@ impl PyIdentChunkTokenizer {
     pub fn __setstate__(&mut self, py: Python, state: PyObject) -> PyResult<()> {
         match state.extract::<&PyBytes>(py) {
             Ok(s) => {
-                let des: PyIdentChunkTokenizer = deserialize(s.as_bytes()).unwrap();
-                self.inner = des.inner;
+                self.inner = deserialize(s.as_bytes()).unwrap();
                 Ok(())
             }
             Err(e) => Err(e),
