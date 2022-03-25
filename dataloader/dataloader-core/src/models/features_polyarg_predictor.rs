@@ -782,7 +782,7 @@ pub fn encode_fpa_stem_rs(
     metadata: PickleableFPAMetadata,
     tac_stem: String,
 ) -> i64 {
-    let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
     indexer.lookup(tac_stem)
 }
 
