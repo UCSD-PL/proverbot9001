@@ -37,7 +37,7 @@ import math
 from coq_serapy.contexts import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
-                               add_nn_args)
+                               add_nn_args, EncoderRNNFloat)
 from models.tactic_predictor import (TrainablePredictor,
                                      NeuralPredictorState, Prediction,
                                      optimize_checkpoints, add_tokenizer_args)
@@ -53,6 +53,7 @@ from dataloader import (features_polyarg_tensors,
                         # decode_fpa_arg,
                         # features_vocab_sizes,
                         get_num_keywords,
+                        get_num_subwords,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
@@ -119,7 +120,7 @@ class GoalTokenEncoderModel(nn.Module):
         # localize global variable for compilation
         self._EOS_token = EOS_token
 
-    def forward(self, stem_batch: torch.LongTensor, goal_batch: torch.LongTensor) \
+    def forward(self, stem_batch: torch.LongTensor, goal_batch: torch.FloatTensor) \
             -> torch.FloatTensor:
         goal_var = maybe_cuda(goal_batch)
         stem_var = maybe_cuda(stem_batch)
@@ -133,7 +134,6 @@ class GoalTokenEncoderModel(nn.Module):
         # suffix with EOS_token embedding
         EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
         tokens_embedded_EOS = torch.cat([tokens_embedded, EOS[None,:,:].broadcast_to([batch_size,1,self.hidden_size])],dim=1)
-
 
         # run GRU on every sequence
         encoded_tokens, hidden = self._gru(tokens_embedded_EOS,initial_hidden)
@@ -259,12 +259,52 @@ class FeaturesClassifier(nn.Module):
             torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1)))
         return stem_distribution
 
+class IdentChunkEncoder(nn.Module):
+    def __init__(self, num_keywords: int, num_subwords: int, term_length: int,
+                 subwords_length: int, subword_hidden_size: int, keyword_hidden_size: int) \
+      -> None:
+        super().__init__()
+        self._subword_embedding = maybe_cuda(
+            nn.Embedding(num_subwords, subword_hidden_size))
+        self._subword_gru = maybe_cuda(
+            nn.GRU(subword_hidden_size, subword_hidden_size, batch_first=True))
+        self._keyword_embedding = maybe_cuda(
+            nn.Embedding(num_keywords, keyword_hidden_size))
+        self._subword_hidden_size = subword_hidden_size
+        self._keyword_hidden_size = keyword_hidden_size
+        self._num_keywords = num_keywords
+        self._term_length = term_length
+        self._subwords_length = subwords_length
+    def out_size(self) -> int:
+        return self._subword_hidden_size + self._keyword_hidden_size
+    # keywords_batch: [batch_size, max_length]
+    # subwords_batch: [batch_size, max_length, max_subwords]
+    def forward(self, keywords_batch: torch.LongTensor,
+                subwords_batch: torch.LongTensor) -> torch.FloatTensor:
+        keywords_var = maybe_cuda(Variable(keywords_batch))
+        subwords_var = maybe_cuda(Variable(subwords_batch))
+        batch_size = subwords_batch.size()[0]
+        subwords_embedded = self._subword_embedding(subwords_var.view(batch_size * self._term_length * self._subwords_length))\
+          .view(batch_size * self._term_length, self._subwords_length, self._subword_hidden_size)
+        initial_hidden = maybe_cuda(torch.zeros(1, batch_size * self._term_length,
+                                                self._subword_hidden_size))
+        tokens_out, hidden_out = self._subword_gru(subwords_embedded, initial_hidden)
+        for keyword_lists in keywords_batch:
+            for keyword in keyword_lists:
+                assert keyword < self._num_keywords, keyword
+        keywords_embedded = self._keyword_embedding(keywords_var)\
+          .view(batch_size * self._term_length, self._keyword_hidden_size)
+        return torch.cat((keywords_embedded,
+                          hidden_out.view(batch_size * self._term_length, self._subword_hidden_size)),
+                         dim=1).view(batch_size, self._term_length, self._subword_hidden_size + self._keyword_hidden_size)
+
 
 class FeaturesPolyArgModel(nn.Module):
     def __init__(self,
                  stem_classifier: FeaturesClassifier,
+                 ident_chunk_encoder: IdentChunkEncoder,
                  goal_args_model: GoalTokenArgModel,
-                 goal_encoder: EncoderRNN,
+                 goal_encoder: EncoderRNNFloat,
                  hyp_model: HypArgModel) -> None:
         super().__init__()
         self.stem_classifier = torch.jit.script(maybe_cuda(stem_classifier))
@@ -764,6 +804,9 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-text-tokens", default=None)
         parser.add_argument("--load-tensors", default=None)
         parser.add_argument("--load-subwords", default=None)
+        parser.add_argument("--max-subwords", type=int, default=5)
+        parser.add_argument("--subwords-size", type=int, default=8)
+        parser.add_argument("--keyword-embedded-size", type=int, default=8)
 
         parser.add_argument("--save-embedding", type=str, default=None)
         parser.add_argument("--save-features-state", type=str, default=None)
@@ -845,7 +888,8 @@ class FeaturesPolyargPredictor(
                                         word_features_size,
                                         vec_features_size,
                                         get_num_indices(metadata)[1],
-                                        get_num_keywords(metadata))
+                                        get_num_keywords(metadata),
+                                        get_num_subwords(metadata))
                 epoch_start = 1
 
         assert model
@@ -866,7 +910,8 @@ class FeaturesPolyargPredictor(
                                                metadata),
                                            get_vec_features_size(metadata),
                                            get_num_indices(metadata)[1],
-                                           get_num_keywords(metadata)))
+                                           get_num_keywords(metadata),
+                                           get_num_subwords(metadata)))
         model.load_state_dict(state.weights)
         self._model = model
         self.training_loss = state.loss
@@ -879,18 +924,25 @@ class FeaturesPolyargPredictor(
                    wordf_sizes: List[int],
                    vecf_size: int,
                    stem_vocab_size: int,
-                   goal_vocab_size: int) \
+                   num_keywords: int,
+                   num_subwords: int) \
             -> FeaturesPolyArgModel:
+        ident_chunk_encoder = IdentChunkEncoder(num_keywords, num_subwords,
+                                                arg_values.max_length,
+                                                arg_values.max_subwords,
+                                                arg_values.subwords_size,
+                                                arg_values.keyword_embedded_size)
         return FeaturesPolyArgModel(
             FeaturesClassifier(wordf_sizes, vecf_size,
                                arg_values.hidden_size,
                                arg_values.num_layers,
                                stem_vocab_size),
-            GoalTokenArgModel(stem_vocab_size, goal_vocab_size,
+            ident_chunk_encoder,
+            GoalTokenArgModel(stem_vocab_size, ident_chunk_encoder.out_size(),
                               arg_values.hidden_size),
-            EncoderRNN(goal_vocab_size, arg_values.hidden_size,
-                       arg_values.hidden_size),
-            HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
+            EncoderRNNFloat(ident_chunk_encoder.out_size(), arg_values.hidden_size,
+                            arg_values.hidden_size),
+            HypArgModel(arg_values.hidden_size, stem_vocab_size, num_keywords,
                         hypFeaturesSize(), arg_values.hidden_size))
 
     def _getBatchPredictionLoss(self, arg_values: Namespace,
@@ -899,7 +951,7 @@ class FeaturesPolyargPredictor(
                                 model: FeaturesPolyArgModel) -> torch.FloatTensor:
         tokenized_hyp_types_batch, hyp_subwords, \
             hyp_features_batch, num_hyps_batch, \
-            tokenized_goals_batch, goal_subwords, goal_masks_batch, \
+            goal_keywords, goal_subwords, goal_masks_batch, \
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
             cast(Tuple[torch.LongTensor, torch.LongTensor,
@@ -908,6 +960,9 @@ class FeaturesPolyargPredictor(
                        torch.LongTensor, torch.FloatTensor,
                        torch.LongTensor, torch.LongTensor],
                  batch)
+        tokenized_goals_batch = self.encode_goal_chunks(arg_values, model,
+                                                        goal_keywords, goal_subwords)
+        chunk_size = model.ident_chunk_encoder.out_size()
         batch_size = tokenized_goals_batch.size()[0]
         goal_size = tokenized_goals_batch.size()[1]
         num_stem_poss = get_num_indices(metadata)[1]
@@ -1005,10 +1060,29 @@ class FeaturesPolyargPredictor(
         accuracy = torch.sum(arg_idxs == total_arg_var) / batch_size
         return loss, accuracy
 
+    def encode_goal_chunks(self, args: argparse.Namespace,
+                           model: FeaturesPolyArgModel,
+                           goal_keywords: torch.LongTensor,
+                           goal_subwords: torch.LongTensor) ->\
+                          torch.FloatTensor:
+        batch_size = goal_keywords.size()[0]
+        assert batch_size == goal_subwords.size()[0]
+        return unwrap(model).ident_chunk_encoder(
+            goal_keywords.view(
+                batch_size,
+                args.max_length),
+            goal_subwords.view(
+                batch_size,
+                args.max_length,
+                args.max_subwords)).view(
+                    batch_size,
+                    args.max_length,
+                    unwrap(model).ident_chunk_encoder.out_size())
+
     def share_memory(self) -> None:
-        self._model.share_memory()
+        unwrap(self._model).share_memory()
     def to_device(self, device) -> None:
-        self._model.to(device=device)
+        unwrap(self._model).to(device=device)
 
 
 def hypFeaturesSize() -> int:
@@ -1027,6 +1101,7 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
         "Must have a keywords file for the rust dataloader"
     dargs.keywords_file = args.load_tokens
     dargs.subwords_file = args.load_subwords
+    dargs.max_subwords = args.max_subwords
     dargs.context_filter = args.context_filter
     dargs.save_embedding = args.save_embedding
     dargs.save_features_state = args.save_features_state
