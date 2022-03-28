@@ -264,14 +264,15 @@ class IdentChunkEncoder(nn.Module):
                  subwords_length: int, subword_hidden_size: int, keyword_hidden_size: int) \
       -> None:
         super().__init__()
-        self._subword_embedding = maybe_cuda(
-            nn.Embedding(num_subwords, subword_hidden_size))
-        self._subword_gru = maybe_cuda(
-            nn.GRU(subword_hidden_size, subword_hidden_size, batch_first=True))
-        self._keyword_embedding = maybe_cuda(
-            nn.Embedding(num_keywords, keyword_hidden_size))
         self._subword_hidden_size = subword_hidden_size
         self._keyword_hidden_size = keyword_hidden_size
+        if self._subword_hidden_size > 0:
+            self._subword_embedding = maybe_cuda(
+                nn.Embedding(num_subwords, subword_hidden_size))
+            self._subword_gru = maybe_cuda(
+                nn.GRU(subword_hidden_size, subword_hidden_size, batch_first=True))
+        self._keyword_embedding = maybe_cuda(
+            nn.Embedding(num_keywords, keyword_hidden_size))
         self._num_keywords = num_keywords
         self._term_length = term_length
         self._subwords_length = subwords_length
@@ -284,19 +285,22 @@ class IdentChunkEncoder(nn.Module):
         keywords_var = maybe_cuda(Variable(keywords_batch))
         subwords_var = maybe_cuda(Variable(subwords_batch))
         batch_size = subwords_batch.size()[0]
-        subwords_embedded = self._subword_embedding(subwords_var.view(batch_size * self._term_length * self._subwords_length))\
-          .view(batch_size * self._term_length, self._subwords_length, self._subword_hidden_size)
-        initial_hidden = maybe_cuda(torch.zeros(1, batch_size * self._term_length,
-                                                self._subword_hidden_size))
-        tokens_out, hidden_out = self._subword_gru(subwords_embedded, initial_hidden)
-        for keyword_lists in keywords_batch:
-            for keyword in keyword_lists:
-                assert keyword < self._num_keywords, keyword
         keywords_embedded = self._keyword_embedding(keywords_var)\
           .view(batch_size * self._term_length, self._keyword_hidden_size)
-        return torch.cat((keywords_embedded,
-                          hidden_out.view(batch_size * self._term_length, self._subword_hidden_size)),
-                         dim=1).view(batch_size, self._term_length, self._subword_hidden_size + self._keyword_hidden_size)
+        if self._subword_hidden_size > 0:
+            subwords_embedded = self._subword_embedding(subwords_var.view(batch_size * self._term_length * self._subwords_length))\
+            .view(batch_size * self._term_length, self._subwords_length, self._subword_hidden_size)
+            initial_hidden = maybe_cuda(torch.zeros(1, batch_size * self._term_length,
+                                                    self._subword_hidden_size))
+            tokens_out, hidden_out = self._subword_gru(subwords_embedded, initial_hidden)
+            for keyword_lists in keywords_batch:
+                for keyword in keyword_lists:
+                    assert keyword < self._num_keywords, keyword
+            return torch.cat((keywords_embedded,
+                            hidden_out.view(batch_size * self._term_length, self._subword_hidden_size)),
+                            dim=1).view(batch_size, self._term_length, self._subword_hidden_size + self._keyword_hidden_size)
+        else:
+            return keywords_embedded
 
 
 class FeaturesPolyArgModel(nn.Module):
