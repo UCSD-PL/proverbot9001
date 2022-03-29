@@ -393,7 +393,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(16, num_stem_poss)
 
         (tokenized_premises, premise_subwords), hyp_features, \
-            nhyps_batch, (tokenized_goal, goal_subwords), \
+            nhyps_batch, (goal_keywords, goal_subwords), \
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
@@ -406,7 +406,8 @@ class FeaturesPolyargPredictor(
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
 
-        tokenized_goals = self.encode_goal_chunks(self.training_args, self._model, goal_chunks)
+        tokenized_goal = self.encode_goal_chunks(self.training_args, self._model,
+                                                 LongTensor(goal_keywords), LongTensor(goal_subwords))
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
             stem_idxs, tokenized_goals, maybe_cuda(torch.BoolTensor(goal_mask)))
@@ -415,11 +416,10 @@ class FeaturesPolyargPredictor(
                                                      LongTensor(premise_chunks[1][0]))).view(
             1, nhyps_batch[0], self.training_args.max_length,
             self._model.ident_chunk_encoder.out_size())
-        tokenized_goals = self.encode_goal_chunks(self.training_args, self._model, goal_chunks)
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
-                stem_idxs[0], tokenized_goal[0],
+                stem_idxs[0], tokenized_goal,
                 tokenized_premises[0], hyp_features[0])
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
@@ -639,7 +639,8 @@ class FeaturesPolyargPredictor(
                           ) -> torch.FloatTensor:
         batch_size = stem_idxs.size()[0]
         stem_width = stem_idxs.size()[1]
-        goal_len = args.max_length
+        goal_len = self.training_args.max_length
+        chunk_size = self._model.ident_chunk_encoder.out_size()
         # The goal probabilities include the "no argument" probability
         num_goal_probs = goal_len + 1
         chunk_size = model.ident_chunk_encoder.out_size()
@@ -664,7 +665,7 @@ class FeaturesPolyargPredictor(
 
     def hyp_name_scores(self,
                         stem_idxs: torch.LongTensor,
-                        tokenized_goal: List[int],
+                        tokenized_goal: torch.FloatTensor,
                         tokenized_premises: List[List[int]],
                         premise_features: List[List[float]]
                         ) -> torch.FloatTensor:
@@ -672,7 +673,7 @@ class FeaturesPolyargPredictor(
         assert len(stem_idxs.size()) == 1
         stem_width = stem_idxs.size()[0]
         num_hyps = len(tokenized_premises)
-        encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
+        encoded_goals = self._model.goal_encoder(tokenized_goal)
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
                                           encoded_goals,
                                           LongTensor([tokenized_premises]),
