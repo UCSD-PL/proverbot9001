@@ -685,13 +685,13 @@ class FeaturesPolyargPredictor(
         assert self._model
         assert len(stem_idxs.size()) == 1
         stem_width = stem_idxs.size()[0]
-        num_hyps = len(tokenized_premises)
+        num_hyps = tokenized_premises.size()[1]
         encoded_goals = self._model.goal_encoder(tokenized_goal)
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
                                           encoded_goals,
                                           tokenized_premises,
                                           FloatTensor([premise_features]))
-        assert hyp_arg_values.size() == torch.Size([1, stem_width, num_hyps])
+        assert hyp_arg_values.size() == torch.Size([1, stem_width, num_hyps]), (hyp_arg_values.size(), stem_width, num_hyps)
         return hyp_arg_values
 
     def predict_args(self,
