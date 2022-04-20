@@ -79,7 +79,7 @@ make download-weights
 Now you can run Proverbot9001:
 
 ```
-make report
+make search-report
 ```
 
 Which will generate some html in the `reports` directory.
