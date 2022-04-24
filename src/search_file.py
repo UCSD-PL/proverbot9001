@@ -143,7 +143,7 @@ def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
 
-    args, parser = parse_arguments(arg_list)
+    args, _, parser = parse_arguments(arg_list)
     # util.use_cuda = False
     # with util.silent():
 
@@ -167,6 +167,7 @@ def main(arg_list: List[str]) -> None:
 
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
+                                                   List[str],
                                                    argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(
         description="Produce an html report from attempting "
@@ -244,9 +245,10 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
+        unknown_args = []
     else:
         known_args, unknown_args = parser.parse_known_args(args_list)
-    return known_args, parser
+    return known_args, unknown_args, parser
 
 
 def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
@@ -573,6 +575,62 @@ def search_file_worker(args: argparse.Namespace,
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
+Job = Tuple[str, str, str]
+
+def get_jobs_todo(args: argparse.Namespace, filenames: List[Path2]) \
+  -> Tuple[List[Job], List[List[Tuple[Job, SearchResult]]]:
+    todo_jobs: List[Job] = []
+    file_solutions: List[List[Tuple[Job, SearchResult]]
+                         ] = [list() for _ in range(len(filenames))]
+    for filename, solutions in zip(filenames, file_solutions):
+        cmds = serapi_instance.load_commands_preserve(
+            args, 0, args.prelude / filename)
+        proofs_file = (args.output_dir /
+                       (util.safe_abbrev(filename, filenames)
+                        + "-proofs.txt"))
+        all_lemma_statements = serapi_instance.lemmas_in_file(
+            filename, cmds, args.include_proof_relevant)
+        lemma_statements_todo = list(all_lemma_statements)
+        if args.resume:
+            try:
+                with proofs_file.open('r') as f:
+                    eprint(f"Resuming from {str(proofs_file)}", guard=args.verbose >= 1)
+                    for line in f:
+                        (filename, module_prefix, done_lemma_stmt), sol = \
+                            json.loads(line)
+                        try:
+                            lemma_statements_todo.remove((module_prefix,
+                                                          done_lemma_stmt))
+                        except ValueError:
+                            eprint(f"filename: {filename}, "
+                                   f"module_prefix: {module_prefix}, "
+                                   f"done_lemma_stmt: {done_lemma_stmt}")
+                            raise
+                        solutions.append(((filename, module_prefix,
+                                           done_lemma_stmt),
+                                          recover_sol(sol)))
+                    pass
+            except FileNotFoundError:
+                pass
+        if args.proofs_file:
+            with open(args.proofs_file, 'r') as f:
+                proof_names = [line.strip() for line in f]
+            lemma_statements_todo = [
+                (module, stmt) for (module, stmt)
+                in lemma_statements_todo
+                if serapi_instance.lemma_name_from_statement(
+                    stmt) in proof_names]
+        elif args.proof:
+            lemma_statements_todo = [
+                (module, stmt) for (module, stmt)
+                in lemma_statements_todo
+                if serapi_instance.lemma_name_from_statement(
+                    stmt) == args.proof]
+
+        for module_prefix, lemma_statement in lemma_statements_todo:
+            todo_jobs.append((str(filename), module_prefix,
+                             lemma_statement))
+    return todo_jobs, file_solutions
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
@@ -582,66 +640,14 @@ def search_file_multithreaded(args: argparse.Namespace,
         done: Queue[
             Tuple[Tuple[str, str, str], SearchResult]
         ] = multiprocessing.Queue()
+        todo_jobs, file_solutions = get_jobs_todo(args, args.filenames)
 
 
-        all_jobs: List[Tuple[str, str, str]] = []
-        file_solutions: List[List[Tuple[Tuple[str, str, str], SearchResult]]
-                             ] = [list() for _ in range(len(args.filenames))]
-
-        for filename, solutions in zip(args.filenames, file_solutions):
-            cmds = serapi_instance.load_commands_preserve(
-                args, 0, args.prelude / filename)
-            proofs_file = (args.output_dir /
-                           (util.safe_abbrev(filename, args.filenames)
-                            + "-proofs.txt"))
-            all_lemma_statements = serapi_instance.lemmas_in_file(
-                filename, cmds, args.include_proof_relevant)
-            lemma_statements_todo = list(all_lemma_statements)
-
-            if args.resume:
-                try:
-                    with proofs_file.open('r') as f:
-                        eprint(f"Resuming from {str(proofs_file)}", guard=args.verbose >= 1)
-                        for line in f:
-                            (filename, module_prefix, done_lemma_stmt), sol = \
-                                json.loads(line)
-                            try:
-                                lemma_statements_todo.remove((module_prefix,
-                                                              done_lemma_stmt))
-                            except ValueError:
-                                eprint(f"filename: {filename}, "
-                                       f"module_prefix: {module_prefix}, "
-                                       f"done_lemma_stmt: {done_lemma_stmt}")
-                                raise
-                            solutions.append(((filename, module_prefix,
-                                               done_lemma_stmt),
-                                              recover_sol(sol)))
-                        pass
-                except FileNotFoundError:
-                    pass
-            if args.proofs_file:
-                with open(args.proofs_file, 'r') as f:
-                    proof_names = [line.strip() for line in f]
-                lemma_statements_todo = [
-                    (module, stmt) for (module, stmt)
-                    in lemma_statements_todo
-                    if serapi_instance.lemma_name_from_statement(
-                        stmt) in proof_names]
-            elif args.proof:
-                lemma_statements_todo = [
-                    (module, stmt) for (module, stmt)
-                    in lemma_statements_todo
-                    if serapi_instance.lemma_name_from_statement(
-                        stmt) == args.proof]
-
-            for module_prefix, lemma_statement in lemma_statements_todo:
-                all_jobs.append((str(filename), module_prefix,
-                                 lemma_statement))
-        for job in all_jobs:
+        for job in todo_jobs:
             jobs.put(job)
 
         num_threads = min(args.num_threads,
-                          len(all_jobs))
+                          len(todo_jobs))
         if util.use_cuda:
             if args.gpus:
                 gpu_list = args.gpus.split(",")
@@ -673,11 +679,11 @@ def search_file_multithreaded(args: argparse.Namespace,
             worker.start()
         num_already_done = sum([len(solutions)
                                 for solutions in file_solutions])
-        with tqdm(total=len(all_jobs) + num_already_done,
+        with tqdm(total=len(todo_jobs) + num_already_done,
                   dynamic_ncols=True) as bar:
             bar.update(n=num_already_done)
             bar.refresh()
-            for _ in range(len(all_jobs)):
+            for _ in range(len(todo_jobs)):
                 (done_file, done_module, done_lemma), sol = done.get()
                 proofs_file = (args.output_dir /
                                (util.safe_abbrev(Path2(done_file),
@@ -694,25 +700,30 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         for worker in workers:
             worker.join()
+    model_name = dict(predictor.getOptions())["predictor"]
+    generate_report(args, model_name)
 
-        model_name = dict(predictor.getOptions())["predictor"]
-        stats: List[search_report.ReportStats] = []
-        for filename, solutions in tqdm(zip(args.filenames, file_solutions),
-                                        desc="Generating output",
-                                        total=len(args.filenames)):
-            blocks = blocks_from_scrape_and_sols(
-                args.prelude / filename,
-                [(lemma_stmt, module_name, sol)
-                 for (filename, module_name, lemma_stmt), sol
-                 in solutions])
-            write_solution_vfile(args, filename, model_name, blocks)
-            write_html(args, args.output_dir, filename, blocks)
-            write_csv(args, filename, blocks)
-            stats.append(stats_from_blocks(blocks, str(filename)))
-
-        produce_index(args, predictor, stats)
-    pass
-
+def generate_report(args: argparse.Namespace, model_name: str) -> None:
+    file_solutions: List[List[Tuple[Job, SearchResult]]] = \
+      [list() for _ in range(len(args.filenames))]
+    stats: List[search_report.ReportStats] = []
+    for filename in args.filenames:
+        file_solutions = []
+        with (args.output_dir / (util.safe_abbrev(filename, args.filenames) +
+                                 "-proofs.txt").open('r') as f:
+            for line in f:
+                job, sol_dict = json.loads(line)
+                file_solutions.append((job, SearchResult.from_dict(sol)))
+        blocks = blocks_from_scrape_and_sols(
+            args.prelude / filename,
+            [(lemma_stmt, module_name, sol)
+             for (filename, module_name, lemma_stmt), sol
+             in file_solutions])
+        write_solution_vfile(args, filename, model_name, blocks)
+        write_html(args, args.output_dir, filename, blocks)
+        write_csv(args, filename, blocks)
+        stats.append(stats_from_blocks(blocks, str(filename)))
+    produce_index(args, predictor, stats)
 
 def blocks_from_scrape_and_sols(
         src_filename: Path2,
