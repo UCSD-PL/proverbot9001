@@ -17,7 +17,7 @@ their development headers and pip version.
 If you're running Linux, all three can be generally found in your package repositories.
 If that Linux is ubuntu, you'll have to first run:
 ```
-sudo apt install software-properties-properties
+sudo apt install software-properties-common
 sudo add-apt-repository ppa:avsm/ppa
 sudo apt update
 ```
