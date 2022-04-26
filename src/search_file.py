@@ -166,12 +166,7 @@ def main(arg_list: List[str]) -> None:
     search_file_multithreaded(args, predictor)
 
 
-def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
-                                                   List[str],
-                                                   argparse.ArgumentParser]:
-    parser = argparse.ArgumentParser(
-        description="Produce an html report from attempting "
-        "to complete proofs using Proverbot9001.")
+def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--prelude", default=".", type=Path2)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
@@ -181,7 +176,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_true')
-    parser.add_argument("--read-progress", "-p",
+    parser.add_argument("--read-progress", "-R",
                         help="show progress of reading the file",
                         action='store_true')
     parser.add_argument("--hardfail", "-f",
@@ -243,6 +238,14 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument("--add-env-lemmas", type=Path2, default=None)
     parser.add_argument("--add-axioms", type=Path2, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
+
+def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
+                                                   List[str],
+                                                   argparse.ArgumentParser]:
+    parser = argparse.ArgumentParser(
+        description="Produce an html report from attempting "
+        "to complete proofs using Proverbot9001.")
+    add_args_to_parser(parser)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
         unknown_args = []
@@ -417,7 +420,7 @@ def search_file_worker(args: argparse.Namespace,
                                 try:
                                     coq.run_stmt(signature)
                                     coq.run_stmt("Admitted.")
-                                except serapi_instance.SerapyException:
+                                except serapi_instance.SerapiException:
                                     axiom_name = serapi_instance.lemma_name_from_statement(
                                         signature)
                                     eprint(f"Couldn't declare axiom {axiom_name} "
@@ -430,8 +433,7 @@ def search_file_worker(args: argparse.Namespace,
                             attempt_search(args, lemma_statement,
                                            coq.sm_prefix,
                                            coq, worker_idx,
-                                           predictor,
-                                           predictor_lock)
+                                           predictor)
                     except KilledException:
                         solution = [
                             TacticInteraction("Proof.", initial_context),
@@ -578,7 +580,7 @@ def recover_sol(sol: Dict[str, Any]) -> SearchResult:
 Job = Tuple[str, str, str]
 
 def get_jobs_todo(args: argparse.Namespace, filenames: List[Path2]) \
-  -> Tuple[List[Job], List[List[Tuple[Job, SearchResult]]]:
+  -> Tuple[List[Job], List[List[Tuple[Job, SearchResult]]]]:
     todo_jobs: List[Job] = []
     file_solutions: List[List[Tuple[Job, SearchResult]]
                          ] = [list() for _ in range(len(filenames))]
@@ -589,7 +591,7 @@ def get_jobs_todo(args: argparse.Namespace, filenames: List[Path2]) \
                        (util.safe_abbrev(filename, filenames)
                         + "-proofs.txt"))
         all_lemma_statements = serapi_instance.lemmas_in_file(
-            filename, cmds, args.include_proof_relevant)
+            str(filename), cmds, args.include_proof_relevant)
         lemma_statements_todo = list(all_lemma_statements)
         if args.resume:
             try:
@@ -635,9 +637,9 @@ def get_jobs_todo(args: argparse.Namespace, filenames: List[Path2]) \
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     with multiprocessing.Manager() as manager:
-        jobs: Queue[
+        jobs: multiprocessing.Queue[
             Tuple[str, str, str]] = multiprocessing.Queue()
-        done: Queue[
+        done: multiprocessing.Queue[
             Tuple[Tuple[str, str, str], SearchResult]
         ] = multiprocessing.Queue()
         todo_jobs, file_solutions = get_jobs_todo(args, args.filenames)
@@ -700,19 +702,19 @@ def search_file_multithreaded(args: argparse.Namespace,
 
         for worker in workers:
             worker.join()
-    model_name = dict(predictor.getOptions())["predictor"]
-    generate_report(args, model_name)
+    generate_report(args, predictor)
 
-def generate_report(args: argparse.Namespace, model_name: str) -> None:
+def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> None:
     file_solutions: List[List[Tuple[Job, SearchResult]]] = \
       [list() for _ in range(len(args.filenames))]
     stats: List[search_report.ReportStats] = []
+    model_name = dict(predictor.getOptions())["predictor"]
     for filename in args.filenames:
         file_solutions = []
         with (args.output_dir / (util.safe_abbrev(filename, args.filenames) +
-                                 "-proofs.txt").open('r') as f:
+                                 "-proofs.txt")).open('r') as f:
             for line in f:
-                job, sol_dict = json.loads(line)
+                job, sol = json.loads(line)
                 file_solutions.append((job, SearchResult.from_dict(sol)))
         blocks = blocks_from_scrape_and_sols(
             args.prelude / filename,
@@ -1018,8 +1020,7 @@ def attempt_search(args: argparse.Namespace,
                    module_name: Optional[str],
                    coq: serapi_instance.SerapiInstance,
                    bar_idx: int,
-                   predictor: TacticPredictor,
-                   predictor_lock: threading.Lock) \
+                   predictor: TacticPredictor) \
         -> SearchResult:
     if args.add_env_lemmas:
         with args.add_env_lemmas.open('r') as f:
@@ -1034,8 +1035,7 @@ def attempt_search(args: argparse.Namespace,
         result = dfs_proof_search_with_graph(lemma_statement, module_name,
                                             env_lemmas,
                                             coq,
-                                            args, bar_idx, predictor,
-                                            predictor_lock)
+                                            args, bar_idx, predictor)
     except:
         raise KilledException("Lemma timeout")
     finally:
@@ -1339,8 +1339,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                 coq: serapi_instance.SerapiInstance,
                                 args: argparse.Namespace,
                                 bar_idx: int,
-                                predictor: TacticPredictor,
-                                predictor_lock: threading.Lock) \
+                                predictor: TacticPredictor) \
                                 -> SearchResult:
     global unnamed_goal_number
     unnamed_goal_number = 0
@@ -1368,12 +1367,11 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                subgoal_distance_stack: List[int],
                extra_depth: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
-        nonlocal predictor_lock
         nonlocal relevant_lemmas
         global unnamed_goal_number
         full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
-                                          coq.proof_context)
+                                          unwrap(coq.proof_context))
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),

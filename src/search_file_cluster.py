@@ -23,104 +23,109 @@
 import argparse
 import os
 import time
+import sys
+import json
+import subprocess
+from tqdm import tqdm
+from pathlib_revised import Path2
 
-from search_file import get_jobs_todo, SearchResult, generate_report
+from typing import List
+
+from search_file import (get_jobs_todo, add_args_to_parser, SearchResult,
+                         generate_report, get_predictor)
 import util
 
 def main(arg_list: List[str]) -> None:
-    cluster_arg_parser = argparse.ArgumentParser()
-    cluster_arg_parser.add_argument("--num-workers", default=32, type=int)
-    cluster_arg_parser.add_argument("--workers-output-dir", default=Path2("output"),
-                                    type=Path2)
-    cluster_arg_parser.add_argument("--worker-timeout", default="6:00:00")
-    cluster_arg_parser.add_argument("-p", "--partition", default="defq")
-    cluster_arg_parser.add_argument("--output", "-o", dest="output_dir",
-                                    help="output data folder name",
-                                    default="search-report",
-                                    type=Path2)
-    cluster_arg_parser.add_argument('filenames', help="proof file name (*.v)",
-                                    nargs='+', type=Path2)
-    cluster_args, rest_args = cluster_arg_parser.parse_known_args(rest_args)
-    rest_args.append("--output=" + args.output)
-    rest_args += args.filenames
-    file_args, _, _ = parse_arguments(rest_args)
-    all_args = argparse.Namespace(**vars(cluster_args), **vars(file_args))
+    arg_parser = argparse.ArgumentParser()
 
-    setup_jobsstate(cluster_args)
-    dispatch_workers(cluster_args, rest_args)
-    show_progress(cluster_args)
-    generate_report(all_args, "features polyarg")
+    add_args_to_parser(arg_parser)
+    arg_parser.add_argument("--num-workers", default=32, type=int)
+    arg_parser.add_argument("--workers-output-dir", default=Path2("output"),
+                            type=Path2)
+    arg_parser.add_argument("--worker-timeout", default="6:00:00")
+    arg_parser.add_argument("-p", "--partition", default="defq")
+    args = arg_parser.parse_args(arg_list)
+    predictor = get_predictor(arg_parser, args)
+
+    if not args.output_dir.exists():
+        args.output_dir.makedirs()
+
+    setup_jobsstate(args)
+    dispatch_workers(args, arg_list)
+    show_progress(args)
+    generate_report(args, predictor)
 
 def setup_jobsstate(args: argparse.Namespace) -> None:
     todo_jobs, file_solutions = get_jobs_todo(args, args.filenames)
-    solved_jobs = [job for filename, solutions in file_solutions
+    solved_jobs = [job for solutions in file_solutions
                    for job, sol in solutions]
 
-    with (args.output / "jobs.txt").open("w") as f:
+    with (args.output_dir / "jobs.txt").open("w") as f:
         for job in todo_jobs:
             print(json.dumps(job), file=f)
-        for job, solution in solved_jobs:
+        for job in solved_jobs:
             print(json.dumps(job), file=f)
-    with (args.output / "taken.txt").open("w") as f:
-        for job, solution in solved_jobs:
+    with (args.output_dir / "taken.txt").open("w") as f:
+        print(f"Initiating taken with {len(solved_jobs)} jobs")
+        for job in solved_jobs:
             print(json.dumps(job), file=f)
         pass
     for filename in args.filenames:
-        solutions_filename = args.output /
-              (util.safe_abbrev(filename, args.filenames) + "-proofs.txt")
+        solutions_filename = (args.output_dir /
+              (util.safe_abbrev(filename, args.filenames) + "-proofs.txt"))
         if not solutions_filename.exists():
             with solutions_filename.open('w') as f:
                 pass
 
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
-    os.makedirs(str(args.output / args.workers_output_dir), exist_ok=True)
-    with (args.output / "num_workers_dispatched.txt").open("w") as f:
+    os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
+    with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
         print(args.num_workers, file=f)
-    with (args.output / "workers_scheduled.txt").open("w") as f:
+    with (args.output_dir / "workers_scheduled.txt").open("w") as f:
         pass
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     # If you have a different cluster management software, that still allows
     # dispatching jobs through the command line and uses a shared filesystem,
     # modify this line.
-    subprocess.run([f"{cur_dir}/sbatch_retry.sh",
+    subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-J", "proverbot9001-worker",
                     "-p", args.partition,
-                    "-t", args.worker_timeout,
-                    f"--output=" + str(args.output / args.workers_output_dir
-                                       / "worker-%a.out")
+                    "-t", str(args.worker_timeout),
+                    "--cpus-per-task", str(args.num_threads),
+                    "-o",str(args.output_dir / args.workers_output_dir
+                             / "worker-%a.out"),
                     f"--array=0-{args.num_workers-1}",
-                    f"{cur_dir}/search_file_cluster_worker.py",
-                    args.output] + rest_args)
+                    f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
 
 def get_jobs_done(args: argparse.Namespace) -> int:
     jobs_done = 0
     for filename in args.filenames:
-        with (args.output /
+        with (args.output_dir /
               (util.safe_abbrev(filename, args.filenames) + "-proofs.txt")).open('r') as f:
             jobs_done += len([line for line in f])
     return jobs_done
 
 def show_progress(args: argparse.Namespace) -> None:
-    with (args.output / "jobs.txt").open('r') as f:
+    with (args.output_dir / "jobs.txt").open('r') as f:
         num_jobs_total = len([line for line in f])
     num_jobs_done = get_jobs_done(args)
-    with (args.output / "num_workers_dispatched.txt").open('r') as f:
+    with (args.output_dir / "num_workers_dispatched.txt").open('r') as f:
         num_workers_total = int(f.read())
-    with (args.output / "workers_scheduled.txt").open('r') as f:
+    with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         num_workers_scheduled = len([line for line in f])
 
-    with tqdm(desc="Jobs finished",
-              total=num_jobs_total, initial=done_jobs, dynamic_ncols=True) as bar, \
-         tqdm(desc="Workers scheduled",
-              total=num_workers_total, initial=workers_scheduled, dynamic_ncols=True) as wbar:
-        while done_jobs < num_jobs_total:
+    with tqdm(desc="Jobs finished", total=num_jobs_total,
+              initial=num_jobs_done, dynamic_ncols=True) as bar, \
+         tqdm(desc="Workers scheduled", total=num_workers_total,
+              initial=num_workers_scheduled, dynamic_ncols=True) as wbar:
+        while num_jobs_done < num_jobs_total:
             new_jobs_done = get_jobs_done(args)
             bar.update(new_jobs_done - num_jobs_done)
             num_jobs_done = new_jobs_done
 
-            with (args.output / "workers_scheduled.txt").open('r') as f):
+            with (args.output_dir / "workers_scheduled.txt").open('r') as f:
                 new_workers_scheduled = len([line for line in f])
-            bar.update(new_workers_scheduled - num_workers_scheduled)
+            wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
             time.sleep(0.2)
