@@ -175,7 +175,7 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                   weights_hash: str,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
-    write_summary_html(args.output_dir / "report.html",
+    write_summary_html(args.output_dir / "index.html",
                        options, unparsed_args,
                        cur_commit, cur_date, weights_hash,
                        individual_stats, combined_stats)

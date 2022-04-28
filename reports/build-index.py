@@ -35,21 +35,29 @@ def get_file_date(filename : str) -> datetime:
     return datetime.strptime(filename.split("/")[1].split("+")[0], '%Y-%m-%dT%Hd%Md%S%z')
 
 def get_file_percent(filename : str) -> float:
-    with open(filename+"/report.html") as f:
-        contents = f.read()
-        overallPercentString = re.search(r"Overall Accuracy:\s+(\d+\.\d+)%", contents)
-        if overallPercentString:
-            return float(overallPercentString.group(1))
+    try:
+        with open(filename+"/index.html") as f:
+            contents = f.read()
+    except FileNotFoundError:
+        with open(filename+"/report.html") as f:
+            contents = f.read()
+    overallPercentString = re.search(r"Overall Accuracy:\s+(\d+\.\d+)%", contents)
+    if overallPercentString:
+        return float(overallPercentString.group(1))
+    else:
+        proofsCompletedString = re.search(r"Proofs Completed:\s+(\d+\.\d+)%", contents)
+        if proofsCompletedString:
+            return float(proofsCompletedString.group(1))
         else:
-            proofsCompletedString = re.search(r"Proofs Completed:\s+(\d+\.\d+)%", contents)
-            if proofsCompletedString:
-                return float(proofsCompletedString.group(1))
-            else:
-                return float(re.search(r"Searched:\s+(\d+\.\d+)%", contents).group(1))
+            return float(re.search(r"Searched:\s+(\d+\.\d+)%", contents).group(1))
 
 def get_file_predictor(filename : str) -> str:
-    with open(filename+"/report.html") as f:
-        contents = f.read()
+    try:
+        with open(filename+"/index.html") as f:
+            contents = f.read()
+    except FileNotFoundError:
+        with open(filename+"/report.html") as f:
+            contents = f.read()
     parsed_html = BeautifulSoup(contents, features="html.parser")
     predictor_li = parsed_html.find(lambda tag: tag.string and
                                     re.match("predictor: .*", tag.string))
@@ -103,7 +111,12 @@ with tag('html'):
                     line('td', date.strftime("%H:%M"), klass="time")
                     line('td', get_file_predictor(f), klass="predictor")
                     line('td', str(get_file_percent(f)) + "%", klass="accuracy")
-                    with tag('td', klass="link"):
-                        line('a', 'link', href=(f + "/report.html"))
+                    if os.path.exists(f + "/index.html"):
+                        with tag('td', klass="link"):
+                            line('a', 'link', href=(f + "/index.html"))
+                    else:
+                        assert os.path.exists(f + "/report.html")
+                        with tag('td', klass="link"):
+                            line('a', 'link', href=(f + "report.html"))
 with open('index.html', 'w') as index_file:
     index_file.write(doc.getvalue())
