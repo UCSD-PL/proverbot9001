@@ -66,7 +66,6 @@ def setup_jobsstate(args: argparse.Namespace) -> None:
         for job in solved_jobs:
             print(json.dumps(job), file=f)
     with (args.output_dir / "taken.txt").open("w") as f:
-        print(f"Initiating taken with {len(solved_jobs)} jobs")
         for job in solved_jobs:
             print(json.dumps(job), file=f)
         pass
