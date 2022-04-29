@@ -88,7 +88,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
                 remaining_jobs = [job for job in all_jobs if job not in taken_jobs]
                 if len(remaining_jobs) > 0:
                     current_job = remaining_jobs[0]
-                    print(json.dumps(current_job), file=f)
+                    print(json.dumps(current_job), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
                     break
