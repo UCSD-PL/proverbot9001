@@ -25,6 +25,7 @@ import os
 import sys
 import re
 import datetime
+import itertools
 from pathlib_revised import Path2
 
 from enum import Enum, auto
