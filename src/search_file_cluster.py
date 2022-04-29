@@ -52,7 +52,8 @@ def main(arg_list: List[str]) -> None:
 
     setup_jobsstate(args)
     dispatch_workers(args, arg_list)
-    show_progress(args)
+    with util.sighandler_context(signal.SIGINT, cancel_workers):
+        show_progress(args)
     generate_report(args, predictor)
 
 def setup_jobsstate(args: argparse.Namespace) -> None:
@@ -95,6 +96,9 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                              / "worker-%a.out"),
                     f"--array=0-{args.num_workers-1}",
                     f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
+
+def cancel_workers(*args) -> None:
+    subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
 
 def get_jobs_done(args: argparse.Namespace) -> int:
     jobs_done = 0
