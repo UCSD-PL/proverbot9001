@@ -655,8 +655,11 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
             try:
                 with proofs_file.open('r') as f:
                     for line in f:
-                        job, sol = json.loads(line)
-                        already_done_jobs.append(job)
+                        (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                        already_done_jobs.append(ReportJob(job_project,
+                                                           job_file,
+                                                           job_module,
+                                                           job_lemma))
             except FileNotFoundError:
                 pass
 
@@ -762,7 +765,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                                  filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
-                    f.write(json.dumps(((done_file, done_module, done_lemma),
+                    f.write(json.dumps(((done_project, done_file, done_module, done_lemma),
                                         sol.to_dict())))
                     f.write("\n")
                 bar.update()
