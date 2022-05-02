@@ -31,7 +31,7 @@ from pathlib_revised import Path2
 from enum import Enum, auto
 from yattag import Doc
 
-from util import stringified_percent, escape_filename
+from util import stringified_percent, escape_filename, safe_abbrev
 
 from typing import (List, Tuple, NamedTuple, Sequence, Dict, Callable,
                     Any, Iterable)
@@ -136,8 +136,10 @@ def write_summary_html(filename : Path2,
                         line('td', stringified_percent(fresult.num_proofs_failed,
                                                        fresult.num_proofs))
                         with tag('td'):
-                            with tag('a',
-                                     href=escape_filename(fresult.filename) + ".html"):
+                            with tag('a', href=
+                                     safe_abbrev(Path2(fresult.filename),
+                                                 [Path2(result.filename) for result
+                                                  in sorted_rows]) + ".html"):
                                 text("Details")
                 with tag('tr'):
                     line('td', "Total")
@@ -170,26 +172,29 @@ def write_summary_csv(filename : str, combined_stats : ReportStats,
                             combined_stats.num_proofs_failed,
                             combined_stats.num_proofs_completed])
 
-def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]],
+def write_summary(args : argparse.Namespace, report_dir: Path2,
+                  options : Sequence[Tuple[str, str]],
                   unparsed_args : List[str],
                   cur_commit : str, cur_date : datetime.datetime,
                   weights_hash: str,
                   individual_stats : List[ReportStats]) -> None:
     combined_stats = combine_file_results(individual_stats)
-    write_summary_html(args.output_dir / "index.html",
+    write_summary_html(report_dir / "index.html",
                        options, unparsed_args,
                        cur_commit, cur_date, weights_hash,
                        individual_stats, combined_stats)
-    write_summary_csv("{}/report.csv".format(args.output_dir), combined_stats, options)
-    write_proof_summary_csv(args.output_dir, [s.filename for s in individual_stats])
+    write_summary_csv("{}/report.csv".format(report_dir), combined_stats, options)
+    write_proof_summary_csv(report_dir, [s.filename for s in individual_stats])
     base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
-        (base / filename).copyfile(args.output_dir / filename)
+        (base / filename).copyfile(report_dir / filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma,status,prooflength\n")
         for filename in filenames:
-            with open("{}/{}.csv".format(output_dir, escape_filename(filename)), 'r') \
+            with open("{}/{}.csv".format(
+                output_dir, safe_abbrev(Path2(filename),
+                                        [Path2(path) for path in filenames])), 'r') \
                  as fin:
                 fout.writelines(fin)
 

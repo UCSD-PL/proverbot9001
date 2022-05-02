@@ -93,8 +93,8 @@ def run_worker(args: argparse.Namespace, workerid: int,
                 else:
                     break
             solution = worker.run_job(current_job)
-            job_file, _, _ = current_job
-            with (args.output_dir /
+            job_project, job_file, _, _ = current_job
+            with (args.output_dir / job_project /
                   (util.safe_abbrev(Path2(job_file), args.filenames) + "-proofs.txt")
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")

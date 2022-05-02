@@ -26,14 +26,20 @@ import time
 import sys
 import json
 import subprocess
+import signal
 from tqdm import tqdm
 from pathlib_revised import Path2
 
-from typing import List
+from typing import List, NamedTuple
 
-from search_file import (get_jobs_todo, add_args_to_parser, SearchResult,
-                         generate_report, get_predictor)
+from search_file import (add_args_to_parser, ReportJob,
+                         generate_report, get_predictor,
+                         get_all_jobs, get_already_done_jobs)
+import coq_serapy
 import util
+
+details_css = "details.css"
+details_javascript = "search-details.js"
 
 def main(arg_list: List[str]) -> None:
     arg_parser = argparse.ArgumentParser()
@@ -44,39 +50,55 @@ def main(arg_list: List[str]) -> None:
                             type=Path2)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
+
     args = arg_parser.parse_args(arg_list)
+    if args.filenames[0].suffix == ".json":
+        assert args.splits_file == None
+        assert len(args.filenames) == 1
+        args.splits_file = args.filenames[0]
+        args.filenames = []
     predictor = get_predictor(arg_parser, args)
+    base = Path2(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
         args.output_dir.makedirs()
+    if args.splits_file:
+        with args.splits_file.open('r') as splits_f:
+            project_dicts = json.loads(splits_f.read())
+        for project_dict in project_dicts:
+            (args.output_dir / project_dict["project_name"]).makedirs(exist_ok=True)
+            for filename in [details_css, details_javascript]:
+                destpath = args.output_dir / project_dict["project_name"] / filename
+                if not destpath.exists():
+                    srcpath = base.parent / 'reports' / filename
+                    srcpath.copyfile(destpath)
+    else:
+        for filename in [details_css, details_javascript]:
+            destpath = args.output_dir / filename
+            if not destpath.exists():
+                srcpath = base.parent / 'reports' / filename
+                srcpath.copyfile(destpath)
 
-    setup_jobsstate(args)
-    dispatch_workers(args, arg_list)
-    with util.sighandler_context(signal.SIGINT, cancel_workers):
-        show_progress(args)
+    solved_jobs = get_already_done_jobs(args)
+    all_jobs = get_all_jobs(args)
+    if len(solved_jobs) < len(all_jobs):
+        setup_jobsstate(args.output_dir, solved_jobs, all_jobs)
+        dispatch_workers(args, arg_list)
+        with util.sighandler_context(signal.SIGINT, cancel_workers):
+            show_progress(args)
     generate_report(args, predictor)
 
-def setup_jobsstate(args: argparse.Namespace) -> None:
-    todo_jobs, file_solutions = get_jobs_todo(args, args.filenames)
-    solved_jobs = [job for solutions in file_solutions
-                   for job, sol in solutions]
-
-    with (args.output_dir / "jobs.txt").open("w") as f:
-        for job in todo_jobs:
+def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob],
+                    all_jobs: List[ReportJob]) -> None:
+    todo_jobs = [job for job in all_jobs if job not in solved_jobs]
+        
+    with (output_dir / "jobs.txt").open("w") as f:
+        for job in all_jobs:
             print(json.dumps(job), file=f)
-        for job in solved_jobs:
-            print(json.dumps(job), file=f)
-    with (args.output_dir / "taken.txt").open("w") as f:
+    with (output_dir / "taken.txt").open("w") as f:
         for job in solved_jobs:
             print(json.dumps(job), file=f)
         pass
-    for filename in args.filenames:
-        solutions_filename = (args.output_dir /
-              (util.safe_abbrev(filename, args.filenames) + "-proofs.txt"))
-        if not solutions_filename.exists():
-            with solutions_filename.open('w') as f:
-                pass
-
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
@@ -99,14 +121,18 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
 
 def cancel_workers(*args) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+    sys.exit()
 
 def get_jobs_done(args: argparse.Namespace) -> int:
-    jobs_done = 0
-    for filename in args.filenames:
-        with (args.output_dir /
-              (util.safe_abbrev(filename, args.filenames) + "-proofs.txt")).open('r') as f:
-            jobs_done += len([line for line in f])
-    return jobs_done
+    if args.splits_file:
+        return len(get_already_done_jobs(args))
+    else:
+        jobs_done = 0
+        for filename in args.filenames:
+            with (args.output_dir /
+                  (util.safe_abbrev(filename, args.filenames) + "-proofs.txt")).open('r') as f:
+                jobs_done += len([line for line in f])
+        return jobs_done
 
 def show_progress(args: argparse.Namespace) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:

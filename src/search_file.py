@@ -50,6 +50,7 @@ from coq_serapy.contexts import (TacticContext, ScrapedTactic,
 from util import (unwrap, eprint, escape_filename, escape_lemma_name,
                   mybarfmt, split_by_char_outside_matching, nostderr)
 import search_report
+import multi_project_report
 import util
 import tokenizer
 from dataclasses import dataclass
@@ -156,12 +157,23 @@ def main(arg_list: List[str]) -> None:
 
     if not args.output_dir.exists():
         args.output_dir.makedirs()
+    if args.splits_file:
+        with args.splits_file.open('r') as splits_f:
+            project_dicts = json.loads(splits_f.read())
+        for project_dict in project_dicts:
+            (args.output_dir / project_dict["project_name"]).makedirs(exist_ok=True)
+            for filename in [details_css, details_javascript]:
+                destpath = args.output_dir / project_dict["project_name"] / filename
+                if not destpath.exists():
+                    srcpath = base.parent / 'reports' / filename
+                    srcpath.copyfile(destpath)
+    else:
+        for filename in [details_css, details_javascript]:
+            destpath = args.output_dir / filename
+            if not destpath.exists():
+                srcpath = base.parent / 'reports' / filename
+                srcpath.copyfile(destpath)
 
-    for filename in [details_css, details_javascript]:
-        destpath = args.output_dir / filename
-        if not destpath.exists():
-            srcpath = base.parent / 'reports' / filename
-            srcpath.copyfile(destpath)
 
     search_file_multithreaded(args, predictor)
 
@@ -212,6 +224,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--proof-times", default=None, type=Path2)
     parser.add_argument('filenames', help="proof file name (*.v)",
                         nargs='+', type=Path2)
+    parser.add_argument("--splits-file", default=None, type=Path2)
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -251,14 +264,20 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
         unknown_args = []
     else:
         known_args, unknown_args = parser.parse_known_args(args_list)
+    if known_args.filenames[0].suffix == ".json":
+        assert known_args.splits_file == None
+        assert len(known_args.filenames) == 1
+        known_args.splits_file = known_args.filenames[0]
+        known_args.filenames = []
     return known_args, unknown_args, parser
 
 
 def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
+                  report_dir: Path2,
                   report_stats: List[search_report.ReportStats]) -> None:
     predictorOptions = predictor.getOptions()
     commit, date, weightshash = get_metadata(args)
-    search_report.write_summary(args,
+    search_report.write_summary(args, report_dir,
                                 predictorOptions +
                                 [("report type", "search"),
                                  ("search width", args.search_width),
@@ -338,12 +357,19 @@ def search_file_worker_profiled(
 
 Job = Tuple[str, str, str]
 
+class ReportJob(NamedTuple):
+    project_dir: str
+    filename: str
+    module_prefix: str
+    lemma_statement: str
+
 class Worker:
     args: argparse.Namespace
     predictor: TacticPredictor
     coq: Optional[serapi_instance.SerapiInstance]
 
     # File-local state
+    cur_project: Optional[str]
     cur_file: Optional[str]
     last_program_statement: Optional[str]
     lemmas_encountered: List[str]
@@ -354,6 +380,7 @@ class Worker:
         self.predictor = predictor
         self.coq = None
         self.cur_file: Optional[str] = None
+        self.cur_project: Optional[str] = None
         self.last_program_statement: Optional[str] = None
         self.lemmas_encountered: List[str] = []
         self.remaining_commands: List[str] = []
@@ -369,47 +396,79 @@ class Worker:
         self.coq.kill()
         self.coq = None
 
+    def set_switch_from_proj(self) -> None:
+        try:
+            with (self.args.prelude / self.cur_project / "switch.txt").open('r') as sf:
+                switch = sf.read().strip()
+        except FileNotFoundError:
+            switch = "$PWD"
+        env_string = subprocess.run(f"opam env --switch={switch} --set-switch",
+                                    shell=True, stdout=subprocess.PIPE, text=True).stdout
+        for env_line in env_string.splitlines():
+            linematch = re.fullmatch(r"(\w*)='([^;]*)'; export (\w*);", env_line)
+            assert linematch, env_line
+            envvar = linematch.group(1)
+            assert envvar == linematch.group(3)
+            envval = linematch.group(2)
+            os.environ[envvar] = envval
+
     def restart_coq(self) -> None:
         assert self.coq
         self.coq.kill()
         self.coq = serapi_instance.SerapiInstance(['sertop', '--implicit'],
-                                  None, self.args.prelude,
+                                  None, str(self.args.prelude / self.cur_project),
                                   use_hammer=self.args.use_hammer)
+        self.coq.quiet = True
+        self.coq.verbose = self.args.verbose
 
     def reset_file_state(self) -> None:
-        self.cur_file = None
         self.last_program_statement = None
         self.lemmas_encountered = []
         self.remaining_commands = []
 
-    def run_into_job(self, job: Job, restart: bool = True) -> None:
+    def enter_file(self, filename: str) -> None:
         assert self.coq
-        job_file, job_module, job_lemma = job
+        self.cur_file = filename
+        module_name = serapi_instance.get_module_from_filename(filename)
+        self.coq.run_stmt(f"Module {module_name}.")
+        self.remaining_commands = serapi_instance.load_commands_preserve(
+            self.args, 0, self.args.prelude / self.cur_project / filename)
+
+    def run_into_job(self, job: ReportJob, restart: bool = True) -> None:
+        assert self.coq
+        job_project, job_file, job_module, job_lemma = job
+        # If we need to change projects, we'll have to reset the coq instance
+        # to load new includes, and set the opam switch
+        if job_project != self.cur_project:
+            self.reset_file_state()
+            self.cur_project = job_project
+            self.set_switch_from_proj()
+            self.restart_coq()
+            self.enter_file(job_file)
         # If the job is in a different file, or earlier in this same file, load
         # the jobs file from scratch.
-        if job_file != self.cur_file or job_lemma in self.lemmas_encountered:
+        if job_file != self.cur_file or \
+          job_lemma in self.lemmas_encountered:
             if self.cur_file:
                 old_module_name = serapi_instance.get_module_from_filename(self.cur_file)
                 self.coq.run_stmt(f"End {old_module_name}.")
-            module_name = serapi_instance.get_module_from_filename(job_file)
-            self.coq.run_stmt(f"Module {module_name}.")
-            self.reset_file_state()
-            self.cur_file = job_file
-            self.remaining_commands = serapi_instance.load_commands_preserve(
-                self.args, 0, self.args.prelude / job_file)
+            self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
         # and return, hit an error or assert before getting to the correct job,
         # or get to the end of the file and raise an assert.
         while True:
             try:
-                rest_commands, run_commands = unwrap(self.coq.run_into_next_proof(
-                    self.remaining_commands))
-                assert rest_commands, f"Couldn't find lemma {job_lemma}"
+                if not self.coq.proof_context:
+                    rest_commands, run_commands = unwrap(self.coq.run_into_next_proof(
+                        self.remaining_commands))
+                    assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except serapi_instance.CoqAnomaly:
                 if restart:
                     self.restart_coq()
                     self.reset_file_state()
+                    eprint(f"Hit a coq anomaly! Restarting...",
+                           guard=self.args.verbose >= 1)
                     self.run_into_job(job, restart=False)
                 else:
                     assert False
@@ -436,12 +495,12 @@ class Worker:
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
-            self.lemmas_encountered.append(unique_lemma_statement)
             if unique_lemma_statement == job_lemma and \
               self.coq.sm_prefix == job_module:
                 return
             else:
                 self.skip_proof(lemma_statement)
+                self.lemmas_encountered.append(unique_lemma_statement)
 
     def skip_proof(self, lemma_statement: str) -> None:
         assert self.coq
@@ -479,9 +538,9 @@ class Worker:
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
 
-    def run_job(self, job: Job, restart: bool = True) -> SearchResult:
+    def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
-        job_file, job_module, job_lemma = job
+        job_project, job_file, job_module, job_lemma = job
         self.run_into_job(job, restart=restart)
         initial_context = unwrap(self.coq.proof_context)
         empty_context = ProofContext([], [], [], [])
@@ -489,7 +548,9 @@ class Worker:
             search_status, tactic_solution = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
-                             self.coq, 0, self.predictor)
+                             self.coq,
+                             self.args.output_dir / self.cur_project,
+                             0, self.predictor)
         except KilledException:
             solution = [
                 TacticInteraction("Proof.", initial_context),
@@ -509,6 +570,7 @@ class Worker:
             if restart:
                 self.restart_coq()
                 self.reset_file_state()
+                eprint("Hit an anomaly, restarting job", guard=args.verbose >= 2)
                 return self.run_job(job, restart=False)
             else:
                 if self.args.log_hard_anomalies:
@@ -544,15 +606,16 @@ class Worker:
         # Pop the actual Qed/Defined/Save
         self.remaining_commands.pop(0)
 
+        self.lemmas_encountered.append(job_lemma)
         return SearchResult(search_status, solution)
 
 def search_file_worker(args: argparse.Namespace,
                        predictor: TacticPredictor,
                        predictor_lock: threading.Lock,
-                       jobs: 'multiprocessing.Queue[Tuple[str, str, str]]',
+                       jobs: 'multiprocessing.Queue[ReportJob]',
                        done:
                        'multiprocessing.Queue['
-                       '  Tuple[Tuple[str, str, str], SearchResult]]',
+                       '  Tuple[ReportJob, SearchResult]]',
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
@@ -567,77 +630,81 @@ def search_file_worker(args: argparse.Namespace,
                 next_job = jobs.get_nowait()
             except queue.Empty:
                 return
-            worker.run_into_job(next_job)
             solution = worker.run_job(next_job)
-            done.put((job, solution))
+            done.put((next_job, solution))
 
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
-def get_jobs_todo(args: argparse.Namespace, filenames: List[Path2]) \
-  -> Tuple[List[Job], List[List[Tuple[Job, SearchResult]]]]:
-    todo_jobs: List[Job] = []
-    file_solutions: List[List[Tuple[Job, SearchResult]]
-                         ] = [list() for _ in range(len(filenames))]
-    for filename, solutions in zip(filenames, file_solutions):
-        cmds = serapi_instance.load_commands_preserve(
-            args, 0, args.prelude / filename)
-        proofs_file = (args.output_dir /
-                       (util.safe_abbrev(filename, filenames)
-                        + "-proofs.txt"))
-        all_lemma_statements = serapi_instance.lemmas_in_file(
-            str(filename), cmds, args.include_proof_relevant)
-        lemma_statements_todo = list(all_lemma_statements)
-        if args.resume:
+def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
+    already_done_jobs: List[ReportJob] = []
+
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+    else:
+        project_dicts = [{"project_name": ".",
+                          "test_files": args.filenames}]
+    for project_dict in project_dicts:
+        for filename in project_dict["test_files"]:
+            proofs_file = (args.output_dir / project_dict["project_name"] /
+                           (util.safe_abbrev(Path2(filename),
+                                             [Path2(filename) for filename in
+                                              project_dict["test_files"]])
+                            + "-proofs.txt"))
             try:
                 with proofs_file.open('r') as f:
-                    eprint(f"Resuming from {str(proofs_file)}", guard=args.verbose >= 1)
                     for line in f:
-                        (filename, module_prefix, done_lemma_stmt), sol = \
-                            json.loads(line)
-                        try:
-                            lemma_statements_todo.remove((module_prefix,
-                                                          done_lemma_stmt))
-                        except ValueError:
-                            eprint(f"filename: {filename}, "
-                                   f"module_prefix: {module_prefix}, "
-                                   f"done_lemma_stmt: {done_lemma_stmt}")
-                            raise
-                        solutions.append(((filename, module_prefix,
-                                           done_lemma_stmt),
-                                          recover_sol(sol)))
-                    pass
+                        job, sol = json.loads(line)
+                        already_done_jobs.append(job)
             except FileNotFoundError:
                 pass
-        if args.proofs_file:
-            with open(args.proofs_file, 'r') as f:
-                proof_names = [line.strip() for line in f]
-            lemma_statements_todo = [
-                (module, stmt) for (module, stmt)
-                in lemma_statements_todo
-                if serapi_instance.lemma_name_from_statement(
-                    stmt) in proof_names]
-        elif args.proof:
-            lemma_statements_todo = [
-                (module, stmt) for (module, stmt)
-                in lemma_statements_todo
-                if serapi_instance.lemma_name_from_statement(
-                    stmt) == args.proof]
 
-        for module_prefix, lemma_statement in lemma_statements_todo:
-            todo_jobs.append((str(filename), module_prefix,
-                             lemma_statement))
-    return todo_jobs, file_solutions
+    return already_done_jobs
+
+def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
+    jobs: List[ReportJob] = []
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+    else:
+        project_dicts = [{"project_name": ".",
+                          "test_files": [str(filename) for filename in
+                                         args.filenames]}]
+    arg_proofs_names = None
+    if args.proofs_file:
+        with open(args.proofs_file, 'r') as f:
+            arg_proofs_names = [line.strip() for line in f]
+    elif args.proof:
+        arg_proofs_names = [args.proof]
+
+    for project_dict in project_dicts:
+        for filename in project_dict["test_files"]:
+            cmds = serapi_instance.load_commands(args.prelude / project_dict["project_name"]
+                                            / filename)
+            lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
+                                                       args.include_proof_relevant)
+            if arg_proofs_names:
+                jobs += [ReportJob(project_dict["project_name"], filename, module, stmt)
+                         for (module, stmt) in lemmas_in_file
+                         if serapi_instance.lemma_name_from_statement(stmt)
+                         in arg_proofs_names]
+            else:
+                jobs += [ReportJob(project_dict["project_name"], filename, module, stmt)
+                         for (module, stmt) in lemmas_in_file]
+
+    return jobs
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     with multiprocessing.Manager() as manager:
-        jobs: multiprocessing.Queue[
-            Tuple[str, str, str]] = multiprocessing.Queue()
+        jobs: multiprocessing.Queue[ReportJob] = multiprocessing.Queue()
         done: multiprocessing.Queue[
-            Tuple[Tuple[str, str, str], SearchResult]
+            Tuple[ReportJob, SearchResult]
         ] = multiprocessing.Queue()
-        todo_jobs, file_solutions = get_jobs_todo(args, args.filenames)
+        solved_jobs = get_already_done_jobs(args)
+        all_jobs = get_all_jobs(args)
+        todo_jobs = [job for job in all_jobs if job not in solved_jobs]
 
 
         for job in todo_jobs:
@@ -674,25 +741,30 @@ def search_file_multithreaded(args: argparse.Namespace,
                    for widx in range(num_threads)]
         for worker in workers:
             worker.start()
-        num_already_done = sum([len(solutions)
-                                for solutions in file_solutions])
+        num_already_done = len(solved_jobs)
         with tqdm(total=len(todo_jobs) + num_already_done,
                   dynamic_ncols=True) as bar:
             bar.update(n=num_already_done)
             bar.refresh()
             for _ in range(len(todo_jobs)):
-                (done_file, done_module, done_lemma), sol = done.get()
-                proofs_file = (args.output_dir /
+                (done_project, done_file, done_module, done_lemma), sol = done.get()
+                if args.splits_file:
+                    with args.splits_file.open('r') as splits_f:
+                        project_dicts = json.loads(splits_f.read())
+                    for project_dict in project_dicts:
+                        if project_dict["project_name"] == done_project:
+                            filenames = project_dict["test_files"]
+                            break
+                else:
+                    filenames = args.filenames
+                proofs_file = (args.output_dir / done_project /
                                (util.safe_abbrev(Path2(done_file),
-                                                 args.filenames)
+                                                 filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
                     f.write(json.dumps(((done_file, done_module, done_lemma),
                                         sol.to_dict())))
                     f.write("\n")
-                dict(zip(map(str, args.filenames),
-                         file_solutions))[done_file].append(
-                    ((done_file, done_module, done_lemma), sol))
                 bar.update()
 
         for worker in workers:
@@ -700,27 +772,41 @@ def search_file_multithreaded(args: argparse.Namespace,
     generate_report(args, predictor)
 
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> None:
-    file_solutions: List[List[Tuple[Job, SearchResult]]] = \
-      [list() for _ in range(len(args.filenames))]
     stats: List[search_report.ReportStats] = []
     model_name = dict(predictor.getOptions())["predictor"]
-    for filename in args.filenames:
-        file_solutions = []
-        with (args.output_dir / (util.safe_abbrev(filename, args.filenames) +
-                                 "-proofs.txt")).open('r') as f:
-            for line in f:
-                job, sol = json.loads(line)
-                file_solutions.append((job, SearchResult.from_dict(sol)))
-        blocks = blocks_from_scrape_and_sols(
-            args.prelude / filename,
-            [(lemma_stmt, module_name, sol)
-             for (filename, module_name, lemma_stmt), sol
-             in file_solutions])
-        write_solution_vfile(args, filename, model_name, blocks)
-        write_html(args, args.output_dir, filename, blocks)
-        write_csv(args, filename, blocks)
-        stats.append(stats_from_blocks(blocks, str(filename)))
-    produce_index(args, predictor, stats)
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+    else:
+        project_dicts = [{"project_name": ".",
+                          "test_files": args.filenames}]
+    for project_dict in project_dicts:
+        for filename in project_dict["test_files"]:
+            file_solutions = []
+            output_file_prefix = args.output_dir / project_dict["project_name"] / \
+                  (util.safe_abbrev(Path2(filename),
+                                    [Path2(path) for path in
+                                     project_dict["test_files"]]))
+            with (Path2(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                for line in f:
+                   job, sol = json.loads(line)
+                   file_solutions.append((job, SearchResult.from_dict(sol)))
+            blocks = blocks_from_scrape_and_sols(
+                args.prelude / project_dict["project_name"] / filename,
+                [(lemma_stmt, module_name, sol)
+                for (project, filename, module_name, lemma_stmt), sol
+                in file_solutions])
+
+            write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
+                                 model_name, blocks)
+            write_html(args, output_file_prefix.with_suffix(".html"),
+                       filename, blocks)
+            write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
+            stats.append(stats_from_blocks(blocks, str(filename)))
+        produce_index(args, predictor,
+                      args.output_dir / project_dict["project_name"],
+                      stats)
+    multi_project_report.multi_project_index(args.output_dir)
 
 def blocks_from_scrape_and_sols(
         src_filename: Path2,
@@ -817,12 +903,10 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
     return TacticInteraction(s.tactic, s.context)
 
 
-def write_solution_vfile(args: argparse.Namespace, filename: Path2,
+def write_solution_vfile(args: argparse.Namespace, output_filename: Path2,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
-    with (args.output_dir / (util.safe_abbrev(filename, args.filenames)
-                             + "-solution.v")
-          ).open('w') as sfile:
+    with output_filename.open('w') as sfile:
         for k, v in [("search-width", args.search_width),
                      ("search-depth", args.search_depth),
                      ("model", model_name)]:
@@ -858,11 +942,10 @@ def html_header(tag: Tag, doc: Doc, text: Text, css: List[str],
             text(title)
 
 
-def write_csv(args: argparse.Namespace, filename: str,
+def write_csv(args: argparse.Namespace,
+              output_filename: Path2,
               doc_blocks: List[DocumentBlock]):
-    with open("{}/{}.csv".format(args.output_dir,
-                                 escape_filename(str(filename))),
-              'w', newline='') as csvfile:
+    with output_filename.open('w', newline='') as csvfile:
         for k, v in vars(args).items():
             csvfile.write("# {}: {}\n".format(k, v))
 
@@ -875,7 +958,7 @@ def write_csv(args: argparse.Namespace, filename: str,
 
 
 def write_html(args: argparse.Namespace,
-               output_dir: str, filename: Path2,
+               output_file: Path2, filename: Path2,
                doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
@@ -901,8 +984,7 @@ def write_html(args: argparse.Namespace,
                             write_tactics(args, block.original_tactics,
                                           block_idx,
                                           tag, text, doc)
-    with open("{}/{}.html".format(output_dir, escape_filename(str(filename))),
-              'w') as fout:
+    with output_file.open('w') as fout:
         fout.write(doc.getvalue())
 
 
@@ -1014,6 +1096,7 @@ def attempt_search(args: argparse.Namespace,
                    lemma_statement: str,
                    module_name: Optional[str],
                    coq: serapi_instance.SerapiInstance,
+                   output_dir: Path2,
                    bar_idx: int,
                    predictor: TacticPredictor) \
         -> SearchResult:
@@ -1028,9 +1111,8 @@ def attempt_search(args: argparse.Namespace,
     timer.start()
     try:
         result = dfs_proof_search_with_graph(lemma_statement, module_name,
-                                            env_lemmas,
-                                            coq,
-                                            args, bar_idx, predictor)
+                                             env_lemmas, coq, output_dir,
+                                             args, bar_idx, predictor)
     except:
         raise KilledException("Lemma timeout")
     finally:
@@ -1332,6 +1414,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                 module_name: Optional[str],
                                 extra_env_lemmas: List[str],
                                 coq: serapi_instance.SerapiInstance,
+                                output_dir: Path2,
                                 args: argparse.Namespace,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
@@ -1481,12 +1564,12 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     module_prefix = ""
                 if lemma_name == "":
                     unnamed_goal_number += 1
-                    g.draw(f"{args.output_dir}/{module_prefix}"
+                    g.draw(f"{output_dir}/{module_prefix}"
                            f"{unnamed_goal_number}.svg")
                 else:
-                    g.write_feat_json(f"{args.output_dir}/{module_prefix}"
+                    g.write_feat_json(f"{output_dir}/{module_prefix}"
                                       f"{lemma_name}.json")
-                    g.draw(f"{args.output_dir}/{module_prefix}"
+                    g.draw(f"{output_dir}/{module_prefix}"
                            f"{lemma_name}.svg")
 
                 raise
@@ -1509,11 +1592,11 @@ def dfs_proof_search_with_graph(lemma_statement: str,
         module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
-        g.draw(f"{args.output_dir}/{module_prefix}"
+        g.draw(f"{output_dir}/{module_prefix}"
                f"{unnamed_goal_number}.svg")
     else:
-        g.draw(f"{args.output_dir}/{module_prefix}{lemma_name}.svg")
-        g.write_feat_json(f"{args.output_dir}/{module_prefix}"
+        g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+        g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
