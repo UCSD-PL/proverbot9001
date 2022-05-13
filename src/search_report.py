@@ -192,11 +192,14 @@ def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma,status,prooflength\n")
         for filename in filenames:
-            with open("{}/{}.csv".format(
-                output_dir, safe_abbrev(Path2(filename),
-                                        [Path2(path) for path in filenames])), 'r') \
-                 as fin:
-                fout.writelines(fin)
+            try:
+                with open("{}/{}.csv".format(
+                    output_dir, safe_abbrev(Path2(filename),
+                                            [Path2(path) for path in filenames])), 'r') \
+                    as fin:
+                    fout.writelines(fin)
+            except FileNotFoundError:
+                pass
 
 def read_csv_options(f : Iterable[str]) -> Tuple[argparse.Namespace, Iterable[str]]:
     params : Dict[str, str] = {}
