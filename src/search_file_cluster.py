@@ -86,6 +86,8 @@ def main(arg_list: List[str]) -> None:
         dispatch_workers(args, arg_list)
         with util.sighandler_context(signal.SIGINT, cancel_workers):
             show_progress(args)
+    else:
+        assert len(solved_jobs) == len(all_jobs)
     generate_report(args, predictor)
 
 def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob],
@@ -95,9 +97,11 @@ def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob],
     with (output_dir / "jobs.txt").open("w") as f:
         for job in all_jobs:
             print(json.dumps(job), file=f)
+        print("", end="", flush=True, file=f)
     with (output_dir / "taken.txt").open("w") as f:
         for job in solved_jobs:
             print(json.dumps(job), file=f)
+        print("", end="", flush=True, file=f)
         pass
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
