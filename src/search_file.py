@@ -207,7 +207,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
-                        type=int, default=200)
+                        type=int, default=100)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch",
                         action='store_true')
