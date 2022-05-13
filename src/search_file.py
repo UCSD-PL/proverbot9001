@@ -450,8 +450,8 @@ class Worker:
         if job_file != self.cur_file or \
           job_lemma in self.lemmas_encountered:
             if self.cur_file:
-                old_module_name = serapi_instance.get_module_from_filename(self.cur_file)
-                self.coq.run_stmt(f"End {old_module_name}.")
+                for sec_or_mod, _ in self.coq.sm_stack:
+                    self.coq.run_stmt(f"End {sec_or_mod}.")
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
