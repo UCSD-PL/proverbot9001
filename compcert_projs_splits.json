@@ -1,6 +1,7 @@
 [
     {
         "project_name": ".",
+        "switch": "coq-8.10",
         "train_files": [
             "./cfrontend/Cshmgen.v",
             "./cfrontend/Initializersproof.v",

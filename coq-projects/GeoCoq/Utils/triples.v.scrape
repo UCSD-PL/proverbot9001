@@ -1,4 +1,0 @@
-Record Triple {A:Type} : Type := build_triple {V1 : A ; V : A ; V2 : A ; Pred : V1 <> V /\ V2 <> V}.
------
-Record Couple {A:Type} : Type := build_couple {P1: A ; P2 : A ; Cond: P1 <> P2}.
------

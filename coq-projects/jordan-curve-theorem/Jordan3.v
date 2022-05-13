@@ -659,7 +659,7 @@ induction m.
  simpl in |- *.
    cut
     (nv m + 1 + (ne m + 1) + (nf m + 1) - (nd m + 1) =
-     Zsucc (Zsucc (nv m + ne m + nf m - nd m))).
+     Z.succ (Z.succ (nv m + ne m + nf m - nd m))).
   intros.
     rewrite H.
     apply Zeven_Sn.
@@ -680,8 +680,8 @@ induction m.
    intro.
      assert
       (nv m + (ne m - 1) + (nf m + -1) - nd m =
-       Zpred (Zpred (nv m + ne m + nf m - nd m))).
-    unfold Zpred in |- *.
+       Z.pred (Z.pred (nv m + ne m + nf m - nd m))).
+    unfold Z.pred in |- *.
       omega.
     rewrite H.
       intros.
@@ -706,8 +706,8 @@ induction m.
     intro.
       assert
        (nv m - 1 + ne m + (nf m + -1) - nd m =
-        Zpred (Zpred (nv m + ne m + nf m - nd m))).
-     unfold Zpred in |- *.
+        Z.pred (Z.pred (nv m + ne m + nf m - nd m))).
+     unfold Z.pred in |- *.
        omega.
      rewrite H0.
        apply Zeven_pred.
@@ -824,15 +824,15 @@ intros.
 cut (a >= b / 2).
 intro.
    omega.
- assert (b = 2 * Zdiv2 b).
+ assert (b = 2 * Z.div2 b).
   apply Zeven_div2.
     tauto.
   rewrite H2 in H1.
-    assert (a >= Zdiv2 b).
+    assert (a >= Z.div2 b).
    omega.
    rewrite H2.
  rewrite Zmult_comm.
-     assert (Zdiv2 b * 2 / 2 = Zdiv2 b).
+     assert (Z.div2 b * 2 / 2 = Z.div2 b).
   apply Z_div_mult.
       omega.
     rewrite H4.
@@ -862,7 +862,7 @@ Lemma planar_dec:forall m:fmap,
 Proof.
 unfold planar in |- *.
 intro.
-apply Z_eq_dec.
+apply Z.eq_dec.
 Qed.
 
 Lemma planar_V: planar V.

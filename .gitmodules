@@ -10,25 +10,113 @@
 [submodule "src/coq_serapy"]
 	path = src/coq_serapy
 	url = https://github.com/HazardousPeach/coq_serapy.git
-[submodule "coq-projects/verdi"]
-	path = coq-projects/verdi
-	url = git@github.com:uwplse/verdi.git
-[submodule "coq-projects/verdi-raft"]
-	path = coq-projects/verdi-raft
-	url = git@github.com:uwplse/verdi-raft.git
-[submodule "coq-projects/zorns-lemma"]
-	path = coq-projects/zorns-lemma
-	url = git@github.com:coq-community/zorns-lemma.git
-[submodule "coq-projects/goedel"]
-	path = coq-projects/goedel
-	url = git@github.com:coq-community/goedel.git
-[submodule "coq-projects/fermat4"]
-	path = coq-projects/fermat4
-	url = git@github.com:coq-contribs/fermat4.git
-[submodule "coq-projects/tree-automata"]
-	path = coq-projects/tree-automata
-	url = git@github.com:coq-contribs/tree-automata.git
+[submodule "coq-projects/coq-procrastination"]
+	path = coq-projects/coq-procrastination
+	url = git@github.com:Armael/coq-procrastination.git
+[submodule "coq-projects/hoare-tut"]
+	path = coq-projects/hoare-tut
+	url = git@github.com:coq-community/hoare-tut.git
+[submodule "coq-projects/zchinese"]
+	path = coq-projects/zchinese
+	url = git@github.com:coq-contribs/zchinese.git
+[submodule "coq-projects/euler-formula"]
+	path = coq-projects/euler-formula
+	url = git@github.com:coq-contribs/euler-formula.git
 	branch = v8.9
-[submodule "coq-projects/coq-library-undecidability"]
-	path = coq-projects/coq-library-undecidability
-	url = git@github.com:uds-psl/coq-library-undecidability.git
+[submodule "coq-projects/UnifySL"]
+	path = coq-projects/UnifySL
+	url = git@github.com:QinxiangCao/UnifySL.git
+[submodule "coq-projects/lemma-overloading"]
+	path = coq-projects/lemma-overloading
+	url = git@github.com:coq-community/lemma-overloading.git
+[submodule "coq-projects/disel"]
+	path = coq-projects/disel
+	url = git@github.com:DistributedComponents/disel.git
+[submodule "coq-projects/algebra"]
+	path = coq-projects/algebra
+	url = git@github.com:coq-contribs/algebra.git
+	branch = v8.9
+[submodule "coq-projects/pocklington"]
+	path = coq-projects/pocklington
+	url = git@github.com:coq-community/pocklington.git
+[submodule "coq-projects/quicksort-complexity"]
+	path = coq-projects/quicksort-complexity
+	url = git@github.com:coq-contribs/quicksort-complexity.git
+	branch = v8.9
+[submodule "coq-projects/finmap"]
+	path = coq-projects/finmap
+	url = git@github.com:math-comp/finmap.git
+[submodule "coq-projects/coqrel"]
+	path = coq-projects/coqrel
+	url = git@github.com:HazardousPeach/coqrel.git
+	branch = v8.10
+[submodule "coq-projects/twoSquare"]
+	path = coq-projects/twoSquare
+	url = git@github.com:thery/twoSquare.git
+[submodule "coq-projects/coq-smc"]
+	path = coq-projects/coq-smc
+	url = git@github.com:dsksh/coq-smc.git
+[submodule "coq-projects/QuickChick"]
+	path = coq-projects/QuickChick
+	url = git@github.com:QuickChick/QuickChick.git
+	branch = 8.10
+[submodule "coq-projects/qarith"]
+	path = coq-projects/qarith
+	url = git@github.com:coq-contribs/qarith.git
+	branch = v8.9
+[submodule "coq-projects/pts"]
+	path = coq-projects/pts
+	url = git@github.com:coq-contribs/pts.git
+	branch = v8.9
+[submodule "coq-projects/maths"]
+	path = coq-projects/maths
+	url = git@github.com:coq-contribs/maths.git
+	branch = v8.9
+[submodule "coq-projects/int-map"]
+	path = coq-projects/int-map
+	url = git@github.com:coq-contribs/int-map.git
+	branch = v8.9
+[submodule "coq-projects/ieee754"]
+	path = coq-projects/ieee754
+	url = git@github.com:coq-contribs/ieee754.git
+	branch = v8.9
+[submodule "coq-projects/hardware"]
+	path = coq-projects/hardware
+	url = git@github.com:coq-contribs/hardware.git
+	branch = v8.9
+[submodule "coq-projects/float"]
+	path = coq-projects/float
+	url = git@github.com:coq-contribs/float.git
+	branch = v8.9
+[submodule "coq-projects/dictionaries"]
+	path = coq-projects/dictionaries
+	url = git@github.com:coq-contribs/dictionaries.git
+	branch = v8.9
+[submodule "coq-projects/buchberger"]
+	path = coq-projects/buchberger
+	url = git@github.com:coq-community/buchberger.git
+	branch = v8.9
+[submodule "coq-projects/bdds"]
+	path = coq-projects/bdds
+	url = git@github.com:coq-contribs/bdds.git
+	branch = v8.10
+[submodule "coq-projects/area-method"]
+	path = coq-projects/area-method
+	url = git@github.com:coq-contribs/area-method.git
+	branch = v8.10
+[submodule "coq-projects/coq"]
+	path = coq-projects/coq
+	url = git@github.com:coq/coq.git
+	branch = v8.10
+[submodule "coq-projects/fcsl-pcm"]
+	path = coq-projects/fcsl-pcm
+	url = git@github.com:imdea-software/fcsl-pcm.git
+[submodule "coq-projects/GeoCoq"]
+	path = coq-projects/GeoCoq
+	url = git@github.com:GeoCoq/GeoCoq.git
+[submodule "coq-projects/coquelicot"]
+	path = coq-projects/coquelicot
+	url = git@github.com:thery/coquelicot.git
+[submodule "deps/metalib"]
+	path = deps/metalib
+	url = git@github.com:plclub/metalib.git

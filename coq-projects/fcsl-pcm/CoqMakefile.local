@@ -1,2 +1,0 @@
-clean::
-	$(HIDE)rm -f CoqMakefile CoqMakefile.conf
