@@ -817,7 +817,8 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> Non
         produce_index(args, predictor,
                       args.output_dir / project_dict["project_name"],
                       stats)
-    multi_project_report.multi_project_index(args.output_dir)
+    if len(project_dicts) > 1:
+        multi_project_report.multi_project_index(args.output_dir)
 
 def blocks_from_scrape_and_sols(
         src_filename: Path2,
