@@ -11,6 +11,8 @@ then
     ~/.local/ruby-build 3.1.2 ~/.local/
 fi
 
+git submodule update && git submodule init
+
 # Sync opam state to local
 rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
 
