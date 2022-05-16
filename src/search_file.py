@@ -401,7 +401,7 @@ class Worker:
             with (self.args.prelude / self.cur_project / "switch.txt").open('r') as sf:
                 switch = sf.read().strip()
         except FileNotFoundError:
-            switch = "$PWD"
+            return
         env_string = subprocess.run(f"opam env --switch={switch} --set-switch",
                                     shell=True, stdout=subprocess.PIPE, text=True).stdout
         for env_line in env_string.splitlines():
