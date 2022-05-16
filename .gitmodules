@@ -120,3 +120,6 @@
 [submodule "deps/metalib"]
 	path = deps/metalib
 	url = git@github.com:plclub/metalib.git
+[submodule "coq-projects/coq-library-undecidability"]
+	path = coq-projects/coq-library-undecidability
+	url = git@github.com:uds-psl/coq-library-undecidability.git
