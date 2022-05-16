@@ -23,7 +23,7 @@ opam pin add -y coq 8.10.2
 
 # Install dependency packages for 8.10
 opam repo add coq-extra-dev https://coq.inria.fr/opam/extra-dev
-opam repo add coq-released https://coq.inria.fr/opam/released 
+opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add psl-opam-repository https://github.com/uds-psl/psl-opam-repository.git
 opam install -y coq-serapi \
      coq-struct-tact \
@@ -74,7 +74,7 @@ git clone git@github.com:uwplse/cheerios.git deps/cheerios
      opam install .)
 
 # Install the packages that can be installed directly through opam
-opam repo add coq-released https://coq.inria.fr/opam/released 
+opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add coq-extra-dev https://coq.inria.fr/opam/extra-dev
 opam install -y coq-serapi \
      coq-smpl coq-metacoq-template \
