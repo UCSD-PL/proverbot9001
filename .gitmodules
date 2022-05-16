@@ -123,3 +123,23 @@
 [submodule "coq-projects/coq-library-undecidability"]
 	path = coq-projects/coq-library-undecidability
 	url = git@github.com:uds-psl/coq-library-undecidability.git
+[submodule "coq-projects/fermat4"]
+	path = coq-projects/fermat4
+	url = git@github.com:coq-contribs/fermat4.git
+[submodule "coq-projects/goedel"]
+	path = coq-projects/goedel
+	url = git@github.com:coq-community/goedel.git
+	branch = v8.9
+[submodule "coq-projects/tree-automata"]
+	path = coq-projects/tree-automata
+	url = git@github.com:coq-contribs/tree-automata.git
+	branch = v8.9
+[submodule "coq-projects/verdi"]
+	path = coq-projects/verdi
+	url = git@github.com:uwplse/verdi.git
+[submodule "coq-projects/verdi-raft"]
+	path = coq-projects/verdi-raft
+	url = git@github.com:uwplse/verdi-raft.git
+[submodule "coq-projects/zorns-lemma"]
+	path = coq-projects/zorns-lemma
+	url = git@github.com:coq-community/zorns-lemma.git
