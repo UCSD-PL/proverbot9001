@@ -57,7 +57,7 @@ opam install -y coq-equations \
 (cd coq-projects/lin-alg && make "$@" && make install)
 
 # Install the psl base-library from source
-mkdir deps
+mkdir -p deps
 git clone -b coq-8.10 git@github.com:uds-psl/base-library.git deps/base-library
 (cd deps/base-library && make "$@" && make install)
 
@@ -88,8 +88,11 @@ git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
 # Cheerios has its own issues
 git clone git@github.com:uwplse/cheerios.git deps/cheerios
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
+<<<<<<< HEAD
 # Same with verdi, but modify it's existing opam file to allow 8.12 (I
 # was told by one of the developers that this is okay
+=======
+>>>>>>> Some install deps fixes
 # https://github.com/uwplse/verdi-raft/issues/89)
 (cd coq-projects/verdi && opam install -y --ignore-constraints-on=coq . )
 
