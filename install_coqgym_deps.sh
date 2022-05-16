@@ -36,7 +36,10 @@ opam install -y coq-serapi \
      coq-mathcomp-ssreflect coq-mathcomp-bigenough coq-mathcomp-algebra\
      coq-fcsl-pcm \
      coq-ext-lib \
-     coq-simple-io
+     coq-simple-io \
+     coq-list-string \
+     coq-error-handlers \
+     coq-function-ninjas
 opam pin -y add menhir 20190626
 # coq-equations seems to rely on ocamlfind for it's build, but doesn't
 # list it as a dependency, so opam sometimes tries to install
