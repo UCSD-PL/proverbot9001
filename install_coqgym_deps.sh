@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
-# First, install Ruby, as that is for some reason required to build
-# the "system" project
-git clone https://github.com/rbenv/ruby-build.git
-mkdir -p ~/.local
-PREFIX=~/.local ./ruby-build/install.sh
-~/.local/ruby-build 3.1.2 ~/.local/
+if ! command -v ruby &> /dev/null
+then
+    echo "Getting here"
+    # First, install Ruby, as that is for some reason required to build
+    # the "system" project
+    git clone https://github.com/rbenv/ruby-build.git ~/ruby-build
+    mkdir -p ~/.local
+    PREFIX=~/.local ./ruby-build/install.sh
+    ~/.local/ruby-build 3.1.2 ~/.local/
+fi
 
 # Sync opam state to local
 rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
