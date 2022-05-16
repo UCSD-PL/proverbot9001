@@ -30,7 +30,6 @@ opam install -y coq-serapi \
      coq-inf-seq-ext \
      coq-cheerios \
      coq-verdi \
-     coq-metacoq coq-metacoq-checker coq-metacoq-template \
      coq-smpl \
      coq-int-map \
      coq-pocklington \
@@ -43,7 +42,8 @@ opam pin -y add menhir 20190626
 # list it as a dependency, so opam sometimes tries to install
 # coq-equations before ocamlfind. Splitting this into a separate
 # install call prevents that.
-opam install -y coq-equations
+opam install -y coq-equations \
+     coq-metacoq coq-metacoq-checker coq-metacoq-template \
 
 # Metalib doesn't install properly through opam unless we use a
 # specific commit.
