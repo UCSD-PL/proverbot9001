@@ -10,6 +10,8 @@ then
     ~/.local/ruby-build 3.1.2 ~/.local/
 fi
 
+git submodule update && git submodule init
+
 # Sync opam state to local
 rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
 
@@ -27,7 +29,6 @@ opam install -y coq-serapi \
      coq-inf-seq-ext \
      coq-cheerios \
      coq-verdi \
-     coq-metacoq coq-metacoq-checker coq-metacoq-template \
      coq-smpl \
      coq-int-map \
      coq-pocklington \
@@ -36,10 +37,11 @@ opam install -y coq-serapi \
      coq-ext-lib \
      coq-simple-io \
      coq-list-string \
-     coq-error-handler \
+     coq-error-handlers \
      coq-function-ninjas \
      coq-algebra \
      coq-zorns-lemma
+
 opam pin -y add menhir 20190626
 # coq-equations seems to rely on ocamlfind for it's build, but doesn't
 # list it as a dependency, so opam sometimes tries to install
