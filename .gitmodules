@@ -54,7 +54,7 @@
 	path = coq-projects/twoSquare
 	url = git@github.com:thery/twoSquare.git
 [submodule "coq-projects/coq-smc"]
-	path = coq-projects/coq-smc
+	path = coq-projects/smc
 	url = git@github.com:dsksh/coq-smc.git
 [submodule "coq-projects/QuickChick"]
 	path = coq-projects/QuickChick
