@@ -166,3 +166,6 @@
 [submodule "coq-projects/math-comp"]
 	path = coq-projects/math-comp
 	url = git@github.com:math-comp/math-comp.git
+[submodule "CompCert"]
+	path = CompCert
+	url = https://github.com/AbsInt/CompCert.git
