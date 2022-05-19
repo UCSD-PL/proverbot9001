@@ -163,3 +163,6 @@
 [submodule "coq-projects/zorns-lemma"]
 	path = coq-projects/zorns-lemma
 	url = git@github.com:coq-community/zorns-lemma.git
+[submodule "coq-projects/math-comp"]
+	path = coq-projects/math-comp
+	url = git@github.com:math-comp/math-comp.git
