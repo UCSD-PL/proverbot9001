@@ -682,7 +682,7 @@ Lemma CG_path_in_cg_1 :
         rewrite in_dom_put in H1.
         case orb_prop with (1 := H1); intro.
       	rewrite (Neqb_complete _ _ H2).
-        change (Neqb x last || in_FSet x (MapDom (Map D) cg) = true) in |- *.
+        change (N.eqb x last || in_FSet x (MapDom (Map D) cg) = true) in |- *.
 	rewrite CG_edge_in_cg_1 with (1 := e); auto with bool.
         set (H3 := H0 a H2) in *.
 	rewrite in_dom_put in H3.
@@ -845,7 +845,7 @@ Lemma CG_path_app_4 :
 
 Fixpoint ad_simple_path_naive_search (x y : ad) (l : list ad) 
  (n : nat) {struct n} : bool :=
-  Neqb x y
+  N.eqb x y
   || match n with
      | O => false
      | S n' =>
@@ -880,7 +880,7 @@ Lemma ad_simple_path_naive_search_correct_1 :
 	intros. elim (le_Sn_O _ H).
 	intros n0 H x y l. case l. intros. inversion H1. rewrite H5. simpl in |- *.
       	rewrite (Neqb_correct y). reflexivity.
-	intros. simpl in |- *. elim (sumbool_of_bool (Neqb x y)). intro H3. rewrite H3. reflexivity.
+	intros. simpl in |- *. elim (sumbool_of_bool (N.eqb x y)). intro H3. rewrite H3. reflexivity.
 	intro H3. rewrite H3. simpl in |- *. elim (option_sum _ (MapGet _ cg x)). intro H4. elim H4.
       	clear H4. intros edges H4. rewrite H4. inversion_clear H1. unfold CG_edge in H6.
       	rewrite H4 in H6. elim (option_sum _ (MapGet D edges a)). intro H7. elim H7. clear H7.
@@ -892,7 +892,7 @@ Lemma ad_simple_path_naive_search_correct_1 :
       	intro. elim
   (MapSweep_semantics_4 D
      (fun (z : ad) (_ : D) =>
-      if Neqb z x || ad_in_list z prefix
+      if N.eqb z x || ad_in_list z prefix
       then false
       else ad_simple_path_naive_search z y (x :: prefix) n0) edges a d'' H7
      H1).
@@ -926,7 +926,7 @@ Lemma ad_simple_path_naive_search_complete_1 :
    (ad_list_stutters (rev (x :: prefix) ++ l) = false)}}.
       Proof.
       	simple induction n. intros. split with d'. split with (nil (A:=ad)). simpl in H1.
-      	rewrite (orb_b_false (Neqb x y)) in H1. rewrite <- (Neqb_complete _ _ H1).
+      	rewrite (orb_b_false (N.eqb x y)) in H1. rewrite <- (Neqb_complete _ _ H1).
       	rewrite <- app_nil_end. split. assumption.
 	rewrite ad_list_stutters_rev. assumption.
 	intros. simpl in H2. elim (orb_true_elim _ _ H2). intro H3.
@@ -939,7 +939,7 @@ Lemma ad_simple_path_naive_search_complete_1 :
         (option_sum _
            (MapSweep D
               (fun (z : ad) (_ : D) =>
-               if Neqb z x || ad_in_list z prefix
+               if N.eqb z x || ad_in_list z prefix
                then false
                else ad_simple_path_naive_search z y (x :: prefix) n0) edges)).
       	intro H2. elim H2. intro r. elim r. intros x0 d0 H6.
@@ -1043,11 +1043,11 @@ Lemma all_min_le_2_1 :
       	elim
         (Ddmin_choice
            (MapFold1 D (option D) None Ddmin f
-              (fun a0 : ad => pf (Ndouble a0)) m0)
+              (fun a0 : ad => pf (N.double a0)) m0)
            (MapFold1 D (option D) None Ddmin f
               (fun a0 : ad => pf (Ndouble_plus_one a0)) m1)).
-      	intro H2. rewrite H2 in H1. elim (H (fun a0 : ad => pf (Ndouble a0)) d H1). intros a0 H3.
-      	elim H3. intros d' H4. split with (Ndouble a0). split with d'. split.
+      	intro H2. rewrite H2 in H1. elim (H (fun a0 : ad => pf (N.double a0)) d H1). intros a0 H3.
+      	elim H3. intros d' H4. split with (N.double a0). split with d'. split.
       	rewrite MapGet_M2_bit_0_0. rewrite Ndouble_div2. elim H4; trivial.
 	apply Ndouble_bit0.
 	elim H4; trivial.
@@ -1085,7 +1085,7 @@ Lemma all_min_le_3 :
 
 Fixpoint ad_simple_path_dist_1 (x y : ad) (l : list ad) 
  (n : nat) {struct n} : option D :=
-  if Neqb x y
+  if N.eqb x y
   then Some Dz
   else
    match n with
@@ -1118,7 +1118,7 @@ Lemma ad_simple_path_dist_1_correct_1 :
 	intros n0 H x y l. case l. intros. inversion H1. 
         rewrite H5. simpl in |- *.
       	rewrite (Neqb_correct y). rewrite H4. apply Ddle_refl.
-	intros. simpl in |- *. elim (sumbool_of_bool (Neqb x y)). intro H3. rewrite H3.
+	intros. simpl in |- *. elim (sumbool_of_bool (N.eqb x y)). intro H3. rewrite H3.
       	rewrite (Neqb_complete _ _ H3) in H1. exact (no_bad_cycles _ _ _ H1).
 	intro H3. rewrite H3. elim (option_sum _ (MapGet _ cg x)). intro H4. elim H4.
       	intros edges H5. rewrite H5. inversion_clear H1.
@@ -1134,7 +1134,7 @@ Lemma ad_simple_path_dist_1_correct_1 :
       	exact
         (all_min_le_1
            (fun (z : ad) (d : D) =>
-            match Neqb z x || ad_in_list z prefix with
+            match N.eqb z x || ad_in_list z prefix with
             | true => None
             | false => Ddplus (ad_simple_path_dist_1 z y (x :: prefix) n0) d
             end) edges a d' H1).
@@ -1201,13 +1201,13 @@ Lemma ad_simple_path_dist_1_complete_1 :
    (ad_list_stutters (rev (x :: prefix) ++ l) = false /\ length l <= n)}.
       Proof.
       	simple induction n. intros. split with (nil (A:=ad)). split. unfold ad_simple_path_dist_1 in H1.
-      	elim (sumbool_of_bool (Neqb x y)). intro H2. rewrite H2 in H1. inversion H1.
+      	elim (sumbool_of_bool (N.eqb x y)). intro H2. rewrite H2 in H1. inversion H1.
       	rewrite <- H4. rewrite Dplus_z_d. rewrite <- app_nil_end.
       	rewrite <- (Neqb_complete _ _ H2). assumption.
 	intro H2. rewrite H2 in H1. discriminate H1.
 	split. rewrite <- app_nil_end. rewrite ad_list_stutters_rev. assumption.
 	apply le_n.
-	intros. simpl in H2. elim (sumbool_of_bool (Neqb x y)). intro H3. rewrite H3 in H2.
+	intros. simpl in H2. elim (sumbool_of_bool (N.eqb x y)). intro H3. rewrite H3 in H2.
       	inversion H2. split with (nil (A:=ad)). split. rewrite <- H5. rewrite Dplus_z_d.
       	rewrite <- app_nil_end. rewrite <- (Neqb_complete _ _ H3). assumption.
 	split. rewrite <- app_nil_end. rewrite ad_list_stutters_rev. assumption.
@@ -1230,11 +1230,11 @@ Lemma ad_simple_path_dist_1_complete_1 :
       	rewrite <- (Dplus_z_d d1). apply CG_p2. apply CG_p1. reflexivity.
 	unfold CG_edge in |- *. rewrite H5. rewrite H8. reflexivity.
 	assumption.
-	elim (sumbool_of_bool (Neqb a x || ad_in_list a prefix)). intro H10.
+	elim (sumbool_of_bool (N.eqb a x || ad_in_list a prefix)). intro H10.
       	rewrite H10 in H9. discriminate H9.
 	intro H10. rewrite H10 in H9. simpl in H9. inversion H9. reflexivity.
 	intro H6. rewrite H6 in H9. generalize H9.
-      	case (Neqb a x || ad_in_list a prefix); intro H10; discriminate H10.
+      	case (N.eqb a x || ad_in_list a prefix); intro H10; discriminate H10.
 	elim (sumbool_of_bool (ad_in_list a (x :: prefix))). intro H10. simpl in H10.
       	rewrite H10 in H9. discriminate H9.
 	trivial.
@@ -1476,11 +1476,11 @@ Definition cg2 := CG_add cg1 x y d.
 Lemma CG_add_edge_1 :
  forall x0 y0 : ad,
  CG_edge cg2 x0 y0 =
- (if Neqb x x0 && Neqb y y0
+ (if N.eqb x x0 && N.eqb y y0
   then Ddmin (Some d) (CG_edge cg1 x0 y0)
   else CG_edge cg1 x0 y0).
     Proof.
-    	unfold cg2, CG_add in |- *. intros. elim (sumbool_of_bool (Neqb x x0 && Neqb y y0)).
+    	unfold cg2, CG_add in |- *. intros. elim (sumbool_of_bool (N.eqb x x0 && N.eqb y y0)).
     	intro H. elim (andb_prop _ _ H). intros H0 H1. rewrite H.
     	rewrite <- (Neqb_complete _ _ H0). rewrite <- (Neqb_complete _ _ H1).
     	elim (option_sum _ (MapGet _ cg1 x)). intro H2. elim H2. intros edges H3. rewrite H3.
@@ -1507,18 +1507,18 @@ Lemma CG_add_edge_1 :
     	rewrite H2. elim (option_sum _ (MapGet _ edges y)). intro H3. elim H3. intros d0 H4.
     	rewrite H4. unfold CG_edge in |- *.
     	rewrite (MapPut_semantics _ cg1 x (MapPut D edges y (Dmin d d0)) x0).
-    	elim (sumbool_of_bool (Neqb x x0)). intro H5. rewrite H5.
+    	elim (sumbool_of_bool (N.eqb x x0)). intro H5. rewrite H5.
     	rewrite (MapPut_semantics _ edges y (Dmin d d0) y0). rewrite H0.
     	rewrite <- (Neqb_complete _ _ H5). rewrite H2. reflexivity.
 	intro H5. rewrite H5. reflexivity.
 	intro H3. rewrite H3. unfold CG_edge in |- *.
     	rewrite (MapPut_semantics _ cg1 x (MapPut D edges y d) x0).
-    	elim (sumbool_of_bool (Neqb x x0)). intro H4. rewrite H4.
+    	elim (sumbool_of_bool (N.eqb x x0)). intro H4. rewrite H4.
     	rewrite <- (Neqb_complete _ _ H4). rewrite H2.
     	rewrite (MapPut_semantics _ edges y d y0). rewrite H0. reflexivity.
 	intro H4. rewrite H4. reflexivity.
 	intro H1. rewrite H1. unfold CG_edge in |- *. rewrite (MapPut_semantics _ cg1 x (M1 D y d) x0).
-    	elim (sumbool_of_bool (Neqb x x0)). intro H2. rewrite H2.
+    	elim (sumbool_of_bool (N.eqb x x0)). intro H2. rewrite H2.
     	rewrite (M1_semantics_2 _ y y0 d H0). rewrite <- (Neqb_complete _ _ H2).
     	rewrite H1. reflexivity.
 	intro H2. rewrite H2. reflexivity.
@@ -1528,7 +1528,7 @@ Lemma CG_add_edge_2 :
  forall x0 y0 : ad, Ddle (CG_edge cg2 x0 y0) (CG_edge cg1 x0 y0) = true.
     Proof.
     	intros. rewrite (CG_add_edge_1 x0 y0).
-    	elim (sumbool_of_bool (Neqb x x0 && Neqb y y0)). intro H. rewrite H.
+    	elim (sumbool_of_bool (N.eqb x x0 && N.eqb y y0)). intro H. rewrite H.
     	apply Ddmin_le_2.
 	intro H. rewrite H. apply Ddle_refl.
     Qed.
@@ -1538,7 +1538,7 @@ Lemma CG_add_1 :
  CGsat cg1 rho -> Dle (rho x) (Dplus (rho y) d) = true -> CGsat cg2 rho.
     Proof.
     	unfold CGsat in |- *. intros. rewrite (CG_add_edge_1 x0 y0) in H1.
-    	elim (sumbool_of_bool (Neqb x x0 && Neqb y y0)). intro H2.
+    	elim (sumbool_of_bool (N.eqb x x0 && N.eqb y y0)). intro H2.
     	elim (andb_prop _ _ H2). intros H3 H4. rewrite H2 in H1.
     	rewrite <- (Neqb_complete _ _ H3). rewrite <- (Neqb_complete _ _ H4).
     	elim (option_sum _ (CG_edge cg1 x0 y0)). intro H5. elim H5. intros d1 H6.
@@ -1591,7 +1591,7 @@ Lemma CG_add_4_1 :
         rewrite <- H1. apply CG_p1.
     	reflexivity.
 	intros. inversion H0. rewrite (CG_add_edge_1 x0 a) in H6.
-    	elim (sumbool_of_bool (Neqb x x0 && Neqb y a)). intro H8. left.
+    	elim (sumbool_of_bool (N.eqb x x0 && N.eqb y a)). intro H8. left.
     	split with (nil (A:=ad)). split with l0. elim (andb_prop _ _ H8). intros H9 H10.
     	rewrite (Neqb_complete _ _ H9). rewrite (Neqb_complete _ _ H10). reflexivity.
 	intro H8. elim (H _ _ _ H4). intro H9. elim H9. intros l2 H10. elim H10. intros l3 H11.
@@ -1609,7 +1609,7 @@ Lemma CG_add_4_2 :
 	intros. inversion H0. rewrite (CG_add_edge_1 a a0) in H7. elim (orb_false_elim _ _ H1).
     	intros H9 H10. elim (orb_false_elim _ _ H10). 
         intros H11 H12. rewrite H11 in H7.
-    	rewrite (andb_b_false (Neqb x a)) in H7. apply CG_p2. apply H. assumption.
+    	rewrite (andb_b_false (N.eqb x a)) in H7. apply CG_p2. apply H. assumption.
 	exact H10.
 	assumption.
     Qed.
@@ -1627,7 +1627,7 @@ Lemma CG_add_4_3 :
 	rewrite (CG_add_edge_1 y a) in H7. 
         elim (orb_false_elim _ _ H0). intros.
     	elim (orb_false_elim _ _ H8). intros. rewrite H10 in H7.
-    	rewrite (andb_b_false (Neqb x y)) in H7. assumption.
+    	rewrite (andb_b_false (N.eqb x y)) in H7. assumption.
     Qed.
 
 Lemma CG_add_4_4 :
@@ -1665,8 +1665,8 @@ Lemma CG_add_4_5 :
     	elim (orb_false_elim _ _ (ad_list_stutters_app_conv_r _ _ H3)). intros.
     	elim (orb_false_elim _ _ H17). intros. 
         rewrite (Neqb_comm y0 x) in H19.
-    	rewrite H19 in H13. 
-        rewrite (andb_false_b (Neqb y x)) in H13. assumption.
+    	rewrite H19 in H13.
+        rewrite (andb_false_b (N.eqb y x)) in H13. assumption.
 	apply CG_add_4_4. assumption.
 	rewrite H2 in H3. apply ad_list_stutters_prev_conv_l with (l' := nil (A:=ad)). assumption.
 	elim
@@ -1827,16 +1827,16 @@ Lemma cg_range_2 :
 Lemma cg_range_4 :
  forall (cg : CGraph1) (x y : ad) (d : D) (a : ad),
  in_dom D a (cg_range (CG_add cg x y d)) =
- Neqb a y || in_dom D a (cg_range cg).
+ N.eqb a y || in_dom D a (cg_range cg).
   Proof.
     intros. elim (sumbool_of_bool (in_dom D a (cg_range (CG_add cg x y d)))). intro H.
     elim (cg_range_2 _ _ H). intros a0 H0. elim H0. intros d0 H1. clear H0.
     change (CG_edge (cg2 cg x y d) a0 a = Some d0) in H1.
     rewrite (CG_add_edge_1 cg x y d a0 a) in H1. rewrite H.
-    elim (sumbool_of_bool (Neqb x a0 && Neqb y a)). intro H2. elim (andb_prop _ _ H2).
+    elim (sumbool_of_bool (N.eqb x a0 && N.eqb y a)). intro H2. elim (andb_prop _ _ H2).
     intros H3 H4. rewrite (Neqb_comm y a) in H4. rewrite H4. reflexivity.
     intro H2. rewrite H2 in H1. rewrite (cg_range_1 _ _ _ _ H1). apply sym_eq. apply orb_b_true.
-    intro H. rewrite H. elim (sumbool_of_bool (Neqb a y)). intro H0.
+    intro H. rewrite H. elim (sumbool_of_bool (N.eqb a y)). intro H0.
     rewrite (Neqb_complete _ _ H0) in H. cut {d0 : D | CG_edge (cg2 cg x y d) x y = Some d0}.
     intro H1. elim H1. intros d0 H2. unfold cg2 in H2. rewrite (cg_range_1 _ _ _ _ H2) in H.
     discriminate H.
@@ -1848,7 +1848,7 @@ Lemma cg_range_4 :
     cut {d1 : D | CG_edge (cg2 cg x y d) a0 a = Some d1}. intro H4. elim H4. intros d1 H5.
     unfold cg2 in H5. rewrite (cg_range_1 _ _ _ _ H5) in H. discriminate H.
     rewrite (CG_add_edge_1 cg x y d a0 a). rewrite (Neqb_comm a y) in H0. rewrite H0.
-    rewrite (andb_b_false (Neqb x a0)). split with d0. assumption.
+    rewrite (andb_b_false (N.eqb x a0)). split with d0. assumption.
     intro H1. rewrite H1. reflexivity.
   Qed.
 
@@ -1864,7 +1864,7 @@ Lemma cg_out_of_range_1 :
 Lemma cg_out_of_range_2 :
  forall (cg : CGraph1) (y : ad),
  in_dom D y (cg_range cg) = false ->
- forall x : ad, Neqb x y = false -> ad_simple_path_dist cg x y = None.
+ forall x : ad, N.eqb x y = false -> ad_simple_path_dist cg x y = None.
   Proof.
     intros. elim (option_sum _ (ad_simple_path_dist cg x y)). intro H1. elim H1. intros d H2.
     elim (ad_simple_path_dist_complete_2 cg x y d H2). intros l H3.
@@ -1873,7 +1873,7 @@ Lemma cg_out_of_range_2 :
     generalize x H0 d H3. elim l. intros. inversion H5. 
     rewrite H8 in H4.
     rewrite (Neqb_correct y) in H4. discriminate H4.
-    intros. inversion H6. elim (sumbool_of_bool (Neqb a y)). 
+    intros. inversion H6. elim (sumbool_of_bool (N.eqb a y)).
     intro H14. split with x0.
     split with d'. rewrite <- (Neqb_complete _ _ H14). assumption.
     intro H14. exact (H4 a H14 _ H10).
@@ -1883,7 +1883,7 @@ Lemma cg_out_of_range_2 :
 Lemma cg_out_of_range_3 :
  forall (cg : CGraph1) (y : ad),
  in_dom D y (cg_range cg) = false ->
- forall x : ad, Neqb x y = false -> CG_leq cg x y = false.
+ forall x : ad, N.eqb x y = false -> CG_leq cg x y = false.
   Proof.
     intros. unfold CG_leq in |- *. rewrite (cg_out_of_range_2 cg y H x H0). reflexivity.
   Qed.
@@ -1893,7 +1893,7 @@ Lemma cg_add_out_of_range_1 :
  (forall (x0 : ad) (d0 : D) (l : list ad),
   CG_path cg x0 d0 (x0 :: l) -> Dle Dz d0 = true) ->
  in_dom D x (cg_range cg) = false ->
- Neqb y x = false ->
+ N.eqb y x = false ->
  forall (x0 : ad) (d0 : D) (l : list ad),
  CG_path (CG_add cg x y d) x0 d0 (x0 :: l) -> Dle Dz d0 = true.
   Proof.
@@ -1972,7 +1972,7 @@ Lemma CG_add_root_rooted_1 :
     intros. apply H. assumption.
     assumption.
     change (CG_edge (cg2 cg root a Dz) root a0 = Some d) in |- *. rewrite CG_add_edge_1.
-    rewrite (Neqb_comm a a0). rewrite H5. rewrite (andb_b_false (Neqb root root)). assumption.
+    rewrite (Neqb_comm a a0). rewrite H5. rewrite (andb_b_false (N.eqb root root)). assumption.
   Qed.
 
 Lemma CG_add_root_rooted_2 :
@@ -1983,15 +1983,15 @@ Lemma CG_add_root_rooted_2 :
  ad_in_list a l = true -> CG_edge (CG_add_root root cg l) root a = Some Dz.
   Proof.
     simple induction l. intros. discriminate H1.
-    simpl in |- *. intros. elim (orb_false_elim _ _ H0). intros. elim (sumbool_of_bool (Neqb a0 a)).
+    simpl in |- *. intros. elim (orb_false_elim _ _ H0). intros. elim (sumbool_of_bool (N.eqb a0 a)).
     intro H5. rewrite (Neqb_complete _ _ H5). apply CG_add_root_rooted_1. assumption.
     assumption.
     apply CG_add_rooted_1. apply H1. rewrite (Neqb_correct a). reflexivity.
     intro H5. rewrite H5 in H2. simpl in H2. apply H. assumption.
     intros. change (CG_edge (cg2 cg root a Dz) root a1 = None) in |- *. rewrite CG_add_edge_1.
-    elim (sumbool_of_bool (Neqb a a1)). intro H7. rewrite (Neqb_complete _ _ H7) in H3.
+    elim (sumbool_of_bool (N.eqb a a1)). intro H7. rewrite (Neqb_complete _ _ H7) in H3.
     rewrite H6 in H3. discriminate H3.
-    intro H7. rewrite H7. rewrite (andb_b_false (Neqb root root)).
+    intro H7. rewrite H7. rewrite (andb_b_false (N.eqb root root)).
     apply H1. rewrite H6. apply orb_b_true.
     assumption.
   Qed.
@@ -2020,16 +2020,16 @@ Lemma CG_add_root_rooted_4 :
     elim H4. intros d H5. rewrite H5 in H1.
     rewrite (MapPut_semantics _ cg root (MapPut D edges a (Dmin Dz d)) a0)
       in H1.
-    elim (sumbool_of_bool (Neqb root a0)). intro H6. left. rewrite (Neqb_complete _ _ H6).
+    elim (sumbool_of_bool (N.eqb root a0)). intro H6. left. rewrite (Neqb_complete _ _ H6).
     reflexivity.
     intro H6. rewrite H6 in H1. right. exact H1.
     intro H4. rewrite H4 in H1.
     rewrite (MapPut_semantics _ cg root (MapPut D edges a Dz) a0) in H1.
-    elim (sumbool_of_bool (Neqb root a0)). intro H5. left. rewrite (Neqb_complete _ _ H5).
+    elim (sumbool_of_bool (N.eqb root a0)). intro H5. left. rewrite (Neqb_complete _ _ H5).
     reflexivity.
     intro H5. rewrite H5 in H1. right. exact H1.
     intro H2. rewrite H2 in H1. rewrite (MapPut_semantics _ cg root (M1 D a Dz) a0) in H1.
-    elim (sumbool_of_bool (Neqb root a0)). intro H3. left. rewrite (Neqb_complete _ _ H3).
+    elim (sumbool_of_bool (N.eqb root a0)). intro H3. left. rewrite (Neqb_complete _ _ H3).
     reflexivity.
     intro H3. rewrite H3 in H1. right. exact H1.
   Qed.
@@ -2041,7 +2041,7 @@ Lemma CG_edge_dist_some_1 :
  {d' : D |
  Ddle (ad_simple_path_dist_1 cg x y prefix (S n)) (Some d') = true}.
   Proof.
-    unfold CG_edge in |- *. intros. simpl in |- *. elim (sumbool_of_bool (Neqb x y)). intro H1. rewrite H1.
+    unfold CG_edge in |- *. intros. simpl in |- *. elim (sumbool_of_bool (N.eqb x y)). intro H1. rewrite H1.
     split with Dz. simpl in |- *. apply Dle_refl.
     intro H1. rewrite H1. elim (option_sum _ (MapGet _ cg x)). intro H2. elim H2.
     intros edges H3. rewrite H3 in H. rewrite H3. elim (option_sum _ (MapGet D edges y)).
@@ -2050,7 +2050,7 @@ Lemma CG_edge_dist_some_1 :
   Ddle_trans
    with
      (dd' := (fun (z : ad) (d0 : D) =>
-              match Neqb z x || ad_in_list z prefix with
+              match N.eqb z x || ad_in_list z prefix with
               | true => None
               | false =>
                   Ddplus (ad_simple_path_dist_1 cg z y (x :: prefix) n) d0
@@ -2059,7 +2059,7 @@ Lemma CG_edge_dist_some_1 :
      all_min_le_1
       with
         (f := fun (z : ad) (d0 : D) =>
-              match Neqb z x || ad_in_list z prefix with
+              match N.eqb z x || ad_in_list z prefix with
               | true => None
               | false =>
                   Ddplus (ad_simple_path_dist_1 cg z y (x :: prefix) n) d0
@@ -2103,7 +2103,7 @@ Lemma CG_add_sat :
  forall (cg : CGraph1) (root a : ad) (d : D) (rho : ad -> D),
  CGsat (cg2 cg root a d) rho -> CGsat cg rho.
   Proof.
-    unfold CGsat in |- *. intros. elim (sumbool_of_bool (Neqb root x && Neqb a y)). intro H1.
+    unfold CGsat in |- *. intros. elim (sumbool_of_bool (N.eqb root x && N.eqb a y)). intro H1.
     apply Dle_trans with (d' := Dplus (rho y) (Dmin d d0)). apply H. rewrite CG_add_edge_1.
     rewrite H1. rewrite H0. reflexivity.
     apply Dle_plus_mono. apply Dle_refl.
@@ -2224,7 +2224,7 @@ Section CGDist1.
 
 Fixpoint ad_0_path_dist_1 (x y : ad) (l : list ad) 
  (n : nat) {struct n} : option D :=
-  if Neqb x y
+  if N.eqb x y
   then Some Dz
   else
    match n with
@@ -2253,10 +2253,10 @@ Lemma ad_0_path_dist_1_ge :
  Ddle (ad_simple_path_dist_1 cg x y l n) (ad_0_path_dist_1 x y l n) = true.
     Proof.
       simple induction n. simpl in |- *. intros. apply Ddle_refl.
-      simpl in |- *. intros. case (Neqb x y). apply Ddle_refl.
+      simpl in |- *. intros. case (N.eqb x y). apply Ddle_refl.
       case (MapGet _ cg x). Focus 2. apply Ddle_refl.
       intro. case (ad_in_list x l). apply Ddle_d_none.
-      apply all_min_le_3. intros. case (Neqb a x || ad_in_list a l). apply Ddle_refl.
+      apply all_min_le_3. intros. case (N.eqb a x || ad_in_list a l). apply Ddle_refl.
       apply Ddle_plus_mono. apply H.
       apply Dle_refl.
     Qed.
@@ -2278,7 +2278,7 @@ Lemma ad_0_path_dist_1_correct_1 :
       intros n0 H0 x y l. case l. intros. inversion H2. 
       rewrite H6. simpl in |- *.
       rewrite (Neqb_correct y). rewrite H5. apply Ddle_refl.
-      intros. simpl in |- *. elim (sumbool_of_bool (Neqb x y)). intro H4. rewrite H4.
+      intros. simpl in |- *. elim (sumbool_of_bool (N.eqb x y)). intro H4. rewrite H4.
       rewrite (Neqb_complete _ _ H4) in H2. exact (H _ _ _ H2).
 
       intro H4. rewrite H4. elim (option_sum _ (MapGet _ cg x)). intro H5. elim H5.
@@ -2293,7 +2293,7 @@ Lemma ad_0_path_dist_1_correct_1 :
       rewrite H9. exact
   (all_min_le_1
      (fun (z : ad) (d : D) =>
-      match Neqb z x || ad_in_list z prefix with
+      match N.eqb z x || ad_in_list z prefix with
       | true => None
       | false => Ddplus (ad_0_path_dist_1 z y (x :: prefix) n0) d
       end) edges a d' H2).
@@ -2353,7 +2353,7 @@ Lemma ad_0_path_dist_correct :
 
 Fixpoint ad_1_path_dist_1 (x y : ad) (s : FSet) (n : nat) {struct n} :
  option D :=
-  if Neqb x y
+  if N.eqb x y
   then Some Dz
   else
    match n with
@@ -2384,7 +2384,7 @@ Lemma ad_1_path_dist_correct_1 :
  ad_1_path_dist_1 x y (Elems l) n = ad_0_path_dist_1 x y l n.
     Proof.
       simple induction n. trivial.
-      simpl in |- *. intros. case (Neqb x y). reflexivity.
+      simpl in |- *. intros. case (N.eqb x y). reflexivity.
       case (MapGet _ cg x). Focus 2. reflexivity.
       intro. unfold all_min in |- *. elim (sumbool_of_bool (ad_in_list x l)). intro H0. rewrite H0.
       rewrite <- (ad_in_elems_in_list l x) in H0. elim (in_dom_some _ _ _ H0). intros t H1.
@@ -2395,7 +2395,7 @@ Lemma ad_1_path_dist_correct_1 :
       rewrite <- (ad_in_elems_in_list (x :: l) a) in H2. elim (in_dom_some _ _ _ H2). simpl in |- *.
       intro t. elim t. intro H3. rewrite H3. rewrite (ad_in_elems_in_list (x :: l) a) in H2.
       simpl in H2. rewrite H2. reflexivity.
-      intro H2. cut (Neqb a x || ad_in_list a l = false). intro H3. rewrite H3.
+      intro H2. cut (N.eqb a x || ad_in_list a l = false). intro H3. rewrite H3.
       rewrite <- (ad_in_elems_in_list (x :: l) a) in H2. simpl in H2.
       rewrite (in_dom_none _ _ _ H2). rewrite <- (H a y (x :: l)). reflexivity.
       assumption.
@@ -2429,7 +2429,7 @@ Lemma ad_1_path_dist_big_enough_1 :
  MapCard _ cg <= n + MapCard _ s ->
  forall x y : ad, ad_1_path_dist_1 x y s n = ad_1_path_dist_1 x y s (S n).
     Proof.
-      simple induction n. intros. simpl in |- *. case (Neqb x y). reflexivity.
+      simple induction n. intros. simpl in |- *. case (N.eqb x y). reflexivity.
       elim (sumbool_of_bool (in_dom _ x cg)). intro H1. elim (in_dom_some _ _ _ H1).
       intros edges H2. rewrite H2. elim (sumbool_of_bool (in_dom _ x s)). intro H3.
       elim (in_dom_some _ _ _ H3). intros t H4. rewrite H4. reflexivity.
@@ -2444,15 +2444,15 @@ Lemma ad_1_path_dist_big_enough_1 :
   (forall m : nat,
    m = S n0 -> ad_1_path_dist_1 x y s (S n0) = ad_1_path_dist_1 x y s (S m)).
       intro. exact (H2 (S n0) (refl_equal _)).
-      intros. simpl in |- *. case (Neqb x y). reflexivity.
+      intros. simpl in |- *. case (N.eqb x y). reflexivity.
       elim (option_sum _ (MapGet _ cg x)). intro H'. elim H'. intros edges H'0. rewrite H'0.
       elim (option_sum _ (MapGet _ s x)). intro H3. elim H3. intros t H4. rewrite H4. reflexivity.
       intro H3. rewrite H3. unfold all_min in |- *. apply MapFold_ext_f. intros.
-      rewrite (MapPut_semantics unit s x tt a). elim (sumbool_of_bool (Neqb x a)). intro H5.
+      rewrite (MapPut_semantics unit s x tt a). elim (sumbool_of_bool (N.eqb x a)). intro H5.
       rewrite H5. reflexivity.
       intro H5. rewrite H5. case (MapGet _ s a). Focus 2. rewrite H2. rewrite H. reflexivity.
       unfold MapSubset in |- *. intros. elim (in_dom_some _ _ _ H6). intro.
-      rewrite (MapPut_semantics unit s x tt a0). elim (sumbool_of_bool (Neqb x a0)). intro H7.
+      rewrite (MapPut_semantics unit s x tt a0). elim (sumbool_of_bool (N.eqb x a0)). intro H7.
       rewrite H7. intro H8. rewrite <- (Neqb_complete _ _ H7). fold (in_FSet x (MapDom _ cg)) in |- *.
       rewrite <- (MapDom_Dom _ cg x). unfold in_dom in |- *. rewrite H'0. reflexivity.
       intro H7. rewrite H7. intro H8. apply (H0 a0). unfold in_dom in |- *. rewrite H8. reflexivity.

@@ -120,3 +120,26 @@
 [submodule "deps/metalib"]
 	path = deps/metalib
 	url = git@github.com:plclub/metalib.git
+[submodule "coq-projects/additions"]
+	path = coq-projects/additions
+	url = git@github.com:coq-contribs/additions.git
+	branch = v8.9
+[submodule "coq-projects/distributed-reference-counting"]
+	path = coq-projects/distributed-reference-counting
+	url = git@github.com:coq-contribs/distributed-reference-counting.git
+	branch = v8.9
+[submodule "coq-projects/zsearch-trees"]
+	path = coq-projects/zsearch-trees
+	url = git@github.com:coq-contribs/zsearch-trees.git
+[submodule "coq-projects/zorns-lemma"]
+	path = coq-projects/zorns-lemma
+	url = git@github.com:coq-community/zorns-lemma.git
+[submodule "coq-projects/topology"]
+	path = coq-projects/topology
+	url = git@github.com:coq-community/topology.git
+[submodule "coq-projects/lin-alg-8.10"]
+	path = coq-projects/lin-alg
+	url = git@github.com:HazardousPeach/lin-alg-8.10.git
+[submodule "coq-projects/VST"]
+	path = coq-projects/VST
+	url = git@github.com:PrincetonUniversity/VST.git

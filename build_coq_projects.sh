@@ -16,7 +16,7 @@ done
 export PATH=$HOME/.local/bin:$PATH
 
 
-for project in $(jq -r '.[].project_name' coqgym_projs_splits.json); do
+for project in coq-list-string VST; do #$(jq -r ".[] | select([(.train_files|length > 0), (.test_files|length > 0)] | any | not) | .project_name" coqgym_projs_splits.json); do #$(jq -r '.[].project_name' coqgym_projs_splits.json); do
     SBATCH_FLAGS=""
 
     echo "#!/usr/bin/env bash" > coq-projects/$project/make.sh
@@ -51,4 +51,3 @@ for project in $(jq -r '.[].project_name' coqgym_projs_splits.json); do
     chmod u+x coq-projects/$project/make.sh
     (cd coq-projects/$project && sbatch --cpus-per-task=${NTHREADS} $SBATCH_FLAGS -o build-output.out make.sh)
 done
-
