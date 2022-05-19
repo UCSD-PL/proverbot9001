@@ -367,6 +367,7 @@ class Worker:
     args: argparse.Namespace
     predictor: TacticPredictor
     coq: Optional[serapi_instance.SerapiInstance]
+    switch_dict: Optional[Dict[str, str]]
 
     # File-local state
     cur_project: Optional[str]
@@ -375,7 +376,8 @@ class Worker:
     lemmas_encountered: List[str]
     remaining_commands: List[str]
 
-    def __init__(self, args: argparse.Namespace, predictor: TacticPredictor) -> None:
+    def __init__(self, args: argparse.Namespace, predictor: TacticPredictor,
+                 switch_dict: Optional[Dict[str, str]] = None) -> None:
         self.args = args
         self.predictor = predictor
         self.coq = None
@@ -384,6 +386,8 @@ class Worker:
         self.last_program_statement: Optional[str] = None
         self.lemmas_encountered: List[str] = []
         self.remaining_commands: List[str] = []
+        self.switch_dict = switch_dict
+
     def __enter__(self) -> 'Worker':
         self.coq = serapi_instance.SerapiInstance(['sertop', '--implicit'],
                                   None, str(self.args.prelude),
@@ -401,7 +405,10 @@ class Worker:
             with (self.args.prelude / self.cur_project / "switch.txt").open('r') as sf:
                 switch = sf.read().strip()
         except FileNotFoundError:
-            return
+            if self.switch_dict is not None:
+                switch = self.switch_dict[self.cur_project]
+            else:
+                return
         env_string = subprocess.run(f"opam env --switch={switch} --set-switch",
                                     shell=True, stdout=subprocess.PIPE, text=True).stdout
         for env_line in env_string.splitlines():
@@ -623,6 +630,17 @@ def search_file_worker(args: argparse.Namespace,
     if util.use_cuda:
         torch.cuda.set_device(device)
     util.cuda_device = device
+
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+        if any(["switch" in item for item in project_dics]):
+            switch_dict = {item["project_name"]: item["switch"]
+                           for item in project_dicts}
+        else:
+            switch_dict = None
+    else:
+        switch_dict = None
 
     with Worker(args, predictor) as worker:
         while True:

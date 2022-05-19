@@ -52,7 +52,12 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
     args = arg_parser.parse_args(arg_list)
-    
+    if args.filenames[0].suffix == ".json":
+        assert args.splits_file == None
+        assert len(args.filenames) == 1
+        args.splits_file = args.filenames[0]
+        args.filenames = []
+
     if 'SLURM_ARRAY_TASK_ID' in environ:
         workerid = int(environ['SLURM_ARRAY_TASK_ID'])
     else:
@@ -81,7 +86,14 @@ def run_worker(args: argparse.Namespace, workerid: int,
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
 
-    with Worker(args, predictor) as worker:
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+        if any(["switch" in item for item in project_dics]):
+            switch_dict = {item["project_name"]: item["switch"]
+                           for item in project_dicts}
+
+    with Worker(args, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
@@ -99,7 +111,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)
-    
+
 class FileLock:
     def __init__(self, file_handle):
         self.file_handle = file_handle
