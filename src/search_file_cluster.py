@@ -97,7 +97,7 @@ def main(arg_list: List[str]) -> None:
 def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob],
                     all_jobs: List[ReportJob]) -> None:
     todo_jobs = [job for job in all_jobs if job not in solved_jobs]
-        
+
     with (output_dir / "jobs.txt").open("w") as f:
         for job in all_jobs:
             print(json.dumps(job), file=f)
