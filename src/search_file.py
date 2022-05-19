@@ -636,15 +636,31 @@ def search_file_worker(args: argparse.Namespace,
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
-def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
-    already_done_jobs: List[ReportJob] = []
-
+def project_dicts_from_args(args: argparse.Namespace) -> Dict[str, Any]:
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
     else:
         project_dicts = [{"project_name": ".",
                           "test_files": args.filenames}]
+
+def remove_already_done_jobs(args: argparse.Namespace) -> None:
+    for project_dict in project_dicts:
+        for filename in project_dict["test_files"]:
+            proofs_file = (args.output_dir / project_dict["project_name"] /
+                           (util.safe_abbrev(Path2(filename),
+                                             [Path2(filename) for filename in
+                                              project_dict["test_files"]])
+                            + "-proofs.txt"))
+            try:
+                os.remove(proofs_file)
+            except FileNotFoundError:
+                pass
+
+def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
+    already_done_jobs: List[ReportJob] = []
+
+    project_dicts = proj_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             proofs_file = (args.output_dir / project_dict["project_name"] /
@@ -667,13 +683,8 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
 def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
     jobs: List[ReportJob] = []
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-    else:
-        project_dicts = [{"project_name": ".",
-                          "test_files": [str(filename) for filename in
-                                         args.filenames]}]
+    project_dicts = project_dicts_from_args(args)
+
     arg_proofs_names = None
     if args.proofs_file:
         with open(args.proofs_file, 'r') as f:
@@ -777,12 +788,8 @@ def search_file_multithreaded(args: argparse.Namespace,
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> None:
     stats: List[search_report.ReportStats] = []
     model_name = dict(predictor.getOptions())["predictor"]
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-    else:
-        project_dicts = [{"project_name": ".",
-                          "test_files": args.filenames}]
+
+    project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             file_solutions = []

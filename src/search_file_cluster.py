@@ -79,7 +79,11 @@ def main(arg_list: List[str]) -> None:
                 srcpath = base.parent / 'reports' / filename
                 srcpath.copyfile(destpath)
 
-    solved_jobs = get_already_done_jobs(args)
+    if args.resume:
+        solved_jobs = get_already_done_jobs(args)
+    else:
+        remove_alrady_done_jobs(args)
+        solved_jobs = []
     all_jobs = get_all_jobs(args)
     if len(solved_jobs) < len(all_jobs):
         setup_jobsstate(args.output_dir, solved_jobs, all_jobs)
