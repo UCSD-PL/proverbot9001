@@ -53,9 +53,6 @@
 [submodule "coq-projects/twoSquare"]
 	path = coq-projects/twoSquare
 	url = git@github.com:thery/twoSquare.git
-[submodule "coq-projects/coq-smc"]
-	path = coq-projects/smc
-	url = git@github.com:dsksh/coq-smc.git
 [submodule "coq-projects/QuickChick"]
 	path = coq-projects/QuickChick
 	url = git@github.com:QuickChick/QuickChick.git
@@ -169,3 +166,6 @@
 [submodule "CompCert"]
 	path = CompCert
 	url = https://github.com/AbsInt/CompCert.git
+[submodule "coq-projects/smc"]
+	path = coq-projects/smc
+	url = git@github.com:dsksh/coq-smc.git
