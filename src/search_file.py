@@ -457,7 +457,7 @@ class Worker:
         if job_file != self.cur_file or \
           job_lemma in self.lemmas_encountered:
             if self.cur_file:
-                for sec_or_mod, _ in self.coq.sm_stack:
+                for sec_or_mod, _ in reversed(self.coq.sm_stack):
                     self.coq.run_stmt(f"End {sec_or_mod}.")
             self.enter_file(job_file)
 
