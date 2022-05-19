@@ -76,7 +76,6 @@ opam install -y coq-serapi \
      coq-smpl=8.12 coq-metacoq-template coq-metacoq-checker \
      coq-equations \
      coq-mathcomp-ssreflect coq-mathcomp-algebra coq-mathcomp-field \
-     coq-fcsl-pcm \
      menhir
 
 # Install some coqgym deps that don't have the right versions in their
@@ -88,13 +87,8 @@ git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
 # Cheerios has its own issues
 git clone git@github.com:uwplse/cheerios.git deps/cheerios
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
-<<<<<<< HEAD
-# Same with verdi, but modify it's existing opam file to allow 8.12 (I
-# was told by one of the developers that this is okay
-=======
->>>>>>> Some install deps fixes
-# https://github.com/uwplse/verdi-raft/issues/89)
 (cd coq-projects/verdi && opam install -y --ignore-constraints-on=coq . )
+(cd coq-projects/fcsl-pcm && make "$@" && make install)
 
 # Finally, sync the opam state back to global
 rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null
