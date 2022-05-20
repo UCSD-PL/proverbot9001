@@ -21,10 +21,12 @@ def main(arg_list: List[str]) -> None:
     with args.coqgym_split_file.open('r') as csplit_f:
         project_split = json.loads(csplit_f.read())
 
+    basedir = Path(os.getcwd()) / args.root
+    os.chdir(basedir)
     for project_dict in project_dicts:
+        os.chdir(basedir / project_dict["project_name"])
         files = [str(Path(filename).with_suffix(".v")) for filename in
-                 glob(str(args.root / project_dict["project_name"] / "**/*.vo"),
-                      recursive=True)]
+                 glob(str("**/*.vo"), recursive=True)]
         files_filtered = []
         for filename in files:
             if not os.path.exists(filename):
