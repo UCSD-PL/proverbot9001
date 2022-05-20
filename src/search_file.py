@@ -661,8 +661,10 @@ def project_dicts_from_args(args: argparse.Namespace) -> Dict[str, Any]:
     else:
         project_dicts = [{"project_name": ".",
                           "test_files": args.filenames}]
+    return project_dicts
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
+    project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             proofs_file = (args.output_dir / project_dict["project_name"] /
@@ -678,7 +680,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []
 
-    project_dicts = proj_dicts_from_args(args)
+    project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             proofs_file = (args.output_dir / project_dict["project_name"] /
