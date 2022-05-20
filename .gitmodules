@@ -169,3 +169,6 @@
 [submodule "coq-projects/smc"]
 	path = coq-projects/smc
 	url = git@github.com:dsksh/coq-smc.git
+[submodule "coq-projects/mod-red"]
+	path = coq-projects/mod-red
+	url = git@github.com:coq-contribs/mod-red.git
