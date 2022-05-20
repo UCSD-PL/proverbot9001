@@ -25,6 +25,14 @@ def main(arg_list: List[str]) -> None:
         files = [str(Path(filename).with_suffix(".v")) for filename in
                  glob(str(args.root / project_dict["project_name"] / "**/*.vo"),
                       recursive=True)]
+        files_filtered = []
+        for filename in files:
+            if not os.path.exists(filename):
+                print(f"Warning: in project {project_dict['project_name']} file {str(Path(filename).with_suffix('.vo'))} doesn't have a cooresponding v file! skipping..", file=sys.stderr)
+            else:
+                files_filtered.append(filename)
+        files = files_filtered
+
         if len(files) == 0:
             print(f"Warning: Project {project_dict['project_name']} has no files",
                   file=sys.stderr)
