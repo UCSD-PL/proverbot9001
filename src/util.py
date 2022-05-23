@@ -26,6 +26,7 @@ import math
 import re
 import itertools
 import argparse
+import fcntl
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
                     Callable, Optional, Pattern, Match, Union)
@@ -359,3 +360,19 @@ def safe_abbrev(filename: Path2, all_files: List[Path2]) -> str:
         return escape_filename(str(filename))
     else:
         return filename.stem
+
+class FileLock:
+    def __init__(self, file_handle):
+        self.file_handle = file_handle
+
+    def __enter__(self):
+        while True:
+            try:
+                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+               time.sleep(0.01)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        fcntl.flock(self.file_handle, fcntl.LOCK_UN)

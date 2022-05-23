@@ -39,7 +39,7 @@ from search_file import (add_args_to_parser, get_predictor, Worker)
 import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
-from util import eprint, unwrap
+from util import eprint, unwrap, FileLock
 
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
@@ -111,22 +111,6 @@ def run_worker(args: argparse.Namespace, workerid: int,
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)
-
-class FileLock:
-    def __init__(self, file_handle):
-        self.file_handle = file_handle
-
-    def __enter__(self):
-        while True:
-            try:
-                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError:
-               time.sleep(0.01)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        fcntl.flock(self.file_handle, fcntl.LOCK_UN)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
