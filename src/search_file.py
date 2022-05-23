@@ -401,6 +401,7 @@ class Worker:
         self.coq = None
 
     def set_switch_from_proj(self) -> None:
+        assert self.cur_project
         try:
             with (self.args.prelude / self.cur_project / "switch.txt").open('r') as sf:
                 switch = sf.read().strip()
@@ -577,7 +578,7 @@ class Worker:
             if restart:
                 self.restart_coq()
                 self.reset_file_state()
-                eprint("Hit an anomaly, restarting job", guard=args.verbose >= 2)
+                eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
             else:
                 if self.args.log_hard_anomalies:
@@ -634,7 +635,7 @@ def search_file_worker(args: argparse.Namespace,
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
-        if any(["switch" in item for item in project_dics]):
+        if any(["switch" in item for item in project_dicts]):
             switch_dict = {item["project_name"]: item["switch"]
                            for item in project_dicts}
         else:
@@ -654,7 +655,7 @@ def search_file_worker(args: argparse.Namespace,
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
     return SearchResult.from_dict(sol)
 
-def project_dicts_from_args(args: argparse.Namespace) -> Dict[str, Any]:
+def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
@@ -703,7 +704,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
 def get_file_jobs(args: argparse.Namespace,
                   proj_filename_tuples: Iterable[Tuple[str, str]]) \
-                  -> Iterator[List[ReportJob]]:
+                  -> Iterator[ReportJob]:
     arg_proofs_names = None
     if args.proofs_file:
         with open(args.proofs_file, 'r') as f:
