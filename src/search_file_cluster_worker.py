@@ -88,7 +88,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
-        if any(["switch" in item for item in project_dics]):
+        if any(["switch" in item for item in project_dicts]):
             switch_dict = {item["project_name"]: item["switch"]
                            for item in project_dicts}
 
