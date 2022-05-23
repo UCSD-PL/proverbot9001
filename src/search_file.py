@@ -36,7 +36,7 @@ import cProfile
 import copy
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
-                    Any)
+                    Any, Iterator, Iterable)
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -701,10 +701,9 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     return already_done_jobs
 
-def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
-    jobs: List[ReportJob] = []
-    project_dicts = project_dicts_from_args(args)
-
+def get_file_jobs(args: argparse.Namespace,
+                  proj_filename_tuples: Iterable[Tuple[str, str]]) \
+                  -> Iterator[List[ReportJob]]:
     arg_proofs_names = None
     if args.proofs_file:
         with open(args.proofs_file, 'r') as f:
@@ -712,22 +711,25 @@ def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
     elif args.proof:
         arg_proofs_names = [args.proof]
 
-    for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
-            cmds = serapi_instance.load_commands(args.prelude / project_dict["project_name"]
-                                            / filename)
-            lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
-                                                       args.include_proof_relevant)
-            if arg_proofs_names:
-                jobs += [ReportJob(project_dict["project_name"], filename, module, stmt)
-                         for (module, stmt) in lemmas_in_file
-                         if serapi_instance.lemma_name_from_statement(stmt)
-                         in arg_proofs_names]
-            else:
-                jobs += [ReportJob(project_dict["project_name"], filename, module, stmt)
-                         for (module, stmt) in lemmas_in_file]
+    for project, filename in proj_filename_tuples:
+        cmds = serapi_instance.load_commands(args.prelude / project / filename)
+        lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
+                                                        args.include_proof_relevant)
+        if arg_proofs_names:
+            yield from (ReportJob(project, filename, module, stmt)
+                        for (module, stmt) in lemmas_in_file
+                        if serapi_instance.lemma_name_from_statement(stmt)
+                        in arg_proofs_names)
+        else:
+            yield from (ReportJob(project, filename, module, stmt)
+                        for (module, stmt) in lemmas_in_file)
 
-    return jobs
+def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
+    project_dicts = project_dicts_from_args(args)
+    proj_filename_tuples = [(project_dict["project_name"], filename)
+                            for project_dict in project_dicts
+                            for filename in project_dict["test_files"]]
+    return list(get_file_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
