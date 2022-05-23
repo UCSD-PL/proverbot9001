@@ -34,7 +34,8 @@ from typing import List, NamedTuple
 
 from search_file import (add_args_to_parser, ReportJob,
                          generate_report, get_predictor,
-                         get_all_jobs, get_already_done_jobs)
+                         get_already_done_jobs,
+                         project_dicts_from_args)
 import coq_serapy
 import util
 
@@ -84,29 +85,60 @@ def main(arg_list: List[str]) -> None:
     else:
         remove_alrady_done_jobs(args)
         solved_jobs = []
-    all_jobs = get_all_jobs(args)
-    if len(solved_jobs) < len(all_jobs):
-        setup_jobsstate(args.output_dir, solved_jobs, all_jobs)
+    get_all_jobs_cluster(args)
+    with open(args.output_dir / "jobs.txt") as f:
+        num_jobs = len([line for line in f])
+    if len(solved_jobs) < num_jobs :
+        setup_jobsstate(args.output_dir, solved_jobs)
         dispatch_workers(args, arg_list)
         with util.sighandler_context(signal.SIGINT, cancel_workers):
             show_progress(args)
     else:
-        assert len(solved_jobs) == len(all_jobs)
+        assert len(solved_jobs) == num_jobs
     generate_report(args, predictor)
 
-def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob],
-                    all_jobs: List[ReportJob]) -> None:
-    todo_jobs = [job for job in all_jobs if job not in solved_jobs]
+def get_all_jobs_cluster(args: argparse.Namespace) -> None:
+    project_dicts = project_dicts_from_args(args)
+    projfiles = [(project_dict["project_name"], filename)
+                 for project_dict in project_dicts
+                 for filename in project_dict["test_files"]]
+    with (args.output_dir / "proj_files.txt").open("w") as f:
+        for projfile in projfiles:
+            print(json.dumps(projfile), file=f)
+    worker_args = [f"--prelude={args.prelude}",
+                   f"--output={args.output}",
+                   "proj_files.txt",
+                   "proj_files_scanned.txt",
+                   "jobs.txt"]
+    if args.include_proof_relevant:
+        worker_args.append("--include-proof-relevant")
+    if args.proof:
+        worker_args.append(f"--proof={args.proof}")
+    elif args.proofs_file:
+        worker_args.append(f"--proofs-file={str(args.proofs_file)}")
+    cur_dir = os.path.realpath(os.path.dirname(__file__))
+    subprocess.run([f"{cur_dir}/sbatch-retry",
+                    "-o", str(args.output_dir / args.workers_output_dir /
+                              "file-scanner-%a.out"),
+                    f"--array=0-{args.num_workers-1}",
+                    "python3",
+                    f"{cur_dir}/job_getting_worker.py"] + worker_args)
 
-    with (output_dir / "jobs.txt").open("w") as f:
-        for job in all_jobs:
-            print(json.dumps(job), file=f)
-        print("", end="", flush=True, file=f)
+    with tqdm(desc="Getting jobs", total=len(projfiles), dynamic_ncols=True) as bar:
+        num_files_scanned = 0
+        while num_files_scanned < projfiles:
+            with (args.output_dir / "proj_files_scanned.txt").open('r') as f:
+                new_files_scanned = len([line for line in f])
+                bar.update(new_files_scanned - num_files_scanned)
+                num_files_scanned = new_files_scanned
+                time.sleep(0.2)
+
+
+def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob]) -> None:
     with (output_dir / "taken.txt").open("w") as f:
         for job in solved_jobs:
             print(json.dumps(job), file=f)
         print("", end="", flush=True, file=f)
-        pass
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
