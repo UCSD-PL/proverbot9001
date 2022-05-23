@@ -15,6 +15,7 @@ done
 # Make sure ruby is in the path
 export PATH=$HOME/.local/bin:$PATH
 
+git submodule init && git submodule update
 
 for project in $(jq -r '.[].project_name' coqgym_projs_splits.json); do
     SBATCH_FLAGS=""
