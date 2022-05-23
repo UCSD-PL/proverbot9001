@@ -22,8 +22,6 @@
 
 import fcntl
 import time
-import util
-import traceback
 import argparse
 import json
 import sys
@@ -39,6 +37,7 @@ from search_file import (add_args_to_parser, get_predictor, Worker)
 import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
+import util
 from util import eprint, unwrap, FileLock
 
 def main(arg_list: List[str]) -> None:
