@@ -458,7 +458,7 @@ class Worker:
           job_lemma in self.lemmas_encountered:
             if self.cur_file:
                 for sec_or_mod, _ in reversed(self.coq.sm_stack):
-                    self.coq.run_stmt(f"End {sec_or_mod}.")
+                    self.coq.run_stmt(f"End {sec_or_mod}.", timeout=240)
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
