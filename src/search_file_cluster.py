@@ -105,12 +105,19 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     projfiles = [(project_dict["project_name"], filename)
                  for project_dict in project_dicts
                  for filename in project_dict["test_files"]]
+    with (args.output_dir / "jobs.txt").open("w") as f:
+        pass
     with (args.output_dir / "proj_files.txt").open("w") as f:
         for projfile in projfiles:
             print(json.dumps(projfile), file=f)
+    with (args.output_dir / "proj_files_taken.txt").open("w") as f:
+        pass
+    with (args.output_dir / "proj_files_scanned.txt").open("w") as f:
+        pass
     worker_args = [f"--prelude={args.prelude}",
                    f"--output={args.output_dir}",
                    "proj_files.txt",
+                   "proj_files_taken.txt",
                    "proj_files_scanned.txt",
                    "jobs.txt"]
     if args.include_proof_relevant:
@@ -129,12 +136,12 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
 
     with tqdm(desc="Getting jobs", total=len(projfiles), dynamic_ncols=True) as bar:
         num_files_scanned = 0
-        while num_files_scanned < projfiles:
+        while num_files_scanned < len(projfiles):
             with (args.output_dir / "proj_files_scanned.txt").open('r') as f:
                 new_files_scanned = len([line for line in f])
-                bar.update(new_files_scanned - num_files_scanned)
-                num_files_scanned = new_files_scanned
-                time.sleep(0.2)
+            bar.update(new_files_scanned - num_files_scanned)
+            num_files_scanned = new_files_scanned
+            time.sleep(0.2)
 
 
 def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob]) -> None:
