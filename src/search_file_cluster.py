@@ -131,8 +131,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
                     f"--array=0-{args.num_workers-1}",
-                    "python3",
-                    f"{cur_dir}/job_getting_worker.py"] + worker_args)
+                    f"{cur_dir}/job_getting_worker.sh"] + worker_args)
 
     with tqdm(desc="Getting jobs", total=len(projfiles), dynamic_ncols=True) as bar:
         num_files_scanned = 0
