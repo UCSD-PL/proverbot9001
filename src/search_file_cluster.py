@@ -90,6 +90,7 @@ def main(arg_list: List[str]) -> None:
     get_all_jobs_cluster(args)
     with open(args.output_dir / "jobs.txt") as f:
         num_jobs = len([line for line in f])
+        assert num_jobs > 0
     if len(solved_jobs) < num_jobs :
         setup_jobsstate(args.output_dir, solved_jobs)
         dispatch_workers(args, arg_list)
