@@ -109,7 +109,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
         for projfile in projfiles:
             print(json.dumps(projfile), file=f)
     worker_args = [f"--prelude={args.prelude}",
-                   f"--output={args.output}",
+                   f"--output={args.output_dir}",
                    "proj_files.txt",
                    "proj_files_scanned.txt",
                    "jobs.txt"]
@@ -120,7 +120,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     elif args.proofs_file:
         worker_args.append(f"--proofs-file={str(args.proofs_file)}")
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    subprocess.run([f"{cur_dir}/sbatch-retry",
+    subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
                     f"--array=0-{args.num_workers-1}",
@@ -156,8 +156,8 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                     "-p", args.partition,
                     "-t", str(args.worker_timeout),
                     "--cpus-per-task", str(args.num_threads),
-                    "-o",str(args.output_dir / args.workers_output_dir
-                             / "worker-%a.out"),
+                    "-o", str(args.output_dir / args.workers_output_dir
+                              / "worker-%a.out"),
                     "--mem", args.mem,
                     f"--array=0-{args.num_workers-1}",
                     f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
