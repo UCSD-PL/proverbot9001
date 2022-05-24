@@ -86,6 +86,7 @@ def main(arg_list: List[str]) -> None:
     else:
         remove_alrady_done_jobs(args)
         solved_jobs = []
+    os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args)
     with open(args.output_dir / "jobs.txt") as f:
         num_jobs = len([line for line in f])
@@ -141,7 +142,6 @@ def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob]) -> None:
             print(json.dumps(job), file=f)
         print("", end="", flush=True, file=f)
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
-    os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
         print(args.num_workers, file=f)
     with (args.output_dir / "workers_scheduled.txt").open("w") as f:
