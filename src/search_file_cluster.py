@@ -51,6 +51,7 @@ def main(arg_list: List[str]) -> None:
                             type=Path2)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
+    arg_parser.add_argument("--mem", default="2G")
 
     args = arg_parser.parse_args(arg_list)
     if args.filenames[0].suffix == ".json":
@@ -156,6 +157,7 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                     "--cpus-per-task", str(args.num_threads),
                     "-o",str(args.output_dir / args.workers_output_dir
                              / "worker-%a.out"),
+                    "--mem", args.mem,
                     f"--array=0-{args.num_workers-1}",
                     f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
 

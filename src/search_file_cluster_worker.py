@@ -50,6 +50,7 @@ def main(arg_list: List[str]) -> None:
                             type=Path2)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
+    arg_parser.add_argument("--mem", default="2G")
     args = arg_parser.parse_args(arg_list)
     if args.filenames[0].suffix == ".json":
         assert args.splits_file == None
