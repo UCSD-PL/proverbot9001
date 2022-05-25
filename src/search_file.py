@@ -801,7 +801,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                                                  filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
-                    f.write(json.dumps(((done_project, done_file, done_module, done_lemma),
+                    f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
                                         sol.to_dict())))
                     f.write("\n")
                 bar.update()
