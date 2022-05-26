@@ -93,7 +93,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
             switch_dict = {item["project_name"]: item["switch"]
                            for item in project_dicts}
 
-    with Worker(args, predictor, switch_dict) as worker:
+    with Worker(args, workerid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]

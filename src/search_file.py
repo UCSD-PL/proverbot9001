@@ -367,6 +367,7 @@ class ReportJob(NamedTuple):
 
 class Worker:
     args: argparse.Namespace
+    widx: int
     predictor: TacticPredictor
     coq: Optional[serapi_instance.SerapiInstance]
     switch_dict: Optional[Dict[str, str]]
@@ -378,9 +379,11 @@ class Worker:
     lemmas_encountered: List[str]
     remaining_commands: List[str]
 
-    def __init__(self, args: argparse.Namespace, predictor: TacticPredictor,
+    def __init__(self, args: argparse.Namespace, worker_idx: int,
+                 predictor: TacticPredictor,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
         self.args = args
+        self.widx = worker_idx
         self.predictor = predictor
         self.coq = None
         self.cur_file: Optional[str] = None
@@ -645,7 +648,7 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with Worker(args, predictor) as worker:
+    with Worker(args, worker_idx, predictor) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
