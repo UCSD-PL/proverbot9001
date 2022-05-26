@@ -89,15 +89,15 @@ def main(arg_list: List[str]) -> None:
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args)
     with open(args.output_dir / "jobs.txt") as f:
-        num_jobs = len([line for line in f])
-        assert num_jobs > 0
-    if len(solved_jobs) < num_jobs :
-        setup_jobsstate(args.output_dir, solved_jobs)
+        jobs = [json.loads(line) for line in f]
+        assert len(jobs) > 0
+    if len(solved_jobs) < len(jobs):
+        setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, arg_list)
         with util.sighandler_context(signal.SIGINT, cancel_workers):
             show_progress(args)
     else:
-        assert len(solved_jobs) == num_jobs
+        assert len(solved_jobs) == len(jobs)
     generate_report(args, predictor)
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
@@ -143,10 +143,14 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
             time.sleep(0.2)
 
 
-def setup_jobsstate(output_dir: Path2, solved_jobs: List[ReportJob]) -> None:
+def setup_jobsstate(output_dir: Path2, all_jobs: List[ReportJob],
+                    solved_jobs: List[ReportJob]) -> None:
     with (output_dir / "taken.txt").open("w") as f:
-        for job in solved_jobs:
-            print(json.dumps(job), file=f)
+        pass
+    with (output_dir / "jobs.txt").open("w") as f:
+        for job in all_jobs:
+            if job not in solved_jobs:
+                print(json.dumps(job), file=f)
         print("", end="", flush=True, file=f)
 def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
