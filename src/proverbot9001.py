@@ -92,7 +92,6 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--max-length", dest="max_length", default=30, type=int)
     parser.add_argument("--lineend", dest="lineend", default=False, const=True,
                         action='store_const')
-    parser.add_argument("-j", "--num-threads", default=None, type=int)
     parser.add_argument("--context-filter", dest="context_filter", default="default")
     parser.add_argument('-v', "--verbose", action="count")
     parser.add_argument("--num-threads", "-j", type=int, default=None)
