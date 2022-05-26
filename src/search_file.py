@@ -514,13 +514,13 @@ class Worker:
 
     def skip_proof(self, lemma_statement: str) -> None:
         assert self.coq
-        proof_relevant = False
+        ending_command = None
         for cmd in self.remaining_commands:
             if serapi_instance.ending_proof(cmd):
-                if cmd.strip() == "Defined.":
-                    proof_relevant = True
+                ending_command = cmd
                 break
-        proof_relevant = proof_relevant or \
+        assert ending_command
+        proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(
                 r"\s*Derive",
                 serapi_instance.kill_comments(lemma_statement))) or \
@@ -536,7 +536,7 @@ class Worker:
                 self.remaining_commands))
         else:
             try:
-                serapi_instance.admit_proof(self.coq, lemma_statement)
+                serapi_instance.admit_proof(self.coq, lemma_statement, ending_command)
             except serapi_instance.SerapiException:
                 lemma_name = \
                   serapi_instance.lemma_name_from_statement(lemma_statement)
@@ -610,11 +610,11 @@ class Worker:
                 + tactic_solution +
                 [TacticInteraction("Qed.", empty_context)])
 
-        serapi_instance.admit_proof(self.coq, job_lemma)
         while not serapi_instance.ending_proof(self.remaining_commands[0]):
             self.remaining_commands.pop(0)
         # Pop the actual Qed/Defined/Save
-        self.remaining_commands.pop(0)
+        ending_command = self.remaining_commands.pop(0)
+        serapi_instance.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job_lemma)
         return SearchResult(search_status, solution)

@@ -483,10 +483,10 @@ def reinforce_worker(worker_idx: int,
                                 f"lemma {next_lemma}")
                             eprint(e)
                         raise
-                    serapi_instance.admit_proof(coq, lemma_statement)
                     while not serapi_instance.ending_proof(rest_commands[0]):
-                        rest_commands = rest_commands[1:]
-                    rest_commands = rest_commands[1:]
+                        rest_commands.pop(0)
+                    ending_comamnd = rest_commands.pop(0)
+                    serapi_instance.admit_proof(coq, lemma_statement, ending_command)
                     done.put(((next_file, next_module, next_lemma),
                               graph_job))
                     try:
@@ -505,13 +505,12 @@ def reinforce_worker(worker_idx: int,
                         rest_commands = all_commands
                         break
                 else:
-                    proof_relevant = False
+                    ending_command = None
                     for cmd in rest_commands:
                         if serapi_instance.ending_proof(cmd):
-                            if cmd.strip() == "Defined.":
-                                proof_relevant = True
+                            ending_command = cmd
                             break
-                    proof_relevant = proof_relevant or \
+                    proof_relevant = ending_command.strip() == "Defined." or \
                         bool(re.match(
                             r"\s*Derive",
                             serapi_instance.kill_comments(lemma_statement))
