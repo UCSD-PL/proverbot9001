@@ -97,9 +97,12 @@ def run_worker(args: argparse.Namespace, workerid: int,
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
-                remaining_jobs = [job for job in all_jobs if job not in taken_jobs]
-                if len(remaining_jobs) > 0:
-                    current_job = remaining_jobs[0]
+                current_job = None
+                for job in all_jobs:
+                    if job not in taken_jobs:
+                        current_job = job
+                        break
+                if current_job:
                     print(json.dumps(current_job), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
