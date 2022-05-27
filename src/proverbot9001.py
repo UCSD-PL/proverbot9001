@@ -135,7 +135,7 @@ def get_data(args : List[str]) -> None:
         elif arg_values.format == "tacvector":
             embedding = SimpleEmbedding()
             eprint("Encoding tactics...", guard=arg_values.verbose)
-            answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
+            answers = [embedding.encode_token(coq_serapy.get_stem(datum.tactic))
                        for datum in dataset]
             stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
             eprint("Constructing features...", guard=arg_values.verbose)
