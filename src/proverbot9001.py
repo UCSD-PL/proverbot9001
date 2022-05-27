@@ -40,6 +40,7 @@ import predict_tactic
 import evaluate_state
 import interactive_predictor
 from pathlib_revised import Path2
+import dataloader
 
 from typing import List
 
@@ -102,18 +103,15 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--sort", action='store_true')
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
-        terms, tokenizer = data.term_data(
-            data.RawDataset(list(itertools.islice(data.read_text_data(arg_values.scrape_file),
-                                                  arg_values.max_tuples))),
-            tokenizers[arg_values.tokenizer],
-            arg_values.num_keywords, 2)
-        if arg_values.max_length:
-            terms = [data.normalizeSentenceLength(term, arg_values.max_length)
-                     for term in terms]
+        scraped_tactics = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                               arg_values.max_tuples)
+        terms = [term
+                 for scraped in scraped_tactics if len(scraped.context.fg_goals) > 0
+                 for term in [coq_serapy.get_hyp_type(premise) for premise in
+                  scraped.relevant_lemmas + scraped.context.fg_goals[0].hypotheses]
+                 + [scraped.context.fg_goals[0].goal]]
         for term in terms:
-            print(tokenizer.toString(
-                list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
-                  end="\\n\n" if arg_values.lineend else "\n")
+            print(term, end="\\n\n" if arg_values.lineend else "\n")
     else:
         dataset = data.get_text_data(arg_values)
         if arg_values.sort:
