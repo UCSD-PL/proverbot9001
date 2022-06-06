@@ -21,7 +21,9 @@ else
     opam pin -y add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi
+    # Python dependencies
     pip3 install --user -r requirements.txt
+    pip3 install -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
     make src/dataloader.so
