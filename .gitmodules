@@ -41,8 +41,8 @@
 	url = git@github.com:coq-community/pocklington.git
 [submodule "coq-projects/quicksort-complexity"]
 	path = coq-projects/quicksort-complexity
-	url = git@github.com:coq-contribs/quicksort-complexity.git
-	branch = v8.9
+	url = git@github.com:HazardousPeach/quicksort-complexity.git
+	branch = v8.10
 [submodule "coq-projects/finmap"]
 	path = coq-projects/finmap
 	url = git@github.com:math-comp/finmap.git
@@ -79,8 +79,8 @@
 	branch = v8.9
 [submodule "coq-projects/hardware"]
 	path = coq-projects/hardware
-	url = git@github.com:coq-contribs/hardware.git
-	branch = v8.9
+	url = git@github.com:HazardousPeach/hardware.git
+	branch = v8.10
 [submodule "coq-projects/float"]
 	path = coq-projects/float
 	url = git@github.com:coq-contribs/float.git
@@ -113,7 +113,7 @@
 	url = git@github.com:GeoCoq/GeoCoq.git
 [submodule "coq-projects/coquelicot"]
 	path = coq-projects/coquelicot
-	url = git@github.com:thery/coquelicot.git
+	url = git@github.com:HazardousPeach/coquelicot.git
 [submodule "deps/metalib"]
 	path = deps/metalib
 	url = git@github.com:plclub/metalib.git
@@ -136,10 +136,12 @@
 	url = git@github.com:HazardousPeach/lin-alg-8.10.git
 [submodule "coq-projects/VST"]
 	path = coq-projects/VST
-	url = git@github.com:PrincetonUniversity/VST.git
+	url = git@github.com:HazardousPeach/VST.git
+        branch = v8.10.2
 [submodule "coq-projects/coq-library-undecidability"]
 	path = coq-projects/coq-library-undecidability
-	url = git@github.com:uds-psl/coq-library-undecidability.git
+	url = git@github.com:HazardousPeach/coq-library-undecidability.git
+        branch = v8.12.2
 [submodule "coq-projects/fermat4"]
 	path = coq-projects/fermat4
 	url = git@github.com:coq-contribs/fermat4.git
