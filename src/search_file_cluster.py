@@ -89,7 +89,7 @@ def main(arg_list: List[str]) -> None:
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args)
     with open(args.output_dir / "jobs.txt") as f:
-        jobs = [json.loads(line) for line in f]
+        jobs = [ReportJob(*json.loads(line)) for line in f]
         assert len(jobs) > 0
     if len(solved_jobs) < len(jobs):
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
