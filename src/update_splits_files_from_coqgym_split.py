@@ -26,7 +26,7 @@ def main(arg_list: List[str]) -> None:
     for project_dict in project_dicts:
         os.chdir(basedir / project_dict["project_name"])
         files = [str(Path(filename).with_suffix(".v")) for filename in
-                 glob(str("**/*.vo"), recursive=True)]
+                 glob("**/*.vo", recursive=True)]
         files_filtered = []
         for filename in files:
             if not os.path.exists(filename):
