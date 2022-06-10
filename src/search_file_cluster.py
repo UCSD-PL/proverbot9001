@@ -84,7 +84,7 @@ def main(arg_list: List[str]) -> None:
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
     else:
-        remove_alrady_done_jobs(args)
+        remove_already_done_jobs(args)
         solved_jobs = []
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args)
