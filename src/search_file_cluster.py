@@ -88,7 +88,7 @@ def main(arg_list: List[str]) -> None:
         solved_jobs = []
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args)
-    with open(args.output_dir / "jobs.txt") as f:
+    with open(args.output_dir / "all_jobs.txt") as f:
         jobs = [ReportJob(*json.loads(line)) for line in f]
         assert len(jobs) > 0
     if len(solved_jobs) < len(jobs):
@@ -105,7 +105,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     projfiles = [(project_dict["project_name"], filename)
                  for project_dict in project_dicts
                  for filename in project_dict["test_files"]]
-    with (args.output_dir / "jobs.txt").open("w") as f:
+    with (args.output_dir / "all_jobs.txt").open("w") as f:
         pass
     with (args.output_dir / "proj_files.txt").open("w") as f:
         for projfile in projfiles:
@@ -119,7 +119,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
                    "proj_files.txt",
                    "proj_files_taken.txt",
                    "proj_files_scanned.txt",
-                   "jobs.txt"]
+                   "all_jobs.txt"]
     if args.include_proof_relevant:
         worker_args.append("--include-proof-relevant")
     if args.proof:
@@ -176,21 +176,10 @@ def cancel_workers(*args) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
     sys.exit()
 
-def get_jobs_done(args: argparse.Namespace) -> int:
-    if args.splits_file:
-        return len(get_already_done_jobs(args))
-    else:
-        jobs_done = 0
-        for filename in args.filenames:
-            with (args.output_dir /
-                  (util.safe_abbrev(filename, args.filenames) + "-proofs.txt")).open('r') as f:
-                jobs_done += len([line for line in f])
-        return jobs_done
-
 def show_progress(args: argparse.Namespace) -> None:
-    with (args.output_dir / "jobs.txt").open('r') as f:
+    num_jobs_done = len(get_already_done_jobs(args))
+    with (args.output_dir / "all_jobs.txt").open('r') as f:
         num_jobs_total = len([line for line in f])
-    num_jobs_done = get_jobs_done(args)
     with (args.output_dir / "num_workers_dispatched.txt").open('r') as f:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
@@ -201,7 +190,7 @@ def show_progress(args: argparse.Namespace) -> None:
          tqdm(desc="Workers scheduled", total=num_workers_total,
               initial=num_workers_scheduled, dynamic_ncols=True) as wbar:
         while num_jobs_done < num_jobs_total:
-            new_jobs_done = get_jobs_done(args)
+            new_jobs_done = len(get_already_done_jobs(args))
             bar.update(new_jobs_done - num_jobs_done)
             num_jobs_done = new_jobs_done
 
