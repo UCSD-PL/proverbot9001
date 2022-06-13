@@ -174,3 +174,6 @@
 [submodule "coq-projects/mod-red"]
 	path = coq-projects/mod-red
 	url = git@github.com:coq-contribs/mod-red.git
+[submodule "coq-projects/metalib"]
+	path = coq-projects/metalib
+	url = git@github.com:plclub/metalib.git
