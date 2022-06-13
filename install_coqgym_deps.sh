@@ -6,7 +6,7 @@ then
     # the "system" project
     git clone https://github.com/rbenv/ruby-build.git ~/ruby-build
     mkdir -p ~/.local
-    PREFIX=~/.local ./ruby-build/install.sh
+    PREFIX=~/.local ~/ruby-build/install.sh
     ~/.local/ruby-build 3.1.2 ~/.local/
 fi
 
