@@ -1288,7 +1288,8 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor(tactics_file, tokens_file)
+        self.feature_extractor = FeaturesExtractor(str(tactics_file),
+                                                   str(tokens_file))
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
