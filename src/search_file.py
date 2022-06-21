@@ -1790,7 +1790,7 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
     num_opens = 0
     significant_parent = node
     while num_opens <= num_closes:
-        assert significant_parent.previous is not None, num_opens, num_closes
+        assert significant_parent.previous is not None, (num_opens, num_closes)
         num_opens += len([cmd for cmd in significant_parent.previous.postfix if cmd == "{"])
         num_closes += len([cmd for cmd in significant_parent.previous.postfix if cmd == "}"])
         significant_parent = significant_parent.previous
