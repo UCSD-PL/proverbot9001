@@ -34,6 +34,7 @@ import traceback
 import subprocess
 import cProfile
 import copy
+import pickle
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
@@ -247,7 +248,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'])
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty"], default="lstd")
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "svridentlength"], default="lstd")
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -1824,6 +1825,7 @@ def bfs_beam_proof_search(lemma_statement: str,
 
     features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
     state_estimator = Estimator(args.beta_file)
+    john_model = pickle.load(args.pickled_estimator)
 
     if coq.count_fg_goals() > 1:
         coq.run_stmt("{")
@@ -1884,6 +1886,9 @@ def bfs_beam_proof_search(lemma_statement: str,
 
                 if args.scoring_function == "certainty":
                     state_score = next_node.score * prediction.certainty
+                elif args.scoring_function == "svridentlength":
+                    state_score = john_model.predict(coq.term_as_sexp(
+                        context_after.focused_goal))
                 else:
                     assert args.scoring_function == "lstd"
                     state_score = state_estimator.estimateVal(
