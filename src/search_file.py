@@ -1175,8 +1175,9 @@ def attempt_search(args: argparse.Namespace,
     else:
         assert False, args.relevant_lemmas
 
-    timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
-    timer.start()
+    if args.max_search_time_per_lemma:
+        timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
+        timer.start()
     try:
         if args.search_type == 'dfs':
             result = dfs_proof_search_with_graph(lemma_statement, module_name,
@@ -1187,10 +1188,16 @@ def attempt_search(args: argparse.Namespace,
             result = bfs_beam_proof_search(lemma_statement, module_name,
                                            env_lemmas + relevant_lemmas, coq,
                                            args, bar_idx, predictor)
-    except:
-        raise KilledException("Lemma timeout")
+        else:
+            assert False, args.search_type
+    except KeyboardInterrupt:
+        if args.max_search_time_per_lemma:
+            raise KilledException("Lemma timeout")
+        else:
+            raise
     finally:
-        timer.cancel()
+        if args.max_search_time_per_lemma:
+            timer.cancel()
     return result
 
 
