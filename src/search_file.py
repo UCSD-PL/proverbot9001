@@ -758,6 +758,8 @@ def search_file_multithreaded(args: argparse.Namespace,
         solved_jobs = get_already_done_jobs(args)
         all_jobs = get_all_jobs(args)
         todo_jobs = [job for job in all_jobs if job not in solved_jobs]
+        assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
+          f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
 
 
         for job in todo_jobs:
