@@ -677,7 +677,7 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
             project_dicts = json.loads(f.read())
     else:
         project_dicts = [{"project_name": ".",
-                          "test_files": args.filenames}]
+                          "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
