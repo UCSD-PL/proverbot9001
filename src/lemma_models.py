@@ -56,7 +56,10 @@ class NaiveMeanLearner(ILearner):
 
 class LinRegressionLearner(ILearner):
 
-  _model : LinearRegression = LinearRegression()
+  _model : LinearRegression
+
+  def __init__(self):
+      self._model = LinearRegression()
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -74,7 +77,10 @@ class LinRegressionLearner(ILearner):
 
 class SVRLength(ILearner):
 
-  _model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  _model : Any
+
+  def __init__(self):
+      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -91,7 +97,10 @@ class SVRLength(ILearner):
 
 class SVRIdent(ILearner):
 
-  _model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  _model : Any
+
+  def __init__(self):
+      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -108,7 +117,10 @@ class SVRIdent(ILearner):
 
 class SVRIdentLength(ILearner):
 
-  _model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  _model : Any
+
+  def __init__(self):
+      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
