@@ -1338,7 +1338,7 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] is not "":
+        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] != "":
             node_handle.attr["fillcolor"] += (":" + color)
         else:
             node_handle.attr["fillcolor"] = color
