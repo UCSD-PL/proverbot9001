@@ -494,6 +494,7 @@ class Worker:
                     eprint(f"Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, restart=False)
+                    return
                 else:
                     assert False
             except serapi_instance.SerapiException:
@@ -576,13 +577,8 @@ class Worker:
                              self.args.output_dir / self.cur_project,
                              0, self.predictor)
         except KilledException:
-            solution = [
-                TacticInteraction("Proof.", initial_context),
-                TacticInteraction("Admitted.", initial_context)
-                ]
-
-            return SearchResult(SearchStatus.INCOMPLETE,
-                                solution)
+            tactic_solution = None
+            search_status = SearchStatus.INCOMPLETE
         except serapi_instance.CoqAnomaly:
             if self.args.hardfail:
                 raise
@@ -604,13 +600,9 @@ class Worker:
                             f"{job_file}:{job_lemma}",
                             file=f)
                         traceback.print_exc(file=f)
-                solution = [
-                    TacticInteraction("Proof.", initial_context),
-                    TacticInteraction("Admitted.", initial_context)
-                    ]
 
-                return SearchResult(SearchStatus.SKIPPED,
-                                    solution)
+                search_status = SearchStatus.SKIPPED
+                tactic_solution = None
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
