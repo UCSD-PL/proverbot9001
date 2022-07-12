@@ -17,7 +17,7 @@ else
     eval `opam config env`
     opam update
     # For Coq:
-    opam pin add coq 8.11.0
+    opam pin add coq 8.10.2
     opam pin -y add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi
