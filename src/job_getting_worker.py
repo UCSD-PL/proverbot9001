@@ -9,7 +9,7 @@ from pathlib_revised import Path2
 from search_file import get_file_jobs
 from util import FileLock
 
-from typing import List
+from typing import List, cast, Tuple
 
 def main(arg_list: List[str]) -> None:
     arg_parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ def run_worker(args: argparse.Namespace) -> None:
             to_be_scanned = [tuple(proj_file) for proj_file in all_proj_files
                              if proj_file not in taken_proj_files]
             if len(to_be_scanned) > 0:
-                next_proj_file = to_be_scanned[0]
+                next_proj_file = cast(Tuple[str, str], to_be_scanned[0])
                 print(json.dumps(next_proj_file), file=f, flush=True)
             else:
                 break
