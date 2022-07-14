@@ -168,7 +168,7 @@ def main(arg_list: List[str]) -> None:
         with args.splits_file.open('r') as splits_f:
             project_dicts = json.loads(splits_f.read())
         for project_dict in project_dicts:
-            (args.output_dir / project_dict["project_name"]).makedirs(exist_ok=True)
+            os.makedirs(args.output_dir / project_dict["project_name"], exist_ok=True)
             for filename in [details_css, details_javascript]:
                 destpath = args.output_dir / project_dict["project_name"] / filename
                 if not destpath.exists():
