@@ -186,7 +186,7 @@ def write_summary(args : argparse.Namespace, report_dir: Path,
                        cur_commit, cur_date, weights_hash,
                        individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(report_dir), combined_stats, options)
-    write_proof_summary_csv(report_dir, [s.filename for s in individual_stats])
+    write_proof_summary_csv(str(report_dir), [str(s.filename) for s in individual_stats])
     base = Path(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
         copyfile(base / filename, report_dir / filename)
