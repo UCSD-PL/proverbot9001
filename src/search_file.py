@@ -367,9 +367,10 @@ def search_file_worker_profiled(
         done:
         'multiprocessing.Queue['
         '  Tuple[Tuple[str, str, str], SearchResult]]',
-        worker_idx: int) -> None:
+        worker_idx: int,
+        device: str) -> None:
     cProfile.runctx('search_file_worker(args, predictor, '
-                    'predictor_lock, jobs, done, worker_idx)',
+                    'predictor_lock, jobs, done, worker_idx, device)',
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
 Job = Tuple[str, str, str]
