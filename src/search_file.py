@@ -55,8 +55,10 @@ import search_report
 import multi_project_report
 import util
 import tokenizer
-from dataclasses import dataclass
 
+from lemma_models import Lemma
+
+from dataclasses import dataclass
 from tqdm import tqdm
 from yattag import Doc
 from pathlib_revised import Path2
@@ -1894,7 +1896,7 @@ def bfs_beam_proof_search(lemma_statement: str,
                 if args.scoring_function == "certainty":
                     state_score = next_node.score * prediction.certainty
                 elif args.scoring_function == "pickled":
-                    state_score = john_model.predict(coq.get_sexp_goal())
+                    state_score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
                 else:
                     assert args.scoring_function == "lstd"
                     state_score = state_estimator.estimateVal(
