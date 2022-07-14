@@ -807,7 +807,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                         project_dicts = json.loads(splits_f.read())
                     for project_dict in project_dicts:
                         if project_dict["project_name"] == done_project:
-                            filenames = project_dict["test_files"]
+                            filenames = [Path(fname) for fname in project_dict["test_files"]]
                             break
                 else:
                     filenames = args.filenames
