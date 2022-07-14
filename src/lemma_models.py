@@ -1,17 +1,20 @@
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import List, Tuple, Union, Any, Optional
+from typing import List, Tuple, Union, Any, Optional, Callable
 from dataclasses import dataclass
 
 from sklearn.linear_model import LinearRegression # for linear regression of type vs difficulty
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsClassifier
 import sklearn.model_selection # for k-fold splitting, see source at https://datascience.stanford.edu/news/splitting-data-randomly-can-ruin-your-model
 from sklearn.model_selection import train_test_split
 import numpy as np
 
 import sexpdata as sexp
+
+import random as rand
 
 Symbol = sexp.Symbol
 
@@ -43,7 +46,9 @@ class UnhandledExpr(Exception):
 
 class NaiveMeanLearner(ILearner):
 
-  _mean: float = 0
+  def __init__(self) -> None:
+    super().__init__()
+    self._mean: float = 0
 
   def learn(self, lemmas):
     self._mean = float(np.mean([x for _, x in lemmas]))
@@ -56,10 +61,9 @@ class NaiveMeanLearner(ILearner):
 
 class LinRegressionLearner(ILearner):
 
-  _model : LinearRegression
-
-  def __init__(self):
-      self._model = LinearRegression()
+  def __init__(self) -> None:
+    super().__init__()
+    self._model : LinearRegression = LinearRegression()
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -77,10 +81,9 @@ class LinRegressionLearner(ILearner):
 
 class SVRLength(ILearner):
 
-  _model : Any
-
-  def __init__(self):
-      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  def __init__(self) -> None:
+    super().__init__()
+    self._model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -99,8 +102,9 @@ class SVRIdent(ILearner):
 
   _model : Any
 
-  def __init__(self):
-      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  def __init__(self) -> None:
+    super().__init__()
+    self._model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -119,8 +123,9 @@ class SVRIdentLength(ILearner):
 
   _model : Any
 
-  def __init__(self):
-      self._model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+  def __init__(self) -> None:
+    super().__init__()
+    self._model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -134,6 +139,104 @@ class SVRIdentLength(ILearner):
   @property
   def name(self):
     return "SVR idents + size"
+
+def ranges(N: int):
+  return [float(k) / float(N) for k, _ in enumerate(range(N))]
+
+def find_quantile(buckets: list[float], x: float):
+  for i, buck in enumerate(buckets):
+    if x <= buck: return i-1
+  return len(buckets) - 1
+
+def make_ident_vector(lem: Lemma, idxs: dict[str, int]) -> list[float]:
+  idents = {x for x in lemma_idents(lem)}
+  return [1.0 if ident in idents else 0.0 for ident in idxs ]
+
+class KNNIdents(ILearner):
+
+  _model : Any
+  _locals : List[ILearner]
+  _buckets : int
+  _ident_idx : dict[str, int]
+
+  def __init__(self, local_learner : Callable[[int], ILearner], buckets: int, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._model = make_pipeline(StandardScaler(), KNeighborsClassifier(weights='distance'))
+    self._locals = []
+    self._buckets = 0
+    self._ident_idx = {}
+    self._buckets = buckets
+    self._locals = [local_learner(i) for i in range(buckets)]
+
+  def learn(self, lemmas):
+    # gather up all of the idents
+    lems, difficulties = zip(*lemmas)
+    all_idents : set[str] = set()
+    print("gathering idents...")
+    for lem in lems:
+      all_idents |= lemma_idents(lem)
+
+    ident_idx : dict[str, int] = {ident : i for i, ident in enumerate(all_idents)}
+
+    self._ident_idx = ident_idx
+
+    # train idents -> quantile
+    # print("gathering ident data...")
+    slices = ranges(self._buckets)
+    thresholds = np.quantile(difficulties, slices)
+    # print('computed thresholds:', thresholds)
+    ident_xs : list[list[float]] = [ make_ident_vector(lem, ident_idx) for lem in lems]
+    ident_ys : list[int] = [ find_quantile(thresholds, diff) for diff in difficulties ]
+
+
+    print('fitting model for ident -> bucket')
+    self._model.fit(ident_xs, ident_ys)
+
+    print('score:', self._model.score(ident_xs, ident_ys))
+
+
+    # next, train learners for each of the buckets
+
+
+    for i, thresh in enumerate(thresholds):
+      if i == len(thresholds) - 1:
+        lo = thresh
+        hi = max(difficulties)
+      else:
+        lo = thresh
+        hi = thresholds[i+1]
+
+      data = [(lem, d) for lem, d in lemmas if lo <= d and d <= hi]
+
+      learner = self._locals[i]
+
+      # print(f"learning using {learner.name}")
+      learner.learn(data)
+    print("done training individual learners")
+
+    # just a sanity check, pick a random element and doublecheck the computed stuff
+    # test_x, test_y = rand.choice(lemmas)
+
+    # thresh = find_quantile(thresholds, test_y)
+    # print("value and computed quantile:", test_y, thresh)
+    # pred_bucket = int(self._model.predict([make_ident_vector(test_x, self._ident_idx)]))
+    # print("predicted bucket:", pred_bucket)
+    # for buck in range(len(thresholds)):
+    #   print(f"output of learner at bucket {buck}:", self._locals[buck].predict(test_x))
+
+
+  def predict(self, lemma):
+    # get the bucket
+    buck_float = self._model.predict([make_ident_vector(lemma, self._ident_idx)])
+    # print(f'predicted to {int(buck_float)}')
+    buck = int(buck_float) # could also try combining the two adjacent quantiles
+
+    return self._locals[buck].predict(lemma)
+
+  @property
+  def name(self):
+    inner = ",".join([x.name for x in self._locals])
+    return f"KNN idents + [{inner}]"
 
 def nested_size(obj: Sexpr) -> int:
   if isinstance(obj, sexp.Symbol) or isinstance(obj, str) or isinstance(obj, int):
@@ -243,3 +346,8 @@ def conv_id(e: Sexpr) -> Optional[str]:
         return None
     case _ : return None
   return None
+
+def lemma_idents(l: Lemma) -> set[str]:
+  x = strip_toplevel(l.type)
+  if x: return gather_idents(x)
+  else: return set()
