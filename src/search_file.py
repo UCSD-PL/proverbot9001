@@ -38,6 +38,7 @@ import pickle
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
+from shutil import copyfile
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -59,6 +60,7 @@ from dataclasses import dataclass
 from tqdm import tqdm
 from yattag import Doc
 from pathlib_revised import Path2
+from pathlib import Path
 from enum import Enum
 import pygraphviz as pgv
 import torch
@@ -156,10 +158,10 @@ def main(arg_list: List[str]) -> None:
         util.cuda_device = f"cuda:{args.gpu}"
 
     predictor = get_predictor(parser, args)
-    base = Path2(os.path.dirname(os.path.abspath(__file__)))
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
-        args.output_dir.makedirs()
+        os.makedirs(str(args.output_dir))
     if args.splits_file:
         with args.splits_file.open('r') as splits_f:
             project_dicts = json.loads(splits_f.read())
@@ -169,24 +171,24 @@ def main(arg_list: List[str]) -> None:
                 destpath = args.output_dir / project_dict["project_name"] / filename
                 if not destpath.exists():
                     srcpath = base.parent / 'reports' / filename
-                    srcpath.copyfile(destpath)
+                    copyfile(srcpath, destpath)
     else:
         for filename in [details_css, details_javascript]:
             destpath = args.output_dir / filename
             if not destpath.exists():
                 srcpath = base.parent / 'reports' / filename
-                srcpath.copyfile(destpath)
+                copyfile(srcpath, destpath)
 
 
     search_file_multithreaded(args, predictor)
 
 
 def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--prelude", default=".", type=Path2)
+    parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
                         default="search-report",
-                        type=Path2)
+                        type=Path)
     parser.add_argument("--no-generate-report", dest="generate_report",
                         action="store_false")
     parser.add_argument("--verbose", "-v", help="verbose output",
@@ -201,7 +203,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default=None, type=Path2)
+    parser.add_argument('--weightsfile', default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -227,10 +229,10 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         type=float, default=300)
     parser.add_argument("--max-tactic-time", type=float, default=2)
     parser.add_argument("--linearize", action='store_true')
-    parser.add_argument("--proof-times", default=None, type=Path2)
+    parser.add_argument("--proof-times", default=None, type=Path)
     parser.add_argument('filenames', help="proof file name (*.v)",
-                        nargs='+', type=Path2)
-    parser.add_argument("--splits-file", default=None, type=Path2)
+                        nargs='+', type=Path)
+    parser.add_argument("--splits-file", default=None, type=Path)
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -253,16 +255,16 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-    parser.add_argument("--log-anomalies", type=Path2, default=None)
-    parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
+    parser.add_argument("--log-anomalies", type=Path, default=None)
+    parser.add_argument("--log-hard-anomalies", type=Path, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--max-term-length", type=int, default=256)
-    parser.add_argument("--add-env-lemmas", type=Path2, default=None)
-    parser.add_argument("--add-axioms", type=Path2, default=None)
+    parser.add_argument("--add-env-lemmas", type=Path, default=None)
+    parser.add_argument("--add-axioms", type=Path, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
-    parser.add_argument("--tactics-file", type=Path2, default=Path2("tactics.txt"))
-    parser.add_argument("--tokens-file", type=Path2, default=Path2("tokens.txt"))
-    parser.add_argument("--beta-file", type=Path2, default=Path2("beta.txt"))
+    parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
+    parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
+    parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -694,8 +696,8 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             proofs_file = (args.output_dir / project_dict["project_name"] /
-                           (util.safe_abbrev(Path2(filename),
-                                             [Path2(filename) for filename in
+                           (util.safe_abbrev(Path(filename),
+                                             [Path(filename) for filename in
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
@@ -806,7 +808,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                 else:
                     filenames = args.filenames
                 proofs_file = (args.output_dir / done_project /
-                               (util.safe_abbrev(Path2(done_file),
+                               (util.safe_abbrev(Path(done_file),
                                                  filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
@@ -829,12 +831,12 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> Non
             for filename in project_dict["test_files"]:
                 file_solutions = []
                 output_file_prefix = args.output_dir / project_dict["project_name"] / \
-                      (util.safe_abbrev(Path2(filename),
-                                        [Path2(path) for path in
+                      (util.safe_abbrev(Path(filename),
+                                        [Path(path) for path in
                                          project_dict["test_files"]]))
                 source_file = args.prelude / project_dict["project_name"] / filename
                 try:
-                    with (Path2(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                    with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
                         for line in f:
                             job, sol = json.loads(line)
                             file_solutions.append((job, SearchResult.from_dict(sol)))
@@ -1375,7 +1377,7 @@ class SearchGraph:
             f.write("\n")
             for child in node.children:
                 write_node(child, f)
-        with Path2(filename).open('w') as f:
+        with Path(filename).open('w') as f:
             json.dump({"state_features_max_values":
                        self.feature_extractor.state_features_bounds(),
                        "action_features_max_values":
